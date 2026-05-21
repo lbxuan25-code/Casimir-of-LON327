@@ -26,3 +26,9 @@ Inspect one momentum point:
 ```bash
 python scripts/inspect_ground_state_blocks.py --kx 0.0 --ky 0.0
 ```
+
+Plot the normal-state bands:
+
+```bash
+python scripts/inspect_band_structure.py
+```
