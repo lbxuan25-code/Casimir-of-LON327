@@ -1,0 +1,23 @@
+{
+  "qiu_exchange": {
+    "chemical_potential": 0.05,
+    "j_perp_dz": 0.135,
+    "j_parallel_dx": 0.084,
+    "j_parallel_xz": 0.03,
+    "hund": 1.0,
+    "filling_dz": 0.8,
+    "filling_dx": 0.58
+  },
+  "pairing_seed": {
+    "dz_parallel": 0.02,
+    "dx_parallel": 0.02,
+    "dxz_parallel": 0.005,
+    "dz_perp": 0.04,
+    "dx_perp": 0.01
+  },
+  "casimir_setup": {
+    "temperature": 30.0,
+    "distance": 3e-8,
+    "area": 1.0
+  }
+}

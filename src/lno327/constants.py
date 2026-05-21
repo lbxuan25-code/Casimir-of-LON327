@@ -1,0 +1,8 @@
+"""Physical constants used by low-level response formulas."""
+
+HBAR = 1.054_571_817e-34
+KB = 1.380_649e-23
+C0 = 299_792_458.0
+EPSILON0 = 8.854_187_8128e-12
+MU0 = 1.256_637_06212e-6
+SIGMA0 = (EPSILON0 / MU0) ** 0.5
