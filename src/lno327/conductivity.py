@@ -95,6 +95,27 @@ def anisotropy_summary(conductivity: ConductivityTensor) -> dict[str, complex]:
     }
 
 
+def conductivity_matrix_diagnostics(conductivity: ConductivityTensor) -> dict[str, np.ndarray | complex | float]:
+    """Return matrix diagnostics for a 2D conductivity tensor."""
+
+    sigma_matrix = conductivity.matrix()
+    eigenvalues, eigenvectors = np.linalg.eig(sigma_matrix)
+    offdiag_norm = float(np.linalg.norm([sigma_matrix[0, 1], sigma_matrix[1, 0]]))
+    relative_xx_yy_error = 0.0
+    diagonal_scale = 0.5 * (abs(conductivity.xx) + abs(conductivity.yy))
+    if not np.isclose(diagonal_scale, 0.0):
+        relative_xx_yy_error = float(abs(conductivity.xx - conductivity.yy) / diagonal_scale)
+
+    return {
+        "sigma_matrix": sigma_matrix,
+        "eigenvalues": eigenvalues,
+        "eigenvectors": eigenvectors,
+        "anisotropy_delta": anisotropy_delta(conductivity),
+        "offdiag_norm": offdiag_norm,
+        "relative_xx_yy_error": relative_xx_yy_error,
+    }
+
+
 def fermi_function(energy_eV: np.ndarray, fermi_level_eV: float, temperature_eV: float) -> np.ndarray:
     """Return Fermi occupation for eV energies."""
 

@@ -9,6 +9,7 @@ from lno327 import (
     bosonic_matsubara_energy_eV,
     casimir_torque_integrand,
     conductivity_eigensystem,
+    conductivity_matrix_diagnostics,
     k_weights,
     kubo_conductivity_imag_axis,
     kubo_conductivity_real_axis,
@@ -85,6 +86,27 @@ def test_conductivity_eigensystem_shapes():
     assert eigensystem.states.shape == (4, 4)
     assert eigensystem.velocity_x_band.shape == (4, 4)
     assert eigensystem.velocity_y_band.shape == (4, 4)
+
+
+def test_conductivity_matrix_diagnostics_fields():
+    tensor = ConductivityTensor(xx=3.0, yy=1.0, xy=0.5, yx=-0.25)
+
+    diagnostics = conductivity_matrix_diagnostics(tensor)
+
+    assert set(diagnostics) == {
+        "sigma_matrix",
+        "eigenvalues",
+        "eigenvectors",
+        "anisotropy_delta",
+        "offdiag_norm",
+        "relative_xx_yy_error",
+    }
+    np.testing.assert_allclose(diagnostics["sigma_matrix"], tensor.matrix())
+    assert diagnostics["eigenvalues"].shape == (2,)
+    assert diagnostics["eigenvectors"].shape == (2, 2)
+    assert np.isclose(diagnostics["anisotropy_delta"], 0.5)
+    assert np.isclose(diagnostics["offdiag_norm"], np.sqrt(0.5**2 + 0.25**2))
+    assert np.isclose(diagnostics["relative_xx_yy_error"], 1.0)
 
 
 def test_c4_symmetric_bz_conductivity_has_isotropic_diagonal_and_zero_xy():

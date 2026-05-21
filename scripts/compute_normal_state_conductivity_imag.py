@@ -7,17 +7,24 @@ import argparse
 from pathlib import Path
 import sys
 
+import numpy as np
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from lno327 import (
     KuboConfig,
-    anisotropy_summary,
     bosonic_matsubara_energy_eV,
+    conductivity_matrix_diagnostics,
     k_weights,
     kubo_conductivity_imag_axis,
     uniform_bz_mesh,
 )
+
+
+def principal_axis_angle(eigenvectors):
+    principal_vector = eigenvectors[:, 0]
+    return float(np.angle(principal_vector[0] + 1j * principal_vector[1]))
 
 
 def main() -> None:
@@ -40,7 +47,13 @@ def main() -> None:
         output_si=not args.dimensionless,
     )
     sigma = kubo_conductivity_imag_axis(mesh, config, k_weights(mesh))
-    summary = anisotropy_summary(sigma)
+    diagnostics = conductivity_matrix_diagnostics(sigma)
+    eigenvalues = diagnostics["eigenvalues"]
+    eigenvectors = diagnostics["eigenvectors"]
+    eigenvalue_scale = 0.5 * (abs(eigenvalues[0]) + abs(eigenvalues[1]))
+    relative_eigen_split = 0.0
+    if eigenvalue_scale != 0.0:
+        relative_eigen_split = abs(eigenvalues[0] - eigenvalues[1]) / eigenvalue_scale
 
     unit = "SI sheet conductance" if config.output_si else "dimensionless"
     print(f"nk = {args.nk} x {args.nk}")
@@ -48,11 +61,14 @@ def main() -> None:
     print(f"matsubara_index = {args.matsubara_index}")
     print(f"omega_eV = {omega_eV:.12g}")
     print(f"unit = {unit}")
-    print(f"sigma_xx = {sigma.xx}")
-    print(f"sigma_yy = {sigma.yy}")
-    print(f"sigma_xy = {sigma.xy}")
-    print(f"sigma_yx = {sigma.yx}")
-    print(f"delta = {summary['delta']}")
+    print(f"sigma_matrix = {diagnostics['sigma_matrix']}")
+    print(f"anisotropy_delta = {diagnostics['anisotropy_delta']}")
+    print(f"offdiag_norm = {diagnostics['offdiag_norm']}")
+    print(f"relative_xx_yy_error = {diagnostics['relative_xx_yy_error']}")
+    print(f"eigenvalue_1 = {eigenvalues[0]}")
+    print(f"eigenvalue_2 = {eigenvalues[1]}")
+    print(f"relative_eigen_split = {relative_eigen_split}")
+    print(f"principal_axis_angle = {principal_axis_angle(eigenvectors)}")
 
 
 if __name__ == "__main__":
