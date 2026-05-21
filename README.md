@@ -5,10 +5,11 @@ Low-level Python scaffolding for studying whether Casimir torque can distinguish
 
 Current scope:
 
-- Qiu et al. four-orbital bilayer normal-state Hamiltonian.
+- Adopted four-orbital bilayer normal-state Hamiltonian.
 - Seed `s_pm` and simple `d_wave` pairing matrices.
 - BdG matrix assembly.
 - Conductivity tensor rotation and anisotropy helpers.
+- Velocity vertices and band-basis Kubo conductivity with eV energy inputs.
 - Dai/Jiang-style reflection matrix plus Casimir energy/torque integrands.
 - Smoke-test scripts and pytest coverage.
 
@@ -23,5 +24,5 @@ pytest
 Inspect one momentum point:
 
 ```bash
-python scripts/inspect_qiu_blocks.py --kx 0.0 --ky 0.0
+python scripts/inspect_ground_state_blocks.py --kx 0.0 --ky 0.0
 ```

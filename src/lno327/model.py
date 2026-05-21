@@ -1,4 +1,4 @@
-"""Qiu et al. bilayer two-orbital normal-state Hamiltonian."""
+"""Project ground-state bilayer two-orbital Hamiltonian."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ ORBITAL_BASIS = ("dz1", "dx1", "dz2", "dx2")
 
 
 @dataclass(frozen=True)
-class QiuExchangeParameters:
-    """Exchange and filling parameters quoted in Qiu et al."""
+class GroundStateExchangeParameters:
+    """Exchange and filling parameters for the adopted ground-state model."""
 
     chemical_potential: float = 0.05
     j_perp_dz: float = 0.135
@@ -23,10 +23,10 @@ class QiuExchangeParameters:
 
 
 @dataclass(frozen=True)
-class QiuTightBindingParameters:
-    """Appendix-A tight-binding coefficients in eV for basis dz1, dx1, dz2, dx2.
+class GroundStateTightBindingParameters:
+    """Tight-binding coefficients in eV for basis dz1, dx1, dz2, dx2.
 
-    The normal-state matrix follows Qiu et al. Appendix A:
+    The adopted normal-state matrix is:
     H(k) = [[H_parallel, H_perp], [H_perp, H_parallel]] - mu I.
     """
 
@@ -58,19 +58,29 @@ def _cos_terms(kx: float, ky: float) -> tuple[float, float, float, float, float,
     return cx, cy, c2x, c2y, c3x, c3y
 
 
-def qiu_bilayer_hamiltonian(
+def _sin_terms(kx: float, ky: float) -> tuple[float, float, float, float, float, float]:
+    sx = np.sin(kx)
+    sy = np.sin(ky)
+    s2x = np.sin(2.0 * kx)
+    s2y = np.sin(2.0 * ky)
+    s3x = np.sin(3.0 * kx)
+    s3y = np.sin(3.0 * ky)
+    return sx, sy, s2x, s2y, s3x, s3y
+
+
+def ground_state_hamiltonian(
     kx: float,
     ky: float,
-    tb: QiuTightBindingParameters | None = None,
-    exchange: QiuExchangeParameters | None = None,
+    tb: GroundStateTightBindingParameters | None = None,
+    exchange: GroundStateExchangeParameters | None = None,
 ) -> np.ndarray:
     """Return the 4x4 normal-state Hamiltonian H_t(k) in eV.
 
     The returned matrix is spin independent and omits RMFT renormalization factors.
     """
 
-    tb = tb or QiuTightBindingParameters()
-    exchange = exchange or QiuExchangeParameters()
+    tb = tb or GroundStateTightBindingParameters()
+    exchange = exchange or GroundStateExchangeParameters()
     cx, cy, c2x, c2y, c3x, c3y = _cos_terms(kx, ky)
 
     tz = (
@@ -96,3 +106,71 @@ def qiu_bilayer_hamiltonian(
     h_perp = np.array([[tz_perp, vxz_perp], [vxz_perp, tx_perp]], dtype=float)
     h = np.block([[h_parallel, h_perp], [h_perp, h_parallel]])
     return h - exchange.chemical_potential * np.eye(4)
+
+
+def ground_state_velocity_operator(
+    kx: float,
+    ky: float,
+    direction: str,
+    tb: GroundStateTightBindingParameters | None = None,
+) -> np.ndarray:
+    """Return the Kubo velocity vertex dH/dk_direction in eV.
+
+    The crystal momenta are dimensionless lattice momenta. Until a lattice
+    constant is fixed, this derivative is the natural current vertex for the
+    dimensionless Brillouin-zone formulation rather than a velocity in m/s.
+    """
+
+    if direction not in {"x", "y"}:
+        raise ValueError("direction must be 'x' or 'y'")
+
+    tb = tb or GroundStateTightBindingParameters()
+    cx, cy, _, _, _, _ = _cos_terms(kx, ky)
+    sx, sy, s2x, s2y, s3x, s3y = _sin_terms(kx, ky)
+
+    if direction == "x":
+        dtz = (
+            -tb.tz_1 * sx
+            - tb.tz_2 * sx * cy
+            - 2.0 * tb.tz_3 * s2x
+            - 3.0 * tb.tz_4 * s3x
+        )
+        dtx = (
+            -tb.tx_1 * sx
+            - tb.tx_2 * sx * cy
+            - 2.0 * tb.tx_3 * s2x
+            - 3.0 * tb.tx_4 * s3x
+        )
+        dtz_perp = -tb.tz_perp_1 * sx
+        dvxz = -tb.vxz_1 * sx - 2.0 * tb.vxz_2 * s2x
+        dvxz_perp = -tb.vxz_perp_1 * sx
+    else:
+        dtz = (
+            -tb.tz_1 * sy
+            - tb.tz_2 * cx * sy
+            - 2.0 * tb.tz_3 * s2y
+            - 3.0 * tb.tz_4 * s3y
+        )
+        dtx = (
+            -tb.tx_1 * sy
+            - tb.tx_2 * cx * sy
+            - 2.0 * tb.tx_3 * s2y
+            - 3.0 * tb.tx_4 * s3y
+        )
+        dtz_perp = -tb.tz_perp_1 * sy
+        dvxz = tb.vxz_1 * sy + 2.0 * tb.vxz_2 * s2y
+        dvxz_perp = tb.vxz_perp_1 * sy
+
+    dtx_perp = 0.0
+    dh_parallel = np.array([[dtz, dvxz], [dvxz, dtx]], dtype=float)
+    dh_perp = np.array([[dtz_perp, dvxz_perp], [dvxz_perp, dtx_perp]], dtype=float)
+    return np.block([[dh_parallel, dh_perp], [dh_perp, dh_parallel]])
+
+
+def ground_state_velocity_operators(kx: float, ky: float) -> tuple[np.ndarray, np.ndarray]:
+    """Return (dH/dkx, dH/dky), both in eV."""
+
+    return (
+        ground_state_velocity_operator(kx, ky, "x"),
+        ground_state_velocity_operator(kx, ky, "y"),
+    )

@@ -3,16 +3,16 @@
 This repository currently implements only low-level algebraic pieces. It does
 not run physical simulations or claim final numerical predictions.
 
-## Qiu et al.
+## Ground-State Model
 
 The normal-state Hamiltonian uses the four-orbital basis
-`(dz1, dx1, dz2, dx2)` from Qiu et al. Appendix A:
+`(dz1, dx1, dz2, dx2)`:
 
 `H(k) = [[H_parallel, H_perp], [H_perp, H_parallel]] - mu I`.
 
-The implemented coefficients are the Appendix-A values for `Tz_k`, `Tx_k`,
+The implemented coefficients are the adopted values for `Tz_k`, `Tx_k`,
 `Tz_perp,k`, `Tx_perp,k`, `V_k`, and `V'_k`. The exchange/filling parameters
-quoted in the main text are stored in `QiuExchangeParameters`:
+are stored in `GroundStateExchangeParameters`:
 
 - `mu = 0.05`
 - `J_perp = 0.135 eV`
@@ -25,6 +25,12 @@ The `s_pm` pairing follows the A1g structure in Eqs. (A6)-(A7). The simple
 `d_wave` pairing is intentionally minimal and exists only as a comparison
 channel for later theory work.
 
+All Hamiltonian, pairing, velocity-vertex, and Kubo-response energies are in
+eV. The velocity operator used by Kubo is `dH/dk_alpha`, also in eV because
+`kx, ky` are dimensionless lattice momenta. Kubo conductivity multiplies the
+dimensionless band response by `e^2/hbar` when SI output is requested. Bosonic
+Matsubara energies are represented as `hbar xi_n = 2 pi n kBT` in eV.
+
 ## Dai and Jiang
 
 The Casimir utilities implement the process skeleton:
@@ -35,6 +41,7 @@ The Casimir utilities implement the process skeleton:
 4. Lifshitz energy integrand,
 5. torque integrand from `-partial_theta E`.
 
-No Kubo conductivity calculation is implemented yet. The placeholder is explicit
-so that future theory corrections can define the response without touching the
-Casimir geometry code.
+The Kubo conductivity is defined as a band-basis imaginary-frequency response
+using the ground-state velocity vertices. It is still intentionally low-level:
+callers provide k-points and weights, so later theory corrections can change the
+integration strategy without touching the Casimir geometry code.

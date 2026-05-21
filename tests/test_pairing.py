@@ -1,6 +1,8 @@
+from unittest.mock import Mock
+
 import numpy as np
 
-from lno327 import bdg_hamiltonian, dwave_pairing_matrix, qiu_bilayer_hamiltonian, spm_pairing_matrix
+from lno327 import bdg_hamiltonian, dwave_pairing_matrix, spm_pairing_matrix
 
 
 def test_spm_pairing_is_symmetric():
@@ -18,9 +20,25 @@ def test_dwave_pairing_vanishes_on_zone_diagonal():
 
 def test_bdg_hamiltonian_is_hermitian():
     kx, ky = 0.2, -0.5
-    h = qiu_bilayer_hamiltonian(kx, ky)
     delta = spm_pairing_matrix(kx, ky)
-    bdg = bdg_hamiltonian(kx, ky, delta, h)
+    bdg = bdg_hamiltonian(kx, ky, delta)
 
     assert bdg.shape == (8, 8)
     np.testing.assert_allclose(bdg, bdg.conjugate().T)
+
+
+def test_bdg_hamiltonian_explicitly_builds_k_and_minus_k():
+    normal_state = Mock(
+        side_effect=[
+            np.diag([1.0, 2.0, 3.0, 4.0]),
+            np.diag([5.0, 6.0, 7.0, 8.0]),
+        ]
+    )
+    delta = np.zeros((4, 4))
+
+    bdg = bdg_hamiltonian(0.2, -0.5, delta, normal_state=normal_state)
+
+    assert normal_state.call_args_list[0].args == (0.2, -0.5)
+    assert normal_state.call_args_list[1].args == (-0.2, 0.5)
+    np.testing.assert_allclose(np.diag(bdg[:4, :4]), [1.0, 2.0, 3.0, 4.0])
+    np.testing.assert_allclose(np.diag(-bdg[4:, 4:]), [5.0, 6.0, 7.0, 8.0])

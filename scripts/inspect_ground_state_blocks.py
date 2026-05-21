@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Print Qiu normal-state and seed pairing blocks at one momentum."""
+"""Print ground-state normal and seed pairing blocks at one momentum."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327 import bdg_hamiltonian, dwave_pairing_matrix, qiu_bilayer_hamiltonian, spm_pairing_matrix
+from lno327 import bdg_hamiltonian, dwave_pairing_matrix, ground_state_hamiltonian, spm_pairing_matrix
 
 
 def main() -> None:
@@ -21,14 +21,14 @@ def main() -> None:
     parser.add_argument("--ky", type=float, default=0.0)
     args = parser.parse_args()
 
-    h = qiu_bilayer_hamiltonian(args.kx, args.ky)
+    h = ground_state_hamiltonian(args.kx, args.ky)
     delta_spm = spm_pairing_matrix(args.kx, args.ky)
     delta_d = dwave_pairing_matrix(args.kx, args.ky)
-    bdg = bdg_hamiltonian(args.kx, args.ky, delta_spm, h)
+    bdg = bdg_hamiltonian(args.kx, args.ky, delta_spm)
 
     np.set_printoptions(precision=6, suppress=True)
     print("basis = (dz1, dx1, dz2, dx2)")
-    print("H_qiu(k) [eV] =")
+    print("H0(k) [eV] =")
     print(h)
     print("Delta_s_pm(k) =")
     print(delta_spm)

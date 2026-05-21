@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import numpy as np
 
-from .model import qiu_bilayer_hamiltonian
+from .model import ground_state_hamiltonian
+
+NormalStateBuilder = Callable[[float, float], np.ndarray]
 
 
 @dataclass(frozen=True)
 class PairingAmplitudes:
-    """Pairing-bond amplitudes in Qiu Appendix-A notation.
+    """Pairing-bond amplitudes in the adopted bilayer notation.
 
     Defaults are dimensionless tiny seed values for algebraic tests, not fitted
     RMFT solutions.
@@ -25,7 +28,7 @@ class PairingAmplitudes:
 
 
 def spm_pairing_matrix(kx: float, ky: float, amp: PairingAmplitudes | None = None) -> np.ndarray:
-    """Return the 4x4 Qiu A1g/s_pm pairing matrix.
+    """Return the 4x4 A1g/s_pm pairing matrix.
 
     Implements Eqs. (A6)-(A7): diagonal in-plane s_pm form factors plus
     inter-orbital d-wave form factor inside the same A1g channel.
@@ -59,12 +62,12 @@ def bdg_hamiltonian(
     kx: float,
     ky: float,
     pairing: np.ndarray,
-    normal_hamiltonian: np.ndarray | None = None,
+    normal_state: NormalStateBuilder = ground_state_hamiltonian,
 ) -> np.ndarray:
     """Build an 8x8 BdG Hamiltonian from a 4x4 normal state and pairing matrix."""
 
-    h_k = normal_hamiltonian if normal_hamiltonian is not None else qiu_bilayer_hamiltonian(kx, ky)
-    h_minus_k = qiu_bilayer_hamiltonian(-kx, -ky) if normal_hamiltonian is None else h_k.conjugate()
+    h_k = normal_state(kx, ky)
+    h_minus_k = normal_state(-kx, -ky)
     return np.block(
         [
             [h_k, pairing],

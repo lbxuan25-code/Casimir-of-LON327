@@ -1,5 +1,5 @@
 {
-  "qiu_exchange": {
+  "ground_state_exchange": {
     "chemical_potential": 0.05,
     "j_perp_dz": 0.135,
     "j_parallel_dx": 0.084,
