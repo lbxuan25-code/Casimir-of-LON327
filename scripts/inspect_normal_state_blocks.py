@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Print ground-state normal and seed pairing blocks at one momentum."""
+"""Print normal-state and seed pairing blocks at one momentum."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327 import bdg_hamiltonian, dwave_pairing_matrix, ground_state_hamiltonian, spm_pairing_matrix
+from lno327 import bdg_hamiltonian, dwave_pairing_matrix, normal_state_hamiltonian, spm_pairing_matrix
 
 
 def main() -> None:
@@ -21,7 +21,7 @@ def main() -> None:
     parser.add_argument("--ky", type=float, default=0.0)
     args = parser.parse_args()
 
-    h = ground_state_hamiltonian(args.kx, args.ky)
+    h = normal_state_hamiltonian(args.kx, args.ky)
     delta_spm = spm_pairing_matrix(args.kx, args.ky)
     delta_d = dwave_pairing_matrix(args.kx, args.ky)
     bdg = bdg_hamiltonian(args.kx, args.ky, delta_spm)

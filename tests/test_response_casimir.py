@@ -5,10 +5,15 @@ from lno327 import (
     ConductivityTensor,
     KuboConfig,
     anisotropy_delta,
+    anisotropy_summary,
     bosonic_matsubara_energy_eV,
     casimir_torque_integrand,
-    kubo_conductivity,
+    conductivity_eigensystem,
+    k_weights,
+    kubo_conductivity_imag_axis,
+    kubo_conductivity_real_axis,
     rotate_conductivity,
+    uniform_bz_mesh,
 )
 from lno327.casimir import matsubara_frequency, reflection_matrix_weak_2d
 
@@ -42,7 +47,7 @@ def test_kubo_conductivity_returns_finite_tensor():
     k_points = np.array([[0.0, 0.0], [0.4, 0.2], [-0.3, 0.5]])
     config = KuboConfig.from_kelvin(omega_eV=0.1, temperature_K=30.0, output_si=False)
 
-    sigma = kubo_conductivity(k_points, config)
+    sigma = kubo_conductivity_imag_axis(k_points, config)
 
     assert np.isfinite(sigma.matrix()).all()
     np.testing.assert_allclose(sigma.matrix(), sigma.matrix().conjugate().T, atol=1e-12)
@@ -54,7 +59,7 @@ def test_kubo_conductivity_vanishes_for_zero_velocity_vertices():
 
     config = KuboConfig(omega_eV=0.2, temperature_eV=0.01, output_si=False)
 
-    sigma = kubo_conductivity([(0.1, 0.2)], config, velocity=zero_velocity)
+    sigma = kubo_conductivity_imag_axis([(0.1, 0.2)], config, velocity=zero_velocity)
 
     np.testing.assert_allclose(sigma.matrix(), np.zeros((2, 2)))
 
@@ -62,3 +67,43 @@ def test_kubo_conductivity_vanishes_for_zero_velocity_vertices():
 def test_bosonic_matsubara_energy_uses_eV_units():
     assert np.isclose(bosonic_matsubara_energy_eV(0, 30.0), 0.0)
     assert np.isclose(bosonic_matsubara_energy_eV(1, 30.0), 2.0 * np.pi * 30.0 * 8.617333262e-5)
+
+
+def test_uniform_bz_mesh_and_weights_are_normalized():
+    mesh = uniform_bz_mesh(4, 3)
+    weights = k_weights(mesh)
+
+    assert mesh.shape == (12, 2)
+    assert np.isclose(weights.sum(), 1.0)
+
+
+def test_conductivity_eigensystem_shapes():
+    config = KuboConfig(omega_eV=0.1, temperature_eV=0.01, output_si=False)
+    eigensystem = conductivity_eigensystem(0.2, -0.3, config)
+
+    assert eigensystem.energies_eV.shape == (4,)
+    assert eigensystem.states.shape == (4, 4)
+    assert eigensystem.velocity_x_band.shape == (4, 4)
+    assert eigensystem.velocity_y_band.shape == (4, 4)
+
+
+def test_c4_symmetric_bz_conductivity_has_isotropic_diagonal_and_zero_xy():
+    mesh = uniform_bz_mesh(10)
+    config = KuboConfig.from_kelvin(omega_eV=0.2, temperature_K=30.0, eta_eV=0.02, output_si=False)
+
+    sigma = kubo_conductivity_imag_axis(mesh, config, k_weights(mesh))
+    summary = anisotropy_summary(sigma)
+
+    assert np.isclose(sigma.xx, sigma.yy, atol=1e-10)
+    assert abs(sigma.xy) < 1e-10
+    assert abs(sigma.yx) < 1e-10
+    assert abs(summary["delta"]) < 1e-10
+
+
+def test_real_axis_kubo_returns_finite_tensor():
+    mesh = uniform_bz_mesh(4)
+    config = KuboConfig(omega_eV=0.2, temperature_eV=0.01, eta_eV=0.03, output_si=False)
+
+    sigma = kubo_conductivity_real_axis(mesh, config, k_weights(mesh))
+
+    assert np.isfinite(sigma.matrix()).all()

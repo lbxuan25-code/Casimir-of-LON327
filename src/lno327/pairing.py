@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .model import ground_state_hamiltonian
+from .model import normal_state_hamiltonian
 
 NormalStateBuilder = Callable[[float, float], np.ndarray]
 
@@ -62,7 +62,7 @@ def bdg_hamiltonian(
     kx: float,
     ky: float,
     pairing: np.ndarray,
-    normal_state: NormalStateBuilder = ground_state_hamiltonian,
+    normal_state: NormalStateBuilder = normal_state_hamiltonian,
 ) -> np.ndarray:
     """Build an 8x8 BdG Hamiltonian from a 4x4 normal state and pairing matrix."""
 

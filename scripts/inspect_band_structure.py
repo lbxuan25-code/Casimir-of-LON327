@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plot the adopted ground-state band structure along Gamma-X-M-Gamma."""
+"""Plot the adopted normal-state band structure along Gamma-X-M-Gamma."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from lno327 import ground_state_hamiltonian
+from lno327 import normal_state_hamiltonian
 
 
 def interpolate_path(points: list[tuple[str, tuple[float, float]]], samples_per_segment: int):
@@ -45,13 +45,13 @@ def interpolate_path(points: list[tuple[str, tuple[float, float]]], samples_per_
 
 
 def compute_bands(k_points: np.ndarray) -> np.ndarray:
-    return np.array([np.linalg.eigvalsh(ground_state_hamiltonian(kx, ky)) for kx, ky in k_points])
+    return np.array([np.linalg.eigvalsh(normal_state_hamiltonian(kx, ky)) for kx, ky in k_points])
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--samples-per-segment", type=int, default=160)
-    parser.add_argument("--output", type=Path, default=ROOT / "outputs" / "figures" / "ground_state_bands.png")
+    parser.add_argument("--output", type=Path, default=ROOT / "outputs" / "figures" / "normal_state_bands.png")
     args = parser.parse_args()
 
     if args.samples_per_segment < 2:
@@ -81,7 +81,7 @@ def main() -> None:
     ax.set_xlim(distances[0], distances[-1])
     ax.set_xticks(tick_positions, tick_labels)
     ax.set_ylabel("Energy (eV)")
-    ax.set_title("Ground-State Band Structure")
+    ax.set_title("Normal-State Band Structure")
     fig.savefig(args.output, dpi=200)
     print(f"saved {args.output}")
 

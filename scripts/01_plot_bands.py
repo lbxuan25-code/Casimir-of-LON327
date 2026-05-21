@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compatibility entry point for plotting the ground-state band structure."""
+"""Compatibility entry point for plotting the normal-state band structure."""
 
 from inspect_band_structure import main
 

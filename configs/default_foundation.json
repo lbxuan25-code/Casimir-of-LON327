@@ -1,12 +1,6 @@
 {
-  "ground_state_exchange": {
-    "chemical_potential": 0.05,
-    "j_perp_dz": 0.135,
-    "j_parallel_dx": 0.084,
-    "j_parallel_xz": 0.03,
-    "hund": 1.0,
-    "filling_dz": 0.8,
-    "filling_dx": 0.58
+  "normal_state": {
+    "chemical_potential": 0.05
   },
   "pairing_seed": {
     "dz_parallel": 0.02,

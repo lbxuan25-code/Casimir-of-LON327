@@ -1,47 +1,37 @@
-# Foundation Notes
+# 基础说明
 
-This repository currently implements only low-level algebraic pieces. It does
-not run physical simulations or claim final numerical predictions.
+本仓库当前只实现底层代数结构和物理流程接口，不执行正式物理数值模拟，
+也不声明任何最终数值结论。
 
-## Ground-State Model
+## Normal-State 模型
 
-The normal-state Hamiltonian uses the four-orbital basis
-`(dz1, dx1, dz2, dx2)`:
+normal-state Hamiltonian 使用四轨道基
+`(dz1, dx1, dz2, dx2)`：
 
 `H(k) = [[H_parallel, H_perp], [H_perp, H_parallel]] - mu I`.
 
-The implemented coefficients are the adopted values for `Tz_k`, `Tx_k`,
-`Tz_perp,k`, `Tx_perp,k`, `V_k`, and `V'_k`. The exchange/filling parameters
-are stored in `GroundStateExchangeParameters`:
+代码中实现的系数是项目正式采用的 `Tz_k`、`Tx_k`、`Tz_perp,k`、
+`Tx_perp,k`、`V_k` 与 `V'_k`。化学势作为 normal-state 参数保存，
+取值为 `mu = 0.05 eV`。
 
-- `mu = 0.05`
-- `J_perp = 0.135 eV`
-- `J_parallel = 0.084 eV`
-- `J_xz = 0.03 eV`
-- `J_H = 1 eV`
-- `n_z = 0.8`, `n_x = 0.58`
+`s_pm` 配对采用 A1g 结构，对应式 (A6)-(A7)。简单 `d_wave` 配对故意保持
+最小形式，只作为后续理论分析中的对照通道。
 
-The `s_pm` pairing follows the A1g structure in Eqs. (A6)-(A7). The simple
-`d_wave` pairing is intentionally minimal and exists only as a comparison
-channel for later theory work.
-
-All Hamiltonian, pairing, velocity-vertex, and Kubo-response energies are in
-eV. The velocity operator used by Kubo is `dH/dk_alpha`, also in eV because
-`kx, ky` are dimensionless lattice momenta. Kubo conductivity multiplies the
-dimensionless band response by `e^2/hbar` when SI output is requested. Bosonic
-Matsubara energies are represented as `hbar xi_n = 2 pi n kBT` in eV.
+所有 Hamiltonian、配对、速度顶点和 Kubo 响应中的能量单位均为 eV。
+Kubo 使用的速度算符是 `dH/dk_alpha`，其单位也按 eV 处理，因为 `kx, ky`
+是无量纲晶格动量。需要 SI 输出时，Kubo 电导会把无量纲能带响应乘以
+`e^2/hbar`。玻色 Matsubara 能量写作 `hbar xi_n = 2 pi n kBT`，单位为 eV。
 
 ## Dai and Jiang
 
-The Casimir utilities implement the process skeleton:
+卡西米尔相关工具实现以下流程骨架：
 
-1. conductivity tensor at imaginary frequency,
-2. rotation by plate/in-plane angle,
-3. reflection matrix,
-4. Lifshitz energy integrand,
-5. torque integrand from `-partial_theta E`.
+1. 虚频下的电导张量；
+2. 按板间相对角度/面内角度旋转张量；
+3. 构造反射矩阵；
+4. 构造 Lifshitz 能量 integrand；
+5. 由 `-partial_theta E` 构造力矩 integrand。
 
-The Kubo conductivity is defined as a band-basis imaginary-frequency response
-using the ground-state velocity vertices. It is still intentionally low-level:
-callers provide k-points and weights, so later theory corrections can change the
-integration strategy without touching the Casimir geometry code.
+Kubo 电导被明确拆分为虚频轴 `sigma(i xi)` 与实频轴 `sigma(omega)` 两个函数，
+二者都使用 normal-state 速度顶点。BZ 积分规范为 `sum_k w_k` 且
+`sum w_k = 1`，对应在 `[-pi, pi)^2` 上的 `int_BZ d2k/(2 pi)^2`。
