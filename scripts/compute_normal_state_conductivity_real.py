@@ -30,10 +30,14 @@ def relative_eigen_split(eigenvalues: np.ndarray) -> float:
     return float(abs(eigenvalues[0] - eigenvalues[1]) / scale)
 
 
-def diagnosis(max_abs_delta: float, max_offdiag_norm: float) -> str:
-    if max_abs_delta < 1e-8 and max_offdiag_norm < 1e-8:
+def diagnosis(
+    max_abs_delta: float,
+    max_relative_offdiag: float,
+    max_relative_eigen_split: float,
+) -> str:
+    if max_abs_delta < 1e-8 and max_relative_offdiag < 1e-8 and max_relative_eigen_split < 1e-8:
         return "ok"
-    return "check_anisotropy_or_offdiag"
+    return "check_relative_diagnostics"
 
 
 def main() -> None:
@@ -72,6 +76,7 @@ def main() -> None:
     eigenvalues = np.empty((args.num_omega, 2), dtype=complex)
     relative_splits = np.empty(args.num_omega, dtype=float)
     offdiag_norm = np.empty(args.num_omega, dtype=float)
+    diagonal_scale = np.empty(args.num_omega, dtype=float)
 
     for index, omega in enumerate(omega_eV):
         config = KuboConfig.from_kelvin(
@@ -91,6 +96,7 @@ def main() -> None:
         eigenvalues[index] = diagnostics["eigenvalues"]
         relative_splits[index] = relative_eigen_split(diagnostics["eigenvalues"])
         offdiag_norm[index] = diagnostics["offdiag_norm"]
+        diagonal_scale[index] = 0.5 * (abs(sigma.xx) + abs(sigma.yy))
 
     output_prefix = args.output_prefix
     output_prefix.parent.mkdir(parents=True, exist_ok=True)
@@ -135,7 +141,15 @@ def main() -> None:
 
     max_abs_delta = float(np.max(np.abs(delta)))
     max_offdiag_norm = float(np.max(offdiag_norm))
-    unit = "SI sheet conductance" if not args.dimensionless else "dimensionless"
+    relative_offdiag = np.divide(
+        offdiag_norm,
+        diagonal_scale,
+        out=np.zeros_like(offdiag_norm),
+        where=~np.isclose(diagonal_scale, 0.0),
+    )
+    max_relative_offdiag = float(np.max(relative_offdiag))
+    max_relative_eigen_split = float(np.max(relative_splits))
+    unit = "e2_over_hbar_scaled conductivity kernel" if not args.dimensionless else "dimensionless"
 
     print(f"nk = {args.nk} x {args.nk}")
     print(f"T = {args.temperature} K")
@@ -146,7 +160,9 @@ def main() -> None:
     print(f"figure paths = {re_plot_path}, {im_plot_path}")
     print(f"max_abs_delta = {max_abs_delta}")
     print(f"max_offdiag_norm = {max_offdiag_norm}")
-    print(f"diagnosis = {diagnosis(max_abs_delta, max_offdiag_norm)}")
+    print(f"max_relative_offdiag = {max_relative_offdiag}")
+    print(f"max_relative_eigen_split = {max_relative_eigen_split}")
+    print(f"diagnosis = {diagnosis(max_abs_delta, max_relative_offdiag, max_relative_eigen_split)}")
 
 
 if __name__ == "__main__":

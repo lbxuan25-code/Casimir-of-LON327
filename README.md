@@ -38,3 +38,9 @@ python scripts/inspect_band_structure.py
 ```bash
 python scripts/compute_normal_state_conductivity_imag.py --nk 48 --matsubara-index 1
 ```
+
+计算 normal-state 实频轴电导扫描：
+
+```bash
+python scripts/compute_normal_state_conductivity_real.py --nk 48 --omega-min 0.01 --omega-max 0.5 --num-omega 100 --eta 0.001 --output-prefix outputs/data/normal_state_conductivity_real
+```
