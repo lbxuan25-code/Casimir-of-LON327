@@ -24,6 +24,13 @@ from .conductivity import (
     rotate_conductivity,
     uniform_bz_mesh,
 )
+from .gap_analysis import (
+    FermiSurfacePoints,
+    GapStatistics,
+    band_gap_projection,
+    fermi_surface_points,
+    gap_statistics_on_fermi_surface,
+)
 from .model import (
     NormalStateParameters,
     ORBITAL_BASIS,
@@ -46,6 +53,8 @@ __all__ = [
     "CasimirSetup",
     "ConductivityEigensystem",
     "ConductivityTensor",
+    "FermiSurfacePoints",
+    "GapStatistics",
     "KuboConfig",
     "NormalStateParameters",
     "PairingAmplitudes",
@@ -58,12 +67,15 @@ __all__ = [
     "bdg_hamiltonian",
     "bdg_paramagnetic_kernel_imag_axis",
     "bosonic_matsubara_energy_eV",
+    "band_gap_projection",
     "casimir_energy_integrand",
     "casimir_torque_integrand",
     "conductivity_eigensystem",
     "conductivity_matrix_diagnostics",
     "dwave_pairing_matrix",
     "fermi_function",
+    "fermi_surface_points",
+    "gap_statistics_on_fermi_surface",
     "k_weights",
     "kubo_conductivity_imag_axis",
     "kubo_conductivity_real_axis",
