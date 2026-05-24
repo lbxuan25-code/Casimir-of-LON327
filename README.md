@@ -54,7 +54,7 @@ pytest
 检查单个动量点：
 
 ```bash
-python scripts/inspect_normal_state_blocks.py --kx 0.0 --ky 0.0
+python scripts/normal_state/inspect_normal_state_blocks.py --kx 0.0 --ky 0.0
 ```
 
 检查 pairing 结构和 BdG 谱：
@@ -78,19 +78,21 @@ python scripts/compute_bdg_paramagnetic_kernel_imag.py --kind spm --delta0 0.04 
 绘制 normal-state 能带：
 
 ```bash
-python scripts/inspect_band_structure.py
+python scripts/normal_state/inspect_band_structure.py
 ```
 
 计算 normal-state 虚频轴电导：
 
 ```bash
-python scripts/compute_normal_state_conductivity_imag.py --nk 48 --matsubara-index 1
+python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --matsubara-index 1
 ```
 
 计算 normal-state 实频轴电导扫描：
 
 ```bash
-python scripts/compute_normal_state_conductivity_real.py --nk 48 --omega-min 0.01 --omega-max 0.5 --num-omega 100 --eta 0.001 --output-prefix outputs/data/normal_state_conductivity_real
+python scripts/normal_state/compute_normal_state_conductivity_real.py --nk 48 --omega-min 0.01 --omega-max 0.5 --num-omega 100 --eta 0.001 --output-prefix outputs/normal_state/data/normal_state_conductivity_real
 ```
 
 长期任务边界与执行顺序见 [research_plan.md](docs/notes/research_plan.md)。
+normal-state 相关运行脚本集中在 `scripts/normal_state/`，输出集中在
+`outputs/normal_state/`；旧的 `scripts/compute_normal_state_*.py` 等路径保留为兼容 wrapper。
