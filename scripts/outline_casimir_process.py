@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Evaluate one Casimir integrand point from supplied toy conductivities."""
+"""Future Casimir integrand smoke check from supplied toy conductivities.
+
+The current research focus is conductivity symmetry. This script is only a
+placeholder that keeps the later Casimir-torque interface executable.
+"""
 
 from __future__ import annotations
 
@@ -21,7 +25,8 @@ def main() -> None:
 
     energy = casimir_energy_integrand(setup, xi, k_parallel=1e6, phi=0.3, theta=0.4, left=left, right=right)
     torque = casimir_torque_integrand(setup, xi, k_parallel=1e6, phi=0.3, theta=0.4, left=left, right=right)
-    print("This is a single integrand-point smoke check, not a simulation.")
+    print("This is a future-stage Casimir interface smoke check, not a simulation.")
+    print("Current priority: validate spm/dwave conductivity symmetry before using torque.")
     print(f"energy_integrand = {energy}")
     print(f"torque_integrand = {torque}")
 

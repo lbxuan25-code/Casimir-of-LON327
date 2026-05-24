@@ -1,7 +1,8 @@
 # 基础说明
 
 本仓库当前只实现底层代数结构和物理流程接口，不执行正式物理数值模拟，
-也不声明任何最终数值结论。
+也不声明任何最终数值结论。当前工作重心是先研究 `s_pm` 与 `d_wave`
+在 gap structure 和 conductivity symmetry 上的区别；Casimir torque 是后续应用层。
 
 ## Normal-State 模型
 
@@ -45,3 +46,15 @@ Kubo 使用的速度算符是 `dH/dk_alpha`，其单位也按 eV 处理，因为
 Kubo 电导被明确拆分为虚频轴 `sigma(i xi)` 与实频轴 `sigma(omega)` 两个函数，
 二者都使用 normal-state 速度顶点。BZ 积分规范为 `sum_k w_k` 且
 `sum w_k = 1`，对应在 `[-pi, pi)^2` 上的 `int_BZ d2k/(2 pi)^2`。
+
+## 当前执行边界
+
+当前阶段优先维护：
+
+1. normal-state Hamiltonian 与 pairing ansatz；
+2. BdG 谱、gap projection、near-node 诊断；
+3. normal-state conductivity symmetry 基线；
+4. BdG paramagnetic kernel 基础层。
+
+完整 superconducting conductivity 需要后续加入 diamagnetic term 后再命名和使用。
+Casimir torque 暂时只保留接口骨架，不用来给出物理判断。
