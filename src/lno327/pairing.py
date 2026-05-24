@@ -21,7 +21,13 @@ class PairingAmplitudes:
     The default is a small algebraic seed, not a fitted superconducting gap.
     """
 
-    delta0: float = 0.04
+    delta0_eV: float = 0.04
+
+    @property
+    def delta0(self) -> float:
+        """Backward-compatible alias for the eV pairing amplitude."""
+
+        return self.delta0_eV
 
 
 def spm_pairing_matrix(kx: float, ky: float, amp: PairingAmplitudes | None = None) -> np.ndarray:
@@ -35,12 +41,12 @@ def spm_pairing_matrix(kx: float, ky: float, amp: PairingAmplitudes | None = Non
     amp = amp or PairingAmplitudes()
     return np.array(
         [
-            [0.0, 0.0, amp.delta0, 0.0],
+            [0.0, 0.0, amp.delta0_eV, 0.0],
             [0.0, 0.0, 0.0, 0.0],
-            [amp.delta0, 0.0, 0.0, 0.0],
+            [amp.delta0_eV, 0.0, 0.0, 0.0],
             [0.0, 0.0, 0.0, 0.0],
         ],
-        dtype=float,
+        dtype=complex,
     )
 
 
@@ -61,9 +67,9 @@ def dwave_pairing_matrix(kx: float, ky: float, amp: PairingAmplitudes | None = N
             [0.0, 0.0, 0.0, 1.0],
             [0.0, 0.0, 1.0, 0.0],
         ],
-        dtype=float,
+        dtype=complex,
     )
-    return amp.delta0 * form * orbital_structure
+    return amp.delta0_eV * form * orbital_structure
 
 
 def pairing_matrix(

@@ -16,12 +16,12 @@ normal-state Hamiltonian 使用四轨道基
 
 `s_pm` 配对采用 `(dz1, dx1, dz2, dx2)` 基下的层间 dz2 结构：
 
-`Delta_s_pm = delta0 * [[0, 0, 1, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]`.
+`Delta_s_pm = delta0_eV * [[0, 0, 1, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]`.
 
 它表示 bilayer bonding/antibonding sign-changing s_pm pairing。`d_wave`
 配对采用同层 dz2-dx2_y2 interorbital 结构：
 
-`Delta_d = delta0 * (cos(kx) + cos(ky)) * [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]`.
+`Delta_d = delta0_eV * (cos(kx) + cos(ky)) * [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]`.
 
 其中动量因子是 A1g，结合 dx2_y2 轨道自身的 B1g 对称性后，总配对属于
 d-wave/B1g 通道。两类配对矩阵均为偶宇称 spin-singlet 形式，满足

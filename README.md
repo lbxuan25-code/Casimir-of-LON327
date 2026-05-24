@@ -15,6 +15,24 @@ La3Ni2O7 中的 `s_pm` 与 `d_wave` 超导配对对称性。
 
 当前代码仍然只是底层物理与工程基础层，还不是正式的数值模拟层。
 
+最小序参量采用四轨道基 `(dz1, dx1, dz2, dx2)`，配对幅度记为
+`delta0_eV`：
+
+```text
+Delta_s_pm = delta0_eV * [[0, 0, 1, 0],
+                          [0, 0, 0, 0],
+                          [1, 0, 0, 0],
+                          [0, 0, 0, 0]]
+```
+
+```text
+Delta_dwave = delta0_eV * (cos(kx) + cos(ky))
+              * [[0, 1, 0, 0],
+                 [1, 0, 0, 0],
+                 [0, 0, 0, 1],
+                 [0, 0, 1, 0]]
+```
+
 运行测试：
 
 ```bash
@@ -25,6 +43,12 @@ pytest
 
 ```bash
 python scripts/inspect_normal_state_blocks.py --kx 0.0 --ky 0.0
+```
+
+检查 pairing 结构和 BdG 谱：
+
+```bash
+python scripts/inspect_pairing_structure.py --kx 0.2 --ky -0.5 --delta0-eV 0.04
 ```
 
 绘制 normal-state 能带：

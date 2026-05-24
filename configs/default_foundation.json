@@ -3,7 +3,7 @@
     "chemical_potential": 0.05
   },
   "pairing_seed": {
-    "delta0": 0.04
+    "delta0_eV": 0.04
   },
   "casimir_setup": {
     "temperature": 30.0,
