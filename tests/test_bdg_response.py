@@ -4,6 +4,8 @@ from lno327 import (
     KuboConfig,
     PairingAmplitudes,
     bdg_current_vertex,
+    bdg_diamagnetic_kernel,
+    bdg_diamagnetic_vertex,
     bdg_paramagnetic_kernel_imag_axis,
     k_weights,
     normal_state_velocity_operator,
@@ -31,6 +33,13 @@ def test_bdg_current_vertex_blocks_match_charge_current_definition():
     np.testing.assert_allclose(vertex[4:, 4:], -normal_state_velocity_operator(-kx, -ky, "x").T)
     np.testing.assert_allclose(vertex[:4, 4:], np.zeros((4, 4)))
     np.testing.assert_allclose(vertex[4:, :4], np.zeros((4, 4)))
+
+
+def test_bdg_diamagnetic_vertex_shape_and_hermiticity():
+    vertex = bdg_diamagnetic_vertex(0.2, -0.3, "x", "x")
+
+    assert vertex.shape == (8, 8)
+    np.testing.assert_allclose(vertex, vertex.conjugate().T)
 
 
 def test_bdg_paramagnetic_kernel_imag_axis_returns_complex_2x2_matrix():
@@ -65,3 +74,21 @@ def test_bdg_paramagnetic_kernel_is_c4_symmetric_without_magnetic_field():
     assert np.isclose(kernel[0, 0], kernel[1, 1], atol=1e-10)
     assert abs(kernel[0, 1]) < 1e-10
     assert abs(kernel[1, 0]) < 1e-10
+
+
+def test_bdg_diamagnetic_kernel_is_c4_symmetric_without_magnetic_field():
+    mesh = uniform_bz_mesh(8)
+    config = KuboConfig.from_kelvin(omega_eV=0.0, temperature_K=30.0, eta_eV=0.02, output_si=False)
+
+    for kind in ("spm", "dwave"):
+        kernel = bdg_diamagnetic_kernel(
+            kind,
+            PairingAmplitudes(delta0_eV=0.04),
+            mesh,
+            config,
+            k_weights(mesh),
+        )
+
+        assert np.isclose(kernel[0, 0], kernel[1, 1], atol=1e-10)
+        assert abs(kernel[0, 1]) < 1e-10
+        assert abs(kernel[1, 0]) < 1e-10

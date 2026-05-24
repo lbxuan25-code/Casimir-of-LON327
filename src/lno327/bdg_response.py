@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .conductivity import KuboConfig, fermi_function
-from .model import normal_state_velocity_operator
+from .model import normal_state_mass_operator, normal_state_velocity_operator
 from .pairing import PairingAmplitudes, PairingKind, bdg_hamiltonian, pairing_matrix
 
 
@@ -50,6 +50,32 @@ def bdg_current_vertices(kx: float, ky: float) -> tuple[np.ndarray, np.ndarray]:
     """Return ``(J_x^BdG, J_y^BdG)`` at one momentum."""
 
     return bdg_current_vertex(kx, ky, "x"), bdg_current_vertex(kx, ky, "y")
+
+
+def bdg_diamagnetic_vertex(
+    kx: float,
+    ky: float,
+    direction_a: str,
+    direction_b: str,
+) -> np.ndarray:
+    """Return the 8x8 BdG diamagnetic vertex from normal-state H0 only.
+
+    No derivatives of Delta(k) are included. The hole block mirrors the
+    charge-current convention used by ``bdg_current_vertex``.
+    """
+
+    if direction_a not in {"x", "y"} or direction_b not in {"x", "y"}:
+        raise ValueError("directions must be 'x' or 'y'")
+
+    particle_block = normal_state_mass_operator(kx, ky, direction_a, direction_b)
+    hole_block = -normal_state_mass_operator(-kx, -ky, direction_a, direction_b).T
+    zero = np.zeros((4, 4), dtype=complex)
+    return np.block(
+        [
+            [particle_block, zero],
+            [zero, hole_block],
+        ]
+    ).astype(complex)
 
 
 def bdg_eigensystem(
@@ -136,5 +162,39 @@ def bdg_paramagnetic_kernel_imag_axis(
                             * currents[alpha][m, n]
                             * currents[beta][n, m]
                         )
+
+    return kernel_matrix
+
+
+def bdg_diamagnetic_kernel(
+    pairing_kind: PairingKind,
+    pairing_params: PairingAmplitudes | None,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+) -> np.ndarray:
+    """Return the 2x2 BdG diamagnetic kernel.
+
+    This is a diamagnetic kernel only. It does not include K_para and should
+    not be interpreted as a full superconducting conductivity.
+
+    The trace over Nambu quasiparticles carries an explicit 1/2 prefactor to
+    compensate the particle-hole redundancy of the BdG basis used here.
+    """
+
+    points, weights = _validate_kernel_inputs(k_points, config, k_weights)
+    kernel_matrix = np.zeros((2, 2), dtype=complex)
+    directions = ("x", "y")
+
+    for weight, (kx, ky) in zip(weights, points, strict=True):
+        delta = pairing_matrix(pairing_kind, float(kx), float(ky), pairing_params)
+        bands = bdg_eigensystem(float(kx), float(ky), delta, config)
+        for alpha, direction_a in enumerate(directions):
+            for beta, direction_b in enumerate(directions):
+                vertex = bdg_diamagnetic_vertex(float(kx), float(ky), direction_a, direction_b)
+                vertex_band = bands.states.conjugate().T @ vertex @ bands.states
+                kernel_matrix[alpha, beta] += (
+                    0.5 * weight * np.sum(bands.occupations * np.diag(vertex_band))
+                )
 
     return kernel_matrix

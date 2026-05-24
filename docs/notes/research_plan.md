@@ -19,8 +19,8 @@ Casimir torque 框架中。
 
 3. **Conductivity Symmetry**
    - normal-state Kubo conductivity 继续作为基线。
-   - BdG superconducting response 先只维护 paramagnetic kernel 基础层。
-   - 后续再系统加入 diamagnetic term，并在命名上明确区分 kernel 与 full conductivity。
+   - BdG superconducting response 当前维护 paramagnetic kernel 与 diamagnetic kernel 两个基础层。
+   - 后续再系统构造 `K_total = K_para + K_dia`，并在命名上明确区分 kernel 与 full conductivity。
    - 主要关心 `xx≈yy`、`xy≈0`、C4 对称性破缺、频率依赖与 pairing-kind 差异。
 
 4. **Future Casimir Torque**
@@ -39,7 +39,8 @@ Casimir torque 框架中。
 Normal-state 运行脚本集中在 `scripts/normal_state/`。输出按阶段归档：
 `outputs/normal_state/conductivity_imag/`、`outputs/normal_state/conductivity_real/`、
 `outputs/pairing/gap_structure/`、`outputs/bdg/paramagnetic_kernel_imag/`、
-`outputs/casimir/` 和 `outputs/smoke/`。旧的顶层 normal-state 脚本路径只作为兼容 wrapper。
+`outputs/bdg/diamagnetic_kernel/`、`outputs/casimir/` 和 `outputs/smoke/`。
+旧的顶层 normal-state 脚本路径只作为兼容 wrapper。
 
 ## 常用脚本顺序
 
@@ -48,6 +49,7 @@ python scripts/normal_state/inspect_normal_state_blocks.py --kx 0.0 --ky 0.0
 python scripts/inspect_pairing_structure.py --kx 0.2 --ky -0.5 --delta0-eV 0.04
 python scripts/inspect_gap_structure.py --kind dwave --delta0 0.04 --nk 80 --energy-window 0.05 --node-tolerance 0.001
 python scripts/compute_bdg_paramagnetic_kernel_imag.py --kind spm --delta0 0.04 --nk 24 --temperature 30 --matsubara-index 1
+python scripts/diagnose_bdg_diamagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30
 python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --matsubara-index 1
 ```
 
@@ -59,5 +61,6 @@ python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --
 - 只有包含 paramagnetic 与 diamagnetic 两部分、并经过相应物理检查的量，才命名为
   `superconducting conductivity`。
 - 当前 BdG 响应输出使用 `kernel` 或 `paramagnetic_response`。
+- `K_dia` 是 diamagnetic kernel 诊断；在 `K_total` 构造前不称为完整超导电导。
 - gap sign 诊断目前是 gauge-dependent preliminary diagnostic；更可靠的是
   magnitude、near-node 分布和 symmetry pattern。

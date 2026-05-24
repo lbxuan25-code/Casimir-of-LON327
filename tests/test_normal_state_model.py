@@ -1,6 +1,11 @@
 import numpy as np
 
-from lno327 import ORBITAL_BASIS, normal_state_hamiltonian, normal_state_velocity_operator
+from lno327 import (
+    ORBITAL_BASIS,
+    normal_state_hamiltonian,
+    normal_state_mass_operator,
+    normal_state_velocity_operator,
+)
 
 
 def test_normal_state_basis_order():
@@ -39,6 +44,48 @@ def test_velocity_operator_matches_finite_difference():
 
     np.testing.assert_allclose(velocity_x, finite_difference_x, rtol=1e-8, atol=1e-8)
     np.testing.assert_allclose(velocity_y, finite_difference_y, rtol=1e-8, atol=1e-8)
+
+
+def test_mass_operator_shape_and_hermiticity():
+    mass = normal_state_mass_operator(0.41, -0.23, "x", "y")
+
+    assert mass.shape == (4, 4)
+    np.testing.assert_allclose(mass, mass.conjugate().T)
+
+
+def test_mass_operator_matches_finite_difference_of_velocity():
+    kx, ky = 0.41, -0.23
+    step = 1e-6
+    finite_difference_xx = (
+        normal_state_velocity_operator(kx + step, ky, "x")
+        - normal_state_velocity_operator(kx - step, ky, "x")
+    ) / (2.0 * step)
+    finite_difference_xy = (
+        normal_state_velocity_operator(kx, ky + step, "x")
+        - normal_state_velocity_operator(kx, ky - step, "x")
+    ) / (2.0 * step)
+
+    np.testing.assert_allclose(
+        normal_state_mass_operator(kx, ky, "x", "x"),
+        finite_difference_xx,
+        rtol=1e-8,
+        atol=1e-8,
+    )
+    np.testing.assert_allclose(
+        normal_state_mass_operator(kx, ky, "x", "y"),
+        finite_difference_xy,
+        rtol=1e-8,
+        atol=1e-8,
+    )
+
+
+def test_mixed_mass_operators_are_symmetric():
+    kx, ky = 0.41, -0.23
+
+    np.testing.assert_allclose(
+        normal_state_mass_operator(kx, ky, "x", "y"),
+        normal_state_mass_operator(kx, ky, "y", "x"),
+    )
 
 
 def test_c4_related_momenta_have_matching_bands():
