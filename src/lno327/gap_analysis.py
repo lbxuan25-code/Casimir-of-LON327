@@ -35,11 +35,13 @@ class GapStatistics:
     gap_complex: np.ndarray
     gap_abs: np.ndarray
     gap_sign: np.ndarray
+    node_tolerance_eV: float
     min_abs_gap: float
     max_abs_gap: float
     mean_abs_gap: float
     sign_changes: bool
     approximate_nodes: int
+    relative_node_fraction: float
 
 
 def band_gap_projection(
@@ -134,6 +136,7 @@ def gap_statistics_on_fermi_surface(
     nonzero_signs = gap_sign[gap_sign != 0]
     sign_changes = bool(np.unique(nonzero_signs).size > 1)
     approximate_nodes = int(np.count_nonzero(gap_abs <= node_tolerance_eV))
+    relative_node_fraction = float(approximate_nodes / gap_abs.size) if gap_abs.size else float("nan")
 
     if gap_abs.size == 0:
         min_abs_gap = max_abs_gap = mean_abs_gap = float("nan")
@@ -150,9 +153,29 @@ def gap_statistics_on_fermi_surface(
         gap_complex=gap_values,
         gap_abs=gap_abs,
         gap_sign=gap_sign,
+        node_tolerance_eV=node_tolerance_eV,
         min_abs_gap=min_abs_gap,
         max_abs_gap=max_abs_gap,
         mean_abs_gap=mean_abs_gap,
         sign_changes=sign_changes,
         approximate_nodes=approximate_nodes,
+        relative_node_fraction=relative_node_fraction,
     )
+
+
+def gap_statistics_by_band(stats: GapStatistics) -> dict[int, dict[str, float | int]]:
+    """Return gap statistics grouped by normal-state band index."""
+
+    summary: dict[int, dict[str, float | int]] = {}
+    for band in np.unique(stats.band_index):
+        mask = stats.band_index == band
+        band_gaps = stats.gap_abs[mask]
+        approximate_nodes = int(np.count_nonzero(band_gaps <= stats.node_tolerance_eV))
+        summary[int(band)] = {
+            "count": int(np.count_nonzero(mask)),
+            "min_abs_gap": float(np.min(band_gaps)) if band_gaps.size else float("nan"),
+            "mean_abs_gap": float(np.mean(band_gaps)) if band_gaps.size else float("nan"),
+            "max_abs_gap": float(np.max(band_gaps)) if band_gaps.size else float("nan"),
+            "approximate_nodes": approximate_nodes,
+        }
+    return summary

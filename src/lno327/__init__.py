@@ -29,6 +29,7 @@ from .gap_analysis import (
     GapStatistics,
     band_gap_projection,
     fermi_surface_points,
+    gap_statistics_by_band,
     gap_statistics_on_fermi_surface,
 )
 from .model import (
@@ -75,6 +76,7 @@ __all__ = [
     "dwave_pairing_matrix",
     "fermi_function",
     "fermi_surface_points",
+    "gap_statistics_by_band",
     "gap_statistics_on_fermi_surface",
     "k_weights",
     "kubo_conductivity_imag_axis",

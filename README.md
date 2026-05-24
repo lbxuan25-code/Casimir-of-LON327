@@ -54,7 +54,7 @@ python scripts/inspect_pairing_structure.py --kx 0.2 --ky -0.5 --delta0-eV 0.04
 检查 normal-state 费米面附近的投影 gap 结构：
 
 ```bash
-python scripts/inspect_gap_structure.py --kind spm --delta0 0.04 --nk 80 --energy-window 0.05
+python scripts/inspect_gap_structure.py --kind spm --delta0 0.04 --nk 80 --energy-window 0.05 --node-tolerance 0.001
 ```
 
 绘制 normal-state 能带：
