@@ -134,9 +134,9 @@ def diagnosis(data: dict[str, np.ndarray]) -> str:
 def output_paths(output_prefix: Path, kind: str) -> tuple[Path, Path, Path]:
     data_path = output_prefix.parent / f"{output_prefix.name}_{kind}.npz"
     resolved_prefix = output_prefix.resolve()
-    project_data_root = (ROOT / "outputs" / "data").resolve()
+    project_data_root = (ROOT / "outputs" / "bdg" / "paramagnetic_kernel_imag" / "data").resolve()
     if resolved_prefix.is_relative_to(project_data_root):
-        figure_dir = ROOT / "outputs" / "figures" / "bdg_paramagnetic_kernel"
+        figure_dir = ROOT / "outputs" / "bdg" / "paramagnetic_kernel_imag" / "figures"
     else:
         figure_dir = output_prefix.parent / "figures"
     return (
@@ -202,7 +202,7 @@ def main() -> None:
     parser.add_argument(
         "--output-prefix",
         type=Path,
-        default=ROOT / "outputs" / "data" / "bdg_paramagnetic_kernel" / "K_para_imag",
+        default=ROOT / "outputs" / "bdg" / "paramagnetic_kernel_imag" / "data" / "K_para_imag",
     )
     args = parser.parse_args()
 

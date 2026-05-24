@@ -53,7 +53,12 @@ def main() -> None:
     parser.add_argument(
         "--output-prefix",
         type=Path,
-        default=ROOT / "outputs" / "normal_state" / "data" / "normal_state_conductivity_real",
+        default=ROOT
+        / "outputs"
+        / "normal_state"
+        / "conductivity_real"
+        / "data"
+        / "normal_state_conductivity_real",
     )
     args = parser.parse_args()
 
@@ -100,7 +105,7 @@ def main() -> None:
 
     output_prefix = args.output_prefix
     output_prefix.parent.mkdir(parents=True, exist_ok=True)
-    figures_dir = ROOT / "outputs" / "normal_state" / "figures"
+    figures_dir = ROOT / "outputs" / "normal_state" / "conductivity_real" / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
     npz_path = output_prefix.with_suffix(".npz")
     re_plot_path = figures_dir / f"{output_prefix.name}_re.png"

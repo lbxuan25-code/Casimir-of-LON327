@@ -18,7 +18,7 @@ from lno327 import PairingAmplitudes, gap_statistics_by_band, gap_statistics_on_
 
 
 def default_output_prefix(kind: str) -> Path:
-    return ROOT / "outputs" / "data" / f"gap_structure_{kind}"
+    return ROOT / "outputs" / "pairing" / "gap_structure" / "data" / f"gap_structure_{kind}"
 
 
 def main() -> None:
@@ -60,7 +60,7 @@ def main() -> None:
         relative_node_mask=relative_node_mask,
     )
 
-    figures_dir = ROOT / "outputs" / "figures"
+    figures_dir = ROOT / "outputs" / "pairing" / "gap_structure" / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
     figure_path = figures_dir / f"gap_structure_{args.kind}.png"
 

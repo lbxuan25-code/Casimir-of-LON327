@@ -66,13 +66,19 @@ python scripts/inspect_pairing_structure.py --kx 0.2 --ky -0.5 --delta0-eV 0.04
 检查 normal-state 费米面附近的投影 gap 结构：
 
 ```bash
-python scripts/inspect_gap_structure.py --kind spm --delta0 0.04 --nk 80 --energy-window 0.05 --node-tolerance 0.001
+python scripts/inspect_gap_structure.py --kind spm --delta0 0.04 --nk 80 --energy-window 0.05 --node-tolerance 0.001 --output-prefix outputs/pairing/gap_structure/data/gap_structure_spm
 ```
 
 检查 BdG paramagnetic kernel 的虚频轴基础响应：
 
 ```bash
 python scripts/compute_bdg_paramagnetic_kernel_imag.py --kind spm --delta0 0.04 --nk 24 --temperature 30 --matsubara-index 1
+```
+
+扫描 BdG paramagnetic kernel 对称性诊断：
+
+```bash
+python scripts/diagnose_bdg_paramagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix outputs/bdg/paramagnetic_kernel_imag/data/K_para_imag
 ```
 
 绘制 normal-state 能带：
@@ -90,8 +96,46 @@ python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --
 计算 normal-state 实频轴电导扫描：
 
 ```bash
-python scripts/normal_state/compute_normal_state_conductivity_real.py --nk 48 --omega-min 0.01 --omega-max 0.5 --num-omega 100 --eta 0.001 --output-prefix outputs/normal_state/data/normal_state_conductivity_real
+python scripts/normal_state/compute_normal_state_conductivity_real.py --nk 48 --omega-min 0.01 --omega-max 0.5 --num-omega 100 --eta 0.001 --output-prefix outputs/normal_state/conductivity_real/data/normal_state_conductivity_real
 ```
+
+## Output organization
+
+Generated outputs are grouped by calculation stage and physical object:
+
+```text
+outputs/
+  normal_state/
+    conductivity_imag/
+      data/
+      figures/
+    conductivity_real/
+      data/
+      figures/
+  pairing/
+    gap_structure/
+      data/
+      figures/
+  bdg/
+    paramagnetic_kernel_imag/
+      data/
+      figures/
+  casimir/
+    data/
+    figures/
+  smoke/
+    data/
+    figures/
+```
+
+- `normal_state/conductivity_imag`: normal-state Kubo baseline on the imaginary axis.
+- `normal_state/conductivity_real`: normal-state Kubo baseline on the real-frequency axis.
+- `pairing/gap_structure`: projected gap magnitude/sign/near-node diagnostics.
+- `bdg/paramagnetic_kernel_imag`: BdG `K_para(i xi)` diagnostics only, not full superconducting conductivity.
+- `casimir`: reserved for future Casimir calculations.
+- `smoke`: lightweight plots or arrays used only to verify scripts and interfaces.
+
+Legacy `outputs/data/` and `outputs/figures/` may appear in old runs; new scripts should write to the staged directories above.
 
 长期任务边界与执行顺序见 [research_plan.md](docs/notes/research_plan.md)。
 normal-state 相关运行脚本集中在 `scripts/normal_state/`，输出集中在

@@ -54,7 +54,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=ROOT / "outputs" / "normal_state" / "figures" / "normal_state_bands.png",
+        default=ROOT / "outputs" / "smoke" / "figures" / "normal_state_bands.png",
     )
     args = parser.parse_args()
 

@@ -36,8 +36,10 @@ Casimir torque 框架中。
 - `bdg_response.py`: BdG current vertex 与 imaginary-axis paramagnetic kernel。
 - `casimir.py`: 未来使用的 reflection / energy / torque integrand 骨架。
 
-Normal-state 运行脚本集中在 `scripts/normal_state/`，对应输出集中在
-`outputs/normal_state/`。旧的顶层 normal-state 脚本路径只作为兼容 wrapper。
+Normal-state 运行脚本集中在 `scripts/normal_state/`。输出按阶段归档：
+`outputs/normal_state/conductivity_imag/`、`outputs/normal_state/conductivity_real/`、
+`outputs/pairing/gap_structure/`、`outputs/bdg/paramagnetic_kernel_imag/`、
+`outputs/casimir/` 和 `outputs/smoke/`。旧的顶层 normal-state 脚本路径只作为兼容 wrapper。
 
 ## 常用脚本顺序
 
