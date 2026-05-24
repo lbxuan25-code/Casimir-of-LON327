@@ -24,7 +24,14 @@ from .model import (
     normal_state_velocity_operator,
     normal_state_velocity_operators,
 )
-from .pairing import PairingAmplitudes, bdg_hamiltonian, dwave_pairing_matrix, spm_pairing_matrix
+from .pairing import (
+    PairingAmplitudes,
+    PairingKind,
+    bdg_hamiltonian,
+    dwave_pairing_matrix,
+    pairing_matrix,
+    spm_pairing_matrix,
+)
 
 __all__ = [
     "ORBITAL_BASIS",
@@ -34,6 +41,7 @@ __all__ = [
     "KuboConfig",
     "NormalStateParameters",
     "PairingAmplitudes",
+    "PairingKind",
     "anisotropy_delta",
     "anisotropy_summary",
     "bdg_hamiltonian",
@@ -50,6 +58,7 @@ __all__ = [
     "normal_state_hamiltonian",
     "normal_state_velocity_operator",
     "normal_state_velocity_operators",
+    "pairing_matrix",
     "rotate_conductivity",
     "spm_pairing_matrix",
     "uniform_bz_mesh",

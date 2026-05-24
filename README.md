@@ -6,7 +6,7 @@ La3Ni2O7 中的 `s_pm` 与 `d_wave` 超导配对对称性。
 当前范围：
 
 - 正式采用的四轨道双层 normal-state Hamiltonian。
-- 初始 `s_pm` 配对矩阵与简单 `d_wave` 配对矩阵。
+- 初始 `s_pm` 配对矩阵与 `d_wave`/B1g 配对矩阵，配对幅度单位为 eV。
 - BdG 矩阵组装。
 - 电导张量旋转与各向异性辅助函数。
 - 速度顶点，以及以 eV 为能量输入的能带表象 Kubo 电导。

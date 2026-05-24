@@ -14,8 +14,18 @@ normal-state Hamiltonian 使用四轨道基
 `Tx_perp,k`、`V_k` 与 `V'_k`。化学势作为 normal-state 参数保存，
 取值为 `mu = 0.05 eV`。
 
-`s_pm` 配对采用 A1g 结构，对应式 (A6)-(A7)。简单 `d_wave` 配对故意保持
-最小形式，只作为后续理论分析中的对照通道。
+`s_pm` 配对采用 `(dz1, dx1, dz2, dx2)` 基下的层间 dz2 结构：
+
+`Delta_s_pm = delta0 * [[0, 0, 1, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]]`.
+
+它表示 bilayer bonding/antibonding sign-changing s_pm pairing。`d_wave`
+配对采用同层 dz2-dx2_y2 interorbital 结构：
+
+`Delta_d = delta0 * (cos(kx) + cos(ky)) * [[0, 1, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]`.
+
+其中动量因子是 A1g，结合 dx2_y2 轨道自身的 B1g 对称性后，总配对属于
+d-wave/B1g 通道。两类配对矩阵均为偶宇称 spin-singlet 形式，满足
+`Delta(k) = Delta^T(-k)`。
 
 所有 Hamiltonian、配对、速度顶点和 Kubo 响应中的能量单位均为 eV。
 Kubo 使用的速度算符是 `dH/dk_alpha`，其单位也按 eV 处理，因为 `kx, ky`
