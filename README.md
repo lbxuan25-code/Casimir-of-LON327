@@ -87,6 +87,12 @@ python scripts/diagnose_bdg_paramagnetic_kernel.py --kinds spm dwave --delta0 0.
 python scripts/diagnose_bdg_diamagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --output-prefix outputs/bdg/diamagnetic_kernel/data/K_dia
 ```
 
+扫描 BdG total kernel：
+
+```bash
+python scripts/diagnose_bdg_total_kernel_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix outputs/bdg/total_kernel_imag/data/K_total_imag
+```
+
 绘制 normal-state 能带：
 
 ```bash
@@ -129,6 +135,9 @@ outputs/
     diamagnetic_kernel/
       data/
       figures/
+    total_kernel_imag/
+      data/
+      figures/
   casimir/
     data/
     figures/
@@ -142,6 +151,7 @@ outputs/
 - `pairing/gap_structure`: projected gap magnitude/sign/near-node diagnostics.
 - `bdg/paramagnetic_kernel_imag`: BdG `K_para(i xi)` diagnostics only, not full superconducting conductivity.
 - `bdg/diamagnetic_kernel`: BdG `K_dia` diagnostics only. `K_total` is not yet constructed.
+- `bdg/total_kernel_imag`: BdG `K_total(i xi) = K_para(i xi) + K_dia` diagnostics. Not Casimir input yet.
 - `casimir`: reserved for future Casimir calculations.
 - `smoke`: lightweight plots or arrays used only to verify scripts and interfaces.
 

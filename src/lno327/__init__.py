@@ -2,12 +2,14 @@
 
 from .bdg_response import (
     BdGEigensystem,
+    BdGKernelComponents,
     bdg_current_vertex,
     bdg_current_vertices,
     bdg_diamagnetic_kernel,
     bdg_diamagnetic_vertex,
     bdg_eigensystem,
     bdg_paramagnetic_kernel_imag_axis,
+    bdg_total_kernel_imag_axis,
 )
 from .casimir import CasimirSetup, casimir_energy_integrand, casimir_torque_integrand
 from .conductivity import (
@@ -55,6 +57,7 @@ from .pairing import (
 __all__ = [
     "ORBITAL_BASIS",
     "BdGEigensystem",
+    "BdGKernelComponents",
     "CasimirSetup",
     "ConductivityEigensystem",
     "ConductivityTensor",
@@ -73,6 +76,7 @@ __all__ = [
     "bdg_eigensystem",
     "bdg_hamiltonian",
     "bdg_paramagnetic_kernel_imag_axis",
+    "bdg_total_kernel_imag_axis",
     "bosonic_matsubara_energy_eV",
     "band_gap_projection",
     "casimir_energy_integrand",

@@ -23,6 +23,15 @@ class BdGEigensystem:
     current_y_band: np.ndarray
 
 
+@dataclass(frozen=True)
+class BdGKernelComponents:
+    """BdG electromagnetic kernel components on the imaginary axis."""
+
+    paramagnetic: np.ndarray
+    diamagnetic: np.ndarray
+    total: np.ndarray
+
+
 def bdg_current_vertex(kx: float, ky: float, direction: str) -> np.ndarray:
     """Return the 8x8 BdG charge-current vertex.
 
@@ -198,3 +207,34 @@ def bdg_diamagnetic_kernel(
                 )
 
     return kernel_matrix
+
+
+def bdg_total_kernel_imag_axis(
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    pairing_kind: PairingKind,
+    pairing_params: PairingAmplitudes | None = None,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+) -> BdGKernelComponents:
+    """Return K_para, K_dia, and K_total = K_para + K_dia at i omega.
+
+    This constructs the BdG electromagnetic kernel on the imaginary axis. It
+    is not a Casimir input yet and is not labeled as an experimental optical
+    conductivity.
+    """
+
+    para = bdg_paramagnetic_kernel_imag_axis(
+        k_points,
+        config,
+        pairing_kind,
+        pairing_params,
+        k_weights,
+    )
+    dia = bdg_diamagnetic_kernel(
+        pairing_kind,
+        pairing_params,
+        k_points,
+        config,
+        k_weights,
+    )
+    return BdGKernelComponents(paramagnetic=para, diamagnetic=dia, total=para + dia)
