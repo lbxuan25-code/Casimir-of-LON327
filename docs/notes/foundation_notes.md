@@ -3,7 +3,7 @@
 本仓库当前实现的是底层代数结构、响应函数诊断和 Casimir 前置接口，不执行正式
 Casimir Matsubara 求和，也不声明最终数值结论。当前工作重心是研究 $s_{\pm}$
 与 $d$-wave 在 gap structure 和 conductivity symmetry 上的区别；Casimir
-torque 是后续应用层。
+力矩是后续应用层。
 
 ## Normal-State 模型
 
@@ -34,7 +34,7 @@ $$
 \mu = 0.05\ \mathrm{eV}.
 $$
 
-## Minimal Pairing Ansatz
+## 最小配对 Ansatz
 
 $s_{\pm}$ 配对采用 $(d_{z^2,1}, d_{x^2-y^2,1}, d_{z^2,2}, d_{x^2-y^2,2})$
 基下的层间 $d_{z^2}$ 结构：
@@ -75,7 +75,7 @@ $$
 
 ## BdG 结构
 
-BdG Hamiltonian 使用 Nambu basis，结构为
+BdG Hamiltonian 使用 Nambu 基，结构为
 
 $$
 H_{\mathrm{BdG}}(\mathbf{k}) =
@@ -164,8 +164,8 @@ Casimir 相关工具当前只保留流程骨架：
 1. 准备虚频轴二维响应张量；
 2. 按板间相对角度或面内角度旋转张量；
 3. 构造 reflection matrix；
-4. 构造 Lifshitz energy integrand；
-5. 由 $-\partial_\theta E$ 构造 torque integrand。
+4. 构造 Lifshitz 能量 integrand；
+5. 由 $-\partial_\theta E$ 构造力矩 integrand。
 
 当前新增的 `LocalSheetResponse` 只是 Casimir 前置接口，把 normal-state
 $\sigma(i\xi)$ 与 BdG $\Sigma_{\mathrm{SC}}(i\xi)$ 统一整理为 local $q=0$

@@ -1,3 +1,5 @@
-# Casimir Outputs
+# Casimir 输出
 
-Reserved for future Casimir energy and torque data/figures.
+本目录预留给未来正式 Casimir 能量和力矩的数据与图像。
+
+当前阶段不在这里保存物理结论。

@@ -1,6 +1,5 @@
-# Response Unit Audit Outputs
+# 响应单位审计输出
 
-This directory stores pre-Casimir unit-convention audit results.
+本目录保存 Casimir 前置阶段的单位约定审计结果。
 
-The current default is model-unit / dimensionless-lattice-momentum response,
-not final SI sheet conductivity.
+当前默认是 model-unit / dimensionless-lattice-momentum response，不是最终 SI sheet conductivity。

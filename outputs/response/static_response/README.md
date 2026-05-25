@@ -1,5 +1,5 @@
-# Static Response Outputs
+# 静态响应输出
 
-This directory stores diagnostics for $n=0$ Matsubara response policies:
-skip, extrapolate from the lowest nonzero Matsubara point, or static-kernel
-diagnostic.
+本目录保存 $n=0$ Matsubara response policy 的诊断结果。
+
+当前支持三种策略：skip、从最低非零 Matsubara 点外推、以及 static-kernel diagnostic。

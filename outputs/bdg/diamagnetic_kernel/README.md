@@ -1,9 +1,7 @@
-# BdG Diamagnetic-Kernel Outputs
+# BdG Diamagnetic Kernel 输出
 
-- `data/`: `.npz` diagnostics for the BdG diamagnetic kernel
-  $K_{\mathrm{dia}}$.
-- `figures/`: symmetry diagnostics for $K_{\mathrm{dia}}$.
+- `data/`：BdG diamagnetic kernel $K_{\mathrm{dia}}$ 的 `.npz` 诊断数据。
+- `figures/`：$K_{\mathrm{dia}}$ 的对称性诊断图。
 
-These outputs are diamagnetic-kernel diagnostics only. They are not
-$K_{\mathrm{total}}$
-and are not full superconducting conductivities.
+这些输出只用于 diamagnetic-kernel 诊断；它们不是
+$K_{\mathrm{total}}$，也不是完整超导电导。

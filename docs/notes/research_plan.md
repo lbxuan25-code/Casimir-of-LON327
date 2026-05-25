@@ -32,11 +32,11 @@ Casimir torque 框架中。
      $\Sigma_{\mathrm{SC}}(i\xi)$ 统一为 local $q=0$ sheet response matrix。
    - 当前已显式补齐三个 Casimir 前置边界接口：unit convention audit、
      $n=0$ Matsubara static policy、nonlocal $q_{\parallel}$ response interface。
-   - 当前也提供 local-response plumbing smoke test，用于验证
+   - 当前也提供 local-response 接口链路冒烟测试，用于验证
      $\mathrm{LocalSheetResponse}\rightarrow\sigma_{\alpha\beta}\rightarrow r
      \rightarrow\mathcal{E}_{\mathrm{integrand}}\rightarrow\tau_{\mathrm{integrand}}$
      的工程链路。
-   - 该接口仍不做 Matsubara 求和，不输出 Casimir energy 或 torque。
+   - 该接口仍不做 Matsubara 求和，不输出 Casimir 能量或力矩。
    - 在 superconducting conductivity 尚未完成前，不从 Casimir 输出物理结论。
    - 正式 Casimir 阶段仍需选择具体物理方案：真实 finite-$q$ response、最终 SI
      sheet conductivity 归一化、$n=0$ 物理处理，或外场/应变/表面取向等各向异性来源。
@@ -51,8 +51,8 @@ Casimir torque 框架中。
 - `response_interface.py`: Casimir 前置 local $q=0$ sheet response 接口。
 - `response_units.py`: model-unit response 到 sheet-conductivity convention 的审计接口。
 - `static_response.py`: $n=0$ Matsubara response policy 接口。
-- `nonlocal_response.py`: finite-$q_{\parallel}$ response 的接口占位与 local fallback。
-- `casimir.py`: 未来使用的 reflection / energy / torque integrand 骨架。
+- `nonlocal_response.py`: finite-$q_{\parallel}$ response 的接口占位与局域回退。
+- `casimir.py`: 未来使用的 reflection / 能量 / 力矩 integrand 骨架。
 
 Normal-state 运行脚本集中在 `scripts/normal_state/`。输出按阶段归档：
 `outputs/normal_state/conductivity_imag/`、`outputs/normal_state/conductivity_real/`、
@@ -100,6 +100,6 @@ python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --
 - `ResponseUnitConvention`、`StaticResponsePolicy` 和 `NonlocalSheetResponse` 已把这些
   边界变成显式接口状态，但还没有把当前 response 升级为正式 Casimir input。
 - `smoke_casimir_local_response.py` 只验证接口链路和 toy anisotropy 控制组，不是
-  Casimir Matsubara 求和，也不提供正式 energy / torque 结论。
+  Casimir Matsubara 求和，也不提供正式能量 / 力矩结论。
 - gap sign 诊断目前是 gauge-dependent preliminary diagnostic；更可靠的是
   magnitude、near-node 分布和 symmetry pattern。

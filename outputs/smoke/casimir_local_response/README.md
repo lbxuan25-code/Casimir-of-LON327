@@ -1,6 +1,6 @@
-# Casimir Local-Response Smoke Outputs
+# Casimir Local-Response 冒烟测试输出
 
-This directory stores plumbing smoke-test outputs for the chain
+本目录保存下列工程链路的冒烟测试输出：
 
 $$
 \mathrm{LocalSheetResponse}
@@ -10,6 +10,5 @@ $$
 \rightarrow \tau_{\mathrm{integrand}} .
 $$
 
-These outputs are not formal Casimir energy or torque calculations. They use
-local $q=0$ response matrices, skip $n=0$, and do not resolve SI normalization
-or nonlocal $q_{\parallel}$ response.
+这些输出不是正式 Casimir 能量或力矩计算。它们使用 local $q=0$ 响应矩阵，
+跳过 $n=0$ 的正式物理处理，也尚未解决 SI 归一化和非局域 $q_{\parallel}$ 响应。

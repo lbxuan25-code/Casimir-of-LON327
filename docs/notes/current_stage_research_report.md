@@ -3,7 +3,7 @@
 ## 摘要
 
 当前仓库已经从 pairing ansatz、BdG 基础结构、gap structure 诊断、BdG
-electromagnetic kernel，到 Casimir 前置 local sheet response interface 建立了一个连贯的最小研究流程。
+electromagnetic kernel，到 Casimir 前置 local sheet response 接口建立了一个连贯的最小研究流程。
 这一阶段的核心结论是：在无磁场、当前四轨道模型与均匀 Brillouin-zone 网格下，
 normal-state response、minimal $s_{\pm}$ pairing 和 minimal $d$-wave pairing 的
 local $q=0$ 虚频轴响应均保持数值上的 $C_4$ 对称性，即
@@ -15,8 +15,8 @@ $$
 
 这里 $R$ 代表当前阶段统一接口中的 local sheet response matrix。对于 normal-state，
 $R=\sigma(i\xi)$；对于 BdG superconducting state，
-$R=\Sigma_{\mathrm{SC}}(i\xi)$。当前 $R$ 仍是 pre-Casimir diagnostic，不是最终
-SI sheet conductivity，也不是正式 Casimir input。
+$R=\Sigma_{\mathrm{SC}}(i\xi)$。当前 $R$ 仍是 Casimir 前置诊断，不是最终
+SI sheet conductivity，也不是正式 Casimir 输入。
 
 ## 模型与配对结构
 
@@ -145,7 +145,7 @@ $$
 当前脚本可以在近似 Fermi surface 点上输出
 $|\Delta_n(\mathbf{k})|$、preliminary sign、near-node count、relative node fraction
 以及 band-resolved summary。需要强调的是，gap sign 当前仍是 gauge-dependent preliminary
-diagnostic；更可靠的判断依据是
+诊断；更可靠的判断依据是
 
 $$
 |\Delta_n(\mathbf{k})|,
@@ -212,9 +212,9 @@ $$
 这与物理预期一致：如果 Hamiltonian、pairing ansatz 和数值网格都保持 $C_4$，则
 local $q=0$ response 不应凭空产生 $x/y$ 各向异性。
 
-## 对 Casimir Torque 目标的含义
+## 对 Casimir 力矩目标的含义
 
-Casimir torque 需要角向各向异性。若两个板的 response 在面内完全各向同性，则仅靠旋转角
+Casimir 力矩需要角向各向异性。若两个板的 response 在面内完全各向同性，则仅靠旋转角
 $\theta$ 不会产生有意义的 torque signal。当前结果说明，minimal $s_{\pm}$ 与
 minimal $d$-wave 在 local $q=0$、无磁场、当前模型参数下都保持
 
@@ -231,7 +231,7 @@ $$
 4. 可控的晶格、轨道、应变、界面或取向机制，使 $B_{1g}$ pairing 的内部结构进入可观测的面内响应；
 5. 与 reflection matrix 和 Lifshitz integrand 中角向变量的严格单位匹配。
 
-## Casimir Plumbing Smoke Test
+## Casimir 接口链路冒烟测试
 
 当前新增 smoke pipeline 已经打通
 
@@ -245,7 +245,7 @@ $$
 
 该链路使用 `local_response_imag_axis` 取得 normal / $s_{\pm}$ / $d$-wave 的 local
 $q=0$ response，经 `conductivity_tensor_from_matrix` 转成 `ConductivityTensor`，
-再调用已有 reflection matrix、energy integrand 和 torque integrand。该 smoke test
+再调用已有 reflection matrix、能量 integrand 和力矩 integrand。该冒烟测试
 的预期判据是：
 
 $$
@@ -264,7 +264,7 @@ $$
 
 因此，该步骤验证的是工程链路和角向各向异性灵敏度，不是正式 Casimir 积分。
 normal / $s_{\pm}$ / $d$-wave 当前 local response 可接入 Casimir integrand，但仍只作为
-smoke test 使用。
+冒烟测试使用。
 
 ## 当前限制
 
@@ -279,16 +279,16 @@ smoke test 使用。
    lowest-Matsubara extrapolation 或 static-kernel diagnostic。
 3. nonlocal response 由 `NonlocalSheetResponse` 管理。当前实现的
    `local_fallback` 明确标记 `nonlocal_resolved=False`；真实 finite-$q_{\parallel}$
-   response 仍是 `NotImplementedError` placeholder。
+   response 仍是 `NotImplementedError` 显式占位。
 
 当前阶段仍有以下明确限制：
 
 1. $\Sigma_{\mathrm{SC}}(i\xi_n)$ 只定义在 $n\ge 1$。
 2. `LocalSheetResponse.valid_for_casimir_input=False` 是有意的保守标记。
 3. 最终 SI sheet conductivity normalization 尚未选择为正式物理方案。
-4. 当前 response 仍允许 local $q=0$ fallback，不包含真实非局域 $q_{\parallel}$ 计算。
+4. 当前 response 仍允许 local $q=0$ 局域回退，不包含真实非局域 $q_{\parallel}$ 计算。
 5. 尚未执行正式 Casimir Matsubara 求和。
-6. 尚未输出 Casimir energy 或 torque 结论。
+6. 尚未输出 Casimir 能量或力矩结论。
 7. gap sign 仍是 gauge-dependent preliminary diagnostic。
 
 ## 工程状态

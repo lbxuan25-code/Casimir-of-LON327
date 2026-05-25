@@ -1,3 +1,5 @@
-# Smoke Outputs
+# 冒烟测试输出
 
-Lightweight outputs used to verify scripts and interfaces.
+本目录保存只用于验证脚本和接口是否打通的轻量输出。
+
+这些输出不承载正式物理结论。

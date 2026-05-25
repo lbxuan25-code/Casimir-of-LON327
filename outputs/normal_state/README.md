@@ -1,8 +1,8 @@
-# Normal-State Outputs
+# Normal-State 输出
 
-This folder stores generated normal-state baseline outputs.
+本目录保存 normal-state 基线计算生成的输出。
 
-- `conductivity_imag/data/`: `.npz` arrays from normal-state imaginary-axis conductivity scans.
-- `conductivity_imag/figures/`: plots from normal-state imaginary-axis conductivity scans.
-- `conductivity_real/data/`: `.npz` arrays from normal-state real-axis conductivity scans.
-- `conductivity_real/figures/`: plots from normal-state real-axis conductivity scans.
+- `conductivity_imag/data/`：normal-state 虚频轴电导扫描的 `.npz` 数组。
+- `conductivity_imag/figures/`：normal-state 虚频轴电导扫描图。
+- `conductivity_real/data/`：normal-state 实频轴电导扫描的 `.npz` 数组。
+- `conductivity_real/figures/`：normal-state 实频轴电导扫描图。

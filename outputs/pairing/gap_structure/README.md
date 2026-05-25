@@ -1,4 +1,4 @@
-# Pairing Gap-Structure Outputs
+# 配对 Gap Structure 输出
 
-- `data/`: `.npz` files from `scripts/inspect_gap_structure.py`.
-- `figures/`: projected gap structure plots near the normal-state Fermi surface.
+- `data/`：来自 `scripts/inspect_gap_structure.py` 的 `.npz` 文件。
+- `figures/`：normal-state Fermi surface 附近的投影 gap structure 图。
