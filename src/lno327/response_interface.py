@@ -11,6 +11,7 @@ import numpy as np
 from .bdg_response import bdg_superconducting_response_imag_axis
 from .conductivity import ConductivityTensor, KuboConfig, kubo_conductivity_imag_axis
 from .pairing import PairingAmplitudes
+from .response_units import ResponseUnitConvention, model_response_to_sheet_conductivity
 
 ResponseKind = Literal["normal", "spm", "dwave"]
 
@@ -26,6 +27,9 @@ class LocalSheetResponse:
     source: str
     valid_for_casimir_input: bool
     notes: tuple[str, ...]
+    normalization_status: str = "dimensionless_model_not_si_sheet"
+    static_policy: str = "finite_matsubara_only"
+    nonlocal_status: str = "local_q0_only"
 
 
 def conductivity_tensor_from_matrix(matrix: np.ndarray) -> ConductivityTensor:
@@ -51,6 +55,7 @@ def local_response_imag_axis(
     pairing_params: PairingAmplitudes | None = None,
     k_weights: Sequence[float] | np.ndarray | None = None,
     fermi_level_eV: float = 0.0,
+    unit_convention: ResponseUnitConvention | None = None,
 ) -> LocalSheetResponse:
     """Return a local q=0 sheet response at one imaginary-axis energy.
 
@@ -86,6 +91,10 @@ def local_response_imag_axis(
         notes = base_notes
         if omega_eV == 0.0:
             notes += ("normal-state n=0 response retained as unresolved diagnostic",)
+        conversion = model_response_to_sheet_conductivity(
+            conductivity.matrix(),
+            unit_convention,
+        )
         return LocalSheetResponse(
             kind=kind,
             omega_eV=omega_eV,
@@ -94,6 +103,9 @@ def local_response_imag_axis(
             source="kubo_conductivity_imag_axis",
             valid_for_casimir_input=False,
             notes=notes,
+            normalization_status=conversion.normalization_status,
+            static_policy="n0_unresolved" if omega_eV == 0.0 else "finite_matsubara",
+            nonlocal_status="local_q0_only",
         )
 
     if omega_eV <= 0.0:
@@ -113,6 +125,10 @@ def local_response_imag_axis(
         pairing_params,
         k_weights,
     )
+    conversion = model_response_to_sheet_conductivity(
+        response.sigma_like_response,
+        unit_convention,
+    )
     return LocalSheetResponse(
         kind=kind,
         omega_eV=omega_eV,
@@ -121,6 +137,9 @@ def local_response_imag_axis(
         source="bdg_superconducting_response_imag_axis",
         valid_for_casimir_input=False,
         notes=base_notes + ("Sigma_SC = K_total / omega_eV for n >= 1",),
+        normalization_status=conversion.normalization_status,
+        static_policy="finite_matsubara",
+        nonlocal_status="local_q0_only",
     )
 
 

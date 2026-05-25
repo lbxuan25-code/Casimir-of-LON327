@@ -47,6 +47,12 @@ from .model import (
     normal_state_velocity_operator,
     normal_state_velocity_operators,
 )
+from .nonlocal_response import (
+    MomentumTransfer,
+    NonlocalResponseMode,
+    NonlocalSheetResponse,
+    nonlocal_response_imag_axis,
+)
 from .pairing import (
     PairingAmplitudes,
     PairingKind,
@@ -64,6 +70,18 @@ from .response_interface import (
     matrix_symmetry_diagnostics,
     validate_local_response_symmetry,
 )
+from .response_units import (
+    ResponseUnitConvention,
+    ResponseUnitMode,
+    SheetConductivityConversion,
+    model_response_to_sheet_conductivity,
+    sheet_conductivity_to_dimensionless,
+)
+from .static_response import (
+    StaticResponsePolicy,
+    StaticResponseResult,
+    local_response_matsubara_index,
+)
 
 __all__ = [
     "ORBITAL_BASIS",
@@ -77,10 +95,18 @@ __all__ = [
     "GapStatistics",
     "KuboConfig",
     "LocalSheetResponse",
+    "MomentumTransfer",
+    "NonlocalResponseMode",
+    "NonlocalSheetResponse",
     "NormalStateParameters",
     "PairingAmplitudes",
     "PairingKind",
     "ResponseKind",
+    "ResponseUnitConvention",
+    "ResponseUnitMode",
+    "SheetConductivityConversion",
+    "StaticResponsePolicy",
+    "StaticResponseResult",
     "anisotropy_delta",
     "anisotropy_summary",
     "bdg_current_vertex",
@@ -109,7 +135,10 @@ __all__ = [
     "kubo_conductivity_imag_axis",
     "kubo_conductivity_real_axis",
     "local_response_imag_axis",
+    "local_response_matsubara_index",
     "matrix_symmetry_diagnostics",
+    "model_response_to_sheet_conductivity",
+    "nonlocal_response_imag_axis",
     "normal_state_hamiltonian",
     "normal_state_mass_operator",
     "normal_state_mass_operators",
@@ -118,6 +147,7 @@ __all__ = [
     "pairing_matrix",
     "rotate_conductivity",
     "spm_pairing_matrix",
+    "sheet_conductivity_to_dimensionless",
     "uniform_bz_mesh",
     "validate_local_response_symmetry",
 ]

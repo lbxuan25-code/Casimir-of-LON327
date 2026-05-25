@@ -21,10 +21,10 @@ from lno327 import (  # noqa: E402
     bosonic_matsubara_energy_eV,
     casimir_energy_integrand,
     casimir_torque_integrand,
-    conductivity_tensor_from_matrix,
     k_weights,
     local_response_imag_axis,
     matrix_symmetry_diagnostics,
+    model_response_to_sheet_conductivity,
     uniform_bz_mesh,
 )
 from lno327.casimir import matsubara_frequency  # noqa: E402
@@ -98,7 +98,7 @@ def local_tensor_for_kind(
     )
     return (
         response.matrix,
-        conductivity_tensor_from_matrix(response.matrix),
+        model_response_to_sheet_conductivity(response.matrix).tensor,
         response.valid_for_casimir_input,
     )
 

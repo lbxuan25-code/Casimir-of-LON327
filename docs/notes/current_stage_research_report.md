@@ -268,12 +268,25 @@ smoke test 使用。
 
 ## 当前限制
 
+当前阶段已把三个 Casimir 前置缺口转化为显式接口状态：
+
+1. 单位归一化由 `ResponseUnitConvention` 和 `model_response_to_sheet_conductivity`
+   管理。默认 `dimensionless_model` 模式保留模型响应并标记
+   `valid_for_casimir_input=False`。
+2. $n=0$ Matsubara 项由 `StaticResponsePolicy` 管理。对于 $s_{\pm}$ 与
+   $d$-wave，$n=0$ 不允许直接使用
+   $\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega_{\mathrm{eV}}$；可选择 skip、
+   lowest-Matsubara extrapolation 或 static-kernel diagnostic。
+3. nonlocal response 由 `NonlocalSheetResponse` 管理。当前实现的
+   `local_fallback` 明确标记 `nonlocal_resolved=False`；真实 finite-$q_{\parallel}$
+   response 仍是 `NotImplementedError` placeholder。
+
 当前阶段仍有以下明确限制：
 
 1. $\Sigma_{\mathrm{SC}}(i\xi_n)$ 只定义在 $n\ge 1$。
 2. `LocalSheetResponse.valid_for_casimir_input=False` 是有意的保守标记。
-3. SI sheet conductivity normalization 尚未完成。
-4. 当前 response 是 local $q=0$，不包含非局域 $q_{\parallel}$。
+3. 最终 SI sheet conductivity normalization 尚未选择为正式物理方案。
+4. 当前 response 仍允许 local $q=0$ fallback，不包含真实非局域 $q_{\parallel}$ 计算。
 5. 尚未执行正式 Casimir Matsubara 求和。
 6. 尚未输出 Casimir energy 或 torque 结论。
 7. gap sign 仍是 gauge-dependent preliminary diagnostic。
@@ -287,7 +300,8 @@ smoke test 使用。
 3. BdG $K_{\mathrm{para}}$、$K_{\mathrm{dia}}$、$K_{\mathrm{total}}$；
 4. $\Sigma_{\mathrm{SC}} = \frac{K_{\mathrm{total}}}{\omega_{\mathrm{eV}}}$；
 5. local sheet response interface；
-6. Casimir 骨架函数的 smoke-level 行为。
+6. unit / static / nonlocal response boundary interfaces；
+7. Casimir 骨架函数的 smoke-level 行为。
 
 最近一次全量测试结果为
 

@@ -122,10 +122,18 @@ python scripts/compare_local_sheet_response_imag.py --kinds normal spm dwave --d
 
 正式 Casimir 阶段仍缺少：
 
-- $n=0$ Matsubara 项处理，尤其是 $\Sigma_{\mathrm{SC}} = \frac{K_{\mathrm{total}}}{\omega_{\mathrm{eV}}}$ 的零频限制。
-- SI sheet conductivity 归一化与单位审计。
-- 非局域 $q_{\parallel}$ 响应。
+- 为 $n=0$ Matsubara 项选择最终物理方案；当前已有 skip / extrapolate / static-kernel diagnostic policy。
+- 选择最终 SI sheet conductivity 归一化；当前已有显式 unit-convention audit interface。
+- 实现真实非局域 $q_{\parallel}$ 响应；当前已有 local fallback 和 finite-$q$ placeholder。
 - 能产生 torque 的角向各向异性机制。
+
+单位、静态项和 nonlocal 接口诊断：
+
+```bash
+python scripts/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
+python scripts/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
+python scripts/diagnose_nonlocal_response_interface.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1 --q-parallel 1e6 --phi 0.2
+```
 
 Casimir local-response plumbing smoke test：
 
@@ -198,6 +206,15 @@ outputs/
     local_sheet_imag/
       data/
       figures/
+    unit_audit/
+      data/
+      figures/
+    static_response/
+      data/
+      figures/
+    nonlocal_interface/
+      data/
+      figures/
   casimir/
     data/
     figures/
@@ -217,6 +234,9 @@ outputs/
 - `bdg/total_kernel_imag`: BdG $K_{\mathrm{total}}(i\xi) = K_{\mathrm{para}}(i\xi) + K_{\mathrm{dia}}$ diagnostics. Not Casimir input yet.
 - `bdg/superconducting_response_imag`: BdG $\Sigma_{\mathrm{SC}}(i\xi) = \frac{K_{\mathrm{total}}(i\xi)}{\omega_{\mathrm{eV}}}$ for $n \ge 1$, used for comparison with normal-state $\sigma(i\xi)$. Not Casimir input yet and not real-axis conductivity.
 - `response/local_sheet_imag`: unified local $q=0$ sheet response interface for normal / $s_{\pm}$ / $d$-wave comparisons. It is a pre-Casimir interface, not final Casimir input.
+- `response/unit_audit`: unit-convention and normalization-status diagnostics before reflection input.
+- `response/static_response`: $n=0$ Matsubara policy diagnostics.
+- `response/nonlocal_interface`: nonlocal response interface diagnostics; current finite-$q_{\parallel}$ physics is not implemented.
 - `casimir`: reserved for future Casimir calculations.
 - `smoke`: lightweight plots or arrays used only to verify scripts and interfaces.
 - `smoke/casimir_local_response`: Casimir plumbing smoke outputs for local response matrices. Not formal Casimir calculations.
