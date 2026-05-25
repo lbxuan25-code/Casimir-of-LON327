@@ -32,6 +32,21 @@ class BdGKernelComponents:
     total: np.ndarray
 
 
+@dataclass(frozen=True)
+class BdGSuperconductingResponse:
+    """BdG imaginary-axis superconducting response diagnostic.
+
+    ``sigma_like_response`` is defined here as K_total / omega_eV for positive
+    Matsubara energies. It is a sheet response kernel used for comparison with
+    normal-state sigma(i omega), not a real-axis optical conductivity.
+    """
+
+    paramagnetic: np.ndarray
+    diamagnetic: np.ndarray
+    total: np.ndarray
+    sigma_like_response: np.ndarray
+
+
 def bdg_current_vertex(kx: float, ky: float, direction: str) -> np.ndarray:
     """Return the 8x8 BdG charge-current vertex.
 
@@ -238,3 +253,35 @@ def bdg_total_kernel_imag_axis(
         k_weights,
     )
     return BdGKernelComponents(paramagnetic=para, diamagnetic=dia, total=para + dia)
+
+
+def bdg_superconducting_response_imag_axis(
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    pairing_kind: PairingKind,
+    pairing_params: PairingAmplitudes | None = None,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+) -> BdGSuperconductingResponse:
+    """Return Sigma_SC(i omega) = K_total(i omega) / omega_eV for omega_eV > 0.
+
+    The returned ``sigma_like_response`` is an imaginary-axis superconducting
+    sheet response kernel. The K_para, K_dia, and K_total definitions are
+    unchanged from ``bdg_total_kernel_imag_axis``.
+    """
+
+    if config.omega_eV <= 0.0:
+        raise ValueError("omega_eV must be positive for Sigma_SC = K_total / omega_eV")
+
+    components = bdg_total_kernel_imag_axis(
+        k_points,
+        config,
+        pairing_kind,
+        pairing_params,
+        k_weights,
+    )
+    return BdGSuperconductingResponse(
+        paramagnetic=components.paramagnetic,
+        diamagnetic=components.diamagnetic,
+        total=components.total,
+        sigma_like_response=components.total / config.omega_eV,
+    )

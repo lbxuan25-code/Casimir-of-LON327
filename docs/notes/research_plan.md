@@ -21,6 +21,8 @@ Casimir torque 框架中。
    - normal-state Kubo conductivity 继续作为基线。
    - BdG superconducting response 当前维护 paramagnetic kernel 与 diamagnetic kernel 两个基础层。
    - 当前也提供 `K_total(i xi) = K_para(i xi) + K_dia` 诊断脚本。
+   - 当前新增 `Sigma_SC(i xi) = K_total(i xi) / omega_eV`，仅用于与 normal-state
+     `sigma(i xi)` 做虚频轴 response-kernel 对比，要求 Matsubara `n>=1`。
    - 后续进入 Casimir 前仍需系统确认量纲、规范约定与物理解释，并在命名上明确区分 kernel 与 full conductivity。
    - 主要关心 `xx≈yy`、`xy≈0`、C4 对称性破缺、频率依赖与 pairing-kind 差异。
 
@@ -34,14 +36,14 @@ Casimir torque 框架中。
 - `pairing.py`: minimal `spm` / `dwave` pairing 与 BdG Hamiltonian 组装。
 - `gap_analysis.py`: Fermi-surface gap 投影与 node/sign 诊断。
 - `conductivity.py`: normal-state Kubo conductivity 基线。
-- `bdg_response.py`: BdG current vertex 与 imaginary-axis paramagnetic kernel。
+- `bdg_response.py`: BdG current vertex、imaginary-axis kernels 与 `Sigma_SC` 诊断。
 - `casimir.py`: 未来使用的 reflection / energy / torque integrand 骨架。
 
 Normal-state 运行脚本集中在 `scripts/normal_state/`。输出按阶段归档：
 `outputs/normal_state/conductivity_imag/`、`outputs/normal_state/conductivity_real/`、
 `outputs/pairing/gap_structure/`、`outputs/bdg/paramagnetic_kernel_imag/`、
 `outputs/bdg/diamagnetic_kernel/`、`outputs/bdg/total_kernel_imag/`、
-`outputs/casimir/` 和 `outputs/smoke/`。
+`outputs/bdg/superconducting_response_imag/`、`outputs/casimir/` 和 `outputs/smoke/`。
 旧的顶层 normal-state 脚本路径只作为兼容 wrapper。
 
 ## 常用脚本顺序
@@ -53,6 +55,7 @@ python scripts/inspect_gap_structure.py --kind dwave --delta0 0.04 --nk 80 --ene
 python scripts/compute_bdg_paramagnetic_kernel_imag.py --kind spm --delta0 0.04 --nk 24 --temperature 30 --matsubara-index 1
 python scripts/diagnose_bdg_diamagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30
 python scripts/diagnose_bdg_total_kernel_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
+python scripts/diagnose_superconducting_response_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
 python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --matsubara-index 1
 ```
 
@@ -64,7 +67,10 @@ python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --
 - 只有包含 paramagnetic 与 diamagnetic 两部分、并经过相应物理检查的量，才命名为
   `superconducting conductivity`。
 - 当前 BdG 响应输出使用 `kernel` 或 `paramagnetic_response`。
-- `K_dia` 是 diamagnetic kernel 诊断；在 `K_total` 构造前不称为完整超导电导。
+- `K_dia` 是 diamagnetic kernel 诊断；单独输出时不称为完整超导电导。
 - `K_total(i xi)` 是 BdG total electromagnetic kernel 诊断；仍不直接作为 Casimir 输入。
+- `Sigma_SC(i xi)` 是 `K_total(i xi) / omega_eV` 的虚频轴 superconducting
+  sheet response kernel，用于和 normal-state `sigma(i xi)` 比较；它不是 real-axis
+  optical conductivity，也仍不直接作为 Casimir 输入。
 - gap sign 诊断目前是 gauge-dependent preliminary diagnostic；更可靠的是
   magnitude、near-node 分布和 symmetry pattern。
