@@ -10,6 +10,7 @@ from lno327 import (
     conductivity_tensor_from_matrix,
     k_weights,
     local_response_imag_axis,
+    matrix_symmetry_diagnostics,
     uniform_bz_mesh,
     validate_local_response_symmetry,
 )
@@ -102,6 +103,24 @@ def test_validate_local_response_symmetry_passes_isotropic_matrix():
     assert diagnostics["relative_offdiag"] == 0.0
     assert diagnostics["relative_eigen_split"] == 0.0
     assert diagnostics["isotropic_within_tolerance"]
+
+
+def test_matrix_symmetry_diagnostics_matches_response_wrapper():
+    matrix = np.array([[2.0 + 0.0j, 0.0], [0.0, 2.0 + 0.0j]], dtype=complex)
+    response = LocalSheetResponse(
+        kind="normal",
+        omega_eV=0.1,
+        matrix=matrix,
+        unit_label="test",
+        source="test",
+        valid_for_casimir_input=False,
+        notes=(),
+    )
+
+    matrix_diagnostics = matrix_symmetry_diagnostics(matrix)
+    response_diagnostics = validate_local_response_symmetry(response)
+
+    assert matrix_diagnostics == response_diagnostics
 
 
 def test_compare_local_sheet_response_script_returns_nonempty_data(tmp_path):

@@ -24,8 +24,8 @@ from lno327 import (  # noqa: E402
     conductivity_tensor_from_matrix,
     k_weights,
     local_response_imag_axis,
+    matrix_symmetry_diagnostics,
     uniform_bz_mesh,
-    validate_local_response_symmetry,
 )
 from lno327.casimir import matsubara_frequency  # noqa: E402
 
@@ -59,14 +59,7 @@ NOTE = "smoke test only; local q=0 response; n=0/SI/nonlocal unresolved."
 
 
 def response_isotropic_diagnostic(response_matrix: np.ndarray) -> float:
-    response = type(
-        "_Response",
-        (),
-        {
-            "matrix": np.asarray(response_matrix, dtype=complex),
-        },
-    )()
-    diagnostics = validate_local_response_symmetry(response)  # type: ignore[arg-type]
+    diagnostics = matrix_symmetry_diagnostics(response_matrix)
     return float(
         max(
             abs(complex(diagnostics["delta"])),

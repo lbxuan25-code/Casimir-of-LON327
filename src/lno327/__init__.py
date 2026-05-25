@@ -61,6 +61,7 @@ from .response_interface import (
     compare_local_responses_imag_axis,
     conductivity_tensor_from_matrix,
     local_response_imag_axis,
+    matrix_symmetry_diagnostics,
     validate_local_response_symmetry,
 )
 
@@ -108,6 +109,7 @@ __all__ = [
     "kubo_conductivity_imag_axis",
     "kubo_conductivity_real_axis",
     "local_response_imag_axis",
+    "matrix_symmetry_diagnostics",
     "normal_state_hamiltonian",
     "normal_state_mass_operator",
     "normal_state_mass_operators",

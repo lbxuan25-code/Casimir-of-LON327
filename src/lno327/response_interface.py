@@ -124,23 +124,27 @@ def local_response_imag_axis(
     )
 
 
-def validate_local_response_symmetry(
-    response: LocalSheetResponse,
+def matrix_symmetry_diagnostics(
+    matrix: np.ndarray,
     tolerance: float = 1e-8,
 ) -> dict[str, complex | float | bool]:
-    """Return compact C4/local-response diagnostics."""
+    """Return compact C4/local-response diagnostics for a 2x2 matrix."""
 
-    matrix = np.asarray(response.matrix, dtype=complex)
-    if matrix.shape != (2, 2):
-        raise ValueError("response.matrix must have shape (2, 2)")
+    response_matrix = np.asarray(matrix, dtype=complex)
+    if response_matrix.shape != (2, 2):
+        raise ValueError("matrix must have shape (2, 2)")
 
-    diagonal_sum = matrix[0, 0] + matrix[1, 1]
-    delta = complex(0.0) if np.isclose(diagonal_sum, 0.0) else (matrix[0, 0] - matrix[1, 1]) / diagonal_sum
-    diagonal_scale = 0.5 * (abs(matrix[0, 0]) + abs(matrix[1, 1]))
-    offdiag_norm = float(np.linalg.norm([matrix[0, 1], matrix[1, 0]]))
+    diagonal_sum = response_matrix[0, 0] + response_matrix[1, 1]
+    delta = (
+        complex(0.0)
+        if np.isclose(diagonal_sum, 0.0)
+        else (response_matrix[0, 0] - response_matrix[1, 1]) / diagonal_sum
+    )
+    diagonal_scale = 0.5 * (abs(response_matrix[0, 0]) + abs(response_matrix[1, 1]))
+    offdiag_norm = float(np.linalg.norm([response_matrix[0, 1], response_matrix[1, 0]]))
     relative_offdiag = 0.0 if np.isclose(diagonal_scale, 0.0) else float(offdiag_norm / diagonal_scale)
 
-    eigenvalues = np.linalg.eigvals(matrix)
+    eigenvalues = np.linalg.eigvals(response_matrix)
     eigen_scale = 0.5 * (abs(eigenvalues[0]) + abs(eigenvalues[1]))
     relative_eigen_split = (
         0.0 if np.isclose(eigen_scale, 0.0) else float(abs(eigenvalues[0] - eigenvalues[1]) / eigen_scale)
@@ -156,6 +160,15 @@ def validate_local_response_symmetry(
         "relative_eigen_split": relative_eigen_split,
         "isotropic_within_tolerance": isotropic,
     }
+
+
+def validate_local_response_symmetry(
+    response: LocalSheetResponse,
+    tolerance: float = 1e-8,
+) -> dict[str, complex | float | bool]:
+    """Return compact C4/local-response diagnostics."""
+
+    return matrix_symmetry_diagnostics(response.matrix, tolerance=tolerance)
 
 
 def compare_local_responses_imag_axis(
