@@ -1,0 +1,204 @@
+"""Local sheet-response interface before the formal Casimir stage."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+from dataclasses import dataclass
+from typing import Literal
+
+import numpy as np
+
+from .bdg_response import bdg_superconducting_response_imag_axis
+from .conductivity import ConductivityTensor, KuboConfig, kubo_conductivity_imag_axis
+from .pairing import PairingAmplitudes
+
+ResponseKind = Literal["normal", "spm", "dwave"]
+
+
+@dataclass(frozen=True)
+class LocalSheetResponse:
+    """Local q=0 response matrix prepared for future reflection-matrix plumbing."""
+
+    kind: ResponseKind
+    omega_eV: float
+    matrix: np.ndarray
+    unit_label: str
+    source: str
+    valid_for_casimir_input: bool
+    notes: tuple[str, ...]
+
+
+def conductivity_tensor_from_matrix(matrix: np.ndarray) -> ConductivityTensor:
+    """Convert a 2x2 complex matrix into a ``ConductivityTensor``."""
+
+    response_matrix = np.asarray(matrix, dtype=complex)
+    if response_matrix.shape != (2, 2):
+        raise ValueError("matrix must have shape (2, 2)")
+    return ConductivityTensor(
+        xx=response_matrix[0, 0],
+        yy=response_matrix[1, 1],
+        xy=response_matrix[0, 1],
+        yx=response_matrix[1, 0],
+    )
+
+
+def local_response_imag_axis(
+    kind: ResponseKind,
+    omega_eV: float,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    temperature_K: float,
+    eta_eV: float = 1e-4,
+    pairing_params: PairingAmplitudes | None = None,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+    fermi_level_eV: float = 0.0,
+) -> LocalSheetResponse:
+    """Return a local q=0 sheet response at one imaginary-axis energy.
+
+    This is a pre-Casimir interface. The returned matrix is intentionally
+    marked as not yet valid for direct Casimir input because the n=0 treatment,
+    SI sheet-conductivity normalization, and nonlocal q_parallel response are
+    unresolved.
+    """
+
+    if kind not in {"normal", "spm", "dwave"}:
+        raise ValueError("kind must be one of: normal, spm, dwave")
+    if omega_eV < 0.0:
+        raise ValueError("omega_eV must be non-negative")
+    if eta_eV <= 0.0:
+        raise ValueError("eta_eV must be positive")
+
+    base_notes = (
+        "local q=0 response only",
+        "n=0 Matsubara treatment unresolved",
+        "SI sheet conductivity normalization not finalized",
+        "nonlocal q_parallel response not included",
+    )
+
+    if kind == "normal":
+        config = KuboConfig.from_kelvin(
+            omega_eV=omega_eV,
+            temperature_K=temperature_K,
+            fermi_level_eV=fermi_level_eV,
+            eta_eV=eta_eV,
+            output_si=False,
+        )
+        conductivity = kubo_conductivity_imag_axis(k_points, config, k_weights)
+        notes = base_notes
+        if omega_eV == 0.0:
+            notes += ("normal-state n=0 response retained as unresolved diagnostic",)
+        return LocalSheetResponse(
+            kind=kind,
+            omega_eV=omega_eV,
+            matrix=conductivity.matrix(),
+            unit_label="model_units_normal_state_sigma_iomega",
+            source="kubo_conductivity_imag_axis",
+            valid_for_casimir_input=False,
+            notes=notes,
+        )
+
+    if omega_eV <= 0.0:
+        raise ValueError("omega_eV must be positive for BdG Sigma_SC; n=0 is unresolved")
+
+    config = KuboConfig.from_kelvin(
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        fermi_level_eV=fermi_level_eV,
+        eta_eV=eta_eV,
+        output_si=False,
+    )
+    response = bdg_superconducting_response_imag_axis(
+        k_points,
+        config,
+        kind,
+        pairing_params,
+        k_weights,
+    )
+    return LocalSheetResponse(
+        kind=kind,
+        omega_eV=omega_eV,
+        matrix=response.sigma_like_response,
+        unit_label="model_units_BdG_Sigma_SC_iomega",
+        source="bdg_superconducting_response_imag_axis",
+        valid_for_casimir_input=False,
+        notes=base_notes + ("Sigma_SC = K_total / omega_eV for n >= 1",),
+    )
+
+
+def validate_local_response_symmetry(
+    response: LocalSheetResponse,
+    tolerance: float = 1e-8,
+) -> dict[str, complex | float | bool]:
+    """Return compact C4/local-response diagnostics."""
+
+    matrix = np.asarray(response.matrix, dtype=complex)
+    if matrix.shape != (2, 2):
+        raise ValueError("response.matrix must have shape (2, 2)")
+
+    diagonal_sum = matrix[0, 0] + matrix[1, 1]
+    delta = complex(0.0) if np.isclose(diagonal_sum, 0.0) else (matrix[0, 0] - matrix[1, 1]) / diagonal_sum
+    diagonal_scale = 0.5 * (abs(matrix[0, 0]) + abs(matrix[1, 1]))
+    offdiag_norm = float(np.linalg.norm([matrix[0, 1], matrix[1, 0]]))
+    relative_offdiag = 0.0 if np.isclose(diagonal_scale, 0.0) else float(offdiag_norm / diagonal_scale)
+
+    eigenvalues = np.linalg.eigvals(matrix)
+    eigen_scale = 0.5 * (abs(eigenvalues[0]) + abs(eigenvalues[1]))
+    relative_eigen_split = (
+        0.0 if np.isclose(eigen_scale, 0.0) else float(abs(eigenvalues[0] - eigenvalues[1]) / eigen_scale)
+    )
+    isotropic = (
+        abs(delta) <= tolerance
+        and relative_offdiag <= tolerance
+        and relative_eigen_split <= tolerance
+    )
+    return {
+        "delta": delta,
+        "relative_offdiag": relative_offdiag,
+        "relative_eigen_split": relative_eigen_split,
+        "isotropic_within_tolerance": isotropic,
+    }
+
+
+def compare_local_responses_imag_axis(
+    kinds: Sequence[ResponseKind],
+    omega_eV: Sequence[float] | np.ndarray,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    temperature_K: float,
+    eta_eV: float = 1e-4,
+    pairing_params: PairingAmplitudes | None = None,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+    fermi_level_eV: float = 0.0,
+    tolerance: float = 1e-8,
+) -> list[dict[str, object]]:
+    """Evaluate normal/spm/dwave local responses on the same omega grid."""
+
+    energies = np.asarray(omega_eV, dtype=float)
+    if energies.ndim != 1 or energies.size == 0:
+        raise ValueError("omega_eV must be a non-empty 1D array")
+
+    rows: list[dict[str, object]] = []
+    for kind in kinds:
+        for omega in energies:
+            response = local_response_imag_axis(
+                kind,
+                float(omega),
+                k_points,
+                temperature_K,
+                eta_eV,
+                pairing_params,
+                k_weights,
+                fermi_level_eV,
+            )
+            diagnostics = validate_local_response_symmetry(response, tolerance=tolerance)
+            rows.append(
+                {
+                    "kind": response.kind,
+                    "omega_eV": response.omega_eV,
+                    "matrix": response.matrix,
+                    "unit_label": response.unit_label,
+                    "source": response.source,
+                    "valid_for_casimir_input": response.valid_for_casimir_input,
+                    "notes": response.notes,
+                    **diagnostics,
+                }
+            )
+    return rows

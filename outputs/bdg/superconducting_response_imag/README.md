@@ -3,7 +3,10 @@
 This directory stores BdG superconducting response diagnostics on the
 imaginary axis:
 
-Sigma_SC(i omega_n) = K_total(i omega_n) / omega_eV, for n >= 1.
+$$
+\Sigma_{\mathrm{SC}}(i\omega_n)
+= \frac{K_{\mathrm{total}}(i\omega_n)}{\omega_{\mathrm{eV}}}, \qquad n \ge 1 .
+$$
 
 These files are not Casimir inputs yet and are not real-axis optical
 conductivity results.

@@ -55,6 +55,14 @@ from .pairing import (
     pairing_matrix,
     spm_pairing_matrix,
 )
+from .response_interface import (
+    LocalSheetResponse,
+    ResponseKind,
+    compare_local_responses_imag_axis,
+    conductivity_tensor_from_matrix,
+    local_response_imag_axis,
+    validate_local_response_symmetry,
+)
 
 __all__ = [
     "ORBITAL_BASIS",
@@ -67,9 +75,11 @@ __all__ = [
     "FermiSurfacePoints",
     "GapStatistics",
     "KuboConfig",
+    "LocalSheetResponse",
     "NormalStateParameters",
     "PairingAmplitudes",
     "PairingKind",
+    "ResponseKind",
     "anisotropy_delta",
     "anisotropy_summary",
     "bdg_current_vertex",
@@ -87,6 +97,8 @@ __all__ = [
     "casimir_torque_integrand",
     "conductivity_eigensystem",
     "conductivity_matrix_diagnostics",
+    "conductivity_tensor_from_matrix",
+    "compare_local_responses_imag_axis",
     "dwave_pairing_matrix",
     "fermi_function",
     "fermi_surface_points",
@@ -95,6 +107,7 @@ __all__ = [
     "k_weights",
     "kubo_conductivity_imag_axis",
     "kubo_conductivity_real_axis",
+    "local_response_imag_axis",
     "normal_state_hamiltonian",
     "normal_state_mass_operator",
     "normal_state_mass_operators",
@@ -104,4 +117,5 @@ __all__ = [
     "rotate_conductivity",
     "spm_pairing_matrix",
     "uniform_bz_mesh",
+    "validate_local_response_symmetry",
 ]

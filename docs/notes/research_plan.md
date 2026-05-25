@@ -1,7 +1,7 @@
 # 研究计划与仓库边界
 
 本项目的中期目标不是直接得到卡西米尔力矩数值，而是先弄清楚
-La3Ni2O7/LNO327 在 minimal `s_pm` 与 `d_wave` 配对下的电导响应是否有稳健、
+$\mathrm{La_3Ni_2O_7}$ / LNO327 在 minimal $s_{\pm}$ 与 $d$-wave 配对下的电导响应是否有稳健、
 可解释的对称性差异。只有当电导层的物理和数值诊断都稳定后，才把它接到
 Casimir torque 框架中。
 
@@ -9,7 +9,7 @@ Casimir torque 框架中。
 
 1. **Pairing 与 BdG 基础**
    - 固定 `(dz1, dx1, dz2, dx2)` 基。
-   - 维护 `spm` 与 `dwave` 两个 minimal pairing ansatz。
+   - 维护 `spm` 与 `dwave` 两个 minimal pairing ansatz，分别代表 $s_{\pm}$ 与 $d$-wave / $B_{1g}$ 通道。
    - 检查 BdG Hermiticity、particle-hole spectrum symmetry、零配对极限。
 
 2. **Gap Structure**
@@ -20,30 +20,37 @@ Casimir torque 框架中。
 3. **Conductivity Symmetry**
    - normal-state Kubo conductivity 继续作为基线。
    - BdG superconducting response 当前维护 paramagnetic kernel 与 diamagnetic kernel 两个基础层。
-   - 当前也提供 `K_total(i xi) = K_para(i xi) + K_dia` 诊断脚本。
-   - 当前新增 `Sigma_SC(i xi) = K_total(i xi) / omega_eV`，仅用于与 normal-state
-     `sigma(i xi)` 做虚频轴 response-kernel 对比，要求 Matsubara `n>=1`。
+   - 当前也提供 $K_{\mathrm{total}}(i\xi) = K_{\mathrm{para}}(i\xi) + K_{\mathrm{dia}}$ 诊断脚本。
+   - 当前新增 $\Sigma_{\mathrm{SC}}(i\xi) = \frac{K_{\mathrm{total}}(i\xi)}{\omega_{\mathrm{eV}}}$，仅用于与 normal-state
+     $\sigma(i\xi)$ 做虚频轴 response-kernel 对比，要求 Matsubara $n \ge 1$。
    - 后续进入 Casimir 前仍需系统确认量纲、规范约定与物理解释，并在命名上明确区分 kernel 与 full conductivity。
    - 主要关心 `xx≈yy`、`xy≈0`、C4 对称性破缺、频率依赖与 pairing-kind 差异。
 
 4. **Future Casimir Torque**
    - Casimir 模块目前只作为公式骨架和 smoke check。
+   - 当前新增的是 Casimir 前置接口：把 normal-state $\sigma(i\xi)$ 与 BdG
+     $\Sigma_{\mathrm{SC}}(i\xi)$ 统一为 local $q=0$ sheet response matrix。
+   - 该接口仍不做 Matsubara 求和，不输出 Casimir energy 或 torque。
    - 在 superconducting conductivity 尚未完成前，不从 Casimir 输出物理结论。
+   - 正式 Casimir 阶段仍缺 $n=0$ Matsubara 处理、SI sheet conductivity
+     归一化、非局域 $q_{\parallel}$ 响应，以及能产生 torque 的角向各向异性机制。
 
 ## 模块边界
 
 - `model.py`: normal-state Hamiltonian、normal-state velocity。
-- `pairing.py`: minimal `spm` / `dwave` pairing 与 BdG Hamiltonian 组装。
+- `pairing.py`: minimal `spm` / `dwave` pairing 与 BdG Hamiltonian 组装，即 $s_{\pm}$ 与 $d$-wave / $B_{1g}$ 通道。
 - `gap_analysis.py`: Fermi-surface gap 投影与 node/sign 诊断。
 - `conductivity.py`: normal-state Kubo conductivity 基线。
 - `bdg_response.py`: BdG current vertex、imaginary-axis kernels 与 `Sigma_SC` 诊断。
+- `response_interface.py`: Casimir 前置 local $q=0$ sheet response 接口。
 - `casimir.py`: 未来使用的 reflection / energy / torque integrand 骨架。
 
 Normal-state 运行脚本集中在 `scripts/normal_state/`。输出按阶段归档：
 `outputs/normal_state/conductivity_imag/`、`outputs/normal_state/conductivity_real/`、
 `outputs/pairing/gap_structure/`、`outputs/bdg/paramagnetic_kernel_imag/`、
 `outputs/bdg/diamagnetic_kernel/`、`outputs/bdg/total_kernel_imag/`、
-`outputs/bdg/superconducting_response_imag/`、`outputs/casimir/` 和 `outputs/smoke/`。
+`outputs/bdg/superconducting_response_imag/`、`outputs/response/local_sheet_imag/`、
+`outputs/casimir/` 和 `outputs/smoke/`。
 旧的顶层 normal-state 脚本路径只作为兼容 wrapper。
 
 ## 常用脚本顺序
@@ -56,6 +63,7 @@ python scripts/compute_bdg_paramagnetic_kernel_imag.py --kind spm --delta0 0.04 
 python scripts/diagnose_bdg_diamagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30
 python scripts/diagnose_bdg_total_kernel_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
 python scripts/diagnose_superconducting_response_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
+python scripts/compare_local_sheet_response_imag.py --kinds normal spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
 python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --matsubara-index 1
 ```
 
@@ -67,10 +75,12 @@ python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --
 - 只有包含 paramagnetic 与 diamagnetic 两部分、并经过相应物理检查的量，才命名为
   `superconducting conductivity`。
 - 当前 BdG 响应输出使用 `kernel` 或 `paramagnetic_response`。
-- `K_dia` 是 diamagnetic kernel 诊断；单独输出时不称为完整超导电导。
-- `K_total(i xi)` 是 BdG total electromagnetic kernel 诊断；仍不直接作为 Casimir 输入。
-- `Sigma_SC(i xi)` 是 `K_total(i xi) / omega_eV` 的虚频轴 superconducting
-  sheet response kernel，用于和 normal-state `sigma(i xi)` 比较；它不是 real-axis
+- $K_{\mathrm{dia}}$ 是 diamagnetic kernel 诊断；单独输出时不称为完整超导电导。
+- $K_{\mathrm{total}}(i\xi)$ 是 BdG total electromagnetic kernel 诊断；仍不直接作为 Casimir 输入。
+- $\Sigma_{\mathrm{SC}}(i\xi)$ 是 $\frac{K_{\mathrm{total}}(i\xi)}{\omega_{\mathrm{eV}}}$ 的虚频轴 superconducting
+  sheet response kernel，用于和 normal-state $\sigma(i\xi)$ 比较；它不是 real-axis
   optical conductivity，也仍不直接作为 Casimir 输入。
+- `LocalSheetResponse` 是 Casimir 前置接口对象；当前 `valid_for_casimir_input=False`
+  是有意保守标记，表示它还缺少 $n=0$、SI 归一化和非局域响应处理。
 - gap sign 诊断目前是 gauge-dependent preliminary diagnostic；更可靠的是
   magnitude、near-node 分布和 symmetry pattern。
