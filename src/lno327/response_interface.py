@@ -11,7 +11,7 @@ import numpy as np
 from .bdg_response import bdg_superconducting_response_imag_axis
 from .conductivity import ConductivityTensor, KuboConfig, kubo_conductivity_imag_axis
 from .pairing import PairingAmplitudes
-from .response_units import ResponseUnitConvention, model_response_to_sheet_conductivity
+from .response_units import SheetConductivityConvention, model_response_to_sheet_conductivity
 
 ResponseKind = Literal["normal", "spm", "dwave"]
 
@@ -27,7 +27,8 @@ class LocalSheetResponse:
     source: str
     valid_for_casimir_input: bool
     notes: tuple[str, ...]
-    normalization_status: str = "dimensionless_model_not_si_sheet"
+    normalization_status: str = "model_response_unconverted"
+    recommended_unit_conversion: str = "model_response_to_sheet_conductivity"
     static_policy: str = "finite_matsubara_only"
     nonlocal_status: str = "local_q0_only"
 
@@ -55,7 +56,7 @@ def local_response_imag_axis(
     pairing_params: PairingAmplitudes | None = None,
     k_weights: Sequence[float] | np.ndarray | None = None,
     fermi_level_eV: float = 0.0,
-    unit_convention: ResponseUnitConvention | None = None,
+    unit_convention: SheetConductivityConvention | None = None,
 ) -> LocalSheetResponse:
     """Return a local q=0 sheet response at one imaginary-axis energy.
 
@@ -75,7 +76,7 @@ def local_response_imag_axis(
     base_notes = (
         "local q=0 response only",
         "n=0 Matsubara treatment unresolved",
-        "SI sheet conductivity normalization not finalized",
+        "SI sheet conductivity conversion is provided by response_units",
         "nonlocal q_parallel response not included",
     )
 
@@ -138,6 +139,7 @@ def local_response_imag_axis(
         valid_for_casimir_input=False,
         notes=base_notes + ("Sigma_SC = K_total / omega_eV for n >= 1",),
         normalization_status=conversion.normalization_status,
+        recommended_unit_conversion="model_response_to_sheet_conductivity_then_reflection_dimensionless",
         static_policy="finite_matsubara",
         nonlocal_status="local_q0_only",
     )

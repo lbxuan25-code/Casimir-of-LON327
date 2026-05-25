@@ -24,7 +24,8 @@ from lno327 import (  # noqa: E402
     k_weights,
     local_response_imag_axis,
     matrix_symmetry_diagnostics,
-    model_response_to_sheet_conductivity,
+    require_sheet_conductivity_for_reflection,
+    sheet_conductivity_to_reflection_dimensionless,
     uniform_bz_mesh,
 )
 from lno327.casimir import matsubara_frequency  # noqa: E402
@@ -37,6 +38,12 @@ REQUIRED_NPZ_FIELDS = {
     "response_yy",
     "response_xy",
     "response_yx",
+    "response_unit_stage",
+    "sheet_conductivity_xx",
+    "sheet_conductivity_yy",
+    "reflection_dimensionless_xx",
+    "reflection_dimensionless_yy",
+    "unit_conversion_status",
     "response_isotropic_diagnostic",
     "energy_integrand",
     "torque_integrand",
@@ -55,7 +62,7 @@ REQUIRED_NPZ_FIELDS = {
     "theta_rad",
 }
 
-NOTE = "smoke test only; local q=0 response; n=0/SI/nonlocal unresolved."
+NOTE = "smoke test only; unit conversion applied; n=0 and finite-q still unresolved."
 
 
 def response_isotropic_diagnostic(response_matrix: np.ndarray) -> float:
@@ -84,7 +91,7 @@ def local_tensor_for_kind(
     temperature_K: float,
     eta_eV: float,
     delta0_eV: float,
-) -> tuple[np.ndarray, ConductivityTensor, bool]:
+) -> tuple[np.ndarray, ConductivityTensor, ConductivityTensor, str, bool]:
     mesh = uniform_bz_mesh(nk)
     weights = k_weights(mesh)
     response = local_response_imag_axis(
@@ -96,11 +103,9 @@ def local_tensor_for_kind(
         pairing_params=PairingAmplitudes(delta0_eV=delta0_eV),
         k_weights=weights,
     )
-    return (
-        response.matrix,
-        model_response_to_sheet_conductivity(response.matrix).tensor,
-        response.valid_for_casimir_input,
-    )
+    sheet = require_sheet_conductivity_for_reflection(response.matrix)
+    reflection_dimensionless = sheet_conductivity_to_reflection_dimensionless(sheet)
+    return response.matrix, sheet.tensor, reflection_dimensionless.tensor, sheet.normalization_status, response.valid_for_casimir_input
 
 
 def evaluate_tensor(
@@ -187,6 +192,12 @@ def scan_smoke(
         "response_yy": np.empty(len(kinds), dtype=complex),
         "response_xy": np.empty(len(kinds), dtype=complex),
         "response_yx": np.empty(len(kinds), dtype=complex),
+        "response_unit_stage": np.full(len(kinds), "model_response", dtype="U32"),
+        "sheet_conductivity_xx": np.empty(len(kinds), dtype=complex),
+        "sheet_conductivity_yy": np.empty(len(kinds), dtype=complex),
+        "reflection_dimensionless_xx": np.empty(len(kinds), dtype=complex),
+        "reflection_dimensionless_yy": np.empty(len(kinds), dtype=complex),
+        "unit_conversion_status": np.empty(len(kinds), dtype="U64"),
         "response_isotropic_diagnostic": np.empty(len(kinds), dtype=float),
         "energy_integrand": np.empty(len(kinds), dtype=complex),
         "torque_integrand": np.empty(len(kinds), dtype=complex),
@@ -206,7 +217,7 @@ def scan_smoke(
 
     tensors: dict[str, ConductivityTensor] = {}
     for index, kind in enumerate(kinds):
-        matrix, tensor, valid_for_casimir_input = local_tensor_for_kind(
+        matrix, tensor, reflection_dimensionless, conversion_status, valid_for_casimir_input = local_tensor_for_kind(
             kind,
             omega_eV,
             nk,
@@ -227,6 +238,11 @@ def scan_smoke(
         data["response_yy"][index] = matrix[1, 1]
         data["response_xy"][index] = matrix[0, 1]
         data["response_yx"][index] = matrix[1, 0]
+        data["sheet_conductivity_xx"][index] = tensor.xx
+        data["sheet_conductivity_yy"][index] = tensor.yy
+        data["reflection_dimensionless_xx"][index] = reflection_dimensionless.xx
+        data["reflection_dimensionless_yy"][index] = reflection_dimensionless.yy
+        data["unit_conversion_status"][index] = conversion_status
         data["response_isotropic_diagnostic"][index] = response_isotropic_diagnostic(matrix)
         data["energy_integrand"][index] = energy
         data["torque_integrand"][index] = torque

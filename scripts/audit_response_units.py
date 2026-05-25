@@ -14,14 +14,15 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from lno327 import (  # noqa: E402
     PairingAmplitudes,
-    ResponseUnitConvention,
+    SheetConductivityConvention,
+    model_response_to_reflection_dimensionless,
     bosonic_matsubara_energy_eV,
     k_weights,
     local_response_imag_axis,
     model_response_to_sheet_conductivity,
-    sheet_conductivity_to_dimensionless,
     uniform_bz_mesh,
 )
+from lno327.constants import E2_OVER_HBAR, SIGMA0  # noqa: E402
 
 
 def audit_units(
@@ -37,14 +38,18 @@ def audit_units(
     mesh = uniform_bz_mesh(nk)
     weights = k_weights(mesh)
     omega_eV = bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
-    convention = ResponseUnitConvention(mode="dimensionless_model")
+    convention = SheetConductivityConvention()
 
     data: dict[str, np.ndarray] = {
         "kind": np.array(kinds, dtype="U16"),
-        "unit_label": np.empty(len(kinds), dtype="U64"),
+        "model_response_xx": np.empty(len(kinds), dtype=complex),
+        "sheet_conductivity_xx_SI": np.empty(len(kinds), dtype=complex),
+        "reflection_dimensionless_xx": np.empty(len(kinds), dtype=complex),
+        "e2_over_hbar": np.array(E2_OVER_HBAR),
+        "sigma0": np.array(SIGMA0),
+        "conversion_factor_e2_over_hbar": np.array(E2_OVER_HBAR),
+        "conversion_factor_e2_over_hbar_over_sigma0": np.array(E2_OVER_HBAR / SIGMA0),
         "normalization_status": np.empty(len(kinds), dtype="U96"),
-        "dimensionless_sigma_t": np.empty(len(kinds), dtype=complex),
-        "dimensionless_sigma_t_abs": np.empty(len(kinds), dtype=float),
         "valid_for_casimir_input": np.empty(len(kinds), dtype=bool),
         "notes": np.empty(len(kinds), dtype=object),
         "omega_eV": np.array(omega_eV),
@@ -67,12 +72,11 @@ def audit_units(
             unit_convention=convention,
         )
         conversion = model_response_to_sheet_conductivity(response.matrix, convention)
-        dimensionless = sheet_conductivity_to_dimensionless(conversion.tensor)
-        sigma_t = dimensionless.xx + dimensionless.yy
-        data["unit_label"][index] = conversion.unit_label
+        reflection = model_response_to_reflection_dimensionless(response.matrix, convention)
+        data["model_response_xx"][index] = response.matrix[0, 0]
+        data["sheet_conductivity_xx_SI"][index] = conversion.tensor.xx
+        data["reflection_dimensionless_xx"][index] = reflection.tensor.xx
         data["normalization_status"][index] = conversion.normalization_status
-        data["dimensionless_sigma_t"][index] = sigma_t
-        data["dimensionless_sigma_t_abs"][index] = abs(sigma_t)
         data["valid_for_casimir_input"][index] = response.valid_for_casimir_input and conversion.valid_for_casimir_input
         data["notes"][index] = response.notes + conversion.notes
 
@@ -89,9 +93,12 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> Path:
 def print_summary(data: dict[str, np.ndarray]) -> None:
     for index, kind in enumerate(data["kind"]):
         print(f"kind = {kind}")
-        print(f"unit_label = {data['unit_label'][index]}")
+        print(f"model_response_xx = {data['model_response_xx'][index]}")
+        print(f"sheet_conductivity_xx_SI = {data['sheet_conductivity_xx_SI'][index]}")
+        print(f"reflection_dimensionless_xx = {data['reflection_dimensionless_xx'][index]}")
+        print(f"e2_over_hbar = {float(data['e2_over_hbar'])}")
+        print(f"sigma0 = {float(data['sigma0'])}")
         print(f"normalization_status = {data['normalization_status'][index]}")
-        print(f"dimensionless_sigma_t_abs = {float(data['dimensionless_sigma_t_abs'][index])}")
         print(f"valid_for_casimir_input = {bool(data['valid_for_casimir_input'][index])}")
         print(f"notes = {data['notes'][index]}")
 

@@ -3,32 +3,67 @@ import pytest
 
 from lno327 import (
     PairingAmplitudes,
-    ResponseUnitConvention,
+    SheetConductivityConvention,
     local_response_imag_axis,
     local_response_matsubara_index,
     model_response_to_sheet_conductivity,
+    model_response_to_reflection_dimensionless,
     nonlocal_response_imag_axis,
-    sheet_conductivity_to_dimensionless,
+    require_sheet_conductivity_for_reflection,
+    sheet_conductivity_to_reflection_dimensionless,
     uniform_bz_mesh,
     k_weights,
 )
+from lno327.constants import E2_OVER_HBAR, SIGMA0
 
 
 def test_unit_conversion_preserves_2x2_matrix_structure():
     matrix = np.array([[1.0 + 0.0j, 0.2], [0.3, 2.0 + 0.0j]], dtype=complex)
-    conversion = model_response_to_sheet_conductivity(matrix, ResponseUnitConvention())
-    dimensionless = sheet_conductivity_to_dimensionless(conversion.tensor)
+    conversion = model_response_to_sheet_conductivity(matrix, SheetConductivityConvention())
+    dimensionless = sheet_conductivity_to_reflection_dimensionless(conversion)
 
     assert conversion.tensor.matrix().shape == (2, 2)
-    assert dimensionless.matrix().shape == (2, 2)
+    assert dimensionless.tensor.matrix().shape == (2, 2)
 
 
-def test_unit_conversion_without_si_convention_is_not_casimir_valid():
-    matrix = np.eye(2, dtype=complex)
+def test_model_response_to_sheet_conductivity_applies_e2_over_hbar():
+    matrix = np.array([[1.0, 0.2], [0.2, 3.0]], dtype=complex)
     conversion = model_response_to_sheet_conductivity(matrix)
 
-    assert conversion.normalization_status == "dimensionless_model_not_si_sheet"
-    assert not conversion.valid_for_casimir_input
+    np.testing.assert_allclose(conversion.tensor.matrix(), E2_OVER_HBAR * matrix)
+
+
+def test_sheet_conductivity_to_reflection_dimensionless_divides_by_sigma0():
+    matrix = np.array([[1.0, 0.2], [0.2, 3.0]], dtype=complex)
+    dimensionless = sheet_conductivity_to_reflection_dimensionless(matrix)
+
+    np.testing.assert_allclose(dimensionless.tensor.matrix(), matrix / SIGMA0)
+
+
+def test_model_response_to_reflection_dimensionless_combines_factors():
+    matrix = np.array([[1.0, 0.2], [0.2, 3.0]], dtype=complex)
+    dimensionless = model_response_to_reflection_dimensionless(matrix)
+
+    np.testing.assert_allclose(dimensionless.tensor.matrix(), (E2_OVER_HBAR / SIGMA0) * matrix)
+
+
+def test_unit_conversion_preserves_anisotropy_delta():
+    matrix = np.array([[2.0, 0.0], [0.0, 1.0]], dtype=complex)
+    before = (matrix[0, 0] - matrix[1, 1]) / (matrix[0, 0] + matrix[1, 1])
+    after_matrix = model_response_to_reflection_dimensionless(matrix).tensor.matrix()
+    after = (after_matrix[0, 0] - after_matrix[1, 1]) / (after_matrix[0, 0] + after_matrix[1, 1])
+
+    np.testing.assert_allclose(after, before)
+
+
+def test_unit_conversion_prevents_double_scaling():
+    matrix = np.eye(2, dtype=complex)
+    sheet = model_response_to_sheet_conductivity(matrix)
+
+    with pytest.raises(ValueError, match="twice"):
+        model_response_to_sheet_conductivity(sheet)
+
+    assert require_sheet_conductivity_for_reflection(sheet) is sheet
 
 
 def test_bdg_n0_direct_sigma_is_rejected():

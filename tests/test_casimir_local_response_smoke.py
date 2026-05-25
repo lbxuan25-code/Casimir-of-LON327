@@ -5,6 +5,7 @@ import numpy as np
 
 from lno327 import CasimirSetup, casimir_torque_integrand
 from lno327.casimir import matsubara_frequency
+from lno327.constants import E2_OVER_HBAR, SIGMA0
 
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "smoke_casimir_local_response.py"
 SPEC = spec_from_file_location("smoke_casimir_local_response", SCRIPT_PATH)
@@ -51,6 +52,12 @@ def test_normal_spm_dwave_response_passes_to_casimir_integrands():
     assert np.isfinite(data["energy_integrand"]).all()
     assert np.isfinite(data["torque_integrand"]).all()
     assert np.isfinite(data["response_isotropic_diagnostic"]).all()
+    np.testing.assert_allclose(data["sheet_conductivity_xx"], E2_OVER_HBAR * data["response_xx"])
+    np.testing.assert_allclose(
+        data["reflection_dimensionless_xx"],
+        (E2_OVER_HBAR / SIGMA0) * data["response_xx"],
+    )
+    assert set(data["response_unit_stage"]) == {"model_response"}
 
 
 def test_smoke_output_fields_are_complete(tmp_path):

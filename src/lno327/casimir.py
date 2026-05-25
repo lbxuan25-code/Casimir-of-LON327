@@ -33,7 +33,7 @@ def reflection_matrix_weak_2d(
     phi: float,
     conductivity: ConductivityTensor,
 ) -> np.ndarray:
-    """Return Dai-Jiang 2D reflection matrix using delta/sigma_t variables.
+    """Return a weak-coupling 2D reflection matrix using delta/sigma_t variables.
 
     This is the imaginary-frequency form of their Eq. (9). Conductivities are
     supplied directly; future Kubo code should feed this function.

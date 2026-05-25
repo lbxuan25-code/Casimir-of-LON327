@@ -157,7 +157,7 @@ $$
 \int_{\mathrm{BZ}} \frac{d^2 k}{(2\pi)^2}.
 $$
 
-## Dai and Jiang / Casimir 接口边界
+## Casimir 接口边界
 
 Casimir 相关工具当前只保留流程骨架：
 

@@ -72,9 +72,12 @@ from .response_interface import (
 )
 from .response_units import (
     ResponseUnitConvention,
-    ResponseUnitMode,
+    SheetConductivityConvention,
     SheetConductivityConversion,
     model_response_to_sheet_conductivity,
+    model_response_to_reflection_dimensionless,
+    require_sheet_conductivity_for_reflection,
+    sheet_conductivity_to_reflection_dimensionless,
     sheet_conductivity_to_dimensionless,
 )
 from .static_response import (
@@ -103,7 +106,7 @@ __all__ = [
     "PairingKind",
     "ResponseKind",
     "ResponseUnitConvention",
-    "ResponseUnitMode",
+    "SheetConductivityConvention",
     "SheetConductivityConversion",
     "StaticResponsePolicy",
     "StaticResponseResult",
@@ -138,6 +141,7 @@ __all__ = [
     "local_response_matsubara_index",
     "matrix_symmetry_diagnostics",
     "model_response_to_sheet_conductivity",
+    "model_response_to_reflection_dimensionless",
     "nonlocal_response_imag_axis",
     "normal_state_hamiltonian",
     "normal_state_mass_operator",
@@ -147,6 +151,8 @@ __all__ = [
     "pairing_matrix",
     "rotate_conductivity",
     "spm_pairing_matrix",
+    "require_sheet_conductivity_for_reflection",
+    "sheet_conductivity_to_reflection_dimensionless",
     "sheet_conductivity_to_dimensionless",
     "uniform_bz_mesh",
     "validate_local_response_symmetry",

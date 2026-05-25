@@ -30,7 +30,7 @@ Casimir torque 框架中。
    - Casimir 模块目前只作为公式骨架和 smoke check。
    - 当前新增的是 Casimir 前置接口：把 normal-state $\sigma(i\xi)$ 与 BdG
      $\Sigma_{\mathrm{SC}}(i\xi)$ 统一为 local $q=0$ sheet response matrix。
-   - 当前已显式补齐三个 Casimir 前置边界接口：unit convention audit、
+   - 当前已显式补齐三个 Casimir 前置边界接口：中性 sheet-conductivity convention audit、
      $n=0$ Matsubara static policy、nonlocal $q_{\parallel}$ response interface。
    - 当前也提供 local-response 接口链路冒烟测试，用于验证
      $\mathrm{LocalSheetResponse}\rightarrow\sigma_{\alpha\beta}\rightarrow r
@@ -38,8 +38,11 @@ Casimir torque 框架中。
      的工程链路。
    - 该接口仍不做 Matsubara 求和，不输出 Casimir 能量或力矩。
    - 在 superconducting conductivity 尚未完成前，不从 Casimir 输出物理结论。
-   - 正式 Casimir 阶段仍需选择具体物理方案：真实 finite-$q$ response、最终 SI
-     sheet conductivity 归一化、$n=0$ 物理处理，或外场/应变/表面取向等各向异性来源。
+   - 当前单位路径为 $\sigma_{\mathrm{model}}\rightarrow\sigma_{\mathrm{sheet}}^{\mathrm{SI}}
+     =(e^2/\hbar)\sigma_{\mathrm{model}}\rightarrow
+     \sigma_{\mathrm{reflection}}=\sigma_{\mathrm{sheet}}^{\mathrm{SI}}/\sigma_0$。
+   - 正式 Casimir 阶段仍需选择具体物理方案：真实 finite-$q$ response、
+     $n=0$ 物理处理，或外场/应变/表面取向等各向异性来源。
 
 ## 模块边界
 
@@ -49,7 +52,7 @@ Casimir torque 框架中。
 - `conductivity.py`: normal-state Kubo conductivity 基线。
 - `bdg_response.py`: BdG current vertex、imaginary-axis kernels 与 `Sigma_SC` 诊断。
 - `response_interface.py`: Casimir 前置 local $q=0$ sheet response 接口。
-- `response_units.py`: model-unit response 到 sheet-conductivity convention 的审计接口。
+- `response_units.py`: neutral sheet-conductivity convention 与 reflection-dimensionless conversion 接口。
 - `static_response.py`: $n=0$ Matsubara response policy 接口。
 - `nonlocal_response.py`: finite-$q_{\parallel}$ response 的接口占位与局域回退。
 - `casimir.py`: 未来使用的 reflection / 能量 / 力矩 integrand 骨架。
@@ -96,8 +99,8 @@ python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --
   sheet response kernel，用于和 normal-state $\sigma(i\xi)$ 比较；它不是 real-axis
   optical conductivity，也仍不直接作为 Casimir 输入。
 - `LocalSheetResponse` 是 Casimir 前置接口对象；当前 `valid_for_casimir_input=False`
-  是有意保守标记，表示它还缺少 $n=0$、SI 归一化和非局域响应处理。
-- `ResponseUnitConvention`、`StaticResponsePolicy` 和 `NonlocalSheetResponse` 已把这些
+  是有意保守标记，表示它还缺少 $n=0$、真实 finite-$q$ 非局域响应和物理各向异性机制。
+- `SheetConductivityConvention`、`StaticResponsePolicy` 和 `NonlocalSheetResponse` 已把这些
   边界变成显式接口状态，但还没有把当前 response 升级为正式 Casimir input。
 - `smoke_casimir_local_response.py` 只验证接口链路和 toy anisotropy 控制组，不是
   Casimir Matsubara 求和，也不提供正式能量 / 力矩结论。
