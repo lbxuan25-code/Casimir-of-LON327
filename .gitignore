@@ -2,7 +2,6 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
-outputs/**/*.npz
-outputs/**/*.png
+
 !outputs/**/.gitkeep
 !outputs/**/README.md
