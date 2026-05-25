@@ -30,6 +30,10 @@ Casimir torque 框架中。
    - Casimir 模块目前只作为公式骨架和 smoke check。
    - 当前新增的是 Casimir 前置接口：把 normal-state $\sigma(i\xi)$ 与 BdG
      $\Sigma_{\mathrm{SC}}(i\xi)$ 统一为 local $q=0$ sheet response matrix。
+   - 当前也提供 local-response plumbing smoke test，用于验证
+     $\mathrm{LocalSheetResponse}\rightarrow\sigma_{\alpha\beta}\rightarrow r
+     \rightarrow\mathcal{E}_{\mathrm{integrand}}\rightarrow\tau_{\mathrm{integrand}}$
+     的工程链路。
    - 该接口仍不做 Matsubara 求和，不输出 Casimir energy 或 torque。
    - 在 superconducting conductivity 尚未完成前，不从 Casimir 输出物理结论。
    - 正式 Casimir 阶段仍缺 $n=0$ Matsubara 处理、SI sheet conductivity
@@ -64,6 +68,7 @@ python scripts/diagnose_bdg_diamagnetic_kernel.py --kinds spm dwave --delta0 0.0
 python scripts/diagnose_bdg_total_kernel_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
 python scripts/diagnose_superconducting_response_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
 python scripts/compare_local_sheet_response_imag.py --kinds normal spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
+python scripts/smoke_casimir_local_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
 python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --matsubara-index 1
 ```
 
@@ -82,5 +87,7 @@ python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --
   optical conductivity，也仍不直接作为 Casimir 输入。
 - `LocalSheetResponse` 是 Casimir 前置接口对象；当前 `valid_for_casimir_input=False`
   是有意保守标记，表示它还缺少 $n=0$、SI 归一化和非局域响应处理。
+- `smoke_casimir_local_response.py` 只验证接口链路和 toy anisotropy 控制组，不是
+  Casimir Matsubara 求和，也不提供正式 energy / torque 结论。
 - gap sign 诊断目前是 gauge-dependent preliminary diagnostic；更可靠的是
   magnitude、near-node 分布和 symmetry pattern。

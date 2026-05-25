@@ -127,6 +127,25 @@ python scripts/compare_local_sheet_response_imag.py --kinds normal spm dwave --d
 - 非局域 $q_{\parallel}$ 响应。
 - 能产生 torque 的角向各向异性机制。
 
+Casimir local-response plumbing smoke test：
+
+```bash
+python scripts/smoke_casimir_local_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1 --distance 3e-8 --k-parallel 1e6 --phi 0.2 --theta 0.7 --output-prefix outputs/smoke/casimir_local_response/data/casimir_local_response_smoke
+```
+
+该脚本只验证
+
+$$
+\mathrm{LocalSheetResponse}
+\rightarrow \sigma_{\alpha\beta}
+\rightarrow r
+\rightarrow \mathcal{E}_{\mathrm{integrand}}
+\rightarrow \tau_{\mathrm{integrand}}
+$$
+
+的工程链路；它包含各向同性与 toy anisotropic response 控制组，但不输出正式
+Casimir energy 或 torque 结论。
+
 绘制 normal-state 能带：
 
 ```bash
@@ -185,6 +204,9 @@ outputs/
   smoke/
     data/
     figures/
+    casimir_local_response/
+      data/
+      figures/
 ```
 
 - `normal_state/conductivity_imag`: normal-state Kubo baseline on the imaginary axis.
@@ -197,6 +219,7 @@ outputs/
 - `response/local_sheet_imag`: unified local $q=0$ sheet response interface for normal / $s_{\pm}$ / $d$-wave comparisons. It is a pre-Casimir interface, not final Casimir input.
 - `casimir`: reserved for future Casimir calculations.
 - `smoke`: lightweight plots or arrays used only to verify scripts and interfaces.
+- `smoke/casimir_local_response`: Casimir plumbing smoke outputs for local response matrices. Not formal Casimir calculations.
 
 Legacy `outputs/data/` and `outputs/figures/` may appear in old runs; new scripts should write to the staged directories above.
 

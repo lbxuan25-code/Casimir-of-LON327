@@ -231,6 +231,41 @@ $$
 4. 可控的晶格、轨道、应变、界面或取向机制，使 $B_{1g}$ pairing 的内部结构进入可观测的面内响应；
 5. 与 reflection matrix 和 Lifshitz integrand 中角向变量的严格单位匹配。
 
+## Casimir Plumbing Smoke Test
+
+当前新增 smoke pipeline 已经打通
+
+$$
+\mathrm{LocalSheetResponse}
+\rightarrow \sigma_{\alpha\beta}
+\rightarrow r
+\rightarrow \mathcal{E}_{\mathrm{integrand}}
+\rightarrow \tau_{\mathrm{integrand}} .
+$$
+
+该链路使用 `local_response_imag_axis` 取得 normal / $s_{\pm}$ / $d$-wave 的 local
+$q=0$ response，经 `conductivity_tensor_from_matrix` 转成 `ConductivityTensor`，
+再调用已有 reflection matrix、energy integrand 和 torque integrand。该 smoke test
+的预期判据是：
+
+$$
+\tau_{\mathrm{iso}} \approx 0,
+\qquad
+\tau_{\mathrm{toy\ anisotropic}} \ne 0 .
+$$
+
+其中 toy anisotropic tensor 人为设置
+
+$$
+\sigma_{xx} \ne \sigma_{yy},
+\qquad
+\sigma_{xy}=\sigma_{yx}=0 .
+$$
+
+因此，该步骤验证的是工程链路和角向各向异性灵敏度，不是正式 Casimir 积分。
+normal / $s_{\pm}$ / $d$-wave 当前 local response 可接入 Casimir integrand，但仍只作为
+smoke test 使用。
+
 ## 当前限制
 
 当前阶段仍有以下明确限制：
