@@ -118,6 +118,17 @@ python scripts/diagnose_bdg_total_kernel_imag.py --kinds spm dwave --delta0 0.04
 python scripts/diagnose_superconducting_response_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix outputs/bdg/superconducting_response_imag/data/Sigma_SC_imag
 ```
 
+检查 $\Delta_0\rightarrow 0$ 的 BdG-normal 极限：
+
+```bash
+python scripts/benchmark_bdg_normal_limit.py --kinds spm dwave --delta0-list 0 1e-5 1e-4 1e-3 1e-2 0.04 --nk 16 --temperature 30 --matsubara-index 1 --eta 0.0001 --output-prefix outputs/response/bdg_normal_limit/data/bdg_normal_limit
+```
+
+该 benchmark 只验证 BdG response 层在关闭 pairing 时是否连续、有限、保持
+C4 对称性，并检查 `spm` / `dwave` 是否回到共同 BdG normal limit。normal Kubo
+与 BdG $\Sigma_{\mathrm{SC}}$ 的归一化和公式结构不同，因此不要求二者逐项相等。
+若出现发散、强不连续或对称性破坏，应先修复 response 层，不能进入 Casimir 积分。
+
 ## Casimir 前置接口
 
 当前新增的前置接口只把 normal-state $\sigma(i\xi)$ 与 BdG
@@ -242,6 +253,9 @@ outputs/
     local_sheet_imag/
       data/
       figures/
+    bdg_normal_limit/
+      data/
+      figures/
     unit_audit/
       data/
       figures/
@@ -276,6 +290,9 @@ outputs/
 - `bdg/total_kernel_imag`: BdG $K_{\mathrm{total}}(i\xi) = K_{\mathrm{para}}(i\xi) + K_{\mathrm{dia}}$ 诊断，目前不是 Casimir 输入。
 - `bdg/superconducting_response_imag`: BdG $\Sigma_{\mathrm{SC}}(i\xi) = \frac{K_{\mathrm{total}}(i\xi)}{\omega_{\mathrm{eV}}}$，仅定义于 $n \ge 1$，用于和 normal-state $\sigma(i\xi)$ 比较；目前不是 Casimir 输入，也不是实频轴电导。
 - `response/local_sheet_imag`: normal / $s_{\pm}$ / $d$-wave 的统一 local $q=0$ sheet response 接口；这是 Casimir 前置接口，不是最终 Casimir 输入。
+- `response/bdg_normal_limit`: $\Delta_0\rightarrow 0$ 的 BdG response benchmark；
+  检查 pairing 关闭时 `spm` / `dwave` 是否趋同、ratio 是否有限、kernel 分项是否稳定。
+  这不是 Casimir 结果，也不要求 BdG response 与 normal Kubo 逐项相等。
 - `response/unit_audit`: reflection input 前的单位约定和归一化状态诊断。
 - `response/static_response`: $n=0$ Matsubara policy 诊断。
 - `response/static_policy_comparison`: 当前保守 $n=0$ policy 对比；local baseline

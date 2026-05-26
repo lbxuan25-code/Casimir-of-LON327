@@ -132,6 +132,12 @@ $n=0$ 项由于除零问题当前不用于 $\Sigma_{\mathrm{SC}}$，在 Casimir 
 $K_{\mathrm{total}}(0)$，它只作为 stiffness-like 静态核诊断，不作为 sheet
 conductivity，也不直接输入 reflection matrix。
 
+$\Delta_0\rightarrow 0$ benchmark 用于检查 BdG response 层本身是否连续、有限、
+稳定。关闭 pairing 时，`spm` 与 `dwave` 应回到共同的 BdG normal limit；但
+normal-state Kubo $\sigma(i\xi)$ 与 BdG $\Sigma_{\mathrm{SC}}$ 的归一化和公式结构
+不同，因此不要求逐项完全相等。若该 benchmark 出现发散、强不连续或明显 C4
+对称性破坏，应先处理 response 层，不进入 Casimir 积分。
+
 ## 单位与归一化
 
 所有 Hamiltonian、配对、速度顶点和 Kubo 响应中的能量单位均为 eV。速度算符定义为

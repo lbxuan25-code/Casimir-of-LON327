@@ -16,7 +16,9 @@
    BdG kernel 层次诊断。
 4. `bdg/superconducting_response_imag/`：仅 $n\ge 1$ 的
    $\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega_{\mathrm{eV}}$ 诊断。
-5. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
+5. `response/bdg_normal_limit/`：$\Delta_0\rightarrow 0$ BdG-normal 极限 benchmark，
+   用于检查 response 层连续性、有限性、对称性和 kernel 分项稳定性。
+6. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
    Casimir 前置 response 接口和 $n=0$ policy 边界说明。
 
 ## 不应作为论文结论的输出
