@@ -18,6 +18,12 @@ $R=\sigma(i\xi)$；对于 BdG superconducting state，
 $R=\Sigma_{\mathrm{SC}}(i\xi)$。当前 $R$ 仍是 Casimir 前置诊断，不是最终
 SI sheet conductivity，也不是正式 Casimir 输入。
 
+图像与数据输出按论文草稿工作流整理在 `outputs/` 下；总说明见
+`outputs/README.md`，图像与叙事建议见 `docs/notes/publication_output_guide.md`。
+当前推荐把 gap structure、normal-state conductivity、BdG kernel /
+$\Sigma_{\mathrm{SC}}$ 和 local sheet response 图作为主要素材；smoke 与 Casimir
+接口输出只用于方法边界说明。
+
 ## 模型与配对结构
 
 四轨道基采用

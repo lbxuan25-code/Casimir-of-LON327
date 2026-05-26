@@ -22,6 +22,11 @@ from lno327 import (  # noqa: E402
     k_weights,
     uniform_bz_mesh,
 )
+from lno327.plotting import (  # noqa: E402
+    configure_publication_matplotlib,
+    save_publication_figure,
+    style_publication_axis,
+)
 
 REQUIRED_NPZ_FIELDS = {
     "kind",
@@ -164,6 +169,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     response_plot_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez(npz_path, **data)
 
+    configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     omega = data["omega_eV"]
@@ -173,8 +179,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_response.set_xlabel("imaginary-axis energy (eV)")
     ax_response.set_ylabel("Re Sigma_SC")
     ax_response.set_title(f"{kind} Sigma_SC diagnostic")
-    ax_response.legend()
-    fig_response.savefig(response_plot_path, dpi=200)
+    style_publication_axis(ax_response)
+    save_publication_figure(fig_response, response_plot_path)
     plt.close(fig_response)
 
     fig_diag, ax_diag = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
@@ -185,8 +191,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_diag.set_ylabel("relative diagnostic")
     ax_diag.set_yscale("log")
     ax_diag.set_title(f"{kind} C4-symmetry diagnostics for Sigma_SC")
-    ax_diag.legend()
-    fig_diag.savefig(diagnostics_plot_path, dpi=200)
+    style_publication_axis(ax_diag)
+    save_publication_figure(fig_diag, diagnostics_plot_path)
     plt.close(fig_diag)
 
     fig_compare, ax_compare = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
@@ -195,8 +201,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_compare.set_xlabel("imaginary-axis energy (eV)")
     ax_compare.set_ylabel("xx component")
     ax_compare.set_title(f"{kind} K_total and Sigma_SC comparison")
-    ax_compare.legend()
-    fig_compare.savefig(compare_plot_path, dpi=200)
+    style_publication_axis(ax_compare)
+    save_publication_figure(fig_compare, compare_plot_path)
     plt.close(fig_compare)
     return npz_path, response_plot_path, diagnostics_plot_path, compare_plot_path
 

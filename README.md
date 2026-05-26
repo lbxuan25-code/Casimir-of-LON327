@@ -203,6 +203,11 @@ python scripts/normal_state/compute_normal_state_conductivity_real.py --nk 48 --
 
 生成输出按计算阶段和物理对象归档：
 
+输出说明总入口见 [outputs/README.md](outputs/README.md)，论文草稿整理建议见
+[publication_output_guide.md](docs/notes/publication_output_guide.md)。新版绘图脚本默认生成
+300 dpi PNG，并尽量统一字号、网格和留白；对应 `.npz` / `.csv` 数据应与图片一起保留，
+便于后续按论文版式重画或提取表格。
+
 ```text
 outputs/
   normal_state/

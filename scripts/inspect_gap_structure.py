@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327 import PairingAmplitudes, gap_statistics_by_band, gap_statistics_on_fermi_surface  # noqa: E402
+from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
 
 
 def default_output_prefix(kind: str) -> Path:
@@ -64,6 +65,7 @@ def main() -> None:
     figures_dir.mkdir(parents=True, exist_ok=True)
     figure_path = figures_dir / f"gap_structure_{args.kind}.png"
 
+    configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(5.2, 4.6), constrained_layout=True)
@@ -91,7 +93,8 @@ def main() -> None:
     ax.set_xlim(-np.pi, np.pi)
     ax.set_ylim(-np.pi, np.pi)
     ax.set_aspect("equal", adjustable="box")
-    fig.savefig(figure_path, dpi=200)
+    style_publication_axis(ax, legend=False)
+    save_publication_figure(fig, figure_path)
     plt.close(fig)
 
     print(f"kind = {args.kind}")

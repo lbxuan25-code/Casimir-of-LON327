@@ -21,6 +21,7 @@ from lno327 import (  # noqa: E402
     k_weights,
     uniform_bz_mesh,
 )
+from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
 
 
 def relative_eigen_split(matrix: np.ndarray) -> float:
@@ -102,6 +103,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     figure_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez(npz_path, **data)
 
+    configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     labels = ["|delta_dia|", "relative_offdiag", "relative_eigen_split"]
@@ -115,7 +117,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax.set_yscale("log")
     ax.set_ylabel("relative diagnostic")
     ax.set_title(f"{kind} BdG diamagnetic kernel diagnostics")
-    fig.savefig(figure_path, dpi=200)
+    style_publication_axis(ax, legend=False)
+    save_publication_figure(fig, figure_path)
     plt.close(fig)
     return npz_path, figure_path
 

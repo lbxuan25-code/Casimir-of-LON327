@@ -29,6 +29,11 @@ from lno327 import (  # noqa: E402
     uniform_bz_mesh,
 )
 from lno327.casimir import matsubara_frequency  # noqa: E402
+from lno327.plotting import (  # noqa: E402
+    configure_publication_matplotlib,
+    save_publication_figure,
+    style_publication_axis,
+)
 
 REQUIRED_NPZ_FIELDS = {
     "kind",
@@ -274,6 +279,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     figure_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez(npz_path, **data)
 
+    configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
@@ -294,8 +300,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax.set_xlabel(r"$\theta$ (rad)")
     ax.set_ylabel("Re torque integrand")
     ax.set_title("Casimir local-response smoke theta scan")
-    ax.legend()
-    fig.savefig(figure_path, dpi=200)
+    style_publication_axis(ax)
+    save_publication_figure(fig, figure_path)
     plt.close(fig)
     return npz_path, figure_path
 

@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327 import normal_state_hamiltonian
+from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis
 
 
 def interpolate_path(points: list[tuple[str, tuple[float, float]]], samples_per_segment: int):
@@ -72,6 +73,7 @@ def main() -> None:
     )
     bands = compute_bands(k_points)
 
+    configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -86,7 +88,8 @@ def main() -> None:
     ax.set_xticks(tick_positions, tick_labels)
     ax.set_ylabel("Energy (eV)")
     ax.set_title("Normal-State Band Structure")
-    fig.savefig(args.output, dpi=200)
+    style_publication_axis(ax, legend=False)
+    save_publication_figure(fig, args.output)
     print(f"saved {args.output}")
 
 

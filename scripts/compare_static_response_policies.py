@@ -31,6 +31,11 @@ from lno327 import (  # noqa: E402
 )
 from lno327.constants import SIGMA0  # noqa: E402
 from lno327.conductivity import ConductivityTensor  # noqa: E402
+from lno327.plotting import (  # noqa: E402
+    configure_publication_matplotlib,
+    save_publication_figure,
+    style_publication_axis,
+)
 
 POLICIES = ("skip", "extrapolate_from_lowest_matsubara", "use_static_kernel")
 KINDS = ("normal", "spm", "dwave")
@@ -268,6 +273,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
         for index in range(data["kind"].size):
             writer.writerow({name: _csv_value(data[name][index]) for name in fieldnames})
 
+    configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     kinds = list(dict.fromkeys(str(kind) for kind in data["kind"]))
@@ -299,8 +305,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_response.set_xticks(x_positions, kinds)
     ax_response.set_ylabel("Re response_xx / static_kernel_xx")
     ax_response.set_title("n=0 policy response diagnostic")
-    ax_response.legend(fontsize=8)
-    fig_response.savefig(response_plot_path, dpi=200)
+    style_publication_axis(ax_response)
+    save_publication_figure(fig_response, response_plot_path)
     plt.close(fig_response)
 
     ax_aniso.set_xticks(x_positions, kinds)
@@ -314,8 +320,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     if aniso_values.size > 0 and bool(np.any(aniso_values > 0.0)):
         ax_aniso.set_yscale("log")
     ax_aniso.set_title("n=0 policy anisotropy diagnostics")
-    ax_aniso.legend(fontsize=7)
-    fig_aniso.savefig(anisotropy_plot_path, dpi=200)
+    style_publication_axis(ax_aniso)
+    save_publication_figure(fig_aniso, anisotropy_plot_path)
     plt.close(fig_aniso)
 
     finite_torque = np.isfinite(np.real(data["torque_integrand_n0"]))
@@ -324,8 +330,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
         ax_torque.set_xticks(x_positions, kinds)
         ax_torque.set_ylabel("Re torque_integrand_n0")
         ax_torque.set_title("n=0 extrapolated torque integrand diagnostic")
-        ax_torque.legend(fontsize=8)
-        fig_torque.savefig(torque_plot_path, dpi=200)
+        style_publication_axis(ax_torque)
+        save_publication_figure(fig_torque, torque_plot_path)
         saved_torque_path = torque_plot_path
     plt.close(fig_torque)
 

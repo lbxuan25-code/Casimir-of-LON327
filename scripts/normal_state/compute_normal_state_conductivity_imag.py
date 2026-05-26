@@ -22,6 +22,7 @@ from lno327 import (
     kubo_conductivity_imag_axis,
     uniform_bz_mesh,
 )
+from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis
 
 
 def relative_eigen_split(eigenvalues: np.ndarray) -> float:
@@ -129,6 +130,7 @@ def main() -> None:
         offdiag_norm=offdiag_norm,
     )
 
+    configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     fig_re, ax_re = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
@@ -136,8 +138,8 @@ def main() -> None:
     ax_re.plot(omega_eV, sigma_yy.real, label="Re sigma_yy", linestyle="--")
     ax_re.set_xlabel("imaginary-axis energy (eV)")
     ax_re.set_ylabel("Re sigma")
-    ax_re.legend()
-    fig_re.savefig(re_plot_path, dpi=200)
+    style_publication_axis(ax_re)
+    save_publication_figure(fig_re, re_plot_path)
     plt.close(fig_re)
 
     fig_im, ax_im = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
@@ -145,8 +147,8 @@ def main() -> None:
     ax_im.plot(omega_eV, sigma_yy.imag, label="Im sigma_yy", linestyle="--")
     ax_im.set_xlabel("imaginary-axis energy (eV)")
     ax_im.set_ylabel("Im sigma")
-    ax_im.legend()
-    fig_im.savefig(im_plot_path, dpi=200)
+    style_publication_axis(ax_im)
+    save_publication_figure(fig_im, im_plot_path)
     plt.close(fig_im)
 
     max_abs_delta = float(np.max(np.abs(delta)))

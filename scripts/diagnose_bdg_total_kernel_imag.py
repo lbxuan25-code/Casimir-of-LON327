@@ -22,6 +22,11 @@ from lno327 import (  # noqa: E402
     k_weights,
     uniform_bz_mesh,
 )
+from lno327.plotting import (  # noqa: E402
+    configure_publication_matplotlib,
+    save_publication_figure,
+    style_publication_axis,
+)
 
 REQUIRED_NPZ_FIELDS = {
     "kind",
@@ -164,6 +169,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     kernel_plot_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez(npz_path, **data)
 
+    configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     omega = data["omega_eV"]
@@ -173,8 +179,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_kernel.set_xlabel("imaginary-axis energy (eV)")
     ax_kernel.set_ylabel("Re K_total")
     ax_kernel.set_title(f"{kind} BdG total kernel diagnostic")
-    ax_kernel.legend()
-    fig_kernel.savefig(kernel_plot_path, dpi=200)
+    style_publication_axis(ax_kernel)
+    save_publication_figure(fig_kernel, kernel_plot_path)
     plt.close(fig_kernel)
 
     fig_diag, ax_diag = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
@@ -185,8 +191,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_diag.set_ylabel("relative diagnostic")
     ax_diag.set_yscale("log")
     ax_diag.set_title(f"{kind} C4-symmetry diagnostics for K_total")
-    ax_diag.legend()
-    fig_diag.savefig(diagnostics_plot_path, dpi=200)
+    style_publication_axis(ax_diag)
+    save_publication_figure(fig_diag, diagnostics_plot_path)
     plt.close(fig_diag)
 
     fig_components, ax_components = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
@@ -196,8 +202,8 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_components.set_xlabel("imaginary-axis energy (eV)")
     ax_components.set_ylabel("kernel xx component")
     ax_components.set_title(f"{kind} K_para/K_dia/K_total comparison")
-    ax_components.legend()
-    fig_components.savefig(components_plot_path, dpi=200)
+    style_publication_axis(ax_components)
+    save_publication_figure(fig_components, components_plot_path)
     plt.close(fig_components)
     return npz_path, kernel_plot_path, diagnostics_plot_path, components_plot_path
 

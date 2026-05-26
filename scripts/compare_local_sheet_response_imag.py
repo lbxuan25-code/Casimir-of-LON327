@@ -21,6 +21,11 @@ from lno327 import (  # noqa: E402
     k_weights,
     uniform_bz_mesh,
 )
+from lno327.plotting import (  # noqa: E402
+    configure_publication_matplotlib,
+    save_publication_figure,
+    style_publication_axis,
+)
 
 REQUIRED_NPZ_FIELDS = {
     "kind",
@@ -140,6 +145,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     abs_plot_path.parent.mkdir(parents=True, exist_ok=True)
     np.savez(npz_path, **data)
 
+    configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     kinds = list(dict.fromkeys(str(kind) for kind in data["kind"]))
@@ -166,23 +172,23 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_abs.set_xlabel("imaginary-axis energy (eV)")
     ax_abs.set_ylabel("|response_xx|")
     ax_abs.set_title("Local sheet response magnitude")
-    ax_abs.legend()
-    fig_abs.savefig(abs_plot_path, dpi=200)
+    style_publication_axis(ax_abs)
+    save_publication_figure(fig_abs, abs_plot_path)
     plt.close(fig_abs)
 
     ax_re.set_xlabel("imaginary-axis energy (eV)")
     ax_re.set_ylabel("Re response_xx")
     ax_re.set_title("Local sheet response real part")
-    ax_re.legend()
-    fig_re.savefig(re_plot_path, dpi=200)
+    style_publication_axis(ax_re)
+    save_publication_figure(fig_re, re_plot_path)
     plt.close(fig_re)
 
     ax_sym.set_xlabel("imaginary-axis energy (eV)")
     ax_sym.set_ylabel("relative diagnostic")
     ax_sym.set_yscale("log")
     ax_sym.set_title("Local response symmetry diagnostics")
-    ax_sym.legend(fontsize=8)
-    fig_sym.savefig(symmetry_plot_path, dpi=200)
+    style_publication_axis(ax_sym)
+    save_publication_figure(fig_sym, symmetry_plot_path)
     plt.close(fig_sym)
 
     return npz_path, abs_plot_path, re_plot_path, symmetry_plot_path
