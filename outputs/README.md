@@ -18,7 +18,9 @@
    $\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega_{\mathrm{eV}}$ 诊断。
 5. `response/bdg_normal_limit/`：$\Delta_0\rightarrow 0$ BdG-normal 极限 benchmark，
    用于检查 response 层连续性、有限性、对称性和 kernel 分项稳定性。
-6. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
+6. `response/convergence_imag/`：imaginary-axis response 的 `nk` / `eta` /
+   Matsubara-index 收敛性 benchmark，用于识别数值伪影。
+7. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
    Casimir 前置 response 接口和 $n=0$ policy 边界说明。
 
 ## 不应作为论文结论的输出
@@ -31,6 +33,8 @@
 - `response/n0_sensitivity/`：只作 fixed $k_{\parallel},\phi,\theta$ 下的
   integrand-level partial Matsubara-sum sensitivity；用于判断 `skip` 是否可接受，
   不是完整 Casimir torque 结论。
+- `response/convergence_imag/`：只作 response 层数值收敛性诊断；若未收敛，
+  不能进入正式 Casimir 积分。
 
 ## 当前 n=0 约定
 

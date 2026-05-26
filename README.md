@@ -129,6 +129,16 @@ C4 对称性，并检查 `spm` / `dwave` 是否回到共同 BdG normal limit。n
 与 BdG $\Sigma_{\mathrm{SC}}$ 的归一化和公式结构不同，因此不要求二者逐项相等。
 若出现发散、强不连续或对称性破坏，应先修复 response 层，不能进入 Casimir 积分。
 
+检查 imaginary-axis response 的 `nk` / `eta` / Matsubara-index 收敛性：
+
+```bash
+python scripts/convergence_response_imag.py --kinds normal spm dwave --nk-list 8 12 16 24 32 --eta-list 1e-3 5e-4 1e-4 --matsubara-list 1 2 5 10 --temperature 30 --delta0 0.04 --output-prefix outputs/response/convergence_imag/data/convergence_imag
+```
+
+该 benchmark 只检查 response 层数值稳定性，不做 Casimir 结果。若响应对
+`nk` 或 `eta` 未收敛，不能进入正式 Casimir 积分；若 `spm` / `dwave` 差异只在
+小 `nk` 或特定 `eta` 下出现，应视为数值伪影。
+
 ## Casimir 前置接口
 
 当前新增的前置接口只把 normal-state $\sigma(i\xi)$ 与 BdG
@@ -256,6 +266,9 @@ outputs/
     bdg_normal_limit/
       data/
       figures/
+    convergence_imag/
+      data/
+      figures/
     unit_audit/
       data/
       figures/
@@ -293,6 +306,9 @@ outputs/
 - `response/bdg_normal_limit`: $\Delta_0\rightarrow 0$ 的 BdG response benchmark；
   检查 pairing 关闭时 `spm` / `dwave` 是否趋同、ratio 是否有限、kernel 分项是否稳定。
   这不是 Casimir 结果，也不要求 BdG response 与 normal Kubo 逐项相等。
+- `response/convergence_imag`: imaginary-axis response 数值收敛性 benchmark；
+  检查 `nk`、`eta`、Matsubara index 对 normal / `spm` / `dwave` local response 的影响。
+  当前仍不包含 finite-$q$ nonlocal response，也不是 Casimir 结果。
 - `response/unit_audit`: reflection input 前的单位约定和归一化状态诊断。
 - `response/static_response`: $n=0$ Matsubara policy 诊断。
 - `response/static_policy_comparison`: 当前保守 $n=0$ policy 对比；local baseline
