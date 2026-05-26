@@ -178,6 +178,11 @@ Lifshitz 求和形式上包含 $n=0$ Matsubara 半权重项。当前 local isotr
 默认 `n=0 policy = skip`，不是因为 $n=0$ 项不存在，而是为了避免当前未定义的
 superconducting zero-frequency conductivity 产生假贡献。`extrapolate_from_lowest_matsubara`
 只作为数值敏感性估计；`use_static_kernel` 只作为静态核诊断。
+`skip` 不是无条件物理结论：当前仅在 extrapolated $n=0$ proxy 相对于
+$n\ge 1$ torque-integrand partial sum 的影响低于阈值，或两者均为数值零时，
+才接受为 local baseline 的保守默认。若 proxy 影响超过阈值，或 reference torque
+近零但 proxy 非零，则必须先建立 zero-frequency reflection model，不能输出正式
+Casimir torque 结论。
 
 当前新增的 `LocalSheetResponse` 只是 Casimir 前置接口，把 normal-state
 $\sigma(i\xi)$ 与 BdG $\Sigma_{\mathrm{SC}}(i\xi)$ 统一整理为 local $q=0$
@@ -187,3 +192,5 @@ $n=0$ Matsubara 处理、SI sheet conductivity 归一化、非局域
 $q_{\parallel}$ 响应，以及能产生 torque 的角向各向异性机制。
 未来若引入真实各向异性机制，必须重新推导或选择相应的 $n=0$ zero-frequency
 reflection policy，然后才可进入正式 Matsubara 求和。
+当前 n0 sensitivity 判断仍固定 $k_{\parallel},\phi,\theta$，并只做 partial
+Matsubara-sum integrand 比较；它不是完整 $k_{\parallel}/\phi$ 积分后的最终判断。

@@ -35,6 +35,9 @@ superconducting $\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega$ 只定义于
 $n\ge 1$，直接构造零频 sheet conductivity 会引入未定义的假贡献。
 `extrapolate_from_lowest_matsubara` 只作为数值敏感性估计，
 `use_static_kernel` 只作为 stiffness-like 静态核诊断，不作为 sheet conductivity。
+进一步地，`skip` 只有在 extrapolated $n=0$ proxy 对 torque integrand 的影响
+低于阈值或为 negligible zero-baseline 时才可接受；若 proxy 影响超过阈值，
+当前仓库禁止输出正式 Casimir torque 结论，必须先建立 zero-frequency reflection model。
 
 最小序参量采用四轨道基 `(dz1, dx1, dz2, dx2)`，配对幅度记为
 `delta0_eV`：
@@ -159,6 +162,7 @@ $$
 python scripts/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
 python scripts/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
 python scripts/compare_static_response_policies.py --kinds normal spm dwave --policies skip extrapolate_from_lowest_matsubara use_static_kernel --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --distance 3e-8 --k-parallel 1e6 --phi 0.2 --theta 0.7 --output-prefix outputs/response/static_policy_comparison/data/static_policy_comparison
+python scripts/assess_n0_torque_sensitivity.py --kinds normal spm dwave --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --reference-matsubara-min 1 --reference-matsubara-max 8 --sensitivity-threshold 0.01 --theta-scan-num 41 --include-toy-anisotropic-control --output-prefix outputs/response/n0_sensitivity/data/n0_sensitivity
 python scripts/diagnose_nonlocal_response_interface.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1 --q-parallel 1e6 --phi 0.2
 ```
 
@@ -247,6 +251,9 @@ outputs/
     static_policy_comparison/
       data/
       figures/
+    n0_sensitivity/
+      data/
+      figures/
     nonlocal_interface/
       data/
       figures/
@@ -273,6 +280,10 @@ outputs/
 - `response/static_response`: $n=0$ Matsubara policy 诊断。
 - `response/static_policy_comparison`: 当前保守 $n=0$ policy 对比；local baseline
   推荐 `skip`，extrapolate/static-kernel 仅作诊断，不输出正式 Casimir torque 结论。
+- `response/n0_sensitivity`: 固定 $k_{\parallel},\phi,\theta$ 下的 integrand-level
+  partial Matsubara-sum sensitivity；比较 extrapolated $n=0$ proxy 与 $n\ge 1$
+  baseline 的大小，用于判断当前 `skip` 是否可接受。该目录不是完整
+  $k_{\parallel}/\phi$ 积分后的 Casimir 结论。
 - `response/nonlocal_interface`: nonlocal response 接口诊断；当前未实现真实 finite-$q_{\parallel}$ 物理。
 - `casimir`: 预留给未来 Casimir 计算。
 - `smoke`: 只用于验证脚本和接口的轻量输出。

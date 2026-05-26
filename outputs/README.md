@@ -26,12 +26,18 @@
 - `response/static_response/` 和 `response/nonlocal_interface/`：接口边界诊断，不是最终物理方案。
 - `response/static_policy_comparison/` 中的 `extrapolate_from_lowest_matsubara` 和
   `use_static_kernel`：只作敏感性或 stiffness-like 静态核诊断。
+- `response/n0_sensitivity/`：只作 fixed $k_{\parallel},\phi,\theta$ 下的
+  integrand-level partial Matsubara-sum sensitivity；用于判断 `skip` 是否可接受，
+  不是完整 Casimir torque 结论。
 
 ## 当前 n=0 约定
 
 Lifshitz 求和形式上包含 $n=0$ 半权重项。当前 local isotropic baseline 默认
 `n=0 policy = skip`，不是因为 $n=0$ 不存在，而是因为 superconducting
 $\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega$ 只定义于 $n\ge 1$。
+`skip` 只有在 extrapolated $n=0$ proxy sensitivity 低于阈值或为
+negligible zero-baseline 时才可接受；若影响超过阈值，必须先推导
+zero-frequency reflection model。
 
 不要把
 
