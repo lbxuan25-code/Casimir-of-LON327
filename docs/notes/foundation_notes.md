@@ -124,6 +124,9 @@ $$
 $$
 
 $n=0$ 项由于除零问题当前不用于 $\Sigma_{\mathrm{SC}}$，在 Casimir 阶段前仍需单独处理。
+当前不定义 $\Sigma_{\mathrm{SC}}(0)=K_{\mathrm{total}}(0)/0$。若输出
+$K_{\mathrm{total}}(0)$，它只作为 stiffness-like 静态核诊断，不作为 sheet
+conductivity，也不直接输入 reflection matrix。
 
 ## 单位与归一化
 
@@ -167,9 +170,16 @@ Casimir 相关工具当前只保留流程骨架：
 4. 构造 Lifshitz 能量 integrand；
 5. 由 $-\partial_\theta E$ 构造力矩 integrand。
 
+Lifshitz 求和形式上包含 $n=0$ Matsubara 半权重项。当前 local isotropic baseline
+默认 `n=0 policy = skip`，不是因为 $n=0$ 项不存在，而是为了避免当前未定义的
+superconducting zero-frequency conductivity 产生假贡献。`extrapolate_from_lowest_matsubara`
+只作为数值敏感性估计；`use_static_kernel` 只作为静态核诊断。
+
 当前新增的 `LocalSheetResponse` 只是 Casimir 前置接口，把 normal-state
 $\sigma(i\xi)$ 与 BdG $\Sigma_{\mathrm{SC}}(i\xi)$ 统一整理为 local $q=0$
 sheet response matrix。该对象当前保持
 `valid_for_casimir_input=False`，因为正式 Casimir 阶段仍缺少
 $n=0$ Matsubara 处理、SI sheet conductivity 归一化、非局域
 $q_{\parallel}$ 响应，以及能产生 torque 的角向各向异性机制。
+未来若引入真实各向异性机制，必须重新推导或选择相应的 $n=0$ zero-frequency
+reflection policy，然后才可进入正式 Matsubara 求和。

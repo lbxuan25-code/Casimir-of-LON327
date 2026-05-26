@@ -29,6 +29,12 @@ BdG paramagnetic kernel 不是完整超导电导；diamagnetic term
 $K_{\mathrm{total}} = K_{\mathrm{para}} + K_{\mathrm{dia}}$ 与
 $\Sigma_{\mathrm{SC}}(i\xi) = \frac{K_{\mathrm{total}}(i\xi)}{\omega_{\mathrm{eV}}}$ 的虚频轴诊断，但它们仍不是
 实频轴 optical conductivity，也尚未作为 Casimir 输入。
+当前 local isotropic baseline 对 Lifshitz 形式中的 $n=0$ Matsubara 半权重项采用
+保守默认：`n=0 policy = skip`。这不是说 $n=0$ 项不存在，而是因为当前
+superconducting $\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega$ 只定义于
+$n\ge 1$，直接构造零频 sheet conductivity 会引入未定义的假贡献。
+`extrapolate_from_lowest_matsubara` 只作为数值敏感性估计，
+`use_static_kernel` 只作为 stiffness-like 静态核诊断，不作为 sheet conductivity。
 
 最小序参量采用四轨道基 `(dz1, dx1, dz2, dx2)`，配对幅度记为
 `delta0_eV`：
@@ -136,7 +142,13 @@ $$
 
 正式 Casimir 阶段仍需要选择物理方案：
 
-- 为 $n=0$ Matsubara 项选择最终处理方案；当前已有 skip / extrapolate / static-kernel diagnostic policy。
+- 为 $n=0$ Matsubara 项选择最终处理方案；Lifshitz 求和形式上包含 $n=0$
+  半权重，但当前 local isotropic baseline 默认 `skip`，避免把未定义的
+  superconducting zero-frequency conductivity 作为 reflection matrix 输入。
+- `extrapolate_from_lowest_matsubara` 只用于数值敏感性估计；
+  `use_static_kernel` 只输出 stiffness-like $K_{\mathrm{total}}(0)$ 诊断，不定义
+  $\Sigma_{\mathrm{SC}}(0)=K_{\mathrm{total}}(0)/0$，也不把
+  $K_{\mathrm{total}}(0)$ 直接当作 sheet conductivity。
 - 当前已建立 SI sheet conductivity 转换层，但仍需决定它如何和完整 $n=0$、finite-$q$ 以及真实各向异性机制一起作为正式 Casimir 输入。
 - 实现真实非局域 $q_{\parallel}$ 响应；当前已有局域回退和 finite-$q$ 显式占位。
 - 能产生 torque 的角向各向异性机制。
@@ -146,6 +158,7 @@ $$
 ```bash
 python scripts/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
 python scripts/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
+python scripts/compare_static_response_policies.py --kinds normal spm dwave --policies skip extrapolate_from_lowest_matsubara use_static_kernel --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --distance 3e-8 --k-parallel 1e6 --phi 0.2 --theta 0.7 --output-prefix outputs/response/static_policy_comparison/data/static_policy_comparison
 python scripts/diagnose_nonlocal_response_interface.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1 --q-parallel 1e6 --phi 0.2
 ```
 
@@ -226,6 +239,9 @@ outputs/
     static_response/
       data/
       figures/
+    static_policy_comparison/
+      data/
+      figures/
     nonlocal_interface/
       data/
       figures/
@@ -250,6 +266,8 @@ outputs/
 - `response/local_sheet_imag`: normal / $s_{\pm}$ / $d$-wave 的统一 local $q=0$ sheet response 接口；这是 Casimir 前置接口，不是最终 Casimir 输入。
 - `response/unit_audit`: reflection input 前的单位约定和归一化状态诊断。
 - `response/static_response`: $n=0$ Matsubara policy 诊断。
+- `response/static_policy_comparison`: 当前保守 $n=0$ policy 对比；local baseline
+  推荐 `skip`，extrapolate/static-kernel 仅作诊断，不输出正式 Casimir torque 结论。
 - `response/nonlocal_interface`: nonlocal response 接口诊断；当前未实现真实 finite-$q_{\parallel}$ 物理。
 - `casimir`: 预留给未来 Casimir 计算。
 - `smoke`: 只用于验证脚本和接口的轻量输出。
