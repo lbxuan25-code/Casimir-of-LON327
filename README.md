@@ -139,6 +139,17 @@ python scripts/convergence_response_imag.py --kinds normal spm dwave --nk-list 8
 `nk` 或 `eta` 未收敛，不能进入正式 Casimir 积分；若 `spm` / `dwave` 差异只在
 小 `nk` 或特定 `eta` 下出现，应视为数值伪影。
 
+针对高 `Nk` 的聚焦收敛复查：
+
+```bash
+python scripts/refine_high_nk_convergence.py --kinds normal spm dwave --nk-list 32 48 64 80 --eta-list 5e-4 1e-4 --matsubara-list 1 2 --temperature 30 --delta0 0.04 --output-prefix outputs/response/high_nk_convergence/data/high_nk_convergence
+```
+
+该复查用于确认上一轮发现的 normal low-Matsubara `Nk` 敏感性是否能在
+`Nk=48/64/80` 缓解。若 normal response 在高 `Nk` 仍不稳定，当前不建议进入
+local-response Casimir 积分；若 `spm` / `dwave` 差异在高 `Nk` 下趋近 0，则不应
+解释为稳健物理差异。
+
 ## Casimir 前置接口
 
 当前新增的前置接口只把 normal-state $\sigma(i\xi)$ 与 BdG
@@ -269,6 +280,9 @@ outputs/
     convergence_imag/
       data/
       figures/
+    high_nk_convergence/
+      data/
+      figures/
     unit_audit/
       data/
       figures/
@@ -309,6 +323,9 @@ outputs/
 - `response/convergence_imag`: imaginary-axis response 数值收敛性 benchmark；
   检查 `nk`、`eta`、Matsubara index 对 normal / `spm` / `dwave` local response 的影响。
   当前仍不包含 finite-$q$ nonlocal response，也不是 Casimir 结果。
+- `response/high_nk_convergence`: 高 `Nk` 聚焦复查；重点检查 normal response 与低
+  Matsubara index 在 `Nk=32..80` 的稳定性，以及 `spm` / `dwave` 差异是否在高
+  `Nk` 下平台化或继续趋近 0。
 - `response/unit_audit`: reflection input 前的单位约定和归一化状态诊断。
 - `response/static_response`: $n=0$ Matsubara policy 诊断。
 - `response/static_policy_comparison`: 当前保守 $n=0$ policy 对比；local baseline

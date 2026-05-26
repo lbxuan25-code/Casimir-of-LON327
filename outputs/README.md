@@ -20,7 +20,9 @@
    用于检查 response 层连续性、有限性、对称性和 kernel 分项稳定性。
 6. `response/convergence_imag/`：imaginary-axis response 的 `nk` / `eta` /
    Matsubara-index 收敛性 benchmark，用于识别数值伪影。
-7. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
+7. `response/high_nk_convergence/`：高 `Nk` 聚焦复查，用于判断 normal low-Matsubara
+   response 是否在 `Nk=48/64/80` 缓解，以及 `spm` / `dwave` 差异是否平台化。
+8. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
    Casimir 前置 response 接口和 $n=0$ policy 边界说明。
 
 ## 不应作为论文结论的输出
@@ -35,6 +37,8 @@
   不是完整 Casimir torque 结论。
 - `response/convergence_imag/`：只作 response 层数值收敛性诊断；若未收敛，
   不能进入正式 Casimir 积分。
+- `response/high_nk_convergence/`：只作高 `Nk` response 收敛复查；若 normal
+  response 仍不稳定，不能进入 local-response Casimir 积分。
 
 ## 当前 n=0 约定
 

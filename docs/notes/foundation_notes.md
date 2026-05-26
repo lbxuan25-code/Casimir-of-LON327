@@ -145,6 +145,12 @@ $q=0$ response，不包含 finite-$q$ nonlocal response。若 response 未随 `n
 `spm` / `dwave` 差异只在小 `nk` 或特定 `eta` 下出现，应视为数值伪影，不进入
 Casimir 积分。
 
+高 `Nk` 聚焦复查用于确认 normal response 的低 Matsubara 频率敏感性是否能在
+更细网格下缓解。若 normal response 在 `Nk=64\rightarrow 80` 仍未稳定，说明当前
+local response 仍需要更细采样或 Fermi-surface sensitive integration。若
+`spm` / `dwave` 差异在高 `Nk` 下趋近 0，则当前 minimal pairing 的 local response
+差异不应作为稳健物理差异解读；若差异在高 `Nk` 下平台化，才进入后续物理分析。
+
 ## 单位与归一化
 
 所有 Hamiltonian、配对、速度顶点和 Kubo 响应中的能量单位均为 eV。速度算符定义为
