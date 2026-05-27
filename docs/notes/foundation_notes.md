@@ -165,6 +165,15 @@ shift-to-shift std；`fs_window_refined` 先用 coarse mesh 找到 Fermi-window 
 下一步应考虑 contour 或 tetrahedron Fermi-surface integration；在此之前仍不进入正式
 local-response Casimir 积分。
 
+normal-state FS-adaptive BZ integration prototype 是更稳妥的局部加密版本：它用
+coarse cell 顶点和中心能量识别费米面穿过的 BZ cells，或识别落入
+`fs_window_factor * max(eta,kBT,omega_eV)` 的近费米窗口 cells，然后只细分这些 cells。
+非 FS cells 保留 midpoint；所有采样点按面积权重归一后送入原
+`kubo_conductivity_imag_axis`。该 prototype 不做 strict contour / triangle 解析积分，
+也不改变 Kubo integrand。若它仍不随 `refine_factor` 和 `Nk` 稳定，下一步应转向
+triangle / contour Fermi-surface integration；normal response 收敛前仍暂停正式
+local-response Casimir 积分。
+
 ## 单位与归一化
 
 所有 Hamiltonian、配对、速度顶点和 Kubo 响应中的能量单位均为 eV。速度算符定义为

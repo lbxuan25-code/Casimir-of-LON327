@@ -16,17 +16,19 @@
    convergence 诊断，用于比较 uniform / shifted / average mesh。
 4. `normal_state/fs_sensitive_sampling/`：normal Fermi-surface-sensitive sampling
    benchmark，用于比较 uniform / multishift_average / fs_window_refined。
-5. `bdg/paramagnetic_kernel_imag/`、`bdg/diamagnetic_kernel/`、`bdg/total_kernel_imag/`：
+5. `normal_state/fs_adaptive_integration/`：normal FS-adaptive BZ integration
+   prototype，用于比较 uniform / multishift_average / fs_adaptive。
+6. `bdg/paramagnetic_kernel_imag/`、`bdg/diamagnetic_kernel/`、`bdg/total_kernel_imag/`：
    BdG kernel 层次诊断。
-6. `bdg/superconducting_response_imag/`：仅 $n\ge 1$ 的
+7. `bdg/superconducting_response_imag/`：仅 $n\ge 1$ 的
    $\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega_{\mathrm{eV}}$ 诊断。
-7. `response/bdg_normal_limit/`：$\Delta_0\rightarrow 0$ BdG-normal 极限 benchmark，
+8. `response/bdg_normal_limit/`：$\Delta_0\rightarrow 0$ BdG-normal 极限 benchmark，
    用于检查 response 层连续性、有限性、对称性和 kernel 分项稳定性。
-8. `response/convergence_imag/`：imaginary-axis response 的 `nk` / `eta` /
+9. `response/convergence_imag/`：imaginary-axis response 的 `nk` / `eta` /
    Matsubara-index 收敛性 benchmark，用于识别数值伪影。
-9. `response/high_nk_convergence/`：高 `Nk` 聚焦复查，用于判断 normal low-Matsubara
+10. `response/high_nk_convergence/`：高 `Nk` 聚焦复查，用于判断 normal low-Matsubara
    response 是否在 `Nk=48/64/80` 缓解，以及 `spm` / `dwave` 差异是否平台化。
-10. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
+11. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
    Casimir 前置 response 接口和 $n=0$ policy 边界说明。
 
 ## 不应作为论文结论的输出
@@ -49,6 +51,11 @@
   benchmark；multishift_average / fs_window_refined 只改变数值采样，不改变 Kubo
   公式，也不替代 uniform 默认。若仍不收敛，应考虑 contour / tetrahedron
   Fermi-surface integration，且继续暂停正式 local-response Casimir 积分。
+- `normal_state/fs_adaptive_integration/`：只作 normal-state FS-adaptive BZ integration
+  prototype；fs_adaptive 只细分 coarse FS cells 并保持面积权重，不改变 Kubo
+  integrand，也不是 strict contour / triangle 解析积分。若仍不收敛，下一步转向
+  triangle / contour Fermi-surface integration，且继续暂停正式 local-response
+  Casimir 积分。
 
 ## 当前 n=0 约定
 

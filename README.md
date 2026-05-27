@@ -174,6 +174,20 @@ uniform 默认。若这些方案仍不收敛，下一步应考虑 contour / tetr
 Fermi-surface integration；在 normal response 收敛前仍暂停正式 local-response
 Casimir 积分。
 
+运行 FS-adaptive BZ integration prototype：
+
+```bash
+python scripts/benchmark_normal_fs_adaptive_integration.py --nk-list 32 48 64 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --refine-factor-list 2 4 6 --fs-window-factor 1.0 --sampling uniform multishift_average fs_adaptive --shift-grid 4 --output-prefix outputs/normal_state/fs_adaptive_integration/data/fs_adaptive
+```
+
+`fs_adaptive` 先用 coarse cells 的顶点和中心能量判断费米面是否穿过该 cell，或是否落入
+`fs_window_factor * max(eta, kBT, omega_eV)`，再只对这些 FS cells 做局部
+`refine_factor x refine_factor` 细分。所有点按面积权重归一后送入现有
+`kubo_conductivity_imag_axis`，因此它不改 Kubo integrand，只改 quadrature。若
+`fs_adaptive` 仍不随 `refine_factor` 和 `Nk` 稳定，下一步应转向 triangle / contour
+Fermi-surface integration；在 normal response 收敛前仍暂停正式 local-response
+Casimir 积分。
+
 ## Casimir 前置接口
 
 当前新增的前置接口只把 normal-state $\sigma(i\xi)$ 与 BdG
@@ -283,6 +297,9 @@ outputs/
     fs_sensitive_sampling/
       data/
       figures/
+    fs_adaptive_integration/
+      data/
+      figures/
   pairing/
     gap_structure/
       data/
@@ -348,6 +365,9 @@ outputs/
   benchmark；比较 uniform / multishift_average / fs_window_refined，用于判断
   low-Matsubara response 是否需要更正式的 contour / tetrahedron FS 积分。这不是
   Casimir 结果。
+- `normal_state/fs_adaptive_integration`: normal-state FS-adaptive BZ integration
+  prototype；比较 uniform / multishift_average / fs_adaptive，所有采样仍调用原
+  Kubo integrand。这不是 Casimir 结果。
 - `pairing/gap_structure`: 投影 gap 幅值 / 符号 / near-node 诊断。
 - `bdg/paramagnetic_kernel_imag`: 仅用于 BdG $K_{\mathrm{para}}(i\xi)$ 诊断，不是完整超导电导。
 - `bdg/diamagnetic_kernel`: 仅用于 BdG $K_{\mathrm{dia}}$ 诊断。
