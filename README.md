@@ -150,6 +150,16 @@ python scripts/refine_high_nk_convergence.py --kinds normal spm dwave --nk-list 
 local-response Casimir 积分；若 `spm` / `dwave` 差异在高 `Nk` 下趋近 0，则不应
 解释为稳健物理差异。
 
+诊断 normal-state low-Matsubara 的 k-space 采样问题：
+
+```bash
+python scripts/diagnose_normal_sampling_convergence.py --nk-list 32 48 64 80 96 128 --eta-list 1e-3 5e-4 2e-4 1e-4 --matsubara-list 1 2 5 --temperature 30 --sampling uniform shifted average --output-prefix outputs/normal_state/sampling_convergence/data/normal_sampling_convergence
+```
+
+`shifted` / `average` sampling 只是数值诊断方案，不改变 normal Kubo 公式，也不替代
+默认 uniform 结果。若 average sampling 明显改善收敛，可作为后续 normal-response
+benchmark 的推荐采样方式，但必须保留 uniform 对照。
+
 ## Casimir 前置接口
 
 当前新增的前置接口只把 normal-state $\sigma(i\xi)$ 与 BdG
@@ -253,6 +263,9 @@ outputs/
     conductivity_real/
       data/
       figures/
+    sampling_convergence/
+      data/
+      figures/
   pairing/
     gap_structure/
       data/
@@ -311,6 +324,9 @@ outputs/
 
 - `normal_state/conductivity_imag`: normal-state Kubo 虚频轴基线。
 - `normal_state/conductivity_real`: normal-state Kubo 实频轴基线。
+- `normal_state/sampling_convergence`: normal-state low-Matsubara k-space sampling
+  诊断；比较 uniform / shifted / average mesh，并输出 Fermi-surface sensitivity
+  指标。这不是 Casimir 结果。
 - `pairing/gap_structure`: 投影 gap 幅值 / 符号 / near-node 诊断。
 - `bdg/paramagnetic_kernel_imag`: 仅用于 BdG $K_{\mathrm{para}}(i\xi)$ 诊断，不是完整超导电导。
 - `bdg/diamagnetic_kernel`: 仅用于 BdG $K_{\mathrm{dia}}$ 诊断。

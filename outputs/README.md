@@ -12,17 +12,19 @@
 
 1. `pairing/gap_structure/`：投影 gap 幅值、near-node 与 preliminary sign 诊断。
 2. `normal_state/conductivity_imag/` 和 `normal_state/conductivity_real/`：normal-state Kubo 基线。
-3. `bdg/paramagnetic_kernel_imag/`、`bdg/diamagnetic_kernel/`、`bdg/total_kernel_imag/`：
+3. `normal_state/sampling_convergence/`：normal low-Matsubara k-space sampling
+   convergence 诊断，用于比较 uniform / shifted / average mesh。
+4. `bdg/paramagnetic_kernel_imag/`、`bdg/diamagnetic_kernel/`、`bdg/total_kernel_imag/`：
    BdG kernel 层次诊断。
-4. `bdg/superconducting_response_imag/`：仅 $n\ge 1$ 的
+5. `bdg/superconducting_response_imag/`：仅 $n\ge 1$ 的
    $\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega_{\mathrm{eV}}$ 诊断。
-5. `response/bdg_normal_limit/`：$\Delta_0\rightarrow 0$ BdG-normal 极限 benchmark，
+6. `response/bdg_normal_limit/`：$\Delta_0\rightarrow 0$ BdG-normal 极限 benchmark，
    用于检查 response 层连续性、有限性、对称性和 kernel 分项稳定性。
-6. `response/convergence_imag/`：imaginary-axis response 的 `nk` / `eta` /
+7. `response/convergence_imag/`：imaginary-axis response 的 `nk` / `eta` /
    Matsubara-index 收敛性 benchmark，用于识别数值伪影。
-7. `response/high_nk_convergence/`：高 `Nk` 聚焦复查，用于判断 normal low-Matsubara
+8. `response/high_nk_convergence/`：高 `Nk` 聚焦复查，用于判断 normal low-Matsubara
    response 是否在 `Nk=48/64/80` 缓解，以及 `spm` / `dwave` 差异是否平台化。
-8. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
+9. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
    Casimir 前置 response 接口和 $n=0$ policy 边界说明。
 
 ## 不应作为论文结论的输出
@@ -39,6 +41,8 @@
   不能进入正式 Casimir 积分。
 - `response/high_nk_convergence/`：只作高 `Nk` response 收敛复查；若 normal
   response 仍不稳定，不能进入 local-response Casimir 积分。
+- `normal_state/sampling_convergence/`：只作 normal-state low-Matsubara sampling
+  诊断；shifted / average mesh 不改变 Kubo 公式，也不替代 uniform 对照。
 
 ## 当前 n=0 约定
 

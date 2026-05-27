@@ -40,6 +40,12 @@ Casimir torque 框架中。
    - 若 normal response 在高 `Nk` 仍不稳定，必须继续改进积分/采样；若
      `spm` / `dwave` 差异随 `Nk` 增大趋近 0，则当前 minimal pairing 的 local
      response 差异不应解释为稳健物理差异。
+   - 当前新增 normal-state low-Matsubara k-space sampling 诊断层，用于判断
+     normal response 的 `Nk` 敏感是否来自 Fermi-surface-sensitive integration。
+     `shifted` 与 `average` sampling 只作为数值诊断方案，不改变 Kubo 公式，也不
+     替代 uniform baseline。
+   - 若 average sampling 明显改善 normal response 收敛，可作为后续
+     normal-response benchmark 的推荐采样方式，但必须保留 uniform 对照。
    - 后续进入 Casimir 前仍需系统确认量纲、规范约定与物理解释，并在命名上明确区分 kernel 与 full conductivity。
    - 主要关心 `xx≈yy`、`xy≈0`、C4 对称性破缺、频率依赖与 pairing-kind 差异。
 
@@ -93,6 +99,7 @@ Casimir torque 框架中。
 
 Normal-state 运行脚本集中在 `scripts/normal_state/`。输出按阶段归档：
 `outputs/normal_state/conductivity_imag/`、`outputs/normal_state/conductivity_real/`、
+`outputs/normal_state/sampling_convergence/`、
 `outputs/pairing/gap_structure/`、`outputs/bdg/paramagnetic_kernel_imag/`、
 `outputs/bdg/diamagnetic_kernel/`、`outputs/bdg/total_kernel_imag/`、
 `outputs/bdg/superconducting_response_imag/`、`outputs/response/local_sheet_imag/`、
@@ -125,6 +132,7 @@ python scripts/diagnose_superconducting_response_imag.py --kinds spm dwave --del
 python scripts/benchmark_bdg_normal_limit.py --kinds spm dwave --delta0-list 0 1e-5 1e-4 1e-3 1e-2 0.04 --nk 16 --temperature 30 --matsubara-index 1
 python scripts/convergence_response_imag.py --kinds normal spm dwave --nk-list 8 12 16 24 32 --eta-list 1e-3 5e-4 1e-4 --matsubara-list 1 2 5 10 --temperature 30 --delta0 0.04
 python scripts/refine_high_nk_convergence.py --kinds normal spm dwave --nk-list 32 48 64 80 --eta-list 5e-4 1e-4 --matsubara-list 1 2 --temperature 30 --delta0 0.04
+python scripts/diagnose_normal_sampling_convergence.py --nk-list 32 48 64 80 96 128 --eta-list 1e-3 5e-4 2e-4 1e-4 --matsubara-list 1 2 5 --temperature 30 --sampling uniform shifted average
 python scripts/compare_local_sheet_response_imag.py --kinds normal spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
 python scripts/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
 python scripts/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
