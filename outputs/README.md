@@ -32,6 +32,8 @@
    Casimir 前置 response 接口和 $n=0$ policy 边界说明。
 12. `casimir/local_response_integral/`：local-response Casimir integral benchmark，
    包含 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描。
+13. `casimir/local_response_integral/convergence/`：上述 local-response benchmark 的
+   Matsubara、$k_{\parallel}$ cutoff/grid 和 $\phi$ grid 收敛性诊断。
 
 ## 不应作为论文结论的输出
 
@@ -61,6 +63,9 @@
 - `casimir/local_response_integral/`：只作 local-response integral benchmark；
   `n0_policy=skip`，`finite_q_resolved=False`，`benchmark_only=True`，不得作为正式
   Casimir energy / torque 结论。
+- `casimir/local_response_integral/convergence/`：只作 local-response integral
+  convergence benchmark；用于判断数值设置，不改变 `n0_policy=skip` 和
+  `finite_q_resolved=False` 边界。
 
 ## 当前 n=0 约定
 

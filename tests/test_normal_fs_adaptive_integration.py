@@ -11,6 +11,7 @@ from benchmark_normal_fs_adaptive_integration import (  # noqa: E402
     benchmark_normal_fs_adaptive_integration,
     fs_adaptive_mesh,
 )
+from lno327.normal_sampling import normal_sheet_tensor_from_sampling  # noqa: E402
 
 
 def _small_data():
@@ -83,3 +84,17 @@ def test_adaptive_has_at_least_uniform_kpoints():
         uniform = data["num_kpoints_total"][(data["sampling"] == "uniform") & (data["nk"] == nk)][0]
         adaptive = data["num_kpoints_total"][(data["sampling"] == "fs_adaptive") & (data["nk"] == nk)][0]
         assert adaptive >= uniform
+
+
+def test_normal_sampling_module_shared_sheet_tensor():
+    tensor = normal_sheet_tensor_from_sampling(
+        omega_eV=0.02,
+        temperature_K=30.0,
+        eta_eV=1e-3,
+        nk=6,
+        sampling="fs_adaptive",
+        refine_factor=2,
+    )
+
+    assert np.isfinite(tensor.xx)
+    assert np.isfinite(tensor.yy)

@@ -19,16 +19,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "scripts"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from benchmark_normal_fs_adaptive_integration import (  # noqa: E402
-    _multishift_response,
-    _single_mesh_response,
-    _uniform_weights,
-    fs_adaptive_mesh,
-    shifted_bz_mesh,
-)
 from lno327 import (  # noqa: E402
     CasimirSetup,
     ConductivityTensor,
@@ -42,6 +34,7 @@ from lno327 import (  # noqa: E402
 )
 from lno327.casimir import matsubara_frequency  # noqa: E402
 from lno327.constants import KB  # noqa: E402
+from lno327.normal_sampling import normal_sheet_tensor_from_sampling  # noqa: E402
 from lno327.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,
@@ -102,31 +95,16 @@ def _normal_sheet_tensor(
     sampling: str,
     refine_factor: int,
 ) -> ConductivityTensor:
-    if sampling == "uniform":
-        mesh = shifted_bz_mesh(nk)
-        weights = _uniform_weights(mesh)
-        matrix = _single_mesh_response(mesh, weights, eta_eV, omega_eV, temperature_K)
-    elif sampling == "multishift_average":
-        matrix, *_ = _multishift_response(
-            nk,
-            eta_eV,
-            omega_eV,
-            temperature_K,
-            shift_grid=4,
-        )
-    elif sampling == "fs_adaptive":
-        mesh, weights, _metadata = fs_adaptive_mesh(
-            nk,
-            eta_eV,
-            omega_eV,
-            temperature_K,
-            refine_factor=refine_factor,
-            fs_window_factor=1.0,
-        )
-        matrix = _single_mesh_response(mesh, weights, eta_eV, omega_eV, temperature_K)
-    else:
-        raise ValueError("unknown normal sampling")
-    return _model_matrix_to_sheet_tensor(matrix)
+    return normal_sheet_tensor_from_sampling(
+        omega_eV,
+        temperature_K,
+        eta_eV,
+        nk,
+        sampling,
+        refine_factor,
+        shift_grid=4,
+        fs_window_factor=1.0,
+    )
 
 
 def _bdg_sheet_tensor(

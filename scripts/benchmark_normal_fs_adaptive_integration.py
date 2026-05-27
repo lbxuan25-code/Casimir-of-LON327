@@ -21,30 +21,21 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from benchmark_normal_fs_sensitive_sampling import (  # noqa: E402
-    HIGH_NK_TOLERANCE,
-    RATIO_EPS,
-    SYMMETRY_TOLERANCE,
-    _band_energies,
-    _fs_diagnostics,
-    _join_status,
-    _matrix_to_tensor,
-    _relative_change,
-    _relative_eigen_split,
-    _shift_grid_shifts,
-    _single_mesh_response,
-    _uniform_weights,
-    _wrap_bz,
-    shifted_bz_mesh,
-)
 from lno327 import (  # noqa: E402
     bosonic_matsubara_energy_eV,
     conductivity_matrix_diagnostics,
     model_response_to_sheet_conductivity,
     sheet_conductivity_to_reflection_dimensionless,
 )
-from lno327.constants import KB_EV_PER_K  # noqa: E402
-from lno327.model import normal_state_hamiltonian  # noqa: E402
+from lno327.conductivity import ConductivityTensor  # noqa: E402
+from lno327.normal_sampling import (  # noqa: E402
+    fs_adaptive_mesh,
+    multishift_normal_response,
+    normal_fs_diagnostics,
+    shifted_bz_mesh,
+    single_mesh_normal_response,
+    uniform_weights,
+)
 from lno327.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,
@@ -56,6 +47,9 @@ DEFAULT_NK_LIST = (32, 48, 64)
 DEFAULT_ETA_LIST = (5e-4, 2e-4, 1e-4)
 DEFAULT_MATSUBARA_LIST = (1, 2)
 DEFAULT_REFINE_FACTOR_LIST = (2, 4, 6)
+HIGH_NK_TOLERANCE = 0.02
+SYMMETRY_TOLERANCE = 1e-8
+RATIO_EPS = 1e-300
 
 REQUIRED_NPZ_FIELDS = {
     "sampling",
@@ -96,124 +90,26 @@ REQUIRED_NPZ_FIELDS = {
 }
 
 
-def _cell_probe_energies(kx0: float, kx1: float, ky0: float, ky1: float) -> np.ndarray:
-    points = np.array(
-        [
-            [kx0, ky0],
-            [kx1, ky0],
-            [kx0, ky1],
-            [kx1, ky1],
-            [0.5 * (kx0 + kx1), 0.5 * (ky0 + ky1)],
-        ],
-        dtype=float,
-    )
-    points = _wrap_bz(points)
-    return np.array([np.linalg.eigvalsh(normal_state_hamiltonian(kx, ky)) for kx, ky in points], dtype=float)
+def _matrix_to_tensor(matrix: np.ndarray) -> ConductivityTensor:
+    return ConductivityTensor(matrix[0, 0], matrix[1, 1], matrix[0, 1], matrix[1, 0])
 
 
-def _is_fs_cell(energies: np.ndarray, fs_window_eV: float) -> bool:
-    band_min = np.min(energies, axis=0)
-    band_max = np.max(energies, axis=0)
-    crosses = np.any(band_min * band_max < 0.0)
-    near_window = np.any(np.min(np.abs(energies), axis=0) < fs_window_eV)
-    return bool(crosses or near_window)
+def _relative_eigen_split(matrix: np.ndarray) -> float:
+    eigenvalues = np.linalg.eigvals(matrix)
+    scale = 0.5 * (abs(eigenvalues[0]) + abs(eigenvalues[1]))
+    if np.isclose(scale, 0.0):
+        return 0.0
+    return float(abs(eigenvalues[0] - eigenvalues[1]) / scale)
 
 
-def fs_adaptive_mesh(
-    nk: int,
-    eta_eV: float,
-    omega_eV: float,
-    temperature_K: float,
-    refine_factor: int,
-    fs_window_factor: float = 1.0,
-) -> tuple[np.ndarray, np.ndarray, dict[str, float | int]]:
-    """Build a weighted mesh by refining coarse cells that intersect the FS."""
-
-    if nk <= 0:
-        raise ValueError("nk must be positive")
-    if refine_factor <= 1:
-        raise ValueError("refine_factor must be greater than one")
-    if fs_window_factor <= 0.0:
-        raise ValueError("fs_window_factor must be positive")
-
-    step = 2.0 * np.pi / nk
-    fs_window = fs_window_factor * max(eta_eV, temperature_K * KB_EV_PER_K, omega_eV)
-    base_weight = 1.0 / (nk * nk)
-    sub_offsets = (np.arange(refine_factor) + 0.5) / refine_factor
-    points: list[list[float]] = []
-    weights: list[float] = []
-    num_fs_cells = 0
-    num_refined_points = 0
-
-    for ix in range(nk):
-        kx0 = -np.pi + ix * step
-        kx1 = kx0 + step
-        for iy in range(nk):
-            ky0 = -np.pi + iy * step
-            ky1 = ky0 + step
-            energies = _cell_probe_energies(kx0, kx1, ky0, ky1)
-            if _is_fs_cell(energies, fs_window):
-                num_fs_cells += 1
-                sub_weight = base_weight / (refine_factor * refine_factor)
-                for sx in sub_offsets:
-                    for sy in sub_offsets:
-                        points.append([kx0 + sx * step, ky0 + sy * step])
-                        weights.append(sub_weight)
-                        num_refined_points += 1
-            else:
-                points.append([kx0 + 0.5 * step, ky0 + 0.5 * step])
-                weights.append(base_weight)
-
-    mesh = _wrap_bz(np.asarray(points, dtype=float))
-    weight_array = np.asarray(weights, dtype=float)
-    weight_array = weight_array / np.sum(weight_array)
-    metadata = {
-        "num_kpoints_total": int(mesh.shape[0]),
-        "num_fs_cells": int(num_fs_cells),
-        "num_refined_points": int(num_refined_points),
-        "refined_area_fraction": float(num_fs_cells / (nk * nk)),
-        "fs_window_eV": float(fs_window),
-        "weight_sum": float(np.sum(weight_array)),
-    }
-    return mesh, weight_array, metadata
+def _relative_change(value: complex, reference: complex) -> float:
+    if abs(value) < RATIO_EPS and abs(reference) < RATIO_EPS:
+        return 0.0
+    return float(abs(value - reference) / (abs(reference) + RATIO_EPS))
 
 
-def _multishift_response(
-    nk: int,
-    eta_eV: float,
-    omega_eV: float,
-    temperature_K: float,
-    shift_grid: int,
-) -> tuple[np.ndarray, float, float, dict[str, float | int], dict[str, float | int]]:
-    matrices = []
-    fs_items = []
-    for shift in _shift_grid_shifts(shift_grid):
-        mesh = shifted_bz_mesh(nk, shift)
-        weights = _uniform_weights(mesh)
-        matrices.append(_single_mesh_response(mesh, weights, eta_eV, omega_eV, temperature_K))
-        fs_items.append(_fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K))
-    stack = np.stack(matrices, axis=0)
-    matrix = np.mean(stack, axis=0)
-    std_xx = float(np.std(stack[:, 0, 0].real))
-    rel_std = float(std_xx / (abs(matrix[0, 0]) + RATIO_EPS))
-    fs = {
-        "min_abs_band_energy_on_mesh": float(min(item["min_abs_band_energy_on_mesh"] for item in fs_items)),
-        "points_within_eta": int(sum(int(item["points_within_eta"]) for item in fs_items)),
-        "points_within_omega": int(sum(int(item["points_within_omega"]) for item in fs_items)),
-        "points_within_kBT": int(sum(int(item["points_within_kBT"]) for item in fs_items)),
-        "fermi_window_weight_sum": float(np.mean([float(item["fermi_window_weight_sum"]) for item in fs_items])),
-        "estimated_mesh_energy_resolution": float(
-            np.mean([float(item["estimated_mesh_energy_resolution"]) for item in fs_items])
-        ),
-    }
-    metadata = {
-        "num_kpoints_total": int(nk * nk * shift_grid * shift_grid),
-        "num_fs_cells": 0,
-        "num_refined_points": 0,
-        "refined_area_fraction": 0.0,
-        "weight_sum": 1.0,
-    }
-    return matrix, std_xx, rel_std, fs, metadata
+def _join_status(parts: list[str]) -> str:
+    return "ok" if not parts else ";".join(dict.fromkeys(parts))
 
 
 def _evaluate_sampling(
@@ -228,9 +124,9 @@ def _evaluate_sampling(
 ) -> tuple[np.ndarray, float, float, dict[str, float | int], dict[str, float | int], str]:
     if sampling == "uniform":
         mesh = shifted_bz_mesh(nk)
-        weights = _uniform_weights(mesh)
-        matrix = _single_mesh_response(mesh, weights, eta_eV, omega_eV, temperature_K)
-        fs = _fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K)
+        weights = uniform_weights(mesh)
+        matrix = single_mesh_normal_response(mesh, weights, eta_eV, omega_eV, temperature_K)
+        fs = normal_fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K)
         metadata = {
             "num_kpoints_total": int(mesh.shape[0]),
             "num_fs_cells": 0,
@@ -241,7 +137,7 @@ def _evaluate_sampling(
         return matrix, 0.0, 0.0, fs, metadata, "uniform midpoint mesh baseline"
 
     if sampling == "multishift_average":
-        matrix, std_xx, rel_std, fs, metadata = _multishift_response(
+        matrix, std_xx, rel_std, fs, metadata = multishift_normal_response(
             nk,
             eta_eV,
             omega_eV,
@@ -259,8 +155,8 @@ def _evaluate_sampling(
             refine_factor,
             fs_window_factor=fs_window_factor,
         )
-        matrix = _single_mesh_response(mesh, weights, eta_eV, omega_eV, temperature_K)
-        fs = _fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K)
+        matrix = single_mesh_normal_response(mesh, weights, eta_eV, omega_eV, temperature_K)
+        fs = normal_fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K)
         note = (
             "FS-adaptive weighted mesh diagnostic; "
             f"fs_window_eV={float(metadata['fs_window_eV']):g}; "

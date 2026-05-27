@@ -259,6 +259,7 @@ Local-response Casimir integral benchmark 入口：
 
 ```bash
 python scripts/benchmark_casimir_local_response_integral.py --kinds normal spm dwave --distance-list 3e-8 5e-8 1e-7 --theta-list 0 0.3926990817 0.7853981634 1.1780972451 1.5707963268 --matsubara-min 1 --matsubara-max 8 --kparallel-num 64 --kparallel-max-factor 20 --phi-num 32 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix outputs/casimir/local_response_integral/data/local_response_integral
+python scripts/converge_casimir_local_response_integral.py --kinds normal spm dwave --distance 5e-8 --matsubara-max-list 2 4 8 16 --kparallel-num-list 16 32 64 --kparallel-max-factor-list 10 20 40 --phi-num-list 16 32 64 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix outputs/casimir/local_response_integral/convergence/data/local_integral_convergence
 ```
 
 该 benchmark 做 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描；

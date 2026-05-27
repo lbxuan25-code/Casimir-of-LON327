@@ -2,6 +2,7 @@ from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
 import numpy as np
+from lno327.normal_sampling import normal_sheet_tensor_from_sampling
 
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "benchmark_casimir_local_response_integral.py"
 SPEC = spec_from_file_location("benchmark_casimir_local_response_integral", SCRIPT_PATH)
@@ -74,3 +75,16 @@ def test_toy_anisotropic_control_has_nonzero_torque():
     assert np.any(mask)
     assert np.nanmax(np.abs(data["torque_fd"][mask])) > 1e-20
     assert any("plumbing_pass_toy_anisotropy" in str(item) for item in data["diagnosis"][mask])
+
+
+def test_casimir_benchmark_uses_shared_normal_sampling_module():
+    tensor = normal_sheet_tensor_from_sampling(
+        omega_eV=0.02,
+        temperature_K=30.0,
+        eta_eV=1e-3,
+        nk=6,
+        sampling="uniform",
+        refine_factor=2,
+    )
+
+    assert np.isfinite(tensor.xx)
