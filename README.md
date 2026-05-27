@@ -160,6 +160,20 @@ python scripts/diagnose_normal_sampling_convergence.py --nk-list 32 48 64 80 96 
 默认 uniform 结果。若 average sampling 明显改善收敛，可作为后续 normal-response
 benchmark 的推荐采样方式，但必须保留 uniform 对照。
 
+建立更系统的 normal-state Fermi-surface-sensitive sampling benchmark：
+
+```bash
+python scripts/benchmark_normal_fs_sensitive_sampling.py --nk-list 32 48 64 80 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --shift-grid-list 1 2 4 8 --sampling uniform multishift_average fs_window_refined --output-prefix outputs/normal_state/fs_sensitive_sampling/data/fs_sensitive_sampling
+```
+
+`multishift_average` 对 `s x s` 个 fractional shifted meshes 做平均并报告 shift-to-shift
+std；`fs_window_refined` 先用 coarse mesh 找到
+`|E_band(k)| < max(eta, kBT, omega_eV)` 的 Fermi-window cells，再在这些局部 cell 内
+加密并保持面积权重。两者都只改变数值采样，不改变 Kubo 物理公式，也不替代
+uniform 默认。若这些方案仍不收敛，下一步应考虑 contour / tetrahedron
+Fermi-surface integration；在 normal response 收敛前仍暂停正式 local-response
+Casimir 积分。
+
 ## Casimir 前置接口
 
 当前新增的前置接口只把 normal-state $\sigma(i\xi)$ 与 BdG
@@ -266,6 +280,9 @@ outputs/
     sampling_convergence/
       data/
       figures/
+    fs_sensitive_sampling/
+      data/
+      figures/
   pairing/
     gap_structure/
       data/
@@ -327,6 +344,10 @@ outputs/
 - `normal_state/sampling_convergence`: normal-state low-Matsubara k-space sampling
   诊断；比较 uniform / shifted / average mesh，并输出 Fermi-surface sensitivity
   指标。这不是 Casimir 结果。
+- `normal_state/fs_sensitive_sampling`: normal-state Fermi-surface-sensitive sampling
+  benchmark；比较 uniform / multishift_average / fs_window_refined，用于判断
+  low-Matsubara response 是否需要更正式的 contour / tetrahedron FS 积分。这不是
+  Casimir 结果。
 - `pairing/gap_structure`: 投影 gap 幅值 / 符号 / near-node 诊断。
 - `bdg/paramagnetic_kernel_imag`: 仅用于 BdG $K_{\mathrm{para}}(i\xi)$ 诊断，不是完整超导电导。
 - `bdg/diamagnetic_kernel`: 仅用于 BdG $K_{\mathrm{dia}}$ 诊断。

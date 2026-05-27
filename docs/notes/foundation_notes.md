@@ -157,6 +157,14 @@ mesh 只作为脚本内部的 alternative sampling，不改变默认 uniform 行
 points-within-eta 太少、网格命中费米面不规则，或 response 与 Fermi-window weight
 强相关，应优先改进 normal response 的采样 / 积分，而不是进入 Casimir 积分。
 
+normal-state FS-sensitive sampling benchmark 是上述诊断的下一步。`multishift_average`
+使用 `s x s` fractional shifted meshes 对同一 Kubo integrand 做采样平均，并报告
+shift-to-shift std；`fs_window_refined` 先用 coarse mesh 找到 Fermi-window cells，再在
+这些 cell 周围局部加密并保留面积权重。二者都只改变 quadrature，不改变 normal Kubo
+物理公式，也不替代 uniform 默认。若这些方案仍无法稳定 low-Matsubara normal response，
+下一步应考虑 contour 或 tetrahedron Fermi-surface integration；在此之前仍不进入正式
+local-response Casimir 积分。
+
 ## 单位与归一化
 
 所有 Hamiltonian、配对、速度顶点和 Kubo 响应中的能量单位均为 eV。速度算符定义为
