@@ -30,6 +30,8 @@
    response 是否在 `Nk=48/64/80` 缓解，以及 `spm` / `dwave` 差异是否平台化。
 11. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
    Casimir 前置 response 接口和 $n=0$ policy 边界说明。
+12. `casimir/local_response_integral/`：local-response Casimir integral benchmark，
+   包含 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描。
 
 ## 不应作为论文结论的输出
 
@@ -56,6 +58,9 @@
   integrand，也不是 strict contour / triangle 解析积分。若仍不收敛，下一步转向
   triangle / contour Fermi-surface integration，且继续暂停正式 local-response
   Casimir 积分。
+- `casimir/local_response_integral/`：只作 local-response integral benchmark；
+  `n0_policy=skip`，`finite_q_resolved=False`，`benchmark_only=True`，不得作为正式
+  Casimir energy / torque 结论。
 
 ## 当前 n=0 约定
 

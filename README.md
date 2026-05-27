@@ -255,6 +255,15 @@ $$
 的工程链路；它包含各向同性与 toy anisotropic response 控制组，但不输出正式
 Casimir 能量或力矩结论。
 
+Local-response Casimir integral benchmark 入口：
+
+```bash
+python scripts/benchmark_casimir_local_response_integral.py --kinds normal spm dwave --distance-list 3e-8 5e-8 1e-7 --theta-list 0 0.3926990817 0.7853981634 1.1780972451 1.5707963268 --matsubara-min 1 --matsubara-max 8 --kparallel-num 64 --kparallel-max-factor 20 --phi-num 32 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix outputs/casimir/local_response_integral/data/local_response_integral
+```
+
+该 benchmark 做 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描；
+仍使用 local response、跳过 $n=0$、不含 finite-$q$ response，也不输出正式 Casimir 结论。
+
 绘制 normal-state 能带：
 
 ```bash
