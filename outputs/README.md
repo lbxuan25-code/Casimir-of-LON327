@@ -34,6 +34,8 @@
    包含 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描。
 13. `casimir/local_response_integral/convergence/`：上述 local-response benchmark 的
    Matsubara、$k_{\parallel}$ cutoff/grid 和 $\phi$ grid 收敛性诊断。
+14. `casimir/local_response_integral/final_convergence/`：一键式 local-response integral
+   final convergence runner 输出，仍为 benchmark-only，不是正式 Casimir 结论。
 
 ## 不应作为论文结论的输出
 
