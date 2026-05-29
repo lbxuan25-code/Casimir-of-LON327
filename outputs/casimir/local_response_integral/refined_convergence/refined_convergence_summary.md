@@ -8,10 +8,10 @@ quick_test_only = False
 full_run_completed = False
 response_cache_used=True
 response_cache_entries=192
-response_cache_rebuilt=True
-response_cache_hits=816
-response_cache_misses=192
-response_cache_writes=192
+response_cache_rebuilt=False
+response_cache_hits=0
+response_cache_misses=0
+response_cache_writes=0
 local_response=True
 finite_q_resolved=False
 n0_policy=skip
@@ -19,9 +19,9 @@ benchmark_only=True
 not_final_casimir_conclusion=True
 
 ## Cutoff Scan
-- cutoff/normal: u_max=nan, du=0.5, last_two_relative_change=nan, cutoff_status=missing
-- cutoff/spm: u_max=nan, du=0.5, last_two_relative_change=nan, cutoff_status=missing
-- cutoff/dwave: u_max=nan, du=0.5, last_two_relative_change=nan, cutoff_status=missing
+- cutoff/normal: u_max=80, du=0.5, implied_kparallel_num=161, tail_shell_indicator=0, last_two_relative_change=0, cutoff_status=candidate_converged
+- cutoff/spm: u_max=80, du=0.5, implied_kparallel_num=161, tail_shell_indicator=0, last_two_relative_change=0, cutoff_status=candidate_converged
+- cutoff/dwave: u_max=80, du=0.5, implied_kparallel_num=161, tail_shell_indicator=0, last_two_relative_change=0, cutoff_status=candidate_converged
 
 ## Matsubara Scan
 - matsubara/normal: matsubara_max=64, matsubara_tail_indicator=0.000576396, last_two_relative_change=0.0146604, matsubara_status=candidate_converged
@@ -29,7 +29,7 @@ not_final_casimir_conclusion=True
 - matsubara/dwave: matsubara_max=64, matsubara_tail_indicator=0.000877982, last_two_relative_change=0.022923, matsubara_status=loose_converged
 
 ## Baseline
-clean_cutoff_converged = False
+clean_cutoff_converged = True
 extended_matsubara_converged = True
 zero_torque_baseline = True
 warning_possible_spurious_torque = False
