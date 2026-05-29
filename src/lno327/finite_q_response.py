@@ -107,6 +107,39 @@ class FiniteQLocalLimitDecomposition:
     notes: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class FiniteQFormulaConsistencyDiagnostic:
+    """Low-level formula/vertex diagnostics for the finite-q prototype."""
+
+    kind: ResponseKind
+    matsubara_index: int
+    temperature_K: float
+    q_magnitude: float
+    q_phi: float
+    nk: int
+    delta0: float
+    eta: float
+    vertex_local_limit_abs_error: float
+    vertex_local_limit_relative_error: float
+    overlap_unitarity_error: float
+    overlap_diagonal_error: float
+    overlap_offdiag_norm: float
+    wrapped_fraction: float
+    possible_bz_wrapping_discontinuity: bool
+    min_abs_energy_diff: float
+    max_denominator_weight: float
+    near_degenerate_count: int
+    possible_denominator_instability: bool
+    component_errors: dict[str, float]
+    best_match_component: str
+    small_q_relative_error: float
+    diagnostic_status: str
+    gauge_status: GaugeStatus
+    final_casimir_input: bool
+    not_final_Casimir_conclusion: bool
+    notes: tuple[str, ...]
+
+
 def _wrap_bz(points: np.ndarray) -> np.ndarray:
     wrapped = np.asarray(points, dtype=float).copy()
     wrapped[..., 0] = ((wrapped[..., 0] + np.pi) % (2.0 * np.pi)) - np.pi
@@ -132,6 +165,25 @@ def _bosonic_matsubara_energy_eV(matsubara_index: int, temperature_K: float) -> 
 
 def _normal_current_vertex(kx: float, ky: float, direction: str) -> np.ndarray:
     return normal_state_velocity_operator(kx, ky, direction)
+
+
+def _matrix_for_kind(
+    kind: ResponseKind,
+    kx: float,
+    ky: float,
+    delta0_eV: float,
+) -> np.ndarray:
+    if kind == "normal":
+        return normal_state_hamiltonian(kx, ky)
+    params = PairingAmplitudes(delta0_eV=delta0_eV)
+    delta = pairing_matrix(kind, kx, ky, params)
+    return bdg_hamiltonian(kx, ky, delta)
+
+
+def _vertices_for_kind(kind: ResponseKind, kx: float, ky: float) -> list[np.ndarray]:
+    if kind == "normal":
+        return [_normal_current_vertex(kx, ky, "x"), _normal_current_vertex(kx, ky, "y")]
+    return [bdg_current_vertex(kx, ky, "x"), bdg_current_vertex(kx, ky, "y")]
 
 
 def _finite_q_bubble(
@@ -168,8 +220,7 @@ def _finite_q_bubble(
             occ_minus = fermi_function(energies_minus, config.fermi_level_eV, config.temperature_eV)
             occ_plus = fermi_function(energies_plus, config.fermi_level_eV, config.temperature_eV)
             vertices = [
-                _normal_current_vertex(float(vertex_k[0]), float(vertex_k[1]), direction)
-                for direction in directions
+                _normal_current_vertex(float(vertex_k[0]), float(vertex_k[1]), direction) for direction in directions
             ]
             left_states = states_minus
             right_states = states_plus
@@ -184,8 +235,7 @@ def _finite_q_bubble(
             occ_minus = fermi_function(energies_minus, config.fermi_level_eV, config.temperature_eV)
             occ_plus = fermi_function(energies_plus, config.fermi_level_eV, config.temperature_eV)
             vertices = [
-                bdg_current_vertex(float(vertex_k[0]), float(vertex_k[1]), direction)
-                for direction in directions
+                bdg_current_vertex(float(vertex_k[0]), float(vertex_k[1]), direction) for direction in directions
             ]
             left_states = states_minus
             right_states = states_plus
@@ -214,6 +264,95 @@ def _finite_q_bubble(
     if kind in {"spm", "dwave"}:
         matrix = matrix / omega_eV
     return matrix
+
+
+def _formula_consistency_stats(
+    kind: ResponseKind,
+    omega_eV: float,
+    temperature_K: float,
+    eta_eV: float,
+    q_vector: np.ndarray,
+    nk: int,
+    delta0_eV: float,
+) -> dict[str, float | int | bool]:
+    mesh, weights = _uniform_bz_mesh(nk)
+    _ = weights
+    config = KuboConfig.from_kelvin(
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta_eV,
+        output_si=False,
+    )
+    omega = config.omega_eV + config.eta_eV
+    vertex_abs_errors = []
+    vertex_rel_errors = []
+    overlap_unitarity = []
+    overlap_diagonal = []
+    overlap_offdiag = []
+    wrapped_count = 0
+    min_abs_energy_diff = np.inf
+    max_denominator_weight = 0.0
+    near_degenerate_count = 0
+
+    for k_center in mesh:
+        raw_minus = k_center - 0.5 * q_vector
+        raw_plus = k_center + 0.5 * q_vector
+        k_minus = _wrap_bz(raw_minus)
+        k_plus = _wrap_bz(raw_plus)
+        vertex_k = _wrap_bz(k_center)
+        if not (np.allclose(raw_minus, k_minus) and np.allclose(raw_plus, k_plus)):
+            wrapped_count += 1
+
+        h_minus = _matrix_for_kind(kind, float(k_minus[0]), float(k_minus[1]), delta0_eV)
+        h_plus = _matrix_for_kind(kind, float(k_plus[0]), float(k_plus[1]), delta0_eV)
+        energies_minus, states_minus = np.linalg.eigh(h_minus)
+        energies_plus, states_plus = np.linalg.eigh(h_plus)
+        occ_minus = fermi_function(energies_minus, config.fermi_level_eV, config.temperature_eV)
+        occ_plus = fermi_function(energies_plus, config.fermi_level_eV, config.temperature_eV)
+
+        local_vertices = _vertices_for_kind(kind, float(vertex_k[0]), float(vertex_k[1]))
+        finite_vertices = _vertices_for_kind(kind, float(vertex_k[0]), float(vertex_k[1]))
+        for finite_vertex, local_vertex in zip(finite_vertices, local_vertices, strict=True):
+            abs_error = float(np.linalg.norm(finite_vertex - local_vertex))
+            scale = float(np.linalg.norm(local_vertex))
+            vertex_abs_errors.append(abs_error)
+            vertex_rel_errors.append(abs_error / (scale + RATIO_EPS))
+
+        overlap = states_plus.conjugate().T @ states_minus
+        identity = np.eye(overlap.shape[0], dtype=complex)
+        overlap_unitarity.append(float(np.linalg.norm(overlap.conjugate().T @ overlap - identity)))
+        overlap_diagonal.append(float(np.max(np.abs(np.abs(np.diag(overlap)) - 1.0))))
+        offdiag = overlap - np.diag(np.diag(overlap))
+        overlap_offdiag.append(float(np.linalg.norm(offdiag)))
+
+        for m, energy_m in enumerate(energies_minus):
+            for n, energy_n in enumerate(energies_plus):
+                occupation_diff = occ_minus[m] - occ_plus[n]
+                if np.isclose(occupation_diff, 0.0):
+                    continue
+                energy_diff = float(energy_m - energy_n)
+                abs_diff = abs(energy_diff)
+                min_abs_energy_diff = min(min_abs_energy_diff, abs_diff)
+                if abs_diff < eta_eV:
+                    near_degenerate_count += 1
+                weight = abs(float(occupation_diff) * energy_diff / (energy_diff**2 + omega**2))
+                max_denominator_weight = max(max_denominator_weight, weight)
+
+    wrapped_fraction = float(wrapped_count / max(mesh.shape[0], 1))
+    min_diff = float(min_abs_energy_diff) if np.isfinite(min_abs_energy_diff) else np.nan
+    return {
+        "vertex_local_limit_abs_error": float(max(vertex_abs_errors, default=np.nan)),
+        "vertex_local_limit_relative_error": float(max(vertex_rel_errors, default=np.nan)),
+        "overlap_unitarity_error": float(max(overlap_unitarity, default=np.nan)),
+        "overlap_diagonal_error": float(max(overlap_diagonal, default=np.nan)),
+        "overlap_offdiag_norm": float(max(overlap_offdiag, default=np.nan)),
+        "wrapped_fraction": wrapped_fraction,
+        "possible_bz_wrapping_discontinuity": bool(wrapped_fraction > 0.0),
+        "min_abs_energy_diff": min_diff,
+        "max_denominator_weight": float(max_denominator_weight),
+        "near_degenerate_count": int(near_degenerate_count),
+        "possible_denominator_instability": bool(near_degenerate_count > 0),
+    }
 
 
 def _local_reference(
@@ -575,6 +714,134 @@ def compare_finite_q_to_local_components(
                                 int(matsubara_index),
                                 temperature_K,
                                 float(small_q),
+                                float(q_phi),
+                                int(nk),
+                                delta0,
+                                eta,
+                            )
+                        )
+    return rows
+
+
+def finite_q_formula_consistency_diagnostic(
+    kind: ResponseKind,
+    matsubara_index: int,
+    temperature_K: float,
+    q_magnitude: float,
+    q_phi: float,
+    nk: int,
+    delta0: float,
+    eta: float,
+) -> FiniteQFormulaConsistencyDiagnostic:
+    """Return low-level diagnostics for finite-q formula consistency."""
+
+    if q_magnitude <= 0.0:
+        raise ValueError("q_magnitude must be positive")
+    omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
+    q_vector = np.array([q_magnitude * np.cos(q_phi), q_magnitude * np.sin(q_phi)], dtype=float)
+    stats = _formula_consistency_stats(
+        kind,
+        omega_eV,
+        temperature_K,
+        eta,
+        q_vector,
+        nk,
+        delta0,
+    )
+    decomposition = finite_q_local_limit_decomposition(
+        kind,
+        matsubara_index,
+        temperature_K,
+        q_magnitude,
+        q_phi,
+        nk,
+        delta0,
+        eta,
+    )
+    component_errors = {
+        "local_sigma": decomposition.error_to_local_sigma,
+        "local_K_para": decomposition.error_to_K_para,
+        "local_K_total": decomposition.error_to_K_total,
+        "local_K_total_over_omega": decomposition.error_to_K_total_over_omega,
+        "normal_kubo_sigma": decomposition.error_to_normal_kubo_sigma,
+    }
+    status_parts = []
+    if stats["vertex_local_limit_relative_error"] > 1e-10:
+        status_parts.append("possible_vertex_mismatch")
+    else:
+        status_parts.append("vertex_matches_local_convention")
+    if stats["overlap_diagonal_error"] > 1e-2 or stats["overlap_offdiag_norm"] > 1e-1:
+        status_parts.append("possible_overlap_band_order_or_phase_issue")
+    if stats["possible_bz_wrapping_discontinuity"]:
+        status_parts.append("possible_bz_wrapping_discontinuity")
+    if stats["possible_denominator_instability"]:
+        status_parts.append("possible_denominator_instability")
+    if decomposition.best_match_relative_error < 1e-2:
+        status_parts.append("small_q_continuity_candidate")
+    else:
+        status_parts.append("small_q_continuity_not_repaired")
+    notes = (
+        "finite-q formula consistency diagnostic",
+        "no ad hoc rescaling or smoothing applied",
+        "finite-q vertex remains prototype_not_ward_verified",
+        "final_casimir_input=False",
+        "not a final Casimir torque conclusion",
+    )
+    return FiniteQFormulaConsistencyDiagnostic(
+        kind=kind,
+        matsubara_index=matsubara_index,
+        temperature_K=temperature_K,
+        q_magnitude=q_magnitude,
+        q_phi=q_phi,
+        nk=nk,
+        delta0=delta0,
+        eta=eta,
+        vertex_local_limit_abs_error=float(stats["vertex_local_limit_abs_error"]),
+        vertex_local_limit_relative_error=float(stats["vertex_local_limit_relative_error"]),
+        overlap_unitarity_error=float(stats["overlap_unitarity_error"]),
+        overlap_diagonal_error=float(stats["overlap_diagonal_error"]),
+        overlap_offdiag_norm=float(stats["overlap_offdiag_norm"]),
+        wrapped_fraction=float(stats["wrapped_fraction"]),
+        possible_bz_wrapping_discontinuity=bool(stats["possible_bz_wrapping_discontinuity"]),
+        min_abs_energy_diff=float(stats["min_abs_energy_diff"]),
+        max_denominator_weight=float(stats["max_denominator_weight"]),
+        near_degenerate_count=int(stats["near_degenerate_count"]),
+        possible_denominator_instability=bool(stats["possible_denominator_instability"]),
+        component_errors=component_errors,
+        best_match_component=decomposition.best_match_component,
+        small_q_relative_error=decomposition.best_match_relative_error,
+        diagnostic_status=";".join(status_parts),
+        gauge_status="prototype_not_ward_verified",
+        final_casimir_input=False,
+        not_final_Casimir_conclusion=True,
+        notes=notes,
+    )
+
+
+def compare_finite_q_formula_consistency(
+    kinds: Sequence[ResponseKind],
+    matsubara_list: Sequence[int],
+    q_list: Sequence[float],
+    q_phi_list: Sequence[float],
+    nk_list: Sequence[int],
+    temperature_K: float,
+    delta0: float,
+    eta: float,
+) -> list[FiniteQFormulaConsistencyDiagnostic]:
+    """Evaluate finite-q formula diagnostics over a compact quick grid."""
+
+    rows: list[FiniteQFormulaConsistencyDiagnostic] = []
+    for kind in kinds:
+        for matsubara_index in matsubara_list:
+            for nk in nk_list:
+                for q_magnitude in q_list:
+                    for q_phi in q_phi_list:
+                        rows.append(
+                            finite_q_formula_consistency_diagnostic(
+                                kind,
+                                int(matsubara_index),
+                                temperature_K,
+                                float(q_magnitude),
                                 float(q_phi),
                                 int(nk),
                                 delta0,
