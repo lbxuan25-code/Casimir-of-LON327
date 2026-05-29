@@ -8,7 +8,8 @@ sigma_ab(i xi_n, q, phi_q)
 ```
 
 是否在有限 dimensionless BZ momentum `q_magnitude` 下出现角向结构，以及 spm/dwave
-相对 normal 的差异是否有可见 contrast。
+相对 normal 的 A4 层面差异是否有可见 contrast。当前 refined 诊断区分
+`q=0` local reference hook 和真正 small-q finite-q bubble continuity test。
 
 这里的 `q_magnitude` 与 k 网格一样使用无量纲 BZ momentum，不是 SI wavevector。
 
@@ -29,3 +30,7 @@ sigma_ab(i xi_n, q, phi_q)
 - `figures/A4_vs_q.png`
 - `figures/pairing_contrast_vs_q.png`
 - `figures/local_limit_error.png`
+- `figures/small_q_local_limit_error.png`
+- `figures/A4_pairing_contrast_vs_q.png`
+- `figures/A4_trace_pairing_contrast_vs_q.png`
+- `figures/A4_components_vs_q.png`

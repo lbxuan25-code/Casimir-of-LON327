@@ -20,6 +20,12 @@ from .response_units import (
 
 GaugeStatus = Literal["prototype_not_ward_verified"]
 DiagnosticStatus = Literal["pass_local_limit", "fail_local_limit", "finite_q_diagnostic"]
+SmallQLimitStatus = Literal[
+    "not_tested",
+    "good_continuity_candidate",
+    "prototype_continuity_candidate",
+    "not_continuous_enough",
+]
 
 RATIO_EPS = 1e-300
 LOCAL_LIMIT_RELATIVE_TOLERANCE = 1e-8
@@ -49,8 +55,14 @@ class FiniteQResponseResult:
     finite_q_resolved: bool
     finite_q_response_diagnostic: bool
     local_limit_reference: np.ndarray
+    local_reference_hook_passed: bool
     local_limit_abs_error: float
     local_limit_relative_error: float
+    small_q_limit_abs_error: float
+    small_q_limit_relative_error: float
+    small_q_limit_status: SmallQLimitStatus
+    q_to_0_continuity_tested: bool
+    q_to_0_continuity_passed: bool
     angular_anisotropy_A4_xx: float
     angular_anisotropy_A4_trace: float
     symmetry_diagnostics: dict[str, complex | float | bool]
@@ -283,8 +295,14 @@ def bdg_finite_q_response_imag_axis(
         finite_q_resolved=not np.isclose(q_magnitude, 0.0),
         finite_q_response_diagnostic=True,
         local_limit_reference=local_reference,
+        local_reference_hook_passed=bool(np.isclose(q_magnitude, 0.0) and rel_error <= local_limit_tolerance),
         local_limit_abs_error=abs_error,
         local_limit_relative_error=rel_error,
+        small_q_limit_abs_error=np.nan,
+        small_q_limit_relative_error=np.nan,
+        small_q_limit_status="not_tested",
+        q_to_0_continuity_tested=False,
+        q_to_0_continuity_passed=False,
         angular_anisotropy_A4_xx=np.nan,
         angular_anisotropy_A4_trace=np.nan,
         symmetry_diagnostics=symmetry,
