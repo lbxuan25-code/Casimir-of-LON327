@@ -36,6 +36,10 @@
    Matsubara、$k_{\parallel}$ cutoff/grid 和 $\phi$ grid 收敛性诊断。
 14. `casimir/local_response_integral/final_convergence/`：一键式 local-response integral
    final convergence runner 输出，仍为 benchmark-only，不是正式 Casimir 结论。
+15. `casimir/local_response_integral/refined_convergence/`：针对 Matsubara tail 与
+   fixed-du clean cutoff 的 refined convergence blocker 诊断，仍不是正式 Casimir 结论。
+16. `casimir/local_response_integral/cache/`：local-response sheet tensor cache，
+   只用于加速 benchmark，不改变物理公式或积分公式。
 
 ## 不应作为论文结论的输出
 

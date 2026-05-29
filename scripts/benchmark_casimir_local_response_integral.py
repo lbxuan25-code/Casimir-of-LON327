@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
+import json
 import os
 from pathlib import Path
 import sys
@@ -79,6 +81,113 @@ REQUIRED_NPZ_FIELDS = {
 }
 
 
+class ResponseTensorCache:
+    """Small on-disk cache for local-response sheet tensors."""
+
+    def __init__(self, cache_dir: Path, *, use: bool = True, rebuild: bool = False) -> None:
+        self.cache_dir = cache_dir
+        self.use = use
+        self.rebuild = rebuild
+        self.memory: dict[str, ConductivityTensor] = {}
+        self.hits = 0
+        self.misses = 0
+        self.writes = 0
+
+    @staticmethod
+    def _key_payload(
+        *,
+        kind: str,
+        matsubara_index: int,
+        temperature_K: float,
+        normal_nk: int,
+        normal_eta_eV: float,
+        normal_sampling: str,
+        normal_refine_factor: int,
+        bdg_nk: int,
+        delta0_eV: float,
+    ) -> dict[str, object]:
+        return {
+            "kind": kind,
+            "matsubara_index": int(matsubara_index),
+            "temperature_K": float(temperature_K),
+            "normal_nk": int(normal_nk),
+            "normal_eta_eV": float(normal_eta_eV),
+            "normal_sampling": normal_sampling,
+            "normal_refine_factor": int(normal_refine_factor),
+            "bdg_nk": int(bdg_nk),
+            "delta0_eV": float(delta0_eV),
+        }
+
+    def _key(self, payload: dict[str, object]) -> str:
+        text = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+    def _path(self, key: str) -> Path:
+        return self.cache_dir / f"response_tensor_{key}.npz"
+
+    def entry_count(self) -> int:
+        if not self.cache_dir.exists():
+            return 0
+        return sum(1 for _path in self.cache_dir.glob("response_tensor_*.npz"))
+
+    def get_or_compute(
+        self,
+        *,
+        kind: str,
+        matsubara_index: int,
+        temperature_K: float,
+        normal_nk: int,
+        normal_eta_eV: float,
+        normal_sampling: str,
+        normal_refine_factor: int,
+        bdg_nk: int,
+        delta0_eV: float,
+        compute,
+    ) -> ConductivityTensor:
+        payload = self._key_payload(
+            kind=kind,
+            matsubara_index=matsubara_index,
+            temperature_K=temperature_K,
+            normal_nk=normal_nk,
+            normal_eta_eV=normal_eta_eV,
+            normal_sampling=normal_sampling,
+            normal_refine_factor=normal_refine_factor,
+            bdg_nk=bdg_nk,
+            delta0_eV=delta0_eV,
+        )
+        key = self._key(payload)
+        if key in self.memory:
+            self.hits += 1
+            return self.memory[key]
+        path = self._path(key)
+        if self.use and path.exists() and not self.rebuild:
+            with np.load(path, allow_pickle=False) as loaded:
+                tensor = ConductivityTensor(
+                    xx=complex(loaded["xx"].item()),
+                    yy=complex(loaded["yy"].item()),
+                    xy=complex(loaded["xy"].item()),
+                    yx=complex(loaded["yx"].item()),
+                )
+            self.memory[key] = tensor
+            self.hits += 1
+            return tensor
+        tensor = compute()
+        self.memory[key] = tensor
+        self.misses += 1
+        if self.use:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            np.savez(
+                path,
+                xx=np.asarray(tensor.xx),
+                yy=np.asarray(tensor.yy),
+                xy=np.asarray(tensor.xy),
+                yx=np.asarray(tensor.yx),
+                key_payload=np.asarray(json.dumps(payload, sort_keys=True)),
+            )
+            self.writes += 1
+        return tensor
+
+
 def toy_anisotropic_tensor() -> ConductivityTensor:
     return ConductivityTensor(xx=2e-4, yy=1e-4, xy=0.0, yx=0.0)
 
@@ -138,22 +247,39 @@ def _sheet_tensor_for_kind(
     normal_refine_factor: int,
     bdg_nk: int,
     delta0_eV: float,
+    response_cache: ResponseTensorCache | None = None,
 ) -> ConductivityTensor:
-    omega_eV = bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
-    if kind == "normal":
-        return _normal_sheet_tensor(
-            omega_eV,
-            temperature_K,
-            normal_eta_eV,
-            normal_nk,
-            normal_sampling,
-            normal_refine_factor,
-        )
-    if kind in {"spm", "dwave"}:
-        return _bdg_sheet_tensor(kind, omega_eV, temperature_K, normal_eta_eV, bdg_nk, delta0_eV)
-    if kind == "toy_anisotropic":
-        return toy_anisotropic_tensor()
-    raise ValueError("unknown kind")
+    def compute() -> ConductivityTensor:
+        omega_eV = bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
+        if kind == "normal":
+            return _normal_sheet_tensor(
+                omega_eV,
+                temperature_K,
+                normal_eta_eV,
+                normal_nk,
+                normal_sampling,
+                normal_refine_factor,
+            )
+        if kind in {"spm", "dwave"}:
+            return _bdg_sheet_tensor(kind, omega_eV, temperature_K, normal_eta_eV, bdg_nk, delta0_eV)
+        if kind == "toy_anisotropic":
+            return toy_anisotropic_tensor()
+        raise ValueError("unknown kind")
+
+    if response_cache is None:
+        return compute()
+    return response_cache.get_or_compute(
+        kind=kind,
+        matsubara_index=matsubara_index,
+        temperature_K=temperature_K,
+        normal_nk=normal_nk,
+        normal_eta_eV=normal_eta_eV,
+        normal_sampling=normal_sampling,
+        normal_refine_factor=normal_refine_factor,
+        bdg_nk=bdg_nk,
+        delta0_eV=delta0_eV,
+        compute=compute,
+    )
 
 
 def _integrate_one_matsubara(
@@ -194,6 +320,7 @@ def _energy_theta_series(
     normal_refine_factor: int,
     bdg_nk: int,
     delta0_eV: float,
+    response_cache: ResponseTensorCache | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     setup = CasimirSetup(temperature=temperature_K, distance=distance_m)
     tensors = {
@@ -207,6 +334,7 @@ def _energy_theta_series(
             normal_refine_factor,
             bdg_nk,
             delta0_eV,
+            response_cache=response_cache,
         )
         for n in matsubara_indices
     }
@@ -262,6 +390,7 @@ def benchmark_casimir_local_response_integral(
     bdg_nk: int,
     delta0_eV: float,
     include_toy_anisotropic_control: bool = False,
+    response_cache: ResponseTensorCache | None = None,
 ) -> dict[str, np.ndarray]:
     if any(kind not in KINDS for kind in kinds):
         raise ValueError("unknown kind")
@@ -269,8 +398,8 @@ def benchmark_casimir_local_response_integral(
         kinds = [*kinds, "toy_anisotropic"]
     if not distance_list or any(distance <= 0.0 for distance in distance_list):
         raise ValueError("distance_list must contain positive values")
-    if len(theta_list) < 2:
-        raise ValueError("theta_list must contain at least two values")
+    if len(theta_list) < 1:
+        raise ValueError("theta_list must contain at least one value")
     if matsubara_min < 1 or matsubara_max < matsubara_min:
         raise ValueError("Matsubara range must satisfy 1 <= min <= max")
     if kparallel_num < 2 or phi_num < 3:
@@ -337,6 +466,7 @@ def benchmark_casimir_local_response_integral(
                 normal_refine_factor,
                 bdg_nk,
                 delta0_eV,
+                response_cache=response_cache,
             )
             torques = _finite_difference_torque(theta_values, energies)
             max_abs_torque = float(np.nanmax(np.abs(torques)))
