@@ -269,6 +269,7 @@ python scripts/benchmark_casimir_local_response_integral.py --kinds normal spm d
 python scripts/converge_casimir_local_response_integral.py --kinds normal spm dwave --distance 5e-8 --matsubara-max-list 2 4 8 16 --kparallel-num-list 16 32 64 --kparallel-max-factor-list 10 20 40 --phi-num-list 16 32 64 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix outputs/casimir/local_response_integral/convergence/data/local_integral_convergence
 python scripts/run_casimir_local_convergence_final.py --dry-run
 python scripts/refine_casimir_local_convergence_blockers.py --dry-run
+python scripts/benchmark_casimir_local_response_distance_scan.py --dry-run
 ```
 
 该 benchmark 做 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描；

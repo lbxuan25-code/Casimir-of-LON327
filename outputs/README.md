@@ -41,6 +41,9 @@
    fixed-du clean cutoff 的 refined convergence blocker 诊断，仍不是正式 Casimir 结论。
 16. `casimir/local_response_integral/cache/`：local-response sheet tensor cache，
    只用于加速 benchmark，不改变物理公式或积分公式。
+17. `casimir/local_response_integral/distance_scan/`：local-response distance scan
+   benchmark 输出，用于检查 zero-torque baseline 随距离的数值基准，仍不是正式
+   Casimir 结论。
 
 ## 不应作为论文结论的输出
 
