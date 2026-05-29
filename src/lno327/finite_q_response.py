@@ -20,6 +20,7 @@ from .response_units import (
 
 GaugeStatus = Literal["prototype_not_ward_verified"]
 DiagnosticStatus = Literal["pass_local_limit", "fail_local_limit", "finite_q_diagnostic"]
+DenominatorMode = Literal["raw", "stable"]
 SmallQLimitStatus = Literal[
     "not_tested",
     "good_continuity_candidate",
@@ -140,6 +141,50 @@ class FiniteQFormulaConsistencyDiagnostic:
     notes: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class FiniteQSubspaceConsistencyDiagnostic:
+    """Near-degenerate subspace and denominator stability diagnostic."""
+
+    kind: ResponseKind
+    matsubara_index: int
+    temperature_K: float
+    q_magnitude: float
+    q_phi: float
+    nk: int
+    delta0: float
+    eta: float
+    deg_tol: float
+    denominator_mode: DenominatorMode
+    num_subspaces_minus: int
+    num_subspaces_plus: int
+    max_subspace_dimension_minus: int
+    max_subspace_dimension_plus: int
+    near_degenerate_group_count: int
+    eigenstate_overlap_offdiag_norm: float
+    eigenstate_overlap_diagonal_error: float
+    projector_overlap_error: float
+    projector_trace_defect: float
+    subspace_mixing_norm: float
+    unmatched_subspace_weight: float
+    possible_band_phase_or_order_issue: bool
+    possible_true_subspace_mixing: bool
+    near_degenerate_count: int
+    min_abs_energy_diff: float
+    near_degenerate_weight_raw: float
+    near_degenerate_weight_stable: float
+    denominator_regularization_delta: float
+    stable_denominator_changed_response_norm: float
+    stable_denominator_improves_continuity: bool
+    component_errors: dict[str, float]
+    best_match_component: str
+    small_q_relative_error: float
+    diagnostic_status: str
+    gauge_status: GaugeStatus
+    final_casimir_input: bool
+    not_final_Casimir_conclusion: bool
+    notes: tuple[str, ...]
+
+
 def _wrap_bz(points: np.ndarray) -> np.ndarray:
     wrapped = np.asarray(points, dtype=float).copy()
     wrapped[..., 0] = ((wrapped[..., 0] + np.pi) % (2.0 * np.pi)) - np.pi
@@ -186,6 +231,62 @@ def _vertices_for_kind(kind: ResponseKind, kx: float, ky: float) -> list[np.ndar
     return [bdg_current_vertex(kx, ky, "x"), bdg_current_vertex(kx, ky, "y")]
 
 
+def _fermi_derivative(energy: float, fermi_level: float, temperature_eV: float) -> float:
+    if temperature_eV <= 0.0:
+        return 0.0
+    argument = np.clip((energy - fermi_level) / (2.0 * temperature_eV), -350.0, 350.0)
+    cosh_value = np.cosh(argument)
+    return float(-1.0 / (4.0 * temperature_eV * cosh_value * cosh_value))
+
+
+def _stable_occupation_difference(
+    energy_m: float,
+    energy_n: float,
+    occ_m: float,
+    occ_n: float,
+    fermi_level: float,
+    temperature_eV: float,
+    deg_tol: float,
+) -> float:
+    energy_diff = float(energy_m - energy_n)
+    if abs(energy_diff) >= deg_tol:
+        return float(occ_m - occ_n)
+    energy_mid = 0.5 * (float(energy_m) + float(energy_n))
+    return _fermi_derivative(energy_mid, fermi_level, temperature_eV) * energy_diff
+
+
+def _response_factor(
+    energy_m: float,
+    energy_n: float,
+    occ_m: float,
+    occ_n: float,
+    config: KuboConfig,
+    denominator_mode: DenominatorMode,
+    deg_tol: float,
+) -> float:
+    energy_diff = float(energy_m - energy_n)
+    if denominator_mode == "stable":
+        occupation_diff = _stable_occupation_difference(
+            energy_m,
+            energy_n,
+            occ_m,
+            occ_n,
+            config.fermi_level_eV,
+            config.temperature_eV,
+            deg_tol,
+        )
+    elif denominator_mode == "raw":
+        occupation_diff = float(occ_m - occ_n)
+        if abs(energy_diff) < config.eta_eV:
+            return 0.0
+    else:
+        raise ValueError("denominator_mode must be raw or stable")
+    if np.isclose(occupation_diff, 0.0):
+        return 0.0
+    omega = config.omega_eV + config.eta_eV
+    return float(-occupation_diff * energy_diff / (energy_diff**2 + omega**2))
+
+
 def _finite_q_bubble(
     *,
     kind: ResponseKind,
@@ -195,6 +296,8 @@ def _finite_q_bubble(
     q_vector: np.ndarray,
     nk: int,
     delta0_eV: float,
+    denominator_mode: DenominatorMode = "raw",
+    deg_tol: float = 1e-7,
 ) -> np.ndarray:
     mesh, weights = _uniform_bz_mesh(nk)
     config = KuboConfig.from_kelvin(
@@ -203,7 +306,6 @@ def _finite_q_bubble(
         eta_eV=eta_eV,
         output_si=False,
     )
-    omega = config.omega_eV + config.eta_eV
     matrix = np.zeros((2, 2), dtype=complex)
     directions = ("x", "y")
 
@@ -245,13 +347,17 @@ def _finite_q_bubble(
 
         for m, energy_m in enumerate(energies_minus):
             for n, energy_n in enumerate(energies_plus):
-                occupation_diff = occ_minus[m] - occ_plus[n]
-                if np.isclose(occupation_diff, 0.0):
+                response_factor = _response_factor(
+                    float(energy_m),
+                    float(energy_n),
+                    float(occ_minus[m]),
+                    float(occ_plus[n]),
+                    config,
+                    denominator_mode,
+                    deg_tol,
+                )
+                if np.isclose(response_factor, 0.0):
                     continue
-                energy_diff = energy_m - energy_n
-                if abs(energy_diff) < eta_eV:
-                    continue
-                response_factor = -occupation_diff * energy_diff / (energy_diff**2 + omega**2)
                 for alpha in range(2):
                     for beta in range(2):
                         matrix[alpha, beta] += (
@@ -352,6 +458,216 @@ def _formula_consistency_stats(
         "max_denominator_weight": float(max_denominator_weight),
         "near_degenerate_count": int(near_degenerate_count),
         "possible_denominator_instability": bool(near_degenerate_count > 0),
+    }
+
+
+def group_near_degenerate_levels(energies: np.ndarray, deg_tol: float = 1e-7) -> list[np.ndarray]:
+    """Group sorted eigenvalue indices whose adjacent gaps are below ``deg_tol``."""
+
+    if deg_tol <= 0.0:
+        raise ValueError("deg_tol must be positive")
+    values = np.asarray(energies, dtype=float)
+    if values.ndim != 1:
+        raise ValueError("energies must be one-dimensional")
+    if values.size == 0:
+        return []
+    groups: list[list[int]] = [[0]]
+    for index in range(1, values.size):
+        if abs(values[index] - values[index - 1]) <= deg_tol:
+            groups[-1].append(index)
+        else:
+            groups.append([index])
+    return [np.asarray(group, dtype=int) for group in groups]
+
+
+def _projector(states: np.ndarray, group: np.ndarray) -> np.ndarray:
+    vectors = states[:, group]
+    return vectors @ vectors.conjugate().T
+
+
+def compute_subspace_projector_overlap(
+    states_minus: np.ndarray,
+    states_plus: np.ndarray,
+    groups_minus: Sequence[np.ndarray],
+    groups_plus: Sequence[np.ndarray],
+) -> dict[str, float]:
+    """Compare near-degenerate projectors between k-q/2 and k+q/2."""
+
+    used_plus: set[int] = set()
+    projector_errors = []
+    trace_defects = []
+    mixing_norms = []
+    unmatched_weight = 0.0
+    for minus_group in groups_minus:
+        dim_minus = int(minus_group.size)
+        projector_minus = _projector(states_minus, minus_group)
+        best_index = -1
+        best_overlap = -np.inf
+        best_projector = None
+        for plus_index, plus_group in enumerate(groups_plus):
+            if plus_index in used_plus:
+                continue
+            projector_plus = _projector(states_plus, plus_group)
+            overlap = float(np.real(np.trace(projector_minus @ projector_plus)))
+            if overlap > best_overlap:
+                best_overlap = overlap
+                best_index = plus_index
+                best_projector = projector_plus
+        if best_projector is None:
+            unmatched_weight += float(dim_minus)
+            continue
+        used_plus.add(best_index)
+        dim_reference = max(float(dim_minus), 1.0)
+        projector_errors.append(abs(dim_reference - best_overlap) / dim_reference)
+        trace_defects.append(abs(float(np.real(np.trace(projector_minus))) - dim_minus))
+        complement = np.eye(projector_minus.shape[0], dtype=complex) - best_projector
+        mixing_norms.append(float(np.linalg.norm(projector_minus @ complement) / dim_reference))
+    for plus_index, plus_group in enumerate(groups_plus):
+        if plus_index not in used_plus:
+            unmatched_weight += float(plus_group.size)
+    total_dim = max(float(states_minus.shape[0]), 1.0)
+    return {
+        "projector_overlap_error": float(max(projector_errors, default=0.0)),
+        "projector_trace_defect": float(max(trace_defects, default=0.0)),
+        "subspace_mixing_norm": float(max(mixing_norms, default=0.0)),
+        "unmatched_subspace_weight": float(unmatched_weight / total_dim),
+    }
+
+
+def _subspace_consistency_stats(
+    kind: ResponseKind,
+    q_vector: np.ndarray,
+    nk: int,
+    delta0_eV: float,
+    deg_tol: float,
+) -> dict[str, float | int | bool]:
+    mesh, _ = _uniform_bz_mesh(nk)
+    num_minus = []
+    num_plus = []
+    max_dim_minus = []
+    max_dim_plus = []
+    near_group_count = 0
+    eigen_diag_errors = []
+    eigen_offdiag_norms = []
+    projector_errors = []
+    trace_defects = []
+    mixing_norms = []
+    unmatched_weights = []
+
+    for k_center in mesh:
+        k_minus = _wrap_bz(k_center - 0.5 * q_vector)
+        k_plus = _wrap_bz(k_center + 0.5 * q_vector)
+        h_minus = _matrix_for_kind(kind, float(k_minus[0]), float(k_minus[1]), delta0_eV)
+        h_plus = _matrix_for_kind(kind, float(k_plus[0]), float(k_plus[1]), delta0_eV)
+        energies_minus, states_minus = np.linalg.eigh(h_minus)
+        energies_plus, states_plus = np.linalg.eigh(h_plus)
+        groups_minus = group_near_degenerate_levels(energies_minus, deg_tol)
+        groups_plus = group_near_degenerate_levels(energies_plus, deg_tol)
+
+        num_minus.append(len(groups_minus))
+        num_plus.append(len(groups_plus))
+        max_dim_minus.append(max((int(group.size) for group in groups_minus), default=0))
+        max_dim_plus.append(max((int(group.size) for group in groups_plus), default=0))
+        near_group_count += sum(int(group.size > 1) for group in groups_minus)
+        near_group_count += sum(int(group.size > 1) for group in groups_plus)
+
+        overlap = states_plus.conjugate().T @ states_minus
+        eigen_diag_errors.append(float(np.max(np.abs(np.abs(np.diag(overlap)) - 1.0))))
+        offdiag = overlap - np.diag(np.diag(overlap))
+        eigen_offdiag_norms.append(float(np.linalg.norm(offdiag)))
+
+        projector_stats = compute_subspace_projector_overlap(states_minus, states_plus, groups_minus, groups_plus)
+        projector_errors.append(projector_stats["projector_overlap_error"])
+        trace_defects.append(projector_stats["projector_trace_defect"])
+        mixing_norms.append(projector_stats["subspace_mixing_norm"])
+        unmatched_weights.append(projector_stats["unmatched_subspace_weight"])
+
+    eigen_offdiag = float(max(eigen_offdiag_norms, default=np.nan))
+    projector_error = float(max(projector_errors, default=np.nan))
+    return {
+        "num_subspaces_minus": int(max(num_minus, default=0)),
+        "num_subspaces_plus": int(max(num_plus, default=0)),
+        "max_subspace_dimension_minus": int(max(max_dim_minus, default=0)),
+        "max_subspace_dimension_plus": int(max(max_dim_plus, default=0)),
+        "near_degenerate_group_count": int(near_group_count),
+        "eigenstate_overlap_offdiag_norm": eigen_offdiag,
+        "eigenstate_overlap_diagonal_error": float(max(eigen_diag_errors, default=np.nan)),
+        "projector_overlap_error": projector_error,
+        "projector_trace_defect": float(max(trace_defects, default=np.nan)),
+        "subspace_mixing_norm": float(max(mixing_norms, default=np.nan)),
+        "unmatched_subspace_weight": float(max(unmatched_weights, default=np.nan)),
+        "possible_band_phase_or_order_issue": bool(eigen_offdiag > 1e-2 and projector_error < 0.1 * max(eigen_offdiag, RATIO_EPS)),
+        "possible_true_subspace_mixing": bool(projector_error > 1e-2),
+    }
+
+
+def _denominator_stability_stats(
+    kind: ResponseKind,
+    omega_eV: float,
+    temperature_K: float,
+    eta_eV: float,
+    q_vector: np.ndarray,
+    nk: int,
+    delta0_eV: float,
+    deg_tol: float,
+) -> dict[str, float | int]:
+    mesh, weights = _uniform_bz_mesh(nk)
+    _ = weights
+    config = KuboConfig.from_kelvin(
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta_eV,
+        output_si=False,
+    )
+    min_abs_energy_diff = np.inf
+    near_degenerate_count = 0
+    near_weight_raw = 0.0
+    near_weight_stable = 0.0
+    regularization_delta = 0.0
+
+    for k_center in mesh:
+        k_minus = _wrap_bz(k_center - 0.5 * q_vector)
+        k_plus = _wrap_bz(k_center + 0.5 * q_vector)
+        h_minus = _matrix_for_kind(kind, float(k_minus[0]), float(k_minus[1]), delta0_eV)
+        h_plus = _matrix_for_kind(kind, float(k_plus[0]), float(k_plus[1]), delta0_eV)
+        energies_minus, _ = np.linalg.eigh(h_minus)
+        energies_plus, _ = np.linalg.eigh(h_plus)
+        occ_minus = fermi_function(energies_minus, config.fermi_level_eV, config.temperature_eV)
+        occ_plus = fermi_function(energies_plus, config.fermi_level_eV, config.temperature_eV)
+
+        for m, energy_m in enumerate(energies_minus):
+            for n, energy_n in enumerate(energies_plus):
+                energy_diff = float(energy_m - energy_n)
+                abs_diff = abs(energy_diff)
+                min_abs_energy_diff = min(min_abs_energy_diff, abs_diff)
+                if abs_diff >= deg_tol:
+                    continue
+                raw_occ = float(occ_minus[m] - occ_plus[n])
+                stable_occ = _stable_occupation_difference(
+                    float(energy_m),
+                    float(energy_n),
+                    float(occ_minus[m]),
+                    float(occ_plus[n]),
+                    config.fermi_level_eV,
+                    config.temperature_eV,
+                    deg_tol,
+                )
+                raw_factor = abs(_response_factor(float(energy_m), float(energy_n), float(occ_minus[m]), float(occ_plus[n]), config, "raw", deg_tol))
+                stable_factor = abs(
+                    _response_factor(float(energy_m), float(energy_n), float(occ_minus[m]), float(occ_plus[n]), config, "stable", deg_tol)
+                )
+                near_degenerate_count += 1
+                near_weight_raw += raw_factor
+                near_weight_stable += stable_factor
+                regularization_delta += abs(raw_occ - stable_occ)
+
+    min_diff = float(min_abs_energy_diff) if np.isfinite(min_abs_energy_diff) else np.nan
+    return {
+        "near_degenerate_count": int(near_degenerate_count),
+        "min_abs_energy_diff": min_diff,
+        "near_degenerate_weight_raw": float(near_weight_raw),
+        "near_degenerate_weight_stable": float(near_weight_stable),
+        "denominator_regularization_delta": float(regularization_delta),
     }
 
 
@@ -848,4 +1164,219 @@ def compare_finite_q_formula_consistency(
                                 eta,
                             )
                         )
+    return rows
+
+
+def _component_errors_for_matrix(
+    finite_q: np.ndarray,
+    kind: ResponseKind,
+    omega_eV: float,
+    temperature_K: float,
+    eta: float,
+    nk: int,
+    delta0: float,
+) -> tuple[dict[str, float], str, float]:
+    local_sigma, k_para, _k_dia, k_total, k_total_over_omega, normal_kubo = _local_component_matrices(
+        kind,
+        omega_eV,
+        temperature_K,
+        eta,
+        nk,
+        delta0,
+    )
+    errors = {
+        "local_sigma": _relative_error_or_nan(finite_q, local_sigma),
+        "local_K_para": _relative_error_or_nan(finite_q, k_para),
+        "local_K_total": _relative_error_or_nan(finite_q, k_total),
+        "local_K_total_over_omega": _relative_error_or_nan(finite_q, k_total_over_omega),
+        "normal_kubo_sigma": _relative_error_or_nan(finite_q, normal_kubo),
+    }
+    best_component, best_error = _best_component(errors)
+    return errors, best_component, best_error
+
+
+def finite_q_subspace_consistency_diagnostic(
+    kind: ResponseKind,
+    matsubara_index: int,
+    temperature_K: float,
+    q_magnitude: float,
+    q_phi: float,
+    nk: int,
+    delta0: float,
+    eta: float,
+    deg_tol: float = 1e-7,
+    denominator_mode: DenominatorMode = "raw",
+) -> FiniteQSubspaceConsistencyDiagnostic:
+    """Diagnose subspace/projector smoothness and stable denominator behavior."""
+
+    if q_magnitude <= 0.0:
+        raise ValueError("q_magnitude must be positive")
+    if denominator_mode not in {"raw", "stable"}:
+        raise ValueError("denominator_mode must be raw or stable")
+    omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
+    q_vector = np.array([q_magnitude * np.cos(q_phi), q_magnitude * np.sin(q_phi)], dtype=float)
+    subspace_stats = _subspace_consistency_stats(kind, q_vector, nk, delta0, deg_tol)
+    denominator_stats = _denominator_stability_stats(
+        kind,
+        omega_eV,
+        temperature_K,
+        eta,
+        q_vector,
+        nk,
+        delta0,
+        deg_tol,
+    )
+    raw_response = _finite_q_bubble(
+        kind=kind,
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta,
+        q_vector=q_vector,
+        nk=nk,
+        delta0_eV=delta0,
+        denominator_mode="raw",
+        deg_tol=deg_tol,
+    )
+    stable_response = _finite_q_bubble(
+        kind=kind,
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta,
+        q_vector=q_vector,
+        nk=nk,
+        delta0_eV=delta0,
+        denominator_mode="stable",
+        deg_tol=deg_tol,
+    )
+    selected_response = stable_response if denominator_mode == "stable" else raw_response
+    component_errors, best_component, best_error = _component_errors_for_matrix(
+        selected_response,
+        kind,
+        omega_eV,
+        temperature_K,
+        eta,
+        nk,
+        delta0,
+    )
+    raw_errors, _raw_best_component, raw_best_error = _component_errors_for_matrix(
+        raw_response,
+        kind,
+        omega_eV,
+        temperature_K,
+        eta,
+        nk,
+        delta0,
+    )
+    stable_errors, _stable_best_component, stable_best_error = _component_errors_for_matrix(
+        stable_response,
+        kind,
+        omega_eV,
+        temperature_K,
+        eta,
+        nk,
+        delta0,
+    )
+    _ = raw_errors, stable_errors
+    stable_delta = float(np.linalg.norm(stable_response - raw_response) / (np.linalg.norm(raw_response) + RATIO_EPS))
+    stable_improves = bool(np.isfinite(stable_best_error) and np.isfinite(raw_best_error) and stable_best_error < 0.8 * raw_best_error)
+
+    status_parts = []
+    if subspace_stats["possible_band_phase_or_order_issue"]:
+        status_parts.append("likely_gauge_or_band_order_rotation")
+    if subspace_stats["possible_true_subspace_mixing"]:
+        status_parts.append("possible_true_subspace_mixing")
+    if denominator_stats["near_degenerate_count"] > 0:
+        status_parts.append("near_degenerate_denominator_present")
+    if stable_improves:
+        status_parts.append("stable_denominator_improves_continuity")
+    if best_error < 1e-2:
+        status_parts.append("small_q_continuity_candidate")
+    else:
+        status_parts.append("small_q_continuity_not_repaired")
+    notes = (
+        "finite-q subspace / denominator repair diagnostic",
+        "projector diagnostics are not used to overwrite the response",
+        "stable denominator uses Fermi derivative only for near-degenerate occupation differences",
+        "no near-degenerate terms are skipped in stable mode",
+        "final_casimir_input=False",
+        "not a final Casimir torque conclusion",
+    )
+    return FiniteQSubspaceConsistencyDiagnostic(
+        kind=kind,
+        matsubara_index=matsubara_index,
+        temperature_K=temperature_K,
+        q_magnitude=q_magnitude,
+        q_phi=q_phi,
+        nk=nk,
+        delta0=delta0,
+        eta=eta,
+        deg_tol=deg_tol,
+        denominator_mode=denominator_mode,
+        num_subspaces_minus=int(subspace_stats["num_subspaces_minus"]),
+        num_subspaces_plus=int(subspace_stats["num_subspaces_plus"]),
+        max_subspace_dimension_minus=int(subspace_stats["max_subspace_dimension_minus"]),
+        max_subspace_dimension_plus=int(subspace_stats["max_subspace_dimension_plus"]),
+        near_degenerate_group_count=int(subspace_stats["near_degenerate_group_count"]),
+        eigenstate_overlap_offdiag_norm=float(subspace_stats["eigenstate_overlap_offdiag_norm"]),
+        eigenstate_overlap_diagonal_error=float(subspace_stats["eigenstate_overlap_diagonal_error"]),
+        projector_overlap_error=float(subspace_stats["projector_overlap_error"]),
+        projector_trace_defect=float(subspace_stats["projector_trace_defect"]),
+        subspace_mixing_norm=float(subspace_stats["subspace_mixing_norm"]),
+        unmatched_subspace_weight=float(subspace_stats["unmatched_subspace_weight"]),
+        possible_band_phase_or_order_issue=bool(subspace_stats["possible_band_phase_or_order_issue"]),
+        possible_true_subspace_mixing=bool(subspace_stats["possible_true_subspace_mixing"]),
+        near_degenerate_count=int(denominator_stats["near_degenerate_count"]),
+        min_abs_energy_diff=float(denominator_stats["min_abs_energy_diff"]),
+        near_degenerate_weight_raw=float(denominator_stats["near_degenerate_weight_raw"]),
+        near_degenerate_weight_stable=float(denominator_stats["near_degenerate_weight_stable"]),
+        denominator_regularization_delta=float(denominator_stats["denominator_regularization_delta"]),
+        stable_denominator_changed_response_norm=stable_delta,
+        stable_denominator_improves_continuity=stable_improves,
+        component_errors=component_errors,
+        best_match_component=best_component,
+        small_q_relative_error=best_error,
+        diagnostic_status=";".join(status_parts),
+        gauge_status="prototype_not_ward_verified",
+        final_casimir_input=False,
+        not_final_Casimir_conclusion=True,
+        notes=notes,
+    )
+
+
+def compare_subspace_and_eigenstate_overlap(
+    kinds: Sequence[ResponseKind],
+    matsubara_list: Sequence[int],
+    q_list: Sequence[float],
+    q_phi_list: Sequence[float],
+    nk_list: Sequence[int],
+    deg_tol_list: Sequence[float],
+    denominator_mode_list: Sequence[DenominatorMode],
+    temperature_K: float,
+    delta0: float,
+    eta: float,
+) -> list[FiniteQSubspaceConsistencyDiagnostic]:
+    """Run subspace and denominator diagnostics over a compact quick grid."""
+
+    rows: list[FiniteQSubspaceConsistencyDiagnostic] = []
+    for kind in kinds:
+        for matsubara_index in matsubara_list:
+            for nk in nk_list:
+                for q_magnitude in q_list:
+                    for q_phi in q_phi_list:
+                        for deg_tol in deg_tol_list:
+                            for denominator_mode in denominator_mode_list:
+                                rows.append(
+                                    finite_q_subspace_consistency_diagnostic(
+                                        kind,
+                                        int(matsubara_index),
+                                        temperature_K,
+                                        float(q_magnitude),
+                                        float(q_phi),
+                                        int(nk),
+                                        delta0,
+                                        eta,
+                                        float(deg_tol),
+                                        denominator_mode,
+                                    )
+                                )
     return rows
