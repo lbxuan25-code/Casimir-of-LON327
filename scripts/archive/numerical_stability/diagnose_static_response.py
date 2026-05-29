@@ -9,7 +9,7 @@ import sys
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
 from lno327 import PairingAmplitudes, local_response_matsubara_index  # noqa: E402

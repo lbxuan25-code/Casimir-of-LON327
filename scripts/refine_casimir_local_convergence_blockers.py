@@ -463,8 +463,29 @@ def _completed_expected_points(data: dict[str, np.ndarray], args: argparse.Names
     return True
 
 
+def _has_scan_at_max_setting(data: dict[str, np.ndarray], scan_type: str, setting: int | float) -> bool:
+    if data["kind"].size == 0:
+        return False
+    mask = data["scan_type"] == scan_type
+    if scan_type == "cutoff":
+        mask &= np.isclose(data["u_max"], float(setting))
+    elif scan_type == "matsubara":
+        mask &= data["matsubara_max"] == int(setting)
+    else:
+        raise ValueError("unknown scan_type")
+    return set(str(item) for item in data["kind"][mask]) >= set(KINDS)
+
+
 def _full_run_completed(data: dict[str, np.ndarray], args: argparse.Namespace) -> bool:
-    return (not args.quick) and args.only_scan == "all" and _completed_expected_points(data, args, SCAN_ORDER)
+    if args.quick:
+        return False
+    max_u = max(float(item) for item in args.u_max_list)
+    max_matsubara = max(int(item) for item in args.matsubara_max_list)
+    return _has_scan_at_max_setting(data, "cutoff", max_u) and _has_scan_at_max_setting(
+        data,
+        "matsubara",
+        max_matsubara,
+    )
 
 
 def _latest_statuses(data: dict[str, np.ndarray], scan_type: str, args: argparse.Namespace) -> list[str]:
@@ -497,7 +518,14 @@ def _summary_lines(
     matsubara_statuses = _latest_statuses(data, "matsubara", args)
     clean_cutoff_converged = all(_at_least_loose(status) for status in cutoff_statuses)
     extended_matsubara_converged = all(_at_least_loose(status) for status in matsubara_statuses)
-    ready = bool(full_completed and clean_cutoff_converged and extended_matsubara_converged and not spurious)
+    zero_baseline = bool(data["kind"].size) and all("zero_torque_baseline" in str(item) for item in data["diagnosis"])
+    ready = bool(
+        full_completed
+        and clean_cutoff_converged
+        and extended_matsubara_converged
+        and zero_baseline
+        and not spurious
+    )
     lines = [
         "# Refined Local-Response Convergence Summary",
         "",
@@ -549,7 +577,6 @@ def _summary_lines(
             f"last_two_relative_change={data['last_two_relative_change'][latest]:.6g}, "
             f"matsubara_status={data['matsubara_status'][latest]}"
         )
-    zero_baseline = bool(data["kind"].size) and all("zero_torque_baseline" in str(item) for item in data["diagnosis"])
     lines.extend(
         [
             "",

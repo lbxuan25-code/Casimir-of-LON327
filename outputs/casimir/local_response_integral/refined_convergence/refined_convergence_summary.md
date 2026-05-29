@@ -5,7 +5,7 @@ old_cutoff_scan_issue = fixed kparallel_num caused changing du when cutoff incre
 new_cutoff_scan = u=k_parallel*d with fixed du
 full_run_command = `python scripts/refine_casimir_local_convergence_blockers.py --kinds normal spm dwave --distance 5e-08 --theta-list 0 0.3926990817 0.7853981634 1.1780972451 1.5707963268 --energy-theta-list 0 --torque-check-theta-list 0 0.7853981634 1.5707963268 --u-max-list 20 40 60 80 --du 0.5 --matsubara-max-list 24 32 48 64 --temperature 30 --normal-nk 96 --normal-eta 0.0001 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --phi-num 32 --output-prefix outputs/casimir/local_response_integral/refined_convergence/data/refined_local_convergence --cache-dir outputs/casimir/local_response_integral/cache --use-response-cache`
 quick_test_only = False
-full_run_completed = False
+full_run_completed = True
 response_cache_used=True
 response_cache_entries=192
 response_cache_rebuilt=False
@@ -36,9 +36,6 @@ warning_possible_spurious_torque = False
 normal_max_abs_torque_over_theta = 3.37024e-23
 spm_max_abs_torque_over_theta = 1.68512e-23
 dwave_max_abs_torque_over_theta = 3.37024e-23
-can_return_to_local_response_distance_scan_benchmark = False
-local_integral_benchmark_ready_for_distance_scan = False
+can_return_to_local_response_distance_scan_benchmark = True
+local_integral_benchmark_ready_for_distance_scan = True
 not final Casimir conclusion
-quick_test_only=True
-no_full_convergence_conclusion=True
-full_run_pending_user_terminal=True

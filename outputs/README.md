@@ -5,6 +5,7 @@
 - `data/` 保存 `.npz` 或 `.csv`，用于复算、重画和表格提取。
 - `figures/` 保存 300 dpi `.png`，优先用于论文草稿、组会和笔记。
 - `smoke/` 和 `casimir/` 当前只用于接口验证，不代表正式物理结论。
+- 数值稳定性阶段入口见 `numerical_stability/README.md`。
 
 ## 论文草稿优先级
 

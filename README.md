@@ -13,6 +13,13 @@ normal-state、BdG、gap 结构与电导对称性的可检查基础；
 3. 研究 $s_{\pm}$ 与 $d$-wave 的电导行为，尤其是对称性、各向异性与非对角响应。
 4. 只有在电导层清楚后，才进入 Casimir torque 的系统计算。
 
+## 当前阶段状态
+
+数值稳定性阶段已归纳，详见 `docs/notes/numerical_stability_summary.md`。当前可以进入
+local-response distance scan benchmark；但这仍然不是正式 Casimir 结论，仍需保留
+`local_response=True`、`finite_q_resolved=False`、`n0_policy=skip`、
+`benchmark_only=True` 的边界。
+
 当前范围：
 
 - 正式采用的四轨道双层 normal-state Hamiltonian。
@@ -229,11 +236,11 @@ $$
 单位、静态项和 nonlocal 接口诊断：
 
 ```bash
-python scripts/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
-python scripts/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
+python scripts/archive/numerical_stability/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
+python scripts/archive/numerical_stability/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
 python scripts/compare_static_response_policies.py --kinds normal spm dwave --policies skip extrapolate_from_lowest_matsubara use_static_kernel --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --distance 3e-8 --k-parallel 1e6 --phi 0.2 --theta 0.7 --output-prefix outputs/response/static_policy_comparison/data/static_policy_comparison
 python scripts/assess_n0_torque_sensitivity.py --kinds normal spm dwave --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --reference-matsubara-min 1 --reference-matsubara-max 8 --sensitivity-threshold 0.01 --theta-scan-num 41 --include-toy-anisotropic-control --output-prefix outputs/response/n0_sensitivity/data/n0_sensitivity
-python scripts/diagnose_nonlocal_response_interface.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1 --q-parallel 1e6 --phi 0.2
+python scripts/archive/numerical_stability/diagnose_nonlocal_response_interface.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1 --q-parallel 1e6 --phi 0.2
 ```
 
 Casimir local-response 接口链路冒烟测试：
