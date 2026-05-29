@@ -8,7 +8,7 @@ from typing import Literal
 
 import numpy as np
 
-from .bdg_response import KuboConfig, bdg_current_vertex, fermi_function
+from .bdg_response import KuboConfig, bdg_current_vertex, bdg_total_kernel_imag_axis, fermi_function
 from .constants import KB_EV_PER_K
 from .model import normal_state_hamiltonian, normal_state_velocity_operator
 from .pairing import PairingAmplitudes, bdg_hamiltonian, pairing_matrix
@@ -68,6 +68,40 @@ class FiniteQResponseResult:
     symmetry_diagnostics: dict[str, complex | float | bool]
     gauge_status: GaugeStatus
     diagnostic_status: DiagnosticStatus
+    final_casimir_input: bool
+    not_final_Casimir_conclusion: bool
+    notes: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class FiniteQLocalLimitDecomposition:
+    """Diagnostic-only comparison of finite-q bubble to local response pieces."""
+
+    kind: ResponseKind
+    matsubara_index: int
+    omega_eV: float
+    temperature_K: float
+    nk: int
+    small_q: float
+    q_phi: float
+    delta0: float
+    eta: float
+    finite_q: np.ndarray
+    local_sigma: np.ndarray
+    local_K_para: np.ndarray
+    local_K_dia: np.ndarray
+    local_K_total: np.ndarray
+    local_K_total_over_omega: np.ndarray
+    normal_kubo_sigma: np.ndarray
+    error_to_local_sigma: float
+    error_to_K_para: float
+    error_to_K_total: float
+    error_to_K_total_over_omega: float
+    error_to_normal_kubo_sigma: float
+    best_match_component: str
+    best_match_relative_error: float
+    diagnostic_status: str
+    gauge_status: GaugeStatus
     final_casimir_input: bool
     not_final_Casimir_conclusion: bool
     notes: tuple[str, ...]
@@ -208,6 +242,77 @@ def _relative_error(matrix: np.ndarray, reference: np.ndarray) -> tuple[float, f
     abs_error = float(np.linalg.norm(diff))
     scale = float(np.linalg.norm(reference))
     return abs_error, float(abs_error / (scale + RATIO_EPS))
+
+
+def _nan_matrix() -> np.ndarray:
+    return np.full((2, 2), np.nan + 0.0j, dtype=complex)
+
+
+def _relative_error_or_nan(matrix: np.ndarray, reference: np.ndarray) -> float:
+    if not np.all(np.isfinite(reference)):
+        return np.nan
+    return _relative_error(matrix, reference)[1]
+
+
+def _best_component(errors: dict[str, float]) -> tuple[str, float]:
+    finite_items = [(name, value) for name, value in errors.items() if np.isfinite(value)]
+    if not finite_items:
+        return "none", np.nan
+    return min(finite_items, key=lambda item: item[1])
+
+
+def _component_status(best_component: str, errors: dict[str, float]) -> str:
+    best_error = errors.get(best_component, np.nan)
+    if not np.isfinite(best_error):
+        return "no_clear_local_limit_match"
+    local_sigma = errors.get("local_sigma", np.nan)
+    total_over_omega = errors.get("local_K_total_over_omega", np.nan)
+    para = errors.get("local_K_para", np.nan)
+    if best_component == "local_K_para":
+        reference = np.nanmin([local_sigma, total_over_omega])
+        if np.isfinite(reference) and para < 0.1 * reference:
+            return "likely_matches_paramagnetic_kernel;likely_missing_contact_or_diamagnetic_completion"
+        return "likely_matches_paramagnetic_kernel"
+    if best_error >= 1.0:
+        return "no_clear_local_limit_match"
+    return f"best_matches_{best_component}"
+
+
+def _local_component_matrices(
+    kind: ResponseKind,
+    omega_eV: float,
+    temperature_K: float,
+    eta: float,
+    nk: int,
+    delta0: float,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    mesh, weights = _uniform_bz_mesh(nk)
+    local_sigma = _local_reference(kind, omega_eV, temperature_K, eta, nk, delta0)
+    nan = _nan_matrix()
+    if kind == "normal":
+        return local_sigma, nan, nan, nan, nan, local_sigma
+
+    config = KuboConfig.from_kelvin(
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta,
+        output_si=False,
+    )
+    components = bdg_total_kernel_imag_axis(
+        mesh,
+        config,
+        kind,  # type: ignore[arg-type]
+        PairingAmplitudes(delta0_eV=delta0),
+        weights,
+    )
+    return (
+        local_sigma,
+        components.paramagnetic,
+        components.diamagnetic,
+        components.total,
+        components.total / omega_eV,
+        nan,
+    )
 
 
 def _a4_from_matrix_pair(matrix_phi0: np.ndarray, matrix_phi45: np.ndarray) -> tuple[float, float]:
@@ -356,3 +461,124 @@ def finite_q_response_phi_scan(
         )
         for result in results
     ]
+
+
+def finite_q_local_limit_decomposition(
+    kind: ResponseKind,
+    matsubara_index: int,
+    temperature_K: float,
+    small_q: float,
+    q_phi: float,
+    nk: int,
+    delta0: float,
+    eta: float,
+) -> FiniteQLocalLimitDecomposition:
+    """Compare finite-q bubble at small q against local response components.
+
+    This helper is diagnostic-only. It does not repair, rescale, or reinterpret
+    the finite-q bubble as a final gauge-invariant nonlocal response.
+    """
+
+    if small_q <= 0.0:
+        raise ValueError("small_q must be positive")
+    omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
+    q_vector = np.array([small_q * np.cos(q_phi), small_q * np.sin(q_phi)], dtype=float)
+    finite_q = _finite_q_bubble(
+        kind=kind,
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta,
+        q_vector=q_vector,
+        nk=nk,
+        delta0_eV=delta0,
+    )
+    local_sigma, k_para, k_dia, k_total, k_total_over_omega, normal_kubo = _local_component_matrices(
+        kind,
+        omega_eV,
+        temperature_K,
+        eta,
+        nk,
+        delta0,
+    )
+    errors = {
+        "local_sigma": _relative_error_or_nan(finite_q, local_sigma),
+        "local_K_para": _relative_error_or_nan(finite_q, k_para),
+        "local_K_total": _relative_error_or_nan(finite_q, k_total),
+        "local_K_total_over_omega": _relative_error_or_nan(finite_q, k_total_over_omega),
+        "normal_kubo_sigma": _relative_error_or_nan(finite_q, normal_kubo),
+    }
+    best_component, best_error = _best_component(errors)
+    notes = [
+        "finite-q local-limit decomposition diagnostic",
+        "q uses dimensionless BZ momentum",
+        "no rescaling or formula repair applied",
+        "prototype_not_ward_verified",
+        "not a final Casimir torque conclusion",
+    ]
+    if kind == "normal":
+        notes.append("BdG K components are not applicable to normal")
+    else:
+        notes.append("normal_kubo_sigma is not applicable to BdG kinds")
+    return FiniteQLocalLimitDecomposition(
+        kind=kind,
+        matsubara_index=matsubara_index,
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        nk=nk,
+        small_q=small_q,
+        q_phi=q_phi,
+        delta0=delta0,
+        eta=eta,
+        finite_q=finite_q,
+        local_sigma=local_sigma,
+        local_K_para=k_para,
+        local_K_dia=k_dia,
+        local_K_total=k_total,
+        local_K_total_over_omega=k_total_over_omega,
+        normal_kubo_sigma=normal_kubo,
+        error_to_local_sigma=errors["local_sigma"],
+        error_to_K_para=errors["local_K_para"],
+        error_to_K_total=errors["local_K_total"],
+        error_to_K_total_over_omega=errors["local_K_total_over_omega"],
+        error_to_normal_kubo_sigma=errors["normal_kubo_sigma"],
+        best_match_component=best_component,
+        best_match_relative_error=best_error,
+        diagnostic_status=_component_status(best_component, errors),
+        gauge_status="prototype_not_ward_verified",
+        final_casimir_input=False,
+        not_final_Casimir_conclusion=True,
+        notes=tuple(notes),
+    )
+
+
+def compare_finite_q_to_local_components(
+    kinds: Sequence[ResponseKind],
+    matsubara_list: Sequence[int],
+    small_q_list: Sequence[float],
+    q_phi_list: Sequence[float],
+    nk_list: Sequence[int],
+    temperature_K: float,
+    delta0: float,
+    eta: float,
+) -> list[FiniteQLocalLimitDecomposition]:
+    """Run local-limit decomposition over a compact diagnostic grid."""
+
+    rows: list[FiniteQLocalLimitDecomposition] = []
+    for kind in kinds:
+        for matsubara_index in matsubara_list:
+            for nk in nk_list:
+                for small_q in small_q_list:
+                    for q_phi in q_phi_list:
+                        rows.append(
+                            finite_q_local_limit_decomposition(
+                                kind,
+                                int(matsubara_index),
+                                temperature_K,
+                                float(small_q),
+                                float(q_phi),
+                                int(nk),
+                                delta0,
+                                eta,
+                            )
+                        )
+    return rows

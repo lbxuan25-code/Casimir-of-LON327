@@ -33,17 +33,19 @@
    Casimir 前置 response 接口和 $n=0$ policy 边界说明。
 12. `response/finite_q_anisotropy/`：finite-q response 角向各向异性诊断输出，
    只作 response 层 prototype，不是最终 gauge-invariant finite-q Casimir input。
-13. `casimir/local_response_integral/`：local-response Casimir integral benchmark，
+13. `response/finite_q_local_limit/`：finite-q local-limit 分解诊断输出，用于判断
+   finite-q bubble 在 `q->0` 时最接近哪个 local response component，不是 Casimir 结果。
+14. `casimir/local_response_integral/`：local-response Casimir integral benchmark，
    包含 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描。
-14. `casimir/local_response_integral/convergence/`：上述 local-response benchmark 的
+15. `casimir/local_response_integral/convergence/`：上述 local-response benchmark 的
    Matsubara、$k_{\parallel}$ cutoff/grid 和 $\phi$ grid 收敛性诊断。
-15. `casimir/local_response_integral/final_convergence/`：一键式 local-response integral
+16. `casimir/local_response_integral/final_convergence/`：一键式 local-response integral
    final convergence runner 输出，仍为 benchmark-only，不是正式 Casimir 结论。
-16. `casimir/local_response_integral/refined_convergence/`：针对 Matsubara tail 与
+17. `casimir/local_response_integral/refined_convergence/`：针对 Matsubara tail 与
    fixed-du clean cutoff 的 refined convergence blocker 诊断，仍不是正式 Casimir 结论。
-17. `casimir/local_response_integral/cache/`：local-response sheet tensor cache，
+18. `casimir/local_response_integral/cache/`：local-response sheet tensor cache，
    只用于加速 benchmark，不改变物理公式或积分公式。
-18. `casimir/local_response_integral/distance_scan/`：local-response distance scan
+19. `casimir/local_response_integral/distance_scan/`：local-response distance scan
    benchmark 输出，用于检查 zero-torque baseline 随距离的数值基准，仍不是正式
    Casimir 结论。
 

@@ -271,6 +271,7 @@ python scripts/run_casimir_local_convergence_final.py --dry-run
 python scripts/refine_casimir_local_convergence_blockers.py --dry-run
 python scripts/benchmark_casimir_local_response_distance_scan.py --dry-run
 python scripts/diagnose_finite_q_response_anisotropy.py
+python scripts/diagnose_finite_q_local_limit_decomposition.py --quick
 ```
 
 该 benchmark 做 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描；
@@ -279,6 +280,8 @@ python scripts/diagnose_finite_q_response_anisotropy.py
 finite-q response diagnostic 只检查 response 层角向各向异性，`q_magnitude` 使用
 dimensionless BZ momentum；当前仍是 prototype，不是最终 gauge-invariant
 finite-q Casimir input。
+finite-q local-limit decomposition diagnostic 只拆解 finite-q bubble 的 q->0 local
+component 对应关系，不接入 Casimir，也不输出 torque 结论。
 
 绘制 normal-state 能带：
 
