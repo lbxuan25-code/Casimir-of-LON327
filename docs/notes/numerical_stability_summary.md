@@ -126,3 +126,6 @@ outputs/casimir/local_response_integral/distance_scan/
 - 不允许把 zero-torque baseline 解释成真实无效应结论；
 - 不允许改变当前 `n0_policy=skip` 边界后直接复用本阶段结论；
 - 不允许在尚未引入真实 torque 来源机制前声称已经得到物理 torque。
+
+下一阶段入口为 finite-q response anisotropy diagnostic；该阶段仍只属于 response 层
+prototype，不是最终 gauge-invariant finite-q Casimir input。
