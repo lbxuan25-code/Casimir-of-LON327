@@ -35,9 +35,9 @@ zero-torque baseline，未发现 spurious torque。
 当前 active local-response 输出保留：
 
 - `outputs/casimir/local_response_integral/distance_scan/`
-- `outputs/casimir/local_response_integral/cache/`
+- `outputs/cache/casimir_local_response/response_tensors/`
 
-注意：cache 仍保留在 active 位置，因为 distance scan command 仍引用该路径。
+注意：cache 单独放在 `outputs/cache/`，避免与 distance scan 的正式数据和图像混在一起。
 
 ## 当前用途
 

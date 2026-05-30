@@ -5,14 +5,14 @@
 权威摘要文件位置：
 
 - `docs/notes/numerical_stability_summary.md`
-- `outputs/normal_state/fs_adaptive_integration/final_check_summary.md`
-- `outputs/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`
+- `outputs/archive/normal_state/fs_adaptive_integration/final_check_summary.md`
+- `outputs/archive/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`
 
 推荐阅读顺序：
 
 1. `docs/notes/numerical_stability_summary.md`
-2. `outputs/normal_state/fs_adaptive_integration/final_check_summary.md`
-3. `outputs/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`
+2. `outputs/archive/normal_state/fs_adaptive_integration/final_check_summary.md`
+3. `outputs/archive/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`
 
 大型 `.npz`、`.csv`、`.png` 文件是可复现数据和绘图材料，不是主要阅读入口。
 

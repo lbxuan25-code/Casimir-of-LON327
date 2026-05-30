@@ -7,8 +7,24 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "refine_casimir_local_convergence_blockers.py"
-SUMMARY = ROOT / "outputs" / "casimir" / "local_response_integral" / "refined_convergence" / "refined_convergence_summary.md"
-COMMAND = ROOT / "outputs" / "casimir" / "local_response_integral" / "refined_convergence" / "refined_convergence_command.sh"
+SUMMARY = (
+    ROOT
+    / "outputs"
+    / "archive"
+    / "casimir"
+    / "local_response_integral"
+    / "refined_convergence"
+    / "refined_convergence_summary.md"
+)
+COMMAND = (
+    ROOT
+    / "outputs"
+    / "archive"
+    / "casimir"
+    / "local_response_integral"
+    / "refined_convergence"
+    / "refined_convergence_command.sh"
+)
 
 
 @pytest.fixture(scope="module")

@@ -1,24 +1,27 @@
 # scripts 入口说明
 
-本目录脚本按当前用途分为 active 入口和 archive 入口。旧诊断脚本已经移动到
-`scripts/archive/`，仍可追溯，但不要作为当前默认入口。
+本目录采用“主题实现目录 + 根目录兼容入口”的结构：
 
-## local-response baseline 相关 active 脚本
+- `normal_state/`：normal-state inspection 与 conductivity 计算。
+- `pairing/`：pairing / gap structure 诊断。
+- `bdg/`：BdG kernel 与 superconducting response 诊断。
+- `response/`：local sheet response、static policy、finite-q response 当前主线。
+- `casimir/`：local-response Casimir benchmark 与 convergence runner。
+- `archive/`：已完成阶段的旧诊断脚本，仅用于追溯。
 
-- `benchmark_casimir_local_response_integral.py`
-- `converge_casimir_local_response_integral.py`
-- `refine_casimir_local_convergence_blockers.py`
-- `run_casimir_local_convergence_final.py`
-- `benchmark_casimir_local_response_distance_scan.py`
+根目录下的 `*.py` 文件是兼容 wrapper，用来保持旧命令和旧测试路径可用；新实现优先放在
+上面的主题目录里。
 
-这些脚本用于 normal sampling、local-response integral convergence、refined convergence
-和 distance scan benchmark。它们仍是 benchmark-only，不输出正式 Casimir 结论。
+## 当前 active 主线
 
-## finite-q response diagnostic 当前主线
+- finite-q response diagnostic：`response/diagnose_finite_q_raw_q0_consistency.py`
+- local-response distance scan：`casimir/benchmark_casimir_local_response_distance_scan.py`
+- local-response benchmark helpers：`casimir/benchmark_casimir_local_response_integral.py`,
+  `casimir/converge_casimir_local_response_integral.py`,
+  `casimir/refine_casimir_local_convergence_blockers.py`,
+  `casimir/run_casimir_local_convergence_final.py`
 
-- `diagnose_finite_q_raw_q0_consistency.py`
-
-该脚本只做 response 层 diagnostic prototype，不接入 Lifshitz / Casimir，不做 torque 结论。
+这些脚本仍是 diagnostic / benchmark-only，不输出正式 Casimir torque 结论。
 
 ## 已归档脚本
 
@@ -28,12 +31,11 @@
   formula consistency、subspace repair 诊断脚本。
 - `scripts/archive/legacy_smoke/`：旧 smoke 入口。
 
-移动清单见 `outputs/archive/ARCHIVE_INDEX.md`。测试中仍需要调用旧脚本的路径已经更新到
-archive 位置。
+移动清单见 `outputs/archive/ARCHIVE_INDEX.md`。需要沿用旧命令时可继续调用根目录 wrapper。
 
 ## 原则
 
 - archive 脚本不要作为当前入口。
 - 不删除历史脚本。
 - 不修改物理公式。
-- 如未来继续移动脚本，必须同步更新测试路径和归档清单。
+- 新脚本实现优先进入主题目录；根目录只新增兼容 wrapper。

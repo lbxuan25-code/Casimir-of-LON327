@@ -10,8 +10,8 @@
 
 阅读当前状态应先看：
 
-1. `outputs/phase_reports/current_project_status.md`
-2. `outputs/phase_reports/finite_q_response_status.md`
+1. `docs/reports/current_project_status.md`
+2. `docs/reports/finite_q_response_status.md`
 3. `outputs/response/finite_q_raw_q0_consistency/finite_q_raw_q0_consistency_summary.md`
 
 旧数据仍然完整保留，可通过 `outputs/archive/ARCHIVE_INDEX.md` 追溯原路径和新路径。

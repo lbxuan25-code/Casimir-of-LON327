@@ -7,10 +7,10 @@
 
 当前仍作为主入口保留：
 
-- `outputs/phase_reports/`
+- `docs/reports/`
 - `outputs/response/finite_q_raw_q0_consistency/`
 - `outputs/casimir/local_response_integral/distance_scan/`
-- `outputs/casimir/local_response_integral/cache/`
+- `outputs/cache/casimir_local_response/response_tensors/`
 - `docs/notes/numerical_stability_summary.md`
 - `README.md`
 - `outputs/README.md`
@@ -23,15 +23,15 @@
 
 ## response outputs
 
-- `outputs/response/bdg_normal_limit/` -> `outputs/archive/response/bdg_normal_limit/`
-- `outputs/response/convergence_imag/` -> `outputs/archive/response/convergence_imag/`
-- `outputs/response/high_nk_convergence/` -> `outputs/archive/response/high_nk_convergence/`
-- `outputs/response/local_sheet_imag/` -> `outputs/archive/response/local_sheet_imag/`
-- `outputs/response/n0_sensitivity/` -> `outputs/archive/response/n0_sensitivity/`
-- `outputs/response/nonlocal_interface/` -> `outputs/archive/response/nonlocal_interface/`
-- `outputs/response/static_policy_comparison/` -> `outputs/archive/response/static_policy_comparison/`
-- `outputs/response/static_response/` -> `outputs/archive/response/static_response/`
-- `outputs/response/unit_audit/` -> `outputs/archive/response/unit_audit/`
+- `outputs/archive/response/bdg_normal_limit/` -> `outputs/archive/response/bdg_normal_limit/`
+- `outputs/archive/response/convergence_imag/` -> `outputs/archive/response/convergence_imag/`
+- `outputs/archive/response/high_nk_convergence/` -> `outputs/archive/response/high_nk_convergence/`
+- `outputs/archive/response/local_sheet_imag/` -> `outputs/archive/response/local_sheet_imag/`
+- `outputs/archive/response/n0_sensitivity/` -> `outputs/archive/response/n0_sensitivity/`
+- `outputs/archive/response/nonlocal_interface/` -> `outputs/archive/response/nonlocal_interface/`
+- `outputs/archive/response/static_policy_comparison/` -> `outputs/archive/response/static_policy_comparison/`
+- `outputs/archive/response/static_response/` -> `outputs/archive/response/static_response/`
+- `outputs/archive/response/unit_audit/` -> `outputs/archive/response/unit_audit/`
 - `outputs/response/finite_q_anisotropy/` -> `outputs/archive/response/finite_q_anisotropy/`
 - `outputs/response/finite_q_formula_consistency/` -> `outputs/archive/response/finite_q_formula_consistency/`
 - `outputs/response/finite_q_local_limit/` -> `outputs/archive/response/finite_q_local_limit/`
@@ -41,9 +41,9 @@
 
 ## normal_state outputs
 
-- `outputs/normal_state/sampling_convergence/` -> `outputs/archive/normal_state/sampling_convergence/`
-- `outputs/normal_state/fs_sensitive_sampling/` -> `outputs/archive/normal_state/fs_sensitive_sampling/`
-- `outputs/normal_state/fs_adaptive_integration/` -> `outputs/archive/normal_state/fs_adaptive_integration/`
+- `outputs/archive/normal_state/sampling_convergence/` -> `outputs/archive/normal_state/sampling_convergence/`
+- `outputs/archive/normal_state/fs_sensitive_sampling/` -> `outputs/archive/normal_state/fs_sensitive_sampling/`
+- `outputs/archive/normal_state/fs_adaptive_integration/` -> `outputs/archive/normal_state/fs_adaptive_integration/`
 
 这些目录用于追溯 normal-state sampling 和 FS-adaptive 数值稳定性证据。
 
@@ -57,14 +57,15 @@
 
 - `outputs/casimir/local_response_integral/final_convergence/` -> `outputs/archive/casimir/local_response_integral/final_convergence/`
 - `outputs/casimir/local_response_integral/refined_convergence/` -> `outputs/archive/casimir/local_response_integral/refined_convergence/`
-- `outputs/casimir/local_response_integral/data/` -> `outputs/archive/casimir/local_response_integral/data/`
-- `outputs/casimir/local_response_integral/convergence/` -> `outputs/archive/casimir/local_response_integral/convergence/`
+- `outputs/archive/casimir/local_response_integral/data/` -> `outputs/archive/casimir/local_response_integral/data/`
+- `outputs/archive/casimir/local_response_integral/convergence/` -> `outputs/archive/casimir/local_response_integral/convergence/`
 - `outputs/casimir/local_response_integral/figures/` -> `outputs/archive/casimir/local_response_integral/figures/`
 - `outputs/casimir/data/` -> `outputs/archive/casimir/data/`
 - `outputs/casimir/figures/` -> `outputs/archive/casimir/figures/`
 
-`outputs/casimir/local_response_integral/cache/` 没有移动，因为 active distance scan command
-仍引用该 cache 目录。
+- `outputs/casimir/local_response_integral/cache/` -> `outputs/cache/casimir_local_response/response_tensors/`
+
+cache 单独放在 `outputs/cache/`，避免把可复用中间张量和某一次 distance scan 输出混在一起。
 
 ## scripts
 

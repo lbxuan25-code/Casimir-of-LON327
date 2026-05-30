@@ -3,7 +3,7 @@
 Command:
 
 ```bash
-python3 scripts/benchmark_normal_fs_adaptive_integration.py --nk-list 80 96 112 --eta-list 1e-4 --matsubara-list 1 2 --temperature 30 --refine-factor-list 8 10 --fs-window-factor 1.0 --sampling uniform multishift_average fs_adaptive --shift-grid 4 --output-prefix outputs/normal_state/fs_adaptive_integration/data/fs_adaptive_final_check
+python3 scripts/benchmark_normal_fs_adaptive_integration.py --nk-list 80 96 112 --eta-list 1e-4 --matsubara-list 1 2 --temperature 30 --refine-factor-list 8 10 --fs-window-factor 1.0 --sampling uniform multishift_average fs_adaptive --shift-grid 4 --output-prefix outputs/archive/normal_state/fs_adaptive_integration/data/fs_adaptive_final_check
 ```
 
 No code changes.

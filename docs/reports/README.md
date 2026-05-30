@@ -8,7 +8,7 @@
 1. `current_project_status.md`
 2. `finite_q_response_status.md`
 3. `local_response_baseline_status.md`
-4. `docs/notes/numerical_stability_summary.md`
+4. `../notes/numerical_stability_summary.md`
 
 本目录只整理已有诊断和 benchmark 状态，不新增物理计算，不改变任何公式，也不输出
 正式 Casimir torque 结论。

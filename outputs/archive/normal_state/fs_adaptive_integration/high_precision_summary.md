@@ -3,7 +3,7 @@
 Command:
 
 ```bash
-python3 scripts/benchmark_normal_fs_adaptive_integration.py --nk-list 48 64 80 96 --eta-list 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --refine-factor-list 4 6 8 --fs-window-factor 1.0 --sampling uniform multishift_average fs_adaptive --shift-grid 4 --output-prefix outputs/normal_state/fs_adaptive_integration/data/fs_adaptive_high_precision
+python3 scripts/benchmark_normal_fs_adaptive_integration.py --nk-list 48 64 80 96 --eta-list 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --refine-factor-list 4 6 8 --fs-window-factor 1.0 --sampling uniform multishift_average fs_adaptive --shift-grid 4 --output-prefix outputs/archive/normal_state/fs_adaptive_integration/data/fs_adaptive_high_precision
 ```
 
 Result: no code changes. The full high-precision run completed with 80 rows.

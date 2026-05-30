@@ -115,20 +115,20 @@ Casimir torque 框架中。
 
 Normal-state 运行脚本集中在 `scripts/normal_state/`。输出按阶段归档：
 `outputs/normal_state/conductivity_imag/`、`outputs/normal_state/conductivity_real/`、
-`outputs/normal_state/sampling_convergence/`、
-`outputs/normal_state/fs_sensitive_sampling/`、
-`outputs/normal_state/fs_adaptive_integration/`、
+`outputs/archive/normal_state/sampling_convergence/`、
+`outputs/archive/normal_state/fs_sensitive_sampling/`、
+`outputs/archive/normal_state/fs_adaptive_integration/`、
 `outputs/pairing/gap_structure/`、`outputs/bdg/paramagnetic_kernel_imag/`、
 `outputs/bdg/diamagnetic_kernel/`、`outputs/bdg/total_kernel_imag/`、
-`outputs/bdg/superconducting_response_imag/`、`outputs/response/local_sheet_imag/`、
-`outputs/response/unit_audit/`、`outputs/response/static_response/`、
-`outputs/response/bdg_normal_limit/`、
-`outputs/response/convergence_imag/`、
-`outputs/response/high_nk_convergence/`、
-`outputs/response/static_policy_comparison/`、
-`outputs/response/n0_sensitivity/`、
-`outputs/response/nonlocal_interface/`、
-`outputs/casimir/` 和 `outputs/smoke/`。
+`outputs/bdg/superconducting_response_imag/`、`outputs/archive/response/local_sheet_imag/`、
+`outputs/archive/response/unit_audit/`、`outputs/archive/response/static_response/`、
+`outputs/archive/response/bdg_normal_limit/`、
+`outputs/archive/response/convergence_imag/`、
+`outputs/archive/response/high_nk_convergence/`、
+`outputs/archive/response/static_policy_comparison/`、
+`outputs/archive/response/n0_sensitivity/`、
+`outputs/archive/response/nonlocal_interface/`、
+`outputs/casimir/` 和 `outputs/archive/smoke/smoke/`。
 旧的顶层 normal-state 脚本路径只作为兼容 wrapper。
 
 论文草稿输出的组织原则见 `docs/notes/publication_output_guide.md` 与

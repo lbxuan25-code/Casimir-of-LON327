@@ -19,4 +19,4 @@
 
 这些脚本只应在追溯旧阶段判断时使用。新的数值稳定性归纳请优先阅读
 `docs/notes/numerical_stability_summary.md`，refined local-response 状态请优先阅读
-`outputs/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`。
+`outputs/archive/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`。
