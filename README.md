@@ -20,6 +20,17 @@ local-response distance scan benchmark；但这仍然不是正式 Casimir 结论
 `local_response=True`、`finite_q_resolved=False`、`n0_policy=skip`、
 `benchmark_only=True` 的边界。
 
+## 当前仓库阅读入口
+
+当前不建议从 `outputs/` 子目录逐个寻找结论，应先阅读阶段报告：
+
+- `outputs/phase_reports/current_project_status.md`
+- `docs/notes/numerical_stability_summary.md`
+- `outputs/phase_reports/finite_q_response_status.md`
+
+这些入口区分了 local-response baseline、finite-q response diagnostic prototype 和仍禁止输出
+正式 Casimir torque 结论的边界。
+
 当前范围：
 
 - 正式采用的四轨道双层 normal-state Hamiltonian。
