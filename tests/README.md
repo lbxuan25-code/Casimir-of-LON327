@@ -4,13 +4,10 @@
 
 ## 当前主线测试
 
-- `test_finite_q_response_anisotropy.py`
-- `test_finite_q_local_limit_decomposition.py`
-- `test_finite_q_formula_consistency.py`
-- `test_finite_q_subspace_denominator_repair.py`
 - `test_finite_q_raw_q0_consistency.py`
 - `test_casimir_local_response_distance_scan.py`
 
+旧 finite-q 测试仍保留用于回归，脚本路径已指向 `scripts/archive/finite_q_diagnostics/`。
 finite-q 测试只验证 response 层 prototype 的字段、flags、quick 运行和诊断输出。
 local-response distance scan 测试只验证 benchmark plumbing 和 zero-torque baseline，不代表
 正式 Casimir torque 结论。

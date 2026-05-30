@@ -25,11 +25,20 @@ local-response distance scan benchmark；但这仍然不是正式 Casimir 结论
 当前不建议从 `outputs/` 子目录逐个寻找结论，应先阅读阶段报告：
 
 - `outputs/phase_reports/current_project_status.md`
-- `docs/notes/numerical_stability_summary.md`
 - `outputs/phase_reports/finite_q_response_status.md`
+- `outputs/phase_reports/local_response_baseline_status.md`
+- `docs/notes/numerical_stability_summary.md`
 
 这些入口区分了 local-response baseline、finite-q response diagnostic prototype 和仍禁止输出
 正式 Casimir torque 结论的边界。
+
+当前 active 输出：
+
+- 最新 finite-q 结果：`outputs/response/finite_q_raw_q0_consistency/`
+- local-response distance scan：`outputs/casimir/local_response_integral/distance_scan/`
+
+历史诊断结果已归档到 `outputs/archive/`，移动清单见
+`outputs/archive/ARCHIVE_INDEX.md`。
 
 当前范围：
 

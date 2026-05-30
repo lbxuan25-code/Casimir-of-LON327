@@ -146,7 +146,7 @@ def main() -> None:
     parser.add_argument(
         "--output-prefix",
         type=Path,
-        default=ROOT / "outputs" / "response" / "nonlocal_interface" / "data" / "nonlocal_interface_diagnostic",
+        default=ROOT / "outputs" / "archive" / "response" / "nonlocal_interface" / "data" / "nonlocal_interface_diagnostic",
     )
     args = parser.parse_args()
 

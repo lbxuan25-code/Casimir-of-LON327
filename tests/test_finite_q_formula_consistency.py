@@ -5,8 +5,8 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "diagnose_finite_q_formula_consistency.py"
-SUMMARY = ROOT / "outputs" / "response" / "finite_q_formula_consistency" / "finite_q_formula_consistency_summary.md"
+SCRIPT = ROOT / "scripts" / "archive" / "finite_q_diagnostics" / "diagnose_finite_q_formula_consistency.py"
+SUMMARY = ROOT / "outputs" / "archive" / "response" / "finite_q_formula_consistency" / "finite_q_formula_consistency_summary.md"
 
 
 def test_formula_consistency_quick_runs(tmp_path):

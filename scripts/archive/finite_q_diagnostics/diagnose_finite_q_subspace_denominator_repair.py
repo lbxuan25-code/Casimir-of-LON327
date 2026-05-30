@@ -11,7 +11,7 @@ import sys
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
@@ -27,7 +27,7 @@ from lno327.plotting import (  # noqa: E402
 
 KINDS = ("normal", "spm", "dwave")
 DENOMINATOR_MODES = ("raw", "stable")
-OUTPUT_ROOT = ROOT / "outputs" / "response" / "finite_q_subspace_repair"
+OUTPUT_ROOT = ROOT / "outputs" / "archive" / "response" / "finite_q_subspace_repair"
 DEFAULT_OUTPUT_PREFIX = OUTPUT_ROOT / "data" / "finite_q_subspace_repair"
 SUMMARY_PATH = OUTPUT_ROOT / "finite_q_subspace_repair_summary.md"
 

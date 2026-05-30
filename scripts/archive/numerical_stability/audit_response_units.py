@@ -114,7 +114,7 @@ def main() -> None:
     parser.add_argument(
         "--output-prefix",
         type=Path,
-        default=ROOT / "outputs" / "response" / "unit_audit" / "data" / "response_unit_audit",
+        default=ROOT / "outputs" / "archive" / "response" / "unit_audit" / "data" / "response_unit_audit",
     )
     args = parser.parse_args()
 

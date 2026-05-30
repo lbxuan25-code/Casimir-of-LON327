@@ -1,101 +1,39 @@
 # Outputs Guide
 
-本目录保存可复现实验数据、诊断图和接口 smoke 输出。默认原则是：
+本目录现在分为 active outputs 和 archive outputs。
 
-- `data/` 保存 `.npz` 或 `.csv`，用于复算、重画和表格提取。
-- `figures/` 保存 300 dpi `.png`，优先用于论文草稿、组会和笔记。
-- `smoke/` 和 `casimir/` 当前只用于接口验证，不代表正式物理结论。
-- 当前阶段总览优先看 `phase_reports/README.md`，不要从各输出子目录零散寻找结论。
-- 数值稳定性阶段入口见 `numerical_stability/README.md`。
+## active outputs
 
-## 论文草稿优先级
+active outputs 只保留当前主线或最新 benchmark：
 
-优先考虑下列目录中的图和数据作为论文草稿素材：
+- `phase_reports/`：当前阶段总览和推荐阅读入口。
+- `response/finite_q_raw_q0_consistency/`：当前 finite-q 主线最新诊断。
+- `casimir/local_response_integral/distance_scan/`：local-response distance scan baseline。
+- `casimir/local_response_integral/cache/`：distance scan 仍引用的 response cache。
+- `numerical_stability/`：数值稳定性阶段入口说明。
 
-1. `pairing/gap_structure/`：投影 gap 幅值、near-node 与 preliminary sign 诊断。
-2. `normal_state/conductivity_imag/` 和 `normal_state/conductivity_real/`：normal-state Kubo 基线。
-3. `normal_state/sampling_convergence/`：normal low-Matsubara k-space sampling
-   convergence 诊断，用于比较 uniform / shifted / average mesh。
-4. `normal_state/fs_sensitive_sampling/`：normal Fermi-surface-sensitive sampling
-   benchmark，用于比较 uniform / multishift_average / fs_window_refined。
-5. `normal_state/fs_adaptive_integration/`：normal FS-adaptive BZ integration
-   prototype，用于比较 uniform / multishift_average / fs_adaptive。
-6. `bdg/paramagnetic_kernel_imag/`、`bdg/diamagnetic_kernel/`、`bdg/total_kernel_imag/`：
-   BdG kernel 层次诊断。
-7. `bdg/superconducting_response_imag/`：仅 $n\ge 1$ 的
-   $\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega_{\mathrm{eV}}$ 诊断。
-8. `response/bdg_normal_limit/`：$\Delta_0\rightarrow 0$ BdG-normal 极限 benchmark，
-   用于检查 response 层连续性、有限性、对称性和 kernel 分项稳定性。
-9. `response/convergence_imag/`：imaginary-axis response 的 `nk` / `eta` /
-   Matsubara-index 收敛性 benchmark，用于识别数值伪影。
-10. `response/high_nk_convergence/`：高 `Nk` 聚焦复查，用于判断 normal low-Matsubara
-   response 是否在 `Nk=48/64/80` 缓解，以及 `spm` / `dwave` 差异是否平台化。
-11. `response/local_sheet_imag/` 与 `response/static_policy_comparison/`：
-   Casimir 前置 response 接口和 $n=0$ policy 边界说明。
-12. `response/finite_q_anisotropy/`：finite-q response 角向各向异性诊断输出，
-   只作 response 层 prototype，不是最终 gauge-invariant finite-q Casimir input。
-13. `response/finite_q_local_limit/`：finite-q local-limit 分解诊断输出，用于判断
-   finite-q bubble 在 `q->0` 时最接近哪个 local response component，不是 Casimir 结果。
-14. `casimir/local_response_integral/`：local-response Casimir integral benchmark，
-   包含 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描。
-15. `casimir/local_response_integral/convergence/`：上述 local-response benchmark 的
-   Matsubara、$k_{\parallel}$ cutoff/grid 和 $\phi$ grid 收敛性诊断。
-16. `casimir/local_response_integral/final_convergence/`：一键式 local-response integral
-   final convergence runner 输出，仍为 benchmark-only，不是正式 Casimir 结论。
-17. `casimir/local_response_integral/refined_convergence/`：针对 Matsubara tail 与
-   fixed-du clean cutoff 的 refined convergence blocker 诊断，仍不是正式 Casimir 结论。
-18. `casimir/local_response_integral/cache/`：local-response sheet tensor cache，
-   只用于加速 benchmark，不改变物理公式或积分公式。
-19. `casimir/local_response_integral/distance_scan/`：local-response distance scan
-   benchmark 输出，用于检查 zero-torque baseline 随距离的数值基准，仍不是正式
-   Casimir 结论。
+## archive outputs
 
-## 不应作为论文结论的输出
+历史诊断结果已移动到：
 
-- `smoke/`：只验证脚本和接口链路。
-- `casimir/`：当前预留给未来正式计算。
-- `response/static_response/` 和 `response/nonlocal_interface/`：接口边界诊断，不是最终物理方案。
-- `response/static_policy_comparison/` 中的 `extrapolate_from_lowest_matsubara` 和
-  `use_static_kernel`：只作敏感性或 stiffness-like 静态核诊断。
-- `response/n0_sensitivity/`：只作 fixed $k_{\parallel},\phi,\theta$ 下的
-  integrand-level partial Matsubara-sum sensitivity；用于判断 `skip` 是否可接受，
-  不是完整 Casimir torque 结论。
-- `response/convergence_imag/`：只作 response 层数值收敛性诊断；若未收敛，
-  不能进入正式 Casimir 积分。
-- `response/high_nk_convergence/`：只作高 `Nk` response 收敛复查；若 normal
-  response 仍不稳定，不能进入 local-response Casimir 积分。
-- `normal_state/sampling_convergence/`：只作 normal-state low-Matsubara sampling
-  诊断；shifted / average mesh 不改变 Kubo 公式，也不替代 uniform 对照。
-- `normal_state/fs_sensitive_sampling/`：只作 normal-state FS-sensitive sampling
-  benchmark；multishift_average / fs_window_refined 只改变数值采样，不改变 Kubo
-  公式，也不替代 uniform 默认。若仍不收敛，应考虑 contour / tetrahedron
-  Fermi-surface integration，且继续暂停正式 local-response Casimir 积分。
-- `normal_state/fs_adaptive_integration/`：只作 normal-state FS-adaptive BZ integration
-  prototype；fs_adaptive 只细分 coarse FS cells 并保持面积权重，不改变 Kubo
-  integrand，也不是 strict contour / triangle 解析积分。若仍不收敛，下一步转向
-  triangle / contour Fermi-surface integration，且继续暂停正式 local-response
-  Casimir 积分。
-- `casimir/local_response_integral/`：只作 local-response integral benchmark；
-  `n0_policy=skip`，`finite_q_resolved=False`，`benchmark_only=True`，不得作为正式
-  Casimir energy / torque 结论。
-- `casimir/local_response_integral/convergence/`：只作 local-response integral
-  convergence benchmark；用于判断数值设置，不改变 `n0_policy=skip` 和
-  `finite_q_resolved=False` 边界。
+- `archive/response/`
+- `archive/normal_state/`
+- `archive/casimir/`
+- `archive/smoke/`
 
-## 当前 n=0 约定
+archive 保存历史诊断结果和中间 benchmark，不作为当前阅读入口。需要追溯旧路径时，
+先看 `archive/ARCHIVE_INDEX.md`。
 
-Lifshitz 求和形式上包含 $n=0$ 半权重项。当前 local isotropic baseline 默认
-`n=0 policy = skip`，不是因为 $n=0$ 不存在，而是因为 superconducting
-$\Sigma_{\mathrm{SC}}=K_{\mathrm{total}}/\omega$ 只定义于 $n\ge 1$。
-`skip` 只有在 extrapolated $n=0$ proxy sensitivity 低于阈值或为
-negligible zero-baseline 时才可接受；若影响超过阈值，必须先推导
-zero-frequency reflection model。
+## 阅读顺序
 
-不要把
+1. `phase_reports/current_project_status.md`
+2. `phase_reports/finite_q_response_status.md`
+3. `phase_reports/local_response_baseline_status.md`
+4. `response/finite_q_raw_q0_consistency/finite_q_raw_q0_consistency_summary.md`
 
-$$
-K_{\mathrm{total}}(0)/0
-$$
+## 维护原则
 
-定义为 $\Sigma_{\mathrm{SC}}(0)$，也不要把 $K_{\mathrm{total}}(0)$ 直接作为
-sheet conductivity 输入 reflection matrix。
+- 不删除历史数据。
+- 不使用或修改 `.gitignore` 隐藏结果。
+- 大型 `.csv`、`.npz`、`.png` 是复现数据，不是主要阅读入口。
+- active 和 archive 输出都不是正式 Casimir torque 结论。

@@ -7,7 +7,7 @@ import numpy as np
 from lno327.finite_q_response import bdg_finite_q_response_imag_axis, finite_q_response_phi_scan
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "diagnose_finite_q_response_anisotropy.py"
+SCRIPT = ROOT / "scripts" / "archive" / "finite_q_diagnostics" / "diagnose_finite_q_response_anisotropy.py"
 
 
 def test_q0_routine_runs_and_local_limit_is_close():
@@ -204,7 +204,7 @@ def test_summary_uses_a4_contrast_not_legacy_response_xx(tmp_path):
         capture_output=True,
     )
 
-    summary = (ROOT / "outputs" / "response" / "finite_q_anisotropy" / "finite_q_anisotropy_summary.md").read_text(
+    summary = (ROOT / "outputs" / "archive" / "response" / "finite_q_anisotropy" / "finite_q_anisotropy_summary.md").read_text(
         encoding="utf-8"
     )
     assert "A4_pairing_contrast_signal=" in summary

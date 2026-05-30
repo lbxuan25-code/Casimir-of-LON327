@@ -16,7 +16,7 @@ import sys
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
@@ -375,9 +375,9 @@ def output_paths(output_prefix: Path) -> tuple[Path, Path, Path, Path, Path, Pat
     npz_path = output_prefix.with_suffix(".npz")
     csv_path = output_prefix.with_suffix(".csv")
     resolved_prefix = output_prefix.resolve()
-    project_data_root = (ROOT / "outputs" / "normal_state" / "sampling_convergence" / "data").resolve()
+    project_data_root = (ROOT / "outputs" / "archive" / "normal_state" / "sampling_convergence" / "data").resolve()
     if resolved_prefix.is_relative_to(project_data_root):
-        figure_dir = ROOT / "outputs" / "normal_state" / "sampling_convergence" / "figures"
+        figure_dir = ROOT / "outputs" / "archive" / "normal_state" / "sampling_convergence" / "figures"
     else:
         figure_dir = output_prefix.parent / "figures"
     return (

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Benchmark FS-sensitive sampling for normal-state low-Matsubara response.
+"""Prototype FS-adaptive BZ integration for normal-state response.
 
-This script keeps the existing normal-state Kubo formula intact. The additional
-sampling modes are diagnostic alternatives for the k-space quadrature only and
-are not Casimir calculations.
+The adaptive mesh changes only the Brillouin-zone quadrature. It evaluates the
+same normal-state Kubo integrand through ``kubo_conductivity_imag_axis`` and is
+intended as a diagnostic prototype, not a Casimir calculation.
 """
 
 from __future__ import annotations
@@ -16,35 +16,39 @@ import sys
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "scripts"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327 import (  # noqa: E402
-    KuboConfig,
     bosonic_matsubara_energy_eV,
     conductivity_matrix_diagnostics,
-    kubo_conductivity_imag_axis,
     model_response_to_sheet_conductivity,
     sheet_conductivity_to_reflection_dimensionless,
 )
-from lno327.conductivity import ConductivityTensor, negative_fermi_derivative  # noqa: E402
-from lno327.constants import KB_EV_PER_K  # noqa: E402
-from lno327.model import normal_state_hamiltonian  # noqa: E402
+from lno327.conductivity import ConductivityTensor  # noqa: E402
+from lno327.normal_sampling import (  # noqa: E402
+    fs_adaptive_mesh,
+    multishift_normal_response,
+    normal_fs_diagnostics,
+    shifted_bz_mesh,
+    single_mesh_normal_response,
+    uniform_weights,
+)
 from lno327.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,
     style_publication_axis,
 )
 
-SAMPLING_MODES = ("uniform", "multishift_average", "fs_window_refined")
-DEFAULT_NK_LIST = (32, 48, 64, 80)
+SAMPLING_MODES = ("uniform", "multishift_average", "fs_adaptive")
+DEFAULT_NK_LIST = (32, 48, 64)
 DEFAULT_ETA_LIST = (5e-4, 2e-4, 1e-4)
 DEFAULT_MATSUBARA_LIST = (1, 2)
-DEFAULT_SHIFT_GRID_LIST = (1, 2, 4, 8)
+DEFAULT_REFINE_FACTOR_LIST = (2, 4, 6)
 HIGH_NK_TOLERANCE = 0.02
 SYMMETRY_TOLERANCE = 1e-8
-FS_POINT_WARNING_THRESHOLD = 8
 RATIO_EPS = 1e-300
 
 REQUIRED_NPZ_FIELDS = {
@@ -53,8 +57,12 @@ REQUIRED_NPZ_FIELDS = {
     "eta_eV",
     "matsubara_index",
     "omega_eV",
+    "refine_factor",
     "shift_grid",
-    "num_shifts",
+    "num_kpoints_total",
+    "num_fs_cells",
+    "num_refined_points",
+    "refined_area_fraction",
     "sigma_xx",
     "sigma_yy",
     "sigma_xy",
@@ -75,25 +83,11 @@ REQUIRED_NPZ_FIELDS = {
     "points_within_kBT",
     "fermi_window_weight_sum",
     "estimated_mesh_energy_resolution",
-    "num_refined_points",
     "fs_sampling_status",
     "convergence_status",
     "diagnosis",
     "notes",
 }
-
-
-def shifted_bz_mesh(nk: int, shift: tuple[float, float] = (0.0, 0.0)) -> np.ndarray:
-    """Return a midpoint BZ mesh shifted by fractions of one grid spacing."""
-
-    if nk <= 0:
-        raise ValueError("nk must be positive")
-    step = 2.0 * np.pi / nk
-    kx = -np.pi + (np.arange(nk) + 0.5 + shift[0]) * step
-    ky = -np.pi + (np.arange(nk) + 0.5 + shift[1]) * step
-    kx = ((kx + np.pi) % (2.0 * np.pi)) - np.pi
-    ky = ((ky + np.pi) % (2.0 * np.pi)) - np.pi
-    return np.array([(float(x), float(y)) for x in kx for y in ky], dtype=float)
 
 
 def _matrix_to_tensor(matrix: np.ndarray) -> ConductivityTensor:
@@ -118,187 +112,72 @@ def _join_status(parts: list[str]) -> str:
     return "ok" if not parts else ";".join(dict.fromkeys(parts))
 
 
-def _band_energies(mesh: np.ndarray) -> np.ndarray:
-    return np.array([np.linalg.eigvalsh(normal_state_hamiltonian(kx, ky)) for kx, ky in mesh], dtype=float)
-
-
-def _estimated_energy_resolution(energies: np.ndarray) -> float:
-    flat = np.sort(np.ravel(energies))
-    diffs = np.diff(flat)
-    diffs = diffs[diffs > 1e-14]
-    if diffs.size == 0:
-        return 0.0
-    return float(np.median(diffs))
-
-
-def _fs_diagnostics(
-    mesh: np.ndarray,
-    weights: np.ndarray,
-    eta_eV: float,
-    omega_eV: float,
-    temperature_K: float,
-) -> dict[str, float | int]:
-    energies = _band_energies(mesh)
-    abs_energies = np.abs(energies)
-    temperature_eV = temperature_K * KB_EV_PER_K
-    fermi_window = negative_fermi_derivative(energies, 0.0, temperature_eV, eta_eV)
-    return {
-        "min_abs_band_energy_on_mesh": float(np.min(abs_energies)),
-        "points_within_eta": int(np.count_nonzero(abs_energies <= eta_eV)),
-        "points_within_omega": int(np.count_nonzero(abs_energies <= omega_eV)),
-        "points_within_kBT": int(np.count_nonzero(abs_energies <= temperature_eV)),
-        "fermi_window_weight_sum": float(np.sum(fermi_window * weights[:, None])),
-        "estimated_mesh_energy_resolution": _estimated_energy_resolution(energies),
-    }
-
-
-def _single_mesh_response(
-    mesh: np.ndarray,
-    weights: np.ndarray,
-    eta_eV: float,
-    omega_eV: float,
-    temperature_K: float,
-) -> np.ndarray:
-    config = KuboConfig.from_kelvin(
-        omega_eV=omega_eV,
-        temperature_K=temperature_K,
-        eta_eV=eta_eV,
-        output_si=False,
-    )
-    return kubo_conductivity_imag_axis(mesh, config, weights).matrix()
-
-
-def _uniform_weights(mesh: np.ndarray) -> np.ndarray:
-    return np.full(mesh.shape[0], 1.0 / mesh.shape[0], dtype=float)
-
-
-def _shift_grid_shifts(shift_grid: int) -> list[tuple[float, float]]:
-    if shift_grid <= 0:
-        raise ValueError("shift_grid must be positive")
-    return [(i / shift_grid, j / shift_grid) for i in range(shift_grid) for j in range(shift_grid)]
-
-
-def _wrap_bz(points: np.ndarray) -> np.ndarray:
-    wrapped = np.array(points, dtype=float, copy=True)
-    wrapped[:, 0] = ((wrapped[:, 0] + np.pi) % (2.0 * np.pi)) - np.pi
-    wrapped[:, 1] = ((wrapped[:, 1] + np.pi) % (2.0 * np.pi)) - np.pi
-    return wrapped
-
-
-def fs_window_refined_mesh(
-    nk: int,
-    eta_eV: float,
-    omega_eV: float,
-    temperature_K: float,
-    refine_factor: int = 3,
-    fs_window_eV: float | None = None,
-) -> tuple[np.ndarray, np.ndarray, int, float]:
-    """Replace FS-window coarse cells by local subcells with area weights."""
-
-    if refine_factor <= 1:
-        raise ValueError("refine_factor must be greater than one")
-    coarse = shifted_bz_mesh(nk)
-    coarse_energies = _band_energies(coarse)
-    window = max(eta_eV, temperature_K * KB_EV_PER_K, omega_eV) if fs_window_eV is None else fs_window_eV
-    marked = np.any(np.abs(coarse_energies) <= window, axis=1)
-    base_weight = 1.0 / coarse.shape[0]
-    step = 2.0 * np.pi / nk
-    sub_offsets = (np.arange(refine_factor) + 0.5) / refine_factor - 0.5
-
-    points: list[np.ndarray] = []
-    weights: list[float] = []
-    refined_count = 0
-    for center, should_refine in zip(coarse, marked, strict=True):
-        if not should_refine:
-            points.append(center)
-            weights.append(base_weight)
-            continue
-        for dx in sub_offsets:
-            for dy in sub_offsets:
-                points.append(center + np.array([dx * step, dy * step], dtype=float))
-                weights.append(base_weight / (refine_factor * refine_factor))
-                refined_count += 1
-    mesh = _wrap_bz(np.vstack(points))
-    weight_array = np.asarray(weights, dtype=float)
-    return mesh, weight_array, refined_count, float(window)
-
-
-def _sampling_response(
+def _evaluate_sampling(
     sampling: str,
     nk: int,
     eta_eV: float,
     omega_eV: float,
     temperature_K: float,
-    shift_grid: int,
     refine_factor: int,
-    fs_window_eV: float | None,
-) -> tuple[np.ndarray, float, float, dict[str, float | int], int, int, str]:
+    shift_grid: int,
+    fs_window_factor: float,
+) -> tuple[np.ndarray, float, float, dict[str, float | int], dict[str, float | int], str]:
     if sampling == "uniform":
         mesh = shifted_bz_mesh(nk)
-        weights = _uniform_weights(mesh)
-        matrix = _single_mesh_response(mesh, weights, eta_eV, omega_eV, temperature_K)
-        fs = _fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K)
-        return matrix, 0.0, 0.0, fs, 0, 1, "uniform mesh baseline"
+        weights = uniform_weights(mesh)
+        matrix = single_mesh_normal_response(mesh, weights, eta_eV, omega_eV, temperature_K)
+        fs = normal_fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K)
+        metadata = {
+            "num_kpoints_total": int(mesh.shape[0]),
+            "num_fs_cells": 0,
+            "num_refined_points": 0,
+            "refined_area_fraction": 0.0,
+            "weight_sum": float(np.sum(weights)),
+        }
+        return matrix, 0.0, 0.0, fs, metadata, "uniform midpoint mesh baseline"
 
     if sampling == "multishift_average":
-        matrices = []
-        fs_items = []
-        for shift in _shift_grid_shifts(shift_grid):
-            mesh = shifted_bz_mesh(nk, shift)
-            weights = _uniform_weights(mesh)
-            matrices.append(_single_mesh_response(mesh, weights, eta_eV, omega_eV, temperature_K))
-            fs_items.append(_fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K))
-        stack = np.stack(matrices, axis=0)
-        matrix = np.mean(stack, axis=0)
-        std_xx = float(np.std(stack[:, 0, 0].real))
-        rel_std = float(std_xx / (abs(matrix[0, 0]) + RATIO_EPS))
-        fs = {
-            "min_abs_band_energy_on_mesh": float(min(item["min_abs_band_energy_on_mesh"] for item in fs_items)),
-            "points_within_eta": int(sum(int(item["points_within_eta"]) for item in fs_items)),
-            "points_within_omega": int(sum(int(item["points_within_omega"]) for item in fs_items)),
-            "points_within_kBT": int(sum(int(item["points_within_kBT"]) for item in fs_items)),
-            "fermi_window_weight_sum": float(np.mean([float(item["fermi_window_weight_sum"]) for item in fs_items])),
-            "estimated_mesh_energy_resolution": float(
-                np.mean([float(item["estimated_mesh_energy_resolution"]) for item in fs_items])
-            ),
-        }
-        return matrix, std_xx, rel_std, fs, 0, shift_grid * shift_grid, "multi-shift average diagnostic"
-
-    if sampling == "fs_window_refined":
-        mesh, weights, refined_count, window = fs_window_refined_mesh(
+        matrix, std_xx, rel_std, fs, metadata = multishift_normal_response(
             nk,
             eta_eV,
             omega_eV,
             temperature_K,
-            refine_factor=refine_factor,
-            fs_window_eV=fs_window_eV,
+            shift_grid,
         )
-        matrix = _single_mesh_response(mesh, weights, eta_eV, omega_eV, temperature_K)
-        fs = _fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K)
-        return (
-            matrix,
-            0.0,
-            0.0,
-            fs,
-            refined_count,
-            1,
-            f"FS-window refined diagnostic; fs_window_eV={window:g}",
+        return matrix, std_xx, rel_std, fs, metadata, "multi-shift average control"
+
+    if sampling == "fs_adaptive":
+        mesh, weights, metadata = fs_adaptive_mesh(
+            nk,
+            eta_eV,
+            omega_eV,
+            temperature_K,
+            refine_factor,
+            fs_window_factor=fs_window_factor,
         )
+        matrix = single_mesh_normal_response(mesh, weights, eta_eV, omega_eV, temperature_K)
+        fs = normal_fs_diagnostics(mesh, weights, eta_eV, omega_eV, temperature_K)
+        note = (
+            "FS-adaptive weighted mesh diagnostic; "
+            f"fs_window_eV={float(metadata['fs_window_eV']):g}; "
+            f"weight_sum={float(metadata['weight_sum']):.12g}"
+        )
+        return matrix, 0.0, 0.0, fs, metadata, note
 
     raise ValueError("unknown sampling mode")
 
 
-def benchmark_normal_fs_sensitive_sampling(
+def benchmark_normal_fs_adaptive_integration(
     nk_list: list[int],
     eta_list: list[float],
     matsubara_list: list[int],
     temperature_K: float,
-    shift_grid_list: list[int],
+    refine_factor_list: list[int],
+    fs_window_factor: float,
     sampling_modes: list[str],
-    refine_factor: int = 3,
-    fs_window_eV: float | None = None,
+    shift_grid: int,
 ) -> dict[str, np.ndarray]:
-    """Run the FS-sensitive normal-response sampling benchmark."""
+    """Run the FS-adaptive integration prototype benchmark."""
 
     if len(nk_list) < 2 or any(nk <= 0 for nk in nk_list):
         raise ValueError("nk_list must contain at least two positive values")
@@ -306,23 +185,27 @@ def benchmark_normal_fs_sensitive_sampling(
         raise ValueError("eta_list must contain positive values")
     if not matsubara_list or any(n < 1 for n in matsubara_list):
         raise ValueError("matsubara_list must contain n >= 1")
-    if not shift_grid_list or any(s <= 0 for s in shift_grid_list):
-        raise ValueError("shift_grid_list must contain positive values")
+    if not refine_factor_list or any(f <= 1 for f in refine_factor_list):
+        raise ValueError("refine_factor_list must contain values greater than one")
+    if fs_window_factor <= 0.0:
+        raise ValueError("fs_window_factor must be positive")
+    if shift_grid <= 0:
+        raise ValueError("shift_grid must be positive")
     if any(mode not in SAMPLING_MODES for mode in sampling_modes):
         raise ValueError("unknown sampling mode")
 
     nk_values = np.asarray(sorted(nk_list), dtype=int)
     eta_values = np.asarray(sorted(eta_list), dtype=float)
     matsubara_values = np.asarray(sorted(matsubara_list), dtype=int)
-    shift_values = np.asarray(sorted(shift_grid_list), dtype=int)
+    refine_values = np.asarray(sorted(refine_factor_list), dtype=int)
     rows: list[tuple[str, int, float, int, int]] = []
     for sampling in sampling_modes:
-        grids = shift_values if sampling == "multishift_average" else np.array([1], dtype=int)
-        for shift_grid in grids:
+        factors = refine_values if sampling == "fs_adaptive" else np.array([1], dtype=int)
+        for refine_factor in factors:
             for nk in nk_values:
                 for eta in eta_values:
                     for n in matsubara_values:
-                        rows.append((sampling, int(nk), float(eta), int(n), int(shift_grid)))
+                        rows.append((sampling, int(nk), float(eta), int(n), int(refine_factor)))
 
     row_count = len(rows)
     data: dict[str, np.ndarray] = {
@@ -331,8 +214,12 @@ def benchmark_normal_fs_sensitive_sampling(
         "eta_eV": np.empty(row_count, dtype=float),
         "matsubara_index": np.empty(row_count, dtype=int),
         "omega_eV": np.empty(row_count, dtype=float),
-        "shift_grid": np.empty(row_count, dtype=int),
-        "num_shifts": np.empty(row_count, dtype=int),
+        "refine_factor": np.empty(row_count, dtype=int),
+        "shift_grid": np.full(row_count, shift_grid, dtype=int),
+        "num_kpoints_total": np.empty(row_count, dtype=int),
+        "num_fs_cells": np.empty(row_count, dtype=int),
+        "num_refined_points": np.empty(row_count, dtype=int),
+        "refined_area_fraction": np.empty(row_count, dtype=float),
         "sigma_xx": np.empty(row_count, dtype=complex),
         "sigma_yy": np.empty(row_count, dtype=complex),
         "sigma_xy": np.empty(row_count, dtype=complex),
@@ -353,7 +240,6 @@ def benchmark_normal_fs_sensitive_sampling(
         "points_within_kBT": np.empty(row_count, dtype=int),
         "fermi_window_weight_sum": np.empty(row_count, dtype=float),
         "estimated_mesh_energy_resolution": np.empty(row_count, dtype=float),
-        "num_refined_points": np.empty(row_count, dtype=int),
         "fs_sampling_status": np.empty(row_count, dtype="U192"),
         "convergence_status": np.empty(row_count, dtype="U192"),
         "diagnosis": np.empty(row_count, dtype="U160"),
@@ -361,37 +247,39 @@ def benchmark_normal_fs_sensitive_sampling(
         "nk_list": nk_values,
         "eta_list": eta_values,
         "matsubara_list": matsubara_values,
-        "shift_grid_list": shift_values,
+        "refine_factor_list": refine_values,
         "temperature_K": np.array(temperature_K),
-        "refine_factor": np.array(refine_factor),
-        "fs_window_eV": np.array(np.nan if fs_window_eV is None else fs_window_eV),
+        "fs_window_factor": np.array(fs_window_factor),
     }
 
     index_by_key: dict[tuple[str, int, float, int, int], int] = {}
-    for index, (sampling, nk, eta, n, shift_grid) in enumerate(rows):
+    for index, (sampling, nk, eta, n, refine_factor) in enumerate(rows):
         omega_eV = bosonic_matsubara_energy_eV(n, temperature_K)
-        matrix, std_xx, rel_std, fs, refined_count, num_shifts, note = _sampling_response(
+        matrix, std_xx, rel_std, fs, metadata, note = _evaluate_sampling(
             sampling,
             nk,
             eta,
             omega_eV,
             temperature_K,
-            shift_grid,
             refine_factor,
-            fs_window_eV,
+            shift_grid,
+            fs_window_factor,
         )
         tensor = _matrix_to_tensor(matrix)
         diagnostics = conductivity_matrix_diagnostics(tensor)
         sheet = model_response_to_sheet_conductivity(matrix)
         reflection = sheet_conductivity_to_reflection_dimensionless(sheet)
-        index_by_key[(sampling, nk, eta, n, shift_grid)] = index
+        index_by_key[(sampling, nk, eta, n, refine_factor)] = index
         data["sampling"][index] = sampling
         data["nk"][index] = nk
         data["eta_eV"][index] = eta
         data["matsubara_index"][index] = n
         data["omega_eV"][index] = omega_eV
-        data["shift_grid"][index] = shift_grid
-        data["num_shifts"][index] = num_shifts
+        data["refine_factor"][index] = refine_factor
+        data["num_kpoints_total"][index] = int(metadata["num_kpoints_total"])
+        data["num_fs_cells"][index] = int(metadata["num_fs_cells"])
+        data["num_refined_points"][index] = int(metadata["num_refined_points"])
+        data["refined_area_fraction"][index] = float(metadata["refined_area_fraction"])
         data["sigma_xx"][index] = matrix[0, 0]
         data["sigma_yy"][index] = matrix[1, 1]
         data["sigma_xy"][index] = matrix[0, 1]
@@ -407,11 +295,10 @@ def benchmark_normal_fs_sensitive_sampling(
         data["reflection_dimensionless_xx"][index] = reflection.tensor.xx
         for key, value in fs.items():
             data[key][index] = value
-        data["num_refined_points"][index] = refined_count
         data["notes"][index] = (
-            "normal-state FS-sensitive sampling benchmark only",
+            "normal-state FS-adaptive BZ integration prototype only",
             note,
-            "sampling changes quadrature only and does not alter the Kubo formula",
+            "adaptive sampling changes quadrature only and does not alter the Kubo formula",
             "not a Casimir calculation",
         )
 
@@ -419,11 +306,11 @@ def benchmark_normal_fs_sensitive_sampling(
     previous_nk = int(nk_values[-2])
     smallest_eta = float(eta_values[0])
     largest_eta = float(eta_values[-1])
-    for index, (sampling, nk, eta, n, shift_grid) in enumerate(rows):
-        largest_index = index_by_key.get((sampling, largest_nk, eta, n, shift_grid))
-        previous_index = index_by_key.get((sampling, previous_nk, eta, n, shift_grid))
-        smallest_eta_index = index_by_key.get((sampling, nk, smallest_eta, n, shift_grid))
-        largest_eta_index = index_by_key.get((sampling, nk, largest_eta, n, shift_grid))
+    for index, (sampling, nk, eta, n, refine_factor) in enumerate(rows):
+        largest_index = index_by_key.get((sampling, largest_nk, eta, n, refine_factor))
+        previous_index = index_by_key.get((sampling, previous_nk, eta, n, refine_factor))
+        smallest_eta_index = index_by_key.get((sampling, nk, smallest_eta, n, refine_factor))
+        largest_eta_index = index_by_key.get((sampling, nk, largest_eta, n, refine_factor))
         if largest_index is not None:
             data["relative_change_vs_largest_nk"][index] = _relative_change(
                 data["sigma_xx"][index],
@@ -440,28 +327,32 @@ def benchmark_normal_fs_sensitive_sampling(
                 data["sigma_xx"][smallest_eta_index],
             )
 
-    improvement_status = _sampling_improvement_status(data, rows)
-
-    for index, (sampling, _nk, eta, n, shift_grid) in enumerate(rows):
+    improvement = _adaptive_improvement_status(data)
+    unstable_refine = _unstable_refine_status(data)
+    for index in range(row_count):
         conv_parts: list[str] = []
         fs_parts: list[str] = []
         diag_parts: list[str] = []
-        last_two = data["relative_change_between_last_two_nk"][index]
-        if last_two < HIGH_NK_TOLERANCE:
+        if data["relative_change_between_last_two_nk"][index] < HIGH_NK_TOLERANCE:
             conv_parts.append("high_nk_converged")
         else:
             conv_parts.append("warning_high_nk_not_converged")
         if data["eta_relative_change"][index] >= HIGH_NK_TOLERANCE:
             conv_parts.append("warning_eta_sensitive")
-        if sampling == "multishift_average" and data["relative_std_over_shifts"][index] < HIGH_NK_TOLERANCE:
-            conv_parts.append("shift_average_stable")
-        improvement = improvement_status.get((sampling, float(eta), int(n), int(shift_grid)))
-        if improvement is not None:
-            conv_parts.append(improvement)
+        key = (
+            str(data["sampling"][index]),
+            float(data["eta_eV"][index]),
+            int(data["matsubara_index"][index]),
+            int(data["refine_factor"][index]),
+        )
+        if improvement.get(key, False):
+            conv_parts.append("fs_adaptive_improves_convergence")
+        if unstable_refine.get((float(data["eta_eV"][index]), int(data["matsubara_index"][index])), False):
+            conv_parts.append("requires_triangle_or_contour_integration")
         if data["points_within_eta"][index] == 0:
             fs_parts.append("warning_fs_underresolved_eta")
-        if data["points_within_eta"][index] < FS_POINT_WARNING_THRESHOLD:
-            fs_parts.append("warning_few_fs_points_within_eta")
+        if str(data["sampling"][index]) == "fs_adaptive" and data["num_fs_cells"][index] == 0:
+            fs_parts.append("warning_no_fs_cells_detected")
         if (
             abs(data["delta"][index]) > SYMMETRY_TOLERANCE
             or data["relative_offdiag"][index] > SYMMETRY_TOLERANCE
@@ -470,77 +361,77 @@ def benchmark_normal_fs_sensitive_sampling(
             diag_parts.append("warning_symmetry")
         if not np.isfinite(data["sigma_xx"][index]):
             diag_parts.append("warning_nonfinite_response")
-        if not np.isfinite(data["sheet_conductivity_xx"][index]):
-            diag_parts.append("warning_nonfinite_sheet_conductivity")
         data["convergence_status"][index] = _join_status(conv_parts)
         data["fs_sampling_status"][index] = _join_status(fs_parts)
         data["diagnosis"][index] = _join_status(diag_parts)
 
-    _mark_requires_advanced_integration(data)
     return data
 
 
-def _sampling_improvement_status(
-    data: dict[str, np.ndarray],
-    rows: list[tuple[str, int, float, int, int]],
-) -> dict[tuple[str, float, int, int], str | None]:
-    status: dict[tuple[str, float, int, int], str | None] = {}
-    for eta in sorted(set(float(row[2]) for row in rows)):
-        for n in sorted(set(int(row[3]) for row in rows)):
+def _adaptive_improvement_status(data: dict[str, np.ndarray]) -> dict[tuple[str, float, int, int], bool]:
+    status: dict[tuple[str, float, int, int], bool] = {}
+    for eta in sorted(set(float(item) for item in data["eta_eV"])):
+        for n in sorted(set(int(item) for item in data["matsubara_index"])):
             uniform_mask = (
                 (data["sampling"] == "uniform")
                 & np.isclose(data["eta_eV"], eta)
                 & (data["matsubara_index"] == n)
             )
-            if not np.any(uniform_mask):
+            multi_mask = (
+                (data["sampling"] == "multishift_average")
+                & np.isclose(data["eta_eV"], eta)
+                & (data["matsubara_index"] == n)
+            )
+            if not np.any(uniform_mask) or not np.any(multi_mask):
                 continue
             uniform_change = float(np.nanmax(data["relative_change_between_last_two_nk"][uniform_mask]))
-            for sampling in ("multishift_average", "fs_window_refined"):
-                grids = sorted(set(int(value) for value in data["shift_grid"][data["sampling"] == sampling]))
-                for shift_grid in grids:
-                    mask = (
-                        (data["sampling"] == sampling)
-                        & np.isclose(data["eta_eV"], eta)
-                        & (data["matsubara_index"] == n)
-                        & (data["shift_grid"] == shift_grid)
-                    )
-                    if not np.any(mask):
-                        continue
-                    change = float(np.nanmax(data["relative_change_between_last_two_nk"][mask]))
-                    key = (sampling, eta, n, shift_grid)
-                    if change < 0.8 * uniform_change:
-                        status[key] = (
-                            "multishift_improves_convergence"
-                            if sampling == "multishift_average"
-                            else "fs_refinement_improves_convergence"
-                        )
-                    else:
-                        status[key] = None
+            multi_change = float(np.nanmax(data["relative_change_between_last_two_nk"][multi_mask]))
+            baseline = min(uniform_change, multi_change)
+            for refine_factor in sorted(set(int(x) for x in data["refine_factor"][data["sampling"] == "fs_adaptive"])):
+                mask = (
+                    (data["sampling"] == "fs_adaptive")
+                    & np.isclose(data["eta_eV"], eta)
+                    & (data["matsubara_index"] == n)
+                    & (data["refine_factor"] == refine_factor)
+                )
+                if not np.any(mask):
+                    continue
+                adaptive_change = float(np.nanmax(data["relative_change_between_last_two_nk"][mask]))
+                status[("fs_adaptive", eta, n, refine_factor)] = adaptive_change < baseline
     return status
 
 
-def _mark_requires_advanced_integration(data: dict[str, np.ndarray]) -> None:
+def _unstable_refine_status(data: dict[str, np.ndarray]) -> dict[tuple[float, int], bool]:
+    status: dict[tuple[float, int], bool] = {}
     for eta in sorted(set(float(item) for item in data["eta_eV"])):
         for n in sorted(set(int(item) for item in data["matsubara_index"])):
-            mask = np.isclose(data["eta_eV"], eta) & (data["matsubara_index"] == n)
-            if not np.any(mask):
+            mask = (
+                (data["sampling"] == "fs_adaptive")
+                & np.isclose(data["eta_eV"], eta)
+                & (data["matsubara_index"] == n)
+                & (data["nk"] == int(np.max(data["nk"])))
+            )
+            if np.count_nonzero(mask) < 2:
+                status[(eta, n)] = False
                 continue
-            converged = np.any(data["relative_change_between_last_two_nk"][mask] < HIGH_NK_TOLERANCE)
-            if converged:
-                continue
-            for index in np.where(mask)[0]:
-                current = str(data["convergence_status"][index])
-                suffix = "requires_contour_or_tetrahedron_integration"
-                data["convergence_status"][index] = current if suffix in current else f"{current};{suffix}"
+            values = data["sigma_xx"][mask]
+            order = np.argsort(data["refine_factor"][mask])
+            ordered = values[order]
+            changes = [
+                _relative_change(ordered[i - 1], ordered[i])
+                for i in range(1, ordered.size)
+            ]
+            status[(eta, n)] = bool(changes and max(changes) >= HIGH_NK_TOLERANCE)
+    return status
 
 
 def output_paths(output_prefix: Path) -> tuple[Path, Path, Path, Path, Path, Path, Path, Path, Path]:
     npz_path = output_prefix.with_suffix(".npz")
     csv_path = output_prefix.with_suffix(".csv")
     resolved_prefix = output_prefix.resolve()
-    project_data_root = (ROOT / "outputs" / "normal_state" / "fs_sensitive_sampling" / "data").resolve()
+    project_data_root = (ROOT / "outputs" / "archive" / "normal_state" / "fs_adaptive_integration" / "data").resolve()
     if resolved_prefix.is_relative_to(project_data_root):
-        figure_dir = ROOT / "outputs" / "normal_state" / "fs_sensitive_sampling" / "figures"
+        figure_dir = ROOT / "outputs" / "archive" / "normal_state" / "fs_adaptive_integration" / "figures"
     else:
         figure_dir = output_prefix.parent / "figures"
     return (
@@ -548,9 +439,9 @@ def output_paths(output_prefix: Path) -> tuple[Path, Path, Path, Path, Path, Pat
         csv_path,
         figure_dir / f"{output_prefix.name}_sigma_xx_vs_nk.png",
         figure_dir / f"{output_prefix.name}_last_two_change_by_sampling.png",
-        figure_dir / f"{output_prefix.name}_shift_std_vs_shift_grid.png",
-        figure_dir / f"{output_prefix.name}_sigma_xx_vs_shift_grid.png",
+        figure_dir / f"{output_prefix.name}_sigma_xx_vs_refine_factor.png",
         figure_dir / f"{output_prefix.name}_fs_points_vs_nk.png",
+        figure_dir / f"{output_prefix.name}_refined_area_fraction_vs_nk.png",
         figure_dir / f"{output_prefix.name}_sigma_vs_fermi_weight.png",
         figure_dir / f"{output_prefix.name}_symmetry_vs_nk.png",
     )
@@ -566,17 +457,7 @@ def _csv_value(value: object) -> object:
 
 def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path, Path, Path, Path, Path, Path, Path, Path, Path]:
     paths = output_paths(output_prefix)
-    (
-        npz_path,
-        csv_path,
-        sigma_nk_plot,
-        last_two_plot,
-        shift_std_plot,
-        sigma_shift_plot,
-        fs_points_plot,
-        sigma_fermi_plot,
-        symmetry_plot,
-    ) = paths
+    npz_path, csv_path, sigma_nk_plot, last_two_plot, refine_plot, fs_points_plot, area_plot, fermi_plot, sym_plot = paths
     npz_path.parent.mkdir(parents=True, exist_ok=True)
     sigma_nk_plot.parent.mkdir(parents=True, exist_ok=True)
     np.savez(npz_path, **data)
@@ -587,8 +468,12 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
         "eta_eV",
         "matsubara_index",
         "omega_eV",
+        "refine_factor",
         "shift_grid",
-        "num_shifts",
+        "num_kpoints_total",
+        "num_fs_cells",
+        "num_refined_points",
+        "refined_area_fraction",
         "sigma_xx",
         "sigma_yy",
         "sigma_xy",
@@ -609,7 +494,6 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
         "points_within_kBT",
         "fermi_window_weight_sum",
         "estimated_mesh_energy_resolution",
-        "num_refined_points",
         "fs_sampling_status",
         "convergence_status",
         "diagnosis",
@@ -625,42 +509,40 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     import matplotlib.pyplot as plt
 
     samplings = list(dict.fromkeys(str(item) for item in data["sampling"]))
-    n_values = list(dict.fromkeys(int(item) for item in data["matsubara_index"]))
-    eta_values = list(dict.fromkeys(float(item) for item in data["eta_eV"]))
-    reference_eta = min(eta_values)
-    reference_n = min(n_values)
+    reference_eta = min(float(item) for item in data["eta_eV"])
+    reference_n = min(int(item) for item in data["matsubara_index"])
     reference_nk = max(int(item) for item in data["nk"])
-    reference_shift_grid = max(int(item) for item in data["shift_grid"])
+    reference_refine = max(int(item) for item in data["refine_factor"])
 
-    fig_sigma_nk, ax_sigma_nk = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
+    fig_sigma, ax_sigma = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
     for sampling in samplings:
-        shift_grid = reference_shift_grid if sampling == "multishift_average" else 1
+        refine_factor = reference_refine if sampling == "fs_adaptive" else 1
         mask = (
             (data["sampling"] == sampling)
             & np.isclose(data["eta_eV"], reference_eta)
             & (data["matsubara_index"] == reference_n)
-            & (data["shift_grid"] == shift_grid)
+            & (data["refine_factor"] == refine_factor)
         )
-        ax_sigma_nk.plot(data["nk"][mask], data["sigma_xx"][mask].real, marker="o", label=sampling)
-    ax_sigma_nk.set_xlabel(r"$N_k$")
-    ax_sigma_nk.set_ylabel(r"Re $\sigma_{xx}$")
-    ax_sigma_nk.set_title(rf"FS-sensitive sampling at n={reference_n}, $\eta={reference_eta:g}$")
-    style_publication_axis(ax_sigma_nk)
-    save_publication_figure(fig_sigma_nk, sigma_nk_plot)
-    plt.close(fig_sigma_nk)
+        ax_sigma.plot(data["nk"][mask], data["sigma_xx"][mask].real, marker="o", label=sampling)
+    ax_sigma.set_xlabel(r"$N_k$")
+    ax_sigma.set_ylabel(r"Re $\sigma_{xx}$")
+    ax_sigma.set_title(rf"FS-adaptive response at n={reference_n}, $\eta={reference_eta:g}$")
+    style_publication_axis(ax_sigma)
+    save_publication_figure(fig_sigma, sigma_nk_plot)
+    plt.close(fig_sigma)
 
     fig_last, ax_last = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
     labels = []
     values = []
     for sampling in samplings:
-        for shift_grid in sorted(set(int(x) for x in data["shift_grid"][data["sampling"] == sampling])):
+        for refine_factor in sorted(set(int(x) for x in data["refine_factor"][data["sampling"] == sampling])):
             mask = (
                 (data["sampling"] == sampling)
                 & np.isclose(data["eta_eV"], reference_eta)
                 & (data["matsubara_index"] == reference_n)
-                & (data["shift_grid"] == shift_grid)
+                & (data["refine_factor"] == refine_factor)
             )
-            labels.append(f"{sampling}\ns={shift_grid}")
+            labels.append(f"{sampling}\nr={refine_factor}")
             values.append(float(np.nanmax(data["relative_change_between_last_two_nk"][mask])))
     x = np.arange(len(labels))
     ax_last.bar(x, values)
@@ -672,52 +554,31 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     save_publication_figure(fig_last, last_two_plot)
     plt.close(fig_last)
 
-    fig_std, ax_std = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
+    fig_refine, ax_refine = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
     for nk in sorted(set(int(item) for item in data["nk"])):
         mask = (
-            (data["sampling"] == "multishift_average")
+            (data["sampling"] == "fs_adaptive")
             & (data["nk"] == nk)
             & np.isclose(data["eta_eV"], reference_eta)
             & (data["matsubara_index"] == reference_n)
         )
         if np.any(mask):
-            ax_std.plot(data["shift_grid"][mask], data["relative_std_over_shifts"][mask], marker="o", label=f"Nk={nk}")
-    ax_std.axhline(HIGH_NK_TOLERANCE, color="black", linestyle="--", linewidth=1.0)
-    ax_std.set_xscale("log", base=2)
-    ax_std.set_yscale("symlog", linthresh=1e-4)
-    ax_std.set_xlabel("shift grid")
-    ax_std.set_ylabel(r"std$(\sigma_{xx})/|\langle\sigma_{xx}\rangle|$")
-    ax_std.set_title("multi-shift stability")
-    style_publication_axis(ax_std)
-    save_publication_figure(fig_std, shift_std_plot)
-    plt.close(fig_std)
-
-    fig_shift, ax_shift = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
-    for nk in sorted(set(int(item) for item in data["nk"])):
-        mask = (
-            (data["sampling"] == "multishift_average")
-            & (data["nk"] == nk)
-            & np.isclose(data["eta_eV"], reference_eta)
-            & (data["matsubara_index"] == reference_n)
-        )
-        if np.any(mask):
-            ax_shift.plot(data["shift_grid"][mask], data["sigma_xx"][mask].real, marker="o", label=f"Nk={nk}")
-    ax_shift.set_xscale("log", base=2)
-    ax_shift.set_xlabel("shift grid")
-    ax_shift.set_ylabel(r"Re $\sigma_{xx}$")
-    ax_shift.set_title("response versus number of shifts")
-    style_publication_axis(ax_shift)
-    save_publication_figure(fig_shift, sigma_shift_plot)
-    plt.close(fig_shift)
+            ax_refine.plot(data["refine_factor"][mask], data["sigma_xx"][mask].real, marker="o", label=f"Nk={nk}")
+    ax_refine.set_xlabel("refine factor")
+    ax_refine.set_ylabel(r"Re $\sigma_{xx}$")
+    ax_refine.set_title("FS-adaptive response versus refine factor")
+    style_publication_axis(ax_refine)
+    save_publication_figure(fig_refine, refine_plot)
+    plt.close(fig_refine)
 
     fig_fs, ax_fs = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
     for sampling in samplings:
-        shift_grid = reference_shift_grid if sampling == "multishift_average" else 1
+        refine_factor = reference_refine if sampling == "fs_adaptive" else 1
         mask = (
             (data["sampling"] == sampling)
             & np.isclose(data["eta_eV"], reference_eta)
             & (data["matsubara_index"] == reference_n)
-            & (data["shift_grid"] == shift_grid)
+            & (data["refine_factor"] == refine_factor)
         )
         ax_fs.plot(data["nk"][mask], data["points_within_eta"][mask], marker="o", label=f"{sampling} eta")
         ax_fs.plot(data["nk"][mask], data["points_within_kBT"][mask], marker="s", linestyle="--", label=f"{sampling} kBT")
@@ -728,6 +589,22 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     save_publication_figure(fig_fs, fs_points_plot)
     plt.close(fig_fs)
 
+    fig_area, ax_area = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
+    for refine_factor in sorted(set(int(x) for x in data["refine_factor"][data["sampling"] == "fs_adaptive"])):
+        mask = (
+            (data["sampling"] == "fs_adaptive")
+            & (data["refine_factor"] == refine_factor)
+            & np.isclose(data["eta_eV"], reference_eta)
+            & (data["matsubara_index"] == reference_n)
+        )
+        ax_area.plot(data["nk"][mask], data["refined_area_fraction"][mask], marker="o", label=f"r={refine_factor}")
+    ax_area.set_xlabel(r"$N_k$")
+    ax_area.set_ylabel("refined area fraction")
+    ax_area.set_title("FS-adaptive refined BZ area")
+    style_publication_axis(ax_area)
+    save_publication_figure(fig_area, area_plot)
+    plt.close(fig_area)
+
     fig_fermi, ax_fermi = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
     for sampling in samplings:
         mask = (data["sampling"] == sampling) & np.isclose(data["eta_eV"], reference_eta)
@@ -736,17 +613,17 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_fermi.set_ylabel(r"Re $\sigma_{xx}$")
     ax_fermi.set_title("normal response versus Fermi-window sampling")
     style_publication_axis(ax_fermi)
-    save_publication_figure(fig_fermi, sigma_fermi_plot)
+    save_publication_figure(fig_fermi, fermi_plot)
     plt.close(fig_fermi)
 
     fig_sym, ax_sym = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
     for sampling in samplings:
-        shift_grid = reference_shift_grid if sampling == "multishift_average" else 1
+        refine_factor = reference_refine if sampling == "fs_adaptive" else 1
         mask = (
             (data["sampling"] == sampling)
             & np.isclose(data["eta_eV"], reference_eta)
             & (data["matsubara_index"] == reference_n)
-            & (data["shift_grid"] == shift_grid)
+            & (data["refine_factor"] == refine_factor)
         )
         ax_sym.plot(data["nk"][mask], np.abs(data["delta"][mask]), marker="o", label=f"{sampling} |delta|")
         ax_sym.plot(data["nk"][mask], data["relative_offdiag"][mask], marker="s", linestyle="--", label=f"{sampling} offdiag")
@@ -755,34 +632,24 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_sym.set_ylabel("relative diagnostic")
     ax_sym.set_title("normal response C4 diagnostics")
     style_publication_axis(ax_sym)
-    save_publication_figure(fig_sym, symmetry_plot)
+    save_publication_figure(fig_sym, sym_plot)
     plt.close(fig_sym)
 
     return paths
 
 
 def print_summary(data: dict[str, np.ndarray]) -> None:
-    max_last_two = float(np.nanmax(data["relative_change_between_last_two_nk"]))
-    max_eta = float(np.nanmax(data["eta_relative_change"]))
-    min_points_eta = int(np.nanmin(data["points_within_eta"]))
-    max_shift_std = float(np.nanmax(data["relative_std_over_shifts"]))
-    max_symmetry = float(
-        max(
-            np.nanmax(np.abs(data["delta"])),
-            np.nanmax(data["relative_offdiag"]),
-            np.nanmax(data["relative_eigen_split"]),
-        )
-    )
     print(f"row_count = {data['sampling'].size}")
-    print(f"max_relative_change_between_last_two_nk = {max_last_two}")
-    print(f"max_eta_relative_change = {max_eta}")
-    print(f"max_relative_std_over_shifts = {max_shift_std}")
-    print(f"min_points_within_eta = {min_points_eta}")
-    print(f"max_symmetry_diagnostic = {max_symmetry}")
+    print(f"max_relative_change_between_last_two_nk = {float(np.nanmax(data['relative_change_between_last_two_nk']))}")
+    print(f"max_eta_relative_change = {float(np.nanmax(data['eta_relative_change']))}")
+    print(f"min_points_within_eta = {int(np.nanmin(data['points_within_eta']))}")
+    print(f"max_refined_area_fraction = {float(np.nanmax(data['refined_area_fraction']))}")
+    print(f"max_num_kpoints_total = {int(np.nanmax(data['num_kpoints_total']))}")
+    print(f"max_symmetry_diagnostic = {float(max(np.nanmax(np.abs(data['delta'])), np.nanmax(data['relative_offdiag']), np.nanmax(data['relative_eigen_split'])))}")
     print(f"convergence_statuses = {sorted(set(str(item) for item in data['convergence_status']))}")
     print(f"fs_sampling_statuses = {sorted(set(str(item) for item in data['fs_sampling_status']))}")
     print(f"diagnoses = {sorted(set(str(item) for item in data['diagnosis']))}")
-    print("note = normal-state FS-sensitive sampling benchmark only; not a Casimir result.")
+    print("note = normal-state FS-adaptive integration prototype only; not a Casimir result.")
 
 
 def main() -> None:
@@ -791,31 +658,31 @@ def main() -> None:
     parser.add_argument("--eta-list", nargs="+", type=float, default=list(DEFAULT_ETA_LIST))
     parser.add_argument("--matsubara-list", nargs="+", type=int, default=list(DEFAULT_MATSUBARA_LIST))
     parser.add_argument("--temperature", type=float, default=30.0)
-    parser.add_argument("--shift-grid-list", nargs="+", type=int, default=list(DEFAULT_SHIFT_GRID_LIST))
+    parser.add_argument("--refine-factor-list", nargs="+", type=int, default=list(DEFAULT_REFINE_FACTOR_LIST))
+    parser.add_argument("--fs-window-factor", type=float, default=1.0)
     parser.add_argument("--sampling", nargs="+", choices=SAMPLING_MODES, default=list(SAMPLING_MODES))
-    parser.add_argument("--refine-factor", type=int, default=3)
-    parser.add_argument("--fs-window-eV", type=float, default=None)
+    parser.add_argument("--shift-grid", type=int, default=4)
     parser.add_argument(
         "--output-prefix",
         type=Path,
         default=ROOT
         / "outputs"
         / "normal_state"
-        / "fs_sensitive_sampling"
+        / "fs_adaptive_integration"
         / "data"
-        / "fs_sensitive_sampling",
+        / "fs_adaptive",
     )
     args = parser.parse_args()
 
-    data = benchmark_normal_fs_sensitive_sampling(
+    data = benchmark_normal_fs_adaptive_integration(
         args.nk_list,
         args.eta_list,
         args.matsubara_list,
         args.temperature,
-        args.shift_grid_list,
+        args.refine_factor_list,
+        args.fs_window_factor,
         args.sampling,
-        refine_factor=args.refine_factor,
-        fs_window_eV=args.fs_window_eV,
+        args.shift_grid,
     )
     paths = save_outputs(data, args.output_prefix)
     print_summary(data)

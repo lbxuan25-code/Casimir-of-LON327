@@ -26,6 +26,19 @@ matsubara_max=64
 local-response distance scan 已完成。normal、spm、dwave 三个 kind 均保持
 zero-torque baseline，未发现 spurious torque。
 
+旧中间诊断已经归档：
+
+- normal sampling 诊断：`outputs/archive/normal_state/`
+- local-response convergence / refined convergence：`outputs/archive/casimir/local_response_integral/`
+- smoke 输出：`outputs/archive/smoke/`
+
+当前 active local-response 输出保留：
+
+- `outputs/casimir/local_response_integral/distance_scan/`
+- `outputs/casimir/local_response_integral/cache/`
+
+注意：cache 仍保留在 active 位置，因为 distance scan command 仍引用该路径。
+
 ## 当前用途
 
 local-response 结果现在只作为 baseline：

@@ -5,15 +5,15 @@ Casimir input。
 
 ## 目录说明
 
-- `finite_q_anisotropy/`：A4 初步诊断。已看到 finite-q angular anisotropy 和
+- `outputs/archive/response/finite_q_anisotropy/`：A4 初步诊断。已看到 finite-q angular anisotropy 和
   A4_pairing_contrast 的 quick 信号，但 small-q continuity 未通过，因此不能做物理解释。
-- `finite_q_local_limit/`：local-limit decomposition。用于判断 finite-q bubble 在
+- `outputs/archive/response/finite_q_local_limit/`：local-limit decomposition。用于判断 finite-q bubble 在
   `q->0` 时最接近哪个 local component。
-- `finite_q_formula_consistency/`：vertex / BZ wrapping / denominator / overlap 初排查。
+- `outputs/archive/response/finite_q_formula_consistency/`：vertex / BZ wrapping / denominator / overlap 初排查。
   当前 vertex mismatch 和 BZ wrapping 基本排除，但 small-q continuity 未整体修复。
-- `finite_q_subspace_repair/`：projector / denominator repair 诊断。projector overlap
+- `outputs/archive/response/finite_q_subspace_repair/`：projector / denominator repair 诊断。projector overlap
   表明单态 overlap 问题多半是 gauge / band-order rotation；stable denominator 没有明显改善。
-- `finite_q_raw_q0_consistency/`：下一步和当前关键诊断入口。用于比较 raw q=0 bubble 与
+- `outputs/response/finite_q_raw_q0_consistency/`：当前关键 active 诊断入口。用于比较 raw q=0 bubble 与
   local_sigma、K_para、K_total/omega 的定义层级。
 
 ## 当前判断

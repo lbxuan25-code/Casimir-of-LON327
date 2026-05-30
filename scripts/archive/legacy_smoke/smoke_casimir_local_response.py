@@ -10,7 +10,7 @@ import sys
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
@@ -265,9 +265,9 @@ def scan_smoke(
 def output_paths(output_prefix: Path) -> tuple[Path, Path]:
     npz_path = output_prefix.with_suffix(".npz")
     resolved_prefix = output_prefix.resolve()
-    project_data_root = (ROOT / "outputs" / "smoke" / "casimir_local_response" / "data").resolve()
+    project_data_root = (ROOT / "outputs" / "archive" / "smoke" / "smoke" / "casimir_local_response" / "data").resolve()
     if resolved_prefix.is_relative_to(project_data_root):
-        figure_dir = ROOT / "outputs" / "smoke" / "casimir_local_response" / "figures"
+        figure_dir = ROOT / "outputs" / "archive" / "smoke" / "smoke" / "casimir_local_response" / "figures"
     else:
         figure_dir = output_prefix.parent / "figures"
     return npz_path, figure_dir / f"{output_prefix.name}_theta_scan.png"
@@ -331,7 +331,7 @@ def main() -> None:
     parser.add_argument(
         "--output-prefix",
         type=Path,
-        default=ROOT / "outputs" / "smoke" / "casimir_local_response" / "data" / "casimir_local_response_smoke",
+        default=ROOT / "outputs" / "archive" / "smoke" / "smoke" / "casimir_local_response" / "data" / "casimir_local_response_smoke",
     )
     args = parser.parse_args()
 

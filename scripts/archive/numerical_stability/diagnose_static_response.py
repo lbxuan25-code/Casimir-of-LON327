@@ -93,7 +93,7 @@ def main() -> None:
     parser.add_argument(
         "--output-prefix",
         type=Path,
-        default=ROOT / "outputs" / "response" / "static_response" / "data" / "static_response_diagnostic",
+        default=ROOT / "outputs" / "archive" / "response" / "static_response" / "data" / "static_response_diagnostic",
     )
     args = parser.parse_args()
 
