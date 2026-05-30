@@ -185,6 +185,45 @@ class FiniteQSubspaceConsistencyDiagnostic:
     notes: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class FiniteQRawQ0Consistency:
+    """Diagnostic comparison between raw q=0 bubble and local response layers."""
+
+    kind: ResponseKind
+    matsubara_index: int
+    temperature_K: float
+    nk: int
+    delta0: float
+    eta: float
+    denominator_mode: DenominatorMode
+    deg_tol: float
+    raw_q0_bubble: np.ndarray
+    local_sigma: np.ndarray
+    local_K_para: np.ndarray
+    local_K_dia: np.ndarray
+    local_K_total: np.ndarray
+    local_K_total_over_omega: np.ndarray
+    normal_kubo_sigma: np.ndarray
+    hook_q0_response: np.ndarray
+    error_raw_to_local_sigma: float
+    error_raw_to_local_K_para: float
+    error_raw_to_local_K_total: float
+    error_raw_to_local_K_total_over_omega: float
+    error_raw_to_normal_kubo_sigma: float
+    error_hook_to_local_sigma: float
+    best_raw_q0_match_component: str
+    best_raw_q0_relative_error: float
+    raw_q0_matches_local_sigma: bool
+    raw_q0_matches_K_para: bool
+    raw_q0_matches_K_total_over_omega: bool
+    formula_layer_diagnosis: str
+    diagnostic_status: str
+    gauge_status: GaugeStatus
+    final_casimir_input: bool
+    not_final_Casimir_conclusion: bool
+    notes: tuple[str, ...]
+
+
 def _wrap_bz(points: np.ndarray) -> np.ndarray:
     wrapped = np.asarray(points, dtype=float).copy()
     wrapped[..., 0] = ((wrapped[..., 0] + np.pi) % (2.0 * np.pi)) - np.pi
@@ -1193,6 +1232,204 @@ def _component_errors_for_matrix(
     }
     best_component, best_error = _best_component(errors)
     return errors, best_component, best_error
+
+
+def finite_q_raw_bubble_response(
+    kind: ResponseKind,
+    matsubara_index: int,
+    temperature_K: float,
+    q_magnitude: float,
+    q_phi: float,
+    nk: int,
+    delta0: float,
+    eta: float,
+    denominator_mode: DenominatorMode = "raw",
+    deg_tol: float = 1e-7,
+) -> np.ndarray:
+    """Evaluate the raw finite-q bubble formula, including at q=0.
+
+    This intentionally bypasses the q=0 local-reference hook used by
+    ``bdg_finite_q_response_imag_axis``. It is diagnostic-only and does not
+    make the prototype Ward complete.
+    """
+
+    if q_magnitude < 0.0:
+        raise ValueError("q_magnitude must be non-negative")
+    omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
+    q_vector = np.array([q_magnitude * np.cos(q_phi), q_magnitude * np.sin(q_phi)], dtype=float)
+    return _finite_q_bubble(
+        kind=kind,
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta,
+        q_vector=q_vector,
+        nk=nk,
+        delta0_eV=delta0,
+        denominator_mode=denominator_mode,
+        deg_tol=deg_tol,
+    )
+
+
+def _raw_q0_formula_layer_diagnosis(kind: ResponseKind, errors: dict[str, float], best_component: str) -> str:
+    if kind == "normal":
+        if errors["local_sigma"] < 1e-3:
+            return "normal_sigma_like"
+        return "normal_finite_q_formula_mismatch"
+    if errors["local_sigma"] < 1e-3:
+        return "bdg_sigma_like"
+    if best_component == "local_K_para" and errors["local_K_para"] < 1e-3:
+        return "bdg_para_like"
+    if best_component == "local_K_total" and errors["local_K_total"] < 1e-3:
+        return "bdg_total_kernel_like"
+    if best_component == "local_K_total_over_omega" and errors["local_K_total_over_omega"] < 1e-3:
+        return "bdg_total_over_omega_like"
+    if all((not np.isfinite(value)) or value >= 1e-2 for value in errors.values()):
+        return "raw_q0_unmatched"
+    return f"bdg_closest_to_{best_component}"
+
+
+def finite_q_q0_formula_consistency(
+    kind: ResponseKind,
+    matsubara_index: int,
+    temperature_K: float,
+    nk: int,
+    delta0: float,
+    eta: float,
+    denominator_mode: DenominatorMode = "raw",
+    deg_tol: float = 1e-7,
+) -> FiniteQRawQ0Consistency:
+    """Compare raw q=0 bubble against local response components."""
+
+    omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
+    raw_q0 = finite_q_raw_bubble_response(
+        kind,
+        matsubara_index,
+        temperature_K,
+        0.0,
+        0.0,
+        nk,
+        delta0,
+        eta,
+        denominator_mode,
+        deg_tol,
+    )
+    hook = bdg_finite_q_response_imag_axis(
+        kind,
+        matsubara_index,
+        temperature_K,
+        0.0,
+        0.0,
+        nk,
+        delta0,
+        eta,
+    ).response_tensor_model
+    local_sigma, k_para, k_dia, k_total, k_total_over_omega, normal_kubo = _local_component_matrices(
+        kind,
+        omega_eV,
+        temperature_K,
+        eta,
+        nk,
+        delta0,
+    )
+    errors = {
+        "local_sigma": _relative_error_or_nan(raw_q0, local_sigma),
+        "local_K_para": _relative_error_or_nan(raw_q0, k_para),
+        "local_K_total": _relative_error_or_nan(raw_q0, k_total),
+        "local_K_total_over_omega": _relative_error_or_nan(raw_q0, k_total_over_omega),
+        "normal_kubo_sigma": _relative_error_or_nan(raw_q0, normal_kubo),
+    }
+    best_component, best_error = _best_component(errors)
+    hook_error = _relative_error_or_nan(hook, local_sigma)
+    diagnosis = _raw_q0_formula_layer_diagnosis(kind, errors, best_component)
+    status_parts = [diagnosis]
+    if kind == "normal" and errors["local_sigma"] >= 1e-3:
+        status_parts.append("recommend_normal_kubo_formula_repair")
+    if kind != "normal" and errors["local_sigma"] >= 1e-3:
+        status_parts.append("recommend_bdg_layer_alignment")
+    if diagnosis == "raw_q0_unmatched":
+        status_parts.append("recommend_formula_rederive")
+    if kind != "normal" and diagnosis == "bdg_para_like":
+        status_parts.append("finite_q_bubble_is_para_like_not_sheet_conductivity")
+    if errors["local_sigma"] < 1e-3 and (kind == "normal" or diagnosis == "bdg_sigma_like"):
+        status_parts.append("raw_q0_consistency_pass")
+    notes = (
+        "finite-q raw q=0 formula consistency diagnostic",
+        "raw_q0_bubble bypasses the q=0 local-reference hook",
+        "raw_q0_bubble uses the same bubble formula as finite q>0",
+        "no empirical rescaling or artificial contact term applied",
+        "final_casimir_input=False",
+        "not a final Casimir torque conclusion",
+    )
+    return FiniteQRawQ0Consistency(
+        kind=kind,
+        matsubara_index=matsubara_index,
+        temperature_K=temperature_K,
+        nk=nk,
+        delta0=delta0,
+        eta=eta,
+        denominator_mode=denominator_mode,
+        deg_tol=deg_tol,
+        raw_q0_bubble=raw_q0,
+        local_sigma=local_sigma,
+        local_K_para=k_para,
+        local_K_dia=k_dia,
+        local_K_total=k_total,
+        local_K_total_over_omega=k_total_over_omega,
+        normal_kubo_sigma=normal_kubo,
+        hook_q0_response=hook,
+        error_raw_to_local_sigma=errors["local_sigma"],
+        error_raw_to_local_K_para=errors["local_K_para"],
+        error_raw_to_local_K_total=errors["local_K_total"],
+        error_raw_to_local_K_total_over_omega=errors["local_K_total_over_omega"],
+        error_raw_to_normal_kubo_sigma=errors["normal_kubo_sigma"],
+        error_hook_to_local_sigma=hook_error,
+        best_raw_q0_match_component=best_component,
+        best_raw_q0_relative_error=best_error,
+        raw_q0_matches_local_sigma=bool(errors["local_sigma"] < 1e-3),
+        raw_q0_matches_K_para=bool(np.isfinite(errors["local_K_para"]) and errors["local_K_para"] < 1e-3),
+        raw_q0_matches_K_total_over_omega=bool(
+            np.isfinite(errors["local_K_total_over_omega"]) and errors["local_K_total_over_omega"] < 1e-3
+        ),
+        formula_layer_diagnosis=diagnosis,
+        diagnostic_status=";".join(status_parts),
+        gauge_status="prototype_not_ward_verified",
+        final_casimir_input=False,
+        not_final_Casimir_conclusion=True,
+        notes=notes,
+    )
+
+
+def compare_raw_q0_bubble_to_local_components(
+    kinds: Sequence[ResponseKind],
+    matsubara_list: Sequence[int],
+    nk_list: Sequence[int],
+    denominator_mode_list: Sequence[DenominatorMode],
+    deg_tol_list: Sequence[float],
+    temperature_K: float,
+    delta0: float,
+    eta: float,
+) -> list[FiniteQRawQ0Consistency]:
+    """Run raw q=0 bubble consistency checks over a compact diagnostic grid."""
+
+    rows: list[FiniteQRawQ0Consistency] = []
+    for kind in kinds:
+        for matsubara_index in matsubara_list:
+            for nk in nk_list:
+                for denominator_mode in denominator_mode_list:
+                    for deg_tol in deg_tol_list:
+                        rows.append(
+                            finite_q_q0_formula_consistency(
+                                kind,
+                                int(matsubara_index),
+                                temperature_K,
+                                int(nk),
+                                delta0,
+                                eta,
+                                denominator_mode,
+                                float(deg_tol),
+                            )
+                        )
+    return rows
 
 
 def finite_q_subspace_consistency_diagnostic(
