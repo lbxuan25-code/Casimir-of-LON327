@@ -4,7 +4,13 @@ from pathlib import Path
 import numpy as np
 from lno327.normal_sampling import normal_sheet_tensor_from_sampling
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "benchmark_casimir_local_response_integral.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "validation"
+    / "scripts"
+    / "casimir"
+    / "benchmark_casimir_local_response_integral.py"
+)
 SPEC = spec_from_file_location("benchmark_casimir_local_response_integral", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 bench = module_from_spec(SPEC)

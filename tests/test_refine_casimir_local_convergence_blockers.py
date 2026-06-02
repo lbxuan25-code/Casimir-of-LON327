@@ -6,9 +6,10 @@ import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "refine_casimir_local_convergence_blockers.py"
+SCRIPT = ROOT / "validation" / "scripts" / "casimir" / "refine_casimir_local_convergence_blockers.py"
 SUMMARY = (
     ROOT
+    / "validation"
     / "outputs"
     / "archive"
     / "casimir"
@@ -18,6 +19,7 @@ SUMMARY = (
 )
 COMMAND = (
     ROOT
+    / "validation"
     / "outputs"
     / "archive"
     / "casimir"
@@ -68,7 +70,7 @@ def test_dry_run_outputs_full_command():
     )
 
     command = result.stdout
-    assert "scripts/refine_casimir_local_convergence_blockers.py" in command
+    assert "validation/scripts/casimir/refine_casimir_local_convergence_blockers.py" in command
     assert "--u-max-list 20 40 60 80" in command
     assert "--du 0.5" in command
     assert "--matsubara-max-list 24 32 48 64" in command

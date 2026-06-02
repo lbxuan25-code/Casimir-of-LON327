@@ -3,7 +3,13 @@ from pathlib import Path
 
 import numpy as np
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "diagnose_normal_sampling_convergence.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "validation"
+    / "scripts"
+    / "numerical_stability"
+    / "diagnose_normal_sampling_convergence.py"
+)
 SPEC = spec_from_file_location("diagnose_normal_sampling_convergence", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 sampling_script = module_from_spec(SPEC)

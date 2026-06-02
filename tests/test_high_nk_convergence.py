@@ -3,7 +3,13 @@ from pathlib import Path
 
 import numpy as np
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "refine_high_nk_convergence.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "validation"
+    / "scripts"
+    / "numerical_stability"
+    / "refine_high_nk_convergence.py"
+)
 SPEC = spec_from_file_location("refine_high_nk_convergence", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 high_nk_script = module_from_spec(SPEC)

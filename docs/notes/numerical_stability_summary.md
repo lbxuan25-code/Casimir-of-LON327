@@ -113,7 +113,7 @@ local-response distance scan benchmark
 建议新阶段输出目录另开：
 
 ```text
-outputs/casimir/local_response_integral/distance_scan/
+validation/outputs/casimir/local_response_integral/distance_scan/
 ```
 
 该阶段仍应保持 `local_response=True`、`finite_q_resolved=False`、

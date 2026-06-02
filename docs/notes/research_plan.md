@@ -115,20 +115,20 @@ Casimir torque 框架中。
 
 Normal-state 运行脚本集中在 `scripts/normal_state/`。输出按阶段归档：
 `outputs/normal_state/conductivity_imag/`、`outputs/normal_state/conductivity_real/`、
-`outputs/archive/normal_state/sampling_convergence/`、
-`outputs/archive/normal_state/fs_sensitive_sampling/`、
-`outputs/archive/normal_state/fs_adaptive_integration/`、
+`validation/outputs/archive/normal_state/sampling_convergence/`、
+`validation/outputs/archive/normal_state/fs_sensitive_sampling/`、
+`validation/outputs/archive/normal_state/fs_adaptive_integration/`、
 `outputs/pairing/gap_structure/`、`outputs/bdg/paramagnetic_kernel_imag/`、
 `outputs/bdg/diamagnetic_kernel/`、`outputs/bdg/total_kernel_imag/`、
-`outputs/bdg/superconducting_response_imag/`、`outputs/archive/response/local_sheet_imag/`、
-`outputs/archive/response/unit_audit/`、`outputs/archive/response/static_response/`、
-`outputs/archive/response/bdg_normal_limit/`、
-`outputs/archive/response/convergence_imag/`、
-`outputs/archive/response/high_nk_convergence/`、
-`outputs/archive/response/static_policy_comparison/`、
-`outputs/archive/response/n0_sensitivity/`、
-`outputs/archive/response/nonlocal_interface/`、
-`outputs/casimir/` 和 `outputs/archive/smoke/smoke/`。
+`outputs/bdg/superconducting_response_imag/`、`validation/outputs/archive/response/local_sheet_imag/`、
+`validation/outputs/archive/response/unit_audit/`、`validation/outputs/archive/response/static_response/`、
+`validation/outputs/archive/response/bdg_normal_limit/`、
+`validation/outputs/archive/response/convergence_imag/`、
+`validation/outputs/archive/response/high_nk_convergence/`、
+`validation/outputs/archive/response/static_policy_comparison/`、
+`validation/outputs/archive/response/n0_sensitivity/`、
+`validation/outputs/archive/response/nonlocal_interface/`、
+`validation/outputs/casimir/` 和 `validation/outputs/archive/smoke/smoke/`。
 旧的顶层 normal-state 脚本路径只作为兼容 wrapper。
 
 论文草稿输出的组织原则见 `docs/notes/publication_output_guide.md` 与
@@ -147,23 +147,23 @@ python scripts/compute_bdg_paramagnetic_kernel_imag.py --kind spm --delta0 0.04 
 python scripts/diagnose_bdg_diamagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30
 python scripts/diagnose_bdg_total_kernel_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
 python scripts/diagnose_superconducting_response_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
-python scripts/benchmark_bdg_normal_limit.py --kinds spm dwave --delta0-list 0 1e-5 1e-4 1e-3 1e-2 0.04 --nk 16 --temperature 30 --matsubara-index 1
-python scripts/convergence_response_imag.py --kinds normal spm dwave --nk-list 8 12 16 24 32 --eta-list 1e-3 5e-4 1e-4 --matsubara-list 1 2 5 10 --temperature 30 --delta0 0.04
-python scripts/refine_high_nk_convergence.py --kinds normal spm dwave --nk-list 32 48 64 80 --eta-list 5e-4 1e-4 --matsubara-list 1 2 --temperature 30 --delta0 0.04
-python scripts/diagnose_normal_sampling_convergence.py --nk-list 32 48 64 80 96 128 --eta-list 1e-3 5e-4 2e-4 1e-4 --matsubara-list 1 2 5 --temperature 30 --sampling uniform shifted average
-python scripts/benchmark_normal_fs_sensitive_sampling.py --nk-list 32 48 64 80 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --shift-grid-list 1 2 4 8 --sampling uniform multishift_average fs_window_refined
-python scripts/benchmark_normal_fs_adaptive_integration.py --nk-list 32 48 64 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --refine-factor-list 2 4 6 --fs-window-factor 1.0 --sampling uniform multishift_average fs_adaptive --shift-grid 4
-python scripts/compare_local_sheet_response_imag.py --kinds normal spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
-python scripts/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
-python scripts/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
-python scripts/compare_static_response_policies.py --kinds normal spm dwave --policies skip extrapolate_from_lowest_matsubara use_static_kernel --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001
-python scripts/assess_n0_torque_sensitivity.py --kinds normal spm dwave --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --reference-matsubara-min 1 --reference-matsubara-max 8 --sensitivity-threshold 0.01 --include-toy-anisotropic-control
-python scripts/diagnose_nonlocal_response_interface.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
-python scripts/smoke_casimir_local_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
+python validation/scripts/numerical_stability/benchmark_bdg_normal_limit.py --kinds spm dwave --delta0-list 0 1e-5 1e-4 1e-3 1e-2 0.04 --nk 16 --temperature 30 --matsubara-index 1
+python validation/scripts/numerical_stability/convergence_response_imag.py --kinds normal spm dwave --nk-list 8 12 16 24 32 --eta-list 1e-3 5e-4 1e-4 --matsubara-list 1 2 5 10 --temperature 30 --delta0 0.04
+python validation/scripts/numerical_stability/refine_high_nk_convergence.py --kinds normal spm dwave --nk-list 32 48 64 80 --eta-list 5e-4 1e-4 --matsubara-list 1 2 --temperature 30 --delta0 0.04
+python validation/scripts/numerical_stability/diagnose_normal_sampling_convergence.py --nk-list 32 48 64 80 96 128 --eta-list 1e-3 5e-4 2e-4 1e-4 --matsubara-list 1 2 5 --temperature 30 --sampling uniform shifted average
+python validation/scripts/numerical_stability/benchmark_normal_fs_sensitive_sampling.py --nk-list 32 48 64 80 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --shift-grid-list 1 2 4 8 --sampling uniform multishift_average fs_window_refined
+python validation/scripts/numerical_stability/benchmark_normal_fs_adaptive_integration.py --nk-list 32 48 64 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --refine-factor-list 2 4 6 --fs-window-factor 1.0 --sampling uniform multishift_average fs_adaptive --shift-grid 4
+python validation/scripts/response/compare_local_sheet_response_imag.py --kinds normal spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8
+python validation/scripts/numerical_stability/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
+python validation/scripts/numerical_stability/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
+python validation/scripts/response/compare_static_response_policies.py --kinds normal spm dwave --policies skip extrapolate_from_lowest_matsubara use_static_kernel --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001
+python validation/scripts/numerical_stability/assess_n0_torque_sensitivity.py --kinds normal spm dwave --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --reference-matsubara-min 1 --reference-matsubara-max 8 --sensitivity-threshold 0.01 --include-toy-anisotropic-control
+python validation/scripts/numerical_stability/diagnose_nonlocal_response_interface.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
+python validation/scripts/smoke/smoke_casimir_local_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
 python scripts/normal_state/compute_normal_state_conductivity_imag.py --nk 48 --matsubara-index 1
 ```
 
-`scripts/outline_casimir_process.py` 只用于未来 Casimir 流程的接口 smoke check，
+`validation/scripts/casimir/outline_casimir_process.py` 只用于未来 Casimir 流程的接口 smoke check，
 不属于当前 conductivity-symmetry 主线。
 
 ## 命名原则

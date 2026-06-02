@@ -11,8 +11,15 @@ from lno327.finite_q_response import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "diagnose_finite_q_raw_q0_consistency.py"
-SUMMARY = ROOT / "outputs" / "response" / "finite_q_raw_q0_consistency" / "finite_q_raw_q0_consistency_summary.md"
+SCRIPT = ROOT / "validation" / "scripts" / "response" / "diagnose_finite_q_raw_q0_consistency.py"
+SUMMARY = (
+    ROOT
+    / "validation"
+    / "outputs"
+    / "response"
+    / "finite_q_raw_q0_consistency"
+    / "finite_q_raw_q0_consistency_summary.md"
+)
 
 
 def test_raw_q0_bubble_runs_without_local_hook():

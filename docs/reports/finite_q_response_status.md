@@ -10,13 +10,13 @@ finite-q response 主线的目标是：不改 H0、不改 pairing，只在 respo
 
 ## 已完成诊断
 
-- `outputs/archive/response/finite_q_anisotropy/`：A4 angular anisotropy 初步诊断。
-- `outputs/archive/response/finite_q_local_limit/`：small-q local-limit decomposition。
-- `outputs/archive/response/finite_q_formula_consistency/`：vertex、BZ wrapping、denominator、
+- `validation/outputs/archive/response/finite_q_anisotropy/`：A4 angular anisotropy 初步诊断。
+- `validation/outputs/archive/response/finite_q_local_limit/`：small-q local-limit decomposition。
+- `validation/outputs/archive/response/finite_q_formula_consistency/`：vertex、BZ wrapping、denominator、
   overlap 的初步一致性排查。
-- `outputs/archive/response/finite_q_subspace_repair/`：near-degenerate subspace projector 与
+- `validation/outputs/archive/response/finite_q_subspace_repair/`：near-degenerate subspace projector 与
   raw/stable denominator 对照诊断。
-- `outputs/response/finite_q_raw_q0_consistency/`：raw q=0 bubble 与 local components 的
+- `validation/outputs/response/finite_q_raw_q0_consistency/`：raw q=0 bubble 与 local components 的
   定义层级一致性诊断。该目录是当前 active finite-q 输出。
 
 ## 当前结论
@@ -30,8 +30,8 @@ finite-q response 主线的目标是：不改 H0、不改 pairing，只在 respo
 - raw q=0 诊断显示 normal 可对齐 local_sigma，但 BdG 的 spm/dwave raw q=0 bubble
   没有对齐 local_sigma、K_para 或 K_total/omega，提示当前主要问题在 BdG formula layer /
   response 层级对齐。
-- 旧 finite-q 诊断结果已经归档到 `outputs/archive/response/`，对应旧脚本归档到
-  `scripts/archive/finite_q_diagnostics/`。
+- 旧 finite-q 诊断结果已经归档到 `validation/outputs/archive/response/`，对应旧脚本归档到
+  `validation/scripts/finite_q_diagnostics/`。
 
 ## 当前下一步
 

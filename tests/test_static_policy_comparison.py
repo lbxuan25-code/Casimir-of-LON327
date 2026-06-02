@@ -6,7 +6,13 @@ import pytest
 
 from lno327 import PairingAmplitudes, local_response_imag_axis
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "compare_static_response_policies.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "validation"
+    / "scripts"
+    / "response"
+    / "compare_static_response_policies.py"
+)
 SPEC = spec_from_file_location("compare_static_response_policies", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 compare_script = module_from_spec(SPEC)

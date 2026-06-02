@@ -3,7 +3,13 @@ from pathlib import Path
 
 import numpy as np
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "assess_n0_torque_sensitivity.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "validation"
+    / "scripts"
+    / "numerical_stability"
+    / "assess_n0_torque_sensitivity.py"
+)
 SPEC = spec_from_file_location("assess_n0_torque_sensitivity", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 n0_script = module_from_spec(SPEC)

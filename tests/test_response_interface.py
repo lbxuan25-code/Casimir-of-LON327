@@ -15,7 +15,13 @@ from lno327 import (
     validate_local_response_symmetry,
 )
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "compare_local_sheet_response_imag.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "validation"
+    / "scripts"
+    / "response"
+    / "compare_local_sheet_response_imag.py"
+)
 SPEC = spec_from_file_location("compare_local_sheet_response_imag", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 compare_script = module_from_spec(SPEC)

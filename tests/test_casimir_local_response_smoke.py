@@ -7,7 +7,13 @@ from lno327 import CasimirSetup, casimir_torque_integrand
 from lno327.casimir import matsubara_frequency
 from lno327.constants import E2_OVER_HBAR, SIGMA0
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "smoke_casimir_local_response.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "validation"
+    / "scripts"
+    / "smoke"
+    / "smoke_casimir_local_response.py"
+)
 SPEC = spec_from_file_location("smoke_casimir_local_response", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 smoke = module_from_spec(SPEC)

@@ -1,4 +1,8 @@
-"""LNO327 superconducting pairing and Casimir-torque foundations."""
+"""Compatibility facade for LNO327 superconducting pairing utilities.
+
+New downstream analysis code should prefer ``lno327.api`` for the narrower
+stable API. The package root keeps historical re-exports for existing scripts.
+"""
 
 from .bdg_response import (
     BdGEigensystem,

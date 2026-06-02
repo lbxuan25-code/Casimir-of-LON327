@@ -4,7 +4,7 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "validation" / "scripts" / "numerical_stability"))
 
 from benchmark_normal_fs_sensitive_sampling import (  # noqa: E402
     REQUIRED_NPZ_FIELDS,

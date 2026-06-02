@@ -6,9 +6,10 @@ import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "run_casimir_local_convergence_final.py"
+SCRIPT = ROOT / "validation" / "scripts" / "casimir" / "run_casimir_local_convergence_final.py"
 SUMMARY = (
     ROOT
+    / "validation"
     / "outputs"
     / "archive"
     / "casimir"
@@ -18,6 +19,7 @@ SUMMARY = (
 )
 COMMAND = (
     ROOT
+    / "validation"
     / "outputs"
     / "archive"
     / "casimir"
@@ -62,7 +64,7 @@ def test_dry_run_outputs_full_command():
     )
 
     command = result.stdout
-    assert "scripts/run_casimir_local_convergence_final.py" in command
+    assert "validation/scripts/casimir/run_casimir_local_convergence_final.py" in command
     assert "--matsubara-max-list 4 8 16 24" in command
     assert "--kparallel-num-list 32 64 96" in command
     assert "--kparallel-max-factor-list 20 40 60" in command

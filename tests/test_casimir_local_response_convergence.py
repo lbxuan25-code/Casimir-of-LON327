@@ -3,7 +3,13 @@ from pathlib import Path
 
 import numpy as np
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "converge_casimir_local_response_integral.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "validation"
+    / "scripts"
+    / "casimir"
+    / "converge_casimir_local_response_integral.py"
+)
 SPEC = spec_from_file_location("converge_casimir_local_response_integral", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 conv = module_from_spec(SPEC)

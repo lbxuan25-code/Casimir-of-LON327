@@ -3,7 +3,13 @@ from pathlib import Path
 
 import numpy as np
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "benchmark_bdg_normal_limit.py"
+SCRIPT_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "validation"
+    / "scripts"
+    / "numerical_stability"
+    / "benchmark_bdg_normal_limit.py"
+)
 SPEC = spec_from_file_location("benchmark_bdg_normal_limit", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 benchmark_script = module_from_spec(SPEC)

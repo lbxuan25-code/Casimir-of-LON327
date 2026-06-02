@@ -28,16 +28,16 @@ zero-torque baseline，未发现 spurious torque。
 
 旧中间诊断已经归档：
 
-- normal sampling 诊断：`outputs/archive/normal_state/`
-- local-response convergence / refined convergence：`outputs/archive/casimir/local_response_integral/`
-- smoke 输出：`outputs/archive/smoke/`
+- normal sampling 诊断：`validation/outputs/archive/normal_state/`
+- local-response convergence / refined convergence：`validation/outputs/archive/casimir/local_response_integral/`
+- smoke 输出：`validation/outputs/archive/smoke/`
 
 当前 active local-response 输出保留：
 
-- `outputs/casimir/local_response_integral/distance_scan/`
-- `outputs/cache/casimir_local_response/response_tensors/`
+- `validation/outputs/casimir/local_response_integral/distance_scan/`
+- `validation/cache/casimir_local_response/response_tensors/`
 
-注意：cache 单独放在 `outputs/cache/`，避免与 distance scan 的正式数据和图像混在一起。
+注意：cache 单独放在 `validation/cache/`，避免与 distance scan 的正式数据和图像混在一起。
 
 ## 当前用途
 

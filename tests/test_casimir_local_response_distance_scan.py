@@ -5,8 +5,8 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "benchmark_casimir_local_response_distance_scan.py"
-SCAN_ROOT = ROOT / "outputs" / "casimir" / "local_response_integral" / "distance_scan"
+SCRIPT = ROOT / "validation" / "scripts" / "casimir" / "benchmark_casimir_local_response_distance_scan.py"
+SCAN_ROOT = ROOT / "validation" / "outputs" / "casimir" / "local_response_integral" / "distance_scan"
 SUMMARY = SCAN_ROOT / "distance_scan_summary.md"
 COMMAND = SCAN_ROOT / "distance_scan_command.sh"
 
@@ -51,7 +51,7 @@ def test_dry_run_outputs_full_command():
     )
 
     command = result.stdout
-    assert "scripts/benchmark_casimir_local_response_distance_scan.py" in command
+    assert "validation/scripts/casimir/benchmark_casimir_local_response_distance_scan.py" in command
     assert "--distance-list 3e-08 5e-08 7.5e-08 1e-07 1.5e-07 2e-07" in command
     assert "--matsubara-max 64" in command
     assert "--u-max 80" in command

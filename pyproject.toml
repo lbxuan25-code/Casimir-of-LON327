@@ -9,9 +9,19 @@ description = "Foundational LNO327 superconducting pairing and Casimir-torque ut
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.23", "scipy>=1.9"]
 
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+plot = ["matplotlib>=3.6"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+    "unit: fast tests for stable package behavior and local numerical identities",
+    "diagnostic: tests that exercise research diagnostics and prototype result fields",
+    "benchmark: reduced-size benchmark and convergence plumbing tests",
+    "regression: historical research-stage behavior kept to protect prior conclusions",
+]

@@ -5,8 +5,16 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "archive" / "finite_q_diagnostics" / "diagnose_finite_q_local_limit_decomposition.py"
-SUMMARY = ROOT / "outputs" / "archive" / "response" / "finite_q_local_limit" / "finite_q_local_limit_summary.md"
+SCRIPT = ROOT / "validation" / "scripts" / "finite_q_diagnostics" / "diagnose_finite_q_local_limit_decomposition.py"
+SUMMARY = (
+    ROOT
+    / "validation"
+    / "outputs"
+    / "archive"
+    / "response"
+    / "finite_q_local_limit"
+    / "finite_q_local_limit_summary.md"
+)
 
 
 def test_quick_mode_generates_outputs(tmp_path):

@@ -11,8 +11,16 @@ from lno327.finite_q_response import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "archive" / "finite_q_diagnostics" / "diagnose_finite_q_subspace_denominator_repair.py"
-SUMMARY = ROOT / "outputs" / "archive" / "response" / "finite_q_subspace_repair" / "finite_q_subspace_repair_summary.md"
+SCRIPT = ROOT / "validation" / "scripts" / "finite_q_diagnostics" / "diagnose_finite_q_subspace_denominator_repair.py"
+SUMMARY = (
+    ROOT
+    / "validation"
+    / "outputs"
+    / "archive"
+    / "response"
+    / "finite_q_subspace_repair"
+    / "finite_q_subspace_repair_summary.md"
+)
 
 
 def test_subspace_grouping_runs():
