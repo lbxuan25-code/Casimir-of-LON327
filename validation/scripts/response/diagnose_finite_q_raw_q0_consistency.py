@@ -28,10 +28,10 @@ from lno327.plotting import (  # noqa: E402
 KINDS = ("normal", "spm", "dwave")
 DENOMINATOR_MODES = ("raw", "stable")
 COMPONENT_FIELDS = (
-    ("error_raw_to_local_sigma", "local_sigma"),
-    ("error_raw_to_local_K_para", "K_para"),
-    ("error_raw_to_local_K_total", "K_total"),
-    ("error_raw_to_local_K_total_over_omega", "K_total/omega"),
+    ("error_K_para_q0_to_local_K_para", "K_para(q0) vs local K_para"),
+    ("error_K_total_q0_to_local_K_total", "K_total(q0) vs local K_total"),
+    ("error_Sigma_SC_q0_to_local_K_total_over_omega", "Sigma_SC(q0) vs local K_total/omega"),
+    ("error_raw_to_local_sigma", "raw compatibility vs local_sigma"),
     ("error_raw_to_normal_kubo_sigma", "normal_kubo_sigma"),
 )
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "finite_q_raw_q0_consistency"
@@ -50,6 +50,10 @@ def _empty_data() -> dict[str, np.ndarray]:
         "denominator_mode": np.array([], dtype="U16"),
         "deg_tol": np.array([], dtype=float),
         "raw_q0_bubble": np.array([], dtype=object),
+        "K_para_q0": np.array([], dtype=object),
+        "K_dia_q0": np.array([], dtype=object),
+        "K_total_q0": np.array([], dtype=object),
+        "Sigma_SC_q0": np.array([], dtype=object),
         "local_sigma": np.array([], dtype=object),
         "local_K_para": np.array([], dtype=object),
         "local_K_dia": np.array([], dtype=object),
@@ -62,12 +66,23 @@ def _empty_data() -> dict[str, np.ndarray]:
         "error_raw_to_local_K_total": np.array([], dtype=float),
         "error_raw_to_local_K_total_over_omega": np.array([], dtype=float),
         "error_raw_to_normal_kubo_sigma": np.array([], dtype=float),
+        "error_K_para_q0_to_local_K_para": np.array([], dtype=float),
+        "error_K_total_q0_to_local_K_total": np.array([], dtype=float),
+        "error_Sigma_SC_q0_to_local_K_total_over_omega": np.array([], dtype=float),
         "error_hook_to_local_sigma": np.array([], dtype=float),
         "best_raw_q0_match_component": np.array([], dtype="U48"),
         "best_raw_q0_relative_error": np.array([], dtype=float),
         "raw_q0_matches_local_sigma": np.array([], dtype=bool),
         "raw_q0_matches_K_para": np.array([], dtype=bool),
         "raw_q0_matches_K_total_over_omega": np.array([], dtype=bool),
+        "K_para_q0_matches_local_K_para": np.array([], dtype=bool),
+        "K_total_q0_matches_local_K_total": np.array([], dtype=bool),
+        "Sigma_SC_q0_matches_local_K_total_over_omega": np.array([], dtype=bool),
+        "response_layer": np.array([], dtype="U64"),
+        "contains_dia": np.array([], dtype=bool),
+        "finite_q_dia_status": np.array([], dtype="U48"),
+        "ward_status": np.array([], dtype="U32"),
+        "valid_for_casimir_input": np.array([], dtype=bool),
         "formula_layer_diagnosis": np.array([], dtype="U96"),
         "diagnostic_status": np.array([], dtype="U256"),
         "gauge_status": np.array([], dtype="U64"),
@@ -97,6 +112,10 @@ def _rows_from_results(results: list[FiniteQRawQ0Consistency]) -> list[dict[str,
                 "denominator_mode": result.denominator_mode,
                 "deg_tol": result.deg_tol,
                 "raw_q0_bubble": result.raw_q0_bubble,
+                "K_para_q0": result.K_para_q0,
+                "K_dia_q0": result.K_dia_q0,
+                "K_total_q0": result.K_total_q0,
+                "Sigma_SC_q0": result.Sigma_SC_q0,
                 "local_sigma": result.local_sigma,
                 "local_K_para": result.local_K_para,
                 "local_K_dia": result.local_K_dia,
@@ -109,12 +128,23 @@ def _rows_from_results(results: list[FiniteQRawQ0Consistency]) -> list[dict[str,
                 "error_raw_to_local_K_total": result.error_raw_to_local_K_total,
                 "error_raw_to_local_K_total_over_omega": result.error_raw_to_local_K_total_over_omega,
                 "error_raw_to_normal_kubo_sigma": result.error_raw_to_normal_kubo_sigma,
+                "error_K_para_q0_to_local_K_para": result.error_K_para_q0_to_local_K_para,
+                "error_K_total_q0_to_local_K_total": result.error_K_total_q0_to_local_K_total,
+                "error_Sigma_SC_q0_to_local_K_total_over_omega": result.error_Sigma_SC_q0_to_local_K_total_over_omega,
                 "error_hook_to_local_sigma": result.error_hook_to_local_sigma,
                 "best_raw_q0_match_component": result.best_raw_q0_match_component,
                 "best_raw_q0_relative_error": result.best_raw_q0_relative_error,
                 "raw_q0_matches_local_sigma": result.raw_q0_matches_local_sigma,
                 "raw_q0_matches_K_para": result.raw_q0_matches_K_para,
                 "raw_q0_matches_K_total_over_omega": result.raw_q0_matches_K_total_over_omega,
+                "K_para_q0_matches_local_K_para": result.K_para_q0_matches_local_K_para,
+                "K_total_q0_matches_local_K_total": result.K_total_q0_matches_local_K_total,
+                "Sigma_SC_q0_matches_local_K_total_over_omega": result.Sigma_SC_q0_matches_local_K_total_over_omega,
+                "response_layer": result.response_layer,
+                "contains_dia": result.contains_dia,
+                "finite_q_dia_status": result.finite_q_dia_status,
+                "ward_status": result.ward_status,
+                "valid_for_casimir_input": result.valid_for_casimir_input,
                 "formula_layer_diagnosis": result.formula_layer_diagnosis,
                 "diagnostic_status": result.diagnostic_status,
                 "gauge_status": result.gauge_status,
@@ -132,6 +162,10 @@ def _append_rows(data: dict[str, np.ndarray], rows: list[dict[str, object]]) -> 
     new_data = _empty_data()
     object_fields = {
         "raw_q0_bubble",
+        "K_para_q0",
+        "K_dia_q0",
+        "K_total_q0",
+        "Sigma_SC_q0",
         "local_sigma",
         "local_K_para",
         "local_K_dia",
@@ -251,21 +285,20 @@ def _summary_lines(data: dict[str, np.ndarray], args: argparse.Namespace) -> lis
     normal = data["kind"] == "normal"
     bdg = data["kind"] != "normal"
     normal_q0_pass = bool(_min_by_mask(data, "error_raw_to_local_sigma", normal) < 1e-3)
-    bdg_sigma_like = bool(np.any(data["raw_q0_matches_local_sigma"][bdg]))
-    bdg_para_like = bool(np.any((data["best_raw_q0_match_component"] == "local_K_para") & (data["best_raw_q0_relative_error"] < 1e-3)))
-    bdg_total_over_omega_like = bool(
-        np.any((data["best_raw_q0_match_component"] == "local_K_total_over_omega") & (data["best_raw_q0_relative_error"] < 1e-3))
-    )
+    bdg_para_like = bool(np.any(data["K_para_q0_matches_local_K_para"][bdg]))
+    bdg_total_like = bool(np.any(data["K_total_q0_matches_local_K_total"][bdg]))
+    bdg_sigma_consistent = bool(np.any(data["Sigma_SC_q0_matches_local_K_total_over_omega"][bdg]))
     unmatched = bool(np.any(data["best_raw_q0_relative_error"] >= 1e-2))
     recommend_normal = bool(not normal_q0_pass)
-    recommend_bdg = bool(normal_q0_pass and not bdg_sigma_like)
-    recommend_smoothness = bool(normal_q0_pass and bdg_sigma_like)
+    recommend_bdg = bool(not (bdg_para_like and bdg_total_like and bdg_sigma_consistent))
+    recommend_smoothness = bool(normal_q0_pass and bdg_para_like and bdg_total_like and bdg_sigma_consistent)
     diagnoses = sorted(set(str(item) for item in data["formula_layer_diagnosis"]))
     lines = [
-        "# finite-q raw q=0 formula consistency 诊断摘要",
+        "# finite-q q=0 BdG kernel-stack consistency 诊断摘要",
         "",
-        "本轮目标是检查 raw q=0 finite-q bubble 与已有 local response 的定义层级是否一致。",
-        "q=0 hook 会直接返回 local reference；raw q=0 bubble 则强制走与 q>0 相同的 finite-q bubble 公式。",
+        "本轮目标是检查 q=0 finite-q response 层级是否与已有 local BdG kernel 定义一致。",
+        "优先级为 K_para(q=0) 对 local K_para，再到 K_total(q=0) 对 local K_total，最后是 Sigma_SC(q=0)=K_total/omega。",
+        "raw_q0_bubble 仅作为兼容字段保留，含义等同 K_para_q0，不再解释为 Sigma_SC 或 conductivity。",
         "",
         f"kinds={list(args.kinds)}",
         f"matsubara_list={list(args.matsubara_list)}",
@@ -279,17 +312,23 @@ def _summary_lines(data: dict[str, np.ndarray], args: argparse.Namespace) -> lis
         f"normal_q0_consistency_pass={normal_q0_pass}",
         f"normal_min_error_raw_to_local_sigma={_min_by_mask(data, 'error_raw_to_local_sigma', normal):.6g}",
         f"normal_min_error_hook_to_local_sigma={_min_by_mask(data, 'error_hook_to_local_sigma', normal):.6g}",
-        f"bdg_raw_q0_sigma_like={bdg_sigma_like}",
-        f"bdg_raw_q0_para_like={bdg_para_like}",
-        f"bdg_raw_q0_total_over_omega_like={bdg_total_over_omega_like}",
+        f"bdg_K_para_q0_consistent={bdg_para_like}",
+        f"bdg_K_total_q0_consistent={bdg_total_like}",
+        f"bdg_Sigma_SC_q0_consistent={bdg_sigma_consistent}",
+        f"bdg_min_error_K_para_q0_to_local_K_para={_min_by_mask(data, 'error_K_para_q0_to_local_K_para', bdg):.6g}",
+        f"bdg_min_error_K_total_q0_to_local_K_total={_min_by_mask(data, 'error_K_total_q0_to_local_K_total', bdg):.6g}",
+        f"bdg_min_error_Sigma_SC_q0_to_local_K_total_over_omega={_min_by_mask(data, 'error_Sigma_SC_q0_to_local_K_total_over_omega', bdg):.6g}",
         f"raw_q0_unmatched={unmatched}",
         f"spm_best_match={_best_match_for_kind(data, 'spm')}",
         f"dwave_best_match={_best_match_for_kind(data, 'dwave')}",
         f"formula_layer_mismatch_detected={bool(recommend_normal or recommend_bdg or unmatched)}",
         f"recommend_normal_kubo_formula_repair={recommend_normal}",
-        f"recommend_bdg_layer_alignment={recommend_bdg}",
+        f"recommend_bdg_kernel_stack_alignment={recommend_bdg}",
         f"recommend_formula_rederive={unmatched}",
         f"recommend_return_to_small_q_smoothness_diagnostic={recommend_smoothness}",
+        f"finite_q_dia_statuses={sorted(set(str(item) for item in data['finite_q_dia_status']))}",
+        f"ward_statuses={sorted(set(str(item) for item in data['ward_status']))}",
+        f"any_valid_for_casimir_input={bool(np.any(data['valid_for_casimir_input']))}",
         "",
         "## formula_layer_diagnosis",
     ]
@@ -300,8 +339,10 @@ def _summary_lines(data: dict[str, np.ndarray], args: argparse.Namespace) -> lis
             "",
             "## 限制",
             "- 当前 finite-q response 仍不是 Ward 完备",
-            "- finite-q diamagnetic / Ward closure 未完成",
+            "- finite-q diamagnetic 目前只提供 q0_fallback_only",
+            "- Ward closure 未完成，ward_status=not_closed",
             "- n=0 model 未完成",
+            "- valid_for_casimir_input=False",
             "- final_casimir_input=False",
             "- not_final_Casimir_conclusion=True",
         ]

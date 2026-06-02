@@ -15,18 +15,19 @@ temperature=30.0
 delta0=0.04
 eta=0.0001
 
-global_best_match_component=local_sigma
-best_match_components_at_min_q_max_nk=['local_sigma']
-best_match_relative_error_at_min_q_max_nk=2.77213e-05
+global_best_match_component=local_K_para
+best_match_components_at_min_q_max_nk=['local_K_para', 'local_sigma']
+best_match_relative_error_at_min_q_max_nk=3.15531e-09
 local_limit_component_match_candidate=True
 small_q_error_monotonic_in_q=False
 error_improves_with_nk=False
-likely_missing_contact_or_diamagnetic_completion=False
+likely_missing_contact_or_diamagnetic_completion=True
 likely_formula_or_vertex_mismatch=True
 worth_next_finite_q_casimir_plumbing_smoke=False
 
 ## 诊断状态
 - best_matches_local_sigma;warning_small_q_not_smooth;likely_formula_or_vertex_mismatch
+- likely_matches_paramagnetic_kernel;likely_missing_contact_or_diamagnetic_completion
 
 ## 建议
 recommend_finite_q_formula_repair=True

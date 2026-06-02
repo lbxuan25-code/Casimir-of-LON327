@@ -29,6 +29,9 @@ from .response_units import (
 
 RATIO_EPS = 1e-300
 LOCAL_LIMIT_RELATIVE_TOLERANCE = 1e-8
+Q0_KERNEL_RELATIVE_TOLERANCE = 1e-3
+FINITE_Q_DIA_STATUS_Q0_FALLBACK = "q0_fallback_only"
+WARD_STATUS_NOT_CLOSED = "not_closed"
 
 
 def _wrap_bz(points: np.ndarray) -> np.ndarray:
@@ -133,7 +136,7 @@ def _response_factor(
     return float(-occupation_diff * energy_diff / (energy_diff**2 + omega**2))
 
 
-def _finite_q_bubble(
+def _finite_q_paramagnetic_kernel(
     *,
     kind: ResponseKind,
     omega_eV: float,
@@ -145,6 +148,13 @@ def _finite_q_bubble(
     denominator_mode: DenominatorMode = "raw",
     deg_tol: float = 1e-7,
 ) -> np.ndarray:
+    """Evaluate the finite-q paramagnetic current-current kernel.
+
+    This is the raw bubble layer, i.e. K_para(i xi, q). It is not a
+    conductivity and is not Sigma_SC; BdG responses must add the contact term
+    before division by the positive Matsubara energy.
+    """
+
     mesh, weights = _uniform_bz_mesh(nk)
     config = KuboConfig.from_kelvin(
         omega_eV=omega_eV,
@@ -213,9 +223,34 @@ def _finite_q_bubble(
                             * reverse_vertex_band[beta][n, m]
                         )
 
-    if kind in {"spm", "dwave"}:
-        matrix = matrix / omega_eV
     return matrix
+
+
+def _finite_q_bubble(
+    *,
+    kind: ResponseKind,
+    omega_eV: float,
+    temperature_K: float,
+    eta_eV: float,
+    q_vector: np.ndarray,
+    nk: int,
+    delta0_eV: float,
+    denominator_mode: DenominatorMode = "raw",
+    deg_tol: float = 1e-7,
+) -> np.ndarray:
+    """Deprecated compatibility alias for the finite-q paramagnetic kernel."""
+
+    return _finite_q_paramagnetic_kernel(
+        kind=kind,
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta_eV,
+        q_vector=q_vector,
+        nk=nk,
+        delta0_eV=delta0_eV,
+        denominator_mode=denominator_mode,
+        deg_tol=deg_tol,
+    )
 
 
 def _formula_consistency_stats(
@@ -616,6 +651,147 @@ def _local_component_matrices(
     )
 
 
+def _require_bdg_kind(kind: ResponseKind) -> None:
+    if kind not in {"spm", "dwave"}:
+        raise ValueError("BdG finite-q kernel functions require kind to be spm or dwave")
+
+
+def _q_vector_from_polar(q_magnitude: float, q_phi: float) -> np.ndarray:
+    if q_magnitude < 0.0:
+        raise ValueError("q_magnitude must be non-negative")
+    return np.array([q_magnitude * np.cos(q_phi), q_magnitude * np.sin(q_phi)], dtype=float)
+
+
+def bdg_finite_q_paramagnetic_kernel(
+    kind: ResponseKind,
+    matsubara_index: int,
+    temperature_K: float,
+    q_magnitude: float,
+    q_phi: float,
+    nk: int,
+    delta0: float,
+    eta: float,
+    denominator_mode: DenominatorMode = "raw",
+    deg_tol: float = 1e-7,
+) -> np.ndarray:
+    """Return BdG finite-q K_para(i xi, q) from the current-current bubble."""
+
+    _require_bdg_kind(kind)
+    omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
+    return _finite_q_paramagnetic_kernel(
+        kind=kind,
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta,
+        q_vector=_q_vector_from_polar(q_magnitude, q_phi),
+        nk=nk,
+        delta0_eV=delta0,
+        denominator_mode=denominator_mode,
+        deg_tol=deg_tol,
+    )
+
+
+def bdg_finite_q_diamagnetic_kernel(
+    kind: ResponseKind,
+    matsubara_index: int,
+    temperature_K: float,
+    q_magnitude: float,
+    q_phi: float,
+    nk: int,
+    delta0: float,
+    eta: float,
+) -> np.ndarray:
+    """Return the current finite-q K_dia fallback.
+
+    The finite-q contact term is not implemented. This function deliberately
+    returns the local q=0 BdG diamagnetic kernel as a marked fallback, with
+    ``finite_q_dia_status=q0_fallback_only`` in diagnostics.
+    """
+
+    _require_bdg_kind(kind)
+    _ = q_magnitude, q_phi
+    omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
+    _local_sigma, _k_para, k_dia, _k_total, _k_total_over_omega, _normal_kubo = _local_component_matrices(
+        kind,
+        omega_eV,
+        temperature_K,
+        eta,
+        nk,
+        delta0,
+    )
+    return k_dia
+
+
+def bdg_finite_q_total_kernel(
+    kind: ResponseKind,
+    matsubara_index: int,
+    temperature_K: float,
+    q_magnitude: float,
+    q_phi: float,
+    nk: int,
+    delta0: float,
+    eta: float,
+    denominator_mode: DenominatorMode = "raw",
+    deg_tol: float = 1e-7,
+) -> np.ndarray:
+    """Return K_total = K_para + K_dia for the current BdG finite-q stack."""
+
+    k_para = bdg_finite_q_paramagnetic_kernel(
+        kind,
+        matsubara_index,
+        temperature_K,
+        q_magnitude,
+        q_phi,
+        nk,
+        delta0,
+        eta,
+        denominator_mode,
+        deg_tol,
+    )
+    k_dia = bdg_finite_q_diamagnetic_kernel(
+        kind,
+        matsubara_index,
+        temperature_K,
+        q_magnitude,
+        q_phi,
+        nk,
+        delta0,
+        eta,
+    )
+    return k_para + k_dia
+
+
+def bdg_finite_q_sigma_like_response(
+    kind: ResponseKind,
+    matsubara_index: int,
+    temperature_K: float,
+    q_magnitude: float,
+    q_phi: float,
+    nk: int,
+    delta0: float,
+    eta: float,
+    denominator_mode: DenominatorMode = "raw",
+    deg_tol: float = 1e-7,
+) -> np.ndarray:
+    """Return Sigma_SC(i xi, q) = K_total(i xi, q) / xi for n >= 1 only."""
+
+    if matsubara_index < 1:
+        raise ValueError("Sigma_SC=K_total/omega is only defined here for positive Matsubara n>=1")
+    omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
+    return bdg_finite_q_total_kernel(
+        kind,
+        matsubara_index,
+        temperature_K,
+        q_magnitude,
+        q_phi,
+        nk,
+        delta0,
+        eta,
+        denominator_mode,
+        deg_tol,
+    ) / omega_eV
+
+
 def _a4_from_matrix_pair(matrix_phi0: np.ndarray, matrix_phi45: np.ndarray) -> tuple[float, float]:
     xx0 = complex(matrix_phi0[0, 0])
     xx45 = complex(matrix_phi45[0, 0])
@@ -655,8 +831,19 @@ def bdg_finite_q_response_imag_axis(
     local_reference = _local_reference(kind, omega_eV, temperature_K, eta, nk, delta0)
     if np.isclose(q_magnitude, 0.0):
         response_model = np.array(local_reference, dtype=complex, copy=True)
+    elif kind in {"spm", "dwave"}:
+        response_model = bdg_finite_q_sigma_like_response(
+            kind,
+            matsubara_index,
+            temperature_K,
+            q_magnitude,
+            q_phi,
+            nk,
+            delta0,
+            eta,
+        )
     else:
-        response_model = _finite_q_bubble(
+        response_model = _finite_q_paramagnetic_kernel(
             kind=kind,
             omega_eV=omega_eV,
             temperature_K=temperature_K,
@@ -681,7 +868,10 @@ def bdg_finite_q_response_imag_axis(
         "q_magnitude is dimensionless BZ momentum",
         "symmetric k +/- q/2 sampling",
         "gradient/Peierls finite-q current vertex prototype",
+        "BdG q>0 response_model is Sigma_SC=K_total/omega with q=0 K_dia fallback",
         "finite-q diamagnetic and Ward identity are not closed",
+        "ward_status=not_closed",
+        "valid_for_casimir_input=False",
         "not a final gauge-invariant finite-q Casimir input",
         "not a final Casimir torque conclusion",
     )
@@ -784,7 +974,7 @@ def finite_q_local_limit_decomposition(
         raise ValueError("small_q must be positive")
     omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
     q_vector = np.array([small_q * np.cos(q_phi), small_q * np.sin(q_phi)], dtype=float)
-    finite_q = _finite_q_bubble(
+    finite_q = _finite_q_paramagnetic_kernel(
         kind=kind,
         omega_eV=omega_eV,
         temperature_K=temperature_K,
@@ -1053,10 +1243,11 @@ def finite_q_raw_bubble_response(
     denominator_mode: DenominatorMode = "raw",
     deg_tol: float = 1e-7,
 ) -> np.ndarray:
-    """Evaluate the raw finite-q bubble formula, including at q=0.
+    """Evaluate the finite-q paramagnetic kernel formula, including at q=0.
 
     This intentionally bypasses the q=0 local-reference hook used by
-    ``bdg_finite_q_response_imag_axis``. It is diagnostic-only and does not
+    ``bdg_finite_q_response_imag_axis``. This compatibility name returns
+    K_para, not Sigma_SC or a conductivity. It is diagnostic-only and does not
     make the prototype Ward complete.
     """
 
@@ -1064,7 +1255,7 @@ def finite_q_raw_bubble_response(
         raise ValueError("q_magnitude must be non-negative")
     omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
     q_vector = np.array([q_magnitude * np.cos(q_phi), q_magnitude * np.sin(q_phi)], dtype=float)
-    return _finite_q_bubble(
+    return _finite_q_paramagnetic_kernel(
         kind=kind,
         omega_eV=omega_eV,
         temperature_K=temperature_K,
@@ -1077,21 +1268,25 @@ def finite_q_raw_bubble_response(
     )
 
 
-def _raw_q0_formula_layer_diagnosis(kind: ResponseKind, errors: dict[str, float], best_component: str) -> str:
+def _raw_q0_formula_layer_diagnosis(
+    kind: ResponseKind,
+    errors: dict[str, float],
+    best_component: str,
+    kernel_errors: dict[str, float] | None = None,
+) -> str:
     if kind == "normal":
         if errors["local_sigma"] < 1e-3:
             return "normal_sigma_like"
         return "normal_finite_q_formula_mismatch"
-    if errors["local_sigma"] < 1e-3:
-        return "bdg_sigma_like"
-    if best_component == "local_K_para" and errors["local_K_para"] < 1e-3:
-        return "bdg_para_like"
-    if best_component == "local_K_total" and errors["local_K_total"] < 1e-3:
-        return "bdg_total_kernel_like"
-    if best_component == "local_K_total_over_omega" and errors["local_K_total_over_omega"] < 1e-3:
-        return "bdg_total_over_omega_like"
+    kernel_errors = kernel_errors or {}
+    if kernel_errors.get("K_para", np.nan) < Q0_KERNEL_RELATIVE_TOLERANCE:
+        return "bdg_K_para_q0_consistent"
+    if kernel_errors.get("K_total", np.nan) < Q0_KERNEL_RELATIVE_TOLERANCE:
+        return "bdg_K_total_q0_consistent"
+    if kernel_errors.get("Sigma_SC", np.nan) < Q0_KERNEL_RELATIVE_TOLERANCE:
+        return "bdg_Sigma_SC_q0_consistent"
     if all((not np.isfinite(value)) or value >= 1e-2 for value in errors.values()):
-        return "raw_q0_unmatched"
+        return "bdg_q0_kernel_stack_mismatch"
     return f"bdg_closest_to_{best_component}"
 
 
@@ -1105,21 +1300,9 @@ def finite_q_q0_formula_consistency(
     denominator_mode: DenominatorMode = "raw",
     deg_tol: float = 1e-7,
 ) -> FiniteQRawQ0Consistency:
-    """Compare raw q=0 bubble against local response components."""
+    """Compare q=0 finite-q kernel stack against local response components."""
 
     omega_eV = _bosonic_matsubara_energy_eV(matsubara_index, temperature_K)
-    raw_q0 = finite_q_raw_bubble_response(
-        kind,
-        matsubara_index,
-        temperature_K,
-        0.0,
-        0.0,
-        nk,
-        delta0,
-        eta,
-        denominator_mode,
-        deg_tol,
-    )
     hook = bdg_finite_q_response_imag_axis(
         kind,
         matsubara_index,
@@ -1138,6 +1321,54 @@ def finite_q_q0_formula_consistency(
         nk,
         delta0,
     )
+    if kind in {"spm", "dwave"}:
+        k_para_q0 = bdg_finite_q_paramagnetic_kernel(
+            kind,
+            matsubara_index,
+            temperature_K,
+            0.0,
+            0.0,
+            nk,
+            delta0,
+            eta,
+            denominator_mode,
+            deg_tol,
+        )
+        k_dia_q0 = bdg_finite_q_diamagnetic_kernel(
+            kind,
+            matsubara_index,
+            temperature_K,
+            0.0,
+            0.0,
+            nk,
+            delta0,
+            eta,
+        )
+        k_total_q0 = k_para_q0 + k_dia_q0
+        sigma_sc_q0 = k_total_q0 / omega_eV
+        response_layer = "bdg_finite_q_kernel_stack"
+        contains_dia = True
+        finite_q_dia_status = FINITE_Q_DIA_STATUS_Q0_FALLBACK
+    else:
+        k_para_q0 = finite_q_raw_bubble_response(
+            kind,
+            matsubara_index,
+            temperature_K,
+            0.0,
+            0.0,
+            nk,
+            delta0,
+            eta,
+            denominator_mode,
+            deg_tol,
+        )
+        k_dia_q0 = _nan_matrix()
+        k_total_q0 = _nan_matrix()
+        sigma_sc_q0 = _nan_matrix()
+        response_layer = "normal_paramagnetic_bubble"
+        contains_dia = False
+        finite_q_dia_status = "not_applicable"
+    raw_q0 = k_para_q0
     errors = {
         "local_sigma": _relative_error_or_nan(raw_q0, local_sigma),
         "local_K_para": _relative_error_or_nan(raw_q0, k_para),
@@ -1145,25 +1376,49 @@ def finite_q_q0_formula_consistency(
         "local_K_total_over_omega": _relative_error_or_nan(raw_q0, k_total_over_omega),
         "normal_kubo_sigma": _relative_error_or_nan(raw_q0, normal_kubo),
     }
+    kernel_errors = {
+        "K_para": _relative_error_or_nan(k_para_q0, k_para),
+        "K_total": _relative_error_or_nan(k_total_q0, k_total),
+        "Sigma_SC": _relative_error_or_nan(sigma_sc_q0, k_total_over_omega),
+    }
     best_component, best_error = _best_component(errors)
     hook_error = _relative_error_or_nan(hook, local_sigma)
-    diagnosis = _raw_q0_formula_layer_diagnosis(kind, errors, best_component)
+    diagnosis = _raw_q0_formula_layer_diagnosis(kind, errors, best_component, kernel_errors)
     status_parts = [diagnosis]
     if kind == "normal" and errors["local_sigma"] >= 1e-3:
         status_parts.append("recommend_normal_kubo_formula_repair")
-    if kind != "normal" and errors["local_sigma"] >= 1e-3:
-        status_parts.append("recommend_bdg_layer_alignment")
-    if diagnosis == "raw_q0_unmatched":
+    if kind != "normal":
+        if np.isfinite(kernel_errors["K_para"]) and kernel_errors["K_para"] < Q0_KERNEL_RELATIVE_TOLERANCE:
+            status_parts.append("K_para_q0_consistency_pass")
+        else:
+            status_parts.append("K_para_q0_consistency_fail")
+        if np.isfinite(kernel_errors["K_total"]) and kernel_errors["K_total"] < Q0_KERNEL_RELATIVE_TOLERANCE:
+            status_parts.append("K_total_q0_consistency_pass")
+        else:
+            status_parts.append("K_total_q0_consistency_fail")
+        if np.isfinite(kernel_errors["Sigma_SC"]) and kernel_errors["Sigma_SC"] < Q0_KERNEL_RELATIVE_TOLERANCE:
+            status_parts.append("Sigma_SC_q0_consistency_pass")
+        else:
+            status_parts.append("Sigma_SC_q0_consistency_fail")
+        status_parts.append(f"finite_q_dia_status={finite_q_dia_status}")
+        status_parts.append(f"ward_status={WARD_STATUS_NOT_CLOSED}")
+        status_parts.append("valid_for_casimir_input=False")
+    if diagnosis == "bdg_q0_kernel_stack_mismatch":
         status_parts.append("recommend_formula_rederive")
-    if kind != "normal" and diagnosis == "bdg_para_like":
+    if kind != "normal" and diagnosis == "bdg_K_para_q0_consistent":
         status_parts.append("finite_q_bubble_is_para_like_not_sheet_conductivity")
-    if errors["local_sigma"] < 1e-3 and (kind == "normal" or diagnosis == "bdg_sigma_like"):
+    if kind == "normal" and errors["local_sigma"] < 1e-3:
         status_parts.append("raw_q0_consistency_pass")
     notes = (
-        "finite-q raw q=0 formula consistency diagnostic",
-        "raw_q0_bubble bypasses the q=0 local-reference hook",
-        "raw_q0_bubble uses the same bubble formula as finite q>0",
+        "finite-q q=0 kernel-stack consistency diagnostic",
+        "raw_q0_bubble is retained as a compatibility name for K_para_q0",
+        "K_para_q0 bypasses the q=0 local-reference hook",
+        "K_para_q0 uses the same paramagnetic bubble formula as finite q>0",
+        "K_dia_q0 currently uses local q=0 fallback only",
+        "Sigma_SC_q0 is computed only as K_total_q0/omega for n>=1",
         "no empirical rescaling or artificial contact term applied",
+        "ward_status=not_closed",
+        "valid_for_casimir_input=False",
         "final_casimir_input=False",
         "not a final Casimir torque conclusion",
     )
@@ -1177,6 +1432,10 @@ def finite_q_q0_formula_consistency(
         denominator_mode=denominator_mode,
         deg_tol=deg_tol,
         raw_q0_bubble=raw_q0,
+        K_para_q0=k_para_q0,
+        K_dia_q0=k_dia_q0,
+        K_total_q0=k_total_q0,
+        Sigma_SC_q0=sigma_sc_q0,
         local_sigma=local_sigma,
         local_K_para=k_para,
         local_K_dia=k_dia,
@@ -1189,6 +1448,9 @@ def finite_q_q0_formula_consistency(
         error_raw_to_local_K_total=errors["local_K_total"],
         error_raw_to_local_K_total_over_omega=errors["local_K_total_over_omega"],
         error_raw_to_normal_kubo_sigma=errors["normal_kubo_sigma"],
+        error_K_para_q0_to_local_K_para=kernel_errors["K_para"],
+        error_K_total_q0_to_local_K_total=kernel_errors["K_total"],
+        error_Sigma_SC_q0_to_local_K_total_over_omega=kernel_errors["Sigma_SC"],
         error_hook_to_local_sigma=hook_error,
         best_raw_q0_match_component=best_component,
         best_raw_q0_relative_error=best_error,
@@ -1197,6 +1459,20 @@ def finite_q_q0_formula_consistency(
         raw_q0_matches_K_total_over_omega=bool(
             np.isfinite(errors["local_K_total_over_omega"]) and errors["local_K_total_over_omega"] < 1e-3
         ),
+        K_para_q0_matches_local_K_para=bool(
+            np.isfinite(kernel_errors["K_para"]) and kernel_errors["K_para"] < Q0_KERNEL_RELATIVE_TOLERANCE
+        ),
+        K_total_q0_matches_local_K_total=bool(
+            np.isfinite(kernel_errors["K_total"]) and kernel_errors["K_total"] < Q0_KERNEL_RELATIVE_TOLERANCE
+        ),
+        Sigma_SC_q0_matches_local_K_total_over_omega=bool(
+            np.isfinite(kernel_errors["Sigma_SC"]) and kernel_errors["Sigma_SC"] < Q0_KERNEL_RELATIVE_TOLERANCE
+        ),
+        response_layer=response_layer,
+        contains_dia=contains_dia,
+        finite_q_dia_status=finite_q_dia_status,
+        ward_status=WARD_STATUS_NOT_CLOSED,
+        valid_for_casimir_input=False,
         formula_layer_diagnosis=diagnosis,
         diagnostic_status=";".join(status_parts),
         gauge_status="prototype_not_ward_verified",
@@ -1270,7 +1546,7 @@ def finite_q_subspace_consistency_diagnostic(
         delta0,
         deg_tol,
     )
-    raw_response = _finite_q_bubble(
+    raw_response = _finite_q_paramagnetic_kernel(
         kind=kind,
         omega_eV=omega_eV,
         temperature_K=temperature_K,
@@ -1281,7 +1557,7 @@ def finite_q_subspace_consistency_diagnostic(
         denominator_mode="raw",
         deg_tol=deg_tol,
     )
-    stable_response = _finite_q_bubble(
+    stable_response = _finite_q_paramagnetic_kernel(
         kind=kind,
         omega_eV=omega_eV,
         temperature_K=temperature_K,

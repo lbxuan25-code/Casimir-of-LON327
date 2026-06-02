@@ -22,11 +22,11 @@ delta0=0.04
 eta=0.0001
 
 q0_local_reference_hook_passed=True
-small_q_finite_q_bubble_continuity_passed=False
+small_q_finite_q_bubble_continuity_passed=True
 warning_small_q_not_smooth=True
 finite_q_angular_anisotropy_signal=True
 A4_pairing_contrast_signal=True
-worth_next_finite_q_casimir_plumbing_smoke=False
+worth_next_finite_q_casimir_plumbing_smoke=True
 
 ## 每个 q 的诊断
 - q=0
@@ -39,18 +39,17 @@ worth_next_finite_q_casimir_plumbing_smoke=False
   max_abs_A4_trace_pairing_contrast=0
 - q=0.05
   normal_max_abs_A4_xx=8.96465e-05
-  spm_max_abs_A4_xx=0.000220251
-  dwave_max_abs_A4_xx=4.7538e-05
-  max_abs_delta_A4_spm=0.000130605
-  max_abs_delta_A4_dwave=4.21085e-05
-  max_abs_A4_pairing_contrast=0.000172713
-  max_abs_A4_trace_pairing_contrast=6.42268e-07
+  spm_max_abs_A4_xx=8.12678e-05
+  dwave_max_abs_A4_xx=1.78689e-05
+  max_abs_delta_A4_spm=8.37872e-06
+  max_abs_delta_A4_dwave=7.17776e-05
+  max_abs_A4_pairing_contrast=6.33989e-05
+  max_abs_A4_trace_pairing_contrast=2.24441e-07
 
 ## small-q continuity
-small_q_min_relative_error=2.77213e-05
-small_q_max_relative_error=0.631345
-- good_continuity_candidate: 2
-- not_continuous_enough: 4
+small_q_min_relative_error=1.18542e-09
+small_q_max_relative_error=2.77213e-05
+- good_continuity_candidate: 6
 
 ## 限制
 - gauge_status=prototype_not_ward_verified

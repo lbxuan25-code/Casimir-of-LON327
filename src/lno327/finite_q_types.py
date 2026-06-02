@@ -10,6 +10,8 @@ import numpy as np
 from .response_interface import ResponseKind
 
 GaugeStatus = Literal["prototype_not_ward_verified"]
+WardStatus = Literal["closed", "not_closed"]
+FiniteQDiamagneticStatus = Literal["not_applicable", "q0_fallback_only"]
 DiagnosticStatus = Literal["pass_local_limit", "fail_local_limit", "finite_q_diagnostic"]
 DenominatorMode = Literal["raw", "stable"]
 SmallQLimitStatus = Literal[
@@ -175,7 +177,7 @@ class FiniteQSubspaceConsistencyDiagnostic:
 
 @dataclass(frozen=True)
 class FiniteQRawQ0Consistency:
-    """Diagnostic comparison between raw q=0 bubble and local response layers."""
+    """Diagnostic comparison between q=0 finite-q kernel stack and local layers."""
 
     kind: ResponseKind
     matsubara_index: int
@@ -186,6 +188,10 @@ class FiniteQRawQ0Consistency:
     denominator_mode: DenominatorMode
     deg_tol: float
     raw_q0_bubble: np.ndarray
+    K_para_q0: np.ndarray
+    K_dia_q0: np.ndarray
+    K_total_q0: np.ndarray
+    Sigma_SC_q0: np.ndarray
     local_sigma: np.ndarray
     local_K_para: np.ndarray
     local_K_dia: np.ndarray
@@ -198,12 +204,23 @@ class FiniteQRawQ0Consistency:
     error_raw_to_local_K_total: float
     error_raw_to_local_K_total_over_omega: float
     error_raw_to_normal_kubo_sigma: float
+    error_K_para_q0_to_local_K_para: float
+    error_K_total_q0_to_local_K_total: float
+    error_Sigma_SC_q0_to_local_K_total_over_omega: float
     error_hook_to_local_sigma: float
     best_raw_q0_match_component: str
     best_raw_q0_relative_error: float
     raw_q0_matches_local_sigma: bool
     raw_q0_matches_K_para: bool
     raw_q0_matches_K_total_over_omega: bool
+    K_para_q0_matches_local_K_para: bool
+    K_total_q0_matches_local_K_total: bool
+    Sigma_SC_q0_matches_local_K_total_over_omega: bool
+    response_layer: str
+    contains_dia: bool
+    finite_q_dia_status: FiniteQDiamagneticStatus
+    ward_status: WardStatus
+    valid_for_casimir_input: bool
     formula_layer_diagnosis: str
     diagnostic_status: str
     gauge_status: GaugeStatus
