@@ -24,5 +24,7 @@
 
 - validation 结果是支撑证据，不是主 `outputs/` 的材料本征结果。
 - 大型 `.csv`、`.npz`、`.png` 继续保留并上传，便于 ChatGPT 或外部审阅复查。
+- `.csv` 作为可读表格摘要；同名 `.npz` 可以额外包含运行参数、网格列表、
+  partial sums 或其他中间数组，因此不要求两者字段完全一一对应。
 - 新的 convergence / diagnostic / benchmark-only 输出默认写入 `validation/outputs/`。
 - 新的 cache 默认写入 `validation/cache/`。

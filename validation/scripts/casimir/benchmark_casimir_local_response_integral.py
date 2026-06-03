@@ -21,8 +21,14 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
+from casimir_benchmark_config import (  # noqa: E402
+    BENCHMARK_METADATA,
+    BENCHMARK_NOTE_PARTS,
+    TORQUE_TOLERANCE,
+)
 from lno327 import (  # noqa: E402
     CasimirSetup,
     ConductivityTensor,
@@ -47,7 +53,6 @@ KINDS = ("normal", "spm", "dwave")
 NORMAL_SAMPLING = ("uniform", "multishift_average", "fs_adaptive")
 N0_POLICY = "skip"
 RATIO_EPS = 1e-300
-TORQUE_TOLERANCE = 1e-24
 
 REQUIRED_NPZ_FIELDS = {
     "kind",
@@ -430,11 +435,11 @@ def benchmark_casimir_local_response_integral(
         "normal_nk": np.full(row_count, normal_nk, dtype=int),
         "bdg_nk": np.full(row_count, bdg_nk, dtype=int),
         "delta0": np.full(row_count, delta0_eV, dtype=float),
-        "n0_policy": np.full(row_count, N0_POLICY, dtype="U16"),
-        "local_response": np.full(row_count, True, dtype=bool),
-        "finite_momentum_resolved": np.full(row_count, False, dtype=bool),
-        "benchmark_only": np.full(row_count, True, dtype=bool),
-        "not_final_casimir_conclusion": np.full(row_count, True, dtype=bool),
+        "n0_policy": np.full(row_count, BENCHMARK_METADATA["n0_policy"], dtype="U16"),
+        "local_response": np.full(row_count, BENCHMARK_METADATA["local_response"], dtype=bool),
+        "finite_momentum_resolved": np.full(row_count, BENCHMARK_METADATA["finite_momentum_resolved"], dtype=bool),
+        "benchmark_only": np.full(row_count, BENCHMARK_METADATA["benchmark_only"], dtype=bool),
+        "not_final_casimir_conclusion": np.full(row_count, BENCHMARK_METADATA["not_final_casimir_conclusion"], dtype=bool),
         "matsubara_tail_indicator": np.empty(row_count, dtype=float),
         "kparallel_cutoff_indicator": np.full(row_count, "cutoff_not_final", dtype="U64"),
         "phi_convergence_indicator": np.full(row_count, "phi_convergence_not_evaluated", dtype="U64"),
@@ -493,13 +498,7 @@ def benchmark_casimir_local_response_integral(
                     diagnosis_parts.append("warning_matsubara_not_converged")
                 diagnosis_parts.append("cutoff_not_final")
                 data["diagnosis"][index] = ";".join(diagnosis_parts)
-                data["notes"][index] = (
-                    "local-response Casimir integral benchmark only",
-                    "n=0 policy: skip",
-                    "finite momentum response not included",
-                    "not a final Casimir conclusion",
-                    f"kmax = {kparallel_max_factor:g} / distance",
-                )
+                data["notes"][index] = (*BENCHMARK_NOTE_PARTS, f"kmax = {kparallel_max_factor:g} / distance")
     return data
 
 

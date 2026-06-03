@@ -110,6 +110,7 @@ def test_flags_are_correct(tmp_path):
         assert np.all(data["benchmark_only"])
         assert np.all(data["not_final_casimir_conclusion"])
         assert set(data["n0_policy"]) == {"skip"}
+        assert not np.any(data["zero_torque_baseline"] & data["warning_possible_spurious_torque"])
 
 
 def test_quick_isotropic_baseline_is_zero(tmp_path):
@@ -134,9 +135,9 @@ def test_toy_anisotropic_control_is_nonzero(tmp_path):
 
 
 def test_quick_summary_has_no_distance_scan_conclusion(tmp_path):
-    _run_quick(tmp_path)
+    output_prefix, _result = _run_quick(tmp_path)
 
-    summary = SUMMARY.read_text(encoding="utf-8")
+    summary = (output_prefix.parent / "distance_scan_summary.md").read_text(encoding="utf-8")
     assert "quick_test_only=True" in summary
     assert "no_distance_scan_conclusion=True" in summary
     assert "full_run_pending_user_terminal=True" in summary

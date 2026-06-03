@@ -135,10 +135,27 @@ def full_run_command(output_prefix: Path = DEFAULT_OUTPUT_PREFIX) -> str:
 
 
 def _write_command_file(command: str) -> Path:
-    COMMAND_PATH.parent.mkdir(parents=True, exist_ok=True)
-    COMMAND_PATH.write_text(f"#!/usr/bin/env bash\nset -euo pipefail\n\n{command}\n", encoding="utf-8")
-    COMMAND_PATH.chmod(0o755)
-    return COMMAND_PATH
+    return _write_command_file_at(command, DEFAULT_OUTPUT_PREFIX)
+
+
+def _command_path(output_prefix: Path) -> Path:
+    if output_prefix.resolve() == DEFAULT_OUTPUT_PREFIX.resolve():
+        return COMMAND_PATH
+    return output_prefix.parent / "refined_convergence_command.sh"
+
+
+def _summary_path(output_prefix: Path) -> Path:
+    if output_prefix.resolve() == DEFAULT_OUTPUT_PREFIX.resolve():
+        return SUMMARY_PATH
+    return output_prefix.parent / "refined_convergence_summary.md"
+
+
+def _write_command_file_at(command: str, output_prefix: Path) -> Path:
+    command_path = _command_path(output_prefix)
+    command_path.parent.mkdir(parents=True, exist_ok=True)
+    command_path.write_text(f"#!/usr/bin/env bash\nset -euo pipefail\n\n{command}\n", encoding="utf-8")
+    command_path.chmod(0o755)
+    return command_path
 
 
 def _empty_data() -> dict[str, np.ndarray]:
@@ -612,12 +629,13 @@ def write_summary(
     full_completed: bool,
     response_cache: ResponseTensorCache | None,
 ) -> Path:
-    SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SUMMARY_PATH.write_text(
+    summary_path = _summary_path(args.output_prefix)
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(
         "\n".join(_summary_lines(data, args, command, full_completed, response_cache)) + "\n",
         encoding="utf-8",
     )
-    return SUMMARY_PATH
+    return summary_path
 
 
 def parse_args() -> argparse.Namespace:
@@ -665,7 +683,7 @@ def main() -> None:
     if args.dry_run:
         print(command)
         return
-    _write_command_file(command)
+    command_path = _write_command_file_at(command, args.output_prefix)
     response_cache = (
         ResponseTensorCache(args.cache_dir, use=True, rebuild=args.rebuild_response_cache)
         if args.use_response_cache
@@ -687,7 +705,7 @@ def main() -> None:
     print(f"npz_path = {args.output_prefix.with_suffix('.npz')}")
     print(f"csv_path = {args.output_prefix.with_suffix('.csv')}")
     print(f"summary_path = {summary}")
-    print(f"command_path = {COMMAND_PATH}")
+    print(f"command_path = {command_path}")
     print("note = refined convergence benchmark only; not a final Casimir conclusion.")
 
 

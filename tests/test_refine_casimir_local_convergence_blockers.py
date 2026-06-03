@@ -99,11 +99,13 @@ def test_u_max_du_mapping_is_recorded(quick_run):
 
 
 def test_summary_and_command_are_generated(quick_run):
-    _output_prefix, _cache_dir, _result = quick_run
+    output_prefix, _cache_dir, _result = quick_run
 
-    assert SUMMARY.exists()
-    assert COMMAND.exists()
-    summary = SUMMARY.read_text(encoding="utf-8")
+    summary_path = output_prefix.parent / "refined_convergence_summary.md"
+    command_path = output_prefix.parent / "refined_convergence_command.sh"
+    assert summary_path.exists()
+    assert command_path.exists()
+    summary = summary_path.read_text(encoding="utf-8")
     assert "quick_test_only=True" in summary
     assert "no_full_convergence_conclusion=True" in summary
     assert "full_run_pending_user_terminal=True" in summary

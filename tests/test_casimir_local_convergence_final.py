@@ -74,11 +74,13 @@ def test_dry_run_outputs_full_command():
 
 
 def test_summary_and_command_are_generated(quick_run):
-    _output_prefix, _result = quick_run
+    output_prefix, _result = quick_run
 
-    assert SUMMARY.exists()
-    assert COMMAND.exists()
-    summary = SUMMARY.read_text(encoding="utf-8")
+    summary_path = output_prefix.parent / "final_convergence_summary.md"
+    command_path = output_prefix.parent / "final_convergence_command.sh"
+    assert summary_path.exists()
+    assert command_path.exists()
+    summary = summary_path.read_text(encoding="utf-8")
     assert "quick_test_result = True" in summary
     assert "full_run_completed = False" in summary
     assert "full_run_pending_user_terminal=True" in summary

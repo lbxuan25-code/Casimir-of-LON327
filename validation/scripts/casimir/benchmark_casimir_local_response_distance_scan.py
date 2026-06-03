@@ -24,6 +24,7 @@ from benchmark_casimir_local_response_integral import (  # noqa: E402
     ResponseTensorCache,
     benchmark_casimir_local_response_integral,
 )
+from casimir_benchmark_config import BENCHMARK_NOTE_PARTS, TORQUE_TOLERANCE  # noqa: E402
 from lno327.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,
@@ -35,7 +36,6 @@ DEFAULT_OUTPUT_PREFIX = SCAN_ROOT / "data" / "distance_scan"
 DEFAULT_CACHE_DIR = ROOT / "validation" / "cache" / "casimir_local_response" / "response_tensors"
 SUMMARY_PATH = SCAN_ROOT / "distance_scan_summary.md"
 COMMAND_PATH = SCAN_ROOT / "distance_scan_command.sh"
-TORQUE_TOLERANCE = 1e-20
 
 
 def _full_defaults() -> dict[str, object]:
@@ -292,16 +292,33 @@ def _rows_from_integral(raw: dict[str, np.ndarray], args: argparse.Namespace) ->
                 "zero_torque_baseline": zero_baseline,
                 "warning_possible_spurious_torque": spurious,
                 "diagnosis": str(raw["diagnosis"][index]),
-                "notes": (
-                    "local-response distance scan benchmark only",
-                    "n=0 policy: skip",
-                    "finite momentum response not included",
-                    "not a final Casimir conclusion",
-                    "u=k_parallel*d at fixed du",
-                ),
+                "notes": (*BENCHMARK_NOTE_PARTS, "u=k_parallel*d at fixed du"),
             }
         )
     return rows
+
+
+def _refresh_torque_flags(data: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+    if data["kind"].size == 0:
+        return data
+    data = {key: np.array(value, copy=True) for key, value in data.items()}
+    for index, kind_value in enumerate(data["kind"]):
+        kind = str(kind_value)
+        if kind not in KINDS:
+            continue
+        max_torque = float(data["max_abs_torque_over_theta"][index])
+        zero_baseline = bool(max_torque <= TORQUE_TOLERANCE)
+        data["zero_torque_baseline"][index] = zero_baseline
+        data["warning_possible_spurious_torque"][index] = not zero_baseline
+        diagnosis_parts = [
+            part
+            for part in str(data["diagnosis"][index]).split(";")
+            if part not in {"zero_torque_baseline", "warning_possible_spurious_torque"} and part
+        ]
+        diagnosis_parts.insert(0, "zero_torque_baseline" if zero_baseline else "warning_possible_spurious_torque")
+        data["diagnosis"][index] = ";".join(diagnosis_parts)
+        data["notes"][index] = (*BENCHMARK_NOTE_PARTS, "u=k_parallel*d at fixed du")
+    return data
 
 
 def _recompute_energy_distance_scaling(data: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
@@ -467,6 +484,10 @@ def _summary_lines(
     toy_passed = _toy_passed(data)
     all_zero = all(zero_by_kind.values())
     ready = bool(full_completed and all_zero and toy_passed)
+    cache_entries = "not_recorded" if response_cache is None else str(response_cache.entry_count())
+    cache_hits = "not_recorded" if response_cache is None else str(response_cache.hits)
+    cache_misses = "not_recorded" if response_cache is None else str(response_cache.misses)
+    cache_writes = "not_recorded" if response_cache is None else str(response_cache.writes)
     lines = [
         "# Local-response distance scan benchmark 摘要",
         "",
@@ -479,11 +500,11 @@ def _summary_lines(
         f"quick_test_only={bool(args.quick)}",
         f"full_distance_scan_completed={full_completed}",
         f"response_cache_used={bool(args.use_response_cache)}",
-        f"response_cache_entries={0 if response_cache is None else response_cache.entry_count()}",
+        f"response_cache_entries={cache_entries}",
         f"response_cache_rebuilt={bool(args.rebuild_response_cache)}",
-        f"response_cache_hits={0 if response_cache is None else response_cache.hits}",
-        f"response_cache_misses={0 if response_cache is None else response_cache.misses}",
-        f"response_cache_writes={0 if response_cache is None else response_cache.writes}",
+        f"response_cache_hits={cache_hits}",
+        f"response_cache_misses={cache_misses}",
+        f"response_cache_writes={cache_writes}",
         "local_response=True",
         "finite_momentum_resolved=False",
         "n0_policy=skip",
@@ -527,7 +548,7 @@ def _summary_lines(
             "not_final_Casimir_conclusion=True",
         ]
     )
-    if args.quick or not full_completed:
+    if args.quick and not full_completed:
         lines.extend(
             [
                 "quick_test_only=True",
@@ -535,7 +556,21 @@ def _summary_lines(
                 "full_run_pending_user_terminal=True",
             ]
         )
+    elif not full_completed:
+        lines.extend(
+            [
+                "partial_distance_scan_only=True",
+                "no_distance_scan_conclusion=True",
+                "full_run_pending_user_terminal=True",
+            ]
+        )
     return lines
+
+
+def _summary_path(output_prefix: Path) -> Path:
+    if output_prefix.resolve() == DEFAULT_OUTPUT_PREFIX.resolve():
+        return SUMMARY_PATH
+    return output_prefix.parent / "distance_scan_summary.md"
 
 
 def write_summary(
@@ -545,12 +580,13 @@ def write_summary(
     full_completed: bool,
     response_cache: ResponseTensorCache | None,
 ) -> Path:
-    SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SUMMARY_PATH.write_text(
+    summary_path = _summary_path(args.output_prefix)
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(
         "\n".join(_summary_lines(data, args, command, full_completed, response_cache)) + "\n",
         encoding="utf-8",
     )
-    return SUMMARY_PATH
+    return summary_path
 
 
 def parse_args() -> argparse.Namespace:
@@ -625,7 +661,7 @@ def main() -> None:
         )
         data = _append_rows(data, _rows_from_integral(raw, args))
         save_outputs(data, args.output_prefix)
-    data = _recompute_energy_distance_scaling(data)
+    data = _refresh_torque_flags(_recompute_energy_distance_scaling(data))
     npz_path, csv_path = save_outputs(data, args.output_prefix)
     figure_paths = save_figures(data, args.include_toy_anisotropic_control)
     full_completed = _full_scan_completed(data, args)
