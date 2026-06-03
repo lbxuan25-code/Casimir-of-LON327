@@ -41,6 +41,19 @@ EPS = 1e-300
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "bdg_static_gauge_closure"
 DEFAULT_OUTPUT_PREFIX = OUTPUT_ROOT / "data" / "bdg_static_gauge_closure"
 SUMMARY_PATH = OUTPUT_ROOT / "bdg_static_gauge_closure_summary.md"
+CONVENTION_SCAN_PREFIX = OUTPUT_ROOT / "data" / "bdg_static_gauge_convention_scan"
+CONVENTION_SCAN_SUMMARY_PATH = OUTPUT_ROOT / "bdg_static_gauge_convention_scan_summary.md"
+
+KERNEL_CONVENTIONS = (
+    ("current", 1.0, 1.0),
+    ("minus_para", -1.0, 1.0),
+    ("half_para", 0.5, 1.0),
+    ("minus_half_para", -0.5, 1.0),
+    ("minus_dia", 1.0, -1.0),
+    ("minus_para_minus_dia", -1.0, -1.0),
+    ("half_both", 0.5, 0.5),
+    ("minus_half_para_half_dia", -0.5, 0.5),
+)
 
 REQUIRED_COLUMNS = (
     "kind",
@@ -76,6 +89,32 @@ REQUIRED_COLUMNS = (
     "not_final_Casimir_input",
 )
 
+CONVENTION_SCAN_COLUMNS = (
+    "convention_name",
+    "para_prefactor",
+    "dia_prefactor",
+    "K_candidate_xx",
+    "K_candidate_yy",
+    "K_candidate_xy",
+    "K_candidate_yx",
+    "norm_candidate",
+    "candidate_gauge_residual",
+    "rho_s_anisotropy_candidate",
+    "offdiag_ratio_candidate",
+    "kind",
+    "delta0_eV",
+    "omega_eV",
+    "nk",
+    "temperature_K",
+    "eta_eV",
+    "benchmark_only",
+    "local_response",
+    "convention_scan_diagnostic",
+    "not_final_response_formula",
+    "not_final_optical_conductivity",
+    "not_final_Casimir_input",
+)
+
 
 def _quick_overrides() -> dict[str, object]:
     return {
@@ -103,6 +142,22 @@ def _rho_anisotropy(rho_xx: float, rho_yy: float) -> float:
     if abs(denominator) <= EPS:
         return 0.0
     return float((rho_xx - rho_yy) / denominator)
+
+
+def _matrix_from_row(data: dict[str, np.ndarray], prefix: str, index: int) -> np.ndarray:
+    return np.array(
+        [
+            [data[f"{prefix}_xx"][index], data[f"{prefix}_xy"][index]],
+            [data[f"{prefix}_yx"][index], data[f"{prefix}_yy"][index]],
+        ],
+        dtype=complex,
+    )
+
+
+def _offdiag_ratio(matrix: np.ndarray) -> float:
+    offdiag_norm = float(np.linalg.norm([matrix[0, 1], matrix[1, 0]]))
+    diag_norm = float(np.linalg.norm([matrix[0, 0], matrix[1, 1]]))
+    return _safe_ratio(offdiag_norm, diag_norm)
 
 
 def _row_for_kernel(
@@ -259,6 +314,182 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     return npz_path, csv_path, figure_paths
 
 
+def scan_kernel_conventions(data: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+    rows: list[dict[str, object]] = []
+    for index in range(data["kind"].size):
+        k_para = _matrix_from_row(data, "K_para", index)
+        k_dia = _matrix_from_row(data, "K_dia", index)
+        norm_para = float(data["norm_para"][index])
+        norm_dia = float(data["norm_dia"][index])
+        scale = max(norm_para, norm_dia)
+        for name, para_prefactor, dia_prefactor in KERNEL_CONVENTIONS:
+            candidate = para_prefactor * k_para + dia_prefactor * k_dia
+            norm_candidate = float(np.linalg.norm(candidate))
+            rho_xx = float(np.real(candidate[0, 0]))
+            rho_yy = float(np.real(candidate[1, 1]))
+            rows.append(
+                {
+                    "convention_name": name,
+                    "para_prefactor": float(para_prefactor),
+                    "dia_prefactor": float(dia_prefactor),
+                    **_matrix_components("K_candidate", candidate),
+                    "norm_candidate": norm_candidate,
+                    "candidate_gauge_residual": _safe_ratio(norm_candidate, scale),
+                    "rho_s_anisotropy_candidate": _rho_anisotropy(rho_xx, rho_yy),
+                    "offdiag_ratio_candidate": _offdiag_ratio(candidate),
+                    "kind": str(data["kind"][index]),
+                    "delta0_eV": float(data["delta0_eV"][index]),
+                    "omega_eV": float(data["omega_eV"][index]),
+                    "nk": int(data["nk"][index]),
+                    "temperature_K": float(data["temperature_K"][index]),
+                    "eta_eV": float(data["eta_eV"][index]),
+                    "benchmark_only": True,
+                    "local_response": True,
+                    "convention_scan_diagnostic": True,
+                    "not_final_response_formula": True,
+                    "not_final_optical_conductivity": True,
+                    "not_final_Casimir_input": True,
+                }
+            )
+
+    convention_data: dict[str, np.ndarray] = {}
+    for column in CONVENTION_SCAN_COLUMNS:
+        values = [row[column] for row in rows]
+        if column in {"convention_name", "kind"}:
+            convention_data[column] = np.asarray(values, dtype="U48")
+        elif column.startswith("K_candidate"):
+            convention_data[column] = np.asarray(values, dtype=complex)
+        elif column in {
+            "benchmark_only",
+            "local_response",
+            "convention_scan_diagnostic",
+            "not_final_response_formula",
+            "not_final_optical_conductivity",
+            "not_final_Casimir_input",
+        }:
+            convention_data[column] = np.asarray(values, dtype=bool)
+        elif column == "nk":
+            convention_data[column] = np.asarray(values, dtype=int)
+        else:
+            convention_data[column] = np.asarray(values, dtype=float)
+    convention_data["convention_names"] = np.asarray([item[0] for item in KERNEL_CONVENTIONS], dtype="U48")
+    return convention_data
+
+
+def save_convention_scan_outputs(
+    convention_data: dict[str, np.ndarray],
+    output_prefix: Path = CONVENTION_SCAN_PREFIX,
+) -> tuple[Path, Path, Path]:
+    npz_path = output_prefix.with_suffix(".npz")
+    csv_path = output_prefix.with_suffix(".csv")
+    figure_path = OUTPUT_ROOT / "figures" / "convention_scan_gauge_residual.png"
+    npz_path.parent.mkdir(parents=True, exist_ok=True)
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(npz_path, **convention_data)
+    with csv_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(CONVENTION_SCAN_COLUMNS))
+        writer.writeheader()
+        for index in range(convention_data["kind"].size):
+            writer.writerow({column: _csv_value(convention_data[column][index]) for column in CONVENTION_SCAN_COLUMNS})
+    save_convention_scan_figure(convention_data, figure_path)
+    return npz_path, csv_path, figure_path
+
+
+def save_convention_scan_figure(convention_data: dict[str, np.ndarray], path: Path) -> Path:
+    configure_publication_matplotlib()
+    import matplotlib.pyplot as plt
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    zero_mask = np.isclose(convention_data["delta0_eV"], 0.0)
+    min_omega = float(np.nanmin(convention_data["omega_eV"][zero_mask]))
+    mask = zero_mask & np.isclose(convention_data["omega_eV"], min_omega)
+    names = [str(item) for item in convention_data["convention_names"]]
+    kinds = sorted(set(str(item) for item in convention_data["kind"]))
+
+    fig, ax = plt.subplots(figsize=(7.6, 4.2), constrained_layout=True)
+    x = np.arange(len(names))
+    width = 0.8 / max(len(kinds), 1)
+    for kind_index, kind in enumerate(kinds):
+        values = []
+        for name in names:
+            item_mask = mask & (convention_data["kind"] == kind) & (convention_data["convention_name"] == name)
+            values.append(float(np.nanmean(convention_data["candidate_gauge_residual"][item_mask])) if np.any(item_mask) else np.nan)
+        ax.bar(x + (kind_index - (len(kinds) - 1) / 2) * width, values, width=width, label=kind)
+    ax.set_xticks(x)
+    ax.set_xticklabels(names, rotation=35, ha="right")
+    ax.set_ylabel("candidate gauge residual")
+    ax.set_title(f"Convention scan at Delta0=0, omega={min_omega:g}")
+    ax.set_yscale("log")
+    style_publication_axis(ax)
+    save_publication_figure(fig, path)
+    plt.close(fig)
+    return path
+
+
+def write_convention_scan_summary(
+    convention_data: dict[str, np.ndarray],
+    command: str,
+    threshold: float = 1e-3,
+) -> Path:
+    zero_mask = np.isclose(convention_data["delta0_eV"], 0.0)
+    min_omega = float(np.nanmin(convention_data["omega_eV"][zero_mask]))
+    report_mask = zero_mask & np.isclose(convention_data["omega_eV"], min_omega)
+    residuals = convention_data["candidate_gauge_residual"][report_mask]
+    best_index = int(np.nanargmin(residuals))
+    report_indices = np.where(report_mask)[0]
+    best_row = report_indices[best_index]
+    best_residual = float(convention_data["candidate_gauge_residual"][best_row])
+    lines = [
+        "# BdG Static Gauge Convention Scan",
+        "",
+        "This is a convention scan diagnostic, not a formal response formula change.",
+        "The current BdG response implementation is not changed by this scan.",
+        "It recombines already-computed K_para and K_dia with trial prefactors to",
+        "locate why the Delta0=0 local static kernel fails to close.",
+        "",
+        "It is not a final response formula, not a final optical conductivity,",
+        "not a final Casimir input, and contains no finite momentum response.",
+        "",
+        f"run_command = `{command}`",
+        "benchmark_only=True",
+        "local_response=True",
+        "convention_scan_diagnostic=True",
+        "not_final_response_formula=True",
+        "not_final_optical_conductivity=True",
+        "not_final_Casimir_input=True",
+        "",
+        f"Delta0=0 lowest_omega={min_omega:g}",
+        "",
+        "## Gauge Residual By Convention",
+    ]
+    for name in convention_data["convention_names"]:
+        for kind in sorted(set(str(item) for item in convention_data["kind"])):
+            item_mask = report_mask & (convention_data["convention_name"] == str(name)) & (convention_data["kind"] == kind)
+            if np.any(item_mask):
+                value = float(np.nanmean(convention_data["candidate_gauge_residual"][item_mask]))
+                lines.append(f"- {kind}, {name}: candidate_gauge_residual={value:.6g}")
+    lines.extend(
+        [
+            "",
+            "## Best Candidate",
+            f"best_kind={convention_data['kind'][best_row]}",
+            f"best_convention={convention_data['convention_name'][best_row]}",
+            f"best_para_prefactor={float(convention_data['para_prefactor'][best_row]):g}",
+            f"best_dia_prefactor={float(convention_data['dia_prefactor'][best_row]):g}",
+            f"best_candidate_gauge_residual={best_residual:.6g}",
+            f"acceptable_threshold={threshold:g}",
+            f"passes_threshold={best_residual < threshold}",
+            "",
+            "This scan does not claim static gauge closure is solved. A candidate",
+            "convention must still be justified analytically and then implemented",
+            "as a separate formula change with its own validation.",
+        ]
+    )
+    CONVENTION_SCAN_SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    CONVENTION_SCAN_SUMMARY_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return CONVENTION_SCAN_SUMMARY_PATH
+
+
 def _plot_by_delta(
     *,
     data: dict[str, np.ndarray],
@@ -370,6 +601,8 @@ def _format_command(args: argparse.Namespace) -> str:
     parts = ["python", "validation/scripts/numerical_stability/diagnose_bdg_static_gauge_closure.py"]
     if args.quick:
         parts.append("--quick")
+        if args.scan_kernel_conventions:
+            parts.append("--scan-kernel-conventions")
     else:
         option_values = [
             ("--kinds", args.kinds),
@@ -383,6 +616,8 @@ def _format_command(args: argparse.Namespace) -> str:
         for option, values in option_values:
             parts.append(option)
             parts.extend(str(value) for value in values)
+        if args.scan_kernel_conventions:
+            parts.append("--scan-kernel-conventions")
     return " ".join(shlex.quote(str(part)) for part in parts)
 
 
@@ -464,6 +699,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eta", type=float, default=1e-4)
     parser.add_argument("--output-prefix", type=Path, default=DEFAULT_OUTPUT_PREFIX)
     parser.add_argument("--quick", action="store_true")
+    parser.add_argument("--scan-kernel-conventions", action="store_true")
     args = parser.parse_args()
     if args.quick:
         for key, value in _quick_overrides().items():
@@ -484,10 +720,21 @@ def main() -> None:
     )
     npz_path, csv_path, figure_paths = save_outputs(data, args.output_prefix)
     summary_path = write_summary(data, args, command, figure_paths)
+    convention_paths: tuple[Path, Path, Path] | None = None
+    convention_summary_path: Path | None = None
+    if args.scan_kernel_conventions:
+        convention_data = scan_kernel_conventions(data)
+        convention_paths = save_convention_scan_outputs(convention_data)
+        convention_summary_path = write_convention_scan_summary(convention_data, command)
     print(f"npz_path = {npz_path}")
     print(f"csv_path = {csv_path}")
     print(f"summary_path = {summary_path}")
     print("figure_paths = " + ", ".join(str(path) for path in figure_paths))
+    if convention_paths is not None and convention_summary_path is not None:
+        print(f"convention_scan_npz_path = {convention_paths[0]}")
+        print(f"convention_scan_csv_path = {convention_paths[1]}")
+        print(f"convention_scan_figure_path = {convention_paths[2]}")
+        print(f"convention_scan_summary_path = {convention_summary_path}")
     print("note = BdG static gauge-closure diagnostic only; not final optical conductivity or Casimir input.")
 
 
