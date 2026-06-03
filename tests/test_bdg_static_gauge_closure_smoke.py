@@ -26,7 +26,7 @@ def test_bdg_static_gauge_closure_quick_outputs(tmp_path):
         capture_output=True,
     )
 
-    assert "BdG static gauge-closure diagnostic only" in result.stdout
+    assert "BdG static stiffness diagnostic only" in result.stdout
     csv_path = output_prefix.with_suffix(".csv")
     npz_path = output_prefix.with_suffix(".npz")
     summary_path = output_prefix.parent / "bdg_static_gauge_closure_summary.md"
@@ -58,6 +58,8 @@ def test_bdg_static_gauge_closure_quick_outputs(tmp_path):
         "norm_para",
         "norm_dia",
         "norm_total",
+        "stiffness_norm",
+        "stiffness_reference_mismatch",
         "gauge_residual",
         "rho_s_xx",
         "rho_s_yy",
@@ -77,8 +79,10 @@ def test_bdg_static_gauge_closure_quick_outputs(tmp_path):
 
     with np.load(npz_path, allow_pickle=True) as data:
         assert required.issubset(data.files)
-        for key in ["norm_para", "norm_dia", "norm_total", "gauge_residual", "rho_s_xx", "rho_s_yy"]:
+        for key in ["norm_para", "norm_dia", "norm_total", "stiffness_norm", "gauge_residual", "rho_s_xx", "rho_s_yy"]:
             assert np.all(np.isfinite(data[key]))
+        zero_mask = np.isclose(data["delta0_eV"], 0.0)
+        assert np.all(np.isfinite(data["stiffness_reference_mismatch"][zero_mask]))
         assert np.all(data["benchmark_only"])
         assert np.all(data["local_response"])
         assert np.all(data["static_gauge_closure_diagnostic"])
@@ -86,6 +90,7 @@ def test_bdg_static_gauge_closure_quick_outputs(tmp_path):
         assert np.all(data["not_final_Casimir_input"])
 
     summary = summary_path.read_text(encoding="utf-8")
+    assert "K_total means K_dia - K_para" in summary
     assert "not a final optical conductivity" in summary
     assert "not a final Casimir input" in summary
 

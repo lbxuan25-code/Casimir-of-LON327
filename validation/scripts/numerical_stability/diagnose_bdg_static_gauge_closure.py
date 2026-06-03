@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Diagnose static gauge closure of the local BdG electromagnetic kernel.
+"""Diagnose static stiffness of the local BdG electromagnetic kernel.
 
-This script checks whether K_para + K_dia behaves consistently before the BdG
-response is interpreted as a superconducting conductivity-like response. It is
-local q=0 only, benchmark-only, and not a Casimir input.
+This script checks the BdG K_total = K_dia - K_para stiffness convention before
+the BdG response is interpreted as a superconducting conductivity-like response.
+It is local q=0 only, benchmark-only, and not a Casimir input.
 """
 
 from __future__ import annotations
@@ -28,6 +28,8 @@ from lno327 import (  # noqa: E402
     k_weights,
     uniform_bz_mesh,
 )
+from lno327.conductivity import conductivity_eigensystem  # noqa: E402
+from lno327.model import normal_state_mass_operator  # noqa: E402
 from lno327.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,
@@ -74,6 +76,8 @@ REQUIRED_COLUMNS = (
     "norm_para",
     "norm_dia",
     "norm_total",
+    "stiffness_norm",
+    "stiffness_reference_mismatch",
     "gauge_residual",
     "rho_s_xx",
     "rho_s_yy",
@@ -160,6 +164,66 @@ def _offdiag_ratio(matrix: np.ndarray) -> float:
     return _safe_ratio(offdiag_norm, diag_norm)
 
 
+def normal_paramagnetic_kernel_imag_axis(
+    mesh: np.ndarray,
+    config: KuboConfig,
+    weights: np.ndarray,
+) -> np.ndarray:
+    """Return the normal-state positive current-current kernel."""
+
+    omega = config.omega_eV + config.eta_eV
+    kernel = np.zeros((2, 2), dtype=complex)
+    for weight, (kx, ky) in zip(weights, mesh, strict=True):
+        bands = conductivity_eigensystem(float(kx), float(ky), config)
+        velocities = [bands.velocity_x_band, bands.velocity_y_band]
+        for m, energy_m in enumerate(bands.energies_eV):
+            for n, energy_n in enumerate(bands.energies_eV):
+                if m == n:
+                    response_factor = bands.negative_fermi_derivative[m]
+                else:
+                    occupation_diff = bands.occupations[m] - bands.occupations[n]
+                    if np.isclose(occupation_diff, 0.0):
+                        continue
+                    energy_diff = energy_m - energy_n
+                    if abs(energy_diff) < config.eta_eV:
+                        continue
+                    response_factor = -occupation_diff * energy_diff / (energy_diff**2 + omega**2)
+                for alpha in range(2):
+                    for beta in range(2):
+                        kernel[alpha, beta] += (
+                            weight
+                            * response_factor
+                            * velocities[alpha][m, n]
+                            * velocities[beta][n, m]
+                        )
+    return kernel
+
+
+def normal_diamagnetic_kernel(mesh: np.ndarray, config: KuboConfig, weights: np.ndarray) -> np.ndarray:
+    """Return the normal-state mass/contact kernel."""
+
+    kernel = np.zeros((2, 2), dtype=complex)
+    directions = ("x", "y")
+    for weight, (kx, ky) in zip(weights, mesh, strict=True):
+        bands = conductivity_eigensystem(float(kx), float(ky), config)
+        for alpha, direction_a in enumerate(directions):
+            for beta, direction_b in enumerate(directions):
+                vertex = normal_state_mass_operator(float(kx), float(ky), direction_a, direction_b)
+                vertex_band = bands.states.conjugate().T @ vertex @ bands.states
+                kernel[alpha, beta] += weight * np.sum(bands.occupations * np.diag(vertex_band))
+    return kernel
+
+
+def normal_stiffness_reference(mesh: np.ndarray, config: KuboConfig, weights: np.ndarray) -> np.ndarray:
+    """Return normal K_dia - K_para in the positive-bubble convention."""
+
+    return normal_diamagnetic_kernel(mesh, config, weights) - normal_paramagnetic_kernel_imag_axis(
+        mesh,
+        config,
+        weights,
+    )
+
+
 def _row_for_kernel(
     *,
     kind: str,
@@ -190,6 +254,17 @@ def _row_for_kernel(
     norm_para = float(np.linalg.norm(k_para))
     norm_dia = float(np.linalg.norm(k_dia))
     norm_total = float(np.linalg.norm(k_total))
+    normal_reference = (
+        normal_stiffness_reference(mesh, config, weights)
+        if np.isclose(delta0_eV, 0.0)
+        else np.full((2, 2), np.nan, dtype=complex)
+    )
+    reference_norm = float(np.linalg.norm(normal_reference)) if np.isclose(delta0_eV, 0.0) else np.nan
+    reference_mismatch = (
+        _safe_ratio(float(np.linalg.norm(k_total - normal_reference)), reference_norm)
+        if np.isclose(delta0_eV, 0.0)
+        else np.nan
+    )
     rho_s_xx = float(np.real(k_total[0, 0]))
     rho_s_yy = float(np.real(k_total[1, 1]))
     offdiag_norm = float(np.linalg.norm([k_total[0, 1], k_total[1, 0]]))
@@ -204,6 +279,8 @@ def _row_for_kernel(
         "norm_para": norm_para,
         "norm_dia": norm_dia,
         "norm_total": norm_total,
+        "stiffness_norm": norm_total,
+        "stiffness_reference_mismatch": reference_mismatch,
         "gauge_residual": _safe_ratio(norm_total, max(norm_para, norm_dia)),
         "rho_s_xx": rho_s_xx,
         "rho_s_yy": rho_s_yy,
@@ -445,7 +522,9 @@ def write_convention_scan_summary(
         "This is a convention scan diagnostic, not a formal response formula change.",
         "The current BdG response implementation is not changed by this scan.",
         "It recombines already-computed K_para and K_dia with trial prefactors to",
-        "locate why the Delta0=0 local static kernel fails to close.",
+        "compare historical and candidate static stiffness conventions. The formal",
+        "BdG total kernel now uses the Peierls/free-energy validated",
+        "K_dia - K_para convention.",
         "",
         "It is not a final response formula, not a final optical conductivity,",
         "not a final Casimir input, and contains no finite momentum response.",
@@ -460,14 +539,14 @@ def write_convention_scan_summary(
         "",
         f"Delta0=0 lowest_omega={min_omega:g}",
         "",
-        "## Gauge Residual By Convention",
+        "## Stiffness Norm Ratio By Convention",
     ]
     for name in convention_data["convention_names"]:
         for kind in sorted(set(str(item) for item in convention_data["kind"])):
             item_mask = report_mask & (convention_data["convention_name"] == str(name)) & (convention_data["kind"] == kind)
             if np.any(item_mask):
                 value = float(np.nanmean(convention_data["candidate_gauge_residual"][item_mask]))
-                lines.append(f"- {kind}, {name}: candidate_gauge_residual={value:.6g}")
+                lines.append(f"- {kind}, {name}: candidate_stiffness_norm_ratio={value:.6g}")
     lines.extend(
         [
             "",
@@ -476,13 +555,13 @@ def write_convention_scan_summary(
             f"best_convention={convention_data['convention_name'][best_row]}",
             f"best_para_prefactor={float(convention_data['para_prefactor'][best_row]):g}",
             f"best_dia_prefactor={float(convention_data['dia_prefactor'][best_row]):g}",
-            f"best_candidate_gauge_residual={best_residual:.6g}",
-            f"acceptable_threshold={threshold:g}",
-            f"passes_threshold={best_residual < threshold}",
+            f"best_candidate_stiffness_norm_ratio={best_residual:.6g}",
+            f"legacy_threshold={threshold:g}",
+            f"legacy_passes_threshold={best_residual < threshold}",
             "",
-            "This scan does not claim static gauge closure is solved. A candidate",
-            "convention must still be justified analytically and then implemented",
-            "as a separate formula change with its own validation.",
+            "This scan does not claim static gauge closure is solved or select a",
+            "final optical conductivity. The formal response contract is the",
+            "separately validated K_dia - K_para convention.",
         ]
     )
     CONVENTION_SCAN_SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -563,9 +642,9 @@ def save_figures(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
         _plot_by_delta(
             data=data,
             figure_dir=figure_dir,
-            values=[("gauge_residual", data["gauge_residual"])],
-            ylabel="gauge residual",
-            title="BdG static gauge residual",
+            values=[("stiffness_norm_ratio", data["gauge_residual"])],
+            ylabel="stiffness norm ratio",
+            title="BdG static stiffness norm ratio",
             filename="gauge_residual_vs_delta0.png",
             yscale="log",
         ),
@@ -641,11 +720,16 @@ def write_summary(
     figure_paths: list[Path],
 ) -> Path:
     lines = [
-        "# BdG Static Gauge-Closure Diagnostic",
+        "# BdG Static Stiffness Diagnostic",
         "",
-        "This is a BdG static gauge-closure diagnostic. It checks whether local",
-        "K_para + K_dia cancels in the Delta0 -> 0 BdG normal limit and whether",
-        "Delta0 > 0 gives a finite, symmetry-consistent candidate rho_s.",
+        "This is a BdG static stiffness diagnostic. In the current positive-bubble",
+        "convention, K_total means K_dia - K_para. Clean normal-state stiffness",
+        "can be nonzero, so Delta0=0 is checked against the normal dia-minus-para",
+        "reference rather than against zero.",
+        "",
+        "For Delta0 > 0 the same K_total is reported as a candidate static",
+        "superconducting stiffness rho_s, with C4/offdiag and Delta0-dependence",
+        "diagnostics.",
         "",
         "It is not a final optical conductivity, not a final Casimir input, does",
         "not contain finite momentum response, and does not change n0_policy.",
@@ -666,16 +750,21 @@ def write_summary(
         f"- temperature_K={args.temperature:g}",
         f"- eta_eV={args.eta:g}",
         "",
-        "## Delta0=0 Gauge Residual",
+        "## Delta0=0 Normal-Reference Mismatch",
     ]
     zero_mask = np.isclose(data["delta0_eV"], 0.0)
     for kind in sorted(set(str(item) for item in data["kind"])):
         for omega in data["omega_list"]:
             mask = zero_mask & (data["kind"] == kind) & np.isclose(data["omega_eV"], omega)
             if np.any(mask):
-                value = float(np.nanmax(data["gauge_residual"][mask]))
-                lines.append(f"- {kind}, omega={omega:g}: gauge_residual={value:.6g}")
-    lines.extend(["", "## C4 / Offdiag Diagnostics"])
+                mismatch = float(np.nanmax(data["stiffness_reference_mismatch"][mask]))
+                ratio = float(np.nanmax(data["gauge_residual"][mask]))
+                lines.append(
+                    f"- {kind}, omega={omega:g}: "
+                    f"stiffness_reference_mismatch={mismatch:.6g}, "
+                    f"legacy_stiffness_norm_ratio={ratio:.6g}"
+                )
+    lines.extend(["", "## Candidate rho_s C4 / Offdiag Diagnostics"])
     for kind in sorted(set(str(item) for item in data["kind"])):
         mask = data["kind"] == kind
         anisotropy = float(np.nanmax(np.abs(data["rho_s_anisotropy"][mask])))
@@ -735,7 +824,7 @@ def main() -> None:
         print(f"convention_scan_csv_path = {convention_paths[1]}")
         print(f"convention_scan_figure_path = {convention_paths[2]}")
         print(f"convention_scan_summary_path = {convention_summary_path}")
-    print("note = BdG static gauge-closure diagnostic only; not final optical conductivity or Casimir input.")
+    print("note = BdG static stiffness diagnostic only; not final optical conductivity or Casimir input.")
 
 
 if __name__ == "__main__":

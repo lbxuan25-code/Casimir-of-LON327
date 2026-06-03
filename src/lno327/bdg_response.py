@@ -26,7 +26,12 @@ class BdGEigensystem:
 
 @dataclass(frozen=True)
 class BdGKernelComponents:
-    """BdG electromagnetic kernel components on the imaginary axis."""
+    """BdG electromagnetic kernel components on the imaginary axis.
+
+    ``paramagnetic`` is the positive current-current bubble. ``diamagnetic`` is
+    the mass/contact term. In the current Peierls/free-energy validated
+    convention, ``total`` is the stiffness kernel ``K_dia - K_para``.
+    """
 
     paramagnetic: np.ndarray
     diamagnetic: np.ndarray
@@ -38,7 +43,8 @@ class BdGSuperconductingResponse:
     """BdG imaginary-axis superconducting response diagnostic.
 
     ``sigma_like_response`` is defined here as K_total / omega_eV for positive
-    Matsubara energies. It is a sheet response kernel used for comparison with
+    Matsubara energies, where K_total uses the dia-minus-para stiffness
+    convention. It is a sheet response kernel used for comparison with
     normal-state sigma(i omega), not a real-axis optical conductivity.
     """
 
@@ -162,7 +168,7 @@ def bdg_paramagnetic_kernel_imag_axis(
     pairing_params: PairingAmplitudes | None = None,
     k_weights: Sequence[float] | np.ndarray | None = None,
 ) -> np.ndarray:
-    """Return the 2x2 BdG paramagnetic current-current kernel at i omega.
+    """Return the positive 2x2 BdG paramagnetic current-current bubble.
 
     This is a paramagnetic kernel only. It does not include the diamagnetic
     term and should not be interpreted as a full superconducting conductivity.
@@ -245,11 +251,12 @@ def bdg_total_kernel_imag_axis(
     pairing_params: PairingAmplitudes | None = None,
     k_weights: Sequence[float] | np.ndarray | None = None,
 ) -> BdGKernelComponents:
-    """Return K_para, K_dia, and K_total = K_para + K_dia at i omega.
+    """Return K_para, K_dia, and K_total = K_dia - K_para at i omega.
 
-    This constructs the BdG electromagnetic kernel on the imaginary axis. It
-    is not a Casimir input yet and is not labeled as an experimental optical
-    conductivity.
+    K_para is the positive current-current bubble and K_dia is the mass/contact
+    term. In this convention, Peierls/free-energy validation identifies the
+    electromagnetic stiffness kernel as K_dia - K_para. This is not a Casimir
+    input yet and is not labeled as an experimental optical conductivity.
     """
 
     para = bdg_paramagnetic_kernel_imag_axis(
@@ -266,7 +273,7 @@ def bdg_total_kernel_imag_axis(
         config,
         k_weights,
     )
-    return BdGKernelComponents(paramagnetic=para, diamagnetic=dia, total=para + dia)
+    return BdGKernelComponents(paramagnetic=para, diamagnetic=dia, total=dia - para)
 
 
 def bdg_superconducting_response_imag_axis(
@@ -279,8 +286,8 @@ def bdg_superconducting_response_imag_axis(
     """Return Sigma_SC(i omega) = K_total(i omega) / omega_eV for omega_eV > 0.
 
     The returned ``sigma_like_response`` is an imaginary-axis superconducting
-    sheet response kernel. The K_para, K_dia, and K_total definitions are
-    unchanged from ``bdg_total_kernel_imag_axis``.
+    sheet response kernel. The K_total used here is the dia-minus-para
+    stiffness kernel returned by ``bdg_total_kernel_imag_axis``.
     """
 
     if config.omega_eV <= 0.0:

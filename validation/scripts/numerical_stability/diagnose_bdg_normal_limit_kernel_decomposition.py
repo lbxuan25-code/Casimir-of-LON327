@@ -238,7 +238,7 @@ def _row_for_kind_omega(
 
     normal_para = normal_paramagnetic_kernel_imag_axis(mesh, config, weights)
     normal_dia = normal_diamagnetic_kernel(mesh, config, weights)
-    normal_total = normal_para + normal_dia
+    normal_total = normal_dia - normal_para
 
     bdg_norm_para = float(np.linalg.norm(bdg_para))
     bdg_norm_dia = float(np.linalg.norm(bdg_dia))
@@ -534,7 +534,10 @@ def write_summary(
         "normal-state kernel-level K_para and mass-expectation K_dia on the same",
         "mesh and KuboConfig.",
         "",
-        "The purpose is to locate whether static gauge closure failure is tied to",
+        "K_total is interpreted as the Peierls/free-energy validated stiffness",
+        "kernel K_dia - K_para in the current positive-bubble convention.",
+        "",
+        "The purpose is to locate whether static stiffness mismatch is tied to",
         "the paramagnetic bubble, the diamagnetic/contact term, sign convention,",
         "Nambu redundancy, or occupation convention. It is not a final response",
         "formula selection.",
@@ -562,6 +565,8 @@ def write_summary(
         f"- eta_eV={args.eta:g}",
         "",
         f"## Delta0=0 Ratios At Lowest Omega ({lowest_omega:g} eV)",
+        "",
+        "Ratios use K_total = K_dia - K_para.",
     ]
     for kind in sorted(set(str(item) for item in data["kind"])):
         mask = omega_mask & (data["kind"] == kind)

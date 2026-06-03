@@ -32,7 +32,7 @@ def test_bdg_total_kernel_imag_axis_returns_complex_2x2_matrix():
     assert np.isfinite(components.total).all()
 
 
-def test_bdg_total_kernel_equals_paramagnetic_plus_diamagnetic():
+def test_bdg_total_kernel_equals_diamagnetic_minus_paramagnetic():
     mesh = uniform_bz_mesh(3)
     weights = k_weights(mesh)
     config = KuboConfig.from_kelvin(omega_eV=0.1, temperature_K=30.0, eta_eV=0.02, output_si=False)
@@ -44,7 +44,7 @@ def test_bdg_total_kernel_equals_paramagnetic_plus_diamagnetic():
 
     np.testing.assert_allclose(components.paramagnetic, para)
     np.testing.assert_allclose(components.diamagnetic, dia)
-    np.testing.assert_allclose(components.total, para + dia)
+    np.testing.assert_allclose(components.total, dia - para)
 
 
 def test_bdg_total_kernel_is_c4_symmetric_without_magnetic_field():
