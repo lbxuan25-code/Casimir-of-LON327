@@ -14,8 +14,8 @@ This diagnostic does not modify the formal response formula.
 It does not modify BdG, Casimir, reflection, or finite-q code.
 It is not a final optical conductivity or Casimir input.
 
-run_command = `python validation/scripts/numerical_stability/diagnose_normal_static_gauge_closure.py --quick`
-quick_test_only=True
+run_command = `python validation/scripts/numerical_stability/diagnose_normal_static_gauge_closure.py --omega-list 0.0 1e-06 1e-05 0.0001 --nk-list 8 12 16 24 --temperature 30.0 --eta 0.0001 --twist-list 0.001 0.0005 0.0002 --output-prefix validation/outputs/response/normal_static_gauge_closure/data/normal_static_gauge_closure`
+quick_test_only=False
 benchmark_only=True
 local_response=True
 normal_static_gauge_closure_diagnostic=True
@@ -25,15 +25,17 @@ not_final_optical_conductivity=True
 not_final_Casimir_input=True
 
 ## Parameters
-- omega_list=0, 0.0001
-- nk_list=6, 8
+- omega_list=0, 1e-06, 1e-05, 0.0001
+- nk_list=8, 12, 16, 24
 - temperature_K=30
 - eta_eV=0.0001
-- twist_list=0.001
+- twist_list=0.001, 0.0005, 0.0002
 
-## Peierls D_fd Trend At omega=0, twist=0.001
-- nk=6: D_fd_xx=0.427185
+## Peierls D_fd Trend At omega=0, twist=0.0002
 - nk=8: D_fd_xx=0.416418
+- nk=12: D_fd_xx=0.336948
+- nk=16: D_fd_xx=0.348808
+- nk=24: D_fd_xx=0.355277
 
 ## Candidate Convention
 dominant_best_candidate=minus_para_plus_dia
