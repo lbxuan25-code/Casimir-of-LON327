@@ -33,13 +33,13 @@ not_final_Casimir_input=True
 - eta_eV=0.0001
 
 ## Delta0=0 Ratios At Lowest Omega (0 eV)
-- dwave: para_ratio_xx=2+0j, dia_ratio_xx=1+0j, total_ratio_xx=1.28054+0j, para_relative_error=1, dia_relative_error=8.79188e-16, total_relative_error=0.280543
-- spm: para_ratio_xx=2+0j, dia_ratio_xx=1+0j, total_ratio_xx=1.28054+0j, para_relative_error=1, dia_relative_error=8.79188e-16, total_relative_error=0.280543
+- dwave: para_ratio_xx=1+0j, dia_ratio_xx=1+0j, total_ratio_xx=1+0j, para_relative_error=7.75711e-15, dia_relative_error=8.79188e-16, total_relative_error=2.16652e-15
+- spm: para_ratio_xx=1+0j, dia_ratio_xx=1+0j, total_ratio_xx=1+0j, para_relative_error=7.75711e-15, dia_relative_error=8.79188e-16, total_relative_error=2.16652e-15
 
 ## Most Inconsistent Piece
-lowest_omega_mean_para_relative_error=1
+lowest_omega_mean_para_relative_error=7.75711e-15
 lowest_omega_mean_dia_relative_error=8.79188e-16
-lowest_omega_mean_total_relative_error=0.280543
+lowest_omega_mean_total_relative_error=2.16652e-15
 largest_lowest_omega_relative_error=para_relative_error
 
 ## Next Step

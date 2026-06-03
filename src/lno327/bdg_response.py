@@ -166,6 +166,9 @@ def bdg_paramagnetic_kernel_imag_axis(
 
     This is a paramagnetic kernel only. It does not include the diamagnetic
     term and should not be interpreted as a full superconducting conductivity.
+
+    The final 1/2 prefactor compensates the particle-hole redundancy of the BdG
+    basis, matching the Nambu prefactor used in the diamagnetic kernel.
     """
 
     points, weights = _validate_kernel_inputs(k_points, config, k_weights)
@@ -198,7 +201,7 @@ def bdg_paramagnetic_kernel_imag_axis(
                             * currents[beta][n, m]
                         )
 
-    return kernel_matrix
+    return 0.5 * kernel_matrix
 
 
 def bdg_diamagnetic_kernel(
