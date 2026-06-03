@@ -48,7 +48,7 @@ REQUIRED_NPZ_FIELDS = {
     "convergence_status",
     "diagnosis",
     "local_response",
-    "finite_q_resolved",
+    "finite_momentum_resolved",
     "n0_policy",
     "benchmark_only",
     "not_final_casimir_conclusion",
@@ -205,7 +205,7 @@ def converge_casimir_local_response_integral(
         "convergence_status": np.empty(len(rows), dtype="U128"),
         "diagnosis": np.empty(len(rows), dtype="U192"),
         "local_response": np.full(len(rows), True, dtype=bool),
-        "finite_q_resolved": np.full(len(rows), False, dtype=bool),
+        "finite_momentum_resolved": np.full(len(rows), False, dtype=bool),
         "n0_policy": np.full(len(rows), N0_POLICY, dtype="U16"),
         "benchmark_only": np.full(len(rows), True, dtype=bool),
         "not_final_casimir_conclusion": np.full(len(rows), True, dtype=bool),
@@ -261,7 +261,7 @@ def converge_casimir_local_response_integral(
                 data["notes"][index] = (
                     "local-response convergence benchmark only",
                     "n=0 policy: skip",
-                    "finite-q response not included",
+                    "finite momentum response not included",
                     "not a final Casimir conclusion",
                 )
     return data
@@ -321,7 +321,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
         "convergence_status",
         "diagnosis",
         "local_response",
-        "finite_q_resolved",
+        "finite_momentum_resolved",
         "n0_policy",
         "benchmark_only",
         "not_final_casimir_conclusion",

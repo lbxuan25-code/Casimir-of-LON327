@@ -1,40 +1,40 @@
-# LNO327 超导配对、电导对称性与未来卡西米尔力矩
+# LNO327 local q=0 response 与 Casimir benchmark
 
 本项目提供一套底层 Python 代码框架，用于研究 $\mathrm{La_3Ni_2O_7}$ / LNO327 在
 minimal $s_{\pm}$ 与 $d$-wave 超导配对下的电磁响应。当前重心是先建立
-normal-state、BdG、gap 结构与电导对称性的可检查基础；
-未来再把经过验证的电导张量输入卡西米尔力矩框架，用力矩作为区分超导对称性的
-候选方法。
+normal-state、BdG、gap 结构、local q=0 response、单位转换、n=0 policy 与
+local-response Casimir benchmark 的可检查基础。
 
 当前研究主线：
 
 1. 固定四轨道 normal-state 模型与两个 minimal pairing ansatz。
 2. 检查 BdG 谱、gap 幅值 / 符号 / node 结构。
 3. 研究 $s_{\pm}$ 与 $d$-wave 的电导行为，尤其是对称性、各向异性与非对角响应。
-4. 只有在电导层清楚后，才进入 Casimir torque 的系统计算。
+4. 只使用 local q=0 sheet response 进入当前 Casimir benchmark。
 
 ## 当前阶段状态
 
 数值稳定性阶段已归纳，详见 `docs/notes/numerical_stability_summary.md`。当前可以进入
 local-response distance scan benchmark；但这仍然不是正式 Casimir 结论，仍需保留
-`local_response=True`、`finite_q_resolved=False`、`n0_policy=skip`、
-`benchmark_only=True` 的边界。
+`local_response=True`、`n0_policy=skip`、`benchmark_only=True` 的边界。
+
+finite momentum response 曾作为 diagnostic prototype 探索过，但当前分支已移除相关
+代码、测试、脚本和输出。后续如需重启，需要重新设计 gauge/Ward-closed response
+层，不能复用已删除的 prototype 作为 Casimir 输入。
 
 ## 当前仓库阅读入口
 
 当前不建议从 `outputs/` 子目录逐个寻找结论，应先阅读阶段报告：
 
 - `docs/reports/current_project_status.md`
-- `docs/reports/finite_q_response_status.md`
 - `docs/reports/local_response_baseline_status.md`
 - `docs/notes/numerical_stability_summary.md`
 
-这些入口区分了 local-response baseline、finite-q response diagnostic prototype 和仍禁止输出
-正式 Casimir torque 结论的边界。
+这些入口区分了 local-response baseline、n=0 policy 和仍禁止输出正式 Casimir torque
+结论的边界。
 
 当前 active 输出：
 
-- 最新 finite-q 结果：`validation/outputs/response/finite_q_raw_q0_consistency/`
 - local-response distance scan：`validation/outputs/casimir/local_response_integral/distance_scan/`
 
 历史诊断结果已归档到 `validation/outputs/archive/`，移动清单见
@@ -257,18 +257,17 @@ $$
   `use_static_kernel` 只输出 stiffness-like $K_{\mathrm{total}}(0)$ 诊断，不定义
   $\Sigma_{\mathrm{SC}}(0)=K_{\mathrm{total}}(0)/0$，也不把
   $K_{\mathrm{total}}(0)$ 直接当作 sheet conductivity。
-- 当前已建立 SI sheet conductivity 转换层，但仍需决定它如何和完整 $n=0$、finite-$q$ 以及真实各向异性机制一起作为正式 Casimir 输入。
-- 实现真实非局域 $q_{\parallel}$ 响应；当前已有局域回退和 finite-$q$ 显式占位。
+- 当前已建立 SI sheet conductivity 转换层，但仍需决定它如何和完整 $n=0$ 以及真实各向异性机制一起作为正式 Casimir 输入。
+- 有限动量 response 原型已暂时移除；后续若需要重启，需重新设计 response 到 Casimir 输入链。
 - 能产生 torque 的角向各向异性机制。
 
-单位、静态项和 nonlocal 接口诊断：
+单位与静态项接口诊断：
 
 ```bash
 python validation/scripts/numerical_stability/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
 python validation/scripts/numerical_stability/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
 python validation/scripts/response/compare_static_response_policies.py --kinds normal spm dwave --policies skip extrapolate_from_lowest_matsubara use_static_kernel --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --distance 3e-8 --k-parallel 1e6 --phi 0.2 --theta 0.7 --output-prefix validation/outputs/archive/response/static_policy_comparison/data/static_policy_comparison
 python validation/scripts/numerical_stability/assess_n0_torque_sensitivity.py --kinds normal spm dwave --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --reference-matsubara-min 1 --reference-matsubara-max 8 --sensitivity-threshold 0.01 --theta-scan-num 41 --include-toy-anisotropic-control --output-prefix validation/outputs/archive/response/n0_sensitivity/data/n0_sensitivity
-python validation/scripts/numerical_stability/diagnose_nonlocal_response_interface.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1 --q-parallel 1e6 --phi 0.2
 ```
 
 Casimir local-response 接口链路冒烟测试：
@@ -298,18 +297,10 @@ python validation/scripts/casimir/converge_casimir_local_response_integral.py --
 python validation/scripts/casimir/run_casimir_local_convergence_final.py --dry-run
 python validation/scripts/casimir/refine_casimir_local_convergence_blockers.py --dry-run
 python validation/scripts/casimir/benchmark_casimir_local_response_distance_scan.py --dry-run
-python validation/scripts/finite_q_diagnostics/diagnose_finite_q_response_anisotropy.py
-python validation/scripts/finite_q_diagnostics/diagnose_finite_q_local_limit_decomposition.py --quick
 ```
 
 该 benchmark 做 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描；
-仍使用 local response、跳过 $n=0$、不含 finite-$q$ response，也不输出正式 Casimir 结论。
-
-finite-q response diagnostic 只检查 response 层角向各向异性，`q_magnitude` 使用
-dimensionless BZ momentum；当前仍是 prototype，不是最终 gauge-invariant
-finite-q Casimir input。
-finite-q local-limit decomposition diagnostic 只拆解 finite-q bubble 的 q->0 local
-component 对应关系，不接入 Casimir，也不输出 torque 结论。
+仍使用 local response、跳过 $n=0$，也不输出正式 Casimir 结论。
 
 绘制 normal-state 能带：
 
@@ -352,8 +343,6 @@ outputs/
     diamagnetic_kernel/
     total_kernel_imag/
     superconducting_response_imag/
-  response/
-    finite_q_raw_q0_consistency/
   casimir/
     local_response_integral/
       distance_scan/
@@ -374,7 +363,6 @@ outputs/
 - `bdg/diamagnetic_kernel`: 仅用于 BdG $K_{\mathrm{dia}}$ 诊断。
 - `bdg/total_kernel_imag`: BdG $K_{\mathrm{total}}(i\xi) = K_{\mathrm{para}}(i\xi) + K_{\mathrm{dia}}$ 诊断，目前不是 Casimir 输入。
 - `bdg/superconducting_response_imag`: BdG $\Sigma_{\mathrm{SC}}(i\xi) = \frac{K_{\mathrm{total}}(i\xi)}{\omega_{\mathrm{eV}}}$，仅定义于 $n \ge 1$，用于和 normal-state $\sigma(i\xi)$ 比较；目前不是 Casimir 输入，也不是实频轴电导。
-- `response/finite_q_raw_q0_consistency`: 当前 finite-q response 主线最新诊断。
 - `casimir/local_response_integral/distance_scan`: local-response distance scan baseline。
 - `cache/casimir_local_response/response_tensors`: local-response benchmark 复用的 response tensor cache。
 - `archive/`: 已完成阶段的历史结果，移动清单见 `validation/outputs/archive/ARCHIVE_INDEX.md`。

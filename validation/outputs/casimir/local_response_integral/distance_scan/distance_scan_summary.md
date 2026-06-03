@@ -15,7 +15,7 @@ response_cache_hits=8
 response_cache_misses=8
 response_cache_writes=8
 local_response=True
-finite_q_resolved=False
+finite_momentum_resolved=False
 n0_policy=skip
 benchmark_only=True
 not_final_Casimir_conclusion=True
@@ -47,7 +47,7 @@ toy_anisotropic_control_passed=True
 ## 结论边界
 当前仍不是正式 Casimir 结论，原因是：
 - local_response=True
-- finite_q_resolved=False
+- finite_momentum_resolved=False
 - n0_policy=skip
 - benchmark_only=True
 local_response_distance_scan_benchmark_ready=False

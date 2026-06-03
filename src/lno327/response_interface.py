@@ -30,7 +30,7 @@ class LocalSheetResponse:
     normalization_status: str = "model_response_unconverted"
     recommended_unit_conversion: str = "model_response_to_sheet_conductivity"
     static_policy: str = "finite_matsubara_only"
-    nonlocal_status: str = "local_q0_only"
+    momentum_status: str = "local_q0_only"
 
 
 def conductivity_tensor_from_matrix(matrix: np.ndarray) -> ConductivityTensor:
@@ -61,9 +61,8 @@ def local_response_imag_axis(
     """Return a local q=0 sheet response at one imaginary-axis energy.
 
     This is a pre-Casimir interface. The returned matrix is intentionally
-    marked as not yet valid for direct Casimir input because the n=0 treatment,
-    SI sheet-conductivity normalization, and nonlocal q_parallel response are
-    unresolved.
+    marked as not yet valid for direct Casimir input because the n=0 treatment
+    and SI sheet-conductivity normalization require explicit downstream policy.
     """
 
     if kind not in {"normal", "spm", "dwave"}:
@@ -77,7 +76,7 @@ def local_response_imag_axis(
         "local q=0 response only",
         "n=0 Matsubara treatment unresolved",
         "SI sheet conductivity conversion is provided by response_units",
-        "nonlocal q_parallel response not included",
+        "finite momentum response is not part of the current code path",
     )
 
     if kind == "normal":
@@ -106,7 +105,7 @@ def local_response_imag_axis(
             notes=notes,
             normalization_status=conversion.normalization_status,
             static_policy="n0_unresolved" if omega_eV == 0.0 else "finite_matsubara",
-            nonlocal_status="local_q0_only",
+            momentum_status="local_q0_only",
         )
 
     if omega_eV <= 0.0:
@@ -141,7 +140,7 @@ def local_response_imag_axis(
         normalization_status=conversion.normalization_status,
         recommended_unit_conversion="model_response_to_sheet_conductivity_then_reflection_dimensionless",
         static_policy="finite_matsubara",
-        nonlocal_status="local_q0_only",
+        momentum_status="local_q0_only",
     )
 
 

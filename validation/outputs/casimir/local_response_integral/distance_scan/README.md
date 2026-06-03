@@ -8,13 +8,13 @@ torque 和 zero-torque baseline。
 
 ```text
 local_response=True
-finite_q_resolved=False
+finite_momentum_resolved=False
 n0_policy=skip
 benchmark_only=True
 not_final_casimir_conclusion=True
 ```
 
-因此这里不是正式 Casimir torque 结论，也不能解释为 finite-q Lifshitz 结果。
+因此这里不是正式 Casimir torque 结论，也不能解释为 finite momentum Lifshitz 结果。
 
 主要入口：
 

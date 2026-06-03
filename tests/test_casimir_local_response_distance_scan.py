@@ -89,7 +89,7 @@ def test_output_fields_complete(tmp_path):
         "response_cache_used",
         "n0_policy",
         "local_response",
-        "finite_q_resolved",
+        "finite_momentum_resolved",
         "benchmark_only",
         "not_final_casimir_conclusion",
         "zero_torque_baseline",
@@ -106,7 +106,7 @@ def test_flags_are_correct(tmp_path):
 
     with np.load(output_prefix.with_suffix(".npz"), allow_pickle=True) as data:
         assert np.all(data["local_response"])
-        assert not np.any(data["finite_q_resolved"])
+        assert not np.any(data["finite_momentum_resolved"])
         assert np.all(data["benchmark_only"])
         assert np.all(data["not_final_casimir_conclusion"])
         assert set(data["n0_policy"]) == {"skip"}

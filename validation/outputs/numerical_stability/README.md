@@ -25,4 +25,4 @@
 validation/outputs/casimir/local_response_integral/distance_scan/
 ```
 
-该后续阶段仍应明确标注：local-response benchmark 不是正式 finite-q Casimir 结论。
+该后续阶段仍应明确标注：local-response benchmark 不是正式 finite momentum Casimir 结论。

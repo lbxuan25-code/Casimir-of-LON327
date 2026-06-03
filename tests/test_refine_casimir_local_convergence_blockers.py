@@ -119,7 +119,7 @@ def test_outputs_and_flags_are_correct(quick_run):
     with np.load(output_prefix.with_suffix(".npz"), allow_pickle=True) as data:
         assert output_prefix.with_suffix(".csv").exists()
         assert np.all(data["local_response"])
-        assert not np.any(data["finite_q_resolved"])
+        assert not np.any(data["finite_momentum_resolved"])
         assert np.all(data["benchmark_only"])
         assert np.all(data["not_final_casimir_conclusion"])
         assert set(data["n0_policy"]) == {"skip"}
@@ -206,5 +206,5 @@ def test_cache_and_no_cache_small_results_match(tmp_path):
             assert np.allclose(cached["energy"], uncached["energy"])
             assert np.allclose(cached["max_abs_torque_over_theta"], uncached["max_abs_torque_over_theta"])
             assert np.all(cached["local_response"])
-            assert not np.any(cached["finite_q_resolved"])
+            assert not np.any(cached["finite_momentum_resolved"])
             assert set(cached["n0_policy"]) == {"skip"}

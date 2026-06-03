@@ -83,20 +83,22 @@ matsubara_max=64
 - 没有发现 spurious torque；
 - 当前可以回到 local-response distance scan benchmark。
 
+有限动量 response prototype 已从当前分支移除，不再作为当前 active 任务或当前
+Casimir 输入路径。
+
 ## 4. 为什么仍然不能称为正式 Casimir 结论
 
 当前阶段仍保留以下边界：
 
 ```text
 local_response=True
-finite_q_resolved=False
 n0_policy=skip
 benchmark_only=True
 not_final_casimir_conclusion=True
 ```
 
-这意味着当前结果只覆盖 local `q=0` response 的 benchmark 积分，没有 finite-q
-resolved Lifshitz response。`n=0` Matsubara 项仍采用保守的 `skip` policy，不能把
+这意味着当前结果只覆盖 local `q=0` response 的 benchmark 积分，尚未包含有限动量
+Lifshitz response。`n=0` Matsubara 项仍采用保守的 `skip` policy，不能把
 当前结果解释为包含完整零频反射模型的正式 Casimir 计算。
 
 此外，当前 benchmark 尚未引入真实 torque 来源机制。zero-torque baseline 的成立只
@@ -116,16 +118,16 @@ local-response distance scan benchmark
 validation/outputs/casimir/local_response_integral/distance_scan/
 ```
 
-该阶段仍应保持 `local_response=True`、`finite_q_resolved=False`、
+该阶段仍应保持 `local_response=True`、`finite_momentum_resolved=False`、
 `n0_policy=skip`、`benchmark_only=True` 的边界说明。
 
 ## 6. 当前不允许做的事
 
 - 不允许写正式 Casimir torque 结论；
-- 不允许把 local benchmark 当 finite-q Lifshitz 结果；
+- 不允许把 local benchmark 当有限动量 Lifshitz 结果；
 - 不允许把 zero-torque baseline 解释成真实无效应结论；
 - 不允许改变当前 `n0_policy=skip` 边界后直接复用本阶段结论；
 - 不允许在尚未引入真实 torque 来源机制前声称已经得到物理 torque。
 
-下一阶段入口为 finite-q response anisotropy diagnostic；该阶段仍只属于 response 层
-prototype，不是最终 gauge-invariant finite-q Casimir input。
+下一阶段应继续围绕 local-response distance scan、n=0 policy 和 local Casimir
+benchmark 的可信度展开。有限动量 response 若未来重启，需另行设计并重新引入。

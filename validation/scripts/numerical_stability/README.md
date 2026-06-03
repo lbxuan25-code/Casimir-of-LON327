@@ -15,7 +15,6 @@
 
 - `audit_response_units.py`：早期单位链路审计；
 - `diagnose_static_response.py`：早期静态响应边界诊断；
-- `diagnose_nonlocal_response_interface.py`：早期 finite-q 接口占位诊断。
 
 这些脚本只应在追溯旧阶段判断时使用。新的数值稳定性归纳请优先阅读
 `docs/notes/numerical_stability_summary.md`，refined local-response 状态请优先阅读

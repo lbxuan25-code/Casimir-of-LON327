@@ -65,7 +65,7 @@ def test_flags_are_correct():
     data = _small_data()
 
     assert np.all(data["local_response"])
-    assert not np.any(data["finite_q_resolved"])
+    assert not np.any(data["finite_momentum_resolved"])
     assert np.all(data["benchmark_only"])
     assert np.all(data["not_final_casimir_conclusion"])
     assert set(data["n0_policy"]) == {"skip"}

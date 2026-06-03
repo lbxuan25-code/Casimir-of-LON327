@@ -1,24 +1,14 @@
 # response 输出入口
 
-本目录当前只保留 finite-q response 主线的最新 active 结果：
+当前分支不保留有限动量 response 输出。response 验证输出只保留 local q=0
+response、static policy、单位转换和 numerical stability 相关结果。
 
-- `finite_q_raw_q0_consistency/`
+当前 local-response / Casimir benchmark 的主要阅读入口：
 
-旧 finite-q 诊断、response 稳定性诊断、接口边界诊断已经移动到：
+- `validation/outputs/casimir/local_response_integral/distance_scan/`
+- `validation/outputs/archive/response/local_sheet_imag/`
+- `validation/outputs/archive/response/static_policy_comparison/`
+- `validation/outputs/archive/response/unit_audit/`
 
-- `validation/outputs/archive/response/`
-
-阅读当前状态应先看：
-
-1. `docs/reports/current_project_status.md`
-2. `docs/reports/finite_q_response_status.md`
-3. `validation/outputs/response/finite_q_raw_q0_consistency/finite_q_raw_q0_consistency_summary.md`
-
-旧数据仍然完整保留，可通过 `validation/outputs/archive/ARCHIVE_INDEX.md` 追溯原路径和新路径。
-这些旧数据不代表当前最终结论，也不能解释为正式 Casimir torque 结果。
-
-维护原则：
-
-- 不删除旧 outputs。
-- 不使用 `.gitignore` 隐藏结果。
-- 大型 `.csv`、`.npz`、`.png` 是复现数据，不是主要阅读入口。
+如未来需要重启有限动量 response，应重新设计闭合的 response 层，并在新的目录下重新生成
+脚本、测试和输出。

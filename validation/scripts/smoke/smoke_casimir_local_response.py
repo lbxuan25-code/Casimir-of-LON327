@@ -67,7 +67,7 @@ REQUIRED_NPZ_FIELDS = {
     "theta_rad",
 }
 
-NOTE = "smoke test only; unit conversion applied; n=0 and finite-q still unresolved."
+NOTE = "smoke test only; unit conversion applied; n=0 and finite momentum response still unresolved."
 
 
 def response_isotropic_diagnostic(response_matrix: np.ndarray) -> float:

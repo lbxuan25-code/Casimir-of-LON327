@@ -2,7 +2,7 @@
 """One-command final convergence runner for the local-response integral benchmark.
 
 This script orchestrates existing local-response benchmark functions only. It
-does not implement a new Casimir integral, does not include finite-q response,
+does not implement a new Casimir integral, does not include finite momentum response,
 and keeps the n=0 Matsubara policy at skip.
 """
 
@@ -172,7 +172,7 @@ def _empty_data() -> dict[str, np.ndarray]:
         "convergence_status": np.array([], dtype="U128"),
         "diagnosis": np.array([], dtype="U192"),
         "local_response": np.array([], dtype=bool),
-        "finite_q_resolved": np.array([], dtype=bool),
+        "finite_momentum_resolved": np.array([], dtype=bool),
         "n0_policy": np.array([], dtype="U16"),
         "benchmark_only": np.array([], dtype=bool),
         "not_final_casimir_conclusion": np.array([], dtype=bool),
@@ -212,7 +212,7 @@ def _load_existing(output_prefix: Path) -> dict[str, np.ndarray]:
                     "convergence_status": row["convergence_status"],
                     "diagnosis": row["diagnosis"],
                     "local_response": row["local_response"] == "True",
-                    "finite_q_resolved": row["finite_q_resolved"] == "True",
+                    "finite_momentum_resolved": row["finite_momentum_resolved"] == "True",
                     "n0_policy": row["n0_policy"],
                     "benchmark_only": row["benchmark_only"] == "True",
                     "not_final_casimir_conclusion": row["not_final_casimir_conclusion"] == "True",
@@ -311,14 +311,14 @@ def _rows_for_point(
                 "convergence_status": "pending_recomputed_after_checkpoint",
                 "diagnosis": "not_final_casimir_conclusion",
                 "local_response": True,
-                "finite_q_resolved": False,
+                "finite_momentum_resolved": False,
                 "n0_policy": N0_POLICY,
                 "benchmark_only": True,
                 "not_final_casimir_conclusion": True,
                 "notes": (
                     "local-response final convergence benchmark only",
                     "n=0 policy: skip",
-                    "finite-q response not included",
+                    "finite momentum response not included",
                     "not a final Casimir conclusion",
                 ),
             }
@@ -415,7 +415,7 @@ def save_checkpoint(data: dict[str, np.ndarray], output_prefix: Path) -> None:
         "convergence_status",
         "diagnosis",
         "local_response",
-        "finite_q_resolved",
+        "finite_momentum_resolved",
         "n0_policy",
         "benchmark_only",
         "not_final_casimir_conclusion",
@@ -459,7 +459,7 @@ def _summary_lines(
         f"full_run_pending = {full_pending}",
         f"full_run_completed = {full_completed}",
         "local_response=True",
-        "finite_q_resolved=False",
+        "finite_momentum_resolved=False",
         "n0_policy=skip",
         "benchmark_only=True",
         "not_final_casimir_conclusion=True",

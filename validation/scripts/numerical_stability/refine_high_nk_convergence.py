@@ -208,7 +208,7 @@ def refine_high_nk_convergence(
         data["relative_eigen_split"][index] = float(diagnostics["relative_eigen_split"])
         data["notes"][index] = (
             "focused high-Nk local response convergence diagnostic only",
-            "finite-q nonlocal response is not included",
+            "finite momentum response is not part of this local benchmark",
             "not a Casimir calculation",
         )
 

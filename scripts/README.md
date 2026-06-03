@@ -10,11 +10,10 @@
 
 ## 已迁移到 validation
 
-收敛性、数值稳定性、finite-q 公式诊断、static / n=0 policy、Casimir benchmark
+收敛性、数值稳定性、static / n=0 policy、Casimir benchmark
 和历史 smoke 入口都已移动到：
 
 - `../validation/scripts/numerical_stability/`
-- `../validation/scripts/finite_q_diagnostics/`
 - `../validation/scripts/response/`
 - `../validation/scripts/casimir/`
 - `../validation/scripts/smoke/`

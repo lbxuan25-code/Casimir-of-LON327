@@ -200,7 +200,7 @@ def convergence_response_imag(
         data["notes"][index] = (
             "imaginary-axis local response convergence diagnostic only",
             "normal and BdG responses are not required to be numerically equal",
-            "finite-q nonlocal response is not included",
+            "finite momentum response is not part of this local benchmark",
         )
 
     largest_nk = int(np.max(nk_values))

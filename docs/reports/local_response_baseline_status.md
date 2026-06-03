@@ -44,13 +44,14 @@ zero-torque baseline，未发现 spurious torque。
 local-response 结果现在只作为 baseline：
 
 - 检查数值积分、response cache、distance dependence 和 zero-torque baseline；
-- 为 finite-q response 主线提供对照；
 - 不作为最终 Casimir torque 结论。
 
 ## 边界
 
 - `local_response=True`
-- `finite_q_resolved=False`
 - `n0_policy=skip`
 - `benchmark_only=True`
 - `not_final_Casimir_conclusion=True`
+
+有限动量 response prototype 已从当前分支移除。后续如需重启，需要重新设计闭合的
+response 层，不能把当前 local baseline 误解为有限动量 Casimir 输入。

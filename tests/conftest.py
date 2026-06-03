@@ -17,7 +17,6 @@ BENCHMARK_KEYWORDS = (
 )
 
 DIAGNOSTIC_KEYWORDS = (
-    "finite_q",
     "static_policy",
     "superconducting_response",
     "paramagnetic_kernel_diagnosis",
@@ -33,7 +32,7 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
             item.add_marker(pytest.mark.benchmark)
         if any(keyword in stem for keyword in DIAGNOSTIC_KEYWORDS):
             item.add_marker(pytest.mark.diagnostic)
-        if "finite_q" in stem or any(keyword in stem for keyword in BENCHMARK_KEYWORDS):
+        if any(keyword in stem for keyword in BENCHMARK_KEYWORDS):
             item.add_marker(pytest.mark.regression)
         if not any(mark.name in {"benchmark", "diagnostic", "regression"} for mark in item.iter_markers()):
             item.add_marker(pytest.mark.unit)

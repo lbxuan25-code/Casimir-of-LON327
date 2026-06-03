@@ -22,8 +22,6 @@
 
 - 收敛性和数值稳定性：`../validation/outputs/archive/response/`,
   `../validation/outputs/archive/normal_state/`
-- finite-q 诊断：`../validation/outputs/response/`,
-  `../validation/outputs/archive/response/finite_q_*`
 - Casimir benchmark：`../validation/outputs/casimir/`,
   `../validation/outputs/archive/casimir/`
 - 可复用中间张量 cache：`../validation/cache/`

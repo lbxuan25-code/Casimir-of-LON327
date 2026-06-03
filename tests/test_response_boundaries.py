@@ -8,11 +8,9 @@ from lno327 import (
     local_response_matsubara_index,
     model_response_to_sheet_conductivity,
     model_response_to_reflection_dimensionless,
-    nonlocal_response_imag_axis,
     require_sheet_conductivity_for_reflection,
     sheet_conductivity_to_reflection_dimensionless,
     uniform_bz_mesh,
-    k_weights,
 )
 from lno327.constants import E2_OVER_HBAR, SIGMA0
 
@@ -105,48 +103,3 @@ def test_static_response_policies_are_explicit():
             assert result.matrix is not None
             assert np.isfinite(result.matrix).all()
 
-
-def test_nonlocal_q0_local_fallback_equals_local_response():
-    mesh = uniform_bz_mesh(3)
-    weights = k_weights(mesh)
-    params = PairingAmplitudes(delta0_eV=0.04)
-    local = local_response_imag_axis(
-        "dwave",
-        0.1,
-        mesh,
-        temperature_K=30.0,
-        eta_eV=0.02,
-        pairing_params=params,
-        k_weights=weights,
-    )
-    nonlocal_response = nonlocal_response_imag_axis(
-        "dwave",
-        0.1,
-        0.0,
-        0.2,
-        "local_fallback",
-        mesh,
-        temperature_K=30.0,
-        eta_eV=0.02,
-        pairing_params=params,
-        k_weights=weights,
-    )
-
-    np.testing.assert_allclose(nonlocal_response.matrix, local.matrix)
-    assert not nonlocal_response.nonlocal_resolved
-    assert nonlocal_response.local_fallback_used
-
-
-def test_finite_q_placeholder_raises_not_implemented():
-    mesh = uniform_bz_mesh(3)
-
-    with pytest.raises(NotImplementedError, match="finite-q"):
-        nonlocal_response_imag_axis(
-            "normal",
-            0.1,
-            1e6,
-            0.2,
-            "finite_q_placeholder",
-            mesh,
-            temperature_K=30.0,
-        )

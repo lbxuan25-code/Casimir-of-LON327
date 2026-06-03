@@ -6,8 +6,7 @@
 ## 目录结构
 
 - `scripts/numerical_stability/`：response convergence、normal sampling、high-Nk、n=0 sensitivity 等。
-- `scripts/finite_q_diagnostics/`：finite-q anisotropy、local-limit、formula consistency、subspace repair。
-- `scripts/response/`：local sheet response、static policy、raw q=0 finite-q diagnostic。
+- `scripts/response/`：local sheet response、static policy。
 - `scripts/casimir/`：local-response Casimir benchmark、distance scan、convergence runner。
 - `scripts/smoke/`：历史 smoke / plumbing 检查。
 - `scripts/compat/`：迁移后的旧命令兼容入口。
@@ -18,9 +17,8 @@
 
 1. `../docs/reports/current_project_status.md`
 2. `outputs/numerical_stability/README.md`
-3. `outputs/response/finite_q_raw_q0_consistency/finite_q_raw_q0_consistency_summary.md`
-4. `outputs/casimir/local_response_integral/distance_scan/distance_scan_summary.md`
-5. `outputs/archive/ARCHIVE_INDEX.md`
+3. `outputs/casimir/local_response_integral/distance_scan/distance_scan_summary.md`
+4. `outputs/archive/ARCHIVE_INDEX.md`
 
 ## 维护原则
 

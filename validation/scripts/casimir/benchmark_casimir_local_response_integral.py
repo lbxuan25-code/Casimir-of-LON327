@@ -3,7 +3,7 @@
 
 This script advances the existing response -> reflection -> integrand plumbing
 to a small, auditable local-response integral benchmark. It is not a formal
-Casimir calculation: n=0 is skipped, finite-q response is not included, and all
+Casimir calculation: n=0 is skipped, finite momentum response is not included, and all
 outputs are explicitly tagged as benchmark-only.
 """
 
@@ -69,7 +69,7 @@ REQUIRED_NPZ_FIELDS = {
     "delta0",
     "n0_policy",
     "local_response",
-    "finite_q_resolved",
+    "finite_momentum_resolved",
     "benchmark_only",
     "not_final_casimir_conclusion",
     "matsubara_tail_indicator",
@@ -432,7 +432,7 @@ def benchmark_casimir_local_response_integral(
         "delta0": np.full(row_count, delta0_eV, dtype=float),
         "n0_policy": np.full(row_count, N0_POLICY, dtype="U16"),
         "local_response": np.full(row_count, True, dtype=bool),
-        "finite_q_resolved": np.full(row_count, False, dtype=bool),
+        "finite_momentum_resolved": np.full(row_count, False, dtype=bool),
         "benchmark_only": np.full(row_count, True, dtype=bool),
         "not_final_casimir_conclusion": np.full(row_count, True, dtype=bool),
         "matsubara_tail_indicator": np.empty(row_count, dtype=float),
@@ -496,7 +496,7 @@ def benchmark_casimir_local_response_integral(
                 data["notes"][index] = (
                     "local-response Casimir integral benchmark only",
                     "n=0 policy: skip",
-                    "finite-q response not included",
+                    "finite momentum response not included",
                     "not a final Casimir conclusion",
                     f"kmax = {kparallel_max_factor:g} / distance",
                 )
@@ -559,7 +559,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
         "delta0",
         "n0_policy",
         "local_response",
-        "finite_q_resolved",
+        "finite_momentum_resolved",
         "benchmark_only",
         "not_final_casimir_conclusion",
         "matsubara_tail_indicator",
@@ -654,7 +654,7 @@ def print_summary(data: dict[str, np.ndarray]) -> None:
         print(f"kind = {kind}")
         print(f"max_abs_torque = {float(np.nanmax(data['max_abs_torque_over_theta'][mask]))}")
         print(f"diagnoses = {sorted(set(str(item) for item in data['diagnosis'][mask]))}")
-    print("note = local-response benchmark only; n=0 skipped; finite-q not resolved; not a final Casimir conclusion.")
+    print("note = local-response benchmark only; n=0 skipped; finite momentum response not resolved; not a final Casimir conclusion.")
 
 
 def main() -> None:
