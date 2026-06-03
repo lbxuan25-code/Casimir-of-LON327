@@ -24,26 +24,26 @@ not_final_Casimir_input=True
 - eta_eV=0.0001
 
 ## Delta0=0 Gauge Residual
-- dwave, omega=0: gauge_residual=1.6609
-- dwave, omega=1e-06: gauge_residual=1.6609
-- dwave, omega=2e-06: gauge_residual=1.6609
-- dwave, omega=5e-06: gauge_residual=1.6609
-- dwave, omega=1e-05: gauge_residual=1.6609
-- dwave, omega=2e-05: gauge_residual=1.6609
-- dwave, omega=5e-05: gauge_residual=1.6609
-- dwave, omega=0.0001: gauge_residual=1.6609
-- spm, omega=0: gauge_residual=1.6609
-- spm, omega=1e-06: gauge_residual=1.6609
-- spm, omega=2e-06: gauge_residual=1.6609
-- spm, omega=5e-06: gauge_residual=1.6609
-- spm, omega=1e-05: gauge_residual=1.6609
-- spm, omega=2e-05: gauge_residual=1.6609
-- spm, omega=5e-05: gauge_residual=1.6609
-- spm, omega=0.0001: gauge_residual=1.6609
+- dwave, omega=0: gauge_residual=1.77987
+- dwave, omega=1e-06: gauge_residual=1.77987
+- dwave, omega=2e-06: gauge_residual=1.77987
+- dwave, omega=5e-06: gauge_residual=1.77987
+- dwave, omega=1e-05: gauge_residual=1.77987
+- dwave, omega=2e-05: gauge_residual=1.77987
+- dwave, omega=5e-05: gauge_residual=1.77987
+- dwave, omega=0.0001: gauge_residual=1.77987
+- spm, omega=0: gauge_residual=1.77987
+- spm, omega=1e-06: gauge_residual=1.77987
+- spm, omega=2e-06: gauge_residual=1.77987
+- spm, omega=5e-06: gauge_residual=1.77987
+- spm, omega=1e-05: gauge_residual=1.77987
+- spm, omega=2e-05: gauge_residual=1.77987
+- spm, omega=5e-05: gauge_residual=1.77987
+- spm, omega=0.0001: gauge_residual=1.77987
 
 ## C4 / Offdiag Diagnostics
-- dwave: max_abs_rho_s_anisotropy=2.27976e-15, max_offdiag_ratio=1.25231e-17
-- spm: max_abs_rho_s_anisotropy=2.23389e-15, max_offdiag_ratio=1.77616e-17
+- dwave: max_abs_rho_s_anisotropy=1.63667e-15, max_offdiag_ratio=8.18147e-18
+- spm: max_abs_rho_s_anisotropy=2.20482e-15, max_offdiag_ratio=1.86575e-17
 
 ## Figures
 - validation/outputs/response/bdg_static_gauge_closure/figures/gauge_residual_vs_delta0.png

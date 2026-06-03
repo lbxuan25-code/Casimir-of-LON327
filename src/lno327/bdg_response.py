@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .conductivity import KuboConfig, fermi_function
+from .conductivity import KuboConfig, fermi_function, negative_fermi_derivative
 from .model import normal_state_mass_operator, normal_state_velocity_operator
 from .pairing import PairingAmplitudes, PairingKind, bdg_hamiltonian, pairing_matrix
 
@@ -19,6 +19,7 @@ class BdGEigensystem:
     energies_eV: np.ndarray
     states: np.ndarray
     occupations: np.ndarray
+    negative_fermi_derivative: np.ndarray
     current_x_band: np.ndarray
     current_y_band: np.ndarray
 
@@ -114,13 +115,20 @@ def bdg_eigensystem(
     energies, states = np.linalg.eigh(h_bdg)
     if config is None:
         occupations = np.zeros_like(energies, dtype=float)
+        minus_df = np.zeros_like(energies, dtype=float)
     else:
         occupations = fermi_function(energies, config.fermi_level_eV, config.temperature_eV)
+        minus_df = negative_fermi_derivative(
+            energies,
+            config.fermi_level_eV,
+            config.temperature_eV,
+            config.eta_eV,
+        )
 
     jx, jy = bdg_current_vertices(kx, ky)
     current_x_band = states.conjugate().T @ jx @ states
     current_y_band = states.conjugate().T @ jy @ states
-    return BdGEigensystem(energies, states, occupations, current_x_band, current_y_band)
+    return BdGEigensystem(energies, states, occupations, minus_df, current_x_band, current_y_band)
 
 
 def _validate_kernel_inputs(
@@ -171,13 +179,16 @@ def bdg_paramagnetic_kernel_imag_axis(
 
         for m, energy_m in enumerate(bands.energies_eV):
             for n, energy_n in enumerate(bands.energies_eV):
-                occupation_diff = bands.occupations[m] - bands.occupations[n]
-                if np.isclose(occupation_diff, 0.0):
-                    continue
-                energy_diff = energy_m - energy_n
-                if abs(energy_diff) < config.eta_eV:
-                    continue
-                response_factor = -occupation_diff * energy_diff / (energy_diff**2 + omega**2)
+                if m == n:
+                    response_factor = bands.negative_fermi_derivative[m]
+                else:
+                    occupation_diff = bands.occupations[m] - bands.occupations[n]
+                    if np.isclose(occupation_diff, 0.0):
+                        continue
+                    energy_diff = energy_m - energy_n
+                    if abs(energy_diff) < config.eta_eV:
+                        continue
+                    response_factor = -occupation_diff * energy_diff / (energy_diff**2 + omega**2)
                 for alpha in range(2):
                     for beta in range(2):
                         kernel_matrix[alpha, beta] += (
