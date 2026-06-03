@@ -18,8 +18,8 @@ It does not modify Casimir calculations.
 It contains no finite momentum response.
 It is not a final optical conductivity or Casimir input.
 
-run_command = `python validation/scripts/numerical_stability/diagnose_bdg_normal_limit_kernel_decomposition.py --quick`
-quick_test_only=True
+run_command = `python validation/scripts/numerical_stability/diagnose_bdg_normal_limit_kernel_decomposition.py --kinds spm dwave --omega-list 0.0 1e-06 2e-06 5e-06 1e-05 2e-05 5e-05 0.0001 --nk 16 --temperature 30.0 --eta 0.0001 --output-prefix /home/liubx25/Ni_Research/Projects/Casimir_Torque_of_LNO327/validation/outputs/response/bdg_normal_limit_kernel_decomposition/data/bdg_normal_limit_kernel_decomposition`
+quick_test_only=False
 benchmark_only=True
 local_response=True
 normal_limit_decomposition_diagnostic=True
@@ -30,22 +30,22 @@ not_final_Casimir_input=True
 
 ## Parameters
 - kinds=spm, dwave
-- omega_list=0, 0.0001
-- nk=6
+- omega_list=0, 1e-06, 2e-06, 5e-06, 1e-05, 2e-05, 5e-05, 0.0001
+- nk=16
 - temperature_K=30
 - eta_eV=0.0001
 
 ## Delta0=0 Ratios At Lowest Omega (0 eV)
 
 Ratios use K_total = K_dia - K_para.
-- dwave: para_ratio_xx=1+0j, dia_ratio_xx=1+0j, total_ratio_xx=1+0j, para_relative_error=6.47653e-16, dia_relative_error=2.56908e-16, total_relative_error=7.40899e-16
-- spm: para_ratio_xx=1+0j, dia_ratio_xx=1+0j, total_ratio_xx=1+0j, para_relative_error=6.47653e-16, dia_relative_error=2.56908e-16, total_relative_error=7.40899e-16
+- dwave: para_ratio_xx=1+0j, dia_ratio_xx=1+0j, total_ratio_xx=1+0j, para_relative_error=7.75711e-15, dia_relative_error=8.79188e-16, total_relative_error=5.51756e-15
+- spm: para_ratio_xx=1+0j, dia_ratio_xx=1+0j, total_ratio_xx=1+0j, para_relative_error=7.75711e-15, dia_relative_error=8.79188e-16, total_relative_error=5.51756e-15
 
 ## Most Inconsistent Piece
-lowest_omega_mean_para_relative_error=6.47653e-16
-lowest_omega_mean_dia_relative_error=2.56908e-16
-lowest_omega_mean_total_relative_error=7.40899e-16
-largest_lowest_omega_relative_error=total_relative_error
+lowest_omega_mean_para_relative_error=7.75711e-15
+lowest_omega_mean_dia_relative_error=8.79188e-16
+lowest_omega_mean_total_relative_error=5.51756e-15
+largest_lowest_omega_relative_error=para_relative_error
 
 ## Next Step
 Use this decomposition to decide which term needs analytic review.
