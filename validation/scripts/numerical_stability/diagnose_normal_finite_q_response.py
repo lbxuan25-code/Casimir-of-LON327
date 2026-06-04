@@ -27,6 +27,7 @@ from lno327 import KuboConfig, k_weights, kubo_conductivity_imag_axis, uniform_b
 from lno327.nonlocal_response import (  # noqa: E402
     c4_covariance_error,
     normal_finite_q_current_current_kernel_imag_axis,
+    normal_local_current_current_kernel_imag_axis,
 )
 from lno327.plotting import (  # noqa: E402
     configure_publication_matplotlib,
@@ -58,11 +59,27 @@ REQUIRED_COLUMNS = (
     "K_trace",
     "K_anisotropy_delta",
     "offdiag_ratio",
-    "local_reference_xx",
-    "local_reference_yy",
-    "local_reference_xy",
-    "local_reference_yx",
-    "q_to_zero_relative_error",
+    "public_local_sigma_xx",
+    "public_local_sigma_yy",
+    "public_local_sigma_xy",
+    "public_local_sigma_yx",
+    "relative_error_to_public_local_sigma",
+    "local_kernel_interband_xx",
+    "local_kernel_interband_yy",
+    "local_kernel_interband_xy",
+    "local_kernel_interband_yx",
+    "local_kernel_intraband_static_xx",
+    "local_kernel_intraband_static_yy",
+    "local_kernel_intraband_static_xy",
+    "local_kernel_intraband_static_yx",
+    "local_kernel_static_xx",
+    "local_kernel_static_yy",
+    "local_kernel_static_xy",
+    "local_kernel_static_yx",
+    "relative_error_to_local_kernel_interband",
+    "relative_error_to_local_kernel_static",
+    "expected_q_to_zero_reference",
+    "q_to_zero_kernel_relative_error",
     "c4_covariance_error",
     "cos4_trace_harmonic",
     "sin4_trace_harmonic",
@@ -190,7 +207,16 @@ def run_diagnostic(
                 eta_eV=eta_eV,
                 output_si=False,
             )
-            local_reference = kubo_conductivity_imag_axis(mesh, config, weights).matrix()
+            public_local_sigma = kubo_conductivity_imag_axis(mesh, config, weights).matrix()
+            local_kernel = normal_local_current_current_kernel_imag_axis(
+                mesh, config, weights
+            )
+            expected_reference_name = (
+                "local_kernel_interband" if omega_eV > 0.0 else "local_kernel_static"
+            )
+            expected_reference = (
+                local_kernel.interband if omega_eV > 0.0 else local_kernel.static
+            )
             for q_model in q_list:
                 for q_angle in q_angle_list:
                     q = np.array(
@@ -217,8 +243,25 @@ def run_diagnostic(
                         "K_trace": trace,
                         "K_anisotropy_delta": _anisotropy(matrix),
                         "offdiag_ratio": _offdiag_ratio(matrix),
-                        **_matrix_components("local_reference", local_reference),
-                        "q_to_zero_relative_error": _relative_error(matrix, local_reference),
+                        **_matrix_components("public_local_sigma", public_local_sigma),
+                        "relative_error_to_public_local_sigma": _relative_error(
+                            matrix, public_local_sigma
+                        ),
+                        **_matrix_components("local_kernel_interband", local_kernel.interband),
+                        **_matrix_components(
+                            "local_kernel_intraband_static", local_kernel.intraband_static
+                        ),
+                        **_matrix_components("local_kernel_static", local_kernel.static),
+                        "relative_error_to_local_kernel_interband": _relative_error(
+                            matrix, local_kernel.interband
+                        ),
+                        "relative_error_to_local_kernel_static": _relative_error(
+                            matrix, local_kernel.static
+                        ),
+                        "expected_q_to_zero_reference": expected_reference_name,
+                        "q_to_zero_kernel_relative_error": _relative_error(
+                            matrix, expected_reference
+                        ),
                         "c4_covariance_error": c4_covariance_error(matrix, rotated_matrix),
                         "finite_momentum_resolved": True,
                         "normal_state": True,
@@ -239,7 +282,11 @@ def run_diagnostic(
 def _write_csv(path: Path, data: dict[str, np.ndarray]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=REQUIRED_COLUMNS)
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=REQUIRED_COLUMNS,
+            lineterminator="\n",
+        )
         writer.writeheader()
         for index in range(len(data["omega_eV"])):
             writer.writerow({column: data[column][index] for column in REQUIRED_COLUMNS})
@@ -255,7 +302,12 @@ def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
 
     fig, ax = plt.subplots(figsize=(6.4, 4.0))
     for omega, nk in selectors:
-        mask = (data["omega_eV"] == omega) & (data["nk"] == nk) & np.isclose(data["q_angle"], 0.0)
+        mask = (
+            (data["omega_eV"] == omega)
+            & (data["nk"] == nk)
+            & np.isclose(data["q_angle"], 0.0)
+            & (data["q_model"] > 0.0)
+        )
         order = np.argsort(data["q_model"][mask])
         ax.plot(
             data["q_model"][mask][order],
@@ -272,17 +324,50 @@ def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
 
     fig, ax = plt.subplots(figsize=(6.4, 4.0))
     for omega, nk in selectors:
+        mask = (
+            (data["omega_eV"] == omega)
+            & (data["nk"] == nk)
+            & np.isclose(data["q_angle"], 0.0)
+            & (data["q_model"] > 0.0)
+        )
+        order = np.argsort(data["q_model"][mask])
+        ax.semilogy(
+            data["q_model"][mask][order],
+            np.maximum(data["q_to_zero_kernel_relative_error"][mask][order], EPS),
+            marker="o",
+            label=rf"$\omega={omega:g}$, $N_k={nk}$",
+        )
+    ax.set(
+        xlabel=r"$q$ (model units)",
+        ylabel="relative error to expected local kernel",
+        title=r"$q\to0$ kernel-level diagnostic",
+    )
+    style_publication_axis(ax)
+    path = figure_dir / "q_to_zero_kernel_relative_error.png"
+    save_publication_figure(fig, path)
+    plt.close(fig)
+    paths.append(path)
+    obsolete_path = figure_dir / "q_to_zero_relative_error.png"
+    if obsolete_path.exists():
+        obsolete_path.unlink()
+
+    fig, ax = plt.subplots(figsize=(6.4, 4.0))
+    for omega, nk in selectors:
         mask = (data["omega_eV"] == omega) & (data["nk"] == nk) & np.isclose(data["q_angle"], 0.0)
         order = np.argsort(data["q_model"][mask])
         ax.semilogy(
             data["q_model"][mask][order],
-            np.maximum(data["q_to_zero_relative_error"][mask][order], EPS),
+            np.maximum(data["relative_error_to_public_local_sigma"][mask][order], EPS),
             marker="o",
             label=rf"$\omega={omega:g}$, $N_k={nk}$",
         )
-    ax.set(xlabel=r"$q$ (model units)", ylabel="relative error to local reference", title=r"$q\to0$ interface diagnostic")
+    ax.set(
+        xlabel=r"$q$ (model units)",
+        ylabel="relative error to public local sigma",
+        title="Conductivity-level comparison (not closure criterion)",
+    )
     style_publication_axis(ax)
-    path = figure_dir / "q_to_zero_relative_error.png"
+    path = figure_dir / "relative_error_to_public_local_sigma.png"
     save_publication_figure(fig, path)
     plt.close(fig)
     paths.append(path)
@@ -329,11 +414,16 @@ def _summary_lines(
 ) -> list[str]:
     q_zero = np.isclose(data["q_model"], 0.0)
     q_nonzero = ~q_zero
-    max_q0_error = float(np.max(data["q_to_zero_relative_error"][q_zero]))
+    max_q0_public_sigma_error = float(
+        np.max(data["relative_error_to_public_local_sigma"][q_zero])
+    )
     minimum_nonzero_q = float(np.min(data["q_model"][q_nonzero]))
     minimum_nonzero_q_mask = np.isclose(data["q_model"], minimum_nonzero_q)
-    max_minimum_nonzero_q_error = float(
-        np.max(data["q_to_zero_relative_error"][minimum_nonzero_q_mask])
+    max_minimum_nonzero_q_kernel_error = float(
+        np.max(data["q_to_zero_kernel_relative_error"][minimum_nonzero_q_mask])
+    )
+    max_minimum_nonzero_q_public_sigma_error = float(
+        np.max(data["relative_error_to_public_local_sigma"][minimum_nonzero_q_mask])
     )
     max_c4_error = float(np.max(data["c4_covariance_error"]))
     angle_count = len(np.unique(data["q_angle"]))
@@ -347,8 +437,14 @@ def _summary_lines(
         "# Normal finite-q current-current response diagnostic",
         "",
         "这是 normal-state finite-q current-current diagnostic，不是完整 finite-q conductivity，",
-        "也不是 Casimir input。q=0 行使用现有 local normal Kubo reference fallback；",
+        "也不是 Casimir input。q=0 行仍使用现有 public local normal sigma fallback；",
         "q!=0 行使用 shifted-state midpoint velocity approximation。",
+        "",
+        "public local sigma 是 conductivity-level reference，包含 intraband/omega；",
+        "finite-q shifted-state result 是 current-current kernel-level quantity。因此",
+        "relative_error_to_public_local_sigma 只作辅助对照，不作为 q-to-zero 闭合判据。",
+        "新的主判据是 q_to_zero_kernel_relative_error：omega>0 使用 local interband",
+        "kernel，omega=0 使用 local static kernel。",
         "",
         f"run_command = `{command}`",
         f"quick_mode={quick}",
@@ -361,19 +457,20 @@ def _summary_lines(
         "not_final_casimir_input=True",
         "",
         "## Quick diagnostic status",
-        f"- q=0 maximum relative mismatch to local fallback: {max_q0_error:.6g}",
+        f"- q=0 maximum relative mismatch to public local sigma fallback: {max_q0_public_sigma_error:.6g}",
         f"- smallest sampled nonzero q: {minimum_nonzero_q:.6g}",
-        f"- maximum relative mismatch at smallest nonzero q: {max_minimum_nonzero_q_error:.6g}",
+        f"- maximum kernel-relative mismatch at smallest nonzero q: {max_minimum_nonzero_q_kernel_error:.6g}",
+        f"- maximum public-sigma mismatch at smallest nonzero q: {max_minimum_nonzero_q_public_sigma_error:.6g}",
         f"- maximum C4 covariance error: {max_c4_error:.6g}",
         f"- all q!=0 response components finite: {nonzero_finite}",
         f"- angular samples per q: {angle_count}",
-        f"- q-to-zero continuity established by this run: {max_minimum_nonzero_q_error < 1e-2}",
+        f"- q-to-zero kernel continuity established by this run: {max_minimum_nonzero_q_kernel_error < 1e-2}",
         "",
         "## Boundary",
         "- current-current-only response is not gauge closed;",
         "- Ward identity has not been checked;",
         "- midpoint vertex is not a Peierls-exact finite-q vertex;",
-        "- q=0 local fallback and q!=0 bare bubble are reported without empirical rescaling;",
+        "- public sigma and kernel-level references are both reported without empirical rescaling;",
         "- quick-mode harmonic coefficients use only two angles and are smoke-level diagnostics;",
         "- this script does not modify BdG, Casimir, or reflection-matrix logic;",
         "- no final finite-q conductivity or Casimir conclusion is claimed.",

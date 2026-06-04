@@ -17,6 +17,7 @@ from .conductivity import (
     KuboConfig,
     fermi_function,
     kubo_conductivity_imag_axis,
+    negative_fermi_derivative,
 )
 from .constants import E2_OVER_HBAR
 from .model import normal_state_hamiltonian, normal_state_velocity_operator
@@ -35,6 +36,15 @@ class ShiftedNormalEigensystem:
     energies_plus_eV: np.ndarray
     states_plus: np.ndarray
     occupations_plus: np.ndarray
+
+
+@dataclass(frozen=True)
+class NormalLocalCurrentCurrentKernel:
+    """Local kernel-level current-current decomposition."""
+
+    interband: np.ndarray
+    intraband_static: np.ndarray
+    static: np.ndarray
 
 
 def shifted_normal_eigensystem(
@@ -98,6 +108,73 @@ def _validated_points_and_weights(
         if normalized_weights.shape != (points.shape[0],):
             raise ValueError("k_weights must have shape (n,)")
     return points, normalized_weights
+
+
+def normal_local_current_current_kernel_imag_axis(
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+    hamiltonian: HamiltonianBuilder = normal_state_hamiltonian,
+    velocity: VelocityBuilder = normal_state_velocity_operator,
+) -> NormalLocalCurrentCurrentKernel:
+    """Return local kernel-level interband and static intraband pieces.
+
+    This function does not call the public conductivity API and does not divide
+    the intraband term by omega.  ``static`` is the sum of the interband bubble
+    evaluated at the configured imaginary frequency and the static intraband
+    Fermi-surface term.
+    """
+
+    points, weights = _validated_points_and_weights(k_points, k_weights, config)
+    omega = config.omega_eV + config.eta_eV
+    interband = np.zeros((2, 2), dtype=complex)
+    intraband_static = np.zeros((2, 2), dtype=complex)
+    for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
+        kx = float(kx_value)
+        ky = float(ky_value)
+        energies, states = np.linalg.eigh(hamiltonian(kx, ky))
+        occupations = fermi_function(energies, config.fermi_level_eV, config.temperature_eV)
+        minus_df = negative_fermi_derivative(
+            energies,
+            config.fermi_level_eV,
+            config.temperature_eV,
+            config.eta_eV,
+        )
+        vertices = (
+            states.conjugate().T @ velocity(kx, ky, "x") @ states,
+            states.conjugate().T @ velocity(kx, ky, "y") @ states,
+        )
+        for m, energy_m in enumerate(energies):
+            for n, energy_n in enumerate(energies):
+                if m == n:
+                    response_factor = float(minus_df[n])
+                    target = intraband_static
+                else:
+                    delta_energy = float(energy_m - energy_n)
+                    delta_occupation = float(occupations[m] - occupations[n])
+                    if abs(delta_energy) < config.eta_eV or delta_occupation == 0.0:
+                        continue
+                    response_factor = -delta_occupation * delta_energy / (
+                        delta_energy**2 + omega**2
+                    )
+                    target = interband
+                for alpha in range(2):
+                    for beta in range(2):
+                        target[alpha, beta] += (
+                            weight
+                            * response_factor
+                            * vertices[alpha][m, n]
+                            * vertices[beta][n, m]
+                        )
+
+    if config.output_si:
+        interband *= E2_OVER_HBAR
+        intraband_static *= E2_OVER_HBAR
+    return NormalLocalCurrentCurrentKernel(
+        interband=interband,
+        intraband_static=intraband_static,
+        static=interband + intraband_static,
+    )
 
 
 def normal_finite_q_current_current_kernel_imag_axis(
