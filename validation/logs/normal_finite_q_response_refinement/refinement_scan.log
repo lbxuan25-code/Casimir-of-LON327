@@ -1,0 +1,4 @@
+csv_path = validation/outputs/response/normal_finite_q_response_refinement/data/normal_finite_q_response_refinement.csv
+npz_path = validation/outputs/response/normal_finite_q_response_refinement/data/normal_finite_q_response_refinement.npz
+summary_path = validation/outputs/response/normal_finite_q_response_refinement/normal_finite_q_response_summary.md
+figure_paths = validation/outputs/response/normal_finite_q_response_refinement/figures/normal_finite_q_trace.png, validation/outputs/response/normal_finite_q_response_refinement/figures/q_to_zero_relative_error.png, validation/outputs/response/normal_finite_q_response_refinement/figures/c4_covariance_error.png, validation/outputs/response/normal_finite_q_response_refinement/figures/angular_harmonics.png
