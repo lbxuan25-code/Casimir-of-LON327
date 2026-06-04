@@ -11,7 +11,7 @@ local_response=True
 finite_momentum_resolved=False
 n0_policy=skip
 benchmark_only=True
-not_final_casimir_conclusion=True
+not_final_Casimir_conclusion=True
 ```
 
 因此这里不是正式 Casimir torque 结论，也不能解释为 finite momentum Lifshitz 结果。
@@ -23,10 +23,19 @@ not_final_casimir_conclusion=True
 - `data/distance_scan.csv` 与 `data/distance_scan.npz`：可复现数据；
 - `figures/`：距离与角度依赖的诊断图。
 
-完整 distance scan 应由本地终端运行：
+当前 full distance scan 已完成，输出状态为：
 
-```bash
-python validation/scripts/casimir/benchmark_casimir_local_response_distance_scan.py --dry-run
+```text
+quick_test_only=False
+full_distance_scan_completed=True
+local_response=True
+finite_momentum_resolved=False
+n0_policy=skip
+benchmark_only=True
+not_final_Casimir_conclusion=True
 ```
 
-先检查命令，再运行 `distance_scan_command.sh`。
+本次 full scan 包含 normal、spm、dwave 与 toy anisotropic plumbing control。
+`energy_vs_theta_by_distance.png` 和 `torque_vs_theta_by_distance.png` 按 kind 分面，
+避免多距离图例遮挡数据。运行命令记录在 `distance_scan_command.sh`，完整状态与
+cache 统计记录在 `distance_scan_summary.md`。

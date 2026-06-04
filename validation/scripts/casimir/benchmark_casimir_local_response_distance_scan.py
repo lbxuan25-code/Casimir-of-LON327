@@ -114,7 +114,13 @@ def _format_value(value: object) -> str:
     return str(value)
 
 
-def full_run_command(output_prefix: Path = DEFAULT_OUTPUT_PREFIX) -> str:
+def full_run_command(
+    output_prefix: Path = DEFAULT_OUTPUT_PREFIX,
+    *,
+    include_toy_anisotropic_control: bool = False,
+    rebuild_response_cache: bool = False,
+    detailed_progress: bool = False,
+) -> str:
     defaults = _full_defaults()
     defaults["output_prefix"] = output_prefix
     parts = ["python", "validation/scripts/casimir/benchmark_casimir_local_response_distance_scan.py"]
@@ -144,6 +150,12 @@ def full_run_command(output_prefix: Path = DEFAULT_OUTPUT_PREFIX) -> str:
         else:
             parts.append(_format_value(value))
     parts.append("--use-response-cache")
+    if include_toy_anisotropic_control:
+        parts.append("--include-toy-anisotropic-control")
+    if rebuild_response_cache:
+        parts.append("--rebuild-response-cache")
+    if detailed_progress:
+        parts.append("--progress")
     return " ".join(shlex.quote(part) for part in parts)
 
 
@@ -423,35 +435,42 @@ def save_figures(data: dict[str, np.ndarray], include_toy: bool) -> list[Path]:
             values.append(float(np.nanmax(data["max_abs_torque_over_theta"][mask])))
         ax.plot(distances, values, marker="o", label=kind)
     ax.set_xscale("log")
-    ax.set_yscale("symlog", linthresh=1e-30)
     ax.set_xlabel("distance (m)")
     ax.set_ylabel("max |torque|")
-    ax.set_title("zero-torque baseline distance scan")
+    ax.set_title(f"zero-torque baseline distance scan (tolerance={TORQUE_TOLERANCE:g})")
     style_publication_axis(ax)
     save_publication_figure(fig, paths[1])
     plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
-    for kind in kinds:
+    fig, axes = plt.subplots(len(kinds), 1, figsize=(7.0, 2.5 * len(kinds)), sharex=True, constrained_layout=True)
+    axes = np.atleast_1d(axes)
+    for ax, kind in zip(axes, kinds, strict=True):
         for distance in distances:
             mask = (data["kind"] == kind) & np.isclose(data["distance_m"], distance)
-            ax.plot(data["theta"][mask], data["energy"][mask].real, marker="o", label=f"{kind}, d={distance:g}")
-    ax.set_xlabel("theta (rad)")
-    ax.set_ylabel("energy")
-    ax.set_title("energy vs theta by distance")
-    style_publication_axis(ax)
+            ax.plot(data["theta"][mask], data["energy"][mask].real, marker="o", label=f"d={distance:g}")
+        ax.set_ylabel("energy")
+        ax.set_title(kind)
+        style_publication_axis(ax, legend=False)
+    axes[-1].set_xlabel("theta (rad)")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="center left", bbox_to_anchor=(1.0, 0.5), title="distance (m)")
+    fig.suptitle("energy vs theta by distance")
     save_publication_figure(fig, paths[2])
     plt.close(fig)
 
-    fig, ax = plt.subplots(figsize=(7.0, 4.2), constrained_layout=True)
-    for kind in kinds:
+    fig, axes = plt.subplots(len(kinds), 1, figsize=(7.0, 2.5 * len(kinds)), sharex=True, constrained_layout=True)
+    axes = np.atleast_1d(axes)
+    for ax, kind in zip(axes, kinds, strict=True):
         for distance in distances:
             mask = (data["kind"] == kind) & np.isclose(data["distance_m"], distance)
-            ax.plot(data["theta"][mask], data["torque_fd"][mask], marker="o", label=f"{kind}, d={distance:g}")
-    ax.set_xlabel("theta (rad)")
-    ax.set_ylabel("torque")
-    ax.set_title("torque vs theta by distance")
-    style_publication_axis(ax)
+            ax.plot(data["theta"][mask], data["torque_fd"][mask], marker="o", label=f"d={distance:g}")
+        ax.set_ylabel("torque")
+        ax.set_title(kind)
+        style_publication_axis(ax, legend=False)
+    axes[-1].set_xlabel("theta (rad)")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="center left", bbox_to_anchor=(1.0, 0.5), title="distance (m)")
+    fig.suptitle("torque vs theta by distance")
     save_publication_figure(fig, paths[3])
     plt.close(fig)
 
@@ -499,6 +518,11 @@ def _summary_lines(
     response_cache: ResponseTensorCache | None,
 ) -> list[str]:
     zero_by_kind = {kind: _kind_zero_baseline(data, kind) for kind in KINDS}
+    max_torque_by_kind = {
+        kind: float(np.nanmax(np.abs(data["torque_fd"][data["kind"] == kind])))
+        for kind in KINDS
+        if np.any(data["kind"] == kind)
+    }
     toy_passed = _toy_passed(data)
     all_zero = all(zero_by_kind.values())
     ready = bool(full_completed and all_zero and toy_passed)
@@ -545,9 +569,13 @@ def _summary_lines(
         "- " + ", ".join(f"{distance:g}" for distance in args.distance_list),
         "",
         "## zero-torque baseline",
+        f"- torque_tolerance={TORQUE_TOLERANCE:g}",
     ]
     for kind in KINDS:
-        lines.append(f"- {kind}: zero_torque_baseline={zero_by_kind[kind]}")
+        lines.append(
+            f"- {kind}: zero_torque_baseline={zero_by_kind[kind]}, "
+            f"max_abs_torque={max_torque_by_kind.get(kind, np.nan):.6g}"
+        )
     lines.extend(
         [
             "",
@@ -642,7 +670,12 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    command = full_run_command(DEFAULT_OUTPUT_PREFIX)
+    command = full_run_command(
+        DEFAULT_OUTPUT_PREFIX,
+        include_toy_anisotropic_control=args.include_toy_anisotropic_control,
+        rebuild_response_cache=args.rebuild_response_cache,
+        detailed_progress=args.progress,
+    )
     if args.dry_run:
         print(command)
         return

@@ -14,8 +14,8 @@ local-response Casimir benchmark 的可检查基础。
 
 ## 当前阶段状态
 
-数值稳定性阶段已归纳，详见 `docs/notes/numerical_stability_summary.md`。当前可以进入
-local-response distance scan benchmark；但这仍然不是正式 Casimir 结论，仍需保留
+数值稳定性阶段已归纳，详见 `docs/notes/numerical_stability_summary.md`。当前
+local-response distance scan benchmark 已完成；但这仍然不是正式 Casimir 结论，仍需保留
 `local_response=True`、`n0_policy=skip`、`benchmark_only=True` 的边界。
 
 finite momentum response 曾作为 diagnostic prototype 探索过，但当前分支已移除相关
@@ -53,7 +53,7 @@ finite momentum response 曾作为 diagnostic prototype 探索过，但当前分
 当前代码仍然只是底层物理与工程基础层，还不是正式的数值模拟层。特别地，
 BdG paramagnetic kernel 不是完整超导电导；diamagnetic term
 已作为独立诊断加入；当前也提供
-$K_{\mathrm{total}} = K_{\mathrm{para}} + K_{\mathrm{dia}}$ 与
+$K_{\mathrm{total}} = K_{\mathrm{dia}} - K_{\mathrm{para}}$ 与
 $\Sigma_{\mathrm{SC}}(i\xi) = \frac{K_{\mathrm{total}}(i\xi)}{\omega_{\mathrm{eV}}}$ 的虚频轴诊断，但它们仍不是
 实频轴 optical conductivity，也尚未作为 Casimir 输入。
 当前 local isotropic baseline 对 Lifshitz 形式中的 $n=0$ Matsubara 半权重项采用
@@ -361,7 +361,7 @@ outputs/
 - `pairing/gap_structure`: 投影 gap 幅值 / 符号 / near-node 诊断。
 - `bdg/paramagnetic_kernel_imag`: 仅用于 BdG $K_{\mathrm{para}}(i\xi)$ 诊断，不是完整超导电导。
 - `bdg/diamagnetic_kernel`: 仅用于 BdG $K_{\mathrm{dia}}$ 诊断。
-- `bdg/total_kernel_imag`: BdG $K_{\mathrm{total}}(i\xi) = K_{\mathrm{para}}(i\xi) + K_{\mathrm{dia}}$ 诊断，目前不是 Casimir 输入。
+- `bdg/total_kernel_imag`: BdG $K_{\mathrm{total}}(i\xi) = K_{\mathrm{dia}} - K_{\mathrm{para}}$ stiffness 诊断，目前不是 Casimir 输入。
 - `bdg/superconducting_response_imag`: BdG $\Sigma_{\mathrm{SC}}(i\xi) = \frac{K_{\mathrm{total}}(i\xi)}{\omega_{\mathrm{eV}}}$，仅定义于 $n \ge 1$，用于和 normal-state $\sigma(i\xi)$ 比较；目前不是 Casimir 输入，也不是实频轴电导。
 - `casimir/local_response_integral/distance_scan`: local-response distance scan baseline。
 - `cache/casimir_local_response/response_tensors`: local-response benchmark 复用的 response tensor cache。
