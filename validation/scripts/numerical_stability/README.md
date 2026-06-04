@@ -6,7 +6,7 @@
 当前推荐入口仍在 `scripts/` 顶层，至少包括：
 
 - `validation/scripts/numerical_stability/benchmark_normal_fs_adaptive_integration.py`
-- `validation/scripts/casimir/benchmark_casimir_local_response_integral.py`
+- `scripts/casimir/local_response_integral.py`
 - `validation/scripts/casimir/converge_casimir_local_response_integral.py`
 - `validation/scripts/casimir/refine_casimir_local_convergence_blockers.py`
 - `validation/scripts/casimir/run_casimir_local_convergence_final.py`

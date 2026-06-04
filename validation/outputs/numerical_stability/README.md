@@ -22,7 +22,7 @@
 后续 local-response distance scan 应另开目录：
 
 ```text
-validation/outputs/casimir/local_response_integral/distance_scan/
+outputs/casimir/local_response_distance_scan/
 ```
 
 该后续阶段仍应明确标注：local-response benchmark 不是正式 finite momentum Casimir 结论。

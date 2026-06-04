@@ -34,16 +34,17 @@ zero-torque baseline，未发现 spurious torque。
 
 当前 active local-response 输出保留：
 
-- `validation/outputs/casimir/local_response_integral/distance_scan/`
+- `outputs/casimir/local_response_distance_scan/`
 - `validation/cache/casimir_local_response/response_tensors/`
 
 注意：cache 单独放在 `validation/cache/`，避免与 distance scan 的正式数据和图像混在一起。
 
 ## 当前用途
 
-local-response 结果现在只作为 baseline：
+local-response 结果现在作为边界清楚的初级结论：
 
 - 检查数值积分、response cache、distance dependence 和 zero-torque baseline；
+- 给出当前 local isotropic 设置下未发现超过 tolerance 的 torque；
 - 不作为最终 Casimir torque 结论。
 
 ## 边界
@@ -51,7 +52,8 @@ local-response 结果现在只作为 baseline：
 - `local_response=True`
 - `n0_policy=skip`
 - `benchmark_only=True`
-- `not_final_Casimir_conclusion=True`
+- `preliminary_local_response_conclusion=True`
+- `not_final_casimir_conclusion=True`
 
 有限动量 response prototype 已从当前分支移除。后续如需重启，需要重新设计闭合的
 response 层，不能把当前 local baseline 误解为有限动量 Casimir 输入。

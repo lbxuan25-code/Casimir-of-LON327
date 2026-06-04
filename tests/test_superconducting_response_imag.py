@@ -12,7 +12,7 @@ from lno327 import (
     uniform_bz_mesh,
 )
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "diagnose_superconducting_response_imag.py"
+SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "bdg" / "diagnose_superconducting_response_imag.py"
 SPEC = spec_from_file_location("diagnose_superconducting_response_imag", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 diagnose = module_from_spec(SPEC)

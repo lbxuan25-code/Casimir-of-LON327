@@ -6,12 +6,12 @@ response、static policy、单位转换和 numerical stability 相关结果。
 当前 local-response / Casimir benchmark 的主要阅读入口：
 
 - `validation/outputs/response/bdg_static_gauge_closure/`
-- `validation/outputs/casimir/local_response_integral/distance_scan/`
+- `outputs/casimir/local_response_distance_scan/`
 - `validation/outputs/archive/response/local_sheet_imag/`
 - `validation/outputs/archive/response/static_policy_comparison/`
 - `validation/outputs/archive/response/unit_audit/`
 
-`bdg_static_gauge_closure/` 检查 local BdG `K_para + K_dia` 的静态规范闭合、
+`bdg_static_gauge_closure/` 检查 local BdG `K_dia - K_para` 的静态 stiffness、
 候选 `rho_s` 的有限性和 C4/offdiag 行为；它不是最终 optical conductivity，
 也不是最终 Casimir 输入。
 

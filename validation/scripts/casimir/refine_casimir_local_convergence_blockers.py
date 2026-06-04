@@ -4,7 +4,7 @@
 This runner fixes the old k_parallel cutoff diagnostic by scanning the
 dimensionless cutoff u = k_parallel * distance at fixed du. It also extends the
 Matsubara cutoff scan. The underlying local-response integral is delegated to
-benchmark_casimir_local_response_integral.py.
+scripts/casimir/local_response_integral.py.
 """
 
 from __future__ import annotations
@@ -20,12 +20,13 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "validation" / "scripts" / "casimir"))
+sys.path.insert(0, str(ROOT / "scripts" / "casimir"))
 
-from benchmark_casimir_local_response_integral import (  # noqa: E402
+from local_response_integral import (  # noqa: E402
     KINDS,
     N0_POLICY,
     ResponseTensorCache,
-    benchmark_casimir_local_response_integral,
+    compute_local_response_casimir_integral,
 )
 
 REFINED_ROOT = ROOT / "validation" / "outputs" / "archive" / "casimir" / "local_response_integral" / "refined_convergence"
@@ -296,7 +297,7 @@ def _benchmark_rows(
     response_cache: ResponseTensorCache | None,
 ) -> list[dict[str, object]]:
     kparallel_num = implied_kparallel_num(u_max, args.du)
-    energy_integral = benchmark_casimir_local_response_integral(
+    energy_integral = compute_local_response_casimir_integral(
         kinds=args.kinds,
         distance_list=[args.distance],
         theta_list=args.energy_theta_list,
@@ -314,7 +315,7 @@ def _benchmark_rows(
         delta0_eV=args.delta0,
         response_cache=response_cache,
     )
-    torque_integral = benchmark_casimir_local_response_integral(
+    torque_integral = compute_local_response_casimir_integral(
         kinds=args.kinds,
         distance_list=[args.distance],
         theta_list=args.torque_check_theta_list,

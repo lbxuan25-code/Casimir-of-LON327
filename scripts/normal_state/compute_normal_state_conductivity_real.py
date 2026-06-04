@@ -123,25 +123,31 @@ def main() -> None:
         eigenvalues=eigenvalues,
         relative_eigen_split=relative_splits,
         offdiag_norm=offdiag_norm,
+        nk=np.array(args.nk),
+        temperature_K=np.array(args.temperature),
+        eta_eV=np.array(args.eta),
+        fermi_level_eV=np.array(args.fermi_level),
+        output_dimensionless=np.array(args.dimensionless),
+        response_layer=np.array("normal_state_conductivity_real_axis"),
     )
 
     configure_publication_matplotlib()
     import matplotlib.pyplot as plt
 
     fig_re, ax_re = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
-    ax_re.plot(omega_eV, sigma_xx.real, label="Re sigma_xx")
-    ax_re.plot(omega_eV, sigma_yy.real, label="Re sigma_yy", linestyle="--")
+    ax_re.plot(omega_eV, sigma_xx.real, label=r"$\mathrm{Re}\,\sigma_{xx}$")
+    ax_re.plot(omega_eV, sigma_yy.real, label=r"$\mathrm{Re}\,\sigma_{yy}$", linestyle="--")
     ax_re.set_xlabel("omega (eV)")
-    ax_re.set_ylabel("Re sigma")
+    ax_re.set_ylabel(r"$\mathrm{Re}\,\sigma(\omega)$")
     style_publication_axis(ax_re)
     save_publication_figure(fig_re, re_plot_path)
     plt.close(fig_re)
 
     fig_im, ax_im = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
-    ax_im.plot(omega_eV, sigma_xx.imag, label="Im sigma_xx")
-    ax_im.plot(omega_eV, sigma_yy.imag, label="Im sigma_yy", linestyle="--")
+    ax_im.plot(omega_eV, sigma_xx.imag, label=r"$\mathrm{Im}\,\sigma_{xx}$")
+    ax_im.plot(omega_eV, sigma_yy.imag, label=r"$\mathrm{Im}\,\sigma_{yy}$", linestyle="--")
     ax_im.set_xlabel("omega (eV)")
-    ax_im.set_ylabel("Im sigma")
+    ax_im.set_ylabel(r"$\mathrm{Im}\,\sigma(\omega)$")
     style_publication_axis(ax_im)
     save_publication_figure(fig_im, im_plot_path)
     plt.close(fig_im)

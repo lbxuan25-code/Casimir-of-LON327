@@ -1,22 +1,23 @@
-# LNO327 local q=0 response 与 Casimir benchmark
+# LNO327 local q=0 response 与 Casimir 初级结论
 
 本项目提供一套底层 Python 代码框架，用于研究 $\mathrm{La_3Ni_2O_7}$ / LNO327 在
 minimal $s_{\pm}$ 与 $d$-wave 超导配对下的电磁响应。当前重心是先建立
 normal-state、BdG、gap 结构、local q=0 response、单位转换、n=0 policy 与
-local-response Casimir benchmark 的可检查基础。
+local-response Casimir 初级结论的可检查基础。
 
 当前研究主线：
 
 1. 固定四轨道 normal-state 模型与两个 minimal pairing ansatz。
 2. 检查 BdG 谱、gap 幅值 / 符号 / node 结构。
 3. 研究 $s_{\pm}$ 与 $d$-wave 的电导行为，尤其是对称性、各向异性与非对角响应。
-4. 只使用 local q=0 sheet response 进入当前 Casimir benchmark。
+4. 只使用 local q=0 sheet response 建立当前 Casimir 初级结论。
 
 ## 当前阶段状态
 
 数值稳定性阶段已归纳，详见 `docs/notes/numerical_stability_summary.md`。当前
-local-response distance scan benchmark 已完成；但这仍然不是正式 Casimir 结论，仍需保留
-`local_response=True`、`n0_policy=skip`、`benchmark_only=True` 的边界。
+local-response distance scan 已形成初级结论；但这仍然不是最终 Casimir 结论，仍需保留
+`local_response=True`、`n0_policy=skip`、`benchmark_only=True` 和
+`preliminary_local_response_conclusion=True` 的边界。
 
 finite momentum response 曾作为 diagnostic prototype 探索过，但当前分支已移除相关
 代码、测试、脚本和输出。后续如需重启，需要重新设计 gauge/Ward-closed response
@@ -35,7 +36,7 @@ finite momentum response 曾作为 diagnostic prototype 探索过，但当前分
 
 当前 active 输出：
 
-- local-response distance scan：`validation/outputs/casimir/local_response_integral/distance_scan/`
+- local-response Casimir 初级结论：`outputs/casimir/local_response_distance_scan/`
 
 历史诊断结果已归档到 `validation/outputs/archive/`，移动清单见
 `validation/outputs/archive/ARCHIVE_INDEX.md`。
@@ -114,43 +115,43 @@ python scripts/normal_state/inspect_normal_state_blocks.py --kx 0.0 --ky 0.0
 检查 pairing 结构和 BdG 谱：
 
 ```bash
-python scripts/inspect_pairing_structure.py --kx 0.2 --ky -0.5 --delta0-eV 0.04
+python scripts/pairing/inspect_pairing_structure.py --kx 0.2 --ky -0.5 --delta0-eV 0.04
 ```
 
 检查 normal-state 费米面附近的投影 gap 结构：
 
 ```bash
-python scripts/inspect_gap_structure.py --kind spm --delta0 0.04 --nk 80 --energy-window 0.05 --node-tolerance 0.001 --output-prefix outputs/pairing/gap_structure/data/gap_structure_spm
+python scripts/pairing/inspect_gap_structure.py --kind spm --delta0 0.04 --nk 80 --energy-window 0.05 --node-tolerance 0.001 --output-prefix outputs/pairing/gap_structure/data/gap_structure_spm
 ```
 
 检查 BdG paramagnetic kernel 的虚频轴基础响应：
 
 ```bash
-python scripts/compute_bdg_paramagnetic_kernel_imag.py --kind spm --delta0 0.04 --nk 24 --temperature 30 --matsubara-index 1
+python scripts/bdg/compute_bdg_paramagnetic_kernel_imag.py --kind spm --delta0 0.04 --nk 24 --temperature 30 --matsubara-index 1
 ```
 
 扫描 BdG paramagnetic kernel 对称性诊断：
 
 ```bash
-python scripts/diagnose_bdg_paramagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix outputs/bdg/paramagnetic_kernel_imag/data/K_para_imag
+python scripts/bdg/diagnose_bdg_paramagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix outputs/bdg/paramagnetic_kernel_imag/data/K_para_imag
 ```
 
 诊断 BdG diamagnetic kernel：
 
 ```bash
-python scripts/diagnose_bdg_diamagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --output-prefix outputs/bdg/diamagnetic_kernel/data/K_dia
+python scripts/bdg/diagnose_bdg_diamagnetic_kernel.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --output-prefix outputs/bdg/diamagnetic_kernel/data/K_dia
 ```
 
 扫描 BdG total kernel：
 
 ```bash
-python scripts/diagnose_bdg_total_kernel_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix outputs/bdg/total_kernel_imag/data/K_total_imag
+python scripts/bdg/diagnose_bdg_total_kernel_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix outputs/bdg/total_kernel_imag/data/K_total_imag
 ```
 
 扫描 BdG superconducting response kernel $\Sigma_{\mathrm{SC}} = \frac{K_{\mathrm{total}}}{\omega_{\mathrm{eV}}}$：
 
 ```bash
-python scripts/diagnose_superconducting_response_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix outputs/bdg/superconducting_response_imag/data/Sigma_SC_imag
+python scripts/bdg/diagnose_superconducting_response_imag.py --kinds spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix outputs/bdg/superconducting_response_imag/data/Sigma_SC_imag
 ```
 
 检查 $\Delta_0\rightarrow 0$ 的 BdG-normal 极限：
@@ -292,11 +293,11 @@ Casimir 能量或力矩结论。
 Local-response Casimir integral benchmark 入口：
 
 ```bash
-python validation/scripts/casimir/benchmark_casimir_local_response_integral.py --kinds normal spm dwave --distance-list 3e-8 5e-8 1e-7 --theta-list 0 0.3926990817 0.7853981634 1.1780972451 1.5707963268 --matsubara-min 1 --matsubara-max 8 --kparallel-num 64 --kparallel-max-factor 20 --phi-num 32 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix validation/outputs/archive/casimir/local_response_integral/data/local_response_integral
+python scripts/casimir/local_response_integral.py --kinds normal spm dwave --distance-list 3e-8 5e-8 1e-7 --theta-list 0 0.3926990817 0.7853981634 1.1780972451 1.5707963268 --matsubara-min 1 --matsubara-max 8 --kparallel-num 64 --kparallel-max-factor 20 --phi-num 32 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix outputs/casimir/local_response_integral/data/local_response_integral
 python validation/scripts/casimir/converge_casimir_local_response_integral.py --kinds normal spm dwave --distance 5e-8 --matsubara-max-list 2 4 8 16 --kparallel-num-list 16 32 64 --kparallel-max-factor-list 10 20 40 --phi-num-list 16 32 64 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix validation/outputs/archive/casimir/local_response_integral/convergence/data/local_integral_convergence
 python validation/scripts/casimir/run_casimir_local_convergence_final.py --dry-run
 python validation/scripts/casimir/refine_casimir_local_convergence_blockers.py --dry-run
-python validation/scripts/casimir/benchmark_casimir_local_response_distance_scan.py --dry-run
+python scripts/casimir/local_response_distance_scan.py --dry-run
 ```
 
 该 benchmark 做 $n\ge 1$ Matsubara 求和、$k_{\parallel}/\phi$ 积分和 $\theta$ 扫描；
@@ -371,4 +372,5 @@ outputs/
 
 长期任务边界与执行顺序见 [research_plan.md](docs/notes/research_plan.md)。
 normal-state 相关运行脚本集中在 `scripts/normal_state/`，输出集中在
-`outputs/normal_state/`；旧的 `scripts/compute_normal_state_*.py` 等路径保留为兼容 wrapper。
+`outputs/normal_state/`。pairing 与 BdG 脚本分别集中在 `scripts/pairing/` 和
+`scripts/bdg/`；`scripts/` 顶层不保留兼容 wrapper。

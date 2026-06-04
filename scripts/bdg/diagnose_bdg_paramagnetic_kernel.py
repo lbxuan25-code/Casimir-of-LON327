@@ -43,6 +43,8 @@ REQUIRED_NPZ_FIELDS = {
     "nk",
     "temperature_K",
     "eta_eV",
+    "nambu_prefactor",
+    "response_layer",
 }
 
 
@@ -123,6 +125,8 @@ def scan_kind(
         "nk": np.array(nk),
         "temperature_K": np.array(temperature_K),
         "eta_eV": np.array(eta_eV),
+        "nambu_prefactor": np.array(0.5),
+        "response_layer": np.array("positive_current_current_bubble"),
     }
 
 
@@ -167,7 +171,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_kernel.plot(omega, data["Kyy"].real, label="Re Kyy", linestyle="--")
     ax_kernel.set_xlabel("imaginary-axis energy (eV)")
     ax_kernel.set_ylabel("Re K_para")
-    ax_kernel.set_title(f"{kind} BdG paramagnetic kernel diagnostic")
+    ax_kernel.set_title(f"{kind}: BdG paramagnetic kernel")
     style_publication_axis(ax_kernel)
     save_publication_figure(fig_kernel, kernel_plot_path)
     plt.close(fig_kernel)
@@ -179,7 +183,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_diag.set_xlabel("imaginary-axis energy (eV)")
     ax_diag.set_ylabel("relative diagnostic")
     ax_diag.set_yscale("log")
-    ax_diag.set_title(f"{kind} C4-symmetry diagnostics for K_para")
+    ax_diag.set_title(f"{kind}: $C_4$ symmetry of $K_{{\\rm para}}$")
     style_publication_axis(ax_diag)
     save_publication_figure(fig_diag, diagnostic_plot_path)
     plt.close(fig_diag)
@@ -193,7 +197,8 @@ def print_summary(data: dict[str, np.ndarray]) -> None:
     print(f"max_relative_offdiag = {float(np.max(data['relative_offdiag']))}")
     print(f"max_relative_eigen_split = {float(np.max(data['relative_eigen_split']))}")
     print(f"diagnosis = {diagnosis(data)}")
-    print("note = K_para diagnostic only; not full superconducting conductivity")
+    print("nambu_prefactor = 0.5")
+    print("note = positive K_para bubble only; not full superconducting conductivity")
 
 
 def main() -> None:

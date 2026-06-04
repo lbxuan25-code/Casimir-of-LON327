@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
-SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "diagnose_bdg_paramagnetic_kernel.py"
+SCRIPT_PATH = Path(__file__).resolve().parents[1] / "scripts" / "bdg" / "diagnose_bdg_paramagnetic_kernel.py"
 SPEC = spec_from_file_location("diagnose_bdg_paramagnetic_kernel", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 diagnose = module_from_spec(SPEC)

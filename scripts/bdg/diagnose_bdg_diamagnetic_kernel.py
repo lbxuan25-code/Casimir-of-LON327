@@ -72,6 +72,7 @@ def scan_kind(
         "delta0_eV": np.array(delta0_eV),
         "nk": np.array(nk),
         "temperature_K": np.array(temperature_K),
+        "response_layer": np.array("mass_contact_term"),
     }
 
 
@@ -116,7 +117,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax.bar(labels, values)
     ax.set_yscale("log")
     ax.set_ylabel("relative diagnostic")
-    ax.set_title(f"{kind} BdG diamagnetic kernel diagnostics")
+    ax.set_title(f"{kind}: BdG diamagnetic kernel symmetry")
     style_publication_axis(ax, legend=False)
     save_publication_figure(fig, figure_path)
     plt.close(fig)

@@ -19,11 +19,12 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "validation" / "scripts" / "casimir"))
+sys.path.insert(0, str(ROOT / "scripts" / "casimir"))
 
-from benchmark_casimir_local_response_integral import (  # noqa: E402
+from local_response_integral import (  # noqa: E402
     KINDS,
     N0_POLICY,
-    benchmark_casimir_local_response_integral,
+    compute_local_response_casimir_integral,
 )
 import converge_casimir_local_response_integral as convergence  # noqa: E402
 
@@ -283,7 +284,7 @@ def _rows_for_point(
         base_kparallel_max_factor=base_settings[2],
         base_phi_num=base_settings[3],
     )
-    integral = benchmark_casimir_local_response_integral(
+    integral = compute_local_response_casimir_integral(
         kinds=args.kinds,
         distance_list=[args.distance],
         theta_list=args.theta_list,

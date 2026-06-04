@@ -6,7 +6,7 @@
 ## Current Validation Entries
 
 - `validation/README.md`
-- `validation/outputs/casimir/local_response_integral/distance_scan/`
+- `outputs/casimir/local_response_distance_scan/`
 - `validation/outputs/numerical_stability/README.md`
 - `validation/cache/casimir_local_response/response_tensors/`
 
@@ -32,7 +32,6 @@
 - `validation/scripts/response/`
 - `validation/scripts/casimir/`
 - `validation/scripts/smoke/`
-- `validation/scripts/compat/`
 
 ## Historical Move Summary
 

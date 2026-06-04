@@ -6,19 +6,18 @@ from lno327.normal_sampling import normal_sheet_tensor_from_sampling
 
 SCRIPT_PATH = (
     Path(__file__).resolve().parents[1]
-    / "validation"
     / "scripts"
     / "casimir"
-    / "benchmark_casimir_local_response_integral.py"
+    / "local_response_integral.py"
 )
-SPEC = spec_from_file_location("benchmark_casimir_local_response_integral", SCRIPT_PATH)
+SPEC = spec_from_file_location("local_response_integral", SCRIPT_PATH)
 assert SPEC is not None and SPEC.loader is not None
 bench = module_from_spec(SPEC)
 SPEC.loader.exec_module(bench)
 
 
 def _small_data(include_toy=False):
-    return bench.benchmark_casimir_local_response_integral(
+    return bench.compute_local_response_casimir_integral(
         kinds=["normal", "spm", "dwave"],
         distance_list=[5e-8],
         theta_list=[0.0, np.pi / 4.0, np.pi / 2.0],
@@ -63,6 +62,7 @@ def test_flags_are_correct():
     assert np.all(data["local_response"])
     assert not np.any(data["finite_momentum_resolved"])
     assert np.all(data["benchmark_only"])
+    assert np.all(data["preliminary_local_response_conclusion"])
     assert np.all(data["not_final_casimir_conclusion"])
     assert set(data["n0_policy"]) == {"skip"}
 

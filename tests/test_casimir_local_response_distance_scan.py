@@ -5,10 +5,9 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "validation" / "scripts" / "casimir" / "benchmark_casimir_local_response_distance_scan.py"
-SCAN_ROOT = ROOT / "validation" / "outputs" / "casimir" / "local_response_integral" / "distance_scan"
+SCRIPT = ROOT / "scripts" / "casimir" / "local_response_distance_scan.py"
+SCAN_ROOT = ROOT / "outputs" / "casimir" / "local_response_distance_scan"
 SUMMARY = SCAN_ROOT / "distance_scan_summary.md"
-COMMAND = SCAN_ROOT / "distance_scan_command.sh"
 
 
 def _run_quick(tmp_path):
@@ -38,7 +37,7 @@ def test_quick_mode_runs(tmp_path):
     output_prefix, result = _run_quick(tmp_path)
 
     assert output_prefix.with_suffix(".npz").exists()
-    assert "local-response distance scan benchmark only" in result.stdout
+    assert "preliminary local-response Casimir conclusion" in result.stdout
 
 
 def test_dry_run_outputs_full_command():
@@ -51,7 +50,7 @@ def test_dry_run_outputs_full_command():
     )
 
     command = result.stdout
-    assert "validation/scripts/casimir/benchmark_casimir_local_response_distance_scan.py" in command
+    assert "scripts/casimir/local_response_distance_scan.py" in command
     assert "--distance-list 3e-08 5e-08 7.5e-08 1e-07 1.5e-07 2e-07" in command
     assert "--matsubara-max 64" in command
     assert "--u-max 80" in command
@@ -59,10 +58,10 @@ def test_dry_run_outputs_full_command():
     assert "--use-response-cache" in command
 
 
-def test_command_file_is_generated(tmp_path):
-    _run_quick(tmp_path)
+def test_command_file_is_generated_next_to_custom_output(tmp_path):
+    output_prefix, _result = _run_quick(tmp_path)
 
-    assert COMMAND.exists()
+    assert (output_prefix.parent / "distance_scan_command.sh").exists()
 
 
 def test_output_fields_complete(tmp_path):
@@ -91,6 +90,7 @@ def test_output_fields_complete(tmp_path):
         "local_response",
         "finite_momentum_resolved",
         "benchmark_only",
+        "preliminary_local_response_conclusion",
         "not_final_casimir_conclusion",
         "zero_torque_baseline",
         "warning_possible_spurious_torque",
@@ -108,6 +108,7 @@ def test_flags_are_correct(tmp_path):
         assert np.all(data["local_response"])
         assert not np.any(data["finite_momentum_resolved"])
         assert np.all(data["benchmark_only"])
+        assert np.all(data["preliminary_local_response_conclusion"])
         assert np.all(data["not_final_casimir_conclusion"])
         assert set(data["n0_policy"]) == {"skip"}
         assert not np.any(data["zero_torque_baseline"] & data["warning_possible_spurious_torque"])

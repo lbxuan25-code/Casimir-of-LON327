@@ -13,14 +13,14 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "validation" / "scripts" / "casimir"))
+sys.path.insert(0, str(ROOT / "scripts" / "casimir"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from benchmark_casimir_local_response_integral import (  # noqa: E402
+from local_response_integral import (  # noqa: E402
     KINDS,
     N0_POLICY,
     TORQUE_TOLERANCE,
-    benchmark_casimir_local_response_integral,
+    compute_local_response_casimir_integral,
 )
 from lno327.plotting import (  # noqa: E402
     configure_publication_matplotlib,
@@ -144,7 +144,7 @@ def converge_casimir_local_response_integral(
                 base_kparallel_max_factor=base_kparallel_max_factor,
                 base_phi_num=base_phi_num,
             )
-            integral = benchmark_casimir_local_response_integral(
+            integral = compute_local_response_casimir_integral(
                 kinds=kinds,
                 distance_list=[distance_m],
                 theta_list=theta_list,

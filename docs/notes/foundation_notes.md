@@ -1,24 +1,30 @@
-# 基础说明
+# 稳定基础与计算 Contract
 
-本仓库当前实现的是底层代数结构、响应函数诊断和 Casimir 前置接口，不执行正式
-Casimir Matsubara 求和，也不声明最终数值结论。当前工作重心是研究 $s_{\pm}$
-与 $d$-wave 在 gap structure 和 conductivity symmetry 上的区别；Casimir
-力矩是后续应用层。
+本文记录当前仓库采用的稳定模型、local-response 计算 contract 和结果解释边界。
+当前阶段状态与初级结论见 `current_stage_research_report.md`；数值可信度证据见
+`numerical_stability_summary.md`。
 
-输出图像和数据的使用边界见 `outputs/README.md`；面向论文草稿的图片选择、
-caption 叙事和重画建议见 `docs/notes/publication_output_guide.md`。当前图像输出以
-300 dpi PNG 为主，并保留对应 `.npz` / `.csv` 数据。
+## 1. 仓库分层
 
-## Normal-State 模型
+- `src/lno327/`：稳定物理实现与公共接口。
+- `scripts/`：材料本征结果和当前主计算入口。
+- `outputs/`：当前主结果与边界清楚的初级结论。
+- `validation/scripts/`：收敛性、静态规范、单位和 smoke 诊断。
+- `validation/outputs/`：验证结果、历史归档与 cache。
+
+`scripts/` 与 `outputs/` 不再保存 quick、example、compatibility wrapper 或历史
+convergence 结果。
+
+## 2. Normal-State 模型
 
 normal-state Hamiltonian 使用四轨道基
 
 $$
 \Psi_{\mathbf{k}} =
-\left(d_{z^2,1}, d_{x^2-y^2,1}, d_{z^2,2}, d_{x^2-y^2,2}\right)^T .
+\left(d_{z^2,1}, d_{x^2-y^2,1}, d_{z^2,2}, d_{x^2-y^2,2}\right)^T ,
 $$
 
-代码中采用的 block 结构可写为
+其 block 结构为
 
 $$
 H_0(\mathbf{k}) =
@@ -26,22 +32,20 @@ H_0(\mathbf{k}) =
 H_{\parallel}(\mathbf{k}) & H_{\perp}(\mathbf{k}) \\
 H_{\perp}(\mathbf{k}) & H_{\parallel}(\mathbf{k})
 \end{pmatrix}
-- \mu I .
+- \mu I ,
 $$
 
-其中 $H_{\parallel}$ 和 $H_{\perp}$ 由项目采用的
-$T_z(\mathbf{k})$、$T_x(\mathbf{k})$、$T_z^\perp(\mathbf{k})$、
-$T_x^\perp(\mathbf{k})$、$V(\mathbf{k})$ 与 $V'(\mathbf{k})$ 给出。
-化学势作为 normal-state 参数保存，当前默认值为
+当前默认化学势为
 
 $$
 \mu = 0.05\ \mathrm{eV}.
 $$
 
-## 最小配对 Ansatz
+本轮整理未修改 normal-state Hamiltonian 或其参数。
 
-$s_{\pm}$ 配对采用 $(d_{z^2,1}, d_{x^2-y^2,1}, d_{z^2,2}, d_{x^2-y^2,2})$
-基下的层间 $d_{z^2}$ 结构：
+## 3. 最小配对 Ansatz
+
+$s_{\pm}$ 配对采用层间 $d_{z^2}$ 结构：
 
 $$
 \Delta_{s_{\pm}}
@@ -54,9 +58,8 @@ $$
 \end{pmatrix}.
 $$
 
-它表示 bilayer bonding / antibonding sign-changing $s_{\pm}$ pairing。
-
-$d$-wave 配对采用同层 $d_{z^2}$-$d_{x^2-y^2}$ interorbital 结构：
+$d$-wave / $B_{1g}$ 配对采用同层
+$d_{z^2}$-$d_{x^2-y^2}$ interorbital 结构：
 
 $$
 \Delta_d(\mathbf{k})
@@ -69,17 +72,17 @@ $$
 \end{pmatrix}.
 $$
 
-动量因子 $\cos(k_x)+\cos(k_y)$ 属于 $A_{1g}$，结合
-$d_{x^2-y^2}$ 轨道自身的 $B_{1g}$ 对称性后，总配对属于 $d$-wave /
-$B_{1g}$ 通道。两类配对矩阵均按偶宇称 spin-singlet 形式实现，满足
+两类 pairing 均满足
 
 $$
-\Delta(\mathbf{k}) = \Delta^T(-\mathbf{k}) .
+\Delta(\mathbf{k}) = \Delta^T(-\mathbf{k}).
 $$
 
-## BdG 结构
+本轮整理未修改 pairing ansatz。
 
-BdG Hamiltonian 使用 Nambu 基，结构为
+## 4. BdG Local-Response Contract
+
+BdG Hamiltonian 为
 
 $$
 H_{\mathrm{BdG}}(\mathbf{k}) =
@@ -89,20 +92,17 @@ H_0(\mathbf{k}) & \Delta(\mathbf{k}) \\
 \end{pmatrix}.
 $$
 
-电流顶点不取 $\partial H_{\mathrm{BdG}}/\partial k_a$，而采用 charge-current
-block 结构：
+charge-current vertex 使用
 
 $$
 J_a^{\mathrm{BdG}}(\mathbf{k}) =
 \begin{pmatrix}
 \partial_a H_0(\mathbf{k}) & 0 \\
 0 & -\partial_a H_0^T(-\mathbf{k})
-\end{pmatrix},
-\qquad a \in \{x,y\}.
+\end{pmatrix}.
 $$
 
-diamagnetic vertex 只来自 normal-state Hamiltonian 的二阶导数，不包含
-$\partial_{\mathbf{k}}\Delta$ 项：
+mass/contact vertex 使用
 
 $$
 M_{ab}^{\mathrm{BdG}}(\mathbf{k}) =
@@ -112,127 +112,102 @@ M_{ab}^{\mathrm{BdG}}(\mathbf{k}) =
 \end{pmatrix}.
 $$
 
-当前的 total electromagnetic kernel 诊断定义为
+当前 kernel convention 已由 normal-state Peierls/free-energy stiffness 诊断固定为：
+
+$$
+K_{\mathrm{para}}
+= \text{positive current-current bubble},
+$$
 
 $$
 K_{\mathrm{total}}(i\xi_n)
-= K_{\mathrm{para}}(i\xi_n) + K_{\mathrm{dia}} .
+= K_{\mathrm{dia}} - K_{\mathrm{para}}(i\xi_n).
 $$
 
-虚频轴 superconducting sheet response kernel 定义为
+BdG paramagnetic bubble 保留：
+
+- $m=n$ intraband / Fermi-surface 项；
+- 用于补偿 particle-hole redundancy 的整体 Nambu $1/2$ prefactor。
+
+`K_total` 不再使用旧的加法 convention。当前主输出已经按
+`K_dia - K_para` contract 重新生成。
+
+positive Matsubara 上的 sigma-like response 定义为
 
 $$
 \Sigma_{\mathrm{SC}}(i\xi_n)
 = \frac{K_{\mathrm{total}}(i\xi_n)}{\omega_{\mathrm{eV},n}},
-\qquad n \ge 1 .
+\qquad n \ge 1.
 $$
 
-$n=0$ 项由于除零问题当前不用于 $\Sigma_{\mathrm{SC}}$，在 Casimir 阶段前仍需单独处理。
-当前不定义 $\Sigma_{\mathrm{SC}}(0)=K_{\mathrm{total}}(0)/0$。若输出
-$K_{\mathrm{total}}(0)$，它只作为 stiffness-like 静态核诊断，不作为 sheet
-conductivity，也不直接输入 reflection matrix。
+它不是实频 optical conductivity，也不应被描述为最终 optical conductivity。
 
-$\Delta_0\rightarrow 0$ benchmark 用于检查 BdG response 层本身是否连续、有限、
-稳定。关闭 pairing 时，`spm` 与 `dwave` 应回到共同的 BdG normal limit；但
-normal-state Kubo $\sigma(i\xi)$ 与 BdG $\Sigma_{\mathrm{SC}}$ 的归一化和公式结构
-不同，因此不要求逐项完全相等。若该 benchmark 出现发散、强不连续或明显 C4
-对称性破坏，应先处理 response 层，不进入 Casimir 积分。
+## 5. 静态与 Normal-Limit 解释
 
-imaginary-axis response 收敛性 benchmark 用于检查 `nk`、`eta` 与 Matsubara index
-对 normal / `spm` / `dwave` local response 的影响。该检查只处理 local
-$q=0$ response，不包含有限动量 response。若 response 未随 `nk`
-增大稳定，或随 `eta` 减小出现异常发散 / 随机震荡，应先解决数值收敛问题；若
-`spm` / `dwave` 差异只在小 `nk` 或特定 `eta` 下出现，应视为数值伪影，不进入
-Casimir 积分。
+当前 static diagnostic 的含义是检查 electromagnetic stiffness，而不是要求
+clean normal state 的 $K_{\mathrm{total}}(0)$ 必须为零。
 
-高 `Nk` 聚焦复查用于确认 normal response 的低 Matsubara 频率敏感性是否能在
-更细网格下缓解。若 normal response 在 `Nk=64\rightarrow 80` 仍未稳定，说明当前
-local response 仍需要更细采样或 Fermi-surface sensitive integration。若
-`spm` / `dwave` 差异在高 `Nk` 下趋近 0，则当前 minimal pairing 的 local response
-差异不应作为稳健物理差异解读；若差异在高 `Nk` 下平台化，才进入后续物理分析。
+在 $\Delta_0=0$ normal limit 下，当前诊断要求：
 
-normal-state low-Matsubara sampling convergence 诊断用于进一步定位上述 normal
-response 的 `Nk` 敏感来源。该诊断复用现有 Kubo 公式；`shifted` 和 `average`
-mesh 只作为脚本内部的 alternative sampling，不改变默认 uniform 行为。若
-points-within-eta 太少、网格命中费米面不规则，或 response 与 Fermi-window weight
-强相关，应优先改进 normal response 的采样 / 积分，而不是进入 Casimir 积分。
+- BdG $K_{\mathrm{para}}$ 与 normal $K_{\mathrm{para}}$ 对齐；
+- BdG $K_{\mathrm{dia}}$ 与 normal $K_{\mathrm{dia}}$ 对齐；
+- BdG 与 normal 的 $K_{\mathrm{dia}}-K_{\mathrm{para}}$ 对齐；
+- $C_4$ 对称性与近零 off-diagonal response 保持稳定。
 
-normal-state FS-sensitive sampling benchmark 是上述诊断的下一步。`multishift_average`
-使用 `s x s` fractional shifted meshes 对同一 Kubo integrand 做采样平均，并报告
-shift-to-shift std；`fs_window_refined` 先用 coarse mesh 找到 Fermi-window cells，再在
-这些 cell 周围局部加密并保留面积权重。二者都只改变 quadrature，不改变 normal Kubo
-物理公式，也不替代 uniform 默认。若这些方案仍无法稳定 low-Matsubara normal response，
-下一步应考虑 contour 或 tetrahedron Fermi-surface integration；在此之前仍不进入正式
-local-response Casimir 积分。
+相关诊断属于 `validation/`，不作为主结果目录。
 
-normal-state FS-adaptive BZ integration prototype 是更稳妥的局部加密版本：它用
-coarse cell 顶点和中心能量识别费米面穿过的 BZ cells，或识别落入
-`fs_window_factor * max(eta,kBT,omega_eV)` 的近费米窗口 cells，然后只细分这些 cells。
-非 FS cells 保留 midpoint；所有采样点按面积权重归一后送入原
-`kubo_conductivity_imag_axis`。该 prototype 不做 strict contour / triangle 解析积分，
-也不改变 Kubo integrand。若它仍不随 `refine_factor` 和 `Nk` 稳定，下一步应转向
-triangle / contour Fermi-surface integration；normal response 收敛前仍暂停正式
-local-response Casimir 积分。
+## 6. 单位与响应边界
 
-## 单位与归一化
-
-所有 Hamiltonian、配对、速度顶点和 Kubo 响应中的能量单位均为 eV。速度算符定义为
+Hamiltonian、pairing、顶点与 Matsubara 能量均以 eV 为基础单位。玻色 Matsubara
+能量为
 
 $$
-v_a(\mathbf{k}) = \partial_a H_0(\mathbf{k}),
-\qquad a \in \{x,y\},
+\omega_{\mathrm{eV},n} = \hbar\xi_n = 2\pi n k_B T.
 $$
 
-其中 $k_x,k_y$ 是无量纲晶格动量，因此 $v_a$ 在代码中按 eV 处理。
-玻色 Matsubara 能量写作
+BZ 权重满足
 
 $$
-\hbar \xi_n = 2\pi n k_B T ,
+\sum_{\mathbf{k}} w_{\mathbf{k}}=1,
 $$
 
-并以 eV 形式传入响应函数。normal-state Kubo 可选择乘以 $e^2/\hbar$，
-但当前 local sheet response interface 仍标记为 model-units diagnostic；
-SI sheet conductivity 归一化尚未最终完成。
-
-BZ 积分规范为
+对应
 
 $$
-\sum_{\mathbf{k}} w_{\mathbf{k}}, \qquad \sum_{\mathbf{k}} w_{\mathbf{k}} = 1,
+\int_{\mathrm{BZ}}\frac{d^2k}{(2\pi)^2}.
 $$
 
-对应在 $[-\pi,\pi)^2$ 上的
+response 到 reflection convention 的转换由共享单位接口管理，禁止把裸 kernel
+直接解释为 conductivity，也禁止重复乘单位转换因子。
 
-$$
-\int_{\mathrm{BZ}} \frac{d^2 k}{(2\pi)^2}.
-$$
+## 7. Casimir 计算边界
 
-## Casimir 接口边界
+当前已经完成 local-response Casimir Matsubara、平行动量、角度与距离扫描。当前
+主计算仍具有以下明确元数据：
 
-Casimir 相关工具当前只保留流程骨架：
+```text
+local_response=True
+finite_momentum_resolved=False
+n0_policy=skip
+benchmark_only=True
+preliminary_local_response_conclusion=True
+not_final_casimir_conclusion=True
+```
 
-1. 准备虚频轴二维响应张量；
-2. 按板间相对角度或面内角度旋转张量；
-3. 构造 reflection matrix；
-4. 构造 Lifshitz 能量 integrand；
-5. 由 $-\partial_\theta E$ 构造力矩 integrand。
+`n=0` 项尚无显式 zero-frequency reflection model，因此当前采用 `skip` policy。
+有限动量 response 已从当前分支移除；后续如需重启，必须重新设计并验证，不能复用
+已删除的 prototype。
 
-Lifshitz 求和形式上包含 $n=0$ Matsubara 半权重项。当前 local isotropic baseline
-默认 `n=0 policy = skip`，不是因为 $n=0$ 项不存在，而是为了避免当前未定义的
-superconducting zero-frequency conductivity 产生假贡献。`extrapolate_from_lowest_matsubara`
-只作为数值敏感性估计；`use_static_kernel` 只作为静态核诊断。
-`skip` 不是无条件物理结论：当前仅在 extrapolated $n=0$ proxy 相对于
-$n\ge 1$ torque-integrand partial sum 的影响低于阈值，或两者均为数值零时，
-才接受为 local baseline 的保守默认。若 proxy 影响超过阈值，或 reference torque
-近零但 proxy 非零，则必须先建立 zero-frequency reflection model，不能输出正式
-Casimir torque 结论。
+当前 Casimir distance scan 可以作为 local-response zero-torque baseline 的初级结论，
+但不能解释为最终 Casimir torque 结论。
 
-当前新增的 `LocalSheetResponse` 只是 Casimir 前置接口，把 normal-state
-$\sigma(i\xi)$ 与 BdG $\Sigma_{\mathrm{SC}}(i\xi)$ 统一整理为 local $q=0$
-sheet response matrix。该对象当前保持
-`valid_for_casimir_input=False`，因为正式 Casimir 阶段仍缺少
-$n=0$ Matsubara 处理、SI sheet conductivity 归一化、非局域
-$q_{\parallel}$ 响应，以及能产生 torque 的角向各向异性机制。
-未来若引入真实各向异性机制，必须重新推导或选择相应的 $n=0$ zero-frequency
-reflection policy，然后才可进入正式 Matsubara 求和。
-当前 n0 sensitivity 判断仍固定 $k_{\parallel},\phi,\theta$，并只做 partial
-Matsubara-sum integrand 比较；它不是完整 $k_{\parallel}/\phi$ 积分后的最终判断。
+## 8. 图像与结果规范
+
+当前主结果保存在 `outputs/`，主图统一使用 publication-oriented 样式：
+
+- 300 dpi PNG；
+- serif 字体与一致的数学排版；
+- 一致的颜色、线宽、刻度和图例；
+- Casimir torque 图以共享 torque tolerance 归一化。
+
+验证性和历史图像保留在 `validation/outputs/`，不与主结果混放。

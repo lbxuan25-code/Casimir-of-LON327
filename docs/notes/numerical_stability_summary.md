@@ -53,8 +53,8 @@ dwave 三个 kind 均达到 clean cutoff convergence。
 
 extended Matsubara scan 已覆盖 `matsubara_max=24, 32, 48, 64`。在最大截断
 `matsubara_max=64` 处，normal 为 `candidate_converged`，spm 与 dwave 为
-`loose_converged`。这足以作为下一阶段 local-response distance scan benchmark 的
-数值设置依据，但仍不是正式 Casimir 结论。
+`loose_converged`。这些设置已经用于主 `outputs/` 中的 local-response distance scan
+初级结论，但仍不是最终 Casimir 结论。
 
 ### zero-torque baseline 检查
 
@@ -88,7 +88,7 @@ matsubara_max=64
 - Matsubara normal 为 `candidate_converged`，spm/dwave 为 `loose_converged`；
 - zero-torque baseline 成立；
 - 没有发现 spurious torque；
-- 当前可以回到 local-response distance scan benchmark。
+- 当前已完成 local-response distance scan 初级结论。
 
 有限动量 response prototype 已从当前分支移除，不再作为当前 active 任务或当前
 Casimir 输入路径。
@@ -111,22 +111,18 @@ Lifshitz response。`n=0` Matsubara 项仍采用保守的 `skip` policy，不能
 此外，当前 benchmark 尚未引入真实 torque 来源机制。zero-torque baseline 的成立只
 说明当前各向同性 local benchmark 没有数值伪力矩；它不是“真实无效应”的物理结论。
 
-## 5. 当前允许进入的下一阶段
+## 5. 当前主结果与下一阶段
 
-当前允许进入：
-
-```text
-local-response distance scan benchmark
-```
-
-建议新阶段输出目录另开：
+local-response distance scan 已从数值稳定性任务提升为边界清楚的初级结论，保存在：
 
 ```text
-validation/outputs/casimir/local_response_integral/distance_scan/
+outputs/casimir/local_response_distance_scan/
 ```
 
-该阶段仍应保持 `local_response=True`、`finite_momentum_resolved=False`、
-`n0_policy=skip`、`benchmark_only=True` 的边界说明。
+该结果保持 `local_response=True`、`finite_momentum_resolved=False`、
+`n0_policy=skip`、`benchmark_only=True` 和
+`preliminary_local_response_conclusion=True`。下一阶段应优先处理 n=0 policy 与
+真实 torque 来源机制。
 
 ## 6. 当前不允许做的事
 
@@ -136,5 +132,5 @@ validation/outputs/casimir/local_response_integral/distance_scan/
 - 不允许改变当前 `n0_policy=skip` 边界后直接复用本阶段结论；
 - 不允许在尚未引入真实 torque 来源机制前声称已经得到物理 torque。
 
-下一阶段应继续围绕 local-response distance scan、n=0 policy 和 local Casimir
-benchmark 的可信度展开。有限动量 response 若未来重启，需另行设计并重新引入。
+下一阶段应围绕 n=0 policy、真实 torque 来源机制和 local Casimir 初级结论的适用
+边界展开。有限动量 response 若未来重启，需另行设计并重新引入。

@@ -47,6 +47,9 @@ REQUIRED_NPZ_FIELDS = {
     "nk",
     "temperature_K",
     "eta_eV",
+    "total_convention",
+    "response_layer",
+    "not_final_optical_conductivity",
 }
 
 
@@ -94,6 +97,9 @@ def scan_kind(
         "nk": np.array(nk),
         "temperature_K": np.array(temperature_K),
         "eta_eV": np.array(eta_eV),
+        "total_convention": np.array("K_dia_minus_K_para"),
+        "response_layer": np.array("sigma_like_response_from_total_kernel"),
+        "not_final_optical_conductivity": np.array(True),
     }
     for prefix in ("Ktotal", "Sigma"):
         for component in ("xx", "yy", "xy", "yx"):
@@ -178,7 +184,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_response.plot(omega, data["Sigma_yy"].real, label="Re Sigma_yy", linestyle="--")
     ax_response.set_xlabel("imaginary-axis energy (eV)")
     ax_response.set_ylabel("Re Sigma_SC")
-    ax_response.set_title(f"{kind} Sigma_SC diagnostic")
+    ax_response.set_title(f"{kind}: imaginary-axis BdG response")
     style_publication_axis(ax_response)
     save_publication_figure(fig_response, response_plot_path)
     plt.close(fig_response)
@@ -190,18 +196,20 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_diag.set_xlabel("imaginary-axis energy (eV)")
     ax_diag.set_ylabel("relative diagnostic")
     ax_diag.set_yscale("log")
-    ax_diag.set_title(f"{kind} C4-symmetry diagnostics for Sigma_SC")
+    ax_diag.set_title(f"{kind}: $C_4$ symmetry of $\\Sigma_{{\\rm SC}}$")
     style_publication_axis(ax_diag)
     save_publication_figure(fig_diag, diagnostics_plot_path)
     plt.close(fig_diag)
 
-    fig_compare, ax_compare = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
-    ax_compare.plot(omega, data["Ktotal_xx"].real, label="Re Ktotal_xx")
-    ax_compare.plot(omega, data["Sigma_xx"].real, label="Re Sigma_xx")
-    ax_compare.set_xlabel("imaginary-axis energy (eV)")
-    ax_compare.set_ylabel("xx component")
-    ax_compare.set_title(f"{kind} K_total and Sigma_SC comparison")
-    style_publication_axis(ax_compare)
+    fig_compare, axes_compare = plt.subplots(2, 1, figsize=(6.0, 5.4), sharex=True, constrained_layout=True)
+    axes_compare[0].plot(omega, data["Ktotal_xx"].real, label=r"$\mathrm{Re}\,K_{\rm total,xx}$")
+    axes_compare[0].set_ylabel(r"$K_{\rm total,xx}$")
+    axes_compare[0].set_title(f"{kind}: total kernel and sigma-like response")
+    style_publication_axis(axes_compare[0])
+    axes_compare[1].plot(omega, data["Sigma_xx"].real, label=r"$\mathrm{Re}\,\Sigma_{\rm SC,xx}$")
+    axes_compare[1].set_xlabel("imaginary-axis energy (eV)")
+    axes_compare[1].set_ylabel(r"$\Sigma_{\rm SC,xx}$")
+    style_publication_axis(axes_compare[1])
     save_publication_figure(fig_compare, compare_plot_path)
     plt.close(fig_compare)
     return npz_path, response_plot_path, diagnostics_plot_path, compare_plot_path
@@ -213,7 +221,8 @@ def print_summary(data: dict[str, np.ndarray]) -> None:
     print(f"max_relative_offdiag_Sigma = {float(np.max(data['relative_offdiag_Sigma']))}")
     print(f"max_relative_eigen_split_Sigma = {float(np.max(data['relative_eigen_split_Sigma']))}")
     print(f"diagnosis = {diagnosis(data)}")
-    print("note = Sigma_SC = K_total/omega_eV for n>=1; not Casimir input yet.")
+    print("total_convention = K_dia_minus_K_para")
+    print("note = Sigma_SC = K_total/omega_eV for n>=1; not final optical conductivity.")
 
 
 def main() -> None:

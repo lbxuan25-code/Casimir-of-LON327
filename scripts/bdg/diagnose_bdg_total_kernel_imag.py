@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Scan K_total = K_para + K_dia on the imaginary axis."""
+"""Scan K_total = K_dia - K_para on the imaginary axis."""
 
 from __future__ import annotations
 
@@ -51,6 +51,8 @@ REQUIRED_NPZ_FIELDS = {
     "nk",
     "temperature_K",
     "eta_eV",
+    "total_convention",
+    "response_layer",
 }
 
 
@@ -95,6 +97,8 @@ def scan_kind(
         "nk": np.array(nk),
         "temperature_K": np.array(temperature_K),
         "eta_eV": np.array(eta_eV),
+        "total_convention": np.array("K_dia_minus_K_para"),
+        "response_layer": np.array("bdg_total_electromagnetic_kernel"),
     }
     for prefix in ("Kpara", "Kdia", "Ktotal"):
         for component in ("xx", "yy", "xy", "yx"):
@@ -178,7 +182,7 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_kernel.plot(omega, data["Ktotal_yy"].real, label="Re Ktotal_yy", linestyle="--")
     ax_kernel.set_xlabel("imaginary-axis energy (eV)")
     ax_kernel.set_ylabel("Re K_total")
-    ax_kernel.set_title(f"{kind} BdG total kernel diagnostic")
+    ax_kernel.set_title(f"{kind}: BdG total kernel")
     style_publication_axis(ax_kernel)
     save_publication_figure(fig_kernel, kernel_plot_path)
     plt.close(fig_kernel)
@@ -190,18 +194,18 @@ def save_outputs(data: dict[str, np.ndarray], output_prefix: Path) -> tuple[Path
     ax_diag.set_xlabel("imaginary-axis energy (eV)")
     ax_diag.set_ylabel("relative diagnostic")
     ax_diag.set_yscale("log")
-    ax_diag.set_title(f"{kind} C4-symmetry diagnostics for K_total")
+    ax_diag.set_title(f"{kind}: $C_4$ symmetry of $K_{{\\rm total}}$")
     style_publication_axis(ax_diag)
     save_publication_figure(fig_diag, diagnostics_plot_path)
     plt.close(fig_diag)
 
     fig_components, ax_components = plt.subplots(figsize=(6.0, 4.0), constrained_layout=True)
-    ax_components.plot(omega, data["Kpara_xx"].real, label="Re Kpara_xx")
-    ax_components.plot(omega, data["Kdia_xx"].real, label="Re Kdia_xx")
-    ax_components.plot(omega, data["Ktotal_xx"].real, label="Re Ktotal_xx")
+    ax_components.plot(omega, data["Kdia_xx"].real, label=r"$K_{\rm dia,xx}$")
+    ax_components.plot(omega, -data["Kpara_xx"].real, label=r"$-K_{\rm para,xx}$")
+    ax_components.plot(omega, data["Ktotal_xx"].real, label=r"$K_{\rm total,xx}$")
     ax_components.set_xlabel("imaginary-axis energy (eV)")
     ax_components.set_ylabel("kernel xx component")
-    ax_components.set_title(f"{kind} K_para/K_dia/K_total comparison")
+    ax_components.set_title(f"{kind}: $K_{{\\rm total}}=K_{{\\rm dia}}-K_{{\\rm para}}$")
     style_publication_axis(ax_components)
     save_publication_figure(fig_components, components_plot_path)
     plt.close(fig_components)
@@ -214,7 +218,8 @@ def print_summary(data: dict[str, np.ndarray]) -> None:
     print(f"max_relative_offdiag_total = {float(np.max(data['relative_offdiag_total']))}")
     print(f"max_relative_eigen_split_total = {float(np.max(data['relative_eigen_split_total']))}")
     print(f"diagnosis = {diagnosis(data)}")
-    print("note = BdG total electromagnetic kernel on imaginary axis; not Casimir input yet.")
+    print("total_convention = K_dia_minus_K_para")
+    print("note = BdG total electromagnetic kernel on imaginary axis; not final optical conductivity.")
 
 
 def main() -> None:

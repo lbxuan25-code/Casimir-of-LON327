@@ -1,15 +1,15 @@
 # Validation Guide
 
-本目录集中保存数值可信度、收敛性、公式诊断、Casimir benchmark、历史 smoke 和 cache。
-主 `scripts/` / `outputs/` 现在只保留材料和模型本征特性的当前计算入口与结果。
+本目录集中保存数值可信度、收敛性、公式诊断、Casimir convergence benchmark、
+历史 smoke 和 cache。主 `scripts/` / `outputs/` 保存当前计算入口、材料结果和边界
+清楚的初级结论。
 
 ## 目录结构
 
 - `scripts/numerical_stability/`：response convergence、normal sampling、high-Nk、n=0 sensitivity 等。
 - `scripts/response/`：local sheet response、static policy。
-- `scripts/casimir/`：local-response Casimir benchmark、distance scan、convergence runner。
+- `scripts/casimir/`：local-response Casimir convergence、refinement 和流程检查。
 - `scripts/smoke/`：历史 smoke / plumbing 检查。
-- `scripts/compat/`：迁移后的旧命令兼容入口。
 - `outputs/`：上述验证脚本对应的输出、历史归档和 summary。
 - `cache/`：可复用中间张量，例如 local-response Casimir response tensors。
 
@@ -17,7 +17,7 @@
 
 1. `../docs/reports/current_project_status.md`
 2. `outputs/numerical_stability/README.md`
-3. `outputs/casimir/local_response_integral/distance_scan/distance_scan_summary.md`
+3. `../outputs/casimir/local_response_distance_scan/distance_scan_summary.md`
 4. `outputs/archive/ARCHIVE_INDEX.md`
 
 ## 维护原则

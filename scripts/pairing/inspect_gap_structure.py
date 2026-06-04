@@ -59,6 +59,11 @@ def main() -> None:
         gap_sign=stats.gap_sign,
         node_tolerance_eV=np.array(stats.node_tolerance_eV),
         relative_node_mask=relative_node_mask,
+        kind=np.array(args.kind),
+        delta0_eV=np.array(args.delta0),
+        nk=np.array(args.nk),
+        energy_window_eV=np.array(args.energy_window),
+        response_layer=np.array("projected_pairing_gap_near_normal_fermi_surface"),
     )
 
     figures_dir = ROOT / "outputs" / "pairing" / "gap_structure" / "figures"
@@ -86,10 +91,7 @@ def main() -> None:
         fig.colorbar(scatter, ax=ax, label="gap sign")
     ax.set_xlabel("kx")
     ax.set_ylabel("ky")
-    ax.set_title(
-        f"{args.kind} projected gap near normal-state FS\n"
-        "sign is preliminary gauge-dependent diagnostic; marker size shows |gap|."
-    )
+    ax.set_title(f"{args.kind}: projected gap near the normal-state Fermi surface")
     ax.set_xlim(-np.pi, np.pi)
     ax.set_ylim(-np.pi, np.pi)
     ax.set_aspect("equal", adjustable="box")
