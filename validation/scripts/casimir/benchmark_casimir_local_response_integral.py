@@ -16,6 +16,7 @@ import json
 import os
 from pathlib import Path
 import sys
+from typing import Callable
 
 import numpy as np
 
@@ -53,6 +54,7 @@ KINDS = ("normal", "spm", "dwave")
 NORMAL_SAMPLING = ("uniform", "multishift_average", "fs_adaptive")
 N0_POLICY = "skip"
 RATIO_EPS = 1e-300
+ProgressCallback = Callable[[str], None]
 
 REQUIRED_NPZ_FIELDS = {
     "kind",
@@ -326,10 +328,16 @@ def _energy_theta_series(
     bdg_nk: int,
     delta0_eV: float,
     response_cache: ResponseTensorCache | None = None,
+    progress_callback: ProgressCallback | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     setup = CasimirSetup(temperature=temperature_K, distance=distance_m)
-    tensors = {
-        int(n): _sheet_tensor_for_kind(
+    tensors: dict[int, ConductivityTensor] = {}
+    for n_index, n in enumerate(matsubara_indices, start=1):
+        if progress_callback is not None:
+            progress_callback(
+                f"response_start kind={kind} matsubara={n_index}/{matsubara_indices.size} n={int(n)}"
+            )
+        tensors[int(n)] = _sheet_tensor_for_kind(
             kind,
             int(n),
             temperature_K,
@@ -341,12 +349,19 @@ def _energy_theta_series(
             delta0_eV,
             response_cache=response_cache,
         )
-        for n in matsubara_indices
-    }
+        if progress_callback is not None:
+            progress_callback(
+                f"response_done kind={kind} matsubara={n_index}/{matsubara_indices.size} n={int(n)}"
+            )
     energies = np.empty(theta_values.size, dtype=complex)
     partials = np.empty((theta_values.size, matsubara_indices.size), dtype=complex)
     prefactor = KB * temperature_K
     for theta_index, theta in enumerate(theta_values):
+        if progress_callback is not None:
+            progress_callback(
+                f"theta_start kind={kind} theta={theta_index + 1}/{theta_values.size} value={float(theta):g} "
+                f"matsubara={int(matsubara_indices[0])}-{int(matsubara_indices[-1])}"
+            )
         running = 0.0 + 0.0j
         for n_index, n in enumerate(matsubara_indices):
             xi = matsubara_frequency(int(n), temperature_K)
@@ -361,6 +376,10 @@ def _energy_theta_series(
             running += term
             partials[theta_index, n_index] = running
         energies[theta_index] = running
+        if progress_callback is not None:
+            progress_callback(
+                f"theta_done kind={kind} theta={theta_index + 1}/{theta_values.size} value={float(theta):g}"
+            )
     return energies, partials
 
 
@@ -396,6 +415,7 @@ def benchmark_casimir_local_response_integral(
     delta0_eV: float,
     include_toy_anisotropic_control: bool = False,
     response_cache: ResponseTensorCache | None = None,
+    progress_callback: ProgressCallback | None = None,
 ) -> dict[str, np.ndarray]:
     if any(kind not in KINDS for kind in kinds):
         raise ValueError("unknown kind")
@@ -453,8 +473,14 @@ def benchmark_casimir_local_response_integral(
         (kind, distance, theta): index for index, (kind, distance, theta) in enumerate(rows)
     }
     phi_values = np.linspace(0.0, 2.0 * np.pi, phi_num, endpoint=True)
-    for kind in kinds:
-        for distance in distance_list:
+    for kind_index, kind in enumerate(kinds, start=1):
+        if progress_callback is not None:
+            progress_callback(f"kind_start {kind_index}/{len(kinds)} kind={kind}")
+        for distance_index, distance in enumerate(distance_list, start=1):
+            if progress_callback is not None:
+                progress_callback(
+                    f"integral_distance_start {distance_index}/{len(distance_list)} kind={kind} d={distance:g}"
+                )
             kmax = kparallel_max_factor / distance
             k_values = np.linspace(0.0, kmax, kparallel_num)
             energies, partials = _energy_theta_series(
@@ -472,6 +498,7 @@ def benchmark_casimir_local_response_integral(
                 bdg_nk,
                 delta0_eV,
                 response_cache=response_cache,
+                progress_callback=progress_callback,
             )
             torques = _finite_difference_torque(theta_values, energies)
             max_abs_torque = float(np.nanmax(np.abs(torques)))
@@ -499,6 +526,12 @@ def benchmark_casimir_local_response_integral(
                 diagnosis_parts.append("cutoff_not_final")
                 data["diagnosis"][index] = ";".join(diagnosis_parts)
                 data["notes"][index] = (*BENCHMARK_NOTE_PARTS, f"kmax = {kparallel_max_factor:g} / distance")
+            if progress_callback is not None:
+                progress_callback(
+                    f"integral_distance_done {distance_index}/{len(distance_list)} kind={kind} d={distance:g}"
+                )
+        if progress_callback is not None:
+            progress_callback(f"kind_done {kind_index}/{len(kinds)} kind={kind}")
     return data
 
 

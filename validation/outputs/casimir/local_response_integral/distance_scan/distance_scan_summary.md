@@ -9,11 +9,11 @@ full_run_command = `python validation/scripts/casimir/benchmark_casimir_local_re
 quick_test_only=False
 full_distance_scan_completed=True
 response_cache_used=True
-response_cache_entries=not_recorded
-response_cache_rebuilt=False
-response_cache_hits=not_recorded
-response_cache_misses=not_recorded
-response_cache_writes=not_recorded
+response_cache_entries=256
+response_cache_rebuilt=True
+response_cache_hits=1280
+response_cache_misses=256
+response_cache_writes=256
 local_response=True
 finite_momentum_resolved=False
 n0_policy=skip
@@ -41,8 +41,8 @@ not_final_Casimir_conclusion=True
 - dwave: zero_torque_baseline=True
 
 ## toy anisotropic control
-toy_anisotropic_control_enabled=False
-toy_anisotropic_control_passed=False
+toy_anisotropic_control_enabled=True
+toy_anisotropic_control_passed=True
 
 ## 结论边界
 当前仍不是正式 Casimir 结论，原因是：
@@ -50,6 +50,6 @@ toy_anisotropic_control_passed=False
 - finite_momentum_resolved=False
 - n0_policy=skip
 - benchmark_only=True
-local_response_distance_scan_benchmark_ready=False
-ready_for_anisotropy_mechanism_benchmark=False
+local_response_distance_scan_benchmark_ready=True
+ready_for_anisotropy_mechanism_benchmark=True
 not_final_Casimir_conclusion=True

@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import shlex
 import sys
+from time import perf_counter
 
 import numpy as np
 
@@ -36,6 +37,23 @@ DEFAULT_OUTPUT_PREFIX = SCAN_ROOT / "data" / "distance_scan"
 DEFAULT_CACHE_DIR = ROOT / "validation" / "cache" / "casimir_local_response" / "response_tensors"
 SUMMARY_PATH = SCAN_ROOT / "distance_scan_summary.md"
 COMMAND_PATH = SCAN_ROOT / "distance_scan_command.sh"
+
+
+def progress(message: str) -> None:
+    """Print a plain, line-oriented progress message suitable for tee."""
+
+    print(f"[progress] {message}", flush=True)
+
+
+def _cache_progress_fields(response_cache: ResponseTensorCache | None) -> str:
+    if response_cache is None:
+        return "cache=disabled"
+    return (
+        f"cache_entries={response_cache.entry_count()} "
+        f"cache_hits={response_cache.hits} "
+        f"cache_misses={response_cache.misses} "
+        f"cache_writes={response_cache.writes}"
+    )
 
 
 def _full_defaults() -> dict[str, object]:
@@ -595,6 +613,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--quick", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--progress", action="store_true")
     parser.add_argument("--kinds", nargs="+", choices=KINDS, default=defaults["kinds"])
     parser.add_argument("--distance-list", nargs="+", type=float, default=defaults["distance_list"])
     parser.add_argument("--theta-list", nargs="+", type=float, default=defaults["theta_list"])
@@ -635,11 +654,35 @@ def main() -> None:
     )
     data = _load_existing(args.output_prefix) if args.resume else _empty_data()
     kparallel_num = implied_kparallel_num(args.u_max, args.du)
-    for distance in args.distance_list:
+    total_start = perf_counter()
+    expected_kinds = sorted(_expected_kinds(args))
+    progress(
+        "scan_start "
+        f"distances={len(args.distance_list)} "
+        f"kinds={','.join(expected_kinds)} "
+        f"theta_count={len(args.theta_list)} "
+        f"matsubara=1-{args.matsubara_max} "
+        f"resume={bool(args.resume)} "
+        f"detailed_progress={bool(args.progress)} "
+        f"{_cache_progress_fields(response_cache)}"
+    )
+    for distance_index, distance in enumerate(args.distance_list, start=1):
         if args.resume and _distance_done(data, distance, args):
-            print(f"resume_skip = distance:{distance:g}")
+            progress(
+                f"distance_skip {distance_index}/{len(args.distance_list)} "
+                f"d={distance:g} reason=resume_complete {_cache_progress_fields(response_cache)}"
+            )
             continue
-        print(f"running_distance = {distance:g}")
+        distance_start = perf_counter()
+        progress(
+            f"distance_start {distance_index}/{len(args.distance_list)} "
+            f"d={distance:g} {_cache_progress_fields(response_cache)}"
+        )
+        integral_progress = None
+        if args.progress:
+            integral_progress = lambda message, current_distance=distance: progress(
+                f"d={current_distance:g} {message}"
+            )
         raw = benchmark_casimir_local_response_integral(
             kinds=list(args.kinds),
             distance_list=[float(distance)],
@@ -658,14 +701,25 @@ def main() -> None:
             delta0_eV=args.delta0,
             include_toy_anisotropic_control=args.include_toy_anisotropic_control,
             response_cache=response_cache,
+            progress_callback=integral_progress,
         )
         data = _append_rows(data, _rows_from_integral(raw, args))
         save_outputs(data, args.output_prefix)
+        progress(
+            f"distance_done {distance_index}/{len(args.distance_list)} "
+            f"d={distance:g} elapsed_s={perf_counter() - distance_start:.3f} "
+            f"{_cache_progress_fields(response_cache)}"
+        )
     data = _refresh_torque_flags(_recompute_energy_distance_scaling(data))
     npz_path, csv_path = save_outputs(data, args.output_prefix)
     figure_paths = save_figures(data, args.include_toy_anisotropic_control)
     full_completed = _full_scan_completed(data, args)
     summary_path = write_summary(data, args, command, full_completed, response_cache)
+    progress(
+        f"scan_done elapsed_s={perf_counter() - total_start:.3f} "
+        f"completed_distances={sum(_distance_done(data, distance, args) for distance in args.distance_list)}"
+        f"/{len(args.distance_list)} {_cache_progress_fields(response_cache)}"
+    )
     print(f"npz_path = {npz_path}")
     print(f"csv_path = {csv_path}")
     print(f"summary_path = {summary_path}")
