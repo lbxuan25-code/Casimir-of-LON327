@@ -1,21 +1,17 @@
-# 数值稳定性历史诊断脚本归档
+# 数值稳定性与响应诊断脚本
 
-本目录保存已经完成阶段性任务的历史诊断入口。它们不删除，是为了保留可追溯性；
-但它们不是当前推荐的主入口，也不应用作新的正式 benchmark 起点。
+本目录保存数值稳定性、响应 contract 和前置物理边界诊断。多数脚本用于保留历史
+可追溯性；当前 active diagnostic 包括：
 
-当前推荐入口仍在 `scripts/` 顶层，至少包括：
+- `diagnose_normal_finite_q_response.py`：第一阶段 normal-state finite-q
+  current-current diagnostic；不属于完整 conductivity，也不接入 Casimir。
 
-- `validation/scripts/numerical_stability/benchmark_normal_fs_adaptive_integration.py`
-- `scripts/casimir/local_response_integral.py`
-- `validation/scripts/casimir/converge_casimir_local_response_integral.py`
-- `validation/scripts/casimir/refine_casimir_local_convergence_blockers.py`
-- `validation/scripts/casimir/run_casimir_local_convergence_final.py`
-
-本目录中的脚本用途：
+历史脚本用途包括：
 
 - `audit_response_units.py`：早期单位链路审计；
 - `diagnose_static_response.py`：早期静态响应边界诊断；
 
-这些脚本只应在追溯旧阶段判断时使用。新的数值稳定性归纳请优先阅读
+当前主计算入口仍位于 `scripts/`；本目录中的诊断均不得直接解释为主结果。
+数值稳定性归纳请优先阅读
 `docs/notes/numerical_stability_summary.md`，refined local-response 状态请优先阅读
 `validation/outputs/archive/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`。
