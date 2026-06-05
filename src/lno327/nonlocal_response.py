@@ -1,9 +1,9 @@
-"""Diagnostic-only normal-state finite-momentum current-current response.
+"""Diagnostic-only normal-state current-current kernels.
 
-This module does not provide a gauge-closed finite-q conductivity.  At exactly
-q=0 the public diagnostic function deliberately falls back to the existing
-local normal-state Kubo reference.  At nonzero q it evaluates a shifted-state
-positive current-current bubble with a midpoint velocity vertex.
+This module does not provide a gauge-closed finite-q conductivity.  It exposes
+one normal-state current-current kernel interface whose q=0 and q!=0 branches
+return the same physical object, K(i omega_n, q), without calling the public
+local conductivity API.
 """
 
 from __future__ import annotations
@@ -13,12 +13,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .conductivity import (
-    KuboConfig,
-    fermi_function,
-    kubo_conductivity_imag_axis,
-    negative_fermi_derivative,
-)
+from .conductivity import KuboConfig, fermi_function
 from .constants import E2_OVER_HBAR
 from .model import normal_state_hamiltonian, normal_state_velocity_operator
 
@@ -36,15 +31,6 @@ class ShiftedNormalEigensystem:
     energies_plus_eV: np.ndarray
     states_plus: np.ndarray
     occupations_plus: np.ndarray
-
-
-@dataclass(frozen=True)
-class NormalLocalCurrentCurrentKernel:
-    """Local kernel-level current-current decomposition."""
-
-    interband: np.ndarray
-    intraband_static: np.ndarray
-    static: np.ndarray
 
 
 def shifted_normal_eigensystem(
@@ -110,74 +96,7 @@ def _validated_points_and_weights(
     return points, normalized_weights
 
 
-def normal_local_current_current_kernel_imag_axis(
-    k_points: Sequence[tuple[float, float]] | np.ndarray,
-    config: KuboConfig,
-    k_weights: Sequence[float] | np.ndarray | None = None,
-    hamiltonian: HamiltonianBuilder = normal_state_hamiltonian,
-    velocity: VelocityBuilder = normal_state_velocity_operator,
-) -> NormalLocalCurrentCurrentKernel:
-    """Return local kernel-level interband and static intraband pieces.
-
-    This function does not call the public conductivity API and does not divide
-    the intraband term by omega.  ``static`` is the sum of the interband bubble
-    evaluated at the configured imaginary frequency and the static intraband
-    Fermi-surface term.
-    """
-
-    points, weights = _validated_points_and_weights(k_points, k_weights, config)
-    omega = config.omega_eV + config.eta_eV
-    interband = np.zeros((2, 2), dtype=complex)
-    intraband_static = np.zeros((2, 2), dtype=complex)
-    for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
-        kx = float(kx_value)
-        ky = float(ky_value)
-        energies, states = np.linalg.eigh(hamiltonian(kx, ky))
-        occupations = fermi_function(energies, config.fermi_level_eV, config.temperature_eV)
-        minus_df = negative_fermi_derivative(
-            energies,
-            config.fermi_level_eV,
-            config.temperature_eV,
-            config.eta_eV,
-        )
-        vertices = (
-            states.conjugate().T @ velocity(kx, ky, "x") @ states,
-            states.conjugate().T @ velocity(kx, ky, "y") @ states,
-        )
-        for m, energy_m in enumerate(energies):
-            for n, energy_n in enumerate(energies):
-                if m == n:
-                    response_factor = float(minus_df[n])
-                    target = intraband_static
-                else:
-                    delta_energy = float(energy_m - energy_n)
-                    delta_occupation = float(occupations[m] - occupations[n])
-                    if abs(delta_energy) < config.eta_eV or delta_occupation == 0.0:
-                        continue
-                    response_factor = -delta_occupation * delta_energy / (
-                        delta_energy**2 + omega**2
-                    )
-                    target = interband
-                for alpha in range(2):
-                    for beta in range(2):
-                        target[alpha, beta] += (
-                            weight
-                            * response_factor
-                            * vertices[alpha][m, n]
-                            * vertices[beta][n, m]
-                        )
-
-    if config.output_si:
-        interband *= E2_OVER_HBAR
-        intraband_static *= E2_OVER_HBAR
-    return NormalLocalCurrentCurrentKernel(
-        interband=interband,
-        intraband_static=intraband_static,
-        static=interband + intraband_static,
-    )
-
-
-def normal_finite_q_current_current_kernel_imag_axis(
+def normal_current_current_kernel_imag_axis(
     k_points: Sequence[tuple[float, float]] | np.ndarray,
     config: KuboConfig,
     q: Sequence[float] | np.ndarray,
@@ -185,46 +104,60 @@ def normal_finite_q_current_current_kernel_imag_axis(
     hamiltonian: HamiltonianBuilder = normal_state_hamiltonian,
     velocity: VelocityBuilder = normal_state_velocity_operator,
 ) -> np.ndarray:
-    """Return the diagnostic normal finite-q current-current response matrix.
+    """Return the normal current-current kernel K(i omega_n, q).
 
-    Exactly q=0 uses ``kubo_conductivity_imag_axis`` as the required local
-    reference fallback.  Nonzero q uses the shifted-state positive bubble with
-    midpoint velocity vertices.  Consequently, this function is an interface
-    diagnostic and must not be interpreted as a gauge-closed finite-q
-    conductivity or a Casimir input.
+    Exactly q=0 diagonalizes H(k) and evaluates the local current-current
+    kernel.  Nonzero q diagonalizes H(k-q/2) and H(k+q/2), using midpoint
+    velocity vertices.  The numerical tolerance in ``config.eta_eV`` is used
+    only to skip near-degenerate zero-frequency denominators; it is not added
+    to the Matsubara frequency.
     """
 
     points, weights = _validated_points_and_weights(k_points, k_weights, config)
     q_vector = np.asarray(q, dtype=float)
     if q_vector.shape != (2,):
         raise ValueError("q must have shape (2,)")
-    if np.all(q_vector == 0.0):
-        return kubo_conductivity_imag_axis(
-            points,
-            config,
-            weights,
-            hamiltonian=hamiltonian,
-            velocity=velocity,
-        ).matrix()
 
     qx, qy = (float(q_vector[0]), float(q_vector[1]))
-    omega = config.omega_eV + config.eta_eV
+    omega = config.omega_eV
+    degeneracy_tol_eV = config.eta_eV
     response = np.zeros((2, 2), dtype=complex)
     for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
         kx = float(kx_value)
         ky = float(ky_value)
-        bands = shifted_normal_eigensystem(kx, ky, qx, qy, config, hamiltonian)
-        vertices = (
-            midpoint_velocity_vertex(kx, ky, "x", bands.states_minus, bands.states_plus, velocity),
-            midpoint_velocity_vertex(kx, ky, "y", bands.states_minus, bands.states_plus, velocity),
-        )
-        for m, energy_minus in enumerate(bands.energies_minus_eV):
-            for n, energy_plus in enumerate(bands.energies_plus_eV):
+        if np.all(q_vector == 0.0):
+            energies, states = np.linalg.eigh(hamiltonian(kx, ky))
+            occupations = fermi_function(energies, config.fermi_level_eV, config.temperature_eV)
+            vertices = (
+                states.conjugate().T @ velocity(kx, ky, "x") @ states,
+                states.conjugate().T @ velocity(kx, ky, "y") @ states,
+            )
+            minus_energies = energies
+            plus_energies = energies
+            minus_occupations = occupations
+            plus_occupations = occupations
+        else:
+            bands = shifted_normal_eigensystem(kx, ky, qx, qy, config, hamiltonian)
+            vertices = (
+                midpoint_velocity_vertex(
+                    kx, ky, "x", bands.states_minus, bands.states_plus, velocity
+                ),
+                midpoint_velocity_vertex(
+                    kx, ky, "y", bands.states_minus, bands.states_plus, velocity
+                ),
+            )
+            minus_energies = bands.energies_minus_eV
+            plus_energies = bands.energies_plus_eV
+            minus_occupations = bands.occupations_minus
+            plus_occupations = bands.occupations_plus
+
+        for m, energy_minus in enumerate(minus_energies):
+            for n, energy_plus in enumerate(plus_energies):
                 delta_energy = float(energy_minus - energy_plus)
-                delta_occupation = float(
-                    bands.occupations_minus[m] - bands.occupations_plus[n]
-                )
+                delta_occupation = float(minus_occupations[m] - plus_occupations[n])
                 denominator = delta_energy**2 + omega**2
+                if denominator <= degeneracy_tol_eV**2:
+                    continue
                 response_factor = -delta_occupation * delta_energy / denominator
                 if response_factor == 0.0:
                     continue
