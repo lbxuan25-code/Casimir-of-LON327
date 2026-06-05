@@ -19,9 +19,10 @@ local-response distance scan 已形成初级结论；但这仍然不是最终 Ca
 `local_response=True`、`n0_policy=skip`、`benchmark_only=True` 和
 `preliminary_local_response_conclusion=True` 的边界。
 
-finite momentum response 曾作为 diagnostic prototype 探索过，但当前分支已移除相关
-代码、测试、脚本和输出。后续如需重启，需要重新设计 gauge/Ward-closed response
-层，不能复用已删除的 prototype 作为 Casimir 输入。
+finite momentum response 目前只保留第一阶段 normal-state current-current kernel
+收敛诊断，用于检查 $K(i\omega_n,\mathbf{q}) \to K(i\omega_n,\mathbf{0})$。
+它不是 gauge/Ward-closed finite-q conductivity，也不能作为 Casimir 输入。
+finite-q 路线图见 `docs/notes/finite_q_response_plan_zh.md`。
 
 ## 当前仓库阅读入口
 

@@ -1,8 +1,9 @@
-# Normal finite-q kernel convergence diagnostic
+# Normal finite-q current-current kernel convergence diagnostic
 
 本脚本只测试 normal finite-q current-current kernel (K)。
 q=0 与 q!=0 都通过同一 K 接口 normal_current_current_kernel_imag_axis 计算。
 q=0 分支不再调用 public local sigma。
+public sigma 不进入 K 字段或主判据；若另行比较只能作为 auxiliary/debug。
 默认只测 n>=1 positive Matsubara；本阶段不处理 n=0 true static。
 Matsubara 频率直接使用 bosonic_matsubara_energy_eV(n, temperature_K)；不使用 omega+eta 频率展宽。
 current-current-only 不是 gauge-closed finite-q conductivity。

@@ -4,7 +4,9 @@
 可追溯性；当前 active diagnostic 包括：
 
 - `diagnose_normal_finite_q_response.py`：第一阶段 normal-state finite-q
-  current-current diagnostic；不属于完整 conductivity，也不接入 Casimir。
+  current-current kernel convergence diagnostic；q=0 与 q!=0 都由同一 K 接口
+  产生，只测试 n>=1 positive Matsubara 的 K(q)->K(0) same-interface 收敛。
+  它不属于 gauge-closed finite-q conductivity，也不接入 Casimir。
 
 历史脚本用途包括：
 
