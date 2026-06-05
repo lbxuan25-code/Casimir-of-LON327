@@ -1,4 +1,4 @@
-# Normal finite-q current-current kernel convergence diagnostic
+# normal finite-q current-current kernel 收敛诊断
 
 本脚本只测试 normal finite-q current-current kernel (K)。
 q=0 与 q!=0 都通过同一 K 接口 normal_current_current_kernel_imag_axis 计算。
@@ -21,7 +21,7 @@ not_peierls_exact_vertex=True
 ward_identity_not_yet_checked=True
 not_final_casimir_input=True
 
-## Quick diagnostic status
+## 快速诊断状态
 - q=0 same-interface error: 0
 - smallest sampled nonzero q: 0.0001
 - maximum same-interface error at smallest nonzero q: 0.000205641

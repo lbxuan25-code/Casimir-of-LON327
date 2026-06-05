@@ -1,4 +1,4 @@
-# BdG Total Kernel 输出
+# BdG total kernel 输出
 
 - `data/`：$K_{\mathrm{total}}(i\xi) = K_{\mathrm{dia}} - K_{\mathrm{para}}(i\xi)$
   扫描的 `.npz` 数据。

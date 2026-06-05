@@ -1,4 +1,4 @@
-# BdG Paramagnetic Kernel 输出
+# BdG paramagnetic kernel 输出
 
 - `data/`：$K_{\mathrm{para}}(i\xi)$ 扫描的 `.npz` 数据。
 - `figures/`：$K_{\mathrm{para}}(i\xi)$ 的 $C_4$ 对称性诊断图。

@@ -1,8 +1,9 @@
 # 稳定基础与计算 Contract
 
 本文记录当前仓库采用的稳定模型、local-response 计算 contract 和结果解释边界。
-当前阶段状态与初级结论见 `current_stage_research_report.md`；数值可信度证据见
-`numerical_stability_summary.md`。
+当前总状态见 `docs/reports/current_project_status.md`；local-response baseline
+见 `docs/reports/local_response_baseline_status.md`；数值可信度证据见
+`docs/notes/numerical_stability_summary.md`。
 
 ## 1. 仓库分层
 
@@ -10,7 +11,7 @@
 - `scripts/`：材料本征结果和当前主计算入口。
 - `outputs/`：当前主结果与边界清楚的初级结论。
 - `validation/scripts/`：收敛性、静态规范、单位和 smoke 诊断。
-- `validation/outputs/`：验证结果、历史归档与 cache。
+- `validation/outputs/`：验证结果与 response diagnostic 输出。
 
 `scripts/` 与 `outputs/` 不再保存 quick、example、compatibility wrapper 或历史
 convergence 结果。
@@ -195,8 +196,9 @@ not_final_casimir_conclusion=True
 ```
 
 `n=0` 项尚无显式 zero-frequency reflection model，因此当前采用 `skip` policy。
-有限动量 response 已从当前分支移除；后续如需重启，必须重新设计并验证，不能复用
-已删除的 prototype。
+finite-q Stage 1 已作为 validation 层重新引入，只验证 normal current-current
+kernel $K(i\omega_n,\mathbf{q})$ 的 $\mathbf{q}\to\mathbf{0}$ same-interface
+收敛。它不是 gauge/Ward-closed finite-q conductivity，也不是 Casimir 输入。
 
 当前 Casimir distance scan 可以作为 local-response zero-torque baseline 的初级结论，
 但不能解释为最终 Casimir torque 结论。
@@ -210,4 +212,4 @@ not_final_casimir_conclusion=True
 - 一致的颜色、线宽、刻度和图例；
 - Casimir torque 图以共享 torque tolerance 归一化。
 
-验证性和历史图像保留在 `validation/outputs/`，不与主结果混放。
+验证性图像保留在 `validation/outputs/`，不与主结果混放。

@@ -29,14 +29,12 @@ zero-torque baseline 的初级结论；`n0_policy=skip` 与 finite-momentum resp
 
 建议先读：
 
-1. `docs/reports/current_project_status.md`
-2. `docs/reports/local_response_baseline_status.md`
-3. `docs/notes/numerical_stability_summary.md`
+1. `docs/notes/foundation_notes.md`
+2. `docs/notes/numerical_stability_summary.md`
+3. `docs/reports/local_response_baseline_status.md`
+4. `docs/notes/finite_q_response_plan_zh.md`
 
-当前最新 local-response 结果：
+## 当前 active outputs
 
 - `outputs/casimir/local_response_distance_scan/`
-
-当前 finite-q Stage 1 结果：
-
 - `validation/outputs/response/normal_finite_q_kernel_convergence/`

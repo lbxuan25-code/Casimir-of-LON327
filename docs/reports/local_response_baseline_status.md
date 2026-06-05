@@ -30,9 +30,9 @@ zero-torque baseline，未发现 spurious torque。
 
 - `outputs/casimir/local_response_distance_scan/`
 - `validation/cache/casimir_local_response/response_tensors/`
-- `validation/outputs/numerical_stability/`
 
 注意：cache 单独放在 `validation/cache/`，避免与 distance scan 的正式数据和图像混在一起。
+完整数值稳定性证据见 `docs/notes/numerical_stability_summary.md`。
 
 ## 当前用途
 

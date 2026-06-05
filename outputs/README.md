@@ -1,7 +1,7 @@
-# Outputs Guide
+# 输出指南
 
 本目录只保留材料、模型本征特性和已形成初级结论的关键计算结果，方便直接阅读当前物理对象。
-数值收敛性、公式诊断、Casimir convergence benchmark、历史归档和 cache 已统一移动到
+数值收敛性、公式诊断、Casimir convergence benchmark 和 cache 已统一移动到
 `../validation/`。
 
 ## 当前保留内容
@@ -23,13 +23,12 @@
 
 ## 验证材料位置
 
-- 收敛性和数值稳定性：`../validation/outputs/archive/response/`,
-  `../validation/outputs/archive/normal_state/`
-- Casimir convergence 与历史 benchmark：`../validation/outputs/archive/casimir/`
+- 收敛性和数值稳定性：`../validation/outputs/numerical_stability/`
+- response 诊断：`../validation/outputs/response/`
 - 可复用中间张量 cache：`../validation/cache/`
 
 ## 维护原则
 
 - `outputs/` 面向当前材料本征结果和边界清楚的初级结论。
 - `validation/` 面向“为什么这些计算可信”的支撑证据。
-- 不删除历史数据；需要追溯旧结果时先看 `../validation/README.md`。
+- 需要追溯 validation 证据时先看 `../validation/README.md`。

@@ -1,4 +1,4 @@
-# Normal-State 输出
+# normal-state 输出
 
 本目录保存 normal-state 基线计算生成的输出。
 

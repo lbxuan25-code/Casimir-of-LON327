@@ -1,4 +1,4 @@
-# BdG Diamagnetic Kernel 输出
+# BdG diamagnetic kernel 输出
 
 - `data/`：BdG diamagnetic kernel $K_{\mathrm{dia}}$ 的 `.npz` 诊断数据。
 - `figures/`：$K_{\mathrm{dia}}$ 的对称性诊断图。

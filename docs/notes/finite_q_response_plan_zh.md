@@ -1,4 +1,4 @@
-# Finite-q Response 路线图
+# finite-q 响应路线图
 
 本文是 finite-q / nonlocal response 开发的 single source of truth。当前目标不是直接给出
 finite-q conductivity 或 Casimir 材料结论，而是把对象、单位、Ward identity 和 benchmark
@@ -26,9 +26,9 @@ validation/outputs/response/normal_finite_q_kernel_convergence/
 current-current block 除以 frequency 当成通用 finite-q 完整 conductivity。
 进入 reflection/Casimir 前必须先处理单位映射、Ward identity 和 benchmark。
 
-## Stage Roadmap
+## 阶段路线图
 
-### Stage 1: Normal Finite-q Kernel Convergence
+### 阶段 1：正常态 finite-q current-current kernel 收敛
 
 对象：
 
@@ -69,7 +69,7 @@ $$
 K(R\mathbf{q}) \quad \text{vs.} \quad R K(\mathbf{q}) R^T .
 $$
 
-### Stage 2: Casimir q-grid 到 model-q 单位审计
+### 阶段 2：Casimir q-grid 到 model-q 单位审计
 
 把 Casimir 积分中的无量纲变量 $u$ 与层间距离 $d$ 映射到模型动量：
 
@@ -80,7 +80,7 @@ $$
 这里 $a$ 是模型晶格常数单位，$d$ 必须使用同一长度单位。Stage 2 只做单位和采样范围审计，
 不声明 finite-q Casimir 结论。
 
-### Stage 3: BdG Finite-q Current-Current Kernel
+### 阶段 3：BdG finite-q current-current kernel
 
 实现 BdG finite-q current-current kernel，并检查两个极限：
 
@@ -100,7 +100,7 @@ $$
 
 Stage 3 仍然只是 $K_{jj}$ block，不是 gauge-closed finite-q conductivity。
 
-### Stage 4: Density-Current Response 与 Ward Identity
+### 阶段 4：density-current response 与 Ward identity
 
 构造或审计完整的
 
@@ -112,7 +112,7 @@ $$
 conductivity；如果 BdG bare bubble 不满足 Ward identity，需要明确缺失的 collective
 phase 或 vertex correction。
 
-### Stage 5: Reflection/Casimir Benchmark 接入
+### 阶段 5：reflection/Casimir benchmark 接入
 
 只有在 Stage 4 边界清楚后，才把 finite-q response 接入 reflection/Casimir benchmark。
 response cache 必须至少包含：
@@ -129,7 +129,7 @@ unit_convention
 
 这一阶段仍是 benchmark，不直接声明最终材料结论。
 
-### Stage 6: Anisotropy Mechanism Benchmark
+### 阶段 6：各向异性机制 benchmark
 
 比较 finite-q crystal harmonic、pairing symmetry、normal-state anisotropy 和 superconducting
 kernel correction 对 torque-like observables 的贡献。只有在前面阶段通过后，才讨论材料机制。

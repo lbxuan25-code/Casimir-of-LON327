@@ -1,4 +1,4 @@
-# Local-response Casimir 初级结论
+# local-response Casimir 初级结论
 
 本目录保存基于当前 local-response contract 得到的距离扫描初级结论。它使用已通过
 数值稳定性检查的推荐参数，扫描距离 `d` 下的 energy、finite-difference torque 和

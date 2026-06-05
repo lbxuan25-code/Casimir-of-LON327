@@ -1,4 +1,4 @@
-# Validation Guide
+# 验证指南
 
 本目录集中保存数值可信度、收敛性、公式诊断、Casimir convergence benchmark、
 历史 smoke 和 cache。主 `scripts/` / `outputs/` 保存当前计算入口、材料结果和边界

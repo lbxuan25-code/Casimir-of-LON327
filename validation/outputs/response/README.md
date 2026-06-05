@@ -1,4 +1,4 @@
-# response 输出入口
+# 响应输出入口
 
 本目录保存 response contract、static policy、单位转换和 numerical stability
 相关验证结果。当前新增的 finite-q 内容仅限第一阶段 normal-state

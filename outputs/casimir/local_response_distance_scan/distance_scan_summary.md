@@ -1,4 +1,4 @@
-# Local-response Casimir 初级结论
+# local-response Casimir 初级结论
 
 本脚本用于在已通过数值稳定性检查的推荐参数下，扫描距离 d，建立当前
 local-response zero-torque baseline 的距离依赖初级结论。该计算不引入真实
@@ -36,13 +36,13 @@ not_final_casimir_conclusion=True
 ## 距离扫描范围
 - 3e-08, 5e-08, 7.5e-08, 1e-07, 1.5e-07, 2e-07
 
-## zero-torque baseline
+## zero-torque baseline 检查
 - torque_tolerance=1e-20
 - normal: zero_torque_baseline=True, max_abs_torque=1.34809e-22
 - spm: zero_torque_baseline=True, max_abs_torque=3.37024e-23
 - dwave: zero_torque_baseline=True, max_abs_torque=5.05536e-23
 
-## toy anisotropic control
+## toy anisotropic control 检查
 toy_anisotropic_control_enabled=True
 toy_anisotropic_control_passed=True
 
