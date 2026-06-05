@@ -1,0 +1,12 @@
+omega_eV = 0.016243290521934156
+normal_sigma_xx = (2.2699610049179237+0j)
+delta0_list = [0.e+00 1.e-05 1.e-04 1.e-03 1.e-02 4.e-02]
+delta0_zero_spm_dwave_abs_diff_xx = 0.0
+ratio_sigma_xx_to_normal_all_finite = True
+max_symmetry_diagnostic = 4.064786851447408e-15
+min_K_cancellation_metric_xx = 0.439023323867913
+diagnoses = ['pass', 'warning_small_delta_spm_dwave_difference']
+note = BdG-normal-limit benchmark only; not a Casimir result.
+npz_path = validation/outputs/numerical_stability/bdg_normal_limit/data/bdg_normal_limit.npz
+csv_path = validation/outputs/numerical_stability/bdg_normal_limit/data/bdg_normal_limit.csv
+figure_paths = validation/outputs/numerical_stability/bdg_normal_limit/data/figures/bdg_normal_limit_sigma_xx.png, validation/outputs/numerical_stability/bdg_normal_limit/data/figures/bdg_normal_limit_ratio.png, validation/outputs/numerical_stability/bdg_normal_limit/data/figures/bdg_normal_limit_spm_dwave_diff.png, validation/outputs/numerical_stability/bdg_normal_limit/data/figures/bdg_normal_limit_kernel_components.png, validation/outputs/numerical_stability/bdg_normal_limit/data/figures/bdg_normal_limit_symmetry.png

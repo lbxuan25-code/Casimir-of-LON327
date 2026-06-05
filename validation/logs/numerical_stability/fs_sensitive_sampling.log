@@ -1,0 +1,13 @@
+row_count = 144
+max_relative_change_between_last_two_nk = 0.6204510587804585
+max_eta_relative_change = 0.023834241961124148
+max_relative_std_over_shifts = 1.1651227087315998
+min_points_within_eta = 0
+max_symmetry_diagnostic = 2.6802833912544407e-14
+convergence_statuses = ['high_nk_converged;multishift_improves_convergence', 'high_nk_converged;warning_eta_sensitive;multishift_improves_convergence', 'warning_high_nk_not_converged', 'warning_high_nk_not_converged;multishift_improves_convergence', 'warning_high_nk_not_converged;shift_average_stable', 'warning_high_nk_not_converged;warning_eta_sensitive', 'warning_high_nk_not_converged;warning_eta_sensitive;multishift_improves_convergence', 'warning_high_nk_not_converged;warning_eta_sensitive;shift_average_stable']
+fs_sampling_statuses = ['ok', 'warning_fs_underresolved_eta;warning_few_fs_points_within_eta']
+diagnoses = ['ok']
+note = normal-state FS-sensitive sampling benchmark only; not a Casimir result.
+npz_path = validation/outputs/numerical_stability/fs_sensitive_sampling/data/fs_sensitive_sampling.npz
+csv_path = validation/outputs/numerical_stability/fs_sensitive_sampling/data/fs_sensitive_sampling.csv
+figure_paths = validation/outputs/numerical_stability/fs_sensitive_sampling/data/figures/fs_sensitive_sampling_sigma_xx_vs_nk.png, validation/outputs/numerical_stability/fs_sensitive_sampling/data/figures/fs_sensitive_sampling_last_two_change_by_sampling.png, validation/outputs/numerical_stability/fs_sensitive_sampling/data/figures/fs_sensitive_sampling_shift_std_vs_shift_grid.png, validation/outputs/numerical_stability/fs_sensitive_sampling/data/figures/fs_sensitive_sampling_sigma_xx_vs_shift_grid.png, validation/outputs/numerical_stability/fs_sensitive_sampling/data/figures/fs_sensitive_sampling_fs_points_vs_nk.png, validation/outputs/numerical_stability/fs_sensitive_sampling/data/figures/fs_sensitive_sampling_sigma_vs_fermi_weight.png, validation/outputs/numerical_stability/fs_sensitive_sampling/data/figures/fs_sensitive_sampling_symmetry_vs_nk.png

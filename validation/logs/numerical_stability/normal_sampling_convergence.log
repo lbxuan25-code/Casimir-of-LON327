@@ -1,0 +1,12 @@
+row_count = 216
+max_relative_change_between_last_two_nk = 1.3735498734792362
+max_eta_relative_change = 0.05207203581602085
+min_points_within_eta = 0
+max_symmetry_diagnostic = 2.9722374002409977e-14
+sampling_convergence_statuses = ['warning_high_nk_not_converged', 'warning_high_nk_not_converged;warning_eta_sensitive']
+fs_sampling_statuses = ['warning_fs_underresolved_eta;warning_mesh_hits_fermi_surface_irregularly;warning_fermi_surface_sampling_sensitive', 'warning_mesh_hits_fermi_surface_irregularly;warning_fermi_surface_sampling_sensitive']
+diagnoses = ['ok']
+note = normal-state sampling diagnostic only; not a Casimir result.
+npz_path = validation/outputs/numerical_stability/normal_sampling_convergence/data/normal_sampling_convergence.npz
+csv_path = validation/outputs/numerical_stability/normal_sampling_convergence/data/normal_sampling_convergence.csv
+figure_paths = validation/outputs/numerical_stability/normal_sampling_convergence/data/figures/normal_sampling_convergence_sigma_xx_vs_nk.png, validation/outputs/numerical_stability/normal_sampling_convergence/data/figures/normal_sampling_convergence_relative_change_vs_nk.png, validation/outputs/numerical_stability/normal_sampling_convergence/data/figures/normal_sampling_convergence_last_two_summary.png, validation/outputs/numerical_stability/normal_sampling_convergence/data/figures/normal_sampling_convergence_sigma_xx_vs_eta.png, validation/outputs/numerical_stability/normal_sampling_convergence/data/figures/normal_sampling_convergence_fs_points_vs_nk.png, validation/outputs/numerical_stability/normal_sampling_convergence/data/figures/normal_sampling_convergence_sigma_vs_fermi_weight.png, validation/outputs/numerical_stability/normal_sampling_convergence/data/figures/normal_sampling_convergence_symmetry_vs_nk.png

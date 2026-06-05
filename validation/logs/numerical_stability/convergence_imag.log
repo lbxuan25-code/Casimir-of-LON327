@@ -1,0 +1,11 @@
+row_count = 180
+max_relative_change_vs_largest_nk = 8.212152039779014
+max_relative_change_vs_smallest_eta = 0.05207203581602085
+max_symmetry_diagnostic = 3.1610577797985887e-13
+max_spm_dwave_rel_diff_xx = 1.4819130869648216
+convergence_statuses = ['ok', 'warning_eta_sensitive', 'warning_nk_not_converged']
+diagnoses = ['ok']
+note = response convergence diagnostic only; not a Casimir result.
+npz_path = validation/outputs/numerical_stability/convergence_imag/data/convergence_imag.npz
+csv_path = validation/outputs/numerical_stability/convergence_imag/data/convergence_imag.csv
+figure_paths = validation/outputs/numerical_stability/convergence_imag/data/figures/convergence_imag_response_xx_vs_nk.png, validation/outputs/numerical_stability/convergence_imag/data/figures/convergence_imag_response_xx_vs_eta.png, validation/outputs/numerical_stability/convergence_imag/data/figures/convergence_imag_spm_dwave_diff_vs_nk.png, validation/outputs/numerical_stability/convergence_imag/data/figures/convergence_imag_symmetry_vs_nk.png, validation/outputs/numerical_stability/convergence_imag/data/figures/convergence_imag_reflection_vs_matsubara.png
