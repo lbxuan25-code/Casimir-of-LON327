@@ -51,8 +51,9 @@ $$
 
 这里不是检查 $K(\mathbf{q})\to\sigma(\mathbf{0})$。$\mathbf{q}=\mathbf{0}$ 与
 $\mathbf{q}\ne\mathbf{0}$ 都必须通过同一个 K 接口返回 current-current kernel。
-public local sigma 只能作为 auxiliary/debug comparison，不参与 pass/fail，也不能写入
-K 字段。$n=0$ true static 不在 Stage 1 处理。
+public local sigma 不参与 Stage 1 正式输出；如需比较，应另开独立 debug 脚本，
+不进入正式 validation outputs，也不参与 pass/fail。$n=0$ true static 不在
+Stage 1 处理。
 
 当前主判据：
 

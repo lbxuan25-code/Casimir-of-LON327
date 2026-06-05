@@ -38,9 +38,13 @@ finite-q 路线图见 `docs/notes/finite_q_response_plan_zh.md`。
 当前 active 输出：
 
 - local-response Casimir 初级结论：`outputs/casimir/local_response_distance_scan/`
+- finite-q Stage 1 K 收敛诊断：`validation/outputs/response/normal_finite_q_kernel_convergence/`
+- finite-q 路线图：`docs/notes/finite_q_response_plan_zh.md`
 
-历史诊断结果已归档到 `validation/outputs/archive/`，移动清单见
-`validation/outputs/archive/ARCHIVE_INDEX.md`。
+旧 mixed sigma/K diagnostics 已删除，不作为 validation evidence。
+finite-q Stage 1 只验证 normal current-current kernel $K$；$\mathbf{q}=\mathbf{0}$
+与 $\mathbf{q}\ne\mathbf{0}$ 都通过同一 K 接口计算。它不是 finite-q
+conductivity，不作为 Casimir 输入，且不处理 $n=0$ true static。
 
 当前范围：
 
@@ -158,7 +162,7 @@ python scripts/bdg/diagnose_superconducting_response_imag.py --kinds spm dwave -
 检查 $\Delta_0\rightarrow 0$ 的 BdG-normal 极限：
 
 ```bash
-python validation/scripts/numerical_stability/benchmark_bdg_normal_limit.py --kinds spm dwave --delta0-list 0 1e-5 1e-4 1e-3 1e-2 0.04 --nk 16 --temperature 30 --matsubara-index 1 --eta 0.0001 --output-prefix validation/outputs/archive/response/bdg_normal_limit/data/bdg_normal_limit
+python validation/scripts/numerical_stability/benchmark_bdg_normal_limit.py --kinds spm dwave --delta0-list 0 1e-5 1e-4 1e-3 1e-2 0.04 --nk 16 --temperature 30 --matsubara-index 1 --eta 0.0001 --output-prefix validation/outputs/numerical_stability/bdg_normal_limit/data/bdg_normal_limit
 ```
 
 该 benchmark 只验证 BdG response 层在关闭 pairing 时是否连续、有限、保持
@@ -169,7 +173,7 @@ C4 对称性，并检查 `spm` / `dwave` 是否回到共同 BdG normal limit。n
 检查 imaginary-axis response 的 `nk` / `eta` / Matsubara-index 收敛性：
 
 ```bash
-python validation/scripts/numerical_stability/convergence_response_imag.py --kinds normal spm dwave --nk-list 8 12 16 24 32 --eta-list 1e-3 5e-4 1e-4 --matsubara-list 1 2 5 10 --temperature 30 --delta0 0.04 --output-prefix validation/outputs/archive/response/convergence_imag/data/convergence_imag
+python validation/scripts/numerical_stability/convergence_response_imag.py --kinds normal spm dwave --nk-list 8 12 16 24 32 --eta-list 1e-3 5e-4 1e-4 --matsubara-list 1 2 5 10 --temperature 30 --delta0 0.04 --output-prefix validation/outputs/numerical_stability/convergence_imag/data/convergence_imag
 ```
 
 该 benchmark 只检查 response 层数值稳定性，不做 Casimir 结果。若响应对
@@ -179,7 +183,7 @@ python validation/scripts/numerical_stability/convergence_response_imag.py --kin
 针对高 `Nk` 的聚焦收敛复查：
 
 ```bash
-python validation/scripts/numerical_stability/refine_high_nk_convergence.py --kinds normal spm dwave --nk-list 32 48 64 80 --eta-list 5e-4 1e-4 --matsubara-list 1 2 --temperature 30 --delta0 0.04 --output-prefix validation/outputs/archive/response/high_nk_convergence/data/high_nk_convergence
+python validation/scripts/numerical_stability/refine_high_nk_convergence.py --kinds normal spm dwave --nk-list 32 48 64 80 --eta-list 5e-4 1e-4 --matsubara-list 1 2 --temperature 30 --delta0 0.04 --output-prefix validation/outputs/numerical_stability/high_nk_convergence/data/high_nk_convergence
 ```
 
 该复查用于确认上一轮发现的 normal low-Matsubara `Nk` 敏感性是否能在
@@ -190,7 +194,7 @@ local-response Casimir 积分；若 `spm` / `dwave` 差异在高 `Nk` 下趋近 
 诊断 normal-state low-Matsubara 的 k-space 采样问题：
 
 ```bash
-python validation/scripts/numerical_stability/diagnose_normal_sampling_convergence.py --nk-list 32 48 64 80 96 128 --eta-list 1e-3 5e-4 2e-4 1e-4 --matsubara-list 1 2 5 --temperature 30 --sampling uniform shifted average --output-prefix validation/outputs/archive/normal_state/sampling_convergence/data/normal_sampling_convergence
+python validation/scripts/numerical_stability/diagnose_normal_sampling_convergence.py --nk-list 32 48 64 80 96 128 --eta-list 1e-3 5e-4 2e-4 1e-4 --matsubara-list 1 2 5 --temperature 30 --sampling uniform shifted average --output-prefix validation/outputs/numerical_stability/normal_sampling_convergence/data/normal_sampling_convergence
 ```
 
 `shifted` / `average` sampling 只是数值诊断方案，不改变 normal Kubo 公式，也不替代
@@ -200,7 +204,7 @@ benchmark 的推荐采样方式，但必须保留 uniform 对照。
 建立更系统的 normal-state Fermi-surface-sensitive sampling benchmark：
 
 ```bash
-python validation/scripts/numerical_stability/benchmark_normal_fs_sensitive_sampling.py --nk-list 32 48 64 80 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --shift-grid-list 1 2 4 8 --sampling uniform multishift_average fs_window_refined --output-prefix validation/outputs/archive/normal_state/fs_sensitive_sampling/data/fs_sensitive_sampling
+python validation/scripts/numerical_stability/benchmark_normal_fs_sensitive_sampling.py --nk-list 32 48 64 80 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --shift-grid-list 1 2 4 8 --sampling uniform multishift_average fs_window_refined --output-prefix validation/outputs/numerical_stability/fs_sensitive_sampling/data/fs_sensitive_sampling
 ```
 
 `multishift_average` 对 `s x s` 个 fractional shifted meshes 做平均并报告 shift-to-shift
@@ -214,7 +218,7 @@ Casimir 积分。
 运行 FS-adaptive BZ integration prototype：
 
 ```bash
-python validation/scripts/numerical_stability/benchmark_normal_fs_adaptive_integration.py --nk-list 32 48 64 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --refine-factor-list 2 4 6 --fs-window-factor 1.0 --sampling uniform multishift_average fs_adaptive --shift-grid 4 --output-prefix validation/outputs/archive/normal_state/fs_adaptive_integration/data/fs_adaptive
+python validation/scripts/numerical_stability/benchmark_normal_fs_adaptive_integration.py --nk-list 32 48 64 --eta-list 5e-4 2e-4 1e-4 --matsubara-list 1 2 --temperature 30 --refine-factor-list 2 4 6 --fs-window-factor 1.0 --sampling uniform multishift_average fs_adaptive --shift-grid 4 --output-prefix validation/outputs/numerical_stability/fs_adaptive_integration/data/fs_adaptive
 ```
 
 `fs_adaptive` 先用 coarse cells 的顶点和中心能量判断费米面是否穿过该 cell，或是否落入
@@ -233,7 +237,7 @@ $\Sigma_{\mathrm{SC}}(i\xi)$ 统一整理为 local $q=0$ sheet response matrix�
 进行 Matsubara 求和、能量积分或力矩计算。
 
 ```bash
-python validation/scripts/response/compare_local_sheet_response_imag.py --kinds normal spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix validation/outputs/archive/response/local_sheet_imag/data/local_sheet_response_imag
+python validation/scripts/response/compare_local_sheet_response_imag.py --kinds normal spm dwave --delta0 0.04 --nk 24 --temperature 30 --matsubara-min 1 --matsubara-max 8 --eta 0.0001 --output-prefix validation/outputs/response/local_sheet_imag/data/local_sheet_response_imag
 ```
 
 当前采用中性命名的 sheet-conductivity convention。反射矩阵前的单位路径为
@@ -260,7 +264,8 @@ $$
   $\Sigma_{\mathrm{SC}}(0)=K_{\mathrm{total}}(0)/0$，也不把
   $K_{\mathrm{total}}(0)$ 直接当作 sheet conductivity。
 - 当前已建立 SI sheet conductivity 转换层，但仍需决定它如何和完整 $n=0$ 以及真实各向异性机制一起作为正式 Casimir 输入。
-- 有限动量 response 原型已暂时移除；后续若需要重启，需重新设计 response 到 Casimir 输入链。
+- finite-q Stage 1 只验证 normal current-current kernel 收敛；尚未形成
+  gauge/Ward-closed finite-q conductivity，也不接入 Casimir。
 - 能产生 torque 的角向各向异性机制。
 
 单位与静态项接口诊断：
@@ -268,14 +273,14 @@ $$
 ```bash
 python validation/scripts/numerical_stability/audit_response_units.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1
 python validation/scripts/numerical_stability/diagnose_static_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30
-python validation/scripts/response/compare_static_response_policies.py --kinds normal spm dwave --policies skip extrapolate_from_lowest_matsubara use_static_kernel --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --distance 3e-8 --k-parallel 1e6 --phi 0.2 --theta 0.7 --output-prefix validation/outputs/archive/response/static_policy_comparison/data/static_policy_comparison
-python validation/scripts/numerical_stability/assess_n0_torque_sensitivity.py --kinds normal spm dwave --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --reference-matsubara-min 1 --reference-matsubara-max 8 --sensitivity-threshold 0.01 --theta-scan-num 41 --include-toy-anisotropic-control --output-prefix validation/outputs/archive/response/n0_sensitivity/data/n0_sensitivity
+python validation/scripts/response/compare_static_response_policies.py --kinds normal spm dwave --policies skip extrapolate_from_lowest_matsubara use_static_kernel --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --distance 3e-8 --k-parallel 1e6 --phi 0.2 --theta 0.7 --output-prefix validation/outputs/response/static_policy_comparison/data/static_policy_comparison
+python validation/scripts/numerical_stability/assess_n0_torque_sensitivity.py --kinds normal spm dwave --nk 16 --temperature 30 --delta0 0.04 --eta 0.0001 --reference-matsubara-min 1 --reference-matsubara-max 8 --sensitivity-threshold 0.01 --theta-scan-num 41 --include-toy-anisotropic-control --output-prefix validation/outputs/numerical_stability/n0_sensitivity/data/n0_sensitivity
 ```
 
 Casimir local-response 接口链路冒烟测试：
 
 ```bash
-python validation/scripts/smoke/smoke_casimir_local_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1 --distance 3e-8 --k-parallel 1e6 --phi 0.2 --theta 0.7 --output-prefix validation/outputs/archive/smoke/smoke/casimir_local_response/data/casimir_local_response_smoke
+python validation/scripts/smoke/smoke_casimir_local_response.py --kinds normal spm dwave --delta0 0.04 --nk 16 --temperature 30 --matsubara-index 1 --distance 3e-8 --k-parallel 1e6 --phi 0.2 --theta 0.7 --output-prefix validation/outputs/smoke/casimir_local_response/data/casimir_local_response_smoke
 ```
 
 该脚本只验证
@@ -295,7 +300,7 @@ Local-response Casimir integral benchmark 入口：
 
 ```bash
 python scripts/casimir/local_response_integral.py --kinds normal spm dwave --distance-list 3e-8 5e-8 1e-7 --theta-list 0 0.3926990817 0.7853981634 1.1780972451 1.5707963268 --matsubara-min 1 --matsubara-max 8 --kparallel-num 64 --kparallel-max-factor 20 --phi-num 32 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix outputs/casimir/local_response_integral/data/local_response_integral
-python validation/scripts/casimir/converge_casimir_local_response_integral.py --kinds normal spm dwave --distance 5e-8 --matsubara-max-list 2 4 8 16 --kparallel-num-list 16 32 64 --kparallel-max-factor-list 10 20 40 --phi-num-list 16 32 64 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix validation/outputs/archive/casimir/local_response_integral/convergence/data/local_integral_convergence
+python validation/scripts/casimir/converge_casimir_local_response_integral.py --kinds normal spm dwave --distance 5e-8 --matsubara-max-list 2 4 8 16 --kparallel-num-list 16 32 64 --kparallel-max-factor-list 10 20 40 --phi-num-list 16 32 64 --temperature 30 --normal-nk 96 --normal-eta 1e-4 --normal-sampling fs_adaptive --normal-refine-factor 8 --bdg-nk 32 --delta0 0.04 --output-prefix validation/outputs/casimir/local_response_integral/convergence/data/local_integral_convergence
 python validation/scripts/casimir/run_casimir_local_convergence_final.py --dry-run
 python validation/scripts/casimir/refine_casimir_local_convergence_blockers.py --dry-run
 python scripts/casimir/local_response_distance_scan.py --dry-run
@@ -325,7 +330,8 @@ python scripts/normal_state/compute_normal_state_conductivity_real.py --nk 48 --
 ## 输出组织
 
 生成输出按计算阶段和物理对象归档。当前 `outputs/` 只承担数据产物职责；阶段报告在
-`docs/reports/`，历史结果在 `validation/outputs/archive/`，可复用中间张量在 `validation/cache/`：
+`docs/reports/`，validation 诊断输出在 `validation/outputs/`，可复用中间张量在
+`validation/cache/`：
 
 输出说明总入口见 [outputs/README.md](outputs/README.md)，论文草稿整理建议见
 [publication_output_guide.md](docs/notes/publication_output_guide.md)。新版绘图脚本默认生成
@@ -351,11 +357,6 @@ outputs/
   cache/
     casimir_local_response/
       response_tensors/
-  archive/
-    normal_state/
-    response/
-    casimir/
-    smoke/
 ```
 
 - `normal_state/conductivity_imag`: normal-state Kubo 虚频轴基线。
@@ -367,9 +368,7 @@ outputs/
 - `bdg/superconducting_response_imag`: BdG $\Sigma_{\mathrm{SC}}(i\xi) = \frac{K_{\mathrm{total}}(i\xi)}{\omega_{\mathrm{eV}}}$，仅定义于 $n \ge 1$，用于和 normal-state $\sigma(i\xi)$ 比较；目前不是 Casimir 输入，也不是实频轴电导。
 - `casimir/local_response_integral/distance_scan`: local-response distance scan baseline。
 - `cache/casimir_local_response/response_tensors`: local-response benchmark 复用的 response tensor cache。
-- `archive/`: 已完成阶段的历史结果，移动清单见 `validation/outputs/archive/ARCHIVE_INDEX.md`。
-
-旧运行中可能还会出现 legacy `outputs/data/` 和 `outputs/figures/`；新脚本应写入上面的分阶段目录或明确进入 `validation/outputs/archive/`。
+旧运行中可能还会出现 legacy `outputs/data/` 和 `outputs/figures/`；新脚本应写入上面的分阶段目录或 `validation/outputs/` 下的当前对象目录。
 
 长期任务边界与执行顺序见 [research_plan.md](docs/notes/research_plan.md)。
 normal-state 相关运行脚本集中在 `scripts/normal_state/`，输出集中在

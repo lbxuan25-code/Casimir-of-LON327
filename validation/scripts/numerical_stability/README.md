@@ -15,5 +15,5 @@
 
 当前主计算入口仍位于 `scripts/`；本目录中的诊断均不得直接解释为主结果。
 数值稳定性归纳请优先阅读
-`docs/notes/numerical_stability_summary.md`，refined local-response 状态请优先阅读
-`validation/outputs/archive/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`。
+`docs/notes/numerical_stability_summary.md`；finite-q Stage 1 状态请阅读
+`validation/outputs/response/normal_finite_q_kernel_convergence/normal_finite_q_kernel_convergence_summary.md`。

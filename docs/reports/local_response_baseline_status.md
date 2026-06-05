@@ -26,16 +26,11 @@ matsubara_max=64
 local-response distance scan 已完成。normal、spm、dwave 三个 kind 均保持
 zero-torque baseline，未发现 spurious torque。
 
-旧中间诊断已经归档：
-
-- normal sampling 诊断：`validation/outputs/archive/normal_state/`
-- local-response convergence / refined convergence：`validation/outputs/archive/casimir/local_response_integral/`
-- smoke 输出：`validation/outputs/archive/smoke/`
-
 当前 active local-response 输出保留：
 
 - `outputs/casimir/local_response_distance_scan/`
 - `validation/cache/casimir_local_response/response_tensors/`
+- `validation/outputs/numerical_stability/`
 
 注意：cache 单独放在 `validation/cache/`，避免与 distance scan 的正式数据和图像混在一起。
 
@@ -55,5 +50,6 @@ local-response 结果现在作为边界清楚的初级结论：
 - `preliminary_local_response_conclusion=True`
 - `not_final_casimir_conclusion=True`
 
-有限动量 response prototype 已从当前分支移除。后续如需重启，需要重新设计闭合的
-response 层，不能把当前 local baseline 误解为有限动量 Casimir 输入。
+finite-q 当前只保留 Stage 1 normal current-current kernel convergence diagnostic：
+`validation/outputs/response/normal_finite_q_kernel_convergence/`。它不是 finite-q
+conductivity，也不能把当前 local baseline 误解为有限动量 Casimir 输入。

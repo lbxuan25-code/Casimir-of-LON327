@@ -10,7 +10,7 @@
 - `scripts/response/`：local sheet response、static policy。
 - `scripts/casimir/`：local-response Casimir convergence、refinement 和流程检查。
 - `scripts/smoke/`：历史 smoke / plumbing 检查。
-- `outputs/`：上述验证脚本对应的输出、历史归档和 summary。
+- `outputs/`：上述验证脚本对应的当前输出和 summary。
 - `cache/`：可复用中间张量，例如 local-response Casimir response tensors。
 
 ## 阅读顺序
@@ -18,7 +18,7 @@
 1. `../docs/reports/current_project_status.md`
 2. `outputs/numerical_stability/README.md`
 3. `../outputs/casimir/local_response_distance_scan/distance_scan_summary.md`
-4. `outputs/archive/ARCHIVE_INDEX.md`
+4. `outputs/response/normal_finite_q_kernel_convergence/normal_finite_q_kernel_convergence_summary.md`
 
 ## 维护原则
 

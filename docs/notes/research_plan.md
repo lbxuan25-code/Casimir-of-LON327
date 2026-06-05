@@ -112,28 +112,21 @@ Casimir torque 框架中。
 - `static_response.py`: $n=0$ Matsubara response policy 接口。
 - `casimir.py`: 未来使用的 reflection / 能量 / 力矩 integrand 骨架。
 
-Normal-state 运行脚本集中在 `scripts/normal_state/`。输出按阶段归档：
+Normal-state 运行脚本集中在 `scripts/normal_state/`。当前 active 输出按阶段归档：
 `outputs/normal_state/conductivity_imag/`、`outputs/normal_state/conductivity_real/`、
-`validation/outputs/archive/normal_state/sampling_convergence/`、
-`validation/outputs/archive/normal_state/fs_sensitive_sampling/`、
-`validation/outputs/archive/normal_state/fs_adaptive_integration/`、
 `outputs/pairing/gap_structure/`、`outputs/bdg/paramagnetic_kernel_imag/`、
 `outputs/bdg/diamagnetic_kernel/`、`outputs/bdg/total_kernel_imag/`、
-`outputs/bdg/superconducting_response_imag/`、`validation/outputs/archive/response/local_sheet_imag/`、
-`validation/outputs/archive/response/unit_audit/`、`validation/outputs/archive/response/static_response/`、
-`validation/outputs/archive/response/bdg_normal_limit/`、
-`validation/outputs/archive/response/convergence_imag/`、
-`validation/outputs/archive/response/high_nk_convergence/`、
-`validation/outputs/archive/response/static_policy_comparison/`、
-`validation/outputs/archive/response/n0_sensitivity/`、
-`outputs/casimir/local_response_distance_scan/` 和 `validation/outputs/archive/smoke/smoke/`。
+`outputs/bdg/superconducting_response_imag/`、`outputs/casimir/local_response_distance_scan/`、
+`validation/outputs/response/normal_finite_q_kernel_convergence/` 和
+`validation/outputs/numerical_stability/`。
 材料计算入口直接使用 `scripts/normal_state/`、`scripts/pairing/` 和 `scripts/bdg/`
 中的真实实现；`scripts/` 顶层不保留兼容 wrapper。
 
 论文草稿输出的组织原则见 `docs/notes/publication_output_guide.md` 与
 `outputs/README.md`。当前推荐把 `pairing/`、`normal_state/`、`bdg/` 和
-`response/local_sheet_imag/` 作为主要论文素材来源；`smoke/`、当前 `casimir/`、
-`response/static_response/` 只作为方法边界或工程诊断。
+`response/local_sheet_imag/` 作为主要论文素材来源；当前 `casimir/` 和
+`validation/outputs/response/normal_finite_q_kernel_convergence/` 只作为 benchmark
+或方法边界诊断。
 新版绘图脚本默认保存 300 dpi PNG，不额外生成 PDF。
 
 ## 常用脚本顺序

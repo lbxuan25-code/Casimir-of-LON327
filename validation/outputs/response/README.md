@@ -9,9 +9,6 @@ current-current diagnostic，不是完整 gauge-closed response，也不是 Casi
 - `validation/outputs/response/bdg_static_gauge_closure/`
 - `validation/outputs/response/normal_finite_q_kernel_convergence/`
 - `outputs/casimir/local_response_distance_scan/`
-- `validation/outputs/archive/response/local_sheet_imag/`
-- `validation/outputs/archive/response/static_policy_comparison/`
-- `validation/outputs/archive/response/unit_audit/`
 
 `bdg_static_gauge_closure/` 检查 local BdG `K_dia - K_para` 的静态 stiffness、
 候选 `rho_s` 的有限性和 C4/offdiag 行为；它不是最终 optical conductivity，

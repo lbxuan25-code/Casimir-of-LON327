@@ -5,19 +5,19 @@
 权威摘要文件位置：
 
 - `docs/notes/numerical_stability_summary.md`
-- `validation/outputs/archive/normal_state/fs_adaptive_integration/final_check_summary.md`
-- `validation/outputs/archive/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`
+- `outputs/casimir/local_response_distance_scan/distance_scan_summary.md`
+- `validation/outputs/response/normal_finite_q_kernel_convergence/normal_finite_q_kernel_convergence_summary.md`
 
 推荐阅读顺序：
 
 1. `docs/notes/numerical_stability_summary.md`
-2. `validation/outputs/archive/normal_state/fs_adaptive_integration/final_check_summary.md`
-3. `validation/outputs/archive/casimir/local_response_integral/refined_convergence/refined_convergence_summary.md`
+2. `outputs/casimir/local_response_distance_scan/distance_scan_summary.md`
+3. `validation/outputs/response/normal_finite_q_kernel_convergence/normal_finite_q_kernel_convergence_summary.md`
 
 大型 `.npz`、`.csv`、`.png` 文件是可复现数据和绘图材料，不是主要阅读入口。
 
-本阶段不使用 `.gitignore` 隐藏结果，也不删除旧 outputs。历史输出保留用于追溯数值
-判断的来源。
+本阶段不使用 `.gitignore` 隐藏结果。旧 mixed sigma/K diagnostics 已删除，
+不作为 validation evidence。
 
 后续 local-response distance scan 应另开目录：
 
