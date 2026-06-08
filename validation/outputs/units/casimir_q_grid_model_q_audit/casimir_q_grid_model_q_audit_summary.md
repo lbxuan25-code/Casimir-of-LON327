@@ -15,6 +15,7 @@ u_max = 80
 du = 0.5
 phi_num = 32
 small_q_threshold_list = 0.001 0.005 0.01 0.05 0.1
+expanded_data_written=False
 
 ## Scope flags
 unit_audit_only=True
@@ -64,8 +65,9 @@ not_final_casimir_conclusion=True
 The BZ stress list is for numerical stress testing only; it is not a statement that the audited local Casimir grid reaches those momenta.
 
 ## Output files
-- CSV: /home/liubx25/Ni_Research/Projects/Casimir_Torque_of_LNO327/validation/outputs/units/casimir_q_grid_model_q_audit/data/casimir_q_grid_model_q_audit.csv
-- NPZ: /home/liubx25/Ni_Research/Projects/Casimir_Torque_of_LNO327/validation/outputs/units/casimir_q_grid_model_q_audit/data/casimir_q_grid_model_q_audit.npz
+- compact CSV: /home/liubx25/Ni_Research/Projects/Casimir_Torque_of_LNO327/validation/outputs/units/casimir_q_grid_model_q_audit/data/casimir_q_grid_model_q_audit_compact.csv
+- expanded_data_written=False
+- expanded CSV/NPZ not written; rerun with --write-expanded-data to generate them locally.
 - figure: /home/liubx25/Ni_Research/Projects/Casimir_Torque_of_LNO327/validation/outputs/units/casimir_q_grid_model_q_audit/figures/q_model_max_vs_distance.png
 - figure: /home/liubx25/Ni_Research/Projects/Casimir_Torque_of_LNO327/validation/outputs/units/casimir_q_grid_model_q_audit/figures/q_model_histogram.png
 - figure: /home/liubx25/Ni_Research/Projects/Casimir_Torque_of_LNO327/validation/outputs/units/casimir_q_grid_model_q_audit/figures/q_model_coverage_by_distance.png

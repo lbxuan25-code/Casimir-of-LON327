@@ -44,6 +44,13 @@ DEFAULT_PHI_NUM = 32
 DEFAULT_IN_PLANE_LATTICE_CONSTANT_M = 3.9e-10
 DEFAULT_IN_PLANE_LATTICE_CONSTANT_LIST_M = (3.75e-10, 3.85e-10, 3.90e-10, 3.95e-10)
 DEFAULT_SMALL_Q_THRESHOLDS = (1e-3, 5e-3, 1e-2, 5e-2, 1e-1)
+COMPACT_THRESHOLD_COLUMNS = {
+    1e-3: "coverage_q_0p001",
+    5e-3: "coverage_q_0p005",
+    1e-2: "coverage_q_0p01",
+    5e-2: "coverage_q_0p05",
+    1e-1: "coverage_q_0p1",
+}
 
 QUICK_DISTANCE_LIST = (5e-8, 1e-7)
 QUICK_U_MAX = 10.0
@@ -68,6 +75,24 @@ CSV_COLUMNS = (
     "inside_small_q_regime",
     "inside_pi_BZ_reference",
     "inside_2pi_BZ_reference",
+    "unit_audit_only",
+    "response_computed",
+    "casimir_computed",
+    "not_final_casimir_conclusion",
+)
+
+COMPACT_COLUMNS = (
+    "a_parallel_m",
+    "a_parallel_A",
+    "distance_m",
+    "q_model_max",
+    "q_model_max_over_pi",
+    "q_model_max_over_2pi",
+    "coverage_q_0p001",
+    "coverage_q_0p005",
+    "coverage_q_0p01",
+    "coverage_q_0p05",
+    "coverage_q_0p1",
     "unit_audit_only",
     "response_computed",
     "casimir_computed",
@@ -173,13 +198,58 @@ def _write_csv(path: Path, data: dict[str, np.ndarray]) -> None:
             writer.writerow({column: data[column][index] for column in CSV_COLUMNS})
 
 
-def _output_paths(output_prefix: Path) -> tuple[Path, Path, Path, Path]:
-    csv_path = output_prefix.with_suffix(".csv")
-    npz_path = output_prefix.with_suffix(".npz")
+def compact_audit_data(data: dict[str, np.ndarray]) -> list[dict[str, object]]:
+    """Aggregate expanded audit samples into a small, GitHub-trackable table."""
+
+    rows: list[dict[str, object]] = []
+    base = _base_q_samples(data)
+    a_values = sorted(set(float(value) for value in base["in_plane_lattice_constant_m"]))
+    distances = sorted(set(float(value) for value in base["distance_m"]))
+    for a_parallel in a_values:
+        for distance in distances:
+            base_mask = (base["in_plane_lattice_constant_m"] == a_parallel) & np.isclose(
+                base["distance_m"], distance
+            )
+            q_model_max = float(np.max(base["q_model"][base_mask]))
+            row: dict[str, object] = {
+                "a_parallel_m": a_parallel,
+                "a_parallel_A": a_parallel * 1e10,
+                "distance_m": distance,
+                "q_model_max": q_model_max,
+                "q_model_max_over_pi": q_model_max / np.pi,
+                "q_model_max_over_2pi": q_model_max / (2.0 * np.pi),
+                "unit_audit_only": True,
+                "response_computed": False,
+                "casimir_computed": False,
+                "not_final_casimir_conclusion": True,
+            }
+            for threshold, column in COMPACT_THRESHOLD_COLUMNS.items():
+                mask = (
+                    (data["in_plane_lattice_constant_m"] == a_parallel)
+                    & np.isclose(data["distance_m"], distance)
+                    & np.isclose(data["small_q_threshold"], threshold)
+                )
+                row[column] = float(np.mean(data["inside_small_q_regime"][mask])) if np.any(mask) else float("nan")
+            rows.append(row)
+    return rows
+
+
+def _write_compact_csv(path: Path, rows: list[dict[str, object]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=COMPACT_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def _output_paths(output_prefix: Path) -> tuple[Path, Path, Path, Path, Path]:
+    expanded_csv_path = output_prefix.with_suffix(".csv")
+    expanded_npz_path = output_prefix.with_suffix(".npz")
+    compact_csv_path = output_prefix.with_name(f"{output_prefix.name}_compact").with_suffix(".csv")
     result_root = output_prefix.parent.parent if output_prefix.parent.name == "data" else output_prefix.parent
     figure_dir = result_root / "figures"
     summary_path = result_root / SUMMARY_NAME
-    return csv_path, npz_path, figure_dir, summary_path
+    return compact_csv_path, expanded_csv_path, expanded_npz_path, figure_dir, summary_path
 
 
 def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
@@ -315,6 +385,9 @@ def _summary_lines(
     args: argparse.Namespace,
     command: str,
     figure_paths: list[Path],
+    compact_csv_path: Path,
+    expanded_csv_path: Path,
+    expanded_npz_path: Path,
 ) -> list[str]:
     base = _base_q_samples(data)
     q_min = float(np.min(base["q_model"]))
@@ -351,6 +424,7 @@ def _summary_lines(
         f"du = {_fmt(args.du)}",
         f"phi_num = {int(args.phi_num)}",
         f"small_q_threshold_list = {_list_fmt(list(args.small_q_threshold_list))}",
+        f"expanded_data_written={bool(args.write_expanded_data)}",
         "",
         "## Scope flags",
         "unit_audit_only=True",
@@ -429,10 +503,19 @@ def _summary_lines(
             "the audited local Casimir grid reaches those momenta.",
             "",
             "## Output files",
-            f"- CSV: {args.output_prefix.with_suffix('.csv')}",
-            f"- NPZ: {args.output_prefix.with_suffix('.npz')}",
+            f"- compact CSV: {compact_csv_path}",
+            f"- expanded_data_written={bool(args.write_expanded_data)}",
         ]
     )
+    if args.write_expanded_data:
+        lines.extend(
+            [
+                f"- expanded CSV: {expanded_csv_path}",
+                f"- expanded NPZ: {expanded_npz_path}",
+            ]
+        )
+    else:
+        lines.append("- expanded CSV/NPZ not written; rerun with --write-expanded-data to generate them locally.")
     lines.extend(f"- figure: {path}" for path in figure_paths)
     return lines
 
@@ -469,6 +552,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=list(DEFAULT_SMALL_Q_THRESHOLDS),
     )
     parser.add_argument("--output-prefix", type=Path, default=DEFAULT_OUTPUT_PREFIX)
+    parser.add_argument("--write-expanded-data", action="store_true")
     parser.add_argument("--quick", action="store_true")
     return parser
 
@@ -497,19 +581,36 @@ def main() -> None:
         in_plane_lattice_constant_list_m=list(args.in_plane_lattice_constant_list_m),
         small_q_threshold_list=list(args.small_q_threshold_list),
     )
-    csv_path, npz_path, figure_dir, summary_path = _output_paths(args.output_prefix)
-    _write_csv(csv_path, data)
-    npz_path.parent.mkdir(parents=True, exist_ok=True)
-    np.savez(npz_path, **data)
+    compact_csv_path, expanded_csv_path, expanded_npz_path, figure_dir, summary_path = _output_paths(args.output_prefix)
+    compact_rows = compact_audit_data(data)
+    _write_compact_csv(compact_csv_path, compact_rows)
+    if args.write_expanded_data:
+        _write_csv(expanded_csv_path, data)
+        expanded_npz_path.parent.mkdir(parents=True, exist_ok=True)
+        np.savez(expanded_npz_path, **data)
     figure_paths = _plot_outputs(data, figure_dir)
     command = "python " + " ".join(shlex.quote(value) for value in sys.argv)
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(
-        "\n".join(_summary_lines(data, args, command, figure_paths)) + "\n",
+        "\n".join(
+            _summary_lines(
+                data,
+                args,
+                command,
+                figure_paths,
+                compact_csv_path,
+                expanded_csv_path,
+                expanded_npz_path,
+            )
+        )
+        + "\n",
         encoding="utf-8",
     )
-    print(f"csv_path = {csv_path}")
-    print(f"npz_path = {npz_path}")
+    print(f"compact_csv_path = {compact_csv_path}")
+    print(f"expanded_data_written = {bool(args.write_expanded_data)}")
+    if args.write_expanded_data:
+        print(f"expanded_csv_path = {expanded_csv_path}")
+        print(f"expanded_npz_path = {expanded_npz_path}")
     print(f"summary_path = {summary_path}")
     print("figure_paths = " + ", ".join(str(path) for path in figure_paths))
 

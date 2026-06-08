@@ -7,5 +7,6 @@ __pycache__/
 !outputs/**/README.md
 
 # Large reproducible unit-audit data
-validation/outputs/units/casimir_q_grid_model_q_audit/data/*.csv
-validation/outputs/units/casimir_q_grid_model_q_audit/data/*.npz
+validation/outputs/**/data/*.npz
+validation/outputs/**/data/*expanded*.csv
+validation/outputs/units/casimir_q_grid_model_q_audit/data/casimir_q_grid_model_q_audit.csv
