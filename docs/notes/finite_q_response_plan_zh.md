@@ -74,11 +74,18 @@ $$
 把 Casimir 积分中的无量纲变量 $u$ 与层间距离 $d$ 映射到模型动量：
 
 $$
-q_{\mathrm{model}} = a \frac{u}{d}.
+q_{\mathrm{model}} = a_{\parallel} \frac{u}{d}.
 $$
 
-这里 $a$ 是模型晶格常数单位，$d$ 必须使用同一长度单位。Stage 2 只做单位和采样范围审计，
-不声明 finite-q Casimir 结论。
+这里 $a_{\parallel}$ 是面内赝四方 / Ni-Ni 有效晶格常数，用作从 SI 动量到 model-q
+单位的面内换算长度；不要把它写成笼统 conventional crystallographic lattice constant。
+$d$ 必须使用同一长度单位。Stage 2 只做单位和采样范围审计，不计算 response，
+不产生 finite-q conductivity，也不声明 finite-q Casimir 结论。
+
+Stage 2.5 在同一 audit 中加入 $a_{\parallel}$ sensitivity，例如
+$a_{\parallel}=3.75, 3.85, 3.90, 3.95$ Angstrom，检查 Casimir q-grid 可访问的
+$q_{\mathrm{model,max}}$ 对面内换算长度的敏感性。该敏感性仍然只是单位/采样审计，
+不接入 response tensor、reflection matrix 或 Casimir integral。
 
 ### 阶段 3：BdG finite-q current-current kernel
 
@@ -167,4 +174,5 @@ validation/outputs/response/normal_finite_q_kernel_convergence/
 
 Stage 1 当前只需要继续做 quick/smoke 级别检查和代码一致性维护。下一项实质开发应进入
 Stage 2：审计 Casimir q-grid 与 model-q 的单位映射
-$q_{\mathrm{model}} = a u / d$，并给出可复现的 sampling range 报告。
+$q_{\mathrm{model}} = a_{\parallel} u / d$，并给出可复现的 sampling range 和
+$a_{\parallel}$ sensitivity 报告。

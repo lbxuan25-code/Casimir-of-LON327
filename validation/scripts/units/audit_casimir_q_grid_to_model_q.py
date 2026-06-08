@@ -4,7 +4,7 @@
 This script performs only geometry and unit conversion:
 
     q_SI = u / d
-    q_model = a * q_SI
+    q_model = a_parallel * q_SI
     qx_model = q_model * cos(phi)
     qy_model = q_model * sin(phi)
 
@@ -41,18 +41,22 @@ DEFAULT_DISTANCE_LIST = (3e-8, 5e-8, 7.5e-8, 1e-7, 1.5e-7, 2e-7)
 DEFAULT_U_MAX = 80.0
 DEFAULT_DU = 0.5
 DEFAULT_PHI_NUM = 32
-DEFAULT_LATTICE_CONSTANT_M = 3.9e-10
+DEFAULT_IN_PLANE_LATTICE_CONSTANT_M = 3.9e-10
+DEFAULT_IN_PLANE_LATTICE_CONSTANT_LIST_M = (3.75e-10, 3.85e-10, 3.90e-10, 3.95e-10)
 DEFAULT_SMALL_Q_THRESHOLDS = (1e-3, 5e-3, 1e-2, 5e-2, 1e-1)
 
 QUICK_DISTANCE_LIST = (5e-8, 1e-7)
 QUICK_U_MAX = 10.0
 QUICK_DU = 1.0
 QUICK_PHI_NUM = 8
+QUICK_IN_PLANE_LATTICE_CONSTANT_LIST_M = (3.9e-10,)
 
 CSV_COLUMNS = (
     "distance_m",
     "u",
     "phi",
+    "in_plane_lattice_constant_m",
+    "a_parallel_m",
     "lattice_constant_m",
     "q_SI_m_inv",
     "q_model",
@@ -102,30 +106,31 @@ def generate_audit_data(
     u_max: float,
     du: float,
     phi_num: int,
-    lattice_constant_m: float,
+    in_plane_lattice_constant_list_m: list[float],
     small_q_threshold_list: list[float],
 ) -> dict[str, np.ndarray]:
     """Generate threshold-expanded audit rows for the Casimir q-grid."""
 
     _validate_positive_list("distance-list", distance_list)
     _validate_positive_list("small-q-threshold-list", small_q_threshold_list)
-    if lattice_constant_m <= 0.0:
-        raise ValueError("lattice-constant-m must be positive")
+    _validate_positive_list("in-plane-lattice-constant-list-m", in_plane_lattice_constant_list_m)
 
     distances = np.asarray(distance_list, dtype=float)
     u_values = _u_grid(u_max, du)
     phi_values = _phi_grid(phi_num)
+    a_parallel_values = np.asarray(in_plane_lattice_constant_list_m, dtype=float)
     thresholds = np.asarray(small_q_threshold_list, dtype=float)
 
-    distance_mesh, u_mesh, phi_mesh, threshold_mesh = np.meshgrid(
+    distance_mesh, u_mesh, phi_mesh, a_parallel_mesh, threshold_mesh = np.meshgrid(
         distances,
         u_values,
         phi_values,
+        a_parallel_values,
         thresholds,
         indexing="ij",
     )
     q_si = u_mesh / distance_mesh
-    q_model = lattice_constant_m * q_si
+    q_model = a_parallel_mesh * q_si
     qx_model = q_model * np.cos(phi_mesh)
     qy_model = q_model * np.sin(phi_mesh)
 
@@ -133,7 +138,9 @@ def generate_audit_data(
         "distance_m": distance_mesh.ravel(),
         "u": u_mesh.ravel(),
         "phi": phi_mesh.ravel(),
-        "lattice_constant_m": np.full(distance_mesh.size, lattice_constant_m, dtype=float),
+        "in_plane_lattice_constant_m": a_parallel_mesh.ravel(),
+        "a_parallel_m": a_parallel_mesh.ravel(),
+        "lattice_constant_m": a_parallel_mesh.ravel(),
         "q_SI_m_inv": q_si.ravel(),
         "q_model": q_model.ravel(),
         "qx_model": qx_model.ravel(),
@@ -185,16 +192,25 @@ def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
 
     fig, ax = plt.subplots(figsize=(6.4, 4.0))
     distances = np.array(sorted(set(float(value) for value in base["distance_m"])))
-    q_max_by_distance = np.array(
-        [np.max(base["q_model"][np.isclose(base["distance_m"], distance)]) for distance in distances]
-    )
-    ax.plot(distances, q_max_by_distance, marker="o")
+    for a_parallel in sorted(set(float(value) for value in base["in_plane_lattice_constant_m"])):
+        q_max_by_distance = np.array(
+            [
+                np.max(
+                    base["q_model"][
+                        np.isclose(base["distance_m"], distance)
+                        & (base["in_plane_lattice_constant_m"] == a_parallel)
+                    ]
+                )
+                for distance in distances
+            ]
+        )
+        ax.plot(distances, q_max_by_distance, marker="o", label=f"a_parallel={a_parallel * 1e10:.2f} A")
     ax.set(
         xlabel="distance d (m)",
         ylabel="max q_model",
         title="Casimir q-grid maximum model momentum",
     )
-    style_publication_axis(ax, legend=False)
+    style_publication_axis(ax)
     path = figure_dir / "q_model_max_vs_distance.png"
     save_publication_figure(fig, path)
     plt.close(fig)
@@ -228,6 +244,23 @@ def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
     )
     style_publication_axis(ax)
     path = figure_dir / "q_model_coverage_by_distance.png"
+    save_publication_figure(fig, path)
+    plt.close(fig)
+    paths.append(path)
+
+    fig, ax = plt.subplots(figsize=(6.4, 4.0))
+    a_values = np.array(sorted(set(float(value) for value in base["in_plane_lattice_constant_m"])))
+    q_max_by_a = np.array(
+        [np.max(base["q_model"][base["in_plane_lattice_constant_m"] == a_parallel]) for a_parallel in a_values]
+    )
+    ax.plot(a_values * 1e10, q_max_by_a, marker="o")
+    ax.set(
+        xlabel="a_parallel (Angstrom)",
+        ylabel="max q_model",
+        title="Maximum model momentum vs in-plane conversion length",
+    )
+    style_publication_axis(ax, legend=False)
+    path = figure_dir / "q_model_max_vs_a_parallel.png"
     save_publication_figure(fig, path)
     plt.close(fig)
     paths.append(path)
@@ -287,6 +320,7 @@ def _summary_lines(
     q_min = float(np.min(base["q_model"]))
     q_max = float(np.max(base["q_model"]))
     distances = np.array(sorted(set(float(value) for value in base["distance_m"])))
+    a_parallel_values = np.array(sorted(set(float(value) for value in base["in_plane_lattice_constant_m"])))
     thresholds = sorted(set(float(value) for value in data["small_q_threshold"]))
     stage1_q_list = _stage1_q_list_from_summary()
     stage1_q_max = max(stage1_q_list)
@@ -303,10 +337,14 @@ def _summary_lines(
         "",
         f"run_command = `{command}`",
         f"quick_mode = {bool(args.quick)}",
-        f"lattice_constant_m = {_fmt(args.lattice_constant_m)}",
+        f"in_plane_lattice_constant_list_m = {_list_fmt(list(args.in_plane_lattice_constant_list_m))}",
         (
-            "lattice_constant_m is a configurable assumption for this audit "
-            "and is not a final material parameter."
+            "a_parallel is the in-plane pseudotetragonal / Ni-Ni effective lattice constant "
+            "used to convert q_SI to model-q units."
+        ),
+        (
+            "This is a configurable in-plane conversion length, not a final crystallographic "
+            "refinement parameter."
         ),
         f"distance_list_m = {_list_fmt(list(args.distance_list))}",
         f"u_max = {_fmt(args.u_max)}",
@@ -326,8 +364,27 @@ def _summary_lines(
         f"- q_model_max/pi = {_fmt(q_max / np.pi)}",
         f"- q_model_max/(2pi) = {_fmt(q_max / (2.0 * np.pi))}",
         "",
-        "## q_model_max by distance",
+        "## a_parallel sensitivity",
     ]
+    for a_parallel in a_parallel_values:
+        mask = base["in_plane_lattice_constant_m"] == a_parallel
+        local_max = float(np.max(base["q_model"][mask]))
+        lines.append(
+            f"- a_parallel = {_fmt(a_parallel)} m ({_fmt(a_parallel * 1e10)} A): "
+            f"q_model_max = {_fmt(local_max)}, "
+            f"q_model_max/pi = {_fmt(local_max / np.pi)}, "
+            f"q_model_max/(2pi) = {_fmt(local_max / (2.0 * np.pi))}"
+        )
+    lines.extend(
+        [
+            (
+                "- q_model,max remains O(1), so Stage 1 q<=0.005 still only tests "
+                "small-q limit."
+            ),
+            "",
+            "## q_model_max by distance",
+        ]
+    )
     for distance in distances:
         mask = np.isclose(base["distance_m"], distance)
         local_max = float(np.max(base["q_model"][mask]))
@@ -386,7 +443,25 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--u-max", type=float, default=DEFAULT_U_MAX)
     parser.add_argument("--du", type=float, default=DEFAULT_DU)
     parser.add_argument("--phi-num", type=int, default=DEFAULT_PHI_NUM)
-    parser.add_argument("--lattice-constant-m", type=float, default=DEFAULT_LATTICE_CONSTANT_M)
+    parser.add_argument(
+        "--in-plane-lattice-constant-m",
+        type=float,
+        default=None,
+        help="Single a_parallel value in meters. Overrides the default sensitivity list unless the list option is set.",
+    )
+    parser.add_argument(
+        "--lattice-constant-m",
+        type=float,
+        default=None,
+        help="Backward-compatible alias for --in-plane-lattice-constant-m.",
+    )
+    parser.add_argument(
+        "--in-plane-lattice-constant-list-m",
+        nargs="+",
+        type=float,
+        default=None,
+        help="Sensitivity list for a_parallel in meters.",
+    )
     parser.add_argument(
         "--small-q-threshold-list",
         nargs="+",
@@ -400,18 +475,26 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
+    if args.in_plane_lattice_constant_list_m is None:
+        if args.in_plane_lattice_constant_m is not None:
+            args.in_plane_lattice_constant_list_m = [args.in_plane_lattice_constant_m]
+        elif args.lattice_constant_m is not None:
+            args.in_plane_lattice_constant_list_m = [args.lattice_constant_m]
+        else:
+            args.in_plane_lattice_constant_list_m = list(DEFAULT_IN_PLANE_LATTICE_CONSTANT_LIST_M)
     if args.quick:
         args.distance_list = list(QUICK_DISTANCE_LIST)
         args.u_max = QUICK_U_MAX
         args.du = QUICK_DU
         args.phi_num = QUICK_PHI_NUM
+        args.in_plane_lattice_constant_list_m = list(QUICK_IN_PLANE_LATTICE_CONSTANT_LIST_M)
 
     data = generate_audit_data(
         distance_list=list(args.distance_list),
         u_max=float(args.u_max),
         du=float(args.du),
         phi_num=int(args.phi_num),
-        lattice_constant_m=float(args.lattice_constant_m),
+        in_plane_lattice_constant_list_m=list(args.in_plane_lattice_constant_list_m),
         small_q_threshold_list=list(args.small_q_threshold_list),
     )
     csv_path, npz_path, figure_dir, summary_path = _output_paths(args.output_prefix)
