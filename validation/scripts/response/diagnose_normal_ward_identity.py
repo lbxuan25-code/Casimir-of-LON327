@@ -35,6 +35,8 @@ DEFAULT_Q_ANGLE_LIST = (0.0, np.pi / 4.0, np.pi / 2.0)
 DEFAULT_NK_LIST = (8, 12, 16)
 DEFAULT_DEGENERACY_TOL_EV = 1e-10
 DEFAULT_VERTEX_SCHEMES = ("midpoint", "peierls")
+DEFAULT_CONTACT_SCHEMES = ("none", "q0_mass_diagnostic")
+DEFAULT_CONTACT_SIGN_CONVENTIONS = ("plus", "minus")
 
 QUICK_MATSUBARA_N_LIST = (1,)
 QUICK_Q_LIST = (0.001, 0.01, 0.1)
@@ -46,6 +48,7 @@ COMPACT_COLUMNS = (
     "current_vertex_sign_convention",
     "density_vertex_scheme",
     "contact_scheme",
+    "contact_sign_convention",
     "matsubara_n",
     "omega_eV",
     "nk",
@@ -59,6 +62,7 @@ COMPACT_COLUMNS = (
     "density_current_included",
     "current_current_included",
     "diamagnetic_contact_included",
+    "not_final_finite_q_contact",
     "normal_state_only",
     "bdg_computed",
     "conductivity_computed",
@@ -108,8 +112,8 @@ def _angle_expression(value: str) -> float:
     return evaluate(node)
 
 
-def _diagnosis(max_error: float, vertex_scheme: str) -> str:
-    prefix = f"{vertex_scheme}_"
+def _diagnosis(max_error: float, vertex_scheme: str, contact_scheme: str, contact_sign_convention: str) -> str:
+    prefix = f"{vertex_scheme}_{contact_scheme}_{contact_sign_convention}_"
     if max_error < 1e-6:
         return prefix + "prototype_residual_small"
     if max_error < 1e-3:
@@ -126,6 +130,8 @@ def run_diagnostic(
     nk_list: list[int],
     degeneracy_tol_eV: float,
     vertex_schemes: list[str],
+    contact_schemes: list[str],
+    contact_sign_conventions: list[str],
 ) -> dict[str, np.ndarray]:
     if any(n < 1 for n in matsubara_n_list):
         raise ValueError("matsubara-n-list must contain only n >= 1")
@@ -140,6 +146,12 @@ def run_diagnostic(
     for scheme in vertex_schemes:
         if scheme not in {"midpoint", "peierls"}:
             raise ValueError("vertex schemes must be midpoint or peierls")
+    for scheme in contact_schemes:
+        if scheme not in {"none", "q0_mass_diagnostic"}:
+            raise ValueError("contact schemes must be none or q0_mass_diagnostic")
+    for convention in contact_sign_conventions:
+        if convention not in {"plus", "minus"}:
+            raise ValueError("contact sign conventions must be plus or minus")
 
     rows: list[dict[str, object]] = []
     for nk in nk_list:
@@ -154,55 +166,74 @@ def run_diagnostic(
                 output_si=False,
             )
             for vertex_scheme in vertex_schemes:
-                for q_model in q_list:
-                    for q_angle in q_angle_list:
-                        qx = float(q_model * np.cos(q_angle))
-                        qy = float(q_model * np.sin(q_angle))
-                        matrix = normal_density_current_response_imag_axis(
-                            mesh,
-                            config,
-                            np.array([qx, qy], dtype=float),
-                            weights,
-                            vertex_scheme=vertex_scheme,
-                        )
-                        left_error, right_error, max_error = ward_errors(matrix, omega_eV, np.array([qx, qy], dtype=float))
-                        rows.append(
-                            {
-                                "vertex_scheme": vertex_scheme,
-                                "current_vertex_sign_convention": "plus" if vertex_scheme == "peierls" else "not_applicable",
-                                "density_vertex_scheme": "identity_4_orbitals_shared_in_plane_position",
-                                "contact_scheme": "none",
-                                "matsubara_n": int(matsubara_n),
-                                "omega_eV": float(omega_eV),
-                                "nk": int(nk),
-                                "q_model": float(q_model),
-                                "q_angle": float(q_angle),
-                                "qx_model": qx,
-                                "qy_model": qy,
-                                "left_ward_error": left_error,
-                                "right_ward_error": right_error,
-                                "max_ward_error": max_error,
-                                "density_current_included": True,
-                                "current_current_included": True,
-                                "diamagnetic_contact_included": False,
-                                "normal_state_only": True,
-                                "bdg_computed": False,
-                                "conductivity_computed": False,
-                                "casimir_computed": False,
-                                "not_final_casimir_conclusion": True,
-                                "not_final_finite_q_conductivity": True,
-                                "diagnosis": _diagnosis(max_error, vertex_scheme),
-                                "Pi_00": complex(matrix[0, 0]),
-                                "Pi_0x": complex(matrix[0, 1]),
-                                "Pi_0y": complex(matrix[0, 2]),
-                                "Pi_x0": complex(matrix[1, 0]),
-                                "Pi_xx": complex(matrix[1, 1]),
-                                "Pi_xy": complex(matrix[1, 2]),
-                                "Pi_y0": complex(matrix[2, 0]),
-                                "Pi_yx": complex(matrix[2, 1]),
-                                "Pi_yy": complex(matrix[2, 2]),
-                            }
-                        )
+                for contact_scheme in contact_schemes:
+                    sign_conventions = ("not_applicable",) if contact_scheme == "none" else tuple(contact_sign_conventions)
+                    for contact_sign_convention in sign_conventions:
+                        response_contact_sign = "plus" if contact_sign_convention == "not_applicable" else contact_sign_convention
+                        for q_model in q_list:
+                            for q_angle in q_angle_list:
+                                qx = float(q_model * np.cos(q_angle))
+                                qy = float(q_model * np.sin(q_angle))
+                                matrix = normal_density_current_response_imag_axis(
+                                    mesh,
+                                    config,
+                                    np.array([qx, qy], dtype=float),
+                                    weights,
+                                    vertex_scheme=vertex_scheme,
+                                    contact_scheme=contact_scheme,
+                                    contact_sign_convention=response_contact_sign,
+                                )
+                                left_error, right_error, max_error = ward_errors(
+                                    matrix,
+                                    omega_eV,
+                                    np.array([qx, qy], dtype=float),
+                                )
+                                rows.append(
+                                    {
+                                        "vertex_scheme": vertex_scheme,
+                                        "current_vertex_sign_convention": (
+                                            "plus" if vertex_scheme == "peierls" else "not_applicable"
+                                        ),
+                                        "density_vertex_scheme": "identity_4_orbitals_shared_in_plane_position",
+                                        "contact_scheme": contact_scheme,
+                                        "contact_sign_convention": contact_sign_convention,
+                                        "matsubara_n": int(matsubara_n),
+                                        "omega_eV": float(omega_eV),
+                                        "nk": int(nk),
+                                        "q_model": float(q_model),
+                                        "q_angle": float(q_angle),
+                                        "qx_model": qx,
+                                        "qy_model": qy,
+                                        "left_ward_error": left_error,
+                                        "right_ward_error": right_error,
+                                        "max_ward_error": max_error,
+                                        "density_current_included": True,
+                                        "current_current_included": True,
+                                        "diamagnetic_contact_included": contact_scheme == "q0_mass_diagnostic",
+                                        "not_final_finite_q_contact": True,
+                                        "normal_state_only": True,
+                                        "bdg_computed": False,
+                                        "conductivity_computed": False,
+                                        "casimir_computed": False,
+                                        "not_final_casimir_conclusion": True,
+                                        "not_final_finite_q_conductivity": True,
+                                        "diagnosis": _diagnosis(
+                                            max_error,
+                                            vertex_scheme,
+                                            contact_scheme,
+                                            contact_sign_convention,
+                                        ),
+                                        "Pi_00": complex(matrix[0, 0]),
+                                        "Pi_0x": complex(matrix[0, 1]),
+                                        "Pi_0y": complex(matrix[0, 2]),
+                                        "Pi_x0": complex(matrix[1, 0]),
+                                        "Pi_xx": complex(matrix[1, 1]),
+                                        "Pi_xy": complex(matrix[1, 2]),
+                                        "Pi_y0": complex(matrix[2, 0]),
+                                        "Pi_yx": complex(matrix[2, 1]),
+                                        "Pi_yy": complex(matrix[2, 2]),
+                                    }
+                                )
 
     return {column: np.array([row[column] for row in rows]) for column in EXPANDED_COLUMNS}
 
@@ -237,6 +268,42 @@ def _scheme_q_max(data: dict[str, np.ndarray], field: str, scheme: str, q_model:
     return float(np.max(data[field][mask].astype(float)))
 
 
+def _combo_mask(data: dict[str, np.ndarray], combo: tuple[str, str, str]) -> np.ndarray:
+    vertex_scheme, contact_scheme, contact_sign_convention = combo
+    return (
+        (data["vertex_scheme"] == vertex_scheme)
+        & (data["contact_scheme"] == contact_scheme)
+        & (data["contact_sign_convention"] == contact_sign_convention)
+    )
+
+
+def _combo_label(combo: tuple[str, str, str]) -> str:
+    vertex_scheme, contact_scheme, contact_sign_convention = combo
+    if contact_scheme == "none":
+        return f"{vertex_scheme} + none"
+    return f"{vertex_scheme} + {contact_scheme} + {contact_sign_convention}"
+
+
+def _combo_q_max(data: dict[str, np.ndarray], field: str, combo: tuple[str, str, str], q_model: float) -> float:
+    mask = _combo_mask(data, combo) & np.isclose(data["q_model"].astype(float), q_model)
+    return float(np.max(data[field][mask].astype(float)))
+
+
+def _combo_field_max(data: dict[str, np.ndarray], field: str, combo: tuple[str, str, str]) -> float:
+    mask = _combo_mask(data, combo)
+    return float(np.max(data[field][mask].astype(float)))
+
+
+def _combo_field_max_for_q_limit(
+    data: dict[str, np.ndarray],
+    field: str,
+    combo: tuple[str, str, str],
+    q_max: float,
+) -> float:
+    mask = _combo_mask(data, combo) & (data["q_model"].astype(float) <= q_max)
+    return float(np.max(data[field][mask].astype(float)))
+
+
 def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
     import matplotlib.pyplot as plt
 
@@ -245,6 +312,16 @@ def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
     q_values = np.array(sorted(set(float(q) for q in data["q_model"])))
 
     schemes = sorted(set(str(item) for item in data["vertex_scheme"]))
+    combos = sorted(
+        set(
+            zip(
+                (str(item) for item in data["vertex_scheme"]),
+                (str(item) for item in data["contact_scheme"]),
+                (str(item) for item in data["contact_sign_convention"]),
+                strict=True,
+            )
+        )
+    )
 
     paths: list[Path] = []
     fig, ax = plt.subplots(figsize=(6.4, 4.0))
@@ -280,6 +357,24 @@ def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
     save_publication_figure(fig, path)
     plt.close(fig)
     paths.append(path)
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    priority = [
+        ("midpoint", "none", "not_applicable"),
+        ("peierls", "none", "not_applicable"),
+        ("peierls", "q0_mass_diagnostic", "plus"),
+        ("peierls", "q0_mass_diagnostic", "minus"),
+    ]
+    plotted = [combo for combo in priority if combo in combos]
+    plotted.extend(combo for combo in combos if combo not in plotted)
+    for combo in plotted:
+        max_error = [_combo_q_max(data, "max_ward_error", combo, q_model) for q_model in q_values]
+        ax.semilogy(q_values, np.maximum(max_error, EPS), marker="o", label=_combo_label(combo))
+    ax.set(xlabel="q_model", ylabel="max Ward error", title="Ward residual by q=0 mass contact diagnostic")
+    style_publication_axis(ax)
+    path = figure_dir / "ward_error_vs_q_by_contact_scheme.png"
+    save_publication_figure(fig, path)
+    plt.close(fig)
+    paths.append(path)
     return paths
 
 
@@ -296,19 +391,41 @@ def _summary_lines(
     expanded_npz: Path,
     figure_paths: list[Path],
 ) -> list[str]:
-    schemes = sorted(set(str(item) for item in data["vertex_scheme"]))
-    scheme_summary: dict[str, dict[str, float]] = {}
-    for scheme in schemes:
-        mask = data["vertex_scheme"] == scheme
-        scheme_summary[scheme] = {
-            "left": float(np.max(data["left_ward_error"][mask].astype(float))),
-            "right": float(np.max(data["right_ward_error"][mask].astype(float))),
-            "max": float(np.max(data["max_ward_error"][mask].astype(float))),
+    combos = sorted(
+        set(
+            zip(
+                (str(item) for item in data["vertex_scheme"]),
+                (str(item) for item in data["contact_scheme"]),
+                (str(item) for item in data["contact_sign_convention"]),
+                strict=True,
+            )
+        )
+    )
+    priority = [
+        ("midpoint", "none", "not_applicable"),
+        ("peierls", "none", "not_applicable"),
+        ("peierls", "q0_mass_diagnostic", "plus"),
+        ("peierls", "q0_mass_diagnostic", "minus"),
+    ]
+    ordered_combos = [combo for combo in priority if combo in combos]
+    ordered_combos.extend(combo for combo in combos if combo not in ordered_combos)
+    combo_summary: dict[tuple[str, str, str], dict[str, float]] = {}
+    for combo in ordered_combos:
+        combo_summary[combo] = {
+            "left": _combo_field_max(data, "left_ward_error", combo),
+            "right": _combo_field_max(data, "right_ward_error", combo),
+            "max": _combo_field_max(data, "max_ward_error", combo),
+            "small_q_max": _combo_field_max_for_q_limit(data, "max_ward_error", combo, 0.01),
         }
+
     improvement_text = "Peierls current vertex comparison unavailable."
-    if "midpoint" in scheme_summary and "peierls" in scheme_summary:
-        midpoint = scheme_summary["midpoint"]["max"]
-        peierls = scheme_summary["peierls"]["max"]
+    midpoint_none = ("midpoint", "none", "not_applicable")
+    peierls_none = ("peierls", "none", "not_applicable")
+    peierls_q0_plus = ("peierls", "q0_mass_diagnostic", "plus")
+    peierls_q0_minus = ("peierls", "q0_mass_diagnostic", "minus")
+    if midpoint_none in combo_summary and peierls_none in combo_summary:
+        midpoint = combo_summary[midpoint_none]["max"]
+        peierls = combo_summary[peierls_none]["max"]
         ratio = midpoint / max(peierls, EPS)
         if ratio > 1.01:
             improvement_text = f"Peierls current vertex lowers the max Ward residual by a factor of {_fmt(ratio)}."
@@ -318,13 +435,42 @@ def _summary_lines(
                 f"(midpoint/Peierls factor = {_fmt(ratio)}); possible reasons include the missing contact term "
                 "or remaining vertex/contact closure gaps."
             )
+    contact_text = "q0_mass_diagnostic comparison unavailable."
+    contact_small_q_text = "q0_mass_diagnostic small-q comparison unavailable."
+    if peierls_none in combo_summary and (peierls_q0_plus in combo_summary or peierls_q0_minus in combo_summary):
+        candidates = [combo for combo in (peierls_q0_plus, peierls_q0_minus) if combo in combo_summary]
+        best_full = min(candidates, key=lambda combo: combo_summary[combo]["max"])
+        best_small = min(candidates, key=lambda combo: combo_summary[combo]["small_q_max"])
+        full_ratio = combo_summary[peierls_none]["max"] / max(combo_summary[best_full]["max"], EPS)
+        small_ratio = combo_summary[peierls_none]["small_q_max"] / max(combo_summary[best_small]["small_q_max"], EPS)
+        if full_ratio > 1.01:
+            contact_text = (
+                f"q0_mass_diagnostic lowers the full-grid Peierls Ward residual most for "
+                f"{best_full[2]} sign by a factor of {_fmt(full_ratio)}."
+            )
+        else:
+            contact_text = (
+                "q0_mass_diagnostic does not materially lower the full-grid Peierls Ward residual; "
+                "this may reflect that q=0 mass contact is only a small-q approximation, or that a "
+                "finite-q Peierls contact/bubble-level closure is still missing."
+            )
+        if small_ratio > 1.01:
+            contact_small_q_text = (
+                f"For q_model <= 0.01, q0_mass_diagnostic improves the Peierls residual most for "
+                f"{best_small[2]} sign by a factor of {_fmt(small_ratio)}."
+            )
+        else:
+            contact_small_q_text = (
+                "For q_model <= 0.01, q0_mass_diagnostic does not materially improve the Peierls residual; "
+                "a complete finite-q Peierls contact may still be required."
+            )
     lines = [
         "# Normal-state Pi_mu_nu Ward identity prototype",
         "",
         "This is a normal-state Pi_mu_nu Ward diagnostic.",
-        "It compares midpoint velocity and Peierls current vertex schemes.",
+        "It compares midpoint velocity, Peierls current vertex, and q=0 mass contact diagnostic schemes.",
         "It is not conductivity and not a reflection/Casimir input.",
-        "The contact term is not included.",
+        "The q0_mass_diagnostic contact is a q=0 mass small-q diagnostic only, not the final finite-q contact.",
         (
             "Large Ward residuals may reflect finite-q vertex/contact-term closure gaps, "
             "not a material conclusion."
@@ -335,8 +481,9 @@ def _summary_lines(
         f"expanded_data_written={bool(args.write_expanded_data)}",
         "density_current_included=True",
         "current_current_included=True",
-        "diamagnetic_contact_included=False",
-        "contact_scheme=none",
+        "diamagnetic_contact_included=True only for contact_scheme=q0_mass_diagnostic",
+        "contact_scheme=none or q0_mass_diagnostic",
+        "not_final_finite_q_contact=True",
         "normal_state_only=True",
         "bdg_computed=False",
         "conductivity_computed=False",
@@ -346,6 +493,8 @@ def _summary_lines(
         "",
         "## Parameter grid",
         f"- vertex_schemes = {' '.join(args.vertex_schemes)}",
+        f"- contact_schemes = {' '.join(args.contact_schemes)}",
+        f"- contact_sign_conventions = {' '.join(args.contact_sign_conventions)}",
         f"- matsubara_n_list = {' '.join(str(int(n)) for n in args.matsubara_n_list)}",
         f"- temperature_K = {_fmt(float(args.temperature))}",
         f"- q_list = {' '.join(_fmt(float(q)) for q in args.q_list)}",
@@ -353,14 +502,15 @@ def _summary_lines(
         f"- nk_list = {' '.join(str(int(nk)) for nk in args.nk_list)}",
         f"- degeneracy_tol_eV = {_fmt(float(args.degeneracy_tol))}",
         "",
-        "## Ward residual summary by vertex scheme",
+        "## Ward residual summary by vertex/contact scheme",
     ]
-    for scheme in schemes:
+    for combo in ordered_combos:
         lines.extend(
             [
-                f"- {scheme}: max left Ward error = {_fmt(scheme_summary[scheme]['left'])}",
-                f"- {scheme}: max right Ward error = {_fmt(scheme_summary[scheme]['right'])}",
-                f"- {scheme}: max Ward error = {_fmt(scheme_summary[scheme]['max'])}",
+                f"- {_combo_label(combo)}: max left Ward error = {_fmt(combo_summary[combo]['left'])}",
+                f"- {_combo_label(combo)}: max right Ward error = {_fmt(combo_summary[combo]['right'])}",
+                f"- {_combo_label(combo)}: max Ward error = {_fmt(combo_summary[combo]['max'])}",
+                f"- {_combo_label(combo)}: max Ward error for q_model <= 0.01 = {_fmt(combo_summary[combo]['small_q_max'])}",
             ]
         )
     lines.extend(
@@ -369,16 +519,20 @@ def _summary_lines(
         "## q_model max-error trend",
     ]
     )
-    for scheme in schemes:
+    for combo in ordered_combos:
         trend = []
         for q_model in sorted(set(float(q) for q in data["q_model"])):
-            trend.append(f"q={_fmt(q_model)}:{_fmt(_scheme_q_max(data, 'max_ward_error', scheme, q_model))}")
-        lines.append(f"- {scheme}: " + ", ".join(trend))
+            trend.append(f"q={_fmt(q_model)}:{_fmt(_combo_q_max(data, 'max_ward_error', combo, q_model))}")
+        lines.append(f"- {_combo_label(combo)}: " + ", ".join(trend))
     lines.extend(
         [
         "",
         "## Comparison",
         f"- {improvement_text}",
+        f"- {contact_text}",
+        f"- {contact_small_q_text}",
+        "- q0_mass_diagnostic, even when helpful at small q, is not a complete finite-q Peierls contact.",
+        "- A final gauge-consistent finite-q response still requires a contact term from the same finite-q Peierls expansion.",
         "",
         "## Output files",
         f"- compact CSV: {compact_csv}",
@@ -403,6 +557,18 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--nk-list", nargs="+", type=int, default=list(DEFAULT_NK_LIST))
     parser.add_argument("--degeneracy-tol", type=float, default=DEFAULT_DEGENERACY_TOL_EV)
     parser.add_argument("--vertex-schemes", nargs="+", choices=("midpoint", "peierls"), default=list(DEFAULT_VERTEX_SCHEMES))
+    parser.add_argument(
+        "--contact-schemes",
+        nargs="+",
+        choices=("none", "q0_mass_diagnostic"),
+        default=list(DEFAULT_CONTACT_SCHEMES),
+    )
+    parser.add_argument(
+        "--contact-sign-conventions",
+        nargs="+",
+        choices=("plus", "minus"),
+        default=list(DEFAULT_CONTACT_SIGN_CONVENTIONS),
+    )
     parser.add_argument("--output-prefix", type=Path, default=DEFAULT_OUTPUT_PREFIX)
     parser.add_argument("--write-expanded-data", action="store_true")
     parser.add_argument("--quick", action="store_true")
@@ -425,6 +591,8 @@ def main() -> None:
         nk_list=list(args.nk_list),
         degeneracy_tol_eV=float(args.degeneracy_tol),
         vertex_schemes=list(args.vertex_schemes),
+        contact_schemes=list(args.contact_schemes),
+        contact_sign_conventions=list(args.contact_sign_conventions),
     )
     compact_csv, expanded_csv, expanded_npz, figure_dir, summary_path = _output_paths(args.output_prefix)
     _write_csv(compact_csv, data, COMPACT_COLUMNS)

@@ -12,11 +12,12 @@ from collections.abc import Callable, Sequence
 import numpy as np
 
 from .conductivity import KuboConfig, fermi_function
-from .model import normal_state_hamiltonian, normal_state_velocity_operator
+from .model import normal_state_hamiltonian, normal_state_mass_operator, normal_state_velocity_operator
 from .tb_fourier import HoppingTerm, normal_state_hopping_terms, peierls_current_vertex
 
 HamiltonianBuilder = Callable[[float, float], np.ndarray]
 VelocityBuilder = Callable[[float, float, str], np.ndarray]
+MassBuilder = Callable[[float, float, str, str], np.ndarray]
 
 
 def _validate_inputs(
@@ -49,25 +50,36 @@ def normal_density_current_response_imag_axis(
     k_weights: Sequence[float] | np.ndarray | None = None,
     hamiltonian: HamiltonianBuilder = normal_state_hamiltonian,
     velocity: VelocityBuilder = normal_state_velocity_operator,
+    mass_operator: MassBuilder = normal_state_mass_operator,
     vertex_scheme: str = "midpoint",
     hopping_terms: Sequence[HoppingTerm] | None = None,
+    contact_scheme: str = "none",
+    contact_sign_convention: str = "plus",
 ) -> np.ndarray:
-    """Return the normal-state 3x3 bubble Pi_{mu nu}(i omega_n, q).
+    """Return the normal-state 3x3 prototype Pi_{mu nu}(i omega_n, q).
 
     Vertex order is (density, current_x, current_y).  The density vertex is
     identity(4).  ``vertex_scheme="midpoint"`` uses midpoint normal-state
     velocity operators, preserving the original prototype behavior.
     ``vertex_scheme="peierls"`` uses the plus-sign Peierls current vertex from
-    the Fourier/hopping representation.  The spatial-spatial block is the
-    bubble only; diamagnetic or contact terms are intentionally not included.
-    Therefore this remains a Ward diagnostic prototype, not final finite-q
-    conductivity and not a Casimir input.
+    the Fourier/hopping representation.
+
+    ``contact_scheme="none"`` keeps the original bubble-only behavior.
+    ``contact_scheme="q0_mass_diagnostic"`` adds a q=0 mass/contact
+    approximation only to the spatial-spatial block.  This is a small-q
+    diagnostic based on ``d2H/dk_i dk_j`` expectation values, not the final
+    finite-q Peierls contact term.  Therefore this remains a Ward diagnostic
+    prototype, not final finite-q conductivity and not a Casimir input.
     """
 
     points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
     qx, qy = (float(q_vector[0]), float(q_vector[1]))
     if vertex_scheme not in {"midpoint", "peierls"}:
         raise ValueError("vertex_scheme must be 'midpoint' or 'peierls'")
+    if contact_scheme not in {"none", "q0_mass_diagnostic"}:
+        raise ValueError("contact_scheme must be 'none' or 'q0_mass_diagnostic'")
+    if contact_sign_convention not in {"plus", "minus"}:
+        raise ValueError("contact_sign_convention must be 'plus' or 'minus'")
     peierls_terms = None
     if vertex_scheme == "peierls":
         peierls_terms = list(normal_state_hopping_terms() if hopping_terms is None else hopping_terms)
@@ -133,6 +145,23 @@ def normal_density_current_response_imag_axis(
                             * vertices[mu][m, n]
                             * np.conjugate(vertices[nu][m, n])
                         )
+        if contact_scheme == "q0_mass_diagnostic":
+            h_midpoint = hamiltonian(kx, ky)
+            energies_midpoint, states_midpoint = np.linalg.eigh(h_midpoint)
+            occupations_midpoint = fermi_function(
+                energies_midpoint,
+                config.fermi_level_eV,
+                config.temperature_eV,
+            )
+            sign = 1.0 if contact_sign_convention == "plus" else -1.0
+            directions = ("x", "y")
+            for i, direction_i in enumerate(directions):
+                for j, direction_j in enumerate(directions):
+                    # q=0 local diamagnetic/contact approximation for small-q diagnostics only.
+                    mass_matrix = mass_operator(kx, ky, direction_i, direction_j)
+                    band_mass = states_midpoint.conjugate().T @ mass_matrix @ states_midpoint
+                    contact_value = np.sum(occupations_midpoint * np.diag(band_mass))
+                    response[1 + i, 1 + j] += sign * weight * contact_value
     return response
 
 
