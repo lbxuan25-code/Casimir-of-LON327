@@ -77,6 +77,28 @@ ROW_COLUMNS = (
     "diagnosis",
 )
 
+COMPACT_COLUMNS = (
+    "kind",
+    "delta0",
+    "matsubara_n",
+    "nk",
+    "q_model",
+    "max_q_to_zero_same_interface_error",
+    "max_normal_limit_error_delta0_zero",
+    "max_c4_covariance_error",
+    "num_rows",
+    "kernel_block_only",
+    "current_current_only",
+    "positive_matsubara_only",
+    "response_computed",
+    "conductivity_computed",
+    "pi_mu_nu_computed",
+    "ward_identity_checked",
+    "casimir_computed",
+    "not_final_casimir_conclusion",
+    "diagnosis",
+)
+
 
 def _angle_expression(value: str) -> float:
     normalized = re.sub(r"(?<=\d)\s*pi\b", "*pi", value)
@@ -237,13 +259,100 @@ def run_diagnostic(
     return {column: np.array([row[column] for row in rows]) for column in ROW_COLUMNS}
 
 
-def _write_csv(path: Path, data: dict[str, np.ndarray]) -> None:
+def _max_finite(values: np.ndarray) -> float:
+    finite = np.isfinite(values.astype(float))
+    if not np.any(finite):
+        return float("nan")
+    return float(np.max(values.astype(float)[finite]))
+
+
+def _compact_diagnosis(q_error: float, normal_error: float, c4_error: float) -> str:
+    parts: list[str] = []
+    if np.isfinite(q_error) and q_error < 1e-2:
+        parts.append("pass_small_q")
+    if np.isfinite(normal_error) and normal_error < 1e-2:
+        parts.append("pass_normal_limit")
+    elif not np.isfinite(normal_error):
+        parts.append("normal_limit_not_applicable")
+    if np.isfinite(c4_error) and c4_error < 1e-8:
+        parts.append("pass_c4")
+    if not parts or any(part.startswith("pass") for part in parts) is False:
+        parts.append("warning")
+    if (np.isfinite(q_error) and q_error >= 1e-2) or (np.isfinite(c4_error) and c4_error >= 1e-8):
+        parts.append("warning")
+    if np.isfinite(normal_error) and normal_error >= 1e-2:
+        parts.append("warning")
+    return ";".join(dict.fromkeys(parts))
+
+
+def compact_bdg_finite_q_contract(data: dict[str, np.ndarray]) -> list[dict[str, object]]:
+    """Aggregate detailed diagnostic rows into a compact summary table."""
+
+    rows: list[dict[str, object]] = []
+    group_keys = sorted(
+        {
+            (
+                str(data["kind"][index]),
+                float(data["delta0"][index]),
+                int(data["matsubara_n"][index]),
+                int(data["nk"][index]),
+                float(data["q_model"][index]),
+            )
+            for index in range(len(data["kind"]))
+        }
+    )
+    for kind, delta0, matsubara_n, nk, q_model in group_keys:
+        mask = (
+            (data["kind"] == kind)
+            & np.isclose(data["delta0"].astype(float), delta0)
+            & (data["matsubara_n"].astype(int) == matsubara_n)
+            & (data["nk"].astype(int) == nk)
+            & np.isclose(data["q_model"].astype(float), q_model)
+        )
+        q_error = _max_finite(data["q_to_zero_same_interface_error"][mask])
+        normal_error = _max_finite(data["normal_limit_error_delta0_zero"][mask])
+        c4_error = _max_finite(data["c4_covariance_error"][mask])
+        rows.append(
+            {
+                "kind": kind,
+                "delta0": delta0,
+                "matsubara_n": matsubara_n,
+                "nk": nk,
+                "q_model": q_model,
+                "max_q_to_zero_same_interface_error": q_error,
+                "max_normal_limit_error_delta0_zero": normal_error,
+                "max_c4_covariance_error": c4_error,
+                "num_rows": int(np.count_nonzero(mask)),
+                "kernel_block_only": True,
+                "current_current_only": True,
+                "positive_matsubara_only": True,
+                "response_computed": True,
+                "conductivity_computed": False,
+                "pi_mu_nu_computed": False,
+                "ward_identity_checked": False,
+                "casimir_computed": False,
+                "not_final_casimir_conclusion": True,
+                "diagnosis": _compact_diagnosis(q_error, normal_error, c4_error),
+            }
+        )
+    return rows
+
+
+def _write_rows_csv(path: Path, columns: tuple[str, ...], rows: list[dict[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=ROW_COLUMNS, lineterminator="\n")
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
-        for index in range(len(data["kind"])):
-            writer.writerow({column: data[column][index] for column in ROW_COLUMNS})
+        writer.writerows(rows)
+
+
+def _write_expanded_csv(path: Path, data: dict[str, np.ndarray]) -> None:
+    rows = [{column: data[column][index] for column in ROW_COLUMNS} for index in range(len(data["kind"]))]
+    _write_rows_csv(path, ROW_COLUMNS, rows)
+
+
+def _write_compact_csv(path: Path, data: dict[str, np.ndarray]) -> None:
+    _write_rows_csv(path, COMPACT_COLUMNS, compact_bdg_finite_q_contract(data))
 
 
 def _output_paths(output_prefix: Path) -> tuple[Path, Path, Path, Path, Path]:
@@ -429,9 +538,9 @@ def main() -> None:
         degeneracy_tol_eV=float(args.degeneracy_tol),
     )
     compact_csv, expanded_csv, expanded_npz, figure_dir, summary_path = _output_paths(args.output_prefix)
-    _write_csv(compact_csv, data)
+    _write_compact_csv(compact_csv, data)
     if args.write_expanded_data:
-        _write_csv(expanded_csv, data)
+        _write_expanded_csv(expanded_csv, data)
         expanded_npz.parent.mkdir(parents=True, exist_ok=True)
         np.savez(expanded_npz, **data)
     figure_paths = _plot_outputs(data, figure_dir)
