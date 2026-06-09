@@ -27,7 +27,7 @@ from lno327.tb_fourier import (  # noqa: E402
 
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "tb_fourier_reconstruction_audit"
 DEFAULT_OUTPUT_PREFIX = OUTPUT_ROOT / "data" / "tb_fourier_reconstruction"
-SUMMARY_NAME = "tb_fourier_reconstruction_audit_summary.md"
+SUMMARY_NAME = "summary.md"
 EPS = 1e-300
 
 COMPACT_COLUMNS = (
