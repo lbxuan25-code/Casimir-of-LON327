@@ -35,7 +35,7 @@ DEFAULT_Q_ANGLE_LIST = (0.0, np.pi / 4.0, np.pi / 2.0)
 DEFAULT_NK_LIST = (8, 12, 16)
 DEFAULT_DEGENERACY_TOL_EV = 1e-10
 DEFAULT_VERTEX_SCHEMES = ("midpoint", "peierls")
-DEFAULT_CONTACT_SCHEMES = ("none", "q0_mass_diagnostic")
+DEFAULT_CONTACT_SCHEMES = ("none", "q0_mass_diagnostic", "finite_q_peierls")
 DEFAULT_CONTACT_SIGN_CONVENTIONS = ("plus", "minus")
 
 QUICK_MATSUBARA_N_LIST = (1,)
@@ -147,8 +147,8 @@ def run_diagnostic(
         if scheme not in {"midpoint", "peierls"}:
             raise ValueError("vertex schemes must be midpoint or peierls")
     for scheme in contact_schemes:
-        if scheme not in {"none", "q0_mass_diagnostic"}:
-            raise ValueError("contact schemes must be none or q0_mass_diagnostic")
+        if scheme not in {"none", "q0_mass_diagnostic", "finite_q_peierls"}:
+            raise ValueError("contact schemes must be none, q0_mass_diagnostic, or finite_q_peierls")
     for convention in contact_sign_conventions:
         if convention not in {"plus", "minus"}:
             raise ValueError("contact sign conventions must be plus or minus")
@@ -209,7 +209,7 @@ def run_diagnostic(
                                         "max_ward_error": max_error,
                                         "density_current_included": True,
                                         "current_current_included": True,
-                                        "diamagnetic_contact_included": contact_scheme == "q0_mass_diagnostic",
+                                        "diamagnetic_contact_included": contact_scheme != "none",
                                         "not_final_finite_q_contact": True,
                                         "normal_state_only": True,
                                         "bdg_computed": False,
@@ -304,6 +304,24 @@ def _combo_field_max_for_q_limit(
     return float(np.max(data[field][mask].astype(float)))
 
 
+def _best_combo_for_contact(
+    data: dict[str, np.ndarray],
+    contact_scheme: str,
+    *,
+    q_max: float | None = None,
+) -> tuple[str, str, str] | None:
+    candidates = [
+        ("peierls", contact_scheme, "plus"),
+        ("peierls", contact_scheme, "minus"),
+    ]
+    available = [combo for combo in candidates if np.any(_combo_mask(data, combo))]
+    if not available:
+        return None
+    if q_max is None:
+        return min(available, key=lambda combo: _combo_field_max(data, "max_ward_error", combo))
+    return min(available, key=lambda combo: _combo_field_max_for_q_limit(data, "max_ward_error", combo, q_max))
+
+
 def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
     import matplotlib.pyplot as plt
 
@@ -358,18 +376,20 @@ def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
     plt.close(fig)
     paths.append(path)
     fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    best_q0 = _best_combo_for_contact(data, "q0_mass_diagnostic")
+    best_finite = _best_combo_for_contact(data, "finite_q_peierls")
     priority = [
         ("midpoint", "none", "not_applicable"),
         ("peierls", "none", "not_applicable"),
-        ("peierls", "q0_mass_diagnostic", "plus"),
-        ("peierls", "q0_mass_diagnostic", "minus"),
     ]
+    for combo in (best_q0, best_finite):
+        if combo is not None:
+            priority.append(combo)
     plotted = [combo for combo in priority if combo in combos]
-    plotted.extend(combo for combo in combos if combo not in plotted)
     for combo in plotted:
         max_error = [_combo_q_max(data, "max_ward_error", combo, q_model) for q_model in q_values]
         ax.semilogy(q_values, np.maximum(max_error, EPS), marker="o", label=_combo_label(combo))
-    ax.set(xlabel="q_model", ylabel="max Ward error", title="Ward residual by q=0 mass contact diagnostic")
+    ax.set(xlabel="q_model", ylabel="max Ward error", title="Ward residual by contact scheme")
     style_publication_axis(ax)
     path = figure_dir / "ward_error_vs_q_by_contact_scheme.png"
     save_publication_figure(fig, path)
@@ -406,6 +426,8 @@ def _summary_lines(
         ("peierls", "none", "not_applicable"),
         ("peierls", "q0_mass_diagnostic", "plus"),
         ("peierls", "q0_mass_diagnostic", "minus"),
+        ("peierls", "finite_q_peierls", "plus"),
+        ("peierls", "finite_q_peierls", "minus"),
     ]
     ordered_combos = [combo for combo in priority if combo in combos]
     ordered_combos.extend(combo for combo in combos if combo not in ordered_combos)
@@ -423,6 +445,8 @@ def _summary_lines(
     peierls_none = ("peierls", "none", "not_applicable")
     peierls_q0_plus = ("peierls", "q0_mass_diagnostic", "plus")
     peierls_q0_minus = ("peierls", "q0_mass_diagnostic", "minus")
+    peierls_finite_plus = ("peierls", "finite_q_peierls", "plus")
+    peierls_finite_minus = ("peierls", "finite_q_peierls", "minus")
     if midpoint_none in combo_summary and peierls_none in combo_summary:
         midpoint = combo_summary[midpoint_none]["max"]
         peierls = combo_summary[peierls_none]["max"]
@@ -437,6 +461,10 @@ def _summary_lines(
             )
     contact_text = "q0_mass_diagnostic comparison unavailable."
     contact_small_q_text = "q0_mass_diagnostic small-q comparison unavailable."
+    finite_contact_text = "finite_q_peierls contact comparison unavailable."
+    finite_vs_q0_text = "finite_q_peierls versus q0_mass_diagnostic comparison unavailable."
+    finite_small_q_text = "finite_q_peierls small-q comparison unavailable."
+    finite_mid_q_text = "finite_q_peierls mid/large-q comparison unavailable."
     if peierls_none in combo_summary and (peierls_q0_plus in combo_summary or peierls_q0_minus in combo_summary):
         candidates = [combo for combo in (peierls_q0_plus, peierls_q0_minus) if combo in combo_summary]
         best_full = min(candidates, key=lambda combo: combo_summary[combo]["max"])
@@ -464,13 +492,79 @@ def _summary_lines(
                 "For q_model <= 0.01, q0_mass_diagnostic does not materially improve the Peierls residual; "
                 "a complete finite-q Peierls contact may still be required."
             )
+    if peierls_none in combo_summary and (
+        peierls_finite_plus in combo_summary or peierls_finite_minus in combo_summary
+    ):
+        finite_candidates = [
+            combo for combo in (peierls_finite_plus, peierls_finite_minus) if combo in combo_summary
+        ]
+        best_finite_full = min(finite_candidates, key=lambda combo: combo_summary[combo]["max"])
+        best_finite_small = min(finite_candidates, key=lambda combo: combo_summary[combo]["small_q_max"])
+        finite_full_ratio = combo_summary[peierls_none]["max"] / max(combo_summary[best_finite_full]["max"], EPS)
+        finite_small_ratio = combo_summary[peierls_none]["small_q_max"] / max(
+            combo_summary[best_finite_small]["small_q_max"],
+            EPS,
+        )
+        finite_contact_text = (
+            f"finite_q_peierls contact is best with {best_finite_full[2]} sign on the full grid; "
+            f"Peierls-none / finite_q_peierls factor = {_fmt(finite_full_ratio)}."
+        )
+        if finite_small_ratio > 1.01:
+            finite_small_q_text = (
+                f"For q_model <= 0.01, finite_q_peierls improves the Peierls residual most for "
+                f"{best_finite_small[2]} sign by a factor of {_fmt(finite_small_ratio)}."
+            )
+        else:
+            finite_small_q_text = (
+                "For q_model <= 0.01, finite_q_peierls does not materially improve the Peierls residual."
+            )
+        mid_q_mask = data["q_model"].astype(float) >= 0.05
+        if np.any(mid_q_mask):
+            finite_mid_values = {}
+            none_mid = float(np.max(data["max_ward_error"][_combo_mask(data, peierls_none) & mid_q_mask].astype(float)))
+            for combo in finite_candidates:
+                finite_mid_values[combo] = float(
+                    np.max(data["max_ward_error"][_combo_mask(data, combo) & mid_q_mask].astype(float))
+                )
+            best_finite_mid = min(finite_mid_values, key=finite_mid_values.__getitem__)
+            finite_mid_ratio = none_mid / max(finite_mid_values[best_finite_mid], EPS)
+            if finite_mid_ratio > 1.01:
+                finite_mid_q_text = (
+                    f"For q_model >= 0.05, finite_q_peierls improves most for {best_finite_mid[2]} sign "
+                    f"by a factor of {_fmt(finite_mid_ratio)}."
+                )
+            else:
+                finite_mid_q_text = (
+                    "For q_model >= 0.05, finite_q_peierls does not materially improve the Peierls residual."
+                )
+        q0_candidates = [combo for combo in (peierls_q0_plus, peierls_q0_minus) if combo in combo_summary]
+        if q0_candidates:
+            best_q0_full = min(q0_candidates, key=lambda combo: combo_summary[combo]["max"])
+            q0_best = combo_summary[best_q0_full]["max"]
+            finite_best = combo_summary[best_finite_full]["max"]
+            if finite_best < q0_best / 1.01:
+                finite_vs_q0_text = (
+                    f"finite_q_peierls lowers the full-grid residual more than q0_mass_diagnostic "
+                    f"({best_finite_full[2]} vs {best_q0_full[2]} sign)."
+                )
+            elif q0_best < finite_best / 1.01:
+                finite_vs_q0_text = (
+                    f"q0_mass_diagnostic lowers the full-grid residual more than finite_q_peierls "
+                    f"({best_q0_full[2]} vs {best_finite_full[2]} sign)."
+                )
+            else:
+                finite_vs_q0_text = (
+                    "finite_q_peierls and q0_mass_diagnostic give similar full-grid Ward residuals "
+                    "within a 1% comparison threshold."
+                )
     lines = [
         "# Normal-state Pi_mu_nu Ward identity prototype",
         "",
         "This is a normal-state Pi_mu_nu Ward diagnostic.",
-        "It compares midpoint velocity, Peierls current vertex, and q=0 mass contact diagnostic schemes.",
+        "It compares midpoint velocity, Peierls current vertex, q=0 mass contact, and finite-q Peierls contact schemes.",
         "It is not conductivity and not a reflection/Casimir input.",
-        "The q0_mass_diagnostic contact is a q=0 mass small-q diagnostic only, not the final finite-q contact.",
+        "The finite_q_peierls contact is connected to this Ward diagnostic, but this is still not final conductivity.",
+        "Response-level sign, normalization, equal-time term, and density-vertex conventions still need final closure.",
         (
             "Large Ward residuals may reflect finite-q vertex/contact-term closure gaps, "
             "not a material conclusion."
@@ -481,8 +575,8 @@ def _summary_lines(
         f"expanded_data_written={bool(args.write_expanded_data)}",
         "density_current_included=True",
         "current_current_included=True",
-        "diamagnetic_contact_included=True only for contact_scheme=q0_mass_diagnostic",
-        "contact_scheme=none or q0_mass_diagnostic",
+        "diamagnetic_contact_included=True only for contact_scheme=q0_mass_diagnostic or finite_q_peierls",
+        "contact_scheme=none or q0_mass_diagnostic or finite_q_peierls",
         "not_final_finite_q_contact=True",
         "normal_state_only=True",
         "bdg_computed=False",
@@ -531,8 +625,15 @@ def _summary_lines(
         f"- {improvement_text}",
         f"- {contact_text}",
         f"- {contact_small_q_text}",
-        "- q0_mass_diagnostic, even when helpful at small q, is not a complete finite-q Peierls contact.",
-        "- A final gauge-consistent finite-q response still requires a contact term from the same finite-q Peierls expansion.",
+        f"- {finite_contact_text}",
+        f"- {finite_vs_q0_text}",
+        f"- {finite_small_q_text}",
+        f"- {finite_mid_q_text}",
+        (
+            "- If finite_q_peierls does not close the Ward residual, likely causes include contact sign/normalization "
+            "still being inconsistent at response level, missing equal-time or density-vertex pieces, or the need for "
+            "a stricter response-level Ward derivation."
+        ),
         "",
         "## Output files",
         f"- compact CSV: {compact_csv}",
@@ -560,7 +661,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--contact-schemes",
         nargs="+",
-        choices=("none", "q0_mass_diagnostic"),
+        choices=("none", "q0_mass_diagnostic", "finite_q_peierls"),
         default=list(DEFAULT_CONTACT_SCHEMES),
     )
     parser.add_argument(
