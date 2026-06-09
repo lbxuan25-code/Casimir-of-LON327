@@ -24,7 +24,7 @@ from lno327.ward_response import normal_density_current_response_imag_axis, ward
 
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "normal_ward_identity"
 DEFAULT_OUTPUT_PREFIX = OUTPUT_ROOT / "data" / "normal_ward_identity"
-SUMMARY_NAME = "normal_ward_identity_summary.md"
+SUMMARY_NAME = "summary.md"
 EPS = 1e-300
 
 DEFAULT_MATSUBARA_N_LIST = (1, 2, 4)
@@ -213,6 +213,12 @@ def _write_csv(path: Path, data: dict[str, np.ndarray], columns: tuple[str, ...]
         writer.writeheader()
         for index in range(len(data["matsubara_n"])):
             writer.writerow({column: data[column][index] for column in columns})
+
+
+def _write_npz(path: Path, data: dict[str, np.ndarray]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload: dict[str, object] = dict(data)
+    np.savez(path, **payload)
 
 
 def _output_paths(output_prefix: Path) -> tuple[Path, Path, Path, Path, Path]:
@@ -423,8 +429,7 @@ def main() -> None:
     _write_csv(compact_csv, data, COMPACT_COLUMNS)
     if args.write_expanded_data:
         _write_csv(expanded_csv, data, EXPANDED_COLUMNS)
-        expanded_npz.parent.mkdir(parents=True, exist_ok=True)
-        np.savez(expanded_npz, **data)
+        _write_npz(expanded_npz, data)
     figure_paths = _plot_outputs(data, figure_dir)
     command = "python " + " ".join(shlex.quote(value) for value in sys.argv)
     summary_path.parent.mkdir(parents=True, exist_ok=True)
