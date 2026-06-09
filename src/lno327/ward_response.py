@@ -13,6 +13,7 @@ import numpy as np
 
 from .conductivity import KuboConfig, fermi_function
 from .model import normal_state_hamiltonian, normal_state_velocity_operator
+from .tb_fourier import HoppingTerm, normal_state_hopping_terms, peierls_current_vertex
 
 HamiltonianBuilder = Callable[[float, float], np.ndarray]
 VelocityBuilder = Callable[[float, float, str], np.ndarray]
@@ -48,17 +49,28 @@ def normal_density_current_response_imag_axis(
     k_weights: Sequence[float] | np.ndarray | None = None,
     hamiltonian: HamiltonianBuilder = normal_state_hamiltonian,
     velocity: VelocityBuilder = normal_state_velocity_operator,
+    vertex_scheme: str = "midpoint",
+    hopping_terms: Sequence[HoppingTerm] | None = None,
 ) -> np.ndarray:
     """Return the normal-state 3x3 bubble Pi_{mu nu}(i omega_n, q).
 
     Vertex order is (density, current_x, current_y).  The density vertex is
-    identity(4).  The current vertices use midpoint normal-state velocity
-    operators.  The spatial-spatial block is the bubble only; diamagnetic or
-    contact terms are intentionally not included in this prototype.
+    identity(4).  ``vertex_scheme="midpoint"`` uses midpoint normal-state
+    velocity operators, preserving the original prototype behavior.
+    ``vertex_scheme="peierls"`` uses the plus-sign Peierls current vertex from
+    the Fourier/hopping representation.  The spatial-spatial block is the
+    bubble only; diamagnetic or contact terms are intentionally not included.
+    Therefore this remains a Ward diagnostic prototype, not final finite-q
+    conductivity and not a Casimir input.
     """
 
     points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
     qx, qy = (float(q_vector[0]), float(q_vector[1]))
+    if vertex_scheme not in {"midpoint", "peierls"}:
+        raise ValueError("vertex_scheme must be 'midpoint' or 'peierls'")
+    peierls_terms = None
+    if vertex_scheme == "peierls":
+        peierls_terms = list(normal_state_hopping_terms() if hopping_terms is None else hopping_terms)
     density_vertex = np.eye(4, dtype=complex)
     response = np.zeros((3, 3), dtype=complex)
 
@@ -79,10 +91,32 @@ def normal_density_current_response_imag_axis(
             config.fermi_level_eV,
             config.temperature_eV,
         )
+        if vertex_scheme == "midpoint":
+            current_x = velocity(kx, ky, "x")
+            current_y = velocity(kx, ky, "y")
+        else:
+            current_x = peierls_current_vertex(
+                kx,
+                ky,
+                qx,
+                qy,
+                "x",
+                hopping_terms=peierls_terms,
+                sign_convention="plus",
+            )
+            current_y = peierls_current_vertex(
+                kx,
+                ky,
+                qx,
+                qy,
+                "y",
+                hopping_terms=peierls_terms,
+                sign_convention="plus",
+            )
         vertices = (
             states_minus.conjugate().T @ density_vertex @ states_plus,
-            states_minus.conjugate().T @ velocity(kx, ky, "x") @ states_plus,
-            states_minus.conjugate().T @ velocity(kx, ky, "y") @ states_plus,
+            states_minus.conjugate().T @ current_x @ states_plus,
+            states_minus.conjugate().T @ current_y @ states_plus,
         )
         for m, energy_minus in enumerate(energies_minus):
             for n, energy_plus in enumerate(energies_plus):

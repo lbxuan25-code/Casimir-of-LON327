@@ -33,6 +33,7 @@ DEFAULT_Q_LIST = (0.001, 0.005, 0.01, 0.05, 0.1)
 DEFAULT_Q_ANGLE_LIST = (0.0, np.pi / 4.0, np.pi / 2.0)
 DEFAULT_NK_LIST = (8, 12, 16)
 DEFAULT_DEGENERACY_TOL_EV = 1e-10
+DEFAULT_VERTEX_SCHEMES = ("midpoint", "peierls")
 
 QUICK_MATSUBARA_N_LIST = (1,)
 QUICK_Q_LIST = (0.001, 0.01, 0.1)
@@ -40,6 +41,10 @@ QUICK_Q_ANGLE_LIST = (0.0, np.pi / 4.0)
 QUICK_NK_LIST = (8,)
 
 COMPACT_COLUMNS = (
+    "vertex_scheme",
+    "current_vertex_sign_convention",
+    "density_vertex_scheme",
+    "contact_scheme",
     "matsubara_n",
     "omega_eV",
     "nk",
@@ -58,6 +63,7 @@ COMPACT_COLUMNS = (
     "conductivity_computed",
     "casimir_computed",
     "not_final_casimir_conclusion",
+    "not_final_finite_q_conductivity",
     "diagnosis",
 )
 
@@ -101,12 +107,13 @@ def _angle_expression(value: str) -> float:
     return evaluate(node)
 
 
-def _diagnosis(max_error: float) -> str:
+def _diagnosis(max_error: float, vertex_scheme: str) -> str:
+    prefix = f"{vertex_scheme}_"
     if max_error < 1e-6:
-        return "prototype_residual_small"
+        return prefix + "prototype_residual_small"
     if max_error < 1e-3:
-        return "prototype_residual_moderate"
-    return "warning_large_ward_residual_contact_or_vertex_not_closed"
+        return prefix + "prototype_residual_moderate"
+    return prefix + "warning_large_ward_residual_contact_or_vertex_not_closed"
 
 
 def run_diagnostic(
@@ -117,6 +124,7 @@ def run_diagnostic(
     q_angle_list: list[float],
     nk_list: list[int],
     degeneracy_tol_eV: float,
+    vertex_schemes: list[str],
 ) -> dict[str, np.ndarray]:
     if any(n < 1 for n in matsubara_n_list):
         raise ValueError("matsubara-n-list must contain only n >= 1")
@@ -128,6 +136,9 @@ def run_diagnostic(
         raise ValueError("temperature must be non-negative")
     if degeneracy_tol_eV <= 0.0:
         raise ValueError("degeneracy-tol must be positive")
+    for scheme in vertex_schemes:
+        if scheme not in {"midpoint", "peierls"}:
+            raise ValueError("vertex schemes must be midpoint or peierls")
 
     rows: list[dict[str, object]] = []
     for nk in nk_list:
@@ -141,49 +152,56 @@ def run_diagnostic(
                 eta_eV=degeneracy_tol_eV,
                 output_si=False,
             )
-            for q_model in q_list:
-                for q_angle in q_angle_list:
-                    qx = float(q_model * np.cos(q_angle))
-                    qy = float(q_model * np.sin(q_angle))
-                    matrix = normal_density_current_response_imag_axis(
-                        mesh,
-                        config,
-                        np.array([qx, qy], dtype=float),
-                        weights,
-                    )
-                    left_error, right_error, max_error = ward_errors(matrix, omega_eV, np.array([qx, qy], dtype=float))
-                    rows.append(
-                        {
-                            "matsubara_n": int(matsubara_n),
-                            "omega_eV": float(omega_eV),
-                            "nk": int(nk),
-                            "q_model": float(q_model),
-                            "q_angle": float(q_angle),
-                            "qx_model": qx,
-                            "qy_model": qy,
-                            "left_ward_error": left_error,
-                            "right_ward_error": right_error,
-                            "max_ward_error": max_error,
-                            "density_current_included": True,
-                            "current_current_included": True,
-                            "diamagnetic_contact_included": False,
-                            "normal_state_only": True,
-                            "bdg_computed": False,
-                            "conductivity_computed": False,
-                            "casimir_computed": False,
-                            "not_final_casimir_conclusion": True,
-                            "diagnosis": _diagnosis(max_error),
-                            "Pi_00": complex(matrix[0, 0]),
-                            "Pi_0x": complex(matrix[0, 1]),
-                            "Pi_0y": complex(matrix[0, 2]),
-                            "Pi_x0": complex(matrix[1, 0]),
-                            "Pi_xx": complex(matrix[1, 1]),
-                            "Pi_xy": complex(matrix[1, 2]),
-                            "Pi_y0": complex(matrix[2, 0]),
-                            "Pi_yx": complex(matrix[2, 1]),
-                            "Pi_yy": complex(matrix[2, 2]),
-                        }
-                    )
+            for vertex_scheme in vertex_schemes:
+                for q_model in q_list:
+                    for q_angle in q_angle_list:
+                        qx = float(q_model * np.cos(q_angle))
+                        qy = float(q_model * np.sin(q_angle))
+                        matrix = normal_density_current_response_imag_axis(
+                            mesh,
+                            config,
+                            np.array([qx, qy], dtype=float),
+                            weights,
+                            vertex_scheme=vertex_scheme,
+                        )
+                        left_error, right_error, max_error = ward_errors(matrix, omega_eV, np.array([qx, qy], dtype=float))
+                        rows.append(
+                            {
+                                "vertex_scheme": vertex_scheme,
+                                "current_vertex_sign_convention": "plus" if vertex_scheme == "peierls" else "not_applicable",
+                                "density_vertex_scheme": "identity_4_orbitals_shared_in_plane_position",
+                                "contact_scheme": "none",
+                                "matsubara_n": int(matsubara_n),
+                                "omega_eV": float(omega_eV),
+                                "nk": int(nk),
+                                "q_model": float(q_model),
+                                "q_angle": float(q_angle),
+                                "qx_model": qx,
+                                "qy_model": qy,
+                                "left_ward_error": left_error,
+                                "right_ward_error": right_error,
+                                "max_ward_error": max_error,
+                                "density_current_included": True,
+                                "current_current_included": True,
+                                "diamagnetic_contact_included": False,
+                                "normal_state_only": True,
+                                "bdg_computed": False,
+                                "conductivity_computed": False,
+                                "casimir_computed": False,
+                                "not_final_casimir_conclusion": True,
+                                "not_final_finite_q_conductivity": True,
+                                "diagnosis": _diagnosis(max_error, vertex_scheme),
+                                "Pi_00": complex(matrix[0, 0]),
+                                "Pi_0x": complex(matrix[0, 1]),
+                                "Pi_0y": complex(matrix[0, 2]),
+                                "Pi_x0": complex(matrix[1, 0]),
+                                "Pi_xx": complex(matrix[1, 1]),
+                                "Pi_xy": complex(matrix[1, 2]),
+                                "Pi_y0": complex(matrix[2, 0]),
+                                "Pi_yx": complex(matrix[2, 1]),
+                                "Pi_yy": complex(matrix[2, 2]),
+                            }
+                        )
 
     return {column: np.array([row[column] for row in rows]) for column in EXPANDED_COLUMNS}
 
@@ -207,6 +225,11 @@ def _output_paths(output_prefix: Path) -> tuple[Path, Path, Path, Path, Path]:
     return compact_csv, expanded_csv, expanded_npz, figure_dir, summary_path
 
 
+def _scheme_q_max(data: dict[str, np.ndarray], field: str, scheme: str, q_model: float) -> float:
+    mask = (data["vertex_scheme"] == scheme) & np.isclose(data["q_model"].astype(float), q_model)
+    return float(np.max(data[field][mask].astype(float)))
+
+
 def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
     import matplotlib.pyplot as plt
 
@@ -214,31 +237,39 @@ def _plot_outputs(data: dict[str, np.ndarray], figure_dir: Path) -> list[Path]:
     figure_dir.mkdir(parents=True, exist_ok=True)
     q_values = np.array(sorted(set(float(q) for q in data["q_model"])))
 
-    max_error = []
-    left_error = []
-    right_error = []
-    for q_model in q_values:
-        mask = np.isclose(data["q_model"].astype(float), q_model)
-        max_error.append(float(np.max(data["max_ward_error"][mask].astype(float))))
-        left_error.append(float(np.max(data["left_ward_error"][mask].astype(float))))
-        right_error.append(float(np.max(data["right_ward_error"][mask].astype(float))))
+    schemes = sorted(set(str(item) for item in data["vertex_scheme"]))
 
     paths: list[Path] = []
     fig, ax = plt.subplots(figsize=(6.4, 4.0))
-    ax.semilogy(q_values, np.maximum(max_error, EPS), marker="o")
-    ax.set(xlabel="q_model", ylabel="max Ward error", title="Normal-state Ward prototype residual")
-    style_publication_axis(ax, legend=False)
+    for scheme in schemes:
+        max_error = [_scheme_q_max(data, "max_ward_error", scheme, q_model) for q_model in q_values]
+        ax.semilogy(q_values, np.maximum(max_error, EPS), marker="o", label=scheme)
+    ax.set(xlabel="q_model", ylabel="max Ward error", title="Normal-state Ward residual by vertex scheme")
+    style_publication_axis(ax)
     path = figure_dir / "ward_error_vs_q.png"
     save_publication_figure(fig, path)
     plt.close(fig)
     paths.append(path)
 
     fig, ax = plt.subplots(figsize=(6.4, 4.0))
-    ax.semilogy(q_values, np.maximum(left_error, EPS), marker="o", label="left")
-    ax.semilogy(q_values, np.maximum(right_error, EPS), marker="s", label="right")
+    for scheme in schemes:
+        left_error = [_scheme_q_max(data, "left_ward_error", scheme, q_model) for q_model in q_values]
+        right_error = [_scheme_q_max(data, "right_ward_error", scheme, q_model) for q_model in q_values]
+        ax.semilogy(q_values, np.maximum(left_error, EPS), marker="o", label=f"{scheme} left")
+        ax.semilogy(q_values, np.maximum(right_error, EPS), marker="s", linestyle="--", label=f"{scheme} right")
     ax.set(xlabel="q_model", ylabel="Ward error", title="Left/right Ward prototype residuals")
     style_publication_axis(ax)
     path = figure_dir / "left_right_ward_error_vs_q.png"
+    save_publication_figure(fig, path)
+    plt.close(fig)
+    paths.append(path)
+    fig, ax = plt.subplots(figsize=(6.4, 4.0))
+    for scheme in schemes:
+        max_error = [_scheme_q_max(data, "max_ward_error", scheme, q_model) for q_model in q_values]
+        ax.semilogy(q_values, np.maximum(max_error, EPS), marker="o", label=scheme)
+    ax.set(xlabel="q_model", ylabel="max Ward error", title="Midpoint vs Peierls Ward residual")
+    style_publication_axis(ax)
+    path = figure_dir / "ward_error_vs_q_by_vertex_scheme.png"
     save_publication_figure(fig, path)
     plt.close(fig)
     paths.append(path)
@@ -258,16 +289,35 @@ def _summary_lines(
     expanded_npz: Path,
     figure_paths: list[Path],
 ) -> list[str]:
-    max_left = float(np.max(data["left_ward_error"].astype(float)))
-    max_right = float(np.max(data["right_ward_error"].astype(float)))
-    max_error = float(np.max(data["max_ward_error"].astype(float)))
-    return [
+    schemes = sorted(set(str(item) for item in data["vertex_scheme"]))
+    scheme_summary: dict[str, dict[str, float]] = {}
+    for scheme in schemes:
+        mask = data["vertex_scheme"] == scheme
+        scheme_summary[scheme] = {
+            "left": float(np.max(data["left_ward_error"][mask].astype(float))),
+            "right": float(np.max(data["right_ward_error"][mask].astype(float))),
+            "max": float(np.max(data["max_ward_error"][mask].astype(float))),
+        }
+    improvement_text = "Peierls current vertex comparison unavailable."
+    if "midpoint" in scheme_summary and "peierls" in scheme_summary:
+        midpoint = scheme_summary["midpoint"]["max"]
+        peierls = scheme_summary["peierls"]["max"]
+        ratio = midpoint / max(peierls, EPS)
+        if ratio > 1.01:
+            improvement_text = f"Peierls current vertex lowers the max Ward residual by a factor of {_fmt(ratio)}."
+        else:
+            improvement_text = (
+                f"Peierls current vertex does not materially lower the max Ward residual in this prototype "
+                f"(midpoint/Peierls factor = {_fmt(ratio)}); possible reasons include the missing contact term "
+                "or remaining vertex/contact closure gaps."
+            )
+    lines = [
         "# Normal-state Pi_mu_nu Ward identity prototype",
         "",
-        "This is a normal-state Pi_mu_nu Ward prototype.",
+        "This is a normal-state Pi_mu_nu Ward diagnostic.",
+        "It compares midpoint velocity and Peierls current vertex schemes.",
         "It is not conductivity and not a reflection/Casimir input.",
-        "Current vertices currently use midpoint velocity.",
-        "The diamagnetic/contact term is not included.",
+        "The contact term is not included.",
         (
             "Large Ward residuals may reflect finite-q vertex/contact-term closure gaps, "
             "not a material conclusion."
@@ -279,13 +329,16 @@ def _summary_lines(
         "density_current_included=True",
         "current_current_included=True",
         "diamagnetic_contact_included=False",
+        "contact_scheme=none",
         "normal_state_only=True",
         "bdg_computed=False",
         "conductivity_computed=False",
         "casimir_computed=False",
         "not_final_casimir_conclusion=True",
+        "not_final_finite_q_conductivity=True",
         "",
         "## Parameter grid",
+        f"- vertex_schemes = {' '.join(args.vertex_schemes)}",
         f"- matsubara_n_list = {' '.join(str(int(n)) for n in args.matsubara_n_list)}",
         f"- temperature_K = {_fmt(float(args.temperature))}",
         f"- q_list = {' '.join(_fmt(float(q)) for q in args.q_list)}",
@@ -293,10 +346,32 @@ def _summary_lines(
         f"- nk_list = {' '.join(str(int(nk)) for nk in args.nk_list)}",
         f"- degeneracy_tol_eV = {_fmt(float(args.degeneracy_tol))}",
         "",
-        "## Ward residual summary",
-        f"- max left Ward error = {_fmt(max_left)}",
-        f"- max right Ward error = {_fmt(max_right)}",
-        f"- max Ward error = {_fmt(max_error)}",
+        "## Ward residual summary by vertex scheme",
+    ]
+    for scheme in schemes:
+        lines.extend(
+            [
+                f"- {scheme}: max left Ward error = {_fmt(scheme_summary[scheme]['left'])}",
+                f"- {scheme}: max right Ward error = {_fmt(scheme_summary[scheme]['right'])}",
+                f"- {scheme}: max Ward error = {_fmt(scheme_summary[scheme]['max'])}",
+            ]
+        )
+    lines.extend(
+        [
+        "",
+        "## q_model max-error trend",
+    ]
+    )
+    for scheme in schemes:
+        trend = []
+        for q_model in sorted(set(float(q) for q in data["q_model"])):
+            trend.append(f"q={_fmt(q_model)}:{_fmt(_scheme_q_max(data, 'max_ward_error', scheme, q_model))}")
+        lines.append(f"- {scheme}: " + ", ".join(trend))
+    lines.extend(
+        [
+        "",
+        "## Comparison",
+        f"- {improvement_text}",
         "",
         "## Output files",
         f"- compact CSV: {compact_csv}",
@@ -307,7 +382,9 @@ def _summary_lines(
             else ["- expanded CSV/NPZ not written; rerun with --write-expanded-data to generate them locally."]
         ),
         *(f"- figure: {path}" for path in figure_paths),
-    ]
+        ]
+    )
+    return lines
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -318,6 +395,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--q-angle-list", nargs="+", type=_angle_expression, default=list(DEFAULT_Q_ANGLE_LIST))
     parser.add_argument("--nk-list", nargs="+", type=int, default=list(DEFAULT_NK_LIST))
     parser.add_argument("--degeneracy-tol", type=float, default=DEFAULT_DEGENERACY_TOL_EV)
+    parser.add_argument("--vertex-schemes", nargs="+", choices=("midpoint", "peierls"), default=list(DEFAULT_VERTEX_SCHEMES))
     parser.add_argument("--output-prefix", type=Path, default=DEFAULT_OUTPUT_PREFIX)
     parser.add_argument("--write-expanded-data", action="store_true")
     parser.add_argument("--quick", action="store_true")
@@ -339,6 +417,7 @@ def main() -> None:
         q_angle_list=list(args.q_angle_list),
         nk_list=list(args.nk_list),
         degeneracy_tol_eV=float(args.degeneracy_tol),
+        vertex_schemes=list(args.vertex_schemes),
     )
     compact_csv, expanded_csv, expanded_npz, figure_dir, summary_path = _output_paths(args.output_prefix)
     _write_csv(compact_csv, data, COMPACT_COLUMNS)
