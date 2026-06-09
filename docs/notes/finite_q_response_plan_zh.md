@@ -119,6 +119,12 @@ $$
 conductivity；如果 BdG bare bubble 不满足 Ward identity，需要明确缺失的 collective
 phase 或 vertex correction。
 
+finite-q Ward diagnostics 的电磁耦合约定见
+`docs/notes/finite_q_electromagnetic_coupling_convention_zh.md`。其中 hopping/Fourier
+表示与现有三角函数形式 $H_0(\mathbf{k})$ 等价，只为构造 Peierls-consistent
+finite-q 电磁顶角而引入。已有 $q=0$/local 与 diagnostic-only current-current 计算
+保持不变，除非后续明确迁移到 Peierls 顶角方案。
+
 ### 阶段 5：reflection/Casimir benchmark 接入
 
 只有在 Stage 4 边界清楚后，才把 finite-q response 接入 reflection/Casimir benchmark。
