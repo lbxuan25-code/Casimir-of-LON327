@@ -196,6 +196,45 @@ def peierls_current_vertex(
     return vertex
 
 
+def peierls_contact_vertex(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction_i: str,
+    direction_j: str,
+    params: NormalStateParameters | None = None,
+    hopping_terms: Iterable[HoppingTerm] | None = None,
+) -> np.ndarray:
+    """Return the finite-q Peierls contact vertex from hopping terms.
+
+    This vertex comes from the second-order Peierls phase expansion for the
+    same straight-bond hopping representation used by ``peierls_current_vertex``:
+
+        Lambda_ij^P(k,q) = - sum_R R_i R_j t_R exp(i k.R) sinc(q.R/2)^2.
+
+    The minus sign follows from H0(k)=sum_R t_R exp(i k.R), so the q=0 limit is
+    d2H0/dk_i dk_j.  This helper is currently for vertex-level audits only.  It
+    is not connected to any response/contact kernel, conductivity, reflection,
+    or Casimir calculation path.
+    """
+
+    if direction_i not in {"x", "y"} or direction_j not in {"x", "y"}:
+        raise ValueError("directions must be 'x' or 'y'")
+    terms = list(normal_state_hopping_terms(params) if hopping_terms is None else hopping_terms)
+    vertex = np.zeros((4, 4), dtype=complex)
+    for (rx, ry), hopping in terms:
+        component_i = rx if direction_i == "x" else ry
+        component_j = rx if direction_j == "x" else ry
+        if component_i == 0 or component_j == 0:
+            continue
+        q_dot_r = qx * rx + qy * ry
+        phase = np.exp(1j * (kx * rx + ky * ry))
+        sinc_factor = sinc_stable(0.5 * q_dot_r)
+        vertex += -component_i * component_j * hopping * phase * sinc_factor * sinc_factor
+    return vertex
+
+
 def peierls_vertex_ward_residual(
     kx: float,
     ky: float,
