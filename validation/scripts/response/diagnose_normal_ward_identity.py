@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 import shlex
 import sys
+from typing import Any
 
 import numpy as np
 
@@ -217,7 +218,7 @@ def _write_csv(path: Path, data: dict[str, np.ndarray], columns: tuple[str, ...]
 
 def _write_npz(path: Path, data: dict[str, np.ndarray]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload: dict[str, object] = dict(data)
+    payload: dict[str, Any] = dict(data)
     np.savez(path, **payload)
 
 
