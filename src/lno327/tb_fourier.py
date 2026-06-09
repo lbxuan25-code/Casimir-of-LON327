@@ -15,6 +15,7 @@ import numpy as np
 from .model import NormalStateParameters
 
 HoppingTerm = tuple[tuple[int, int], np.ndarray]
+EPS = 1e-300
 
 
 def _zero_matrix() -> np.ndarray:
@@ -143,6 +144,86 @@ def normal_state_hamiltonian_from_hoppings(
         phase = np.exp(1j * (kx * rx + ky * ry))
         hamiltonian += hopping * phase
     return hamiltonian
+
+
+def sinc_stable(x):
+    """Return sin(x)/x with the stable x->0 limit.
+
+    ``x`` may be a scalar or a NumPy array.  Scalar input returns a float.
+    """
+
+    values = np.asarray(x, dtype=float)
+    result = np.ones_like(values, dtype=float)
+    mask = np.abs(values) > 1e-12
+    result[mask] = np.sin(values[mask]) / values[mask]
+    if np.isscalar(x):
+        return float(result)
+    return result
+
+
+def peierls_current_vertex(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction: str,
+    params: NormalStateParameters | None = None,
+    hopping_terms: Iterable[HoppingTerm] | None = None,
+    sign_convention: str = "plus",
+) -> np.ndarray:
+    """Return the Peierls finite-q current vertex from hopping terms.
+
+    The implemented convention is
+    Gamma_i^P(k,q) = +/- i sum_R R_i t_R exp(i k.R) sinc(q.R/2).
+    This helper is not connected to any response, conductivity, Ward-response,
+    reflection, or Casimir calculation path.
+    """
+
+    if direction not in {"x", "y"}:
+        raise ValueError("direction must be 'x' or 'y'")
+    if sign_convention not in {"plus", "minus"}:
+        raise ValueError("sign_convention must be 'plus' or 'minus'")
+    sign = 1.0 if sign_convention == "plus" else -1.0
+    terms = list(normal_state_hopping_terms(params) if hopping_terms is None else hopping_terms)
+    vertex = np.zeros((4, 4), dtype=complex)
+    for (rx, ry), hopping in terms:
+        component = rx if direction == "x" else ry
+        if component == 0:
+            continue
+        q_dot_r = qx * rx + qy * ry
+        phase = np.exp(1j * (kx * rx + ky * ry))
+        vertex += 1j * sign * component * hopping * phase * sinc_stable(0.5 * q_dot_r)
+    return vertex
+
+
+def peierls_vertex_ward_residual(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    params: NormalStateParameters | None = None,
+    hopping_terms: Iterable[HoppingTerm] | None = None,
+    sign_convention: str = "plus",
+) -> tuple[float, float, float, float]:
+    """Return vertex-level Ward residual errors.
+
+    H0(k+q/2)-H0(k-q/2) is evaluated with
+    ``normal_state_hamiltonian_from_hoppings`` so the check stays within the
+    same Fourier/hopping representation chain.
+    """
+
+    terms = list(normal_state_hopping_terms(params) if hopping_terms is None else hopping_terms)
+    gamma_x = peierls_current_vertex(kx, ky, qx, qy, "x", params, terms, sign_convention)
+    gamma_y = peierls_current_vertex(kx, ky, qx, qy, "y", params, terms, sign_convention)
+    lhs = qx * gamma_x + qy * gamma_y
+    h_plus = normal_state_hamiltonian_from_hoppings(kx + 0.5 * qx, ky + 0.5 * qy, params, terms)
+    h_minus = normal_state_hamiltonian_from_hoppings(kx - 0.5 * qx, ky - 0.5 * qy, params, terms)
+    rhs = h_plus - h_minus
+    abs_error = float(np.linalg.norm(lhs - rhs))
+    rhs_norm = float(np.linalg.norm(rhs))
+    lhs_norm = float(np.linalg.norm(lhs))
+    rel_error = abs_error / max(rhs_norm, EPS)
+    return abs_error, rel_error, lhs_norm, rhs_norm
 
 
 def validate_hopping_hermiticity(
