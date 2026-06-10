@@ -5,6 +5,13 @@
 本文记录 finite-q 响应中 Hamiltonian 表示、电磁顶角、Ward identity 与 contact term
 的使用边界，避免把不同层次的诊断混在一起。
 
+更详细的推导和结果汇总见：
+
+- [Casimir torque response pipeline 总览](casimir_torque_response_pipeline_zh.md)
+- [Peierls 顶角约定](peierls_vertex_convention_zh.md)
+- [response-level Ward convention 推导](response_level_ward_convention_derivation_zh.md)
+- [Ward diagnostic 结果汇总](ward_diagnostic_results_zh.md)
+
 三角函数形式和 hopping/Fourier 指数形式是同一个 $H_0(\mathbf{k})$ 的两种等价表示。
 hopping/Fourier 表示不是新模型，不是更高精度模型；它只是为了从 Peierls 相位系统地构造
 finite-q 电磁耦合顶角。
@@ -88,7 +95,11 @@ q_x \Gamma_x^P + q_y \Gamma_y^P
 = H_0(\mathbf{k}+\mathbf{q}/2)-H_0(\mathbf{k}-\mathbf{q}/2).
 $$
 
-整体符号可由项目中的电荷/外场约定固定，但必须在实现和输出 metadata 中明确记录。
+这里通过的 plus sign 是 Hamiltonian derivative vertex 的顶角级约定，
+即 $\Gamma_i^H=\delta H/\delta A_i$。它不自动决定 physical current response
+中的电流符号，因为 physical current 满足 $j_i=-\delta H/\delta A_i$。整体 response-level
+符号必须与 current definition、contact sign 和 Ward $q$-sign 一起固定，并在实现和输出
+metadata 中明确记录。
 
 ## 6. Contact / diamagnetic term convention
 
