@@ -414,10 +414,18 @@ def run_verification(
 
 def _write_csv(path: Path, data: dict[str, np.ndarray], columns: tuple[str, ...]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    row_count = len(data["case_label"])
+    if row_count == 0:
+        raise RuntimeError(f"refusing to write empty CSV: {path}")
+    for column in columns:
+        if len(data[column]) != row_count:
+            raise RuntimeError(
+                f"CSV column length mismatch for {column}: {len(data[column])} != {row_count}"
+            )
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
-        for index in range(len(data["case_label"])):
+        for index in range(row_count):
             writer.writerow({column: data[column][index] for column in columns})
 
 
