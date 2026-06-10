@@ -65,8 +65,8 @@ Peierls substitution 给出一阶 Hamiltonian derivative vertex $\Gamma_i^H$ 和
 
 ## 当前阶段状态
 
-当前活跃阶段是 response-level Ward convention verification，而不是早期 Stage 1 / Stage 2
-规划。Stage 1--3 的结果仍保留为 diagnostic evidence；它们不能替代完整
+当前活跃阶段是 Stage 4.6A formula-to-code mapping audit，而不是早期 Stage 1 / Stage 2
+规划，也不是继续做 residual 参数扫描。Stage 1--3 的结果仍保留为 diagnostic evidence；它们不能替代完整
 $\Pi_{\mu\nu}$ Ward closure。
 
 已完成：
@@ -75,18 +75,21 @@ $\Pi_{\mu\nu}$ Ward closure。
 - Peierls current vertex 顶角级 Ward identity；
 - Peierls contact vertex 的 $q\to0$ mass limit、Hermiticity、$\Lambda_{xy}=\Lambda_{yx}$ 审计；
 - normal-state $\Pi_{\mu\nu}$ Ward prototype；
-- full / density / spatial Ward residual decomposition。
+- full / density / spatial Ward residual decomposition；
+- Stage 4.4 / 4.5 response-level convention diagnostic 与 spatial term decomposition。
 
 仍是 diagnostic：
 
 - midpoint velocity finite-q kernel；
 - Peierls current/contact 接入后的 normal-state Ward response；
 - q0 mass diagnostic contact；
-- finite-q Peierls contact response-level sign 比较。
+- finite-q Peierls contact response-level sign 比较；
+- best residual candidate / best diagnostic candidate 的 term decomposition。
 
 尚未完成：
 
 - response-level convention 的最终闭合；
+- formula-to-code mapping 审计后的 Kubo bubble / equal-time / index-order 复查；
 - final finite-q conductivity；
 - reflection matrix 接入；
 - Casimir energy / torque 计算。
@@ -136,6 +139,29 @@ $$
 需要额外考虑 collective phase / vertex correction；bare current-current block 不能直接作为
 reflection/Casimir input。
 
+### Stage 4.6A / 4.6B: 当前 response-level 收尾路线
+
+当前下一步是 Stage 4.6A formula-to-code mapping audit：把代码对象与解析对象明确对应，
+包括
+
+```text
+peierls_current_vertex(sign_convention="plus") = Gamma_i^H
+peierls_contact_vertex = Lambda_ij^H
+contact_only under code plus-contact extraction = +<Lambda_ij^H>
+physical-current direct contact = -<Lambda_ij^H>
+```
+
+这一步的目标是防止把 residual 最小的组合误读为最终物理实现。
+`physical_current_q_plus_contact_minus` 只能称为 best residual candidate /
+best diagnostic candidate：它有 physical-current direct contact 的解析动机，并降低
+residual，但 Ward residual 仍为 $O(q)$，不能声明闭合。
+
+Stage 4.6B 可作为 optional diagnostic contact-coefficient scan。$\lambda$-scan 不是确定
+物理系数的方法，只能用来判断 residual 是否像简单 contact normalization/factor 问题。
+在 formula-to-code mapping、Kubo bubble sign、equal-time / commutator term、denominator、
+matrix-element order 和 response index order 未闭合前，不进入 finite-q conductivity、
+reflection 或 Casimir。
+
 ### Stage 5: future reflection / Casimir benchmark 接入
 
 只有在 Stage 4 response-level Ward convention 闭合后，才允许把 finite-q response
@@ -172,4 +198,8 @@ benchmark 稳定前提前声明材料结论。
 
 ## 当前边界
 
-所有 finite-q Ward 输出目前都只是 diagnostic。它们不是 conductivity，不是 reflection/Casimir input，也不是材料结论。下一步应优先验证 response-level convention：current sign、contact sign、Ward $q$-sign、Kubo bubble sign、equal-time/contact term 与 $\Pi_{\mu\nu}$ 指标顺序。
+所有 finite-q Ward 输出目前都只是 diagnostic。它们不是 conductivity，不是
+reflection/Casimir input，也不是材料结论。Residual minimization is not a physical
+derivation；residual 最小不能替代物理推导。下一步应优先完成 Stage 4.6A
+formula-to-code mapping audit，并复查 current sign、contact sign、Ward $q$-sign、
+Kubo bubble sign、equal-time/contact term 与 $\Pi_{\mu\nu}$ 指标顺序。

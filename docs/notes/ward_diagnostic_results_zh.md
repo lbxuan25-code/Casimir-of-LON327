@@ -109,12 +109,52 @@ density sector 不是 full Ward $O(q)$ 主因。$\Gamma_0=I_4$ 与 orbital embed
 - spatial sector 是 full Ward $O(q)$ 来源；
 - contact improves but does not close；
 - finite-q contact not materially better than q0 mass；
-- spatial raw residual 中 contact minus sign better；
+- spatial raw residual 中 contact-minus candidate 更小；
 - left/right spatial residuals close。
 
 解释：
 
-spatial-spatial block 在 $q\to0$ 可以有限，因此 current sign / Ward $q$-sign / contact sign mismatch 会直接留下 $O(q)$ residual。contact minus sign 更好是 response-level sign convention 的线索，不是最终实现选择。
+spatial-spatial block 在 $q\to0$ 可以有限，因此 current sign / Ward $q$-sign /
+contact sign mismatch 会直接留下 $O(q)$ residual。contact-minus candidate 更小是
+response-level sign convention 的线索，不是最终实现选择。
+
+## Stage 4.4: response-level convention diagnostic
+
+结果：
+
+- baseline `current_code_phys_q_plus` 的 max full/spatial residual 约为 $0.122$；
+- contact-minus candidates 的 max full/spatial residual 约为 $0.0415$；
+- `physical_current_q_plus_contact_minus` 和
+  `hamiltonian_vertex_q_minus_contact_minus` 给出相近的最小 residual；
+- 但所有 case 的 spatial small-q scaling 仍为 $\alpha\approx1$，没有提升到
+  $O(q^2)$；
+- density residual 在一致 convention 下接近机器精度。
+
+解释：
+
+contact-minus candidate 与 physical-current direct contact term
+$-\langle\Lambda_{ij}^H\rangle$ 的方向一致，并得到 residual 诊断支持。但这只是
+best residual candidate / best diagnostic candidate，不是最终 convention。
+Residual minimization is not a physical derivation；residual 最小不能替代物理推导。
+
+## Stage 4.5: best diagnostic candidate spatial term decomposition
+
+结果：
+
+- best diagnostic candidate 的 max residual 仍约为 $0.0415$；
+- residual 仍为 $O(q)$；
+- longitudinal channel 是主问题；
+- transverse channel 接近机器精度；
+- contact term 是 leading $O(q)$ 量级，并能降低 residual 系数；
+- left/right comparison 暴露出仍需检查 response index order / conjugation。
+
+解释：
+
+Stage 4.5 显示 contact term 参与 leading $O(q)$ cancellation，但没有把 Ward
+residual 闭合。当前 leftover 更像 contact-sensitive 的 response-level mismatch，
+可能涉及 contact normalization/factor/sign、equal-time / commutator term、
+Kubo bubble convention 或 response index order。不能据此声称 contact minus 已解决问题，
+也不能声称 Ward identity 已闭合。
 
 ## 综合判断
 
@@ -125,7 +165,8 @@ spatial-spatial block 在 $q\to0$ 可以有限，因此 current sign / Ward $q$-
 - spatial-current sector 是 full Ward $O(q)$ 缺口来源；
 - contact term 能改善 spatial residual，但不能闭合 small-q leading term；
 - finite-q Peierls contact 不明显优于 q0 mass diagnostic，符合二者差异为 $O(q^2)$ 的解析判断；
-- contact minus sign 更好提示 physical-current/contact response sign 可能与当前 prototype convention 不一致。
+- contact-minus candidate 更小提示 physical-current/contact response sign 可能与当前
+  prototype convention 不一致；它有解析动机，但不是最终物理实现。
 
 最可疑的问题是 response-level convention mismatch：
 
@@ -137,9 +178,16 @@ spatial-spatial block 在 $q\to0$ 可以有限，因此 current sign / Ward $q$-
 
 ## 下一步
 
-下一步应做 convention verification，而不是继续盲目扫参数：
+下一步应先做 Stage 4.6A formula-to-code mapping audit，而不是继续 residual 参数扫描：
 
-1. 比较 Hamiltonian-vertex convention 与 physical-current convention；
-2. 同时切换 current sign、Ward $q$-sign、contact sign；
-3. 检查 spatial current-current bubble 与 equal-time/direct term 是否满足同一 response-level Ward identity；
-4. 在 closure 通过前，不把这些结果接入 finite-q conductivity、reflection 或 Casimir torque。
+1. 明确 `peierls_current_vertex(sign_convention="plus")` 对应 $\Gamma_i^H$；
+2. 明确 `peierls_contact_vertex` 对应 $\Lambda_{ij}^H$；
+3. 明确 code plus-contact extraction 中 `contact_only=+\langle\Lambda_{ij}^H\rangle`；
+4. 明确 physical-current direct contact 应为 $-\langle\Lambda_{ij}^H\rangle$；
+5. 再检查 Kubo bubble sign、denominator、matrix-element order、equal-time /
+   commutator term 和 response index order。
+
+可选的 Stage 4.6B $\lambda$-scan 只能作为 diagnostic contact-coefficient scan，
+用来判断 residual 是否像简单 contact normalization/factor 问题。它不是确定物理系数
+的方法。在 closure 通过前，不把这些结果接入 finite-q conductivity、reflection 或
+Casimir torque。

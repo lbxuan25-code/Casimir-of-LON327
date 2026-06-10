@@ -4,6 +4,9 @@
 
 本文记录 finite-q 响应中 Hamiltonian 表示、电磁顶角、Ward identity 与 contact term
 的使用边界，避免把不同层次的诊断混在一起。
+它是 convention 使用边界和索引文档，不是 response-level formula-to-code mapping
+的第二个 source of truth。代码对象与解析对象的主要依据见
+[response-level Ward convention 推导](response_level_ward_convention_derivation_zh.md)。
 
 更详细的推导和结果汇总见：
 
@@ -162,11 +165,14 @@ R_R^H[\mu]
 = i\Omega\,\Pi_{\mu0} - \Pi_{\mu x}q_x - \Pi_{\mu y}q_y.
 $$
 
-最终 Ward convention 尚未固定，需以后续 convention verification 为准；详细推导见
+最终 Ward convention 尚未固定，需以后续 convention diagnostic 与解析推导为准；详细推导见
 [response-level Ward 符号推导](response_level_ward_convention_derivation_zh.md)。
 
 只有 Ward residual 在声明的 vertex/contact scheme 下足够小，才能称为
 gauge-consistent finite-q response。
+但 residual minimization is not a physical derivation；residual 最小不能替代物理推导。
+特别地，contact-minus residual candidate 只能说明它与 physical-current direct contact
+term 的方向一致并得到诊断支持，不能把它直接写成最终物理实现。
 
 ## 8. Required provenance fields
 
