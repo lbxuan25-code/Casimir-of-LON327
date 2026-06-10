@@ -13,7 +13,12 @@ import numpy as np
 
 from .conductivity import KuboConfig, fermi_function
 from .model import normal_state_hamiltonian, normal_state_mass_operator, normal_state_velocity_operator
-from .tb_fourier import HoppingTerm, normal_state_hopping_terms, peierls_contact_vertex, peierls_current_vertex
+from .tb_fourier import (
+    HoppingTerm,
+    normal_state_hopping_terms,
+    peierls_hamiltonian_contact_vertex,
+    peierls_hamiltonian_vector_vertex,
+)
 
 HamiltonianBuilder = Callable[[float, float], np.ndarray]
 VelocityBuilder = Callable[[float, float, str], np.ndarray]
@@ -56,19 +61,24 @@ def normal_density_current_response_imag_axis(
     contact_scheme: str = "none",
     contact_sign_convention: str = "plus",
 ) -> np.ndarray:
-    """Return the normal-state 3x3 prototype Pi_{mu nu}(i omega_n, q).
+    """Diagnostic-only convention scanner.
+
+    Do not use this function for the readable physical-current response
+    candidate.  Use ``normal_physical_density_current_response_imag_axis``
+    instead.  ``contact_sign_convention`` is retained only for historical
+    residual scans; it is not a physical API.
 
     Vertex order is (density, current_x, current_y).  The density vertex is
     identity(4).  ``vertex_scheme="midpoint"`` uses midpoint normal-state
     velocity operators, preserving the original prototype behavior.
-    ``vertex_scheme="peierls"`` uses the plus-sign Peierls current vertex from
-    the Fourier/hopping representation.
+    ``vertex_scheme="peierls"`` uses the Hamiltonian vector vertex V_i from the
+    Fourier/hopping representation.
 
     ``contact_scheme="none"`` keeps the original bubble-only behavior.
     ``contact_scheme="q0_mass_diagnostic"`` adds a q=0 mass/contact
     approximation only to the spatial-spatial block.  ``contact_scheme=
-    "finite_q_peierls"`` adds the finite-q contact vertex from the second-order
-    Peierls phase expansion.  This remains a normal-state Ward diagnostic
+    "finite_q_peierls"`` adds the finite-q Hamiltonian contact vertex from the
+    second-order Peierls phase expansion.  This remains a normal-state Ward diagnostic
     prototype, not final finite-q conductivity and not a reflection/Casimir
     input; response-level signs, equal-time conventions, and closure still need
     to be fixed by a later derivation.
@@ -109,23 +119,21 @@ def normal_density_current_response_imag_axis(
             current_x = velocity(kx, ky, "x")
             current_y = velocity(kx, ky, "y")
         else:
-            current_x = peierls_current_vertex(
+            current_x = peierls_hamiltonian_vector_vertex(
                 kx,
                 ky,
                 qx,
                 qy,
                 "x",
                 hopping_terms=peierls_terms,
-                sign_convention="plus",
             )
-            current_y = peierls_current_vertex(
+            current_y = peierls_hamiltonian_vector_vertex(
                 kx,
                 ky,
                 qx,
                 qy,
                 "y",
                 hopping_terms=peierls_terms,
-                sign_convention="plus",
             )
         vertices = (
             states_minus.conjugate().T @ density_vertex @ states_plus,
@@ -163,8 +171,8 @@ def normal_density_current_response_imag_axis(
                         # q=0 local diamagnetic/contact approximation for small-q diagnostics only.
                         contact_matrix = mass_operator(kx, ky, direction_i, direction_j)
                     else:
-                        # Finite-q Peierls contact vertex from the same hopping phase expansion.
-                        contact_matrix = peierls_contact_vertex(
+                        # Finite-q Hamiltonian contact vertex from the same hopping phase expansion.
+                        contact_matrix = peierls_hamiltonian_contact_vertex(
                             kx,
                             ky,
                             qx,
@@ -179,8 +187,128 @@ def normal_density_current_response_imag_axis(
     return response
 
 
-def ward_residuals(response: np.ndarray, omega_eV: float, q: Sequence[float] | np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Return left and right Ward residual vectors for Pi_{mu nu}."""
+def normal_physical_density_current_response_imag_axis(
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    q: Sequence[float] | np.ndarray,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+    hamiltonian: HamiltonianBuilder = normal_state_hamiltonian,
+    hopping_terms: Sequence[HoppingTerm] | None = None,
+) -> np.ndarray:
+    """Return the normal-state physical-current response candidate.
+
+    Conventions:
+    V_i = delta H / delta A_i
+    M_ij = delta^2 H / delta A_i delta A_j
+    j_i = -V_i
+
+    Blocks:
+    Pi_00 = bubble[rho, rho]
+    Pi_0j = bubble[rho, -V_j]
+    Pi_i0 = bubble[-V_i, rho]
+    Pi_ij = bubble[V_i, V_j] - <M_ij>
+
+    This is still a Ward-response candidate, not final conductivity,
+    not reflection input, and not Casimir input.  Kubo bubble sign,
+    denominator, matrix-element order, and equal-time / commutator completion
+    still need later audit; this function does not claim gauge closure.
+    """
+
+    points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
+    qx, qy = (float(q_vector[0]), float(q_vector[1]))
+    peierls_terms = list(normal_state_hopping_terms() if hopping_terms is None else hopping_terms)
+    rho = np.eye(4, dtype=complex)
+    response = np.zeros((3, 3), dtype=complex)
+
+    for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
+        kx = float(kx_value)
+        ky = float(ky_value)
+        h_minus = hamiltonian(kx - 0.5 * qx, ky - 0.5 * qy)
+        h_plus = hamiltonian(kx + 0.5 * qx, ky + 0.5 * qy)
+        energies_minus, states_minus = np.linalg.eigh(h_minus)
+        energies_plus, states_plus = np.linalg.eigh(h_plus)
+        occupations_minus = fermi_function(
+            energies_minus,
+            config.fermi_level_eV,
+            config.temperature_eV,
+        )
+        occupations_plus = fermi_function(
+            energies_plus,
+            config.fermi_level_eV,
+            config.temperature_eV,
+        )
+
+        vector_x = peierls_hamiltonian_vector_vertex(
+            kx,
+            ky,
+            qx,
+            qy,
+            "x",
+            hopping_terms=peierls_terms,
+        )
+        vector_y = peierls_hamiltonian_vector_vertex(
+            kx,
+            ky,
+            qx,
+            qy,
+            "y",
+            hopping_terms=peierls_terms,
+        )
+        jx = -vector_x
+        jy = -vector_y
+        vertices = (
+            states_minus.conjugate().T @ rho @ states_plus,
+            states_minus.conjugate().T @ jx @ states_plus,
+            states_minus.conjugate().T @ jy @ states_plus,
+        )
+        for m, energy_minus in enumerate(energies_minus):
+            for n, energy_plus in enumerate(energies_plus):
+                occupation_diff = float(occupations_minus[m] - occupations_plus[n])
+                if occupation_diff == 0.0:
+                    continue
+                denominator = 1j * config.omega_eV + float(energy_minus - energy_plus)
+                factor = -occupation_diff / denominator
+                for mu in range(3):
+                    for nu in range(3):
+                        response[mu, nu] += (
+                            weight
+                            * factor
+                            * vertices[mu][m, n]
+                            * np.conjugate(vertices[nu][m, n])
+                        )
+
+        h_midpoint = hamiltonian(kx, ky)
+        energies_midpoint, states_midpoint = np.linalg.eigh(h_midpoint)
+        occupations_midpoint = fermi_function(
+            energies_midpoint,
+            config.fermi_level_eV,
+            config.temperature_eV,
+        )
+        directions = ("x", "y")
+        for i, direction_i in enumerate(directions):
+            for j, direction_j in enumerate(directions):
+                contact_matrix = peierls_hamiltonian_contact_vertex(
+                    kx,
+                    ky,
+                    qx,
+                    qy,
+                    direction_i,
+                    direction_j,
+                    hopping_terms=peierls_terms,
+                )
+                band_contact = states_midpoint.conjugate().T @ contact_matrix @ states_midpoint
+                expect_mij = np.sum(occupations_midpoint * np.diag(band_contact))
+                physical_direct_contact = -expect_mij
+                response[1 + i, 1 + j] += weight * physical_direct_contact
+    return response
+
+
+def physical_ward_residuals(
+    response: np.ndarray,
+    omega_eV: float,
+    q: Sequence[float] | np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return Q_phys residuals for a physical-current response matrix."""
 
     matrix = np.asarray(response, dtype=complex)
     if matrix.shape != (3, 3):
@@ -194,10 +322,35 @@ def ward_residuals(response: np.ndarray, omega_eV: float, q: Sequence[float] | n
     return left, right
 
 
+def hamiltonian_vector_ward_residuals(
+    response: np.ndarray,
+    omega_eV: float,
+    q: Sequence[float] | np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return Q_H residuals for a Hamiltonian-vector response matrix."""
+
+    matrix = np.asarray(response, dtype=complex)
+    if matrix.shape != (3, 3):
+        raise ValueError("response must have shape (3, 3)")
+    q_vector = np.asarray(q, dtype=float)
+    if q_vector.shape != (2,):
+        raise ValueError("q must have shape (2,)")
+    qx, qy = (float(q_vector[0]), float(q_vector[1]))
+    left = 1j * omega_eV * matrix[0, :] - qx * matrix[1, :] - qy * matrix[2, :]
+    right = 1j * omega_eV * matrix[:, 0] - matrix[:, 1] * qx - matrix[:, 2] * qy
+    return left, right
+
+
+def ward_residuals(response: np.ndarray, omega_eV: float, q: Sequence[float] | np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Return Q_phys residuals for a physical-current response matrix."""
+
+    return physical_ward_residuals(response, omega_eV, q)
+
+
 def ward_errors(response: np.ndarray, omega_eV: float, q: Sequence[float] | np.ndarray) -> tuple[float, float, float]:
     """Return normalized left, right, and max Ward residual errors."""
 
-    left, right = ward_residuals(response, omega_eV, q)
+    left, right = physical_ward_residuals(response, omega_eV, q)
     scale = max(float(np.linalg.norm(response)), 1e-300)
     left_error = float(np.linalg.norm(left) / scale)
     right_error = float(np.linalg.norm(right) / scale)

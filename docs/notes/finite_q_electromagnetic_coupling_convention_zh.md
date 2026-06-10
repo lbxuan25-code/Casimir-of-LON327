@@ -78,10 +78,10 @@ $$
 Hamiltonian vector vertex。
 
 从 hopping/Fourier 表示的 Peierls 相位展开得到的 finite-q Hamiltonian vector vertex
-$\Gamma_i^H$ 约定为
+$V_i$ 约定为
 
 $$
-\Gamma_i^P(\mathbf{k},\mathbf{q})
+V_i(\mathbf{k},\mathbf{q})
 = i \sum_{\mathbf{R}} R_i t_{\mathbf{R}} e^{i\mathbf{k}\cdot\mathbf{R}}
 \,\operatorname{sinc}\!\left(\frac{\mathbf{q}\cdot\mathbf{R}}{2}\right),
 $$
@@ -95,14 +95,16 @@ $$
 实现时应检查 vertex-level Ward identity：
 
 $$
-q_x \Gamma_x^P + q_y \Gamma_y^P
+q_x V_x + q_y V_y
 = H_0(\mathbf{k}+\mathbf{q}/2)-H_0(\mathbf{k}-\mathbf{q}/2).
 $$
 
 这里通过的 plus sign 是 Hamiltonian vector vertex 的顶角级约定，
-即 $\Gamma_i^H=\delta H/\delta A_i$。它不自动决定 physical-current response
+即 $V_i=\delta H/\delta A_i$。主代码对象是固定 API
+`peierls_hamiltonian_vector_vertex`，不再通过 `sign_convention="plus"` 构造
+$V_i$。它不自动决定 physical-current response
 中的电流符号，因为 physical current vertex 是
-$\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$。整体 response-level
+$j_i=-V_i$。整体 response-level
 符号必须与 current definition、contact sign 和 Ward $q$-sign 一起固定，并在实现和输出
 metadata 中明确记录。
 
@@ -111,10 +113,10 @@ metadata 中明确记录。
 spatial-spatial response 除 current-current bubble 外，还需要 physical direct contact
 contribution。标准命名以
 [response-level Ward convention 推导](response_level_ward_convention_derivation_zh.md) 为准：
-Hamiltonian contact vertex 记为 $\Lambda_{ij}^H$，code contact extraction 记为
-$C_{ij}^{\mathrm{code}}=+\langle\Lambda_{ij}^H\rangle$，physical direct contact
+Hamiltonian contact vertex 记为 $M_{ij}$，code contact extraction 记为
+$C_{ij}^{\mathrm{code}}=+\langle M_{ij}\rangle$，physical direct contact
 contribution 记为
-$K_{ij}^{\mathrm{phys}}=-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$。
+$K_{ij}^{\mathrm{phys}}=-\langle M_{ij}\rangle=-C_{ij}^{\mathrm{code}}$。
 
 $q=0$ mass operator
 
@@ -123,7 +125,7 @@ $$
 $$
 
 只能作为 small-q diagnostic contact。最终 finite-q gauge-consistent response 需要从同一个
-Peierls 展开得到 Hamiltonian contact vertex $\Lambda_{ij}^H$，并在 physical-current
+Peierls 展开得到 Hamiltonian contact vertex $M_{ij}$，并在 physical-current
 response 中使用一致的 physical direct contact contribution $K_{ij}^{\mathrm{phys}}$。
 没有声明 $K_{ij}^{\mathrm{phys}}$ convention 的
 $\Pi_{\mu\nu}$ 不能称为最终 finite-q conductivity。
@@ -158,7 +160,7 @@ R_R^{\mathrm{phys}}[\mu]
 $$
 
 如果 spatial vertex 使用 Hamiltonian vector vertex
-$\Gamma_i^H=\delta H/\delta A_i$，则还必须检查 Hamiltonian-vector convention，即
+$V_i=\delta H/\delta A_i$，则还必须检查 Hamiltonian-vector convention，即
 $Q_H$ contraction：
 
 $$

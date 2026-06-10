@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable
+import warnings
 
 import numpy as np
 
@@ -161,29 +162,18 @@ def sinc_stable(x):
     return result
 
 
-def peierls_current_vertex(
+def _peierls_vector_vertex_core(
     kx: float,
     ky: float,
     qx: float,
     qy: float,
     direction: str,
+    sign: float,
     params: NormalStateParameters | None = None,
     hopping_terms: Iterable[HoppingTerm] | None = None,
-    sign_convention: str = "plus",
 ) -> np.ndarray:
-    """Return the Peierls finite-q current vertex from hopping terms.
-
-    The implemented convention is
-    Gamma_i^P(k,q) = +/- i sum_R R_i t_R exp(i k.R) sinc(q.R/2).
-    This helper is not connected to any response, conductivity, Ward-response,
-    reflection, or Casimir calculation path.
-    """
-
     if direction not in {"x", "y"}:
         raise ValueError("direction must be 'x' or 'y'")
-    if sign_convention not in {"plus", "minus"}:
-        raise ValueError("sign_convention must be 'plus' or 'minus'")
-    sign = 1.0 if sign_convention == "plus" else -1.0
     terms = list(normal_state_hopping_terms(params) if hopping_terms is None else hopping_terms)
     vertex = np.zeros((4, 4), dtype=complex)
     for (rx, ry), hopping in terms:
@@ -196,7 +186,102 @@ def peierls_current_vertex(
     return vertex
 
 
-def peierls_contact_vertex(
+def _peierls_vector_vertex_with_sign(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction: str,
+    params: NormalStateParameters | None = None,
+    hopping_terms: Iterable[HoppingTerm] | None = None,
+    sign_convention: str = "plus",
+) -> np.ndarray:
+    """Diagnostic-only helper for historical sign audits.
+
+    Do not use this in response construction.  The readable physical-response
+    path uses ``peierls_hamiltonian_vector_vertex`` to obtain
+    V_i = delta H / delta A_i and writes the physical current explicitly as
+    j_i = -V_i.
+    """
+
+    if sign_convention not in {"plus", "minus"}:
+        raise ValueError("sign_convention must be 'plus' or 'minus'")
+    sign = 1.0 if sign_convention == "plus" else -1.0
+    return _peierls_vector_vertex_core(
+        kx,
+        ky,
+        qx,
+        qy,
+        direction,
+        sign,
+        params=params,
+        hopping_terms=hopping_terms,
+    )
+
+
+def peierls_hamiltonian_vector_vertex(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction: str,
+    params: NormalStateParameters | None = None,
+    hopping_terms: Iterable[HoppingTerm] | None = None,
+) -> np.ndarray:
+    """Return the Hamiltonian vector vertex V_i = delta H / delta A_i.
+
+    This is not the physical current vertex.  The physical current vertex is
+    j_i = -V_i.
+    """
+
+    return _peierls_vector_vertex_core(
+        kx,
+        ky,
+        qx,
+        qy,
+        direction,
+        1.0,
+        params=params,
+        hopping_terms=hopping_terms,
+    )
+
+
+def peierls_current_vertex(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction: str,
+    params: NormalStateParameters | None = None,
+    hopping_terms: Iterable[HoppingTerm] | None = None,
+    sign_convention: str = "plus",
+) -> np.ndarray:
+    """Deprecated alias for historical sign audits.
+
+    Use ``peierls_hamiltonian_vector_vertex`` for response construction.  This
+    alias is retained only for old diagnostic scripts that explicitly compare
+    plus/minus signs.
+    """
+
+    warnings.warn(
+        "peierls_current_vertex is deprecated; use peierls_hamiltonian_vector_vertex "
+        "for V_i or _peierls_vector_vertex_with_sign for diagnostic sign audits.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return _peierls_vector_vertex_with_sign(
+        kx,
+        ky,
+        qx,
+        qy,
+        direction,
+        params=params,
+        hopping_terms=hopping_terms,
+        sign_convention=sign_convention,
+    )
+
+
+def peierls_hamiltonian_contact_vertex(
     kx: float,
     ky: float,
     qx: float,
@@ -206,17 +291,19 @@ def peierls_contact_vertex(
     params: NormalStateParameters | None = None,
     hopping_terms: Iterable[HoppingTerm] | None = None,
 ) -> np.ndarray:
-    """Return the finite-q Peierls contact vertex from hopping terms.
+    """Return the Hamiltonian contact vertex M_ij = delta^2 H / delta A_i delta A_j.
 
-    This vertex comes from the second-order Peierls phase expansion for the
-    same straight-bond hopping representation used by ``peierls_current_vertex``:
+    This is not the physical direct contact contribution.  The physical direct
+    contact contribution is -<M_ij>.
 
-        Lambda_ij^P(k,q) = - sum_R R_i R_j t_R exp(i k.R) sinc(q.R/2)^2.
+    The vertex comes from the second-order Peierls phase expansion for the same
+    straight-bond hopping representation used by
+    ``peierls_hamiltonian_vector_vertex``:
+
+        M_ij(k,q) = - sum_R R_i R_j t_R exp(i k.R) sinc(q.R/2)^2.
 
     The minus sign follows from H0(k)=sum_R t_R exp(i k.R), so the q=0 limit is
-    d2H0/dk_i dk_j.  This helper is currently for vertex-level audits only.  It
-    is not connected to any response/contact kernel, conductivity, reflection,
-    or Casimir calculation path.
+    d2H0/dk_i dk_j.
     """
 
     if direction_i not in {"x", "y"} or direction_j not in {"x", "y"}:
@@ -235,7 +322,69 @@ def peierls_contact_vertex(
     return vertex
 
 
+def peierls_contact_vertex(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction_i: str,
+    direction_j: str,
+    params: NormalStateParameters | None = None,
+    hopping_terms: Iterable[HoppingTerm] | None = None,
+) -> np.ndarray:
+    """Deprecated alias for ``peierls_hamiltonian_contact_vertex``.
+
+    This alias is not a physical direct contact contribution and must not be
+    used in the readable physical-response construction.
+    """
+
+    warnings.warn(
+        "peierls_contact_vertex is deprecated; use peierls_hamiltonian_contact_vertex.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return peierls_hamiltonian_contact_vertex(
+        kx,
+        ky,
+        qx,
+        qy,
+        direction_i,
+        direction_j,
+        params=params,
+        hopping_terms=hopping_terms,
+    )
+
+
 def peierls_vertex_ward_residual(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    params: NormalStateParameters | None = None,
+    hopping_terms: Iterable[HoppingTerm] | None = None,
+) -> tuple[float, float, float, float]:
+    """Return vertex-level Ward residual errors for q_i V_i = H(k+q/2)-H(k-q/2).
+
+    H0(k+q/2)-H0(k-q/2) is evaluated with
+    ``normal_state_hamiltonian_from_hoppings`` so the check stays within the
+    same Fourier/hopping representation chain.
+    """
+
+    terms = list(normal_state_hopping_terms(params) if hopping_terms is None else hopping_terms)
+    vector_x = peierls_hamiltonian_vector_vertex(kx, ky, qx, qy, "x", params, terms)
+    vector_y = peierls_hamiltonian_vector_vertex(kx, ky, qx, qy, "y", params, terms)
+    lhs = qx * vector_x + qy * vector_y
+    h_plus = normal_state_hamiltonian_from_hoppings(kx + 0.5 * qx, ky + 0.5 * qy, params, terms)
+    h_minus = normal_state_hamiltonian_from_hoppings(kx - 0.5 * qx, ky - 0.5 * qy, params, terms)
+    rhs = h_plus - h_minus
+    abs_error = float(np.linalg.norm(lhs - rhs))
+    rhs_norm = float(np.linalg.norm(rhs))
+    lhs_norm = float(np.linalg.norm(lhs))
+    rel_error = abs_error / max(rhs_norm, EPS)
+    return abs_error, rel_error, lhs_norm, rhs_norm
+
+
+def peierls_vector_vertex_sign_audit_residual(
     kx: float,
     ky: float,
     qx: float,
@@ -244,17 +393,15 @@ def peierls_vertex_ward_residual(
     hopping_terms: Iterable[HoppingTerm] | None = None,
     sign_convention: str = "plus",
 ) -> tuple[float, float, float, float]:
-    """Return vertex-level Ward residual errors.
+    """Diagnostic-only historical sign audit for the Peierls vector vertex.
 
-    H0(k+q/2)-H0(k-q/2) is evaluated with
-    ``normal_state_hamiltonian_from_hoppings`` so the check stays within the
-    same Fourier/hopping representation chain.
+    Do not use this in response construction.
     """
 
     terms = list(normal_state_hopping_terms(params) if hopping_terms is None else hopping_terms)
-    gamma_x = peierls_current_vertex(kx, ky, qx, qy, "x", params, terms, sign_convention)
-    gamma_y = peierls_current_vertex(kx, ky, qx, qy, "y", params, terms, sign_convention)
-    lhs = qx * gamma_x + qy * gamma_y
+    vector_x = _peierls_vector_vertex_with_sign(kx, ky, qx, qy, "x", params, terms, sign_convention)
+    vector_y = _peierls_vector_vertex_with_sign(kx, ky, qx, qy, "y", params, terms, sign_convention)
+    lhs = qx * vector_x + qy * vector_y
     h_plus = normal_state_hamiltonian_from_hoppings(kx + 0.5 * qx, ky + 0.5 * qy, params, terms)
     h_minus = normal_state_hamiltonian_from_hoppings(kx - 0.5 * qx, ky - 0.5 * qy, params, terms)
     rhs = h_plus - h_minus

@@ -20,7 +20,7 @@ os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327.conductivity import uniform_bz_mesh  # noqa: E402
 from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
-from lno327.tb_fourier import normal_state_hopping_terms, peierls_vertex_ward_residual  # noqa: E402
+from lno327.tb_fourier import normal_state_hopping_terms, peierls_vector_vertex_sign_audit_residual  # noqa: E402
 
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "peierls_vertex_ward_identity"
 DEFAULT_OUTPUT_PREFIX = OUTPUT_ROOT / "data" / "peierls_vertex_ward_identity"
@@ -135,7 +135,7 @@ def run_diagnostic(
                 qx = float(q_model * np.cos(q_angle))
                 qy = float(q_model * np.sin(q_angle))
                 for index, (kx, ky) in enumerate(points):
-                    abs_error, rel_error, lhs_norm, rhs_norm = peierls_vertex_ward_residual(
+                    abs_error, rel_error, lhs_norm, rhs_norm = peierls_vector_vertex_sign_audit_residual(
                         float(kx),
                         float(ky),
                         qx,

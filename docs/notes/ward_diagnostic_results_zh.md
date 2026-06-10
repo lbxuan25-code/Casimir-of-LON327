@@ -26,11 +26,11 @@
 
 结果：
 
-- Peierls Hamiltonian vector vertex $\Gamma_i^H$ 顶角级 Ward identity 通过；
+- Peierls Hamiltonian vector vertex $V_i$ 顶角级 Ward identity 通过；
 - plus sign 对应 Hamiltonian derivative vertex：
 
 $$
-\Gamma_i^H(\mathbf{k},\mathbf{q})
+V_i(\mathbf{k},\mathbf{q})
 =
 +i\sum_R R_i t_R e^{i\mathbf{k}\cdot R}
 \operatorname{sinc}\!\left(\frac{\mathbf{q}\cdot R}{2}\right).
@@ -38,14 +38,14 @@ $$
 
 解释：
 
-顶角级正确说明 $\Gamma_i^H$ 的 Hamiltonian vector vertex convention 正确，但不等于
-physical current vertex $\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$ 或 final response sign 已经确定。
+顶角级正确说明 $V_i$ 的 Hamiltonian vector vertex convention 正确，但不等于
+physical current vertex $j_i=-V_i$ 或 final response sign 已经确定。
 
 ## Stage 4.1C: Peierls current 接入 response prototype
 
 结果：
 
-- 把 Peierls Hamiltonian vector vertex $\Gamma_i^H$ 接入 $\Pi_{\mu\nu}$ 后，full Ward residual 没有显著改善；
+- 把 Peierls Hamiltonian vector vertex $V_i$ 接入 $\Pi_{\mu\nu}$ 后，full Ward residual 没有显著改善；
 - midpoint 与 Peierls current 的 response-level residual 趋势接近。
 
 解释：
@@ -59,7 +59,7 @@ $K_{ij}^{\mathrm{phys}}$ 或 current sign。
 结果：
 
 - q0 mass diagnostic contact 只带来有限改善；
-- finite-q Peierls Hamiltonian contact vertex $\Lambda_{ij}^H$ 以 code contact extraction
+- finite-q Peierls Hamiltonian contact vertex $M_{ij}$ 以 code contact extraction
   $C_{ij}^{\mathrm{code}}$ 接入 spatial-spatial block 后也只小幅改善；
 - 二者都不能消除 small-q $O(q)$ residual；
 - finite-q Peierls contact 不明显优于 q0 mass diagnostic。
@@ -72,13 +72,13 @@ finite-q contact 与 q0 mass 的差异从 $O(q^2)$ 开始，因此不能修复 l
 
 结果：
 
-- finite-q Peierls Hamiltonian contact vertex $\Lambda_{ij}^H$ 的 $q=0$ mass limit 通过；
+- finite-q Peierls Hamiltonian contact vertex $M_{ij}$ 的 $q=0$ mass limit 通过；
 - Hermiticity 通过；
-- $\Lambda_{xy}=\Lambda_{yx}$ 通过。
+- $M_{xy}=M_{yx}$ 通过。
 
 解释：
 
-Hamiltonian contact vertex $\Lambda_{ij}^H$ 本身基本可信。后续问题更可能在
+Hamiltonian contact vertex $M_{ij}$ 本身基本可信。后续问题更可能在
 response-level physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ 的符号、
 归一化或 Kubo convention。
 
@@ -139,7 +139,7 @@ response-level sign convention 的线索，不是最终实现选择。
 解释：
 
 contact-minus candidate 与 physical direct contact contribution
-$K_{ij}^{\mathrm{phys}}=-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$ 的方向一致，
+$K_{ij}^{\mathrm{phys}}=-\langle M_{ij}\rangle=-C_{ij}^{\mathrm{code}}$ 的方向一致，
 并得到 residual 诊断支持。但这只是
 best residual candidate / best diagnostic candidate，不是最终 convention。
 Residual minimization is not a physical derivation；residual 最小不能替代物理推导。
@@ -169,20 +169,20 @@ Kubo bubble convention 或 response index order。不能据此声称 contact min
 
 当前证据链支持：
 
-- Peierls Hamiltonian vector/contact vertices $\Gamma_i^H,\Lambda_{ij}^H$ 本身不是主要问题；
+- Peierls Hamiltonian vector/contact vertices $V_i,M_{ij}$ 本身不是主要问题；
 - density sector 不是 $O(q)$ 主因；
 - spatial-current sector 是 full Ward $O(q)$ 缺口来源；
 - physical direct contact contribution candidate $K_{ij}^{\mathrm{phys}}=-C_{ij}^{\mathrm{code}}$
   能改善 spatial residual，但不能闭合 small-q leading term；
 - finite-q Peierls contact 不明显优于 q0 mass diagnostic，符合二者差异为 $O(q^2)$ 的解析判断；
-- contact-minus candidate 更小提示 physical current vertex $\Gamma_i^{\mathrm{phys}}$
+- contact-minus candidate 更小提示 physical current vertex $j_i=-V_i$
   和 physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ 可能与当前 prototype
   convention 不一致；它有解析动机，但不是最终物理实现。
 
 最可疑的问题是 response-level convention mismatch：
 
-- Hamiltonian vector vertex $\Gamma_i^H$ 与 physical current vertex
-  $\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$ 的符号；
+- Hamiltonian vector vertex $V_i$ 与 physical current vertex
+  $j_i=-V_i$ 的符号；
 - code contact extraction $C_{ij}^{\mathrm{code}}$ 与 physical direct contact contribution
   $K_{ij}^{\mathrm{phys}}=-C_{ij}^{\mathrm{code}}$ 的符号；
 - Ward contraction 中 $Q_H=(i\Omega,-q_x,-q_y)$ 与
@@ -190,16 +190,19 @@ Kubo bubble convention 或 response index order。不能据此声称 contact min
 - Kubo bubble sign、denominator、complex conjugation 和 $\Pi_{\mu\nu}$ 指标顺序；
 - equal-time / commutator term 与 paramagnetic-diamagnetic cancellation。
 
-## 下一步
+## Stage 4.7: destructive API cleanup
 
-下一步应先做 Stage 4.6A formula-to-code mapping audit，而不是继续 residual 参数扫描：
+Stage 4.6A formula-to-code mapping audit 之后，Stage 4.7 将主 API 改成固定命名：
 
-1. 明确 `peierls_current_vertex(sign_convention="plus")` 对应 $\Gamma_i^H$；
-2. 明确 `peierls_contact_vertex` 对应 $\Lambda_{ij}^H$；
-3. 明确 code plus-contact extraction 中 `contact_only=+\langle\Lambda_{ij}^H\rangle`；
-4. 明确 physical direct contact contribution
-   $K_{ij}^{\mathrm{phys}}=-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$；
-5. 再检查 Kubo bubble sign、denominator、matrix-element order、equal-time /
+1. `peierls_hamiltonian_vector_vertex` 对应 $V_i=\delta H/\delta A_i$；
+2. `peierls_hamiltonian_contact_vertex` 对应 $M_{ij}=\delta^2H/\delta A_i\delta A_j$；
+3. `normal_physical_density_current_response_imag_axis` 显式构造 $j_i=-V_i$；
+4. physical-current candidate 使用
+   $\Pi_{00}=B_{00}$、$\Pi_{0j}=-B_{0j}$、$\Pi_{i0}=-B_{i0}$、
+   $\Pi_{ij}=B_{ij}-C_{ij}^{\mathrm{code}}$；
+5. 旧的 sign/convention 扫描函数只作为 historical diagnostic，不再作为主 API。
+
+下一步仍是检查 Kubo bubble sign、denominator、matrix-element order、equal-time /
    commutator term 和 response index order。
 
 可选的 Stage 4.6B $\lambda$-scan 只能作为 diagnostic contact-coefficient scan，

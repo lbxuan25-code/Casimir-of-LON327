@@ -22,7 +22,7 @@ os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 from lno327.conductivity import uniform_bz_mesh  # noqa: E402
 from lno327.model import normal_state_mass_operator  # noqa: E402
 from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
-from lno327.tb_fourier import normal_state_hopping_terms, peierls_contact_vertex  # noqa: E402
+from lno327.tb_fourier import normal_state_hopping_terms, peierls_hamiltonian_contact_vertex  # noqa: E402
 
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "peierls_contact_vertex_audit"
 DEFAULT_OUTPUT_PREFIX = OUTPUT_ROOT / "data" / "peierls_contact_vertex_audit"
@@ -159,7 +159,7 @@ def run_audit(
                 ky = float(ky_value)
                 contact_by_direction: dict[tuple[str, str], np.ndarray] = {}
                 for direction_i, direction_j in {("x", "x"), ("x", "y"), ("y", "x"), ("y", "y")}:
-                    contact_by_direction[(direction_i, direction_j)] = peierls_contact_vertex(
+                    contact_by_direction[(direction_i, direction_j)] = peierls_hamiltonian_contact_vertex(
                         kx,
                         ky,
                         qx,
