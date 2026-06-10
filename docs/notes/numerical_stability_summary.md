@@ -94,7 +94,7 @@ finite-q Stage 1 已重启为 normal current-current kernel convergence diagnost
 并作为 validation/response 输出保留。它只验证
 $K(i\omega_n,\mathbf{q})\to K(i\omega_n,\mathbf{0})$，不属于 local-response
 Casimir baseline，也不是 finite-q conductivity 或 Casimir 输入。后续 finite-q
-路线见 `docs/notes/finite_q_response_plan_zh.md`。
+路线见 `docs/notes/casimir_torque_response_pipeline_zh.md`。
 
 ## 4. 为什么仍然不能称为正式 Casimir 结论
 
@@ -136,4 +136,4 @@ outputs/casimir/local_response_distance_scan/
 - 不允许在尚未引入真实 torque 来源机制前声称已经得到物理 torque。
 
 下一阶段应围绕 n=0 policy、真实 torque 来源机制、local Casimir 初级结论的适用
-边界，以及 finite-q 路线图中的 Stage 2 单位审计展开。
+边界，以及当前总览路线图中的 finite-q 单位审计和 Ward convention 闭合展开。

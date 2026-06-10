@@ -19,10 +19,10 @@ local-response distance scan 已形成初级结论；但这仍然不是最终 Ca
 `local_response=True`、`n0_policy=skip`、`benchmark_only=True` 和
 `preliminary_local_response_conclusion=True` 的边界。
 
-finite momentum response 目前只保留第一阶段 normal-state current-current kernel
-收敛诊断，用于检查 $K(i\omega_n,\mathbf{q}) \to K(i\omega_n,\mathbf{0})$。
-它不是 gauge/Ward-closed finite-q conductivity，也不能作为 Casimir 输入。
-finite-q 路线图见 `docs/notes/finite_q_response_plan_zh.md`。
+finite momentum response 目前仍只作为 diagnostic 证据链推进；当前活跃阶段是
+response-level Ward convention verification。它还不是 gauge/Ward-closed
+finite-q conductivity，也不能作为 Casimir 输入。finite-q / Casimir response
+总览见 `docs/notes/casimir_torque_response_pipeline_zh.md`。
 
 ## 当前仓库阅读入口
 
@@ -39,7 +39,7 @@ finite-q 路线图见 `docs/notes/finite_q_response_plan_zh.md`。
 
 - local-response Casimir 初级结论：`outputs/casimir/local_response_distance_scan/`
 - finite-q Stage 1 K 收敛诊断：`validation/outputs/response/normal_finite_q_kernel_convergence/`
-- finite-q 路线图：`docs/notes/finite_q_response_plan_zh.md`
+- finite-q / Casimir response 总览：`docs/notes/casimir_torque_response_pipeline_zh.md`
 
 旧 mixed sigma/K diagnostics 已删除，不作为 validation evidence。
 finite-q Stage 1 只验证 normal current-current kernel $K$；$\mathbf{q}=\mathbf{0}$

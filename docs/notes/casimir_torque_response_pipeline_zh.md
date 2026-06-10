@@ -65,6 +65,10 @@ Peierls substitution 给出一阶 Hamiltonian derivative vertex $\Gamma_i^H$ 和
 
 ## 当前阶段状态
 
+当前活跃阶段是 response-level Ward convention verification，而不是早期 Stage 1 / Stage 2
+规划。Stage 1--3 的结果仍保留为 diagnostic evidence；它们不能替代完整
+$\Pi_{\mu\nu}$ Ward closure。
+
 已完成：
 
 - $H_0^{\mathrm{hop}}(\mathbf{k})=\sum_R t_R e^{i\mathbf{k}\cdot R}$ 对原三角函数 $H_0(\mathbf{k})$ 的重构审计；
@@ -86,6 +90,85 @@ Peierls substitution 给出一阶 Hamiltonian derivative vertex $\Gamma_i^H$ 和
 - final finite-q conductivity；
 - reflection matrix 接入；
 - Casimir energy / torque 计算。
+
+## Stage roadmap / 远期阶段
+
+### Stage 2 / 2.5: Casimir q-grid 到 model-q 的单位审计
+
+Casimir 积分中的无量纲变量 $u$ 和层间距离 $d$ 映射到模型动量：
+
+$$
+q_{\mathrm{model}}=a_{\parallel}\frac{u}{d}.
+$$
+
+这里 $a_{\parallel}$ 是面内赝四方 / Ni-Ni 有效晶格常数，用于从 SI 动量换算到
+model-q；$d$ 是层间距离，必须与 $a_{\parallel}$ 使用同一长度单位。
+
+Stage 2 / 2.5 只是单位和采样范围审计：
+
+- 不计算 response；
+- 不产生 finite-q conductivity；
+- 不接入 reflection 或 Casimir integral；
+- 不声明 Casimir 结论。
+
+$a_{\parallel}$ sensitivity 可作为 q-grid 采样范围的系统误差检查，用来判断
+Casimir-relevant $q_{\mathrm{model}}$ 是否落在 Stage 1 小 $q$ diagnostic 覆盖范围内。
+
+### Stage 3: BdG finite-q current-current diagnostic
+
+Stage 3 的对象仍是 current-current kernel diagnostic。它需要检查两个极限：
+
+$$
+\Delta_0\to0
+\Rightarrow
+\text{normal finite-q kernel limit},
+$$
+
+以及
+
+$$
+\mathbf{q}\to\mathbf{0}
+\Rightarrow
+\text{local BdG kernel limit}.
+$$
+
+这不是 gauge-closed finite-q conductivity。未来若进入 BdG gauge-consistent response，
+需要额外考虑 collective phase / vertex correction；bare current-current block 不能直接作为
+reflection/Casimir input。
+
+### Stage 5: future reflection / Casimir benchmark 接入
+
+只有在 Stage 4 response-level Ward convention 闭合后，才允许把 finite-q response
+接入 reflection/Casimir benchmark。closure 通过前，不应把 current-current-only diagnostic
+接入 Casimir。
+
+未来 response cache 至少需要记录：
+
+```text
+qx_model
+qy_model
+matsubara_n
+frequency_mode
+temperature_K
+response_kind
+unit_convention
+```
+
+这些字段用于追踪外部 momentum、frequency convention、温度、response 类型和单位约定。
+这一阶段仍应先作为 benchmark，不直接声明最终材料结论。
+
+### Stage 6: 各向异性机制 benchmark
+
+在 finite-q response / reflection / benchmark 都稳定后，才讨论 anisotropy mechanism：
+
+- finite-q crystal harmonic；
+- pairing symmetry；
+- normal-state anisotropy；
+- superconducting kernel correction；
+- torque-like observables 的相对贡献比较。
+
+这些方向只能作为远期机制 benchmark。不能在 finite-q response 和 reflection/Casimir
+benchmark 稳定前提前声明材料结论。
 
 ## 当前边界
 

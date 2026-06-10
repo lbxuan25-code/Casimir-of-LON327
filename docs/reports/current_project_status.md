@@ -11,8 +11,8 @@ local-response 设置下均保持 zero-torque baseline。
 
 当前主线仍以 local q=0 response 为 Casimir baseline：normal Kubo、local BdG
 response、单位转换、n=0 policy 和 local-response Casimir 初级结论。finite-q
-当前只保留 Stage 1 normal current-current kernel convergence diagnostic；它不是
-gauge/Ward-closed finite-q conductivity，也不作为 Casimir 输入。
+主线已推进到 response-level Ward convention verification；当前 Ward 输出仍是
+diagnostic，不是 gauge/Ward-closed finite-q conductivity，也不作为 Casimir 输入。
 
 本轮仓库结构已经完成 docs / scripts / outputs 分层整理。当前 `docs/reports/`
 保留阶段报告，`outputs/` 只保留 active 数据产物与初级结论；validation 诊断输出
@@ -32,7 +32,7 @@ zero-torque baseline 的初级结论；`n0_policy=skip` 与 finite-momentum resp
 1. `docs/notes/foundation_notes.md`
 2. `docs/notes/numerical_stability_summary.md`
 3. `docs/reports/local_response_baseline_status.md`
-4. `docs/notes/finite_q_response_plan_zh.md`
+4. `docs/notes/casimir_torque_response_pipeline_zh.md`
 
 ## 当前 active outputs
 

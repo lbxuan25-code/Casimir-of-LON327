@@ -8,10 +8,10 @@
 1. `current_project_status.md`
 2. `local_response_baseline_status.md`
 3. `../notes/numerical_stability_summary.md`
-4. `../notes/finite_q_response_plan_zh.md`
+4. `../notes/casimir_torque_response_pipeline_zh.md`
 
-finite-q 已重启为 Stage 1 normal current-current kernel convergence diagnostic；
-它不是 finite-q conductivity，也不是 Casimir 输入。
+finite-q 主线已进入 response-level Ward convention verification；当前 finite-q
+Ward 输出仍是 diagnostic，不是 finite-q conductivity，也不是 Casimir 输入。
 
 本目录只整理已有诊断和 benchmark 状态，不新增物理计算，不改变任何公式，也不输出
 正式 Casimir torque 结论。
