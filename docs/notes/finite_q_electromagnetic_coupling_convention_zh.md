@@ -125,13 +125,45 @@ $$
 
 其中 $0$ 表示 density，$x/y$ 表示 current。残差定义为
 
+历史 diagnostic 默认使用 physical-current-like convention：
+
 $$
-R_L[\nu] = i\Omega\,\Pi_{0\nu} + q_x\Pi_{x\nu} + q_y\Pi_{y\nu},
+Q_{\mathrm{phys}}=(i\Omega,+q_x,+q_y).
+$$
+
+对应 left / right residual：
+
+$$
+R_L^{\mathrm{phys}}[\nu]
+= i\Omega\,\Pi_{0\nu} + q_x\Pi_{x\nu} + q_y\Pi_{y\nu},
 $$
 
 $$
-R_R[\mu] = i\Omega\,\Pi_{\mu0} + \Pi_{\mu x}q_x + \Pi_{\mu y}q_y.
+R_R^{\mathrm{phys}}[\mu]
+= i\Omega\,\Pi_{\mu0} + \Pi_{\mu x}q_x + \Pi_{\mu y}q_y.
 $$
+
+如果 spatial vertex 使用 Hamiltonian derivative vertex
+$\Gamma_i^H=\delta H/\delta A_i$，则还必须检查 Hamiltonian-vertex convention：
+
+$$
+Q_H=(i\Omega,-q_x,-q_y).
+$$
+
+对应 left / right residual：
+
+$$
+R_L^H[\nu]
+= i\Omega\,\Pi_{0\nu} - q_x\Pi_{x\nu} - q_y\Pi_{y\nu},
+$$
+
+$$
+R_R^H[\mu]
+= i\Omega\,\Pi_{\mu0} - \Pi_{\mu x}q_x - \Pi_{\mu y}q_y.
+$$
+
+最终 Ward convention 尚未固定，需以后续 convention verification 为准；详细推导见
+[response-level Ward 符号推导](response_level_ward_convention_derivation_zh.md)。
 
 只有 Ward residual 在声明的 vertex/contact scheme 下足够小，才能称为
 gauge-consistent finite-q response。
