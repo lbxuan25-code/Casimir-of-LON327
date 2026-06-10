@@ -10,6 +10,56 @@
 - [Peierls 顶角约定](peierls_vertex_convention_zh.md)
 - [Ward 诊断结果汇总](ward_diagnostic_results_zh.md)
 
+## Standard notation / 标准命名
+
+本节固定 response-level 文档中的标准对象名。后续文档应避免裸写 “current vertex”、
+“contact term” 或 “direct contact”；第一次出现时应写出下列标准名。
+
+| 标准名 | 定义 | 代码函数 / 代码对象 | 使用边界 |
+|---|---|---|---|
+| Hamiltonian vector vertex $\Gamma_i^H$ | $\Gamma_i^H=\delta H/\delta A_i$ | `peierls_current_vertex(sign_convention="plus")` | Hamiltonian 展开的一阶 vertex；不要把它叫作 physical current vertex |
+| physical current vertex $\Gamma_i^{\mathrm{phys}}$ | $\Gamma_i^{\mathrm{phys}}=j_i^{(0)}=-\Gamma_i^H$ | 不是当前 Peierls 函数的直接返回值 | 只在讨论 physical current observable 时使用 |
+| Hamiltonian contact vertex $\Lambda_{ij}^H$ | $\Lambda_{ij}^H=\delta^2H/\delta A_i\delta A_j$ | `peierls_contact_vertex` | Hamiltonian 展开的二阶 vertex；不要把它直接叫作 physical direct contact |
+| code contact extraction $C_{ij}^{\mathrm{code}}$ | $C_{ij}^{\mathrm{code}}=\texttt{contact\_only}=+\langle\Lambda_{ij}^H\rangle$ | `response(finite_q_peierls, plus) - response(none)` | 代码 plus-contact extraction；不是 physical direct contact contribution 本身 |
+| physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ | $K_{ij}^{\mathrm{phys}}=-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$ | 由 physical current definition 推出 | physical-current response 中的 direct / diamagnetic / contact contribution |
+| code bubble prototype $B_{\mu\nu}^{\mathrm{code}}$ | $B_{\mu\nu}^{\mathrm{code}}=\Pi_{\mu\nu}^{\mathrm{code}}(\texttt{contact\_scheme=none})$ | `normal_density_current_response_imag_axis(..., contact_scheme="none")` | 当前 Kubo bubble prototype；不是已确认的 final physical response |
+| Hamiltonian Ward vector $Q_H$ | $Q_H=(i\Omega,-q_x,-q_y)$ | diagnostic contraction choice | 与 Hamiltonian vector vertex $\Gamma_i^H$ 配套 |
+| physical Ward vector $Q_{\mathrm{phys}}$ | $Q_{\mathrm{phys}}=(i\Omega,+q_x,+q_y)$ | diagnostic contraction choice | 与 physical current vertex $\Gamma_i^{\mathrm{phys}}$ 配套 |
+
+Hamiltonian vector vertex 的代码公式为
+
+$$
+\Gamma_i^H(k,q)
+=
++i\sum_R R_i t_R e^{ik\cdot R}
+\operatorname{sinc}\!\left(\frac{q\cdot R}{2}\right).
+$$
+
+Hamiltonian contact vertex 的代码公式为
+
+$$
+\Lambda_{ij}^H(k,q)
+=
+-\sum_R R_iR_jt_R e^{ik\cdot R}
+\operatorname{sinc}^2\!\left(\frac{q\cdot R}{2}\right).
+$$
+
+code bubble prototype 到 physical-current bubble candidate 的符号变换可写成
+
+$$
+S=\mathrm{diag}(1,-1,-1),
+$$
+
+$$
+B_{\mu\nu}^{\mathrm{phys,candidate}}
+=
+S_{\mu\mu'}B_{\mu'\nu'}^{\mathrm{code}}S_{\nu'\nu}.
+$$
+
+因此 spatial-spatial block 因两个 physical current vertex
+$\Gamma_i^{\mathrm{phys}}$ 符号相乘而不变；density-current 和 current-density block
+因只有一个 physical current vertex $\Gamma_i^{\mathrm{phys}}$ 而变号。
+
 ## A. Hamiltonian coupling
 
 从外场耦合 Hamiltonian 写起：
@@ -29,9 +79,9 @@ $$
 \Lambda_{ij}^H=\frac{\delta^2 H}{\delta A_i\delta A_j}.
 $$
 
-$\Gamma_i^H$ 是 Hamiltonian derivative current vertex；$\Lambda_{ij}^H$ 是 Hamiltonian second derivative/contact vertex。
+$\Gamma_i^H$ 是 Hamiltonian vector vertex；$\Lambda_{ij}^H$ 是 Hamiltonian contact vertex。
 
-## B. Hamiltonian derivative vertex 与 physical current
+## B. Hamiltonian vector vertex 与 physical current vertex
 
 physical current 定义为
 
@@ -53,7 +103,9 @@ $$
 \Gamma_i^{\mathrm{phys}}=-\Gamma_i^H,
 $$
 
-而不是 $\Gamma_i^H$ 本身。顶角级 Peierls plus sign 只说明 $\Gamma_i^H$ 的 Hamiltonian derivative convention 正确；它不自动决定 physical current response 的符号。
+而不是 $\Gamma_i^H$ 本身。顶角级 Peierls plus sign 只说明 Hamiltonian vector
+vertex $\Gamma_i^H$ 的符号正确；它不自动决定 physical-current response 中
+$\Gamma_i^{\mathrm{phys}}$ 的符号使用。
 
 ## C. 单粒子 Ward identity
 
@@ -162,7 +214,7 @@ j_i=-\frac{\delta H}{\delta A_i}
 =-\Gamma_i^H-\Lambda_{ij}^H A_j
 $$
 
-可得 direct contact response：
+可得 physical direct contact contribution 的 vertex-level 来源：
 
 $$
 \frac{\delta j_i}{\delta A_j}=-\Lambda_{ij}^H .
@@ -186,15 +238,15 @@ external-field convention。
 本节把当前代码中的对象与解析公式逐一对应。这里的“可以确定”只表示
 formula-to-code mapping 已清楚；它不表示 response-level Ward identity 已经闭合。
 
-| 代码对象 | 代码中的数学形式 | 解析对象 | 物理解释 | 当前状态 |
+| 代码函数 / 代码对象 | 标准名 | 数学定义 | 物理层级 | 是否 final physical response |
 |---|---|---|---|---|
-| `peierls_current_vertex(sign_convention="plus")` | $+i\sum_R R_i t_R e^{i k\cdot R}\operatorname{sinc}\!\left(\frac{q\cdot R}{2}\right)$ | $\Gamma_i^H(k,q)=\delta H/\delta A_i$ | Hamiltonian derivative vertex，不是 physical current vertex | 顶角级 Ward identity 已验证 |
-| `peierls_contact_vertex` | $-\sum_R R_iR_j t_R e^{ik\cdot R}\operatorname{sinc}^2\!\left(\frac{q\cdot R}{2}\right)$ | $\Lambda_{ij}^H(k,q)=\delta^2H/\delta A_i\delta A_j$ | Hamiltonian second-derivative/contact vertex | $q=0$ mass limit、Hermiticity、$\Lambda_{xy}=\Lambda_{yx}$ 已验证 |
-| `normal_density_current_response_imag_axis(..., contact_scheme="none")` / `response_none` | 用 $\Gamma_0=I$ 与 Peierls current vertex $\Gamma_i^H$ 构造的 Kubo bubble prototype | $\Pi_{\mu\nu}^{\mathrm{bubble,code}}$ | 当前代码 bubble；不是已确认的 final physical current response | 可用于 diagnostic，不能直接称为 finite-q conductivity |
-| spatial-spatial block of `response_none` | $\Pi_{ij}^{\mathrm{bubble,code}}\sim\langle\Gamma_i^H\Gamma_j^H\rangle_{\mathrm{Kubo}}$ | Hamiltonian-vertex bubble | physical current-current bubble 因 $j_i=-\Gamma_i^H$ 有两个 current vertex，整体符号不变：$\langle j_ij_j\rangle=\langle(-\Gamma_i^H)(-\Gamma_j^H)\rangle=\langle\Gamma_i^H\Gamma_j^H\rangle$ | 符号映射清楚，但 Kubo convention 仍需闭合 |
-| density-current / current-density block of `response_none` | $\Pi_{0i}^{\mathrm{code}}\sim\langle\Gamma_0\Gamma_i^H\rangle$，$\Pi_{i0}^{\mathrm{code}}\sim\langle\Gamma_i^H\Gamma_0\rangle$ | Hamiltonian-vertex density-current bubble | physical current convention 下只有一个 current vertex，因此这些 block 应随 $j_i=-\Gamma_i^H$ 变号 | 是 response-level sign diagnostic 的关键 |
-| `contact_only = response(finite_q_peierls, plus) - response(none)` | spatial-spatial block 中 $+\sum_{n,k}w_k f_{n,k}\langle n,k|\Lambda_{ij}^H(k,q)|n,k\rangle$ | $+\langle\Lambda_{ij}^H\rangle$ code plus-contact extraction | 这里的 $\langle\cdots\rangle$ 是 midpoint band eigenstates 和 occupations 的加权迹 | 代码对象明确，不是未知项 |
-| physical-current direct contact | $-\langle\Lambda_{ij}^H\rangle$ | $\delta\langle j_i\rangle/\delta A_j$ 的 direct contact contribution | 从 $j_i=-\delta H/\delta A_i=-\Gamma_i^H-\Lambda_{ij}^HA_j+\cdots$ 得出 | 是 `physical_current_q_plus_contact_minus` 的解析动机 |
+| `peierls_current_vertex(sign_convention="plus")` | Hamiltonian vector vertex $\Gamma_i^H$ | $+i\sum_R R_i t_R e^{i k\cdot R}\operatorname{sinc}\!\left(\frac{q\cdot R}{2}\right)$ | Hamiltonian 展开的一阶 vertex，不是 physical current vertex $\Gamma_i^{\mathrm{phys}}$ | 否；顶角级 Ward identity 已验证 |
+| `peierls_contact_vertex` | Hamiltonian contact vertex $\Lambda_{ij}^H$ | $-\sum_R R_iR_j t_R e^{ik\cdot R}\operatorname{sinc}^2\!\left(\frac{q\cdot R}{2}\right)$ | Hamiltonian 展开的二阶 vertex，不是 $K_{ij}^{\mathrm{phys}}$ | 否；$q=0$ mass limit、Hermiticity、$\Lambda_{xy}=\Lambda_{yx}$ 已验证 |
+| `normal_density_current_response_imag_axis(..., contact_scheme="none")` / `response_none` | code bubble prototype $B_{\mu\nu}^{\mathrm{code}}$ | $\Pi_{\mu\nu}^{\mathrm{code}}(\texttt{contact\_scheme=none})$ | 用 $\Gamma_0=I$ 与 Hamiltonian vector vertex $\Gamma_i^H$ 构造的 Kubo bubble prototype | 否；可用于 diagnostic，不能直接称为 finite-q conductivity |
+| spatial-spatial block of `response_none` | $B_{ij}^{\mathrm{code}}$ | $B_{ij}^{\mathrm{code}}\sim\langle\Gamma_i^H\Gamma_j^H\rangle_{\mathrm{Kubo}}$ | physical-current bubble candidate 中两个 $\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$ 相乘，spatial-spatial block 整体符号不变 | 否；Kubo convention 仍需闭合 |
+| density-current / current-density block of `response_none` | $B_{0i}^{\mathrm{code}}$ / $B_{i0}^{\mathrm{code}}$ | $B_{0i}^{\mathrm{code}}\sim\langle\Gamma_0\Gamma_i^H\rangle$，$B_{i0}^{\mathrm{code}}\sim\langle\Gamma_i^H\Gamma_0\rangle$ | physical-current bubble candidate 中只有一个 spatial vertex，因此这些 block 应随 $\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$ 变号 | 否；是 response-level sign diagnostic 的关键 |
+| `contact_only = response(finite_q_peierls, plus) - response(none)` | code contact extraction $C_{ij}^{\mathrm{code}}$ | $C_{ij}^{\mathrm{code}}=+\sum_{n,k}w_k f_{n,k}\langle n,k|\Lambda_{ij}^H(k,q)|n,k\rangle=+\langle\Lambda_{ij}^H\rangle$ | 代码 plus-contact extraction；不是 physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ | 否；代码对象明确，不是未知项 |
+| physical-current direct contact | physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ | $K_{ij}^{\mathrm{phys}}=-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$ | 从 $j_i=-\delta H/\delta A_i=-\Gamma_i^H-\Lambda_{ij}^HA_j+\cdots$ 得出 | 否；是 `physical_current_q_plus_contact_minus` 的解析动机 |
 
 `peierls_current_vertex(sign_convention="plus")` 满足顶角级 Ward identity：
 
@@ -204,7 +256,7 @@ q_i\Gamma_i^H(k,q)
 H_0(k+q/2)-H_0(k-q/2).
 $$
 
-physical current 的零阶 vertex 是
+physical current vertex 是
 
 $$
 j_i^{(0)}=-\Gamma_i^H.
@@ -235,7 +287,7 @@ $$
 \Pi_{ij}^{\mathrm{phys}}=\frac{\delta\langle j_i\rangle}{\delta A_j},
 $$
 
-那么 direct contact contribution 应为
+那么 physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ 应为
 
 $$
 -\langle\Lambda_{ij}^H\rangle.
@@ -250,8 +302,10 @@ residual 仍为 $O(q)$，Ward identity 尚未闭合。
 
 1. `peierls_current_vertex(sign_convention="plus")` 是 $\Gamma_i^H$。
 2. `peierls_contact_vertex` 是 $\Lambda_{ij}^H$。
-3. `contact_only` 在代码 plus-contact 抽取下是 $+\langle\Lambda_{ij}^H\rangle$。
-4. physical current direct contact term 应为 $-\langle\Lambda_{ij}^H\rangle$。
+3. `contact_only` 在代码 plus-contact 抽取下是 code contact extraction
+   $C_{ij}^{\mathrm{code}}=+\langle\Lambda_{ij}^H\rangle$。
+4. physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ 应为
+   $-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$。
 5. contact-minus candidate 有解析动机，并且降低 residual。
 
 当前不能确定：
@@ -288,26 +342,31 @@ $$
 明确代码里的 vertex、bubble、contact extraction 到底对应哪些解析对象。只有在这个
 映射清楚后，才考虑少量 targeted diagnostic。
 
-Hamiltonian-vertex convention：
+Hamiltonian-vector convention：
 
-- current vertex $=\Gamma_i^H$；
-- Ward $q$-sign 使用 $Q_H=(i\Omega,-q_x,-q_y)$；
-- contact sign 以 Hamiltonian response convention 的 plus candidate 为基准。
+- 使用 Hamiltonian vector vertex $\Gamma_i^H$；
+- Ward contraction 使用 $Q_H=(i\Omega,-q_x,-q_y)$；
+- code contact extraction $C_{ij}^{\mathrm{code}}=+\langle\Lambda_{ij}^H\rangle$
+  作为 diagnostic candidate。
 
 Physical-current convention：
 
-- current observable $=-\Gamma_i^H$；
-- Ward $q$-sign 使用 $Q_{\mathrm{phys}}=(i\Omega,+q_x,+q_y)$；
-- contact direct term倾向于 minus candidate，即 $-\Lambda_{ij}^H$。
+- 使用 physical current vertex $\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$；
+- Ward contraction 使用 $Q_{\mathrm{phys}}=(i\Omega,+q_x,+q_y)$；
+- physical direct contact contribution 为
+  $K_{ij}^{\mathrm{phys}}=-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$。
 
 如果后续做 $\lambda$-scan，它只能作为 Stage 4.6B optional diagnostic
-contact-coefficient scan：用来判断 residual 是否像简单 contact normalization/factor
+contact-coefficient scan：用来判断 residual 是否像简单 $K_{ij}^{\mathrm{phys}}$
+normalization/factor
 问题。$\lambda$-scan 不是确定物理系数的方法，也不能替代上述解析推导。
 
 ## 当前结论
 
 本文档是解析符号约定推导与 formula-to-code mapping，不是最终 conductivity /
 reflection / Casimir 实现。当前最可疑的是 response-level convention mismatch：
-Hamiltonian derivative current vertex、physical current、contact sign、Ward $q$-sign
+Hamiltonian vector vertex $\Gamma_i^H$、physical current vertex
+$\Gamma_i^{\mathrm{phys}}$、physical direct contact contribution
+$K_{ij}^{\mathrm{phys}}$、Ward vector $Q_H/Q_{\mathrm{phys}}$
 与 Kubo response definition 尚未统一。`physical_current_q_plus_contact_minus`
 应称为 best residual candidate / best diagnostic candidate，而不是最终 convention。

@@ -22,11 +22,11 @@
 
 该阶段建立了 Peierls finite-q 顶角的输入基础。
 
-## Stage 4.1B: Peierls current vertex
+## Stage 4.1B: Peierls Hamiltonian vector vertex
 
 结果：
 
-- Peierls current vertex 顶角级 Ward identity 通过；
+- Peierls Hamiltonian vector vertex $\Gamma_i^H$ 顶角级 Ward identity 通过；
 - plus sign 对应 Hamiltonian derivative vertex：
 
 $$
@@ -38,25 +38,29 @@ $$
 
 解释：
 
-顶角级正确说明 $\Gamma_i^H$ 的 Hamiltonian derivative convention 正确，但不等于 physical current response sign 已经确定。
+顶角级正确说明 $\Gamma_i^H$ 的 Hamiltonian vector vertex convention 正确，但不等于
+physical current vertex $\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$ 或 final response sign 已经确定。
 
 ## Stage 4.1C: Peierls current 接入 response prototype
 
 结果：
 
-- 把 Peierls current vertex 接入 $\Pi_{\mu\nu}$ 后，full Ward residual 没有显著改善；
+- 把 Peierls Hamiltonian vector vertex $\Gamma_i^H$ 接入 $\Pi_{\mu\nu}$ 后，full Ward residual 没有显著改善；
 - midpoint 与 Peierls current 的 response-level residual 趋势接近。
 
 解释：
 
-顶角级 Ward identity 通过不保证 response-level Ward identity 闭合。问题可能在 response convention、equal-time/contact term 或 current sign。
+顶角级 Ward identity 通过不保证 response-level Ward identity 闭合。问题可能在
+response convention、equal-time / commutator term、physical direct contact contribution
+$K_{ij}^{\mathrm{phys}}$ 或 current sign。
 
 ## Stage 4.1D / 4.2B: q0 mass 与 finite-q contact 接入
 
 结果：
 
 - q0 mass diagnostic contact 只带来有限改善；
-- finite-q Peierls contact 接入 spatial-spatial block 后也只小幅改善；
+- finite-q Peierls Hamiltonian contact vertex $\Lambda_{ij}^H$ 以 code contact extraction
+  $C_{ij}^{\mathrm{code}}$ 接入 spatial-spatial block 后也只小幅改善；
 - 二者都不能消除 small-q $O(q)$ residual；
 - finite-q Peierls contact 不明显优于 q0 mass diagnostic。
 
@@ -64,17 +68,19 @@ $$
 
 finite-q contact 与 q0 mass 的差异从 $O(q^2)$ 开始，因此不能修复 leading $O(q)$ response-level 缺口。contact 的改善主要是中大 $q$ 的数值效果，不是 small-q leading 闭合。
 
-## Stage 4.2A: Peierls contact vertex audit
+## Stage 4.2A: Peierls Hamiltonian contact vertex audit
 
 结果：
 
-- finite-q Peierls contact vertex 的 $q=0$ mass limit 通过；
+- finite-q Peierls Hamiltonian contact vertex $\Lambda_{ij}^H$ 的 $q=0$ mass limit 通过；
 - Hermiticity 通过；
 - $\Lambda_{xy}=\Lambda_{yx}$ 通过。
 
 解释：
 
-contact 顶角本身基本可信。后续问题更可能在 response-level direct term 的符号、归一化或 Kubo convention。
+Hamiltonian contact vertex $\Lambda_{ij}^H$ 本身基本可信。后续问题更可能在
+response-level physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ 的符号、
+归一化或 Kubo convention。
 
 ## Stage 4.3A: full Ward decomposition
 
@@ -132,8 +138,9 @@ response-level sign convention 的线索，不是最终实现选择。
 
 解释：
 
-contact-minus candidate 与 physical-current direct contact term
-$-\langle\Lambda_{ij}^H\rangle$ 的方向一致，并得到 residual 诊断支持。但这只是
+contact-minus candidate 与 physical direct contact contribution
+$K_{ij}^{\mathrm{phys}}=-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$ 的方向一致，
+并得到 residual 诊断支持。但这只是
 best residual candidate / best diagnostic candidate，不是最终 convention。
 Residual minimization is not a physical derivation；residual 最小不能替代物理推导。
 
@@ -145,12 +152,14 @@ Residual minimization is not a physical derivation；residual 最小不能替代
 - residual 仍为 $O(q)$；
 - longitudinal channel 是主问题；
 - transverse channel 接近机器精度；
-- contact term 是 leading $O(q)$ 量级，并能降低 residual 系数；
+- code contact extraction $C_{ij}^{\mathrm{code}}$ / physical direct contact contribution
+  $K_{ij}^{\mathrm{phys}}$ 是 leading $O(q)$ 量级，并能降低 residual 系数；
 - left/right comparison 暴露出仍需检查 response index order / conjugation。
 
 解释：
 
-Stage 4.5 显示 contact term 参与 leading $O(q)$ cancellation，但没有把 Ward
+Stage 4.5 显示 $C_{ij}^{\mathrm{code}}$ 与 $K_{ij}^{\mathrm{phys}}$ 相关的 direct
+contact contribution 参与 leading $O(q)$ cancellation，但没有把 Ward
 residual 闭合。当前 leftover 更像 contact-sensitive 的 response-level mismatch，
 可能涉及 contact normalization/factor/sign、equal-time / commutator term、
 Kubo bubble convention 或 response index order。不能据此声称 contact minus 已解决问题，
@@ -160,19 +169,24 @@ Kubo bubble convention 或 response index order。不能据此声称 contact min
 
 当前证据链支持：
 
-- Peierls current/contact 顶角本身不是主要问题；
+- Peierls Hamiltonian vector/contact vertices $\Gamma_i^H,\Lambda_{ij}^H$ 本身不是主要问题；
 - density sector 不是 $O(q)$ 主因；
 - spatial-current sector 是 full Ward $O(q)$ 缺口来源；
-- contact term 能改善 spatial residual，但不能闭合 small-q leading term；
+- physical direct contact contribution candidate $K_{ij}^{\mathrm{phys}}=-C_{ij}^{\mathrm{code}}$
+  能改善 spatial residual，但不能闭合 small-q leading term；
 - finite-q Peierls contact 不明显优于 q0 mass diagnostic，符合二者差异为 $O(q^2)$ 的解析判断；
-- contact-minus candidate 更小提示 physical-current/contact response sign 可能与当前
-  prototype convention 不一致；它有解析动机，但不是最终物理实现。
+- contact-minus candidate 更小提示 physical current vertex $\Gamma_i^{\mathrm{phys}}$
+  和 physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ 可能与当前 prototype
+  convention 不一致；它有解析动机，但不是最终物理实现。
 
 最可疑的问题是 response-level convention mismatch：
 
-- Hamiltonian derivative current vertex $\Gamma_i^H$ 与 physical current $j_i=-\Gamma_i^H$ 的符号；
-- contact direct term 的符号；
-- Ward contraction 中 $Q_H=(i\Omega,-q_x,-q_y)$ 与 $Q_{\mathrm{phys}}=(i\Omega,+q_x,+q_y)$ 的选择；
+- Hamiltonian vector vertex $\Gamma_i^H$ 与 physical current vertex
+  $\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$ 的符号；
+- code contact extraction $C_{ij}^{\mathrm{code}}$ 与 physical direct contact contribution
+  $K_{ij}^{\mathrm{phys}}=-C_{ij}^{\mathrm{code}}$ 的符号；
+- Ward contraction 中 $Q_H=(i\Omega,-q_x,-q_y)$ 与
+  $Q_{\mathrm{phys}}=(i\Omega,+q_x,+q_y)$ 的选择；
 - Kubo bubble sign、denominator、complex conjugation 和 $\Pi_{\mu\nu}$ 指标顺序；
 - equal-time / commutator term 与 paramagnetic-diamagnetic cancellation。
 
@@ -183,7 +197,8 @@ Kubo bubble convention 或 response index order。不能据此声称 contact min
 1. 明确 `peierls_current_vertex(sign_convention="plus")` 对应 $\Gamma_i^H$；
 2. 明确 `peierls_contact_vertex` 对应 $\Lambda_{ij}^H$；
 3. 明确 code plus-contact extraction 中 `contact_only=+\langle\Lambda_{ij}^H\rangle`；
-4. 明确 physical-current direct contact 应为 $-\langle\Lambda_{ij}^H\rangle$；
+4. 明确 physical direct contact contribution
+   $K_{ij}^{\mathrm{phys}}=-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$；
 5. 再检查 Kubo bubble sign、denominator、matrix-element order、equal-time /
    commutator term 和 response index order。
 

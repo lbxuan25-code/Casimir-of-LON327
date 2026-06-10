@@ -19,7 +19,7 @@
 ```text
 H0(k)
 -> tight-binding Fourier/hopping representation
--> Peierls current/contact vertices
+-> Peierls Hamiltonian vector/contact vertices (Gamma_i^H, Lambda_ij^H)
 -> Pi_{mu nu}(iOmega, q)
 -> Ward identity
 -> future finite-q conductivity
@@ -35,8 +35,8 @@ Casimir 几何中的电磁涨落带有 in-plane momentum $\mathbf{q}$。local $q
 
 因此，当前阶段必须先检查：
 
-- finite-q current vertex 是否满足顶角级 Ward identity；
-- finite-q contact vertex 是否与同一个 Peierls 展开一致；
+- finite-q Hamiltonian vector vertex $\Gamma_i^H$ 是否满足顶角级 Ward identity；
+- finite-q Hamiltonian contact vertex $\Lambda_{ij}^H$ 是否与同一个 Peierls 展开一致；
 - $\Pi_{\mu\nu}(i\Omega,\mathbf{q})$ 是否在 response level gauge consistent；
 - density/current/contact 的符号、频率、指标顺序是否自洽。
 
@@ -57,11 +57,17 @@ $$
 其中：
 
 - $0$ 表示 density vertex，目前 prototype 使用 $\Gamma_0=I_4$；
-- $x,y$ 表示 spatial current vertex；
-- contact / diamagnetic term 只进入 spatial-spatial block；
+- $x,y$ 表示 spatial current/current-like vertex，需要区分 Hamiltonian vector vertex
+  $\Gamma_i^H$ 和 physical current vertex $\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$；
+- physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ 只进入 spatial-spatial block；
 - Ward identity 同时约束 density-current 和 current-current block。
 
-Peierls substitution 给出一阶 Hamiltonian derivative vertex $\Gamma_i^H$ 和二阶 contact vertex $\Lambda_{ij}^H$。它们是构造 gauge-consistent response 的必要组成，但不等于已经得到最终 conductivity。
+Peierls substitution 给出一阶 Hamiltonian vector vertex $\Gamma_i^H$ 和二阶
+Hamiltonian contact vertex $\Lambda_{ij}^H$。physical-current response 还需要区分
+code contact extraction $C_{ij}^{\mathrm{code}}=+\langle\Lambda_{ij}^H\rangle$ 与
+physical direct contact contribution
+$K_{ij}^{\mathrm{phys}}=-C_{ij}^{\mathrm{code}}$。这些对象是构造 gauge-consistent
+response 的必要组成，但不等于已经得到最终 conductivity。
 
 ## 当前阶段状态
 
@@ -72,8 +78,8 @@ $\Pi_{\mu\nu}$ Ward closure。
 已完成：
 
 - $H_0^{\mathrm{hop}}(\mathbf{k})=\sum_R t_R e^{i\mathbf{k}\cdot R}$ 对原三角函数 $H_0(\mathbf{k})$ 的重构审计；
-- Peierls current vertex 顶角级 Ward identity；
-- Peierls contact vertex 的 $q\to0$ mass limit、Hermiticity、$\Lambda_{xy}=\Lambda_{yx}$ 审计；
+- Peierls Hamiltonian vector vertex $\Gamma_i^H$ 顶角级 Ward identity；
+- Peierls Hamiltonian contact vertex $\Lambda_{ij}^H$ 的 $q\to0$ mass limit、Hermiticity、$\Lambda_{xy}=\Lambda_{yx}$ 审计；
 - normal-state $\Pi_{\mu\nu}$ Ward prototype；
 - full / density / spatial Ward residual decomposition；
 - Stage 4.4 / 4.5 response-level convention diagnostic 与 spatial term decomposition。
@@ -81,7 +87,7 @@ $\Pi_{\mu\nu}$ Ward closure。
 仍是 diagnostic：
 
 - midpoint velocity finite-q kernel；
-- Peierls current/contact 接入后的 normal-state Ward response；
+- Peierls Hamiltonian vector/contact vertices $\Gamma_i^H,\Lambda_{ij}^H$ 接入后的 normal-state Ward response；
 - q0 mass diagnostic contact；
 - finite-q Peierls contact response-level sign 比较；
 - best residual candidate / best diagnostic candidate 的 term decomposition。
@@ -146,18 +152,22 @@ reflection/Casimir input。
 
 ```text
 peierls_current_vertex(sign_convention="plus") = Gamma_i^H
+physical current vertex = Gamma_i^phys = -Gamma_i^H
 peierls_contact_vertex = Lambda_ij^H
-contact_only under code plus-contact extraction = +<Lambda_ij^H>
-physical-current direct contact = -<Lambda_ij^H>
+code contact extraction C_ij^code = contact_only = +<Lambda_ij^H>
+physical direct contact contribution K_ij^phys = -C_ij^code
 ```
 
 这一步的目标是防止把 residual 最小的组合误读为最终物理实现。
 `physical_current_q_plus_contact_minus` 只能称为 best residual candidate /
-best diagnostic candidate：它有 physical-current direct contact 的解析动机，并降低
+best diagnostic candidate：它有 physical direct contact contribution
+$K_{ij}^{\mathrm{phys}}$ 的解析动机，并降低
 residual，但 Ward residual 仍为 $O(q)$，不能声明闭合。
 
-Stage 4.6B 可作为 optional diagnostic contact-coefficient scan。$\lambda$-scan 不是确定
-物理系数的方法，只能用来判断 residual 是否像简单 contact normalization/factor 问题。
+Stage 4.6B 可作为 optional diagnostic contact-coefficient scan。$\lambda$-scan 必须在
+上述标准对象命名稳定后才有意义；它不是确定物理系数的方法，不能把 $\lambda$ 当作自由
+物理参数拟合，只能用来判断 residual 是否像简单 $K_{ij}^{\mathrm{phys}}$
+normalization/factor 问题。
 在 formula-to-code mapping、Kubo bubble sign、equal-time / commutator term、denominator、
 matrix-element order 和 response index order 未闭合前，不进入 finite-q conductivity、
 reflection 或 Casimir。
@@ -202,4 +212,5 @@ benchmark 稳定前提前声明材料结论。
 reflection/Casimir input，也不是材料结论。Residual minimization is not a physical
 derivation；residual 最小不能替代物理推导。下一步应优先完成 Stage 4.6A
 formula-to-code mapping audit，并复查 current sign、contact sign、Ward $q$-sign、
-Kubo bubble sign、equal-time/contact term 与 $\Pi_{\mu\nu}$ 指标顺序。
+Kubo bubble sign、equal-time / commutator term、physical direct contact contribution
+$K_{ij}^{\mathrm{phys}}$ 与 $\Pi_{\mu\nu}$ 指标顺序。

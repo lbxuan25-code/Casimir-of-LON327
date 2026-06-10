@@ -2,8 +2,8 @@
 
 ## 1. Purpose / 目的
 
-本文记录 finite-q 响应中 Hamiltonian 表示、电磁顶角、Ward identity 与 contact term
-的使用边界，避免把不同层次的诊断混在一起。
+本文记录 finite-q 响应中 Hamiltonian 表示、电磁顶角、Ward identity 与 physical
+direct contact contribution 的使用边界，避免把不同层次的诊断混在一起。
 它是 convention 使用边界和索引文档，不是 response-level formula-to-code mapping
 的第二个 source of truth。代码对象与解析对象的主要依据见
 [response-level Ward convention 推导](response_level_ward_convention_derivation_zh.md)。
@@ -66,7 +66,7 @@ $$
 [\Gamma_0(\mathbf{q})]_{ab} = \delta_{ab} e^{-i\mathbf{q}\cdot\mathbf{r}_a}.
 $$
 
-## 5. Current vertex convention
+## 5. Hamiltonian vector vertex convention
 
 midpoint velocity
 
@@ -75,9 +75,10 @@ v_i(\mathbf{k}) = \frac{\partial H_0}{\partial k_i}
 $$
 
 是 $q\to0$ 极限，可以作为 diagnostic baseline，但不是最终 finite-q gauge-consistent
-current vertex。
+Hamiltonian vector vertex。
 
-从 hopping/Fourier 表示的 Peierls 相位展开得到的 finite-q current vertex 约定为
+从 hopping/Fourier 表示的 Peierls 相位展开得到的 finite-q Hamiltonian vector vertex
+$\Gamma_i^H$ 约定为
 
 $$
 \Gamma_i^P(\mathbf{k},\mathbf{q})
@@ -98,15 +99,22 @@ q_x \Gamma_x^P + q_y \Gamma_y^P
 = H_0(\mathbf{k}+\mathbf{q}/2)-H_0(\mathbf{k}-\mathbf{q}/2).
 $$
 
-这里通过的 plus sign 是 Hamiltonian derivative vertex 的顶角级约定，
-即 $\Gamma_i^H=\delta H/\delta A_i$。它不自动决定 physical current response
-中的电流符号，因为 physical current 满足 $j_i=-\delta H/\delta A_i$。整体 response-level
+这里通过的 plus sign 是 Hamiltonian vector vertex 的顶角级约定，
+即 $\Gamma_i^H=\delta H/\delta A_i$。它不自动决定 physical-current response
+中的电流符号，因为 physical current vertex 是
+$\Gamma_i^{\mathrm{phys}}=-\Gamma_i^H$。整体 response-level
 符号必须与 current definition、contact sign 和 Ward $q$-sign 一起固定，并在实现和输出
 metadata 中明确记录。
 
-## 6. Contact / diamagnetic term convention
+## 6. Hamiltonian contact vertex and physical direct contact convention
 
-spatial-spatial response 除 current-current bubble 外，还需要 contact / diamagnetic term。
+spatial-spatial response 除 current-current bubble 外，还需要 physical direct contact
+contribution。标准命名以
+[response-level Ward convention 推导](response_level_ward_convention_derivation_zh.md) 为准：
+Hamiltonian contact vertex 记为 $\Lambda_{ij}^H$，code contact extraction 记为
+$C_{ij}^{\mathrm{code}}=+\langle\Lambda_{ij}^H\rangle$，physical direct contact
+contribution 记为
+$K_{ij}^{\mathrm{phys}}=-\langle\Lambda_{ij}^H\rangle=-C_{ij}^{\mathrm{code}}$。
 
 $q=0$ mass operator
 
@@ -115,7 +123,9 @@ $$
 $$
 
 只能作为 small-q diagnostic contact。最终 finite-q gauge-consistent response 需要从同一个
-Peierls 展开得到 finite-q contact term。没有 contact term 的
+Peierls 展开得到 Hamiltonian contact vertex $\Lambda_{ij}^H$，并在 physical-current
+response 中使用一致的 physical direct contact contribution $K_{ij}^{\mathrm{phys}}$。
+没有声明 $K_{ij}^{\mathrm{phys}}$ convention 的
 $\Pi_{\mu\nu}$ 不能称为最终 finite-q conductivity。
 
 ## 7. Ward diagnostic convention
@@ -128,7 +138,8 @@ $$
 
 其中 $0$ 表示 density，$x/y$ 表示 current。残差定义为
 
-历史 diagnostic 默认使用 physical-current-like convention：
+历史 diagnostic 默认使用 physical-current-like convention，即 $Q_{\mathrm{phys}}$
+contraction：
 
 $$
 Q_{\mathrm{phys}}=(i\Omega,+q_x,+q_y).
@@ -146,8 +157,9 @@ R_R^{\mathrm{phys}}[\mu]
 = i\Omega\,\Pi_{\mu0} + \Pi_{\mu x}q_x + \Pi_{\mu y}q_y.
 $$
 
-如果 spatial vertex 使用 Hamiltonian derivative vertex
-$\Gamma_i^H=\delta H/\delta A_i$，则还必须检查 Hamiltonian-vertex convention：
+如果 spatial vertex 使用 Hamiltonian vector vertex
+$\Gamma_i^H=\delta H/\delta A_i$，则还必须检查 Hamiltonian-vector convention，即
+$Q_H$ contraction：
 
 $$
 Q_H=(i\Omega,-q_x,-q_y).
@@ -171,8 +183,8 @@ $$
 只有 Ward residual 在声明的 vertex/contact scheme 下足够小，才能称为
 gauge-consistent finite-q response。
 但 residual minimization is not a physical derivation；residual 最小不能替代物理推导。
-特别地，contact-minus residual candidate 只能说明它与 physical-current direct contact
-term 的方向一致并得到诊断支持，不能把它直接写成最终物理实现。
+特别地，contact-minus residual candidate 只能说明它与 physical direct contact
+contribution $K_{ij}^{\mathrm{phys}}$ 的方向一致并得到诊断支持，不能把它直接写成最终物理实现。
 
 ## 8. Required provenance fields
 
