@@ -1,0 +1,421 @@
+{
+  "boundary": {
+    "does_not_claim_ward_closure_unless_status_closed": true,
+    "no_bubble_formula_change": true,
+    "no_conductivity_reflection_casimir": true,
+    "no_residual_tuning": true
+  },
+  "config": {
+    "eta_eV": 1e-10,
+    "matsubara_index": 1,
+    "mesh_size": 16,
+    "omega_eV": 0.016243290521934156,
+    "q_base": [
+      0.02,
+      0.013
+    ],
+    "q_scales": [
+      1.0,
+      0.5,
+      0.25,
+      0.125
+    ],
+    "temperature_K": 30.0
+  },
+  "purpose": "Ward residual regression after Stage 4.8 Kubo bubble audit",
+  "responses": {
+    "stage47_historical_observable_observable": {
+      "description": "historical Stage 4.7 diagnostic only; observable-observable bubble assembled from old pieces.",
+      "results_by_q_scale": [
+        {
+          "left_density_source_abs": 5.649469358350303e-17,
+          "left_error": 0.01505648779824874,
+          "left_imag": [
+            7.26415455565288e-18,
+            -3.619579886069648e-18,
+            1.3614220675479915e-18
+          ],
+          "left_longitudinal_abs": 0.008244547494689287,
+          "left_norm": 0.008244564861626436,
+          "left_real": [
+            5.602573035387836e-17,
+            -0.0069218106909418944,
+            -0.00447899391787127
+          ],
+          "left_spatial_source_norm": 0.008244564861626436,
+          "left_transverse_abs": 1.6922333701580635e-05,
+          "max_error": 0.01505648779824874,
+          "max_norm": 0.008244564861626436,
+          "pi_norm": 0.5475755682268333,
+          "q_model": [
+            0.02,
+            0.013
+          ],
+          "q_norm": 0.023853720883753128,
+          "q_scale": 1.0,
+          "response_label": "stage47_historical_observable_observable",
+          "right_density_observable_abs": 5.652744276918088e-17,
+          "right_error": 0.01505648779824874,
+          "right_imag": [
+            7.426784881525705e-18,
+            -3.592221800190135e-18,
+            1.3047020183619762e-18
+          ],
+          "right_longitudinal_abs": 0.008244547494689287,
+          "right_norm": 0.008244564861626436,
+          "right_real": [
+            5.603743973761257e-17,
+            -0.0069218106909418944,
+            -0.00447899391787127
+          ],
+          "right_spatial_observable_norm": 0.008244564861626436,
+          "right_transverse_abs": 1.6922333701580635e-05
+        },
+        {
+          "left_density_source_abs": 1.2323013416977074e-16,
+          "left_error": 0.007663186086805595,
+          "left_imag": [
+            -2.0952206983282373e-17,
+            -4.3347494496366436e-19,
+            9.33808391572028e-19
+          ],
+          "left_longitudinal_abs": 0.004156745968933125,
+          "left_norm": 0.004156746054759137,
+          "left_real": [
+            1.2143587192435928e-16,
+            -0.003485657472531654,
+            -0.0022646698982279716
+          ],
+          "left_spatial_source_norm": 0.004156746054759137,
+          "left_transverse_abs": 8.446974981497941e-07,
+          "max_error": 0.007663186086805595,
+          "max_norm": 0.004156746054759137,
+          "pi_norm": 0.5424305253289079,
+          "q_model": [
+            0.01,
+            0.0065
+          ],
+          "q_norm": 0.011926860441876564,
+          "q_scale": 0.5,
+          "response_label": "stage47_historical_observable_observable",
+          "right_density_observable_abs": 1.2322710254056718e-16,
+          "right_error": 0.007663186086805595,
+          "right_imag": [
+            -2.0952206983282373e-17,
+            -4.3766716190710595e-19,
+            9.479458401086426e-19
+          ],
+          "right_longitudinal_abs": 0.004156745968933125,
+          "right_norm": 0.004156746054759137,
+          "right_real": [
+            1.2143279550052842e-16,
+            -0.003485657472531654,
+            -0.0022646698982279716
+          ],
+          "right_spatial_observable_norm": 0.004156746054759137,
+          "right_transverse_abs": 8.446974981497941e-07
+        },
+        {
+          "left_density_source_abs": 3.3535006538529836e-16,
+          "left_error": 0.003839558798205195,
+          "left_imag": [
+            -1.0781035352652735e-17,
+            1.2223105923557205e-18,
+            9.123244360333023e-19
+          ],
+          "left_longitudinal_abs": 0.002079761856784327,
+          "left_norm": 0.0020797618584823046,
+          "left_real": [
+            3.3517672298453055e-16,
+            -0.0017438088532466017,
+            -0.0011333755208828803
+          ],
+          "left_spatial_source_norm": 0.0020797618584823046,
+          "left_transverse_abs": 8.404032888565185e-08,
+          "max_error": 0.003839558798205195,
+          "max_norm": 0.0020797618584823046,
+          "pi_norm": 0.5416668861678824,
+          "q_model": [
+            0.005,
+            0.00325
+          ],
+          "q_norm": 0.005963430220938282,
+          "q_scale": 0.25,
+          "response_label": "stage47_historical_observable_observable",
+          "right_density_observable_abs": 3.3535052169179294e-16,
+          "right_error": 0.003839558798205195,
+          "right_imag": [
+            -1.0781035352652735e-17,
+            1.2228128114895057e-18,
+            9.09270021318276e-19
+          ],
+          "right_longitudinal_abs": 0.002079761856784327,
+          "right_norm": 0.0020797618584823046,
+          "right_real": [
+            3.3517717952701154e-16,
+            -0.0017438088532466017,
+            -0.0011333755208828803
+          ],
+          "right_spatial_observable_norm": 0.0020797618584823046,
+          "right_transverse_abs": 8.404032888565185e-08
+        },
+        {
+          "left_density_source_abs": 1.73088056074231e-16,
+          "left_error": 0.0019205384651987554,
+          "left_imag": [
+            1.6068215009414077e-18,
+            3.50009713423306e-19,
+            1.9524353505794937e-19
+          ],
+          "left_longitudinal_abs": 0.0010400066646426948,
+          "left_norm": 0.0010400066646900896,
+          "left_real": [
+            1.73080597642313e-16,
+            -0.0008719923599652428,
+            -0.0005667831920250025
+          ],
+          "left_spatial_source_norm": 0.0010400066646900896,
+          "left_transverse_abs": 9.928809398729223e-09,
+          "max_error": 0.0019205384651987554,
+          "max_norm": 0.0010400066646900896,
+          "pi_norm": 0.5415182687228605,
+          "q_model": [
+            0.0025,
+            0.001625
+          ],
+          "q_norm": 0.002981715110469141,
+          "q_scale": 0.125,
+          "response_label": "stage47_historical_observable_observable",
+          "right_density_observable_abs": 1.7308847010651444e-16,
+          "right_error": 0.0019205384651987554,
+          "right_imag": [
+            1.610209632730425e-18,
+            3.4692318486411036e-19,
+            1.9616799239868759e-19
+          ],
+          "right_longitudinal_abs": 0.0010400066646426948,
+          "right_norm": 0.0010400066646900896,
+          "right_real": [
+            1.7308098020508322e-16,
+            -0.0008719923599652428,
+            -0.0005667831920250025
+          ],
+          "right_spatial_observable_norm": 0.0010400066646900896,
+          "right_transverse_abs": 9.928809398729223e-09
+        }
+      ],
+      "slopes": {
+        "left_longitudinal_abs": 0.9959578859405442,
+        "left_norm": 0.995958800481386,
+        "left_spatial_source_norm": 0.995958800481386,
+        "left_transverse_abs": 3.5534341634466817,
+        "max_norm": 0.995958800481386,
+        "right_longitudinal_abs": 0.9959578859405442,
+        "right_norm": 0.995958800481386,
+        "right_spatial_observable_norm": 0.995958800481386,
+        "right_transverse_abs": 3.5534341634466817
+      },
+      "status": "ORDER_Q_RESIDUAL"
+    },
+    "stage48_physical_observable_source": {
+      "description": "-<J_mu P_nu> plus direct term, with J=(rho,-Vx,-Vy) and P=(rho,Vx,Vy).",
+      "results_by_q_scale": [
+        {
+          "left_density_source_abs": 5.590219239225197e-17,
+          "left_error": 0.017563434010700246,
+          "left_imag": [
+            9.053088140253962e-18,
+            3.7116064212006474e-18,
+            -1.35751031212222e-18
+          ],
+          "left_longitudinal_abs": 0.019031274688790435,
+          "left_norm": 0.019031282597167652,
+          "left_real": [
+            5.516427022435036e-17,
+            -0.01594719537324808,
+            -0.01038636977103701
+          ],
+          "left_spatial_source_norm": 0.019031282597167652,
+          "left_transverse_abs": 1.7349727974600576e-05,
+          "max_error": 0.017563434010700246,
+          "max_norm": 0.019031282597167652,
+          "pi_norm": 1.0835741225533198,
+          "q_model": [
+            0.02,
+            0.013
+          ],
+          "q_norm": 0.023853720883753128,
+          "q_scale": 1.0,
+          "response_label": "stage48_physical_observable_source",
+          "right_density_observable_abs": 0.002356935365094275,
+          "right_error": 0.01622868003107351,
+          "right_imag": [
+            0.002356935365094275,
+            -1.0588444677283827e-17,
+            5.311993217121955e-18
+          ],
+          "right_longitudinal_abs": 0.017426309741677182,
+          "right_norm": 0.017584977724869062,
+          "right_real": [
+            6.743379626775847e-17,
+            -0.014613760057795683,
+            -0.009492855958144763
+          ],
+          "right_spatial_observable_norm": 0.017426310489283413,
+          "right_transverse_abs": 5.104511327269287e-06
+        },
+        {
+          "left_density_source_abs": 1.2331936486848376e-16,
+          "left_error": 0.008804502983801074,
+          "left_imag": [
+            -2.0559183695756378e-17,
+            4.476401470279524e-19,
+            -9.392723833214788e-19
+          ],
+          "left_longitudinal_abs": 0.009481627398632059,
+          "left_norm": 0.009481627441168372,
+          "left_real": [
+            1.2159352662592846e-16,
+            -0.007949320497343414,
+            -0.005168129503372855
+          ],
+          "left_spatial_source_norm": 0.009481627441168372,
+          "left_transverse_abs": 8.981241164480666e-07,
+          "max_error": 0.008804502983801074,
+          "max_norm": 0.009481627441168372,
+          "pi_norm": 1.0769066077452756,
+          "q_model": [
+            0.01,
+            0.0065
+          ],
+          "q_norm": 0.011926860441876564,
+          "q_scale": 0.5,
+          "response_label": "stage48_physical_observable_source",
+          "right_density_observable_abs": 0.0005934557746525761,
+          "right_error": 0.008072821070926639,
+          "right_imag": [
+            0.0005934557746525761,
+            -1.1804893111261222e-18,
+            2.724033416443582e-18
+          ],
+          "right_longitudinal_abs": 0.008673395038860696,
+          "right_norm": 0.00869367435442619,
+          "right_real": [
+            1.2112993871516838e-16,
+            -0.0072730185658163304,
+            -0.0047255671580911955
+          ],
+          "right_spatial_observable_norm": 0.008673395184374983,
+          "right_transverse_abs": 1.588774932559378e-06
+        },
+        {
+          "left_density_source_abs": 3.353461898416316e-16,
+          "left_error": 0.0044048715256931525,
+          "left_imag": [
+            -1.098093512820475e-17,
+            -1.2153607258024226e-18,
+            -9.101739373596063e-19
+          ],
+          "left_longitudinal_abs": 0.004739482613528492,
+          "left_norm": 0.004739482614396718,
+          "left_real": [
+            3.351663558667692e-16,
+            -0.003973739501230277,
+            -0.0025830388747618374
+          ],
+          "left_spatial_source_norm": 0.004739482614396718,
+          "left_transverse_abs": 9.071872911084813e-08,
+          "max_error": 0.0044048715256931525,
+          "max_norm": 0.004739482614396718,
+          "pi_norm": 1.075963870172334,
+          "q_model": [
+            0.005,
+            0.00325
+          ],
+          "q_norm": 0.005963430220938282,
+          "q_scale": 0.25,
+          "response_label": "stage48_physical_observable_source",
+          "right_density_observable_abs": 0.00014896734863824613,
+          "right_error": 0.004030137572345847,
+          "right_imag": [
+            0.00014896734863824613,
+            3.610226028108291e-18,
+            2.8202426416173896e-18
+          ],
+          "right_longitudinal_abs": 0.004333722869125421,
+          "right_norm": 0.004336282419668173,
+          "right_real": [
+            3.3293455513635213e-16,
+            -0.0036336988844702573,
+            -0.002361649078326957
+          ],
+          "right_spatial_observable_norm": 0.004333722874407518,
+          "right_transverse_abs": 2.1396794232112284e-07
+        },
+        {
+          "left_density_source_abs": 1.7314997248947698e-16,
+          "left_error": 0.0022027356887059793,
+          "left_imag": [
+            1.6008922703106276e-18,
+            -3.518750899222522e-19,
+            -1.9473723558052373e-19
+          ],
+          "left_longitudinal_abs": 0.0023696227938941167,
+          "left_norm": 0.0023696227939185633,
+          "left_real": [
+            1.7314257164846978e-16,
+            -0.001986789238538012,
+            -0.0012914258426591763
+          ],
+          "left_spatial_source_norm": 0.0023696227939185633,
+          "left_transverse_abs": 1.0763611707443818e-08,
+          "max_error": 0.0022027356887059793,
+          "max_norm": 0.0023696227939185633,
+          "pi_norm": 1.0757635634943672,
+          "q_model": [
+            0.0025,
+            0.001625
+          ],
+          "q_norm": 0.002981715110469141,
+          "q_scale": 0.125,
+          "response_label": "stage48_physical_observable_source",
+          "right_density_observable_abs": 3.728323849571347e-05,
+          "right_error": 0.002014232711428746,
+          "right_imag": [
+            3.728323849571347e-05,
+            1.0986862019585415e-18,
+            8.250336504230779e-19
+          ],
+          "right_longitudinal_abs": 0.0021665173823951886,
+          "right_norm": 0.0021668381593535095,
+          "right_real": [
+            1.7281729698122652e-16,
+            -0.0018165174668542592,
+            -0.0011807039686437758
+          ],
+          "right_spatial_observable_norm": 0.002166517382565341,
+          "right_transverse_abs": 2.7152838461171058e-08
+        }
+      ],
+      "slopes": {
+        "left_longitudinal_abs": 1.0017333722922168,
+        "left_norm": 1.0017335527605138,
+        "left_spatial_source_norm": 1.0017335527605138,
+        "left_transverse_abs": 3.5271047723436024,
+        "max_norm": 1.0017335527605138,
+        "right_longitudinal_abs": 1.0024442044583228,
+        "right_norm": 1.0065547933255334,
+        "right_spatial_observable_norm": 1.0024442252368329,
+        "right_transverse_abs": 2.555602626830511
+      },
+      "status": "ORDER_Q_RESIDUAL"
+    }
+  },
+  "stage": "Stage 4.9",
+  "stage48_vs_stage47": {
+    "fixed_interpretation": "Stage 4.8 source/observable split changes the residual but does not substantially reduce it.",
+    "ratio_stage48_over_stage47": 1.1469365121401094,
+    "stage47_smallest_max_error": 0.0019205384651987554,
+    "stage48_smallest_max_error": 0.0022027356887059793
+  }
+}
