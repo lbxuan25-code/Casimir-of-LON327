@@ -222,24 +222,24 @@
       "results_by_q_scale": [
         {
           "left_density_source_abs": 5.590219239225197e-17,
-          "left_error": 0.017563434010700246,
+          "left_error": 0.01756343401070025,
           "left_imag": [
             9.053088140253962e-18,
-            3.7116064212006474e-18,
-            -1.35751031212222e-18
+            3.700616152370044e-18,
+            -1.3470620523607897e-18
           ],
-          "left_longitudinal_abs": 0.019031274688790435,
-          "left_norm": 0.019031282597167652,
+          "left_longitudinal_abs": 0.019031274688790442,
+          "left_norm": 0.01903128259716766,
           "left_real": [
             5.516427022435036e-17,
-            -0.01594719537324808,
+            -0.015947195373248086,
             -0.01038636977103701
           ],
-          "left_spatial_source_norm": 0.019031282597167652,
-          "left_transverse_abs": 1.7349727974600576e-05,
-          "max_error": 0.017563434010700246,
-          "max_norm": 0.019031282597167652,
-          "pi_norm": 1.0835741225533198,
+          "left_spatial_source_norm": 0.01903128259716766,
+          "left_transverse_abs": 1.7349727974597107e-05,
+          "max_error": 0.01756343401070025,
+          "max_norm": 0.01903128259716766,
+          "pi_norm": 1.08357412255332,
           "q_model": [
             0.02,
             0.013
@@ -248,42 +248,42 @@
           "q_scale": 1.0,
           "response_label": "stage48_physical_observable_source",
           "right_density_observable_abs": 0.002356935365094275,
-          "right_error": 0.01622868003107351,
+          "right_error": 0.016228680031073514,
           "right_imag": [
             0.002356935365094275,
-            -1.0588444677283827e-17,
-            5.311993217121955e-18
+            -1.0596616020465968e-17,
+            5.318104668193443e-18
           ],
-          "right_longitudinal_abs": 0.017426309741677182,
-          "right_norm": 0.017584977724869062,
+          "right_longitudinal_abs": 0.017426309741677186,
+          "right_norm": 0.01758497772486907,
           "right_real": [
             6.743379626775847e-17,
-            -0.014613760057795683,
+            -0.01461376005779569,
             -0.009492855958144763
           ],
-          "right_spatial_observable_norm": 0.017426310489283413,
-          "right_transverse_abs": 5.104511327269287e-06
+          "right_spatial_observable_norm": 0.017426310489283416,
+          "right_transverse_abs": 5.104511327272757e-06
         },
         {
           "left_density_source_abs": 1.2331936486848376e-16,
           "left_error": 0.008804502983801074,
           "left_imag": [
             -2.0559183695756378e-17,
-            4.476401470279524e-19,
-            -9.392723833214788e-19
+            4.42263953684425e-19,
+            -9.39113351994719e-19
           ],
-          "left_longitudinal_abs": 0.009481627398632059,
-          "left_norm": 0.009481627441168372,
+          "left_longitudinal_abs": 0.009481627398632057,
+          "left_norm": 0.00948162744116837,
           "left_real": [
             1.2159352662592846e-16,
-            -0.007949320497343414,
+            -0.007949320497343412,
             -0.005168129503372855
           ],
-          "left_spatial_source_norm": 0.009481627441168372,
-          "left_transverse_abs": 8.981241164480666e-07,
+          "left_spatial_source_norm": 0.00948162744116837,
+          "left_transverse_abs": 8.98124116448934e-07,
           "max_error": 0.008804502983801074,
-          "max_norm": 0.009481627441168372,
-          "pi_norm": 1.0769066077452756,
+          "max_norm": 0.00948162744116837,
+          "pi_norm": 1.0769066077452754,
           "q_model": [
             0.01,
             0.0065
@@ -295,38 +295,38 @@
           "right_error": 0.008072821070926639,
           "right_imag": [
             0.0005934557746525761,
-            -1.1804893111261222e-18,
-            2.724033416443582e-18
+            -1.1858655044696494e-18,
+            2.7241924477703418e-18
           ],
-          "right_longitudinal_abs": 0.008673395038860696,
-          "right_norm": 0.00869367435442619,
+          "right_longitudinal_abs": 0.008673395038860695,
+          "right_norm": 0.008693674354426188,
           "right_real": [
             1.2112993871516838e-16,
-            -0.0072730185658163304,
+            -0.007273018565816329,
             -0.0047255671580911955
           ],
-          "right_spatial_observable_norm": 0.008673395184374983,
-          "right_transverse_abs": 1.588774932559378e-06
+          "right_spatial_observable_norm": 0.008673395184374981,
+          "right_transverse_abs": 1.5887749325585107e-06
         },
         {
           "left_density_source_abs": 3.353461898416316e-16,
-          "left_error": 0.0044048715256931525,
+          "left_error": 0.004404871525693152,
           "left_imag": [
             -1.098093512820475e-17,
-            -1.2153607258024226e-18,
-            -9.101739373596063e-19
+            -1.2153870701552237e-18,
+            -9.106826892173575e-19
           ],
-          "left_longitudinal_abs": 0.004739482613528492,
-          "left_norm": 0.004739482614396718,
+          "left_longitudinal_abs": 0.00473948261352849,
+          "left_norm": 0.004739482614396717,
           "left_real": [
             3.351663558667692e-16,
-            -0.003973739501230277,
-            -0.0025830388747618374
+            -0.003973739501230276,
+            -0.002583038874761838
           ],
-          "left_spatial_source_norm": 0.004739482614396718,
-          "left_transverse_abs": 9.071872911084813e-08,
-          "max_error": 0.0044048715256931525,
-          "max_norm": 0.004739482614396718,
+          "left_spatial_source_norm": 0.004739482614396717,
+          "left_transverse_abs": 9.071872911214918e-08,
+          "max_error": 0.004404871525693152,
+          "max_norm": 0.004739482614396717,
           "pi_norm": 1.075963870172334,
           "q_model": [
             0.005,
@@ -336,42 +336,42 @@
           "q_scale": 0.25,
           "response_label": "stage48_physical_observable_source",
           "right_density_observable_abs": 0.00014896734863824613,
-          "right_error": 0.004030137572345847,
+          "right_error": 0.0040301375723458465,
           "right_imag": [
             0.00014896734863824613,
-            3.610226028108291e-18,
-            2.8202426416173896e-18
+            3.610265752325376e-18,
+            2.8196322458059675e-18
           ],
-          "right_longitudinal_abs": 0.004333722869125421,
-          "right_norm": 0.004336282419668173,
+          "right_longitudinal_abs": 0.00433372286912542,
+          "right_norm": 0.004336282419668172,
           "right_real": [
             3.3293455513635213e-16,
-            -0.0036336988844702573,
-            -0.002361649078326957
+            -0.0036336988844702556,
+            -0.0023616490783269573
           ],
-          "right_spatial_observable_norm": 0.004333722874407518,
-          "right_transverse_abs": 2.1396794232112284e-07
+          "right_spatial_observable_norm": 0.004333722874407517,
+          "right_transverse_abs": 2.1396794232025548e-07
         },
         {
           "left_density_source_abs": 1.7314997248947698e-16,
-          "left_error": 0.0022027356887059793,
+          "left_error": 0.002202735688705979,
           "left_imag": [
             1.6008922703106276e-18,
-            -3.518750899222522e-19,
-            -1.9473723558052373e-19
+            -3.517347687920174e-19,
+            -1.946449770347727e-19
           ],
-          "left_longitudinal_abs": 0.0023696227938941167,
+          "left_longitudinal_abs": 0.002369622793894117,
           "left_norm": 0.0023696227939185633,
           "left_real": [
             1.7314257164846978e-16,
-            -0.001986789238538012,
-            -0.0012914258426591763
+            -0.0019867892385380115,
+            -0.001291425842659177
           ],
           "left_spatial_source_norm": 0.0023696227939185633,
-          "left_transverse_abs": 1.0763611707443818e-08,
-          "max_error": 0.0022027356887059793,
+          "left_transverse_abs": 1.076361170831118e-08,
+          "max_error": 0.002202735688705979,
           "max_norm": 0.0023696227939185633,
-          "pi_norm": 1.0757635634943672,
+          "pi_norm": 1.0757635634943674,
           "q_model": [
             0.0025,
             0.001625
@@ -383,30 +383,30 @@
           "right_error": 0.002014232711428746,
           "right_imag": [
             3.728323849571347e-05,
-            1.0986862019585415e-18,
-            8.250336504230779e-19
+            1.0988265230887762e-18,
+            8.251259089688289e-19
           ],
           "right_longitudinal_abs": 0.0021665173823951886,
-          "right_norm": 0.0021668381593535095,
+          "right_norm": 0.00216683815935351,
           "right_real": [
             1.7281729698122652e-16,
-            -0.0018165174668542592,
-            -0.0011807039686437758
+            -0.001816517466854259,
+            -0.0011807039686437765
           ],
-          "right_spatial_observable_norm": 0.002166517382565341,
-          "right_transverse_abs": 2.7152838461171058e-08
+          "right_spatial_observable_norm": 0.0021665173825653416,
+          "right_transverse_abs": 2.7152838460520537e-08
         }
       ],
       "slopes": {
-        "left_longitudinal_abs": 1.0017333722922168,
-        "left_norm": 1.0017335527605138,
-        "left_spatial_source_norm": 1.0017335527605138,
-        "left_transverse_abs": 3.5271047723436024,
-        "max_norm": 1.0017335527605138,
+        "left_longitudinal_abs": 1.001733372292217,
+        "left_norm": 1.001733552760514,
+        "left_spatial_source_norm": 1.001733552760514,
+        "left_transverse_abs": 3.52710477230671,
+        "max_norm": 1.001733552760514,
         "right_longitudinal_abs": 1.0024442044583228,
         "right_norm": 1.0065547933255334,
         "right_spatial_observable_norm": 1.0024442252368329,
-        "right_transverse_abs": 2.555602626830511
+        "right_transverse_abs": 2.5556026268416807
       },
       "status": "ORDER_Q_RESIDUAL"
     }
@@ -414,8 +414,8 @@
   "stage": "Stage 4.9",
   "stage48_vs_stage47": {
     "fixed_interpretation": "Stage 4.8 source/observable split changes the residual but does not substantially reduce it.",
-    "ratio_stage48_over_stage47": 1.1469365121401094,
+    "ratio_stage48_over_stage47": 1.1469365121401092,
     "stage47_smallest_max_error": 0.0019205384651987554,
-    "stage48_smallest_max_error": 0.0022027356887059793
+    "stage48_smallest_max_error": 0.002202735688705979
   }
 }

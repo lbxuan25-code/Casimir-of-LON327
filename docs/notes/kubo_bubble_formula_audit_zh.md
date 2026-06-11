@@ -10,6 +10,7 @@ finite-q conductivity、reflection 或 Casimir 输入，也不声明 Ward identi
 
 - [pipeline 总览](casimir_torque_response_pipeline_zh.md)
 - [response-level Ward convention 推导](response_level_ward_convention_derivation_zh.md)
+- [equal-time / commutator Ward 审计](equal_time_commutator_ward_audit_zh.md)
 - [Ward 诊断结果汇总](ward_diagnostic_results_zh.md)
 
 ## Conventions

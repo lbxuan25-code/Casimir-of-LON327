@@ -10,6 +10,7 @@
 - [Peierls 顶角约定](peierls_vertex_convention_zh.md)
 - [response-level Ward 符号推导](response_level_ward_convention_derivation_zh.md)
 - [Kubo bubble 公式审计](kubo_bubble_formula_audit_zh.md)
+- [equal-time / commutator Ward 审计](equal_time_commutator_ward_audit_zh.md)
 - [Ward 诊断结果汇总](ward_diagnostic_results_zh.md)
 - [finite-q 电磁耦合约定](finite_q_electromagnetic_coupling_convention_zh.md)
 
@@ -90,6 +91,9 @@ $\Pi_{\mu\nu}$ Ward closure。
 - Stage 4.8 Kubo bubble formula audit：bubble factor 为 `MATCH`，Stage 4.7 的
   source/observable vertex mismatch 已修复，equal-time / commutator completion 仍为
   `UNRESOLVED`。
+- Stage 4.10 equal-time / commutator completion audit：输出统一写入
+  `validation/outputs/response/ward_identity/`，二阶 Peierls identity 与 direct term
+  诊断完成，但 explicit equal-time commutator 仍待推导。
 
 仍是 diagnostic：
 
@@ -152,7 +156,7 @@ $$
 需要额外考虑 collective phase / vertex correction；bare current-current block 不能直接作为
 reflection/Casimir input。
 
-### Stage 4.6A / 4.8: 当前 response-level 收尾路线
+### Stage 4.6A / 4.10: 当前 response-level 收尾路线
 
 Stage 4.6A formula-to-code mapping: completed at documentation level.
 Stage 4.7 API readability cleanup: completed by the current cleanup patch.
@@ -161,6 +165,9 @@ source/observable vertex split.
 Bubble factor status: MATCH.
 Source/observable vertex status: MISMATCH fixed.
 Equal-time / commutator completion: UNRESOLVED.
+Stage 4.10 equal-time / commutator completion audit: completed as a diagnostic.
+Second-order Peierls identity status and direct-completion status are recorded under
+`validation/outputs/response/ward_identity/`.
 
 Stage 4.6A formula-to-code mapping audit 已把代码对象与解析对象明确对应。Stage 4.7
 把主 API 清理为固定对象：
@@ -233,5 +240,6 @@ benchmark 稳定前提前声明材料结论。
 所有 finite-q Ward 输出目前都只是 diagnostic。它们不是 conductivity，不是
 reflection/Casimir input，也不是材料结论。Residual minimization is not a physical
 derivation；residual 最小不能替代物理推导。Stage 4.8 已完成 Kubo band-sum factor
-与 source/observable vertex split 审计；下一步应复查 equal-time / commutator
-completion、response index order 和 full Ward closure。
+与 source/observable vertex split 审计；Stage 4.10 已拆分 bubble/direct/missing
+residual。下一步应推导 explicit equal-time commutator、复查 response index order 和
+full Ward closure。

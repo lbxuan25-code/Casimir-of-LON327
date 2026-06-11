@@ -10,6 +10,7 @@
 - [Peierls 顶角约定](peierls_vertex_convention_zh.md)
 - [response-level Ward 符号推导](response_level_ward_convention_derivation_zh.md)
 - [Kubo bubble 公式审计](kubo_bubble_formula_audit_zh.md)
+- [equal-time / commutator Ward 审计](equal_time_commutator_ward_audit_zh.md)
 
 ## Stage 4.1A: TB Fourier reconstruction
 
@@ -194,12 +195,13 @@ Kubo bubble convention 或 response index order。不能据此声称 contact min
 - Kubo bubble sign、denominator、complex conjugation 和 $\Pi_{\mu\nu}$ 指标顺序；
 - equal-time / commutator term 与 paramagnetic-diamagnetic cancellation。
 
-## Stage 4.7 / 4.8: API cleanup and Kubo bubble formula audit
+## Stage 4.7 / 4.8 / 4.10: API cleanup, Kubo bubble audit, and ET audit
 
 Stage 4.6A formula-to-code mapping: completed at documentation level.
 Stage 4.7 API readability cleanup: completed by the current cleanup patch.
 Stage 4.8 Kubo bubble formula audit: completed for the band-sum factor and
 source/observable vertex split.
+Stage 4.10 equal-time / commutator completion audit: completed as a diagnostic.
 
 Stage 4.7 将主 API 改成固定命名：
 
@@ -218,8 +220,11 @@ Stage 4.8 结论：
 - direct contact $-\langle M_{ij}\rangle$: MATCH；
 - equal-time / commutator completion: UNRESOLVED。
 
-下一步不是 residual tuning，而是复查 equal-time / commutator completion、
-response index order 和 full Ward closure。
+Stage 4.10 结论记录在
+`validation/outputs/response/ward_identity/stage4_10_equal_time_commutator_audit.md`：
+二阶 Peierls identity 和 bubble/direct/missing decomposition 已输出；下一步不是
+residual tuning，而是推导 explicit equal-time commutator、复查 response index order
+和 full Ward closure。
 
 可选的 Stage 4.6B $\lambda$-scan 只能作为 diagnostic contact-coefficient scan，
 用来判断 residual 是否像简单 contact normalization/factor 问题。它不是确定物理系数

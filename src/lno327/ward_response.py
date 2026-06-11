@@ -272,11 +272,37 @@ def normal_physical_density_current_response_imag_axis(
     commutator completion and full Ward closure remain unresolved.
     """
 
+    return normal_physical_density_current_response_components_imag_axis(
+        k_points,
+        config,
+        q,
+        k_weights,
+        hamiltonian,
+        hopping_terms,
+    )["total"]
+
+
+def normal_physical_density_current_response_components_imag_axis(
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    q: Sequence[float] | np.ndarray,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+    hamiltonian: HamiltonianBuilder = normal_state_hamiltonian,
+    hopping_terms: Sequence[HoppingTerm] | None = None,
+) -> dict[str, np.ndarray]:
+    """Return diagnostic-only bubble/direct/total components.
+
+    This helper is for Ward diagnostics only.  It does not alter the main
+    physical-current response formula; ``total`` equals
+    ``normal_physical_density_current_response_imag_axis``.
+    """
+
     points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
     qx, qy = (float(q_vector[0]), float(q_vector[1]))
     peierls_terms = list(normal_state_hopping_terms() if hopping_terms is None else hopping_terms)
     rho = np.eye(4, dtype=complex)
-    response = np.zeros((3, 3), dtype=complex)
+    bubble = np.zeros((3, 3), dtype=complex)
+    direct = np.zeros((3, 3), dtype=complex)
 
     for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
         kx = float(kx_value)
@@ -306,7 +332,7 @@ def normal_physical_density_current_response_imag_axis(
         jy = -vector_y
         observable_vertices = (rho, jx, jy)
         source_vertices = (rho, vector_x, vector_y)
-        response += weight * _finite_q_band_bubble_imag_axis(
+        bubble += weight * _finite_q_band_bubble_imag_axis(
             energies_minus,
             states_minus,
             energies_plus,
@@ -338,8 +364,8 @@ def normal_physical_density_current_response_imag_axis(
                 band_contact = states_midpoint.conjugate().T @ contact_matrix @ states_midpoint
                 expect_mij = np.sum(occupations_midpoint * np.diag(band_contact))
                 physical_direct_contact = -expect_mij
-                response[1 + i, 1 + j] += weight * physical_direct_contact
-    return response
+                direct[1 + i, 1 + j] += weight * physical_direct_contact
+    return {"bubble": bubble, "direct": direct, "total": bubble + direct}
 
 
 def physical_ward_residuals(

@@ -26,7 +26,7 @@ from lno327.ward_response import (  # noqa: E402
     physical_ward_residuals,
 )
 
-OUTPUT_DIR = ROOT / "validation" / "outputs" / "response"
+OUTPUT_DIR = ROOT / "validation" / "outputs" / "response" / "ward_identity"
 JSON_OUTPUT = OUTPUT_DIR / "stage4_9_physical_ward_residual_regression.json"
 MD_OUTPUT = OUTPUT_DIR / "stage4_9_physical_ward_residual_regression.md"
 
