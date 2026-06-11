@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Audit the normal-state spatial-current Ward sector."""
+"""Historical diagnostic / convention scanner for the spatial-current Ward sector.
+
+This script audits Stage 4 diagnostic residuals.  It is not the main response
+implementation, not finite-q conductivity, and not a reflection/Casimir input.
+"""
 
 from __future__ import annotations
 

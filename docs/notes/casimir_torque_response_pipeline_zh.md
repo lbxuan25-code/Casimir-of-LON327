@@ -150,6 +150,10 @@ reflection/Casimir input。
 
 ### Stage 4.6A / 4.7: 当前 response-level 收尾路线
 
+Stage 4.6A formula-to-code mapping: completed at documentation level.
+Stage 4.7 API readability cleanup: completed by the current cleanup patch.
+Next after 4.7: Kubo bubble formula audit.
+
 Stage 4.6A formula-to-code mapping audit 已把代码对象与解析对象明确对应。Stage 4.7
 把主 API 清理为固定对象：
 
@@ -163,7 +167,7 @@ Pi_ij^candidate = bubble[V_i,V_j] - <M_ij>
 ```
 
 这一步的目标是防止把 residual 最小的组合误读为最终物理实现。
-`physical_current_q_plus_contact_minus` 只能称为 best residual candidate /
+`physical_current_q_plus_contact_minus` 只是历史 diagnostic case name，只能称为 best residual candidate /
 best diagnostic candidate：它有 physical direct contact contribution
 $K_{ij}^{\mathrm{phys}}$ 的解析动机，并降低
 residual，但 Ward residual 仍为 $O(q)$，不能声明闭合。
@@ -214,6 +218,7 @@ benchmark 稳定前提前声明材料结论。
 
 所有 finite-q Ward 输出目前都只是 diagnostic。它们不是 conductivity，不是
 reflection/Casimir input，也不是材料结论。Residual minimization is not a physical
-derivation；residual 最小不能替代物理推导。下一步应复查 current sign、contact sign、Ward $q$-sign、
-Kubo bubble sign、equal-time / commutator term、physical direct contact contribution
-$K_{ij}^{\mathrm{phys}}$ 与 $\Pi_{\mu\nu}$ 指标顺序。
+derivation；residual 最小不能替代物理推导。下一步才是 Kubo bubble formula audit：
+复查 current sign、contact sign、Ward $q$-sign、Kubo bubble sign、equal-time /
+commutator term、physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ 与
+$\Pi_{\mu\nu}$ 指标顺序。

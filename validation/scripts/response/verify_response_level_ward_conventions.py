@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Verify response-level Ward convention choices for normal-state Pi_mu_nu.
+"""Historical diagnostic / convention scanner for normal-state Pi_mu_nu.
 
 This script is diagnostic-only.  It compares self-consistent response-level
 convention choices without changing the default Ward response implementation.
 It is not finite-q conductivity and not a reflection/Casimir input.
+It is retained to reproduce Stage 4.4 convention scans; it is not the main
+response implementation.
 """
 
 from __future__ import annotations

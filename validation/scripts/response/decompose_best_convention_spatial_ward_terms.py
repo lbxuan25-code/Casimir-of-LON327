@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Decompose spatial Ward residual terms for best response-level conventions.
+"""Historical diagnostic / convention scanner for spatial Ward residual terms.
 
 This is a normal-state diagnostic only.  It does not change the Ward response
 implementation and it is not finite-q conductivity, reflection, or Casimir
-input.
+input.  It is retained to reproduce Stage 4.5 convention decompositions; it is
+not the main response implementation.
 """
 
 from __future__ import annotations

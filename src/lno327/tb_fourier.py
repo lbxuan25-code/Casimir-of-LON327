@@ -1,8 +1,8 @@
-"""Fourier/hopping representation of the normal-state Hamiltonian.
+"""Fourier/hopping representation and Peierls Hamiltonian vertices.
 
-This module reconstructs the existing trigonometric H0(k) from hopping terms.
-It is not a new model and is not wired into response, Ward, BdG, reflection, or
-Casimir calculations.
+This module reconstructs the existing trigonometric H0(k) from hopping terms
+and provides Peierls Hamiltonian vertices used by Ward diagnostics.  It is not
+a new model and is not a conductivity, reflection, or Casimir implementation.
 """
 
 from __future__ import annotations
@@ -256,11 +256,10 @@ def peierls_current_vertex(
     hopping_terms: Iterable[HoppingTerm] | None = None,
     sign_convention: str = "plus",
 ) -> np.ndarray:
-    """Deprecated alias for historical sign audits.
+    """Deprecated. Do not use in new code.
 
-    Use ``peierls_hamiltonian_vector_vertex`` for response construction.  This
-    alias is retained only for old diagnostic scripts that explicitly compare
-    plus/minus signs.
+    Use ``peierls_hamiltonian_vector_vertex``.  This alias is retained only for
+    old diagnostic scripts that explicitly compare plus/minus signs.
     """
 
     warnings.warn(
@@ -332,10 +331,11 @@ def peierls_contact_vertex(
     params: NormalStateParameters | None = None,
     hopping_terms: Iterable[HoppingTerm] | None = None,
 ) -> np.ndarray:
-    """Deprecated alias for ``peierls_hamiltonian_contact_vertex``.
+    """Deprecated. Do not use in new code.
 
-    This alias is not a physical direct contact contribution and must not be
-    used in the readable physical-response construction.
+    Use ``peierls_hamiltonian_contact_vertex``.  This alias is not a physical
+    direct contact contribution and must not be used in the readable
+    physical-response construction.
     """
 
     warnings.warn(

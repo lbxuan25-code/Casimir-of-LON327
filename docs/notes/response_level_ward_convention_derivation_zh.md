@@ -48,7 +48,19 @@ $$
 $\Lambda_{ij}^H$ 即现在主代码中的 $M_{ij}$。主代码路径不再使用
 `sign_convention="plus"` 构造 $V_i$。$V_i$ 是固定对象，不是 sign choice。
 
-code bubble prototype 到 physical-current bubble candidate 的符号变换可写成
+主 response 构造应直接读作：
+
+$$
+\Pi_{00}=\mathrm{bubble}[\rho,\rho],
+\quad
+\Pi_{0j}=\mathrm{bubble}[\rho,-V_j],
+\quad
+\Pi_{i0}=\mathrm{bubble}[-V_i,\rho],
+\quad
+\Pi_{ij}=\mathrm{bubble}[V_i,V_j]-\langle M_{ij}\rangle .
+$$
+
+对于历史 diagnostic 矩阵，符号变换可以压缩写成
 
 $$
 S=\mathrm{diag}(1,-1,-1),
@@ -60,7 +72,8 @@ B_{\mu\nu}^{\mathrm{phys,candidate}}
 S_{\mu\mu'}B_{\mu'\nu'}^{\mathrm{code}}S_{\nu'\nu}.
 $$
 
-因此 spatial-spatial block 因两个 physical current vertex $j_i=-V_i$ 符号相乘而不变；
+这只是 compact diagnostic notation，不是主推导语言。因此 spatial-spatial block 因两个
+physical current vertex $j_i=-V_i$ 符号相乘而不变；
 density-current 和 current-density block 因只有一个 physical current vertex 而变号。
 
 ## A. Hamiltonian coupling
@@ -298,7 +311,8 @@ $$
 -\langle M_{ij}\rangle.
 $$
 
-这就是 Stage 4.4 / 4.5 中 `physical_current_q_plus_contact_minus` 有解析动机的原因：
+这就是 Stage 4.4 / 4.5 中历史 diagnostic case name
+`physical_current_q_plus_contact_minus` 有解析动机的原因：
 它不是纯粹数值拟合出来的符号选择。但它仍只是 best residual candidate /
 best diagnostic candidate，不是最终 convention 或最终物理实现，因为 spatial Ward
 residual 仍为 $O(q)$，Ward identity 尚未闭合。
@@ -343,8 +357,12 @@ $$
 
 ## J. Stage 4.7 API cleanup 后的 targeted diagnostics
 
-Stage 4.6A 已完成 formula-to-code mapping audit。Stage 4.7 进一步把主代码 API
-清理为固定对象名，避免把历史 sign scan 误读为物理 API。现在主路径应使用：
+Stage 4.6A formula-to-code mapping: completed at documentation level.
+Stage 4.7 API readability cleanup: completed by the current cleanup patch.
+Next after 4.7: Kubo bubble formula audit.
+
+Stage 4.7 把主代码 API 清理为固定对象名，避免把历史 sign scan 误读为物理 API。
+现在主路径应使用：
 
 ```text
 V_i = peierls_hamiltonian_vector_vertex(...)
@@ -384,4 +402,5 @@ Hamiltonian vector vertex $V_i$、physical current vertex
 $j_i=-V_i$、physical direct contact contribution
 $K_{ij}^{\mathrm{phys}}$、Ward vector $Q_H/Q_{\mathrm{phys}}$
 与 Kubo response definition 尚未统一。`physical_current_q_plus_contact_minus`
-应称为 best residual candidate / best diagnostic candidate，而不是最终 convention。
+只是历史 diagnostic case name，应称为 best residual candidate / best diagnostic
+candidate，而不是最终 convention。下一步才是 Kubo bubble formula audit。

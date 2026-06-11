@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Diagnose vertex-level Ward identity for Peierls finite-q current vertices."""
+"""Historical sign audit for the Peierls Hamiltonian vector vertex.
+
+This script compares plus/minus sign conventions for Stage 4.1B diagnostics.
+It is not the main response implementation, not finite-q conductivity, and not
+a reflection/Casimir input.
+"""
 
 from __future__ import annotations
 

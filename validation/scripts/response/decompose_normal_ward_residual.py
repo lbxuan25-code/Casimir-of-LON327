@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Decompose normal-state Ward residuals by side and component."""
+"""Historical diagnostic / convention scanner for Ward residual decomposition.
+
+This script decomposes Stage 4 diagnostic residuals by side and component.  It
+is not the main response implementation, not finite-q conductivity, and not a
+reflection/Casimir input.
+"""
 
 from __future__ import annotations
 

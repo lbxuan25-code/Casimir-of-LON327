@@ -63,13 +63,19 @@ def normal_density_current_response_imag_axis(
 ) -> np.ndarray:
     """Diagnostic-only convention scanner.
 
+    This diagnostic scanner may use Hamiltonian vector vertices V_i directly.
+    It does not construct the readable physical-current response.  Do not use it as the main response path.
+    For the physical-current candidate use
+    ``normal_physical_density_current_response_imag_axis``.
+
     Do not use this function for the readable physical-current response
     candidate.  Use ``normal_physical_density_current_response_imag_axis``
     instead.  ``contact_sign_convention`` is retained only for historical
     residual scans; it is not a physical API.
 
-    Vertex order is (density, current_x, current_y).  The density vertex is
-    identity(4).  ``vertex_scheme="midpoint"`` uses midpoint normal-state
+    Vertex order is (density, spatial_x, spatial_y).  The spatial vertices in
+    this diagnostic scanner are not necessarily physical current vertices.  The
+    density vertex is identity(4).  ``vertex_scheme="midpoint"`` uses midpoint normal-state
     velocity operators, preserving the original prototype behavior.
     ``vertex_scheme="peierls"`` uses the Hamiltonian vector vertex V_i from the
     Fourier/hopping representation.
@@ -116,10 +122,10 @@ def normal_density_current_response_imag_axis(
             config.temperature_eV,
         )
         if vertex_scheme == "midpoint":
-            current_x = velocity(kx, ky, "x")
-            current_y = velocity(kx, ky, "y")
+            vector_x = velocity(kx, ky, "x")
+            vector_y = velocity(kx, ky, "y")
         else:
-            current_x = peierls_hamiltonian_vector_vertex(
+            vector_x = peierls_hamiltonian_vector_vertex(
                 kx,
                 ky,
                 qx,
@@ -127,7 +133,7 @@ def normal_density_current_response_imag_axis(
                 "x",
                 hopping_terms=peierls_terms,
             )
-            current_y = peierls_hamiltonian_vector_vertex(
+            vector_y = peierls_hamiltonian_vector_vertex(
                 kx,
                 ky,
                 qx,
@@ -137,8 +143,8 @@ def normal_density_current_response_imag_axis(
             )
         vertices = (
             states_minus.conjugate().T @ density_vertex @ states_plus,
-            states_minus.conjugate().T @ current_x @ states_plus,
-            states_minus.conjugate().T @ current_y @ states_plus,
+            states_minus.conjugate().T @ vector_x @ states_plus,
+            states_minus.conjugate().T @ vector_y @ states_plus,
         )
         for m, energy_minus in enumerate(energies_minus):
             for n, energy_plus in enumerate(energies_plus):

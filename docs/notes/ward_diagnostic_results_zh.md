@@ -138,6 +138,9 @@ response-level sign convention 的线索，不是最终实现选择。
 
 解释：
 
+这些名称是历史 diagnostic case names，不是主 response implementation 名称。
+readable physical response candidate 现在由
+`normal_physical_density_current_response_imag_axis` 实现。
 contact-minus candidate 与 physical direct contact contribution
 $K_{ij}^{\mathrm{phys}}=-\langle M_{ij}\rangle=-C_{ij}^{\mathrm{code}}$ 的方向一致，
 并得到 residual 诊断支持。但这只是
@@ -192,7 +195,11 @@ Kubo bubble convention 或 response index order。不能据此声称 contact min
 
 ## Stage 4.7: destructive API cleanup
 
-Stage 4.6A formula-to-code mapping audit 之后，Stage 4.7 将主 API 改成固定命名：
+Stage 4.6A formula-to-code mapping: completed at documentation level.
+Stage 4.7 API readability cleanup: completed by the current cleanup patch.
+Next after 4.7: Kubo bubble formula audit.
+
+Stage 4.7 将主 API 改成固定命名：
 
 1. `peierls_hamiltonian_vector_vertex` 对应 $V_i=\delta H/\delta A_i$；
 2. `peierls_hamiltonian_contact_vertex` 对应 $M_{ij}=\delta^2H/\delta A_i\delta A_j$；
@@ -202,8 +209,8 @@ Stage 4.6A formula-to-code mapping audit 之后，Stage 4.7 将主 API 改成固
    $\Pi_{ij}=B_{ij}-C_{ij}^{\mathrm{code}}$；
 5. 旧的 sign/convention 扫描函数只作为 historical diagnostic，不再作为主 API。
 
-下一步仍是检查 Kubo bubble sign、denominator、matrix-element order、equal-time /
-   commutator term 和 response index order。
+下一步才是 Kubo bubble formula audit：检查 Kubo bubble sign、denominator、
+matrix-element order、equal-time / commutator term 和 response index order。
 
 可选的 Stage 4.6B $\lambda$-scan 只能作为 diagnostic contact-coefficient scan，
 用来判断 residual 是否像简单 contact normalization/factor 问题。它不是确定物理系数

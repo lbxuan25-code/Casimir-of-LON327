@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Diagnose normal-state Pi_mu_nu Ward-identity residuals."""
+"""Historical diagnostic / convention scanner for normal-state Ward residuals.
+
+This script scans vertex/contact convention choices for Stage 4 diagnostics.
+It is not the main response implementation, not finite-q conductivity, and not
+a reflection/Casimir input.
+"""
 
 from __future__ import annotations
 
