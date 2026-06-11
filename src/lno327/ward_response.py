@@ -48,6 +48,60 @@ def _validate_inputs(
     return points, normalized_weights, q_vector
 
 
+def _finite_q_band_bubble_imag_axis(
+    energies_minus: np.ndarray,
+    states_minus: np.ndarray,
+    energies_plus: np.ndarray,
+    states_plus: np.ndarray,
+    observable_vertices: Sequence[np.ndarray],
+    source_vertices: Sequence[np.ndarray],
+    config: KuboConfig,
+) -> np.ndarray:
+    """Return the finite-q Matsubara bubble for observable/source vertices.
+
+    The response convention is
+    delta <J_mu> / delta a_nu = - <J_mu P_nu> + direct term.
+    Matrix elements are formed as
+    <m,-|J_mu|n,+> <n,+|P_nu|m,->, using finite-q Hermiticity for the reverse
+    source-side element.
+    """
+
+    if len(observable_vertices) != len(source_vertices):
+        raise ValueError("observable_vertices and source_vertices must have the same length")
+    occupations_minus = fermi_function(
+        energies_minus,
+        config.fermi_level_eV,
+        config.temperature_eV,
+    )
+    occupations_plus = fermi_function(
+        energies_plus,
+        config.fermi_level_eV,
+        config.temperature_eV,
+    )
+    observable_matrices = tuple(
+        states_minus.conjugate().T @ vertex @ states_plus for vertex in observable_vertices
+    )
+    source_matrices = tuple(
+        states_minus.conjugate().T @ vertex @ states_plus for vertex in source_vertices
+    )
+    response = np.zeros((len(observable_vertices), len(source_vertices)), dtype=complex)
+    for m, energy_minus in enumerate(energies_minus):
+        for n, energy_plus in enumerate(energies_plus):
+            occupation_diff = float(occupations_minus[m] - occupations_plus[n])
+            if occupation_diff == 0.0:
+                continue
+            denominator = 1j * config.omega_eV + float(energy_minus - energy_plus)
+            factor = -occupation_diff / denominator
+            for mu, observable_matrix in enumerate(observable_matrices):
+                for nu, source_matrix in enumerate(source_matrices):
+                    response[mu, nu] += (
+                        factor
+                        * observable_matrix[m, n]
+                        * np.conjugate(source_matrix[m, n])
+                    )
+    return response
+
+
 def normal_density_current_response_imag_axis(
     k_points: Sequence[tuple[float, float]] | np.ndarray,
     config: KuboConfig,
@@ -208,14 +262,14 @@ def normal_physical_density_current_response_imag_axis(
 
     Blocks:
     Pi_00 = bubble[rho, rho]
-    Pi_0j = bubble[rho, -V_j]
+    Pi_0j = bubble[rho, V_j]
     Pi_i0 = bubble[-V_i, rho]
-    Pi_ij = bubble[V_i, V_j] - <M_ij>
+    Pi_ij = bubble[-V_i, V_j] - <M_ij>
 
     This is still a Ward-response candidate, not final conductivity,
-    not reflection input, and not Casimir input.  Kubo bubble sign,
-    denominator, matrix-element order, and equal-time / commutator completion
-    still need later audit; this function does not claim gauge closure.
+    not reflection input, and not Casimir input.  The Stage 4.8 Kubo audit fixes
+    the observable/source vertex split and band-sum factor, but equal-time /
+    commutator completion and full Ward closure remain unresolved.
     """
 
     points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
@@ -231,16 +285,6 @@ def normal_physical_density_current_response_imag_axis(
         h_plus = hamiltonian(kx + 0.5 * qx, ky + 0.5 * qy)
         energies_minus, states_minus = np.linalg.eigh(h_minus)
         energies_plus, states_plus = np.linalg.eigh(h_plus)
-        occupations_minus = fermi_function(
-            energies_minus,
-            config.fermi_level_eV,
-            config.temperature_eV,
-        )
-        occupations_plus = fermi_function(
-            energies_plus,
-            config.fermi_level_eV,
-            config.temperature_eV,
-        )
 
         vector_x = peierls_hamiltonian_vector_vertex(
             kx,
@@ -260,26 +304,17 @@ def normal_physical_density_current_response_imag_axis(
         )
         jx = -vector_x
         jy = -vector_y
-        vertices = (
-            states_minus.conjugate().T @ rho @ states_plus,
-            states_minus.conjugate().T @ jx @ states_plus,
-            states_minus.conjugate().T @ jy @ states_plus,
+        observable_vertices = (rho, jx, jy)
+        source_vertices = (rho, vector_x, vector_y)
+        response += weight * _finite_q_band_bubble_imag_axis(
+            energies_minus,
+            states_minus,
+            energies_plus,
+            states_plus,
+            observable_vertices,
+            source_vertices,
+            config,
         )
-        for m, energy_minus in enumerate(energies_minus):
-            for n, energy_plus in enumerate(energies_plus):
-                occupation_diff = float(occupations_minus[m] - occupations_plus[n])
-                if occupation_diff == 0.0:
-                    continue
-                denominator = 1j * config.omega_eV + float(energy_minus - energy_plus)
-                factor = -occupation_diff / denominator
-                for mu in range(3):
-                    for nu in range(3):
-                        response[mu, nu] += (
-                            weight
-                            * factor
-                            * vertices[mu][m, n]
-                            * np.conjugate(vertices[nu][m, n])
-                        )
 
         h_midpoint = hamiltonian(kx, ky)
         energies_midpoint, states_midpoint = np.linalg.eigh(h_midpoint)

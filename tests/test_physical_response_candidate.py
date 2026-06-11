@@ -58,9 +58,9 @@ def test_physical_response_candidate_matches_manual_code_piece_combination():
 
     manual = np.array(code_bubble, copy=True)
     manual[0, 0] = code_bubble[0, 0]
-    manual[0, 1:] = -code_bubble[0, 1:]
+    manual[0, 1:] = code_bubble[0, 1:]
     manual[1:, 0] = -code_bubble[1:, 0]
-    manual[1:, 1:] = code_bubble[1:, 1:] - code_contact[1:, 1:]
+    manual[1:, 1:] = -code_bubble[1:, 1:] - code_contact[1:, 1:]
 
     np.testing.assert_allclose(physical, manual, atol=1e-13, rtol=1e-11)
 

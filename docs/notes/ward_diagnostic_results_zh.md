@@ -9,6 +9,7 @@
 - [pipeline 总览](casimir_torque_response_pipeline_zh.md)
 - [Peierls 顶角约定](peierls_vertex_convention_zh.md)
 - [response-level Ward 符号推导](response_level_ward_convention_derivation_zh.md)
+- [Kubo bubble 公式审计](kubo_bubble_formula_audit_zh.md)
 
 ## Stage 4.1A: TB Fourier reconstruction
 
@@ -193,24 +194,32 @@ Kubo bubble convention 或 response index order。不能据此声称 contact min
 - Kubo bubble sign、denominator、complex conjugation 和 $\Pi_{\mu\nu}$ 指标顺序；
 - equal-time / commutator term 与 paramagnetic-diamagnetic cancellation。
 
-## Stage 4.7: destructive API cleanup
+## Stage 4.7 / 4.8: API cleanup and Kubo bubble formula audit
 
 Stage 4.6A formula-to-code mapping: completed at documentation level.
 Stage 4.7 API readability cleanup: completed by the current cleanup patch.
-Next after 4.7: Kubo bubble formula audit.
+Stage 4.8 Kubo bubble formula audit: completed for the band-sum factor and
+source/observable vertex split.
 
 Stage 4.7 将主 API 改成固定命名：
 
 1. `peierls_hamiltonian_vector_vertex` 对应 $V_i=\delta H/\delta A_i$；
 2. `peierls_hamiltonian_contact_vertex` 对应 $M_{ij}=\delta^2H/\delta A_i\delta A_j$；
 3. `normal_physical_density_current_response_imag_axis` 显式构造 $j_i=-V_i$；
-4. physical-current candidate 使用
-   $\Pi_{00}=B_{00}$、$\Pi_{0j}=-B_{0j}$、$\Pi_{i0}=-B_{i0}$、
-   $\Pi_{ij}=B_{ij}-C_{ij}^{\mathrm{code}}$；
+4. physical-current candidate 在 Stage 4.8 后使用 observable/source 两套顶角：
+   $\Pi_{00}=B_{00}$、$\Pi_{0j}=B_{0j}$、$\Pi_{i0}=-B_{i0}$、
+   $\Pi_{ij}=-B_{ij}-C_{ij}^{\mathrm{code}}$；
 5. 旧的 sign/convention 扫描函数只作为 historical diagnostic，不再作为主 API。
 
-下一步才是 Kubo bubble formula audit：检查 Kubo bubble sign、denominator、
-matrix-element order、equal-time / commutator term 和 response index order。
+Stage 4.8 结论：
+
+- bubble factor status: MATCH；
+- source/observable vertex status: MISMATCH fixed；
+- direct contact $-\langle M_{ij}\rangle$: MATCH；
+- equal-time / commutator completion: UNRESOLVED。
+
+下一步不是 residual tuning，而是复查 equal-time / commutator completion、
+response index order 和 full Ward closure。
 
 可选的 Stage 4.6B $\lambda$-scan 只能作为 diagnostic contact-coefficient scan，
 用来判断 residual 是否像简单 contact normalization/factor 问题。它不是确定物理系数

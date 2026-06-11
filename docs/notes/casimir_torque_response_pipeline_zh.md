@@ -9,6 +9,7 @@
 
 - [Peierls 顶角约定](peierls_vertex_convention_zh.md)
 - [response-level Ward 符号推导](response_level_ward_convention_derivation_zh.md)
+- [Kubo bubble 公式审计](kubo_bubble_formula_audit_zh.md)
 - [Ward 诊断结果汇总](ward_diagnostic_results_zh.md)
 - [finite-q 电磁耦合约定](finite_q_electromagnetic_coupling_convention_zh.md)
 
@@ -85,7 +86,10 @@ $\Pi_{\mu\nu}$ Ward closure。
 - full / density / spatial Ward residual decomposition；
 - Stage 4.4 / 4.5 response-level convention diagnostic 与 spatial term decomposition；
 - Stage 4.7 destructive API cleanup：主代码对象命名为 $V_i$、$M_{ij}$、$j_i=-V_i$，不再用
-  `sign_convention="plus"` 构造 $V_i$。
+  `sign_convention="plus"` 构造 $V_i$；
+- Stage 4.8 Kubo bubble formula audit：bubble factor 为 `MATCH`，Stage 4.7 的
+  source/observable vertex mismatch 已修复，equal-time / commutator completion 仍为
+  `UNRESOLVED`。
 
 仍是 diagnostic：
 
@@ -98,7 +102,7 @@ $\Pi_{\mu\nu}$ Ward closure。
 尚未完成：
 
 - response-level convention 的最终闭合；
-- formula-to-code mapping 审计后的 Kubo bubble / equal-time / index-order 复查；
+- equal-time / commutator completion 与最终 Ward closure；
 - final finite-q conductivity；
 - reflection matrix 接入；
 - Casimir energy / torque 计算。
@@ -148,11 +152,15 @@ $$
 需要额外考虑 collective phase / vertex correction；bare current-current block 不能直接作为
 reflection/Casimir input。
 
-### Stage 4.6A / 4.7: 当前 response-level 收尾路线
+### Stage 4.6A / 4.8: 当前 response-level 收尾路线
 
 Stage 4.6A formula-to-code mapping: completed at documentation level.
 Stage 4.7 API readability cleanup: completed by the current cleanup patch.
-Next after 4.7: Kubo bubble formula audit.
+Stage 4.8 Kubo bubble formula audit: completed for the band-sum factor and
+source/observable vertex split.
+Bubble factor status: MATCH.
+Source/observable vertex status: MISMATCH fixed.
+Equal-time / commutator completion: UNRESOLVED.
 
 Stage 4.6A formula-to-code mapping audit 已把代码对象与解析对象明确对应。Stage 4.7
 把主 API 清理为固定对象：
@@ -163,7 +171,14 @@ physical current vertex = j_i = -V_i
 peierls_hamiltonian_contact_vertex = M_ij
 code contact extraction C_ij^code = contact_only = +<M_ij>
 physical direct contact contribution K_ij^phys = -C_ij^code
-Pi_ij^candidate = bubble[V_i,V_j] - <M_ij>
+```
+
+Stage 4.8 将 Stage 4.7 的 spatial bubble shorthand 修正为 source/observable 形式：
+
+```text
+observable_vertices = (rho, -V_x, -V_y)
+source_vertices = (rho, V_x, V_y)
+Pi_ij^candidate = bubble[-V_i,V_j] - <M_ij>
 ```
 
 这一步的目标是防止把 residual 最小的组合误读为最终物理实现。
@@ -176,9 +191,8 @@ Stage 4.6B 可作为 optional diagnostic contact-coefficient scan。$\lambda$-sc
 上述标准对象命名稳定后才有意义；它不是确定物理系数的方法，不能把 $\lambda$ 当作自由
 物理参数拟合，只能用来判断 residual 是否像简单 $K_{ij}^{\mathrm{phys}}$
 normalization/factor 问题。
-在 formula-to-code mapping、Kubo bubble sign、equal-time / commutator term、denominator、
-matrix-element order 和 response index order 未闭合前，不进入 finite-q conductivity、
-reflection 或 Casimir。
+在 equal-time / commutator term、response index order 和 full Ward closure 未闭合前，
+不进入 finite-q conductivity、reflection 或 Casimir。
 
 ### Stage 5: future reflection / Casimir benchmark 接入
 
@@ -218,7 +232,6 @@ benchmark 稳定前提前声明材料结论。
 
 所有 finite-q Ward 输出目前都只是 diagnostic。它们不是 conductivity，不是
 reflection/Casimir input，也不是材料结论。Residual minimization is not a physical
-derivation；residual 最小不能替代物理推导。下一步才是 Kubo bubble formula audit：
-复查 current sign、contact sign、Ward $q$-sign、Kubo bubble sign、equal-time /
-commutator term、physical direct contact contribution $K_{ij}^{\mathrm{phys}}$ 与
-$\Pi_{\mu\nu}$ 指标顺序。
+derivation；residual 最小不能替代物理推导。Stage 4.8 已完成 Kubo band-sum factor
+与 source/observable vertex split 审计；下一步应复查 equal-time / commutator
+completion、response index order 和 full Ward closure。
