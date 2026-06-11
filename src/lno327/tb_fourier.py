@@ -1,8 +1,9 @@
-"""Fourier/hopping representation and Peierls Hamiltonian vertices.
+"""Fourier/hopping representation of the normal-state Hamiltonian.
 
 This module reconstructs the existing trigonometric H0(k) from hopping terms
-and provides Peierls Hamiltonian vertices used by Ward diagnostics.  It is not
-a new model and is not a conductivity, reflection, or Casimir implementation.
+and provides Peierls Hamiltonian vertices used by Ward-response diagnostics.
+It is not a new model and is not a conductivity, reflection, or Casimir
+implementation.
 """
 
 from __future__ import annotations

@@ -64,13 +64,11 @@ def normal_density_current_response_imag_axis(
     """Diagnostic-only convention scanner.
 
     This diagnostic scanner may use Hamiltonian vector vertices V_i directly.
-    It does not construct the readable physical-current response.  Do not use it as the main response path.
+    It does not construct the readable physical-current response.
+    Do not use it as the main response path.
     For the physical-current candidate use
-    ``normal_physical_density_current_response_imag_axis``.
-
-    Do not use this function for the readable physical-current response
-    candidate.  Use ``normal_physical_density_current_response_imag_axis``
-    instead.  ``contact_sign_convention`` is retained only for historical
+    ``normal_physical_density_current_response_imag_axis``.  The
+    ``contact_sign_convention`` parameter is retained only for historical
     residual scans; it is not a physical API.
 
     Vertex order is (density, spatial_x, spatial_y).  The spatial vertices in
