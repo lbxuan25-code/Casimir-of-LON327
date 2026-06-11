@@ -11,7 +11,8 @@ from lno327.ward_response import (
 )
 
 
-def test_finite_q_band_bubble_matches_documented_factor_and_matrix_order():
+def test_finite_q_band_bubble_matches_corrected_positive_factor_and_matrix_order():
+    # The linear-response minus sign is canceled by the fermion-loop minus sign.
     energies_minus = np.array([-0.17, 0.23], dtype=float)
     energies_plus = np.array([-0.11, 0.31], dtype=float)
     states_minus = np.eye(2, dtype=complex)
@@ -42,7 +43,7 @@ def test_finite_q_band_bubble_matches_documented_factor_and_matrix_order():
         for n, energy_plus in enumerate(energies_plus):
             occupation_diff = occupations_minus[m] - occupations_plus[n]
             denominator = 1j * config.omega_eV + energy_minus - energy_plus
-            factor = -occupation_diff / denominator
+            factor = occupation_diff / denominator
             expected += factor * observable[m, n] * np.conjugate(source[m, n])
 
     np.testing.assert_allclose(bubble[0, 0], expected, atol=1e-15, rtol=1e-13)

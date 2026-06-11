@@ -32,33 +32,33 @@ $R^{missing}=-(R^{bubble}+R^{direct})$.
 
 | q_scale | left_bubble_norm | left_direct_norm | left_total_norm | left_missing_norm | right_total_norm | right_missing_norm |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1.000000e+00 | 5.393391e-03 | 1.363791e-02 | 1.903128e-02 | 1.903128e-02 | 1.758498e-02 | 1.758498e-02 |
-| 5.000000e-01 | 2.662441e-03 | 6.819187e-03 | 9.481627e-03 | 9.481627e-03 | 8.693674e-03 | 8.693674e-03 |
-| 2.500000e-01 | 1.329860e-03 | 3.409622e-03 | 4.739483e-03 | 4.739483e-03 | 4.336282e-03 | 4.336282e-03 |
-| 1.250000e-01 | 6.648081e-04 | 1.704815e-03 | 2.369623e-03 | 2.369623e-03 | 2.166838e-03 | 2.166838e-03 |
+| 1.000000e+00 | 5.393391e-03 | 1.363791e-02 | 8.244565e-03 | 8.244565e-03 | 1.012759e-02 | 1.012759e-02 |
+| 5.000000e-01 | 2.662441e-03 | 6.819187e-03 | 4.156746e-03 | 4.156746e-03 | 5.000320e-03 | 5.000320e-03 |
+| 2.500000e-01 | 1.329860e-03 | 3.409622e-03 | 2.079762e-03 | 2.079762e-03 | 2.489982e-03 | 2.489982e-03 |
+| 1.250000e-01 | 6.648081e-04 | 1.704815e-03 | 1.040007e-03 | 1.040007e-03 | 1.243671e-03 | 1.243671e-03 |
 
 ## Longitudinal/transverse decomposition
 
 | q_scale | left_total_longitudinal_abs | left_total_transverse_abs | left_missing_longitudinal_abs | left_missing_transverse_abs | right_total_longitudinal_abs | right_missing_longitudinal_abs |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1.000000e+00 | 1.903127e-02 | 1.734973e-05 | 1.903127e-02 | 1.734973e-05 | 1.742631e-02 | 1.742631e-02 |
-| 5.000000e-01 | 9.481627e-03 | 8.981241e-07 | 9.481627e-03 | 8.981241e-07 | 8.673395e-03 | 8.673395e-03 |
-| 2.500000e-01 | 4.739483e-03 | 9.071873e-08 | 4.739483e-03 | 9.071873e-08 | 4.333723e-03 | 4.333723e-03 |
-| 1.250000e-01 | 2.369623e-03 | 1.076361e-08 | 2.369623e-03 | 1.076361e-08 | 2.166517e-03 | 2.166517e-03 |
+| 1.000000e+00 | 8.244547e-03 | 1.692233e-05 | 8.244547e-03 | 1.692233e-05 | 9.849512e-03 | 9.849512e-03 |
+| 5.000000e-01 | 4.156746e-03 | 8.446975e-07 | 4.156746e-03 | 8.446975e-07 | 4.964978e-03 | 4.964978e-03 |
+| 2.500000e-01 | 2.079762e-03 | 8.404033e-08 | 2.079762e-03 | 8.404033e-08 | 2.485522e-03 | 2.485522e-03 |
+| 1.250000e-01 | 1.040007e-03 | 9.928809e-09 | 1.040007e-03 | 9.928809e-09 | 1.243112e-03 | 1.243112e-03 |
 
 ## q-scaling slopes
 
 | quantity | slope |
 | --- | --- |
-| total_max_norm | 1.001734e+00 |
-| left_total_norm | 1.001734e+00 |
-| right_total_norm | 1.006555e+00 |
-| left_missing_norm | 1.001734e+00 |
-| right_missing_norm | 1.006555e+00 |
-| left_total_longitudinal_abs | 1.001733e+00 |
-| right_total_longitudinal_abs | 1.002444e+00 |
-| left_missing_longitudinal_abs | 1.001733e+00 |
-| right_missing_longitudinal_abs | 1.002444e+00 |
+| total_max_norm | 1.008273e+00 |
+| left_total_norm | 9.959588e-01 |
+| right_total_norm | 1.008273e+00 |
+| left_missing_norm | 9.959588e-01 |
+| right_missing_norm | 1.008273e+00 |
+| left_total_longitudinal_abs | 9.959579e-01 |
+| right_total_longitudinal_abs | 9.956527e-01 |
+| left_missing_longitudinal_abs | 9.959579e-01 |
+| right_missing_longitudinal_abs | 9.956527e-01 |
 
 ## Conclusion table
 
@@ -79,4 +79,4 @@ $R^{missing}=-(R^{bubble}+R^{direct})$.
 
 ## Next step
 
-Next: derive and evaluate the explicit equal-time commutator E_ET. Do not change bubble signs or fit contact coefficients.
+Next: derive and evaluate the explicit equal-time commutator E_ET. After the Stage 4.13 bubble prefactor fix, do not tune signs further or fit contact coefficients.

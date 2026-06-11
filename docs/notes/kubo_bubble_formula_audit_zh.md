@@ -233,3 +233,40 @@ Stage 4.8 的明确结论：
 
 本审计没有使用 residual minimization 决定公式，没有引入自由 sign 参数，没有接入
 conductivity、reflection 或 Casimir，也没有声明 Ward identity 已闭合。
+
+## Correction from Stage 4.12: fermion-loop sign
+
+Stage 4.8 正确识别了 source/observable split：
+
+$$
+J=(\rho,-V_x,-V_y),\qquad P=(\rho,V_x,V_y).
+$$
+
+但是 Stage 4.8 对 bubble overall sign 的结论已被 Stage 4.12 修正。线性响应负号为
+
+$$
+\Pi^{\mathrm{bubble}}=-\langle TJP\rangle_c.
+$$
+
+对 fermion bilinear 的 Wick contraction 有 fermion-loop 负号：
+
+$$
+\langle TJP\rangle_c=-\mathrm{Tr}[JGPG].
+$$
+
+因此两者相消，
+
+$$
+\Pi^{\mathrm{bubble}}=+\mathrm{Tr}[JGPG].
+$$
+
+修正后的 finite-q band-sum prefactor 是
+
+$$
+\frac{f(E_m^-)-f(E_n^+)}
+{i\Omega+E_m^- -E_n^+}.
+$$
+
+Stage 4.13 只翻转 `_finite_q_band_bubble_imag_axis(...)` 的 overall
+prefactor；matrix element ordering、source/observable split、physical current
+$j_i=-V_i$ 和 direct contact $-\langle M_{ij}\rangle$ 均保持不变。

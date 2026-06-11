@@ -41,8 +41,8 @@
   },
   "diagnostic_status": {
     "compressibility_status": "POSITIVE_BUBBLE_SIGN_MATCHES_COMPRESSIBILITY",
-    "likely_issue": "CURRENT_BUBBLE_OVERALL_SIGN_REVERSED",
-    "next_step": "Next: prepare a narrow patch that flips the fermion-loop bubble prefactor in the main response path, then rerun Stage 4.9-4.11 diagnostics. Do not modify direct contact.",
+    "likely_issue": "STAGE_4_12_SUPPORTS_POSITIVE_BUBBLE_SIGN",
+    "next_step": "Next: after the Stage 4.13 main-path patch, rerun Stage 4.9-4.11 diagnostics. Do not modify direct contact.",
     "ward_bubble_sign_global_status": "POSITIVE_BUBBLE_GIVES_PLUS_C_AND_NEGATIVE_GIVES_MINUS_C"
   },
   "purpose": "Kubo bubble fermion-loop sign audit",

@@ -101,7 +101,7 @@ def classify_direct_completion(smallest_total_max_error: float, total_max_norm_s
 
 def fixed_next_step(second_order_status: str, direct_status: str) -> str:
     if second_order_status == "MATCH" and direct_status == "DIRECT_TERM_LEAVES_ORDER_Q_RESIDUAL":
-        return "Next: derive and evaluate the explicit equal-time commutator E_ET. Do not change bubble signs or fit contact coefficients."
+        return "Next: derive and evaluate the explicit equal-time commutator E_ET. After the Stage 4.13 bubble prefactor fix, do not tune signs further or fit contact coefficients."
     if second_order_status == "MISMATCH":
         return "Next: revisit finite-q Hamiltonian contact vertex M_ij before adding any commutator term."
     if direct_status == "DIRECT_TERM_NUMERICALLY_CLOSES_WARD":

@@ -347,6 +347,9 @@ def likely_issue_and_next_step(
     elif bubble_sign_global_status == "UNRESOLVED_OR_INCONSISTENT":
         likely_issue = "BUBBLE_OR_DENSITY_Q_ROUTING"
         next_step = "Next: audit density operator q convention and source reverse matrix element routing."
+    elif bubble_sign_global_status.startswith("CONSISTENT_MATCH_PLUS"):
+        likely_issue = "C_MINUS_K_ROUTING_OR_CONTACT_EXPECTATION"
+        next_step = "Next: audit C_j versus K_j routing, density q-convention, and contact thermal expectation. Do not revert the Stage 4.13 bubble prefactor sign fix."
     elif quadrature_global_status == "CONVERGING_OR_CONVERGED":
         likely_issue = "FINITE_MESH_QUADRATURE"
         next_step = "Next: rerun Ward residual regression with denser BZ meshes and q values commensurate with mesh spacing before adding any E_ET term."
@@ -511,6 +514,7 @@ def render_markdown(data: dict[str, Any]) -> str:
         [
             "# Stage 4.11 Commutator sign and quadrature convergence audit",
             "## Boundary\n\n- no residual tuning\n- no bubble formula change\n- no main response path change\n- no fitted contact\n- no conductivity / reflection / Casimir\n- no Ward closure claim",
+            "## Stage 4.13 note\n\nAfter Stage 4.13 the main response path uses the corrected positive fermion-loop bubble prefactor. Therefore a main bubble match to $+C_j$ is the expected post-fix sign bookkeeping, not a residual-tuning choice.",
             "## Fixed formulas\n\n"
             "$C_j^{(+q)}=\\sum_k\\operatorname{Tr}[(f(H_-)-f(H_+))V_j(k,q)]$.\n\n"
             "$C_j^{(-q)}=\\sum_k\\operatorname{Tr}[(f(H_-)-f(H_+))V_j(k,-q)]$.\n\n"

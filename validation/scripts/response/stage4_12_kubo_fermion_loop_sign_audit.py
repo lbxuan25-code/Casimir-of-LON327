@@ -91,8 +91,8 @@ def finite_q_band_bubble_imag_axis_with_sign(
 ) -> np.ndarray:
     """Return diagnostic finite-q band bubble with selectable overall sign.
 
-    ``bubble_sign=+1`` is the candidate positive fermion-loop sign,
-    ``bubble_sign=-1`` reproduces the current negative sign.  The matrix
+    ``bubble_sign=+1`` is the corrected positive fermion-loop sign,
+    ``bubble_sign=-1`` reproduces the old pre-Stage-4.13 negative diagnostic sign.  The matrix
     element routing intentionally matches the current implementation:
     ``source_matrix[m, n].conjugate()`` implements the reverse finite-q matrix
     element under the existing code convention.
@@ -384,10 +384,10 @@ def run_audit(
         ward_global == "POSITIVE_BUBBLE_GIVES_PLUS_C_AND_NEGATIVE_GIVES_MINUS_C"
         and compressibility_status == "POSITIVE_BUBBLE_SIGN_MATCHES_COMPRESSIBILITY"
     ):
-        likely_issue = "CURRENT_BUBBLE_OVERALL_SIGN_REVERSED"
+        likely_issue = "STAGE_4_12_SUPPORTS_POSITIVE_BUBBLE_SIGN"
         next_step = (
-            "Next: prepare a narrow patch that flips the fermion-loop bubble prefactor in the main "
-            "response path, then rerun Stage 4.9-4.11 diagnostics. Do not modify direct contact."
+            "Next: after the Stage 4.13 main-path patch, rerun Stage 4.9-4.11 diagnostics. "
+            "Do not modify direct contact."
         )
     else:
         likely_issue = "BUBBLE_SIGN_UNRESOLVED"
@@ -491,8 +491,9 @@ def render_markdown(data: dict[str, Any]) -> str:
             "$$\\langle TJP\\rangle_c=-\\mathrm{Tr}[JGPG].$$\n\n"
             "Therefore\n\n"
             "$$\\Pi^{bubble}=+\\mathrm{Tr}[JGPG].$$\n\n"
-            "This audit compares the current negative band-sum bubble with a diagnostic-only "
-            "candidate positive band-sum bubble.",
+            "This audit compares the old pre-Stage-4.13 negative diagnostic branch with the "
+            "corrected positive band-sum branch. After Stage 4.13 the main path is patched to "
+            "the positive bubble prefactor.",
             "## Ward bubble sign comparison\n\n" + comparison_table,
             "## Total residual sign bookkeeping\n\n" + total_table,
             "## Compressibility sanity check\n\n"

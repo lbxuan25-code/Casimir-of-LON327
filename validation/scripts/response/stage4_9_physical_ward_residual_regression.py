@@ -98,7 +98,7 @@ def fixed_next_step(status: str) -> str:
     if status == "NUMERICALLY_CLOSED":
         return "Next: document Ward closure and add a non-regression test. Do not enter conductivity/reflection/Casimir until the closure proof is written."
     if status == "ORDER_Q_RESIDUAL":
-        return "Next: audit equal-time / commutator completion. Do not change bubble signs or introduce fitting coefficients."
+        return "Next: audit equal-time / commutator completion. After the Stage 4.13 bubble prefactor fix, do not tune signs further or introduce fitting coefficients."
     if status == "ORDER_Q2_OR_BETTER_RESIDUAL":
         return "Next: inspect whether remaining residual is numerical quadrature / finite-mesh error or an analytic O(q^2) term. Do not proceed to conductivity until this is classified."
     if status == "NON_SCALING_OR_UNCLEAR_RESIDUAL":

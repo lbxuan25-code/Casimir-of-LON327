@@ -19,7 +19,7 @@ Therefore
 
 $$\Pi^{bubble}=+\mathrm{Tr}[JGPG].$$
 
-This audit compares the current negative band-sum bubble with a diagnostic-only candidate positive band-sum bubble.
+This audit compares the old pre-Stage-4.13 negative diagnostic branch with the corrected positive band-sum branch. After Stage 4.13 the main path is patched to the positive bubble prefactor.
 
 ## Ward bubble sign comparison
 
@@ -62,8 +62,8 @@ This audit compares the current negative band-sum bubble with a diagnostic-only 
 | --- | --- |
 | ward_bubble_sign_global_status | POSITIVE_BUBBLE_GIVES_PLUS_C_AND_NEGATIVE_GIVES_MINUS_C |
 | compressibility_status | POSITIVE_BUBBLE_SIGN_MATCHES_COMPRESSIBILITY |
-| likely_issue | CURRENT_BUBBLE_OVERALL_SIGN_REVERSED |
+| likely_issue | STAGE_4_12_SUPPORTS_POSITIVE_BUBBLE_SIGN |
 
 ## Next step
 
-Next: prepare a narrow patch that flips the fermion-loop bubble prefactor in the main response path, then rerun Stage 4.9-4.11 diagnostics. Do not modify direct contact.
+Next: after the Stage 4.13 main-path patch, rerun Stage 4.9-4.11 diagnostics. Do not modify direct contact.

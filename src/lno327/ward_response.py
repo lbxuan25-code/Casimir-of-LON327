@@ -60,7 +60,9 @@ def _finite_q_band_bubble_imag_axis(
     """Return the finite-q Matsubara bubble for observable/source vertices.
 
     The response convention is
-    delta <J_mu> / delta a_nu = - <J_mu P_nu> + direct term.
+    delta <J_mu> / delta a_nu = - <J_mu P_nu> + direct term.  The
+    linear-response minus sign is canceled by the fermion-loop minus sign, so
+    the finite-q band-sum prefactor is positive.
     Matrix elements are formed as
     <m,-|J_mu|n,+> <n,+|P_nu|m,->, using finite-q Hermiticity for the reverse
     source-side element.
@@ -91,7 +93,7 @@ def _finite_q_band_bubble_imag_axis(
             if occupation_diff == 0.0:
                 continue
             denominator = 1j * config.omega_eV + float(energy_minus - energy_plus)
-            factor = -occupation_diff / denominator
+            factor = occupation_diff / denominator
             for mu, observable_matrix in enumerate(observable_matrices):
                 for nu, source_matrix in enumerate(source_matrices):
                     response[mu, nu] += (
@@ -204,7 +206,7 @@ def normal_density_current_response_imag_axis(
                 if occupation_diff == 0.0:
                     continue
                 denominator = 1j * config.omega_eV + float(energy_minus - energy_plus)
-                factor = -occupation_diff / denominator
+                factor = occupation_diff / denominator
                 for mu in range(3):
                     for nu in range(3):
                         response[mu, nu] += (
