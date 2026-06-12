@@ -233,21 +233,77 @@ def _worker(case: dict[str, Any]) -> dict[str, Any]:
     return row
 
 
-def load_completed(output_json: Path, checkpoint_jsonl: Path) -> list[dict[str, Any]]:
+def _candidate_existing_paths(
+    output_json: Path,
+    checkpoint_jsonl: Path,
+    *,
+    allow_default_checkpoint_fallback: bool,
+) -> tuple[list[Path], list[Path]]:
+    json_paths = [output_json]
+    checkpoint_paths = [checkpoint_jsonl]
+    if output_json != DEFAULT_JSON_OUTPUT and not output_json.exists() and DEFAULT_JSON_OUTPUT.exists():
+        json_paths.append(DEFAULT_JSON_OUTPUT)
+    default_checkpoint = DEFAULT_JSON_OUTPUT.with_suffix(DEFAULT_JSON_OUTPUT.suffix + ".jsonl")
+    if (
+        allow_default_checkpoint_fallback
+        and checkpoint_jsonl != default_checkpoint
+        and not checkpoint_jsonl.exists()
+        and default_checkpoint.exists()
+    ):
+        checkpoint_paths.append(default_checkpoint)
+    return json_paths, checkpoint_paths
+
+
+def load_completed(
+    output_json: Path,
+    checkpoint_jsonl: Path,
+    *,
+    allow_default_checkpoint_fallback: bool = True,
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    if output_json.exists():
-        data = json.loads(output_json.read_text(encoding="utf-8"))
-        rows.extend(data.get("scan_results", []))
-    if checkpoint_jsonl.exists():
-        for line in checkpoint_jsonl.read_text(encoding="utf-8").splitlines():
-            if line.strip():
-                rows.append(json.loads(line))
+    json_paths, checkpoint_paths = _candidate_existing_paths(
+        output_json,
+        checkpoint_jsonl,
+        allow_default_checkpoint_fallback=allow_default_checkpoint_fallback,
+    )
+    for json_path in json_paths:
+        if json_path.exists():
+            data = json.loads(json_path.read_text(encoding="utf-8"))
+            rows.extend(data.get("scan_results", []))
+    for checkpoint_path in checkpoint_paths:
+        if checkpoint_path.exists():
+            for line in checkpoint_path.read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    rows.append(json.loads(line))
     deduped: dict[str, dict[str, Any]] = {}
     for row in rows:
         if "case_key" not in row:
             row["case_key"] = case_key(row)
         deduped[str(row["case_key"])] = row
     return list(deduped.values())
+
+
+def filter_existing_to_active_grid(
+    existing_rows: list[dict[str, Any]],
+    active_case_keys: set[str],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    active_by_key: dict[str, dict[str, Any]] = {}
+    ignored_keys: list[str] = []
+    for row in existing_rows:
+        if "case_key" not in row:
+            row["case_key"] = case_key(row)
+        key = str(row["case_key"])
+        if key in active_case_keys:
+            active_by_key[key] = row
+        else:
+            ignored_keys.append(key)
+    metadata = {
+        "loaded_existing_case_count": int(len(existing_rows)),
+        "loaded_existing_active_case_count": int(len(active_by_key)),
+        "ignored_existing_case_count": int(len(ignored_keys)),
+        "excluded_old_case_examples": ignored_keys[:10],
+    }
+    return list(active_by_key.values()), metadata
 
 
 def _best_parameter_set_per_q_case(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -348,6 +404,7 @@ def assemble_output(
     rows: list[dict[str, Any]],
     run_mode: str,
     workers: int,
+    filtering: dict[str, Any],
 ) -> dict[str, Any]:
     rows_sorted = sorted(rows, key=lambda row: case_key(row))
     summary = _summary_statistics(rows_sorted, len(cases))
@@ -372,6 +429,7 @@ def assemble_output(
         "summary_statistics": summary,
         "worst_cases": {"top_10_largest_max_corrected_norm": _top_rows(rows_sorted, "max_corrected_norm")},
         "diagnostic_status": diagnostic_status(rows_sorted),
+        "filtering": dict(filtering),
         "boundary": dict(BOUNDARY),
     }
 
@@ -418,9 +476,16 @@ def run_scan(
     output_json: Path | None = None,
     output_md: Path | None = None,
     resume: bool = False,
+    fresh: bool = False,
+    filter_existing_to_active_grid_only: bool = False,
+    checkpoint_jsonl: Path | None = None,
     dry_run: bool = False,
     max_cases: int | None = None,
 ) -> dict[str, Any]:
+    if fresh and resume:
+        raise ValueError("--fresh and --resume are mutually exclusive")
+    if filter_existing_to_active_grid_only and fresh:
+        raise ValueError("--filter-existing-to-active-grid cannot be combined with --fresh")
     config = apply_overrides(
         preset_config(preset),
         coarse_grid=coarse_grid,
@@ -438,17 +503,39 @@ def run_scan(
 
     json_path = DEFAULT_JSON_OUTPUT if output_json is None else Path(output_json)
     md_path = DEFAULT_MD_OUTPUT if output_md is None else Path(output_md)
-    checkpoint_path = json_path.with_suffix(json_path.suffix + ".jsonl")
-    completed_rows = load_completed(json_path, checkpoint_path) if resume else []
-    completed_keys = {str(row["case_key"]) for row in completed_rows}
-    pending_cases = [case for case in cases if case_key(case) not in completed_keys]
-    rows = list(completed_rows)
+    checkpoint_path = json_path.with_suffix(json_path.suffix + ".jsonl") if checkpoint_jsonl is None else Path(checkpoint_jsonl)
+    active_case_keys = {case_key(case) for case in cases}
+    should_load_existing = resume or filter_existing_to_active_grid_only
+    existing_rows_all = [] if fresh or not should_load_existing else load_completed(
+        json_path,
+        checkpoint_path,
+        allow_default_checkpoint_fallback=checkpoint_jsonl is None,
+    )
+    existing_rows_active, filtering_metadata = filter_existing_to_active_grid(existing_rows_all, active_case_keys)
+    active_completed_keys = {str(row["case_key"]) for row in existing_rows_active}
+    pending_cases = [] if filter_existing_to_active_grid_only else [
+        case for case in cases if case_key(case) not in active_completed_keys
+    ]
+    rows = list(existing_rows_active)
+    filtering_metadata.update(
+        {
+            "active_case_count": int(len(cases)),
+            "newly_computed_case_count": 0,
+            "results_used_for_summary_count": int(len(rows)),
+            "fresh_mode": bool(fresh),
+            "filter_existing_to_active_grid": bool(filter_existing_to_active_grid_only),
+        }
+    )
+
+    if (fresh or (not resume and not filter_existing_to_active_grid_only)) and checkpoint_path.exists():
+        checkpoint_path.unlink()
 
     if pending_cases:
         if workers <= 1:
             for case in pending_cases:
                 row = _worker(case)
                 rows.append(row)
+                filtering_metadata["newly_computed_case_count"] += 1
                 checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
                 with checkpoint_path.open("a", encoding="utf-8") as handle:
                     handle.write(json.dumps(to_jsonable(row), sort_keys=True) + "\n")
@@ -458,17 +545,20 @@ def run_scan(
                 for future in as_completed(futures):
                     row = future.result()
                     rows.append(row)
+                    filtering_metadata["newly_computed_case_count"] += 1
                     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
                     with checkpoint_path.open("a", encoding="utf-8") as handle:
                         handle.write(json.dumps(to_jsonable(row), sort_keys=True) + "\n")
+    filtering_metadata["results_used_for_summary_count"] = int(len(rows))
 
     data = assemble_output(
         preset=preset,
         config=config,
         cases=cases,
         rows=rows,
-        run_mode="resume" if resume else "fresh",
+        run_mode="filter_existing_to_active_grid" if filter_existing_to_active_grid_only else ("resume" if resume else "fresh"),
         workers=workers,
+        filtering=filtering_metadata,
     )
     json_path.parent.mkdir(parents=True, exist_ok=True)
     json_path.write_text(json.dumps(to_jsonable(data), indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -491,6 +581,7 @@ def _table(headers: tuple[str, ...], rows: list[tuple[Any, ...]]) -> str:
 def render_markdown(data: dict[str, Any]) -> str:
     stats = data["summary_statistics"]
     status = data["diagnostic_status"]
+    filtering = data.get("filtering", {})
     worst_rows = [
         (
             row["q_case"],
@@ -523,6 +614,19 @@ def render_markdown(data: dict[str, Any]) -> str:
             ),
             "## Worst cases\n\n"
             + _table(("q_case", "q_scale", "level", "order", "window", "max_norm", "status"), worst_rows),
+            "## Filtering / resume behavior\n\n"
+            + _table(
+                ("quantity", "value"),
+                [
+                    ("active_case_count", filtering.get("active_case_count", 0)),
+                    ("loaded_existing_case_count", filtering.get("loaded_existing_case_count", 0)),
+                    ("loaded_existing_active_case_count", filtering.get("loaded_existing_active_case_count", 0)),
+                    ("ignored_existing_case_count", filtering.get("ignored_existing_case_count", 0)),
+                    ("newly_computed_case_count", filtering.get("newly_computed_case_count", 0)),
+                    ("results_used_for_summary_count", filtering.get("results_used_for_summary_count", 0)),
+                ],
+            )
+            + "\n\nSummary only includes active CLI grid cases. Old completed cases outside the active grid are ignored, preventing old 0.03 eV scans from polluting no-0.03 summaries.",
             "## Diagnostic decision\n\n"
             + _table(
                 ("quantity", "status"),
@@ -551,7 +655,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--q-scales", type=_float_list)
     parser.add_argument("--output-json", type=Path, default=DEFAULT_JSON_OUTPUT)
     parser.add_argument("--output-md", type=Path, default=DEFAULT_MD_OUTPUT)
-    parser.add_argument("--resume", action="store_true")
+    resume_group = parser.add_mutually_exclusive_group()
+    resume_group.add_argument("--resume", action="store_true")
+    resume_group.add_argument("--fresh", action="store_true")
+    parser.add_argument("--filter-existing-to-active-grid", action="store_true")
+    parser.add_argument("--checkpoint-jsonl", type=Path)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--max-cases", type=int)
     return parser.parse_args()
@@ -573,6 +681,9 @@ def main() -> None:
         output_json=args.output_json,
         output_md=args.output_md,
         resume=args.resume,
+        fresh=args.fresh,
+        filter_existing_to_active_grid_only=args.filter_existing_to_active_grid,
+        checkpoint_jsonl=args.checkpoint_jsonl,
         dry_run=args.dry_run,
         max_cases=args.max_cases,
     )

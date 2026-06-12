@@ -62,6 +62,35 @@ With `--resume`, the script reads completed case keys from the output JSON and c
 
 The case key includes temperature, Matsubara index, q case, q scale, adaptive level, Gauss order, Fermi window, and coarse grid.
 
+Resume only applies within the active CLI grid. Completed old cases outside the current active grid are ignored for summary statistics and worst-case tables. This prevents old `0.03 eV` scans from polluting clean no-`0.03 eV` summaries.
+
+Use `--fresh` to ignore existing JSON/checkpoint data and rebuild the current active grid from scratch. Use `--filter-existing-to-active-grid` to recompute no response data and only regenerate a clean JSON/Markdown summary from existing results that match the active grid.
+
+### Clean Rerun Commands
+
+```bash
+# 完全重新跑，不使用旧结果
+python validation/scripts/response/stage4_20_user_run_targeted_refinement_scan.py \
+  --preset targeted \
+  --workers 8 \
+  --fermi-windows 0.05,0.08,0.12 \
+  --levels 4,5 \
+  --gauss-orders 3,5 \
+  --fresh \
+  --output-json validation/outputs/response/ward_identity/stage4_20_targeted_no003_clean.json \
+  --output-md validation/outputs/response/ward_identity/stage4_20_targeted_no003_clean.md
+
+# 只过滤已有结果，不重新计算
+python validation/scripts/response/stage4_20_user_run_targeted_refinement_scan.py \
+  --preset targeted \
+  --fermi-windows 0.05,0.08,0.12 \
+  --levels 4,5 \
+  --gauss-orders 3,5 \
+  --filter-existing-to-active-grid \
+  --output-json validation/outputs/response/ward_identity/stage4_20_targeted_no003_clean.json \
+  --output-md validation/outputs/response/ward_identity/stage4_20_targeted_no003_clean.md
+```
+
 ## Expected Runtime Control
 
 Use `--dry-run` first to inspect the planned case count and rough quadrature-point upper bounds. Use `--max-cases N` for partial runs.
@@ -84,4 +113,3 @@ Global status:
 ## Next Step
 
 If targeted refinement passes, the next stage may proceed to an independent response-to-conductivity validation. Passing this script is still not a conductivity, reflection, or Casimir conclusion.
-
