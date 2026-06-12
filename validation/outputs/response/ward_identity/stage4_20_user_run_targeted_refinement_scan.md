@@ -8,14 +8,14 @@ Targeted user-run refinement scan for the Stage 4.19 worst-case Ward residual cl
 
 | quantity | value |
 | --- | --- |
-| num_total_cases | 24 |
-| num_completed_cases | 24 |
-| num_closed | 12 |
+| num_total_cases | 48 |
+| num_completed_cases | 60 |
+| num_closed | 48 |
 | num_acceptable_but_monitor | 6 |
 | num_not_closed | 6 |
 | max_corrected_norm_global | 3.018433e-04 |
-| median_corrected_norm | 9.862386e-07 |
-| p95_corrected_norm | 2.986595e-04 |
+| median_corrected_norm | 2.259957e-09 |
+| p95_corrected_norm | 5.486262e-05 |
 
 ## Worst cases
 
