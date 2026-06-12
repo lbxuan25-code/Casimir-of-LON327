@@ -375,7 +375,54 @@ def physical_ward_residuals(
     omega_eV: float,
     q: Sequence[float] | np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return Q_phys residuals for a physical-current response matrix."""
+    """Return corrected physical left/right Ward residuals.
+
+    The response matrix uses the observable/source split
+    ``J=(rho,-V_x,-V_y)`` and ``P=(rho,V_x,V_y)``.  The left contraction acts
+    on the observable side.  Since the observable spatial vertex is
+    ``J_i=j_i=-V_i``, the left diagnostic residual is written as
+    ``R_left[nu] = iOmega Pi[0,nu] + q_i Pi[i,nu]``.
+
+    The right contraction acts on the source side.  Since the source spatial
+    vertex is ``P_i=V_i`` and
+    ``G_+^{-1}-G_-^{-1}=iΩρ-q_iV_i``, the corrected source-side residual is
+    ``R_right[mu] = iOmega Pi[mu,0] - q_i Pi[mu,i]``.
+    """
+
+    matrix = np.asarray(response, dtype=complex)
+    if matrix.shape != (3, 3):
+        raise ValueError("response must have shape (3, 3)")
+    q_vector = np.asarray(q, dtype=float)
+    if q_vector.shape != (2,):
+        raise ValueError("q must have shape (2,)")
+    qx, qy = (float(q_vector[0]), float(q_vector[1]))
+    left = 1j * omega_eV * matrix[0, :] + qx * matrix[1, :] + qy * matrix[2, :]
+    right = 1j * omega_eV * matrix[:, 0] - matrix[:, 1] * qx - matrix[:, 2] * qy
+    return left, right
+
+
+def physical_ward_residuals_corrected(
+    response: np.ndarray,
+    omega_eV: float,
+    q: Sequence[float] | np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Backward-compatible explicit name for corrected physical residuals."""
+
+    return physical_ward_residuals(response, omega_eV, q)
+
+
+def physical_ward_residuals_legacy(
+    response: np.ndarray,
+    omega_eV: float,
+    q: Sequence[float] | np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return the legacy physical residuals with the old right plus-q sign.
+
+    This helper is retained only for diagnostic comparisons.  Its left
+    residual matches ``physical_ward_residuals``.  Its right residual uses the
+    historical convention ``iOmega Pi[mu,0] + q_i Pi[mu,i]`` and must not be
+    used as the closure criterion for the current physical response convention.
+    """
 
     matrix = np.asarray(response, dtype=complex)
     if matrix.shape != (3, 3):

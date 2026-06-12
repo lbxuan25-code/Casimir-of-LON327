@@ -1,0 +1,466 @@
+{
+  "boundary": {
+    "no_E_ET_added": true,
+    "no_bubble_sign_change": true,
+    "no_conductivity_reflection_casimir": true,
+    "no_direct_contact_change": true,
+    "no_fitted_contact": true,
+    "no_main_response_change": true,
+    "no_residual_tuning": true,
+    "no_source_observable_change": true
+  },
+  "config": {
+    "coarse_grid": 32,
+    "eta_eV": 1e-10,
+    "fermi_window_eV": 0.05,
+    "gauss_order": 3,
+    "legacy_right_residual_convention": "iOmega Pi[mu,0] + qx Pi[mu,x] + qy Pi[mu,y]",
+    "matsubara_index": 1,
+    "max_refinement_level": 4,
+    "omega_eV": 0.016243290521934156,
+    "output_si": false,
+    "q_base": [
+      0.02,
+      0.013
+    ],
+    "q_scales": [
+      1.0,
+      0.5,
+      0.25,
+      0.125
+    ],
+    "right_residual_convention": "iOmega Pi[mu,0] - qx Pi[mu,x] - qy Pi[mu,y]",
+    "temperature_K": 30.0
+  },
+  "corrected_validation_results": [
+    {
+      "left_density_source_abs": 1.111405915802104e-17,
+      "left_longitudinal_abs": 2.541769008725441e-07,
+      "left_norm": 2.9078885926728153e-07,
+      "left_residual": {
+        "abs": [
+          1.111405915802104e-17,
+          2.90093957256972e-07,
+          2.0091207951662693e-08
+        ],
+        "imag": [
+          7.589415207398531e-18,
+          -7.76350917917284e-19,
+          -6.711234334106747e-19
+        ],
+        "real": [
+          -8.119303404707775e-18,
+          2.90093957256972e-07,
+          2.0091207951662693e-08
+        ]
+      },
+      "left_spatial_source_norm": 2.9078885926728153e-07,
+      "left_transverse_abs": 1.4125248223233352e-07,
+      "legacy_over_corrected_norm": 46494.718647476104,
+      "legacy_right_norm": 0.013520146197454171,
+      "legacy_right_residual": {
+        "abs": [
+          0.011153772544641609,
+          0.00591054286206844,
+          0.004842849811689944
+        ],
+        "imag": [
+          -0.011153772544641609,
+          -8.190848387218371e-19,
+          -5.533784880126095e-19
+        ],
+        "real": [
+          -8.160920949697871e-18,
+          -0.00591054286206844,
+          -0.004842849811689944
+        ]
+      },
+      "max_corrected_norm": 2.907888592673115e-07,
+      "num_base_fermi_window_cells": 384,
+      "num_cells_refined": 23726,
+      "num_cells_total": 72202,
+      "num_quadrature_points": 649818,
+      "q_model": [
+        0.02,
+        0.013
+      ],
+      "q_norm": 0.023853720883753128,
+      "q_scale": 1.0,
+      "right_density_observable_abs": 1.0498040028489278e-17,
+      "right_longitudinal_abs": 2.5417690087278047e-07,
+      "right_norm": 2.907888592673115e-07,
+      "right_residual": {
+        "abs": [
+          1.0498040028489278e-17,
+          2.90093957256972e-07,
+          2.0091207952096374e-08
+        ],
+        "imag": [
+          7.15573433840433e-18,
+          6.057506949583331e-19,
+          3.864649703083203e-19
+        ],
+        "real": [
+          -7.681426333562297e-18,
+          -2.90093957256972e-07,
+          -2.0091207952096374e-08
+        ]
+      },
+      "right_spatial_observable_norm": 2.907888592673115e-07,
+      "right_transverse_abs": 1.412524822319699e-07,
+      "same_points_weights_for_bubble_and_direct": true
+    },
+    {
+      "left_density_source_abs": 1.936010325198272e-17,
+      "left_longitudinal_abs": 2.3399022967218817e-07,
+      "left_norm": 2.8846349379698245e-07,
+      "left_residual": {
+        "abs": [
+          1.936010325198272e-17,
+          1.0424796706244902e-07,
+          2.6896756052897583e-07
+        ],
+        "imag": [
+          1.929879867024198e-17,
+          5.741508919897909e-19,
+          2.6263542037700983e-19
+        ],
+        "real": [
+          1.539469977913931e-18,
+          -1.0424796706244902e-07,
+          -2.6896756052897583e-07
+        ]
+      },
+      "left_spatial_source_norm": 2.8846349379698245e-07,
+      "left_transverse_abs": 1.6870020649518584e-07,
+      "legacy_over_corrected_norm": 27675.871158844915,
+      "legacy_right_norm": 0.00798347848836056,
+      "legacy_right_residual": {
+        "abs": [
+          0.0047222082237912,
+          0.005245012037047501,
+          0.0037318262280686926
+        ],
+        "imag": [
+          -0.0047222082237912,
+          1.9851083987332987e-19,
+          -1.1209887728614207e-18
+        ],
+        "real": [
+          2.324406857544168e-18,
+          -0.005245012037047501,
+          -0.0037318262280686926
+        ]
+      },
+      "max_corrected_norm": 2.8846349379716367e-07,
+      "num_base_fermi_window_cells": 384,
+      "num_cells_refined": 23114,
+      "num_cells_total": 70366,
+      "num_quadrature_points": 633294,
+      "q_model": [
+        0.01,
+        0.0065
+      ],
+      "q_norm": 0.011926860441876564,
+      "q_scale": 0.5,
+      "right_density_observable_abs": 1.957447783593009e-17,
+      "right_longitudinal_abs": 2.3399022967260862e-07,
+      "right_norm": 2.8846349379716367e-07,
+      "right_residual": {
+        "abs": [
+          1.957447783593009e-17,
+          1.0424796706295046e-07,
+          2.6896756052897583e-07
+        ],
+        "imag": [
+          1.951563910473908e-17,
+          -5.10199794338028e-19,
+          -3.038187484438033e-19
+        ],
+        "real": [
+          1.5165793361697973e-18,
+          1.0424796706295046e-07,
+          2.6896756052897583e-07
+        ]
+      },
+      "right_spatial_observable_norm": 2.8846349379716367e-07,
+      "right_transverse_abs": 1.6870020649491254e-07,
+      "same_points_weights_for_bubble_and_direct": true
+    },
+    {
+      "left_density_source_abs": 1.2827259465955586e-17,
+      "left_longitudinal_abs": 4.0851419799762866e-07,
+      "left_norm": 4.139011615628318e-07,
+      "left_residual": {
+        "abs": [
+          1.2827259465955586e-17,
+          3.0624133668916183e-07,
+          2.784428401771122e-07
+        ],
+        "imag": [
+          1.2522535092207576e-17,
+          -3.8107475808533927e-19,
+          1.9220851880866873e-19
+        ],
+        "real": [
+          2.7793345015267533e-18,
+          -3.0624133668916183e-07,
+          -2.784428401771122e-07
+        ]
+      },
+      "left_spatial_source_norm": 4.139011615628318e-07,
+      "left_transverse_abs": 6.656066088475706e-08,
+      "legacy_over_corrected_norm": 10336.394047384218,
+      "legacy_right_norm": 0.00427824550258352,
+      "legacy_right_residual": {
+        "abs": [
+          0.0014742291615052507,
+          0.003341164622857905,
+          0.002228598645495961
+        ],
+        "imag": [
+          -0.0014742291615052507,
+          8.620466953671397e-19,
+          -2.9098063748311177e-19
+        ],
+        "real": [
+          2.493355345822963e-18,
+          -0.003341164622857905,
+          -0.002228598645495961
+        ]
+      },
+      "max_corrected_norm": 4.139011615628368e-07,
+      "num_base_fermi_window_cells": 384,
+      "num_cells_refined": 22832,
+      "num_cells_total": 69520,
+      "num_quadrature_points": 625680,
+      "q_model": [
+        0.005,
+        0.00325
+      ],
+      "q_norm": 0.005963430220938282,
+      "q_scale": 0.25,
+      "right_density_observable_abs": 1.2828697094159701e-17,
+      "right_longitudinal_abs": 4.085141979976344e-07,
+      "right_norm": 4.139011615628368e-07,
+      "right_residual": {
+        "abs": [
+          1.2828697094159701e-17,
+          3.062413366891686e-07,
+          2.784428401771122e-07
+        ],
+        "imag": [
+          1.2522535092207576e-17,
+          3.6573843785048605e-19,
+          -2.0173775040548545e-19
+        ],
+        "real": [
+          2.7859619520250713e-18,
+          3.062413366891686e-07,
+          2.784428401771122e-07
+        ]
+      },
+      "right_spatial_observable_norm": 4.139011615628368e-07,
+      "right_transverse_abs": 6.656066088475338e-08,
+      "same_points_weights_for_bubble_and_direct": true
+    },
+    {
+      "left_density_source_abs": 3.836919406438086e-18,
+      "left_longitudinal_abs": 2.8292083760594907e-07,
+      "left_norm": 2.831613752281374e-07,
+      "left_residual": {
+        "abs": [
+          3.836919406438086e-18,
+          2.3085373597704634e-07,
+          1.6397230560838676e-07
+        ],
+        "imag": [
+          1.0842021724855044e-18,
+          2.031340964510392e-19,
+          1.1998588995487146e-19
+        ],
+        "real": [
+          3.680551070244632e-18,
+          -2.3085373597704634e-07,
+          -1.6397230560838676e-07
+        ]
+      },
+      "left_spatial_source_norm": 2.831613752281374e-07,
+      "left_transverse_abs": 1.1668936088529345e-08,
+      "legacy_over_corrected_norm": 7720.105910611204,
+      "legacy_right_norm": 0.0021860358065562014,
+      "legacy_right_residual": {
+        "abs": [
+          0.0003946350422220626,
+          0.001799169153632628,
+          0.0011772875976638272
+        ],
+        "imag": [
+          -0.0003946350422220626,
+          -5.383004914078799e-19,
+          -3.119876827992336e-19
+        ],
+        "real": [
+          3.837880246985135e-18,
+          -0.001799169153632628,
+          -0.0011772875976638272
+        ]
+      },
+      "max_corrected_norm": 2.83161375228223e-07,
+      "num_base_fermi_window_cells": 384,
+      "num_cells_refined": 22682,
+      "num_cells_total": 69070,
+      "num_quadrature_points": 621630,
+      "q_model": [
+        0.0025,
+        0.001625
+      ],
+      "q_norm": 0.002981715110469141,
+      "q_scale": 0.125,
+      "right_density_observable_abs": 3.8449593947614105e-18,
+      "right_longitudinal_abs": 2.8292083760603716e-07,
+      "right_norm": 2.83161375228223e-07,
+      "right_residual": {
+        "abs": [
+          3.8449593947614105e-18,
+          2.3085373597715137e-07,
+          1.6397230560838676e-07
+        ],
+        "imag": [
+          1.111307226797642e-18,
+          -2.0566618608662586e-19,
+          -1.1914940741234808e-19
+        ],
+        "real": [
+          3.680857100599175e-18,
+          2.3085373597715137e-07,
+          1.6397230560838676e-07
+        ]
+      },
+      "right_spatial_observable_norm": 2.83161375228223e-07,
+      "right_transverse_abs": 1.1668936088472091e-08,
+      "same_points_weights_for_bubble_and_direct": true
+    }
+  ],
+  "diagnostic_status": {
+    "corrected_ward_status": "CORRECTED_WARD_NUMERICALLY_CLOSED",
+    "dominant_remaining_channel": "right_spatial_observable",
+    "likely_issue": "PREVIOUS_RIGHT_RESIDUAL_WAS_DIAGNOSTIC_CONVENTION",
+    "max_corrected_norm": 4.139011615628368e-07,
+    "max_legacy_right_norm": 0.013520146197454171,
+    "next_step": "Next: Stage 4.19 multi-parameter robustness scan before any conductivity/reflection/Casimir use.",
+    "right_convention_status": "RIGHT_WARD_CONVENTION_FIX_VALIDATED"
+  },
+  "legacy_comparison_results": [
+    {
+      "corrected_right_norm": 2.907888592673115e-07,
+      "legacy_over_corrected_norm": 46494.718647476104,
+      "legacy_right_norm": 0.013520146197454171,
+      "legacy_right_residual": {
+        "abs": [
+          0.011153772544641609,
+          0.00591054286206844,
+          0.004842849811689944
+        ],
+        "imag": [
+          -0.011153772544641609,
+          -8.190848387218371e-19,
+          -5.533784880126095e-19
+        ],
+        "real": [
+          -8.160920949697871e-18,
+          -0.00591054286206844,
+          -0.004842849811689944
+        ]
+      },
+      "q_model": [
+        0.02,
+        0.013
+      ],
+      "q_scale": 1.0
+    },
+    {
+      "corrected_right_norm": 2.8846349379716367e-07,
+      "legacy_over_corrected_norm": 27675.871158844915,
+      "legacy_right_norm": 0.00798347848836056,
+      "legacy_right_residual": {
+        "abs": [
+          0.0047222082237912,
+          0.005245012037047501,
+          0.0037318262280686926
+        ],
+        "imag": [
+          -0.0047222082237912,
+          1.9851083987332987e-19,
+          -1.1209887728614207e-18
+        ],
+        "real": [
+          2.324406857544168e-18,
+          -0.005245012037047501,
+          -0.0037318262280686926
+        ]
+      },
+      "q_model": [
+        0.01,
+        0.0065
+      ],
+      "q_scale": 0.5
+    },
+    {
+      "corrected_right_norm": 4.139011615628368e-07,
+      "legacy_over_corrected_norm": 10336.394047384218,
+      "legacy_right_norm": 0.00427824550258352,
+      "legacy_right_residual": {
+        "abs": [
+          0.0014742291615052507,
+          0.003341164622857905,
+          0.002228598645495961
+        ],
+        "imag": [
+          -0.0014742291615052507,
+          8.620466953671397e-19,
+          -2.9098063748311177e-19
+        ],
+        "real": [
+          2.493355345822963e-18,
+          -0.003341164622857905,
+          -0.002228598645495961
+        ]
+      },
+      "q_model": [
+        0.005,
+        0.00325
+      ],
+      "q_scale": 0.25
+    },
+    {
+      "corrected_right_norm": 2.83161375228223e-07,
+      "legacy_over_corrected_norm": 7720.105910611204,
+      "legacy_right_norm": 0.0021860358065562014,
+      "legacy_right_residual": {
+        "abs": [
+          0.0003946350422220626,
+          0.001799169153632628,
+          0.0011772875976638272
+        ],
+        "imag": [
+          -0.0003946350422220626,
+          -5.383004914078799e-19,
+          -3.119876827992336e-19
+        ],
+        "real": [
+          3.837880246985135e-18,
+          -0.001799169153632628,
+          -0.0011772875976638272
+        ]
+      },
+      "q_model": [
+        0.0025,
+        0.001625
+      ],
+      "q_scale": 0.125
+    }
+  ],
+  "purpose": "Consolidate corrected left/right Ward residual convention and validate full response",
+  "stage": "Stage 4.18"
+}
