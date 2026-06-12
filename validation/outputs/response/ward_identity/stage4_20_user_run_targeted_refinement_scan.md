@@ -8,7 +8,7 @@ Targeted user-run refinement scan for the Stage 4.19 worst-case Ward residual cl
 
 | quantity | value |
 | --- | --- |
-| num_total_cases | 48 |
+| num_total_cases | 24 |
 | num_completed_cases | 60 |
 | num_closed | 48 |
 | num_acceptable_but_monitor | 6 |

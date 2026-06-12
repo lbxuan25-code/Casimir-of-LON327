@@ -28,7 +28,7 @@
     "matsubara_indices": [
       1
     ],
-    "preset": "confirm",
+    "preset": "targeted",
     "q_cases": {
       "q_diag_neg": [
         0.02,
@@ -2051,7 +2051,7 @@
     "num_closed": 48,
     "num_completed_cases": 60,
     "num_not_closed": 6,
-    "num_total_cases": 48,
+    "num_total_cases": 24,
     "p95_corrected_norm": 5.486262425037552e-05,
     "worst_case_parameters": {
       "adaptive_level": 3,
