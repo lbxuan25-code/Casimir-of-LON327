@@ -1,0 +1,197 @@
+{
+  "boundary": {
+    "no_E_ET_added": true,
+    "no_bubble_sign_change": true,
+    "no_direct_contact_change": true,
+    "no_fitted_contact": true,
+    "no_main_response_change": true,
+    "no_reflection_casimir": true,
+    "no_residual_tuning": true,
+    "no_source_observable_change": true,
+    "not_casimir_ready_claim": true
+  },
+  "conductivity_convention": {
+    "bulk_3d_conductivity": false,
+    "formula": "sigma_model_ij(iOmega) = - response[1:3,1:3] / omega_eV",
+    "normalization": "bilayer-normalized 2D sheet conductivity",
+    "si_scaling_applied": false,
+    "single_layer_conductivity": false
+  },
+  "config": {
+    "adaptive_levels": [
+      1
+    ],
+    "coarse_grid": 8,
+    "dry_run": false,
+    "eta_eV": 1e-10,
+    "fermi_windows_eV": [
+      0.05
+    ],
+    "gauss_orders": [
+      2
+    ],
+    "matsubara_indices": [
+      1,
+      2
+    ],
+    "output_si": false,
+    "planned_cases": [],
+    "planned_num_cases": 2,
+    "q_cases": [
+      "q_diag_pos"
+    ],
+    "quick": true,
+    "temperature_K": 30.0,
+    "workers": 1
+  },
+  "diagnostic_status": {
+    "conductivity_sanity_status": "CONDUCTIVITY_SANITY_FAILED",
+    "recommended_next_action": "Do not proceed; diagnose failed conductivity or Ward channel."
+  },
+  "purpose": "Bilayer sheet conductivity numerical sanity scan",
+  "scan_results": [
+    {
+      "adaptive_level": 1,
+      "coarse_grid": 8,
+      "diag_norm": 27.603456880854395,
+      "fermi_window_eV": 0.05,
+      "frequency_relative_jump_from_previous": 0.0,
+      "gauss_order": 2,
+      "matsubara_index": 1,
+      "num_quadrature_points": 544,
+      "offdiag_norm": 5.166879314324182,
+      "omega_eV": 0.016243290521934156,
+      "q_case": "q_diag_pos",
+      "q_model": [
+        0.02,
+        0.013
+      ],
+      "relative_offdiag_norm": 0.18718232780141028,
+      "relative_xx_yy_anisotropy": 0.00014594887040660518,
+      "runtime_seconds": 0.08760826100024133,
+      "sigma_diag_min_real": 19.515742620401614,
+      "sigma_diag_positive": true,
+      "sigma_trace_real": 39.03718267351829,
+      "sigma_xx_model": {
+        "abs": 19.515742620401614,
+        "imag": 1.2523065921759823e-16,
+        "real": 19.515742620401614
+      },
+      "sigma_xy_model": {
+        "abs": 3.6535354007311276,
+        "imag": -2.352996003233057e-16,
+        "real": -3.6535354007311276
+      },
+      "sigma_yx_model": {
+        "abs": 3.6535354007311285,
+        "imag": -2.82676805313099e-17,
+        "real": -3.6535354007311285
+      },
+      "sigma_yy_model": {
+        "abs": 19.52144005311667,
+        "imag": -2.273517753141618e-16,
+        "real": 19.52144005311667
+      },
+      "status": "FAIL",
+      "status_reasons": [
+        "WARD_NOT_CLOSED_FOR_CONDUCTIVITY_POINT"
+      ],
+      "temperature_K": 30.0,
+      "ward_left_norm": 0.005107144583804304,
+      "ward_max_norm": 0.005107144583804304,
+      "ward_right_norm": 0.005107144583804304,
+      "xx_minus_yy_abs": 0.005697432715056294,
+      "xy_minus_yx_abs": 9.119885531265024e-16,
+      "xy_plus_yx_abs": 7.307070801462256
+    },
+    {
+      "adaptive_level": 1,
+      "coarse_grid": 8,
+      "diag_norm": 15.0137663066021,
+      "fermi_window_eV": 0.05,
+      "frequency_relative_jump_from_previous": 0.45605285177974847,
+      "gauss_order": 2,
+      "matsubara_index": 2,
+      "num_quadrature_points": 544,
+      "offdiag_norm": 1.4455351982726965,
+      "omega_eV": 0.03248658104386831,
+      "q_case": "q_diag_pos",
+      "q_model": [
+        0.02,
+        0.013
+      ],
+      "relative_offdiag_norm": 0.09628065128714851,
+      "relative_xx_yy_anisotropy": 7.567510928464345e-05,
+      "runtime_seconds": 0.08556069799942634,
+      "sigma_diag_min_real": 10.615532543767877,
+      "sigma_diag_positive": true,
+      "sigma_trace_real": 21.232671872300095,
+      "sigma_xx_model": {
+        "abs": 10.615532543767877,
+        "imag": -5.142662669647704e-17,
+        "real": 10.615532543767877
+      },
+      "sigma_xy_model": {
+        "abs": 1.0221477411424642,
+        "imag": -3.9247736373584106e-17,
+        "real": -1.0221477411424642
+      },
+      "sigma_yx_model": {
+        "abs": 1.0221477411424642,
+        "imag": -3.7271104288337563e-17,
+        "real": -1.0221477411424642
+      },
+      "sigma_yy_model": {
+        "abs": 10.617139328532218,
+        "imag": 1.660080878394263e-16,
+        "real": 10.617139328532218
+      },
+      "status": "FAIL",
+      "status_reasons": [
+        "WARD_NOT_CLOSED_FOR_CONDUCTIVITY_POINT"
+      ],
+      "temperature_K": 30.0,
+      "ward_left_norm": 0.005107144583804302,
+      "ward_max_norm": 0.005107144583804302,
+      "ward_right_norm": 0.005107144583804302,
+      "xx_minus_yy_abs": 0.0016067847643412847,
+      "xy_minus_yx_abs": 1.9766320852465425e-18,
+      "xy_plus_yx_abs": 2.0442954822849284
+    }
+  ],
+  "stage": "Stage 5.2",
+  "summary_statistics": {
+    "max_relative_offdiag_norm": 0.18718232780141028,
+    "max_relative_xx_yy_anisotropy": 0.00014594887040660518,
+    "max_ward_norm": 0.005107144583804304,
+    "min_diag_real": 10.615532543767877,
+    "num_fail": 2,
+    "num_monitor": 0,
+    "num_pass": 0,
+    "num_total_cases": 2,
+    "worst_negative_diag_case": {
+      "adaptive_level": 1,
+      "fermi_window_eV": 0.05,
+      "gauss_order": 2,
+      "matsubara_index": 2,
+      "q_case": "q_diag_pos",
+      "status": "FAIL"
+    },
+    "worst_offdiag_case": {
+      "adaptive_level": 1,
+      "fermi_window_eV": 0.05,
+      "gauss_order": 2,
+      "matsubara_index": 1,
+      "q_case": "q_diag_pos",
+      "status": "FAIL"
+    },
+    "worst_ward_case": {
+      "adaptive_level": 1,
+      "fermi_window_eV": 0.05,
+      "gauss_order": 2,
+      "matsubara_index": 1,
+      "q_case": "q_diag_pos",
+      "status": "FAIL"
+    }
+  }
+}
