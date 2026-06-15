@@ -1,0 +1,460 @@
+{
+  "boundary": {
+    "no_E_ET_added": true,
+    "no_bubble_sign_change": true,
+    "no_direct_contact_change": true,
+    "no_fitted_contact": true,
+    "no_main_response_change": true,
+    "no_reflection_casimir": true,
+    "no_residual_tuning": true,
+    "no_source_observable_change": true,
+    "not_casimir_ready_claim": true
+  },
+  "conductivity_convention": {
+    "bulk_3d_conductivity": false,
+    "formula": "sigma_model_ij(iOmega) = - response[1:3,1:3] / omega_eV",
+    "normalization": "bilayer-normalized 2D sheet conductivity",
+    "si_scaling_applied": false,
+    "single_layer_conductivity": false
+  },
+  "config": {
+    "coarse_grid": 8,
+    "dry_run": false,
+    "eta_eV": 1e-10,
+    "integration_configs": [
+      {
+        "adaptive_level": 1,
+        "fermi_window_eV": 0.05,
+        "gauss_order": 2
+      }
+    ],
+    "matsubara_indices": [
+      1
+    ],
+    "output_si": false,
+    "planned_cases": [],
+    "planned_num_cases": 4,
+    "q_cases": [
+      "q_diag_pos",
+      "q_diag_neg"
+    ],
+    "q_scales": [
+      1.0,
+      0.5
+    ],
+    "quick": true,
+    "targeted_configs": true,
+    "temperature_K": 30.0,
+    "workers": 2
+  },
+  "convergence_comparisons": [],
+  "diagnostic_status": {
+    "recommended_next_action": "Do not proceed; diagnose Ward closure for targeted offdiag cases.",
+    "stage5_3b_status": "STAGE5_3B_FAILED_WARD"
+  },
+  "global_summary": {
+    "max_ward_norm": 0.005107144583804304,
+    "min_diag_real": 19.515742620401607,
+    "num_cases": 4,
+    "num_comparison_fail": 0,
+    "num_comparison_monitor": 0,
+    "num_comparison_pass": 0,
+    "num_convergence_comparisons": 0
+  },
+  "purpose": "Targeted convergence audit for finite-q off-diagonal bilayer sheet conductivity",
+  "q_scaling_summary": {
+    "all_xy_decrease": true,
+    "num_pairs": 2,
+    "pairs": [
+      {
+        "LT_offdiag_decreases_with_q": true,
+        "adaptive_level": 1,
+        "decrease_factor_LT": 0.1052854694609977,
+        "decrease_factor_xy": 0.10391219257619137,
+        "fermi_window_eV": 0.05,
+        "gauss_order": 2,
+        "matsubara_index": 1,
+        "q_case": "q_diag_pos",
+        "relative_LT_offdiag_norm_at_q05": 0.007872319230767186,
+        "relative_LT_offdiag_norm_at_q1": 0.07477118420109656,
+        "relative_offdiag_norm_at_q05": 0.019450526093359927,
+        "relative_offdiag_norm_at_q1": 0.18718232780141028,
+        "xy_offdiag_decreases_with_q": true
+      },
+      {
+        "LT_offdiag_decreases_with_q": true,
+        "adaptive_level": 1,
+        "decrease_factor_LT": 0.10528546946099432,
+        "decrease_factor_xy": 0.10391219257619058,
+        "fermi_window_eV": 0.05,
+        "gauss_order": 2,
+        "matsubara_index": 1,
+        "q_case": "q_diag_neg",
+        "relative_LT_offdiag_norm_at_q05": 0.007872319230766955,
+        "relative_LT_offdiag_norm_at_q1": 0.07477118420109677,
+        "relative_offdiag_norm_at_q05": 0.019450526093359816,
+        "relative_offdiag_norm_at_q1": 0.18718232780141064,
+        "xy_offdiag_decreases_with_q": true
+      }
+    ]
+  },
+  "q_sign_symmetry_summary": {
+    "all_pass": true,
+    "max_diag_even_error": 5.462374690195077e-16,
+    "max_offdiag_odd_error": 5.967991259728111e-15,
+    "num_pairs": 2,
+    "pairs": [
+      {
+        "adaptive_level": 1,
+        "fermi_window_eV": 0.05,
+        "gauss_order": 2,
+        "matsubara_index": 1,
+        "q_scale": 1.0,
+        "q_sign_diag_even_error": 5.462374690195077e-16,
+        "q_sign_offdiag_odd_error": 1.5833459126281297e-15,
+        "q_sign_symmetry_status": "PASS"
+      },
+      {
+        "adaptive_level": 1,
+        "fermi_window_eV": 0.05,
+        "gauss_order": 2,
+        "matsubara_index": 1,
+        "q_scale": 0.5,
+        "q_sign_diag_even_error": 1.5498772761417595e-16,
+        "q_sign_offdiag_odd_error": 5.967991259728111e-15,
+        "q_sign_symmetry_status": "PASS"
+      }
+    ]
+  },
+  "scan_results": [
+    {
+      "adaptive_level": 1,
+      "antisymmetric_offdiag_abs": 4.559942765632512e-16,
+      "base_q_case": "q_diag_pos",
+      "case_index": 0,
+      "coarse_grid": 8,
+      "diag_norm": 27.603456880854395,
+      "fermi_window_eV": 0.05,
+      "gauss_order": 2,
+      "matsubara_index": 1,
+      "num_quadrature_points": 544,
+      "offdiag_norm": 5.166879314324182,
+      "omega_eV": 0.016243290521934156,
+      "q_case": "q_diag_pos",
+      "q_model": [
+        0.02,
+        0.013
+      ],
+      "q_norm": 0.023853720883753128,
+      "q_scale": 1.0,
+      "relative_LT_offdiag_norm": 0.07477118420109656,
+      "relative_antisymmetric_to_symmetric": 1.2480904837325507e-16,
+      "relative_offdiag_norm": 0.18718232780141028,
+      "relative_xx_yy_anisotropy": 0.00014594887040660518,
+      "runtime_seconds": 0.07197340299899224,
+      "sigma_LL_model": {
+        "abs": 16.178527256163754,
+        "imag": -9.992562278252038e-17,
+        "real": 16.178527256163754
+      },
+      "sigma_LT_model": {
+        "abs": 1.4806420827117313,
+        "imag": -3.1812659946887255e-16,
+        "real": -1.4806420827117313
+      },
+      "sigma_TL_model": {
+        "abs": 1.480642082711734,
+        "imag": -1.110946796768768e-16,
+        "real": -1.480642082711734
+      },
+      "sigma_TT_model": {
+        "abs": 22.858655417354527,
+        "imag": -2.1954933140431713e-18,
+        "real": 22.858655417354527
+      },
+      "sigma_diag_min_real": 19.515742620401614,
+      "sigma_diag_positive": true,
+      "sigma_trace_real": 39.03718267351829,
+      "sigma_xx_model": {
+        "abs": 19.515742620401614,
+        "imag": 1.2523065921759823e-16,
+        "real": 19.515742620401614
+      },
+      "sigma_xy_model": {
+        "abs": 3.6535354007311276,
+        "imag": -2.352996003233057e-16,
+        "real": -3.6535354007311276
+      },
+      "sigma_yx_model": {
+        "abs": 3.6535354007311285,
+        "imag": -2.82676805313099e-17,
+        "real": -3.6535354007311285
+      },
+      "sigma_yy_model": {
+        "abs": 19.52144005311667,
+        "imag": -2.273517753141618e-16,
+        "real": 19.52144005311667
+      },
+      "status": "FAIL",
+      "status_reasons": [
+        "WARD_NOT_CLOSED_FOR_CONDUCTIVITY_POINT"
+      ],
+      "symmetric_offdiag_abs": 3.653535400731128,
+      "temperature_K": 30.0,
+      "ward_left_norm": 0.005107144583804304,
+      "ward_max_norm": 0.005107144583804304,
+      "ward_right_norm": 0.005107144583804304,
+      "xx_minus_yy_abs": 0.005697432715056294,
+      "xy_minus_yx_abs": 9.119885531265024e-16,
+      "xy_plus_yx_abs": 7.307070801462256
+    },
+    {
+      "adaptive_level": 1,
+      "antisymmetric_offdiag_abs": 1.5755052333665956e-16,
+      "base_q_case": "q_diag_pos",
+      "case_index": 1,
+      "coarse_grid": 8,
+      "diag_norm": 32.46358978517847,
+      "fermi_window_eV": 0.05,
+      "gauss_order": 2,
+      "matsubara_index": 1,
+      "num_quadrature_points": 544,
+      "offdiag_norm": 0.6314339002007466,
+      "omega_eV": 0.016243290521934156,
+      "q_case": "q_diag_pos",
+      "q_model": [
+        0.01,
+        0.0065
+      ],
+      "q_norm": 0.011926860441876564,
+      "q_scale": 0.5,
+      "relative_LT_offdiag_norm": 0.007872319230767186,
+      "relative_antisymmetric_to_symmetric": 3.5286367550245017e-16,
+      "relative_offdiag_norm": 0.019450526093359927,
+      "relative_xx_yy_anisotropy": 2.502589433861026e-05,
+      "runtime_seconds": 0.07030788500014751,
+      "sigma_LL_model": {
+        "abs": 22.546950088554386,
+        "imag": 6.334305135875016e-17,
+        "real": 22.546950088554386
+      },
+      "sigma_LT_model": {
+        "abs": 0.1807394349787046,
+        "imag": -2.1398008688034316e-16,
+        "real": -0.1807394349787046
+      },
+      "sigma_TL_model": {
+        "abs": 0.1807394349787046,
+        "imag": 5.3518097067595117e-17,
+        "real": -0.1807394349787046
+      },
+      "sigma_TT_model": {
+        "abs": 23.36349885458491,
+        "imag": 1.0086726048513788e-16,
+        "real": 23.36349885458491
+      },
+      "sigma_diag_min_real": 22.95464999654751,
+      "sigma_diag_positive": true,
+      "sigma_trace_real": 45.91044894313931,
+      "sigma_xx_model": {
+        "abs": 22.95464999654751,
+        "imag": 1.4781002621582228e-16,
+        "real": 22.95464999654751
+      },
+      "sigma_xy_model": {
+        "abs": 0.4464911927030177,
+        "imag": -1.8346728915539835e-16,
+        "real": -0.4464911927030177
+      },
+      "sigma_yx_model": {
+        "abs": 0.4464911927030175,
+        "imag": 8.403089479253997e-17,
+        "real": -0.4464911927030175
+      },
+      "sigma_yy_model": {
+        "abs": 22.9557989465918,
+        "imag": 1.6400285628065806e-17,
+        "real": 22.9557989465918
+      },
+      "status": "FAIL",
+      "status_reasons": [
+        "WARD_NOT_CLOSED_FOR_CONDUCTIVITY_POINT"
+      ],
+      "symmetric_offdiag_abs": 0.4464911927030176,
+      "temperature_K": 30.0,
+      "ward_left_norm": 0.004008392146125867,
+      "ward_max_norm": 0.004008392146125867,
+      "ward_right_norm": 0.004008392146125867,
+      "xx_minus_yy_abs": 0.0011489500442891654,
+      "xy_minus_yx_abs": 3.151010466733191e-16,
+      "xy_plus_yx_abs": 0.8929823854060353
+    },
+    {
+      "adaptive_level": 1,
+      "antisymmetric_offdiag_abs": 1.7857533706555715e-16,
+      "base_q_case": "q_diag_neg",
+      "case_index": 2,
+      "coarse_grid": 8,
+      "diag_norm": 27.603456880854385,
+      "fermi_window_eV": 0.05,
+      "gauss_order": 2,
+      "matsubara_index": 1,
+      "num_quadrature_points": 544,
+      "offdiag_norm": 5.16687931432419,
+      "omega_eV": 0.016243290521934156,
+      "q_case": "q_diag_neg",
+      "q_model": [
+        0.02,
+        -0.013
+      ],
+      "q_norm": 0.023853720883753128,
+      "q_scale": 1.0,
+      "relative_LT_offdiag_norm": 0.07477118420109677,
+      "relative_antisymmetric_to_symmetric": 4.887740708077476e-17,
+      "relative_offdiag_norm": 0.18718232780141064,
+      "relative_xx_yy_anisotropy": 0.00014594887040651427,
+      "runtime_seconds": 0.08975032099988312,
+      "sigma_LL_model": {
+        "abs": 16.178527256163736,
+        "imag": 2.4243604395794144e-16,
+        "real": 16.178527256163736
+      },
+      "sigma_LT_model": {
+        "abs": 1.4806420827117366,
+        "imag": -4.274865778918179e-17,
+        "real": 1.4806420827117366
+      },
+      "sigma_TL_model": {
+        "abs": 1.4806420827117357,
+        "imag": 3.144020163419325e-16,
+        "real": 1.4806420827117357
+      },
+      "sigma_TT_model": {
+        "abs": 22.85865541735452,
+        "imag": 2.244372947304522e-16,
+        "real": 22.85865541735452
+      },
+      "sigma_diag_min_real": 19.515742620401607,
+      "sigma_diag_positive": true,
+      "sigma_trace_real": 39.03718267351827,
+      "sigma_xx_model": {
+        "abs": 19.515742620401607,
+        "imag": 3.6122002393029566e-16,
+        "real": 19.515742620401607
+      },
+      "sigma_xy_model": {
+        "abs": 3.6535354007311334,
+        "imag": -1.3165743176908001e-16,
+        "real": 3.6535354007311334
+      },
+      "sigma_yx_model": {
+        "abs": 3.6535354007311334,
+        "imag": 2.254932423620343e-16,
+        "real": 3.6535354007311334
+      },
+      "sigma_yy_model": {
+        "abs": 19.52144005311666,
+        "imag": 1.0565331475809808e-16,
+        "real": 19.52144005311666
+      },
+      "status": "FAIL",
+      "status_reasons": [
+        "WARD_NOT_CLOSED_FOR_CONDUCTIVITY_POINT"
+      ],
+      "symmetric_offdiag_abs": 3.6535354007311334,
+      "temperature_K": 30.0,
+      "ward_left_norm": 0.005107144583804295,
+      "ward_max_norm": 0.005107144583804295,
+      "ward_right_norm": 0.005107144583804295,
+      "xx_minus_yy_abs": 0.0056974327150527415,
+      "xy_minus_yx_abs": 3.571506741311143e-16,
+      "xy_plus_yx_abs": 7.307070801462267
+    },
+    {
+      "adaptive_level": 1,
+      "antisymmetric_offdiag_abs": 5.555474459743355e-17,
+      "base_q_case": "q_diag_neg",
+      "case_index": 3,
+      "coarse_grid": 8,
+      "diag_norm": 32.46358978517846,
+      "fermi_window_eV": 0.05,
+      "gauss_order": 2,
+      "matsubara_index": 1,
+      "num_quadrature_points": 544,
+      "offdiag_norm": 0.6314339002007429,
+      "omega_eV": 0.016243290521934156,
+      "q_case": "q_diag_neg",
+      "q_model": [
+        0.01,
+        -0.0065
+      ],
+      "q_norm": 0.011926860441876564,
+      "q_scale": 0.5,
+      "relative_LT_offdiag_norm": 0.007872319230766955,
+      "relative_antisymmetric_to_symmetric": 1.2442517457312078e-16,
+      "relative_offdiag_norm": 0.019450526093359816,
+      "relative_xx_yy_anisotropy": 2.5025894338687646e-05,
+      "runtime_seconds": 0.06730961199900776,
+      "sigma_LL_model": {
+        "abs": 22.546950088554382,
+        "imag": -2.4160327502135853e-16,
+        "real": 22.546950088554382
+      },
+      "sigma_LT_model": {
+        "abs": 0.1807394349786975,
+        "imag": 1.0534830802100413e-16,
+        "real": 0.1807394349786975
+      },
+      "sigma_TL_model": {
+        "abs": 0.18073943497870104,
+        "imag": 1.0094751887972721e-16,
+        "real": 0.18073943497870104
+      },
+      "sigma_TT_model": {
+        "abs": 23.363498854584908,
+        "imag": 1.1885579874688305e-16,
+        "real": 23.363498854584908
+      },
+      "sigma_diag_min_real": 22.954649996547506,
+      "sigma_diag_positive": true,
+      "sigma_trace_real": 45.9104489431393,
+      "sigma_xx_model": {
+        "abs": 22.954649996547506,
+        "imag": -4.0277267181247874e-17,
+        "real": 22.954649996547506
+      },
+      "sigma_xy_model": {
+        "abs": 0.446491192703015,
+        "imag": 2.0878480087428928e-16,
+        "real": 0.446491192703015
+      },
+      "sigma_yx_model": {
+        "abs": 0.4464911927030149,
+        "imag": 2.0438401173301233e-16,
+        "real": 0.4464911927030149
+      },
+      "sigma_yy_model": {
+        "abs": 22.9557989465918,
+        "imag": -8.247020909322765e-17,
+        "real": 22.9557989465918
+      },
+      "status": "FAIL",
+      "status_reasons": [
+        "WARD_NOT_CLOSED_FOR_CONDUCTIVITY_POINT"
+      ],
+      "symmetric_offdiag_abs": 0.44649119270301496,
+      "temperature_K": 30.0,
+      "ward_left_norm": 0.004008392146125864,
+      "ward_max_norm": 0.004008392146125864,
+      "ward_right_norm": 0.004008392146125864,
+      "xx_minus_yy_abs": 0.001148950044292718,
+      "xy_minus_yx_abs": 1.111094891948671e-16,
+      "xy_plus_yx_abs": 0.8929823854060299
+    }
+  ],
+  "stage": "Stage 5.3b",
+  "symmetric_antisymmetric_summary": {
+    "max_relative_antisymmetric_to_symmetric": 3.5286367550245017e-16,
+    "status": "SYMMETRIC_OFFDIAG_DOMINATES"
+  }
+}
