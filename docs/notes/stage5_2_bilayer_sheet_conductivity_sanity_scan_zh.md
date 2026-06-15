@@ -46,6 +46,21 @@ conductivity 来自 physical response 的 spatial block。如果某个 response 
 
 若不满足，则该 conductivity 点标记为 `WARD_NOT_CLOSED_FOR_CONDUCTIVITY_POINT`。
 
+## 并行执行说明
+
+Stage 5.2 脚本支持 `--workers N`。这个参数只改变 case 调度方式，不改变 response formula、conductivity convention、Ward residual convention 或 case status 判据。
+
+当 `--workers 1` 时，脚本按 planned case 顺序串行运行，便于调试。当 `--workers N` 且 \(N>1\) 时，脚本使用多进程并行执行各个 independent case。每个 case 仍然调用同一个 `run_case` 路径，并且仍然通过 Stage 5.1b helper
+
+\[
+\sigma^{\rm model}_{ij}(i\Omega)
+=-\frac{response[1:3,1:3]_{ij}}{\Omega_{\rm eV}}
+\]
+
+生成 model-level bilayer sheet conductivity。
+
+并行完成顺序可能与 planned order 不同，但脚本在写入 JSON/Markdown 前会按 planned case 顺序排序，因此输出稳定、可复现。建议先用 `--max-cases 1` 测量单个 case 的耗时，再用 `--workers 4` 或机器核心数的一半运行 moderate scan。
+
 ## 为什么还不能进入 reflection/Casimir
 
 本阶段输出的是 model-level bilayer-normalized 2D sheet conductivity。它尚未应用最终 SI sheet scaling，不是 3D bulk conductivity，也不是 single-layer conductivity。它也还没有经过 reflection matrix 所需的边界条件、单位归一化、\(n=0\) policy 和 finite-thickness/slab 处理。

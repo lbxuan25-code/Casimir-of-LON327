@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
 from pathlib import Path
 import sys
@@ -132,6 +134,7 @@ def planned_cases(config: dict[str, Any], max_cases: int | None = None) -> list[
                     for fermi_window_eV in config["fermi_windows_eV"]:
                         cases.append(
                             {
+                                "case_index": len(cases),
                                 "temperature_K": float(config["temperature_K"]),
                                 "matsubara_index": int(matsubara_index),
                                 "q_case": q_case,
@@ -201,6 +204,36 @@ def case_status_from_metrics(
     return ("MONITOR", reasons) if reasons else ("PASS", [])
 
 
+def _case_failure_row(case: dict[str, Any], reason: list[str], runtime_seconds: float = 0.0) -> dict[str, Any]:
+    q = np.asarray(case["q_model"], dtype=float)
+    return {
+        **{key: value for key, value in case.items() if key != "q_model"},
+        "omega_eV": float("nan"),
+        "q_model": q,
+        "sigma_xx_model": complex(float("nan"), float("nan")),
+        "sigma_xy_model": complex(float("nan"), float("nan")),
+        "sigma_yx_model": complex(float("nan"), float("nan")),
+        "sigma_yy_model": complex(float("nan"), float("nan")),
+        "sigma_trace_real": float("nan"),
+        "sigma_diag_min_real": float("nan"),
+        "sigma_diag_positive": False,
+        "offdiag_norm": float("nan"),
+        "diag_norm": float("nan"),
+        "relative_offdiag_norm": float("nan"),
+        "xy_plus_yx_abs": float("nan"),
+        "xy_minus_yx_abs": float("nan"),
+        "xx_minus_yy_abs": float("nan"),
+        "relative_xx_yy_anisotropy": float("nan"),
+        "ward_left_norm": float("inf"),
+        "ward_right_norm": float("inf"),
+        "ward_max_norm": float("inf"),
+        "num_quadrature_points": 0,
+        "runtime_seconds": float(runtime_seconds),
+        "status": "FAIL",
+        "status_reasons": reason,
+    }
+
+
 def run_case(case: dict[str, Any], *, eta_eV: float) -> dict[str, Any]:
     start = time.perf_counter()
     q = np.asarray(case["q_model"], dtype=float)
@@ -254,32 +287,68 @@ def run_case(case: dict[str, Any], *, eta_eV: float) -> dict[str, Any]:
             "status_reasons": reasons,
         }
     except Exception as exc:
-        return {
-            **{key: value for key, value in case.items() if key != "q_model"},
-            "omega_eV": float(omega_eV) if "omega_eV" in locals() else float("nan"),
-            "q_model": q,
-            "sigma_xx_model": complex(float("nan"), float("nan")),
-            "sigma_xy_model": complex(float("nan"), float("nan")),
-            "sigma_yx_model": complex(float("nan"), float("nan")),
-            "sigma_yy_model": complex(float("nan"), float("nan")),
-            "sigma_trace_real": float("nan"),
-            "sigma_diag_min_real": float("nan"),
-            "sigma_diag_positive": False,
-            "offdiag_norm": float("nan"),
-            "diag_norm": float("nan"),
-            "relative_offdiag_norm": float("nan"),
-            "xy_plus_yx_abs": float("nan"),
-            "xy_minus_yx_abs": float("nan"),
-            "xx_minus_yy_abs": float("nan"),
-            "relative_xx_yy_anisotropy": float("nan"),
-            "ward_left_norm": float("inf"),
-            "ward_right_norm": float("inf"),
-            "ward_max_norm": float("inf"),
-            "num_quadrature_points": 0,
-            "runtime_seconds": float(time.perf_counter() - start),
-            "status": "FAIL",
-            "status_reasons": ["CASE_EXCEPTION", type(exc).__name__, str(exc)],
+        row = _case_failure_row(case, ["CASE_EXCEPTION", type(exc).__name__, str(exc)], time.perf_counter() - start)
+        row["omega_eV"] = float(omega_eV) if "omega_eV" in locals() else float("nan")
+        return row
+
+
+def _run_case_job(index: int, case: dict[str, Any], eta_eV: float) -> tuple[int, dict[str, Any]]:
+    return index, run_case(case, eta_eV=eta_eV)
+
+
+def _run_worker_job(
+    index: int,
+    case: dict[str, Any],
+    eta_eV: float,
+    worker: Callable[..., dict[str, Any]],
+) -> tuple[int, dict[str, Any]]:
+    return index, worker(case, eta_eV=eta_eV)
+
+
+def run_cases_parallel(
+    cases: list[dict[str, Any]],
+    *,
+    eta_eV: float,
+    workers: int,
+    worker: Callable[..., dict[str, Any]] = run_case,
+    executor_factory: Callable[..., Any] = ProcessPoolExecutor,
+) -> list[dict[str, Any]]:
+    if workers < 1:
+        raise ValueError("workers must be >= 1")
+    if not cases:
+        return []
+    total = len(cases)
+    actual_workers = min(workers, total)
+    print(f"Running {total} Stage 5.2 cases with {actual_workers} worker(s)...")
+    if actual_workers <= 1:
+        rows: list[dict[str, Any]] = []
+        for done, case in enumerate(cases, start=1):
+            row = worker(case, eta_eV=eta_eV)
+            rows.append(row)
+            print(
+                f"Completed {done}/{total}: {case['q_case']} "
+                f"n={case['matsubara_index']} status={row['status']}"
+            )
+        return rows
+
+    indexed_rows: dict[int, dict[str, Any]] = {}
+    with executor_factory(max_workers=actual_workers) as executor:
+        future_to_case = {
+            executor.submit(_run_worker_job, index, case, eta_eV, worker): (index, case)
+            for index, case in enumerate(cases)
         }
+        for done, future in enumerate(as_completed(future_to_case), start=1):
+            index, case = future_to_case[future]
+            try:
+                _result_index, row = future.result()
+            except Exception as exc:
+                row = _case_failure_row(case, ["EXECUTOR_CASE_EXCEPTION", type(exc).__name__, str(exc)])
+            indexed_rows[index] = row
+            print(
+                f"Completed {done}/{total}: {case['q_case']} "
+                f"n={case['matsubara_index']} status={row['status']}"
+            )
+    return [indexed_rows[index] for index in range(total)]
 
 
 def apply_frequency_smoothness(rows: list[dict[str, Any]]) -> None:
@@ -369,7 +438,7 @@ def run_scan(config: dict[str, Any], *, max_cases: int | None = None) -> dict[st
     if config["dry_run"]:
         rows: list[dict[str, Any]] = []
     else:
-        rows = [run_case(case, eta_eV=float(config["eta_eV"])) for case in cases]
+        rows = run_cases_parallel(cases, eta_eV=float(config["eta_eV"]), workers=int(config["workers"]))
         apply_frequency_smoothness(rows)
     stats = summary_statistics(rows)
     return {
@@ -509,7 +578,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--fresh", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--max-cases", type=int, default=None)
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.workers < 1:
+        parser.error("--workers must be >= 1")
+    return args
 
 
 def main() -> None:

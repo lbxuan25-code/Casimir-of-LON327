@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+from concurrent.futures import ThreadPoolExecutor
 import importlib.util
 import json
 from pathlib import Path
@@ -35,6 +36,8 @@ def test_quick_mode_runs_and_outputs_json_md(tmp_path):
             sys.executable,
             str(SCRIPT),
             "--quick",
+            "--workers",
+            "2",
             "--output-json",
             str(output_json),
             "--output-md",
@@ -57,6 +60,8 @@ def test_json_top_level_fields_and_boundaries(tmp_path):
             sys.executable,
             str(SCRIPT),
             "--quick",
+            "--workers",
+            "2",
             "--dry-run",
             "--output-json",
             str(output_json),
@@ -104,6 +109,68 @@ def test_zero_or_negative_omega_not_silent():
     )
     assert status == "FAIL"
     assert "NONPOSITIVE_OMEGA" in reasons
+
+
+def test_workers_argument_rejects_nonpositive():
+    module = _load_module()
+    with pytest.raises(SystemExit):
+        module.parse_args(["--workers", "0"])
+    with pytest.raises(SystemExit):
+        module.parse_args(["--workers", "-2"])
+
+
+def test_parallel_and_serial_order_match_dry_or_mocked():
+    module = _load_module()
+    config = {
+        "temperature_K": 30.0,
+        "matsubara_indices": [1, 2, 4],
+        "q_cases": ["q_diag_pos"],
+        "adaptive_levels": [1],
+        "gauss_orders": [2],
+        "fermi_windows_eV": [0.05],
+        "coarse_grid": 8,
+    }
+    cases = module.planned_cases(config)
+
+    def fake_run_case(case, *, eta_eV):
+        return {
+            **case,
+            "omega_eV": float(case["matsubara_index"]),
+            "sigma_xx_model": 1.0 + 0.0j,
+            "sigma_xy_model": 0.0 + 0.0j,
+            "sigma_yx_model": 0.0 + 0.0j,
+            "sigma_yy_model": 1.0 + 0.0j,
+            "sigma_trace_real": 2.0,
+            "sigma_diag_min_real": 1.0,
+            "sigma_diag_positive": True,
+            "offdiag_norm": 0.0,
+            "diag_norm": 2**0.5,
+            "relative_offdiag_norm": 0.0,
+            "xy_plus_yx_abs": 0.0,
+            "xy_minus_yx_abs": 0.0,
+            "xx_minus_yy_abs": 0.0,
+            "relative_xx_yy_anisotropy": 0.0,
+            "ward_left_norm": 0.0,
+            "ward_right_norm": 0.0,
+            "ward_max_norm": 0.0,
+            "num_quadrature_points": 0,
+            "runtime_seconds": 0.0,
+            "status": "PASS",
+            "status_reasons": [],
+        }
+
+    serial = module.run_cases_parallel(cases, eta_eV=1e-10, workers=1, worker=fake_run_case)
+    parallel = module.run_cases_parallel(
+        cases,
+        eta_eV=1e-10,
+        workers=2,
+        worker=fake_run_case,
+        executor_factory=ThreadPoolExecutor,
+    )
+    assert [row["matsubara_index"] for row in serial] == [1, 2, 4]
+    assert [row["matsubara_index"] for row in parallel] == [1, 2, 4]
+    assert [row["case_index"] for row in serial] == [0, 1, 2]
+    assert [row["case_index"] for row in parallel] == [0, 1, 2]
 
     status, reasons = module.case_status_from_metrics(
         finite_values=True,
@@ -187,6 +254,8 @@ def test_dry_run_does_not_execute_response(tmp_path):
             sys.executable,
             str(SCRIPT),
             "--quick",
+            "--workers",
+            "2",
             "--dry-run",
             "--output-json",
             str(output_json),
