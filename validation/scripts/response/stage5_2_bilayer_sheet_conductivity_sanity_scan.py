@@ -393,7 +393,8 @@ def summary_statistics(rows: list[dict[str, Any]]) -> dict[str, Any]:
         }
     worst_offdiag = max(rows, key=lambda row: float(row["relative_offdiag_norm"]))
     worst_ward = max(rows, key=lambda row: float(row["ward_max_norm"]))
-    worst_negative = min(rows, key=lambda row: float(row["sigma_diag_min_real"]))
+    min_diag = min(rows, key=lambda row: float(row["sigma_diag_min_real"]))
+    worst_negative = min_diag if float(min_diag["sigma_diag_min_real"]) < DIAG_NEGATIVE_TOLERANCE else None
     return {
         "num_total_cases": len(rows),
         "num_pass": sum(row["status"] == "PASS" for row in rows),
@@ -405,7 +406,8 @@ def summary_statistics(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "max_relative_xx_yy_anisotropy": float(max(float(row["relative_xx_yy_anisotropy"]) for row in rows)),
         "worst_offdiag_case": _case_id(worst_offdiag),
         "worst_ward_case": _case_id(worst_ward),
-        "worst_negative_diag_case": _case_id(worst_negative),
+        "min_diag_case": _case_id(min_diag),
+        "worst_negative_diag_case": _case_id(worst_negative) if worst_negative is not None else None,
     }
 
 
