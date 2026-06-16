@@ -75,4 +75,14 @@ bilayer-normalized 2D sheet conductivity 的单位转换为
 
 ## 为什么还不能进入 reflection/Casimir
 
-Stage 5.4a 只验证单位链。它没有读取真实材料 lattice constants 的最终配置，没有转换实际 Stage 5.2/5.3b scan 数据，也没有构造 reflection matrix、处理 \(n=0\) policy 或 finite-thickness slab。因此通过本阶段后也只是进入 Stage 5.4b 数据转换准备，仍不能声明 Casimir-ready。
+Stage 5.4a 只验证单位链。当前默认薄膜工作晶格常数来自统一结构配置：
+
+\[
+a_x=a_y=3.754\times10^{-10}\ {\rm m}=3.754\ \text{\AA},
+\]
+
+\[
+A_{\rm cell}=1.4092516\times10^{-19}\ {\rm m^2}.
+\]
+
+这不是旧的 \(3.85\ \text{\AA}\) placeholder。若未来有样品特定晶格常数，应通过 material structure config 覆盖。Stage 5.4a 没有转换实际 Stage 5.2/5.3b scan 数据，也没有构造 reflection matrix、处理 \(n=0\) policy 或 finite-thickness slab。因此通过本阶段后也只是进入 Stage 5.4b 数据转换准备，仍不能声明 Casimir-ready。

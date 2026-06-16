@@ -26,6 +26,7 @@ from lno327.conductivity_units import (  # noqa: E402
     vacuum_impedance_ohm,
     z0_e2_over_hbar,
 )
+from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
 
 OUTPUT_DIR = ROOT / "validation" / "outputs" / "response" / "conductivity"
 JSON_OUTPUT = OUTPUT_DIR / "stage5_4a_conductivity_unit_conversion.json"
@@ -59,7 +60,11 @@ def to_jsonable(value: Any) -> Any:
     return value
 
 
-def run_validation(convention: SheetConductivityUnitConvention) -> dict[str, Any]:
+def run_validation(
+    convention: SheetConductivityUnitConvention,
+    *,
+    material_lattice_config: Any = LNO327_THIN_FILM_SLAO_IN_PLANE,
+) -> dict[str, Any]:
     sigma_model = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=complex)
     square_si = model_to_si_sheet_conductivity(sigma_model, convention)
     square_tilde = model_to_dimensionless_sheet_conductivity(sigma_model, convention)
@@ -104,11 +109,14 @@ def run_validation(convention: SheetConductivityUnitConvention) -> dict[str, Any
             "z0_e2_over_hbar_minus_four_pi_alpha_abs": prefactor_error,
         },
         "geometry": {
+            "material_lattice_config": material_lattice_config.name,
+            "is_placeholder": bool(material_lattice_config.is_placeholder),
+            "source_note": material_lattice_config.source_note,
             "lattice_a_x_m": convention.lattice_a_x_m,
             "lattice_a_y_m": convention.lattice_a_y_m,
             "unit_cell_area_m2": convention.unit_cell_area_m2,
             "geometry_tensor": sheet_geometry_factor_tensor(convention),
-            "placeholder_lattice_note": "3.85e-10 m is a placeholder typical in-plane lattice scale; final LNO327 structure config is deferred.",
+            "lattice_note": "3.754 Angstrom is the current thin-film working default; sample-specific constants may override this config.",
         },
         "synthetic_checks": checks,
         "synthetic_outputs": {
@@ -174,9 +182,9 @@ def render_markdown(data: dict[str, Any]) -> str:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--lattice-a-x-m", type=float, default=3.85e-10)
-    parser.add_argument("--lattice-a-y-m", type=float, default=3.85e-10)
-    parser.add_argument("--unit-cell-area-m2", type=float, default=None)
+    parser.add_argument("--lattice-a-x-m", type=float, default=LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_x_m)
+    parser.add_argument("--lattice-a-y-m", type=float, default=LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_y_m)
+    parser.add_argument("--unit-cell-area-m2", type=float, default=LNO327_THIN_FILM_SLAO_IN_PLANE.unit_cell_area_m2)
     parser.add_argument("--output-json", type=Path, default=JSON_OUTPUT)
     parser.add_argument("--output-md", type=Path, default=MD_OUTPUT)
     return parser.parse_args()

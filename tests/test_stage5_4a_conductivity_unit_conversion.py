@@ -20,6 +20,7 @@ from lno327.conductivity_units import (
     sheet_geometry_factor_tensor,
     z0_e2_over_hbar,
 )
+from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE
 
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / "src" / "lno327" / "conductivity_units.py"
@@ -104,6 +105,25 @@ def test_validation_script_outputs(tmp_path):
     assert output_json.exists()
     assert output_md.exists()
     assert data["diagnostic_status"]["stage5_4a_status"] == "STAGE5_4A_CONDUCTIVITY_UNIT_CONVERSION_PASSED"
+
+
+def test_default_lattice_is_thin_film_config(tmp_path):
+    output_json = tmp_path / "stage5_4a.json"
+    output_md = tmp_path / "stage5_4a.md"
+    subprocess.run(
+        [sys.executable, str(SCRIPT), "--output-json", str(output_json), "--output-md", str(output_md)],
+        check=True,
+    )
+    data = json.loads(output_json.read_text(encoding="utf-8"))
+    assert data["geometry"]["lattice_a_x_m"] == 3.754e-10
+    assert data["geometry"]["lattice_a_y_m"] == 3.754e-10
+    assert data["geometry"]["is_placeholder"] is False
+
+
+def test_material_structure_config():
+    assert LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_x_m == 3.754e-10
+    assert LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_y_m == 3.754e-10
+    assert LNO327_THIN_FILM_SLAO_IN_PLANE.is_placeholder is False
 
 
 def test_no_reflection_or_casimir_imports():

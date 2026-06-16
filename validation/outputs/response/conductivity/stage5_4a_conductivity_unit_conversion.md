@@ -33,12 +33,15 @@ $A_i^{model}=ea_iA_i^{SI}/\hbar$，因此 $\sigma^{SI,sheet}_{ij}=(e^2/\hbar)(a_
 
 | quantity | value |
 | --- | --- |
-| lattice_a_x_m | 3.85e-10 |
-| lattice_a_y_m | 3.85e-10 |
-| unit_cell_area_m2 | 1.48225e-19 |
+| material_lattice_config | LNO327_thin_film_SrLaAlO4_clamped |
+| is_placeholder | False |
+| source_note | Default in-plane lattice constant for coherently strained thin-film LNO327 / (La,Pr)327-type films on SrLaAlO4-like substrate. Use as a thin-film working value, not as relaxed bulk La3Ni2O7. |
+| lattice_a_x_m | 3.754e-10 |
+| lattice_a_y_m | 3.754e-10 |
+| unit_cell_area_m2 | 1.4092516e-19 |
 | geometry_tensor | [[1. 1.]
  [1. 1.]] |
-| placeholder_lattice_note | 3.85e-10 m is a placeholder typical in-plane lattice scale; final LNO327 structure config is deferred. |
+| lattice_note | 3.754 Angstrom is the current thin-film working default; sample-specific constants may override this config. |
 
 ## 5. SI sheet conductivity conversion
 
