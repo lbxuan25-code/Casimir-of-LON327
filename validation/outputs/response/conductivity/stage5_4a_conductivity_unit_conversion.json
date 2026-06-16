@@ -1,0 +1,150 @@
+{
+  "boundary": {
+    "no_E_ET_added": true,
+    "no_bubble_sign_change": true,
+    "no_direct_contact_change": true,
+    "no_fitted_contact": true,
+    "no_heavy_response_run": true,
+    "no_main_response_change": true,
+    "no_reflection_casimir": true,
+    "no_residual_tuning": true,
+    "no_source_observable_change": true,
+    "not_casimir_ready_claim": true
+  },
+  "conductivity_convention": {
+    "bulk_3d_conductivity": false,
+    "input": "sigma_model_ij",
+    "input_formula": "sigma_model_ij(iOmega) = - Pi_ij(iOmega) / omega_eV",
+    "normalization": "bilayer-normalized 2D sheet conductivity",
+    "output_dimensionless": "sigma_tilde_ij = Z0 * sigma_SI_sheet_ij",
+    "output_si": "sigma_SI_sheet_ij",
+    "single_layer_conductivity": false
+  },
+  "diagnostic_status": {
+    "recommended_next_action": "Proceed to Stage 5.4b to convert validated model conductivity outputs to SI sheet and sigma_tilde data; still do not run reflection/Casimir.",
+    "stage5_4a_status": "STAGE5_4A_CONDUCTIVITY_UNIT_CONVERSION_PASSED"
+  },
+  "geometry": {
+    "geometry_tensor": [
+      [
+        1.0,
+        1.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    "lattice_a_x_m": 3.85e-10,
+    "lattice_a_y_m": 3.85e-10,
+    "placeholder_lattice_note": "3.85e-10 m is a placeholder typical in-plane lattice scale; final LNO327 structure config is deferred.",
+    "unit_cell_area_m2": 1.48225e-19
+  },
+  "purpose": "Conductivity SI sheet unit conversion and dimensionless sheet conductivity validation",
+  "stage": "Stage 5.4a",
+  "synthetic_checks": {
+    "dimensionless_prefactor_consistency": "PASS",
+    "rectangular_lattice_geometry": "PASS",
+    "square_lattice_identity": "PASS"
+  },
+  "synthetic_outputs": {
+    "rectangular_geometry_tensor": [
+      [
+        2.0,
+        1.0
+      ],
+      [
+        1.0,
+        0.5
+      ]
+    ],
+    "sigma_SI_sheet": [
+      [
+        {
+          "abs": 0.0002434134805787947,
+          "imag": 0.0,
+          "real": 0.0002434134805787947
+        },
+        {
+          "abs": 0.0004868269611575894,
+          "imag": 0.0,
+          "real": 0.0004868269611575894
+        }
+      ],
+      [
+        {
+          "abs": 0.0007302404417363841,
+          "imag": 0.0,
+          "real": 0.0007302404417363841
+        },
+        {
+          "abs": 0.0009736539223151788,
+          "imag": 0.0,
+          "real": 0.0009736539223151788
+        }
+      ]
+    ],
+    "sigma_model": [
+      [
+        {
+          "abs": 1.0,
+          "imag": 0.0,
+          "real": 1.0
+        },
+        {
+          "abs": 2.0,
+          "imag": 0.0,
+          "real": 2.0
+        }
+      ],
+      [
+        {
+          "abs": 3.0,
+          "imag": 0.0,
+          "real": 3.0
+        },
+        {
+          "abs": 4.0,
+          "imag": 0.0,
+          "real": 4.0
+        }
+      ]
+    ],
+    "sigma_tilde": [
+      [
+        {
+          "abs": 0.09170123682716239,
+          "imag": 0.0,
+          "real": 0.09170123682716239
+        },
+        {
+          "abs": 0.18340247365432477,
+          "imag": 0.0,
+          "real": 0.18340247365432477
+        }
+      ],
+      [
+        {
+          "abs": 0.2751037104814872,
+          "imag": 0.0,
+          "real": 0.2751037104814872
+        },
+        {
+          "abs": 0.36680494730864954,
+          "imag": 0.0,
+          "real": 0.36680494730864954
+        }
+      ]
+    ]
+  },
+  "unit_conversion": {
+    "e2_over_hbar_S": 0.0002434134805787947,
+    "formula_model_to_dimensionless": "sigma_tilde_ij = Z0 * (e^2/hbar) * (a_i a_j/A_cell) * sigma_model_ij",
+    "formula_model_to_si": "sigma_SI_sheet_ij = (e^2/hbar) * (a_i a_j/A_cell) * sigma_model_ij",
+    "formula_si_to_dimensionless": "sigma_tilde_ij = Z0 * sigma_SI_sheet_ij",
+    "four_pi_alpha": 0.09170123682663807,
+    "vacuum_impedance_ohm": 376.73031341202994,
+    "z0_e2_over_hbar": 0.09170123682716239,
+    "z0_e2_over_hbar_minus_four_pi_alpha_abs": 5.24316701167038e-13
+  }
+}
