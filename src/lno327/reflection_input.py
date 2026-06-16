@@ -103,6 +103,83 @@ def tangential_electric_reflection_matrix_LT(
     return -np.linalg.solve(2.0 * y0 + sigma, sigma)
 
 
+def tangential_electric_LT_to_TE_TM(R_E_LT: np.ndarray) -> np.ndarray:
+    """Convert LT tangential-electric reflection matrix to TE/TM amplitudes.
+
+    Input ordering is (L, T). Output ordering is (s, p), with E_s = E_T,
+    E_p^inc = E_L^inc, and E_p^ref = -E_L^ref.
+    """
+
+    reflection = _as_2x2_complex(R_E_LT)
+    r_ll = reflection[0, 0]
+    r_lt = reflection[0, 1]
+    r_tl = reflection[1, 0]
+    r_tt = reflection[1, 1]
+    return np.array([[r_tt, r_tl], [-r_lt, -r_ll]], dtype=complex)
+
+
+def te_tm_adapter_metadata() -> dict[str, Any]:
+    """Return metadata for the LT tangential-electric to TE/TM adapter."""
+
+    return {
+        "internal_basis": "LT_tangential_E_basis",
+        "internal_ordering": ["L", "T"],
+        "output_basis": "TE_TM_amplitude_basis",
+        "output_ordering": ["s", "p"],
+        "formula": "R_TE_TM = [[R_TT, R_TL], [-R_LT, -R_LL]]",
+        "E_s": "E_T",
+        "E_p_inc": "E_L_inc",
+        "E_p_ref": "-E_L_ref",
+        "no_lifshitz_trace_log": True,
+        "no_casimir_energy": True,
+        "no_casimir_torque": True,
+    }
+
+
+def sigma_tilde_xy_to_te_tm_reflection_matrix(
+    sigma_tilde_xy: np.ndarray,
+    q_model_x: float,
+    q_model_y: float,
+    omega_eV: float,
+    lattice_a_x_m: float,
+    lattice_a_y_m: float,
+    *,
+    allow_q_zero: bool = False,
+) -> dict[str, Any]:
+    """Convert sigma_tilde_xy directly to TE/TM reflection amplitudes.
+
+    The returned dictionary keeps the LT tangential-electric audit path used to
+    define the TE/TM adapter convention.
+    """
+
+    sigma_xy = _as_2x2_complex(sigma_tilde_xy)
+    qx_si, qy_si, q_si = model_q_to_si_wavevector(q_model_x, q_model_y, lattice_a_x_m, lattice_a_y_m)
+    xi_si = omega_eV_to_xi_si(omega_eV)
+    kappa = vacuum_kappa(q_si, xi_si)
+    rotation = xy_to_lt_rotation(qx_si, qy_si, allow_q_zero=allow_q_zero)
+    sigma_lt = rotate_sigma_tilde_xy_to_lt(sigma_xy, qx_si, qy_si, allow_q_zero=allow_q_zero)
+    y0 = vacuum_admittance_LT(xi_si, kappa)
+    reflection_lt = tangential_electric_reflection_matrix_LT(sigma_lt, xi_si, kappa)
+    reflection_te_tm = tangential_electric_LT_to_TE_TM(reflection_lt)
+    return {
+        "q_model_x": float(q_model_x),
+        "q_model_y": float(q_model_y),
+        "Q_x_m_inv": qx_si,
+        "Q_y_m_inv": qy_si,
+        "Q_m_inv": q_si,
+        "omega_eV": float(omega_eV),
+        "xi_si_s_inv": xi_si,
+        "kappa_m_inv": kappa,
+        "sigma_tilde_xy_matrix": sigma_xy,
+        "xy_to_lt_rotation_matrix": rotation,
+        "sigma_tilde_LT_matrix": sigma_lt,
+        "vacuum_admittance_Y0_LT": y0,
+        "reflection_tangential_E_LT": reflection_lt,
+        "reflection_TE_TM": reflection_te_tm,
+        "basis_convention": te_tm_adapter_metadata(),
+    }
+
+
 def symmetric_antisymmetric_offdiag(matrix: np.ndarray) -> dict[str, float]:
     """Return symmetric and antisymmetric offdiag diagnostics."""
 
