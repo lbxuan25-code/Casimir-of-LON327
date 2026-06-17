@@ -1,0 +1,970 @@
+{
+  "baseline_parameters": {
+    "Qc_nm_inv": 0.2,
+    "omega_c_eV": 0.05,
+    "separation_nm": 100.0,
+    "temperature_K": 10.0
+  },
+  "baseline_toy_results": {
+    "anisotropic_angle_variation_abs_J_m2": 3.794880744725495e-12,
+    "anisotropic_by_theta": {
+      "0.0": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 3175233700.1851482,
+              "imag": 0.0,
+              "real": -3175233700.1851482
+            },
+            {
+              "abs": 5170098381.09913,
+              "imag": 0.0,
+              "real": -5170098381.09913
+            },
+            {
+              "abs": 4290646282.983452,
+              "imag": 0.0,
+              "real": -4290646282.983452
+            },
+            {
+              "abs": 3617882328.502838,
+              "imag": 0.0,
+              "real": -3617882328.502838
+            },
+            {
+              "abs": 3091768907.2943707,
+              "imag": 0.0,
+              "real": -3091768907.2943707
+            },
+            {
+              "abs": 2672584349.221624,
+              "imag": 0.0,
+              "real": -2672584349.221624
+            },
+            {
+              "abs": 2333198761.7593513,
+              "imag": 0.0,
+              "real": -2333198761.7593513
+            },
+            {
+              "abs": 2054570976.3867905,
+              "imag": 0.0,
+              "real": -2054570976.3867905
+            },
+            {
+              "abs": 1823018133.1808283,
+              "imag": 0.0,
+              "real": -1823018133.1808283
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -3.897434313462825e-12,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 1.0000000000000001e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 0.0
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      },
+      "0.7853981633974483": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 83544604.03483863,
+              "imag": 0.0,
+              "real": -83544604.03483863
+            },
+            {
+              "abs": 136036426.52154043,
+              "imag": 0.0,
+              "real": -136036426.52154043
+            },
+            {
+              "abs": 112898800.26357327,
+              "imag": 0.0,
+              "real": -112898800.26357327
+            },
+            {
+              "abs": 95198226.59657472,
+              "imag": 0.0,
+              "real": -95198226.59657472
+            },
+            {
+              "abs": 81355618.57581355,
+              "imag": 0.0,
+              "real": -81355618.57581355
+            },
+            {
+              "abs": 70326144.91293783,
+              "imag": 0.0,
+              "real": -70326144.91293783
+            },
+            {
+              "abs": 61396139.72179324,
+              "imag": 0.0,
+              "real": -61396139.72179324
+            },
+            {
+              "abs": 54064689.4449536,
+              "imag": 0.0,
+              "real": -54064689.4449536
+            },
+            {
+              "abs": 47971824.60713503,
+              "imag": 0.0,
+              "real": -47971824.60713503
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -1.0255356873733081e-13,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 1.0000000000000001e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 0.7853981633974483
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      },
+      "3.141592653589793": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 3175233700.1851482,
+              "imag": 0.0,
+              "real": -3175233700.1851482
+            },
+            {
+              "abs": 5170098381.09913,
+              "imag": 0.0,
+              "real": -5170098381.09913
+            },
+            {
+              "abs": 4290646282.983452,
+              "imag": 0.0,
+              "real": -4290646282.983452
+            },
+            {
+              "abs": 3617882328.502838,
+              "imag": 0.0,
+              "real": -3617882328.502838
+            },
+            {
+              "abs": 3091768907.2943707,
+              "imag": 0.0,
+              "real": -3091768907.2943707
+            },
+            {
+              "abs": 2672584349.221624,
+              "imag": 0.0,
+              "real": -2672584349.221624
+            },
+            {
+              "abs": 2333198761.7593513,
+              "imag": 0.0,
+              "real": -2333198761.7593513
+            },
+            {
+              "abs": 2054570976.3867905,
+              "imag": 0.0,
+              "real": -2054570976.3867905
+            },
+            {
+              "abs": 1823018133.1808283,
+              "imag": 0.0,
+              "real": -1823018133.1808283
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -3.897434313462825e-12,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 1.0000000000000001e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 3.141592653589793
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      }
+    },
+    "distance_dependence": {
+      "100_nm": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 3008113884.871432,
+              "imag": 0.0,
+              "real": -3008113884.871432
+            },
+            {
+              "abs": 4897984954.517108,
+              "imag": 0.0,
+              "real": -4897984954.517108
+            },
+            {
+              "abs": 4064820738.197312,
+              "imag": 0.0,
+              "real": -4064820738.197312
+            },
+            {
+              "abs": 3427466007.2300887,
+              "imag": 0.0,
+              "real": -3427466007.2300887
+            },
+            {
+              "abs": 2929043160.251411,
+              "imag": 0.0,
+              "real": -2929043160.251411
+            },
+            {
+              "abs": 2531921217.295143,
+              "imag": 0.0,
+              "real": -2531921217.295143
+            },
+            {
+              "abs": 2210398218.825585,
+              "imag": 0.0,
+              "real": -2210398218.825585
+            },
+            {
+              "abs": 1946435190.3387706,
+              "imag": 0.0,
+              "real": -1946435190.3387706
+            },
+            {
+              "abs": 1727069438.9771664,
+              "imag": 0.0,
+              "real": -1727069438.9771664
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -3.6923045249569564e-12,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 1.0000000000000001e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 0.0
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      },
+      "200_nm": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 338913.4745415142,
+              "imag": 0.0,
+              "real": -338913.4745415142
+            },
+            {
+              "abs": 551838.0662061063,
+              "imag": 0.0,
+              "real": -551838.0662061063
+            },
+            {
+              "abs": 457966.5063713828,
+              "imag": 0.0,
+              "real": -457966.5063713828
+            },
+            {
+              "abs": 386155.4082077527,
+              "imag": 0.0,
+              "real": -386155.4082077527
+            },
+            {
+              "abs": 329996.8594031793,
+              "imag": 0.0,
+              "real": -329996.8594031793
+            },
+            {
+              "abs": 285251.50766493625,
+              "imag": 0.0,
+              "real": -285251.50766493625
+            },
+            {
+              "abs": 249023.5587100602,
+              "imag": 0.0,
+              "real": -249023.5587100602
+            },
+            {
+              "abs": 219280.77244141826,
+              "imag": 0.0,
+              "real": -219280.77244141826
+            },
+            {
+              "abs": 194562.7660697915,
+              "imag": 0.0,
+              "real": -194562.7660697915
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -4.1598801388791063e-16,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 2e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 0.0
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      },
+      "50_nm": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 287902473536.9862,
+              "imag": 0.0,
+              "real": -287902473536.9862
+            },
+            {
+              "abs": 468743260025.3892,
+              "imag": 0.0,
+              "real": -468743260025.3892
+            },
+            {
+              "abs": 388986763642.50244,
+              "imag": 0.0,
+              "real": -388986763642.50244
+            },
+            {
+              "abs": 327981297538.4406,
+              "imag": 0.0,
+              "real": -327981297538.4406
+            },
+            {
+              "abs": 280278076476.7514,
+              "imag": 0.0,
+              "real": -280278076476.7514
+            },
+            {
+              "abs": 242272864465.94177,
+              "imag": 0.0,
+              "real": -242272864465.94177
+            },
+            {
+              "abs": 211504373793.79114,
+              "imag": 0.0,
+              "real": -211504373793.79114
+            },
+            {
+              "abs": 186245373169.1245,
+              "imag": 0.0,
+              "real": -186245373169.1245
+            },
+            {
+              "abs": 165254819529.96295,
+              "imag": 0.0,
+              "real": -165254819529.96295
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -3.533314537883983e-10,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 5e-08,
+          "temperature_K": 10.0,
+          "theta_rad": 0.0
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      }
+    },
+    "isotropic_by_theta": {
+      "0.0": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 3008113884.871432,
+              "imag": 0.0,
+              "real": -3008113884.871432
+            },
+            {
+              "abs": 4897984954.517108,
+              "imag": 0.0,
+              "real": -4897984954.517108
+            },
+            {
+              "abs": 4064820738.197312,
+              "imag": 0.0,
+              "real": -4064820738.197312
+            },
+            {
+              "abs": 3427466007.2300887,
+              "imag": 0.0,
+              "real": -3427466007.2300887
+            },
+            {
+              "abs": 2929043160.251411,
+              "imag": 0.0,
+              "real": -2929043160.251411
+            },
+            {
+              "abs": 2531921217.295143,
+              "imag": 0.0,
+              "real": -2531921217.295143
+            },
+            {
+              "abs": 2210398218.825585,
+              "imag": 0.0,
+              "real": -2210398218.825585
+            },
+            {
+              "abs": 1946435190.3387706,
+              "imag": 0.0,
+              "real": -1946435190.3387706
+            },
+            {
+              "abs": 1727069438.9771664,
+              "imag": 0.0,
+              "real": -1727069438.9771664
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -3.6923045249569564e-12,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 1.0000000000000001e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 0.0
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      },
+      "0.5235987755982988": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 3008113884.871432,
+              "imag": 0.0,
+              "real": -3008113884.871432
+            },
+            {
+              "abs": 4897984954.517108,
+              "imag": 0.0,
+              "real": -4897984954.517108
+            },
+            {
+              "abs": 4064820738.197312,
+              "imag": 0.0,
+              "real": -4064820738.197312
+            },
+            {
+              "abs": 3427466007.2300887,
+              "imag": 0.0,
+              "real": -3427466007.2300887
+            },
+            {
+              "abs": 2929043160.251411,
+              "imag": 0.0,
+              "real": -2929043160.251411
+            },
+            {
+              "abs": 2531921217.295143,
+              "imag": 0.0,
+              "real": -2531921217.295143
+            },
+            {
+              "abs": 2210398218.825585,
+              "imag": 0.0,
+              "real": -2210398218.825585
+            },
+            {
+              "abs": 1946435190.3387706,
+              "imag": 0.0,
+              "real": -1946435190.3387706
+            },
+            {
+              "abs": 1727069438.9771664,
+              "imag": 0.0,
+              "real": -1727069438.9771664
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -3.6923045249569564e-12,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 1.0000000000000001e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 0.5235987755982988
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      },
+      "0.7853981633974483": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 3008113884.871432,
+              "imag": 0.0,
+              "real": -3008113884.871432
+            },
+            {
+              "abs": 4897984954.517108,
+              "imag": 0.0,
+              "real": -4897984954.517108
+            },
+            {
+              "abs": 4064820738.197312,
+              "imag": 0.0,
+              "real": -4064820738.197312
+            },
+            {
+              "abs": 3427466007.2300887,
+              "imag": 0.0,
+              "real": -3427466007.2300887
+            },
+            {
+              "abs": 2929043160.251411,
+              "imag": 0.0,
+              "real": -2929043160.251411
+            },
+            {
+              "abs": 2531921217.295143,
+              "imag": 0.0,
+              "real": -2531921217.295143
+            },
+            {
+              "abs": 2210398218.825585,
+              "imag": 0.0,
+              "real": -2210398218.825585
+            },
+            {
+              "abs": 1946435190.3387706,
+              "imag": 0.0,
+              "real": -1946435190.3387706
+            },
+            {
+              "abs": 1727069438.9771664,
+              "imag": 0.0,
+              "real": -1727069438.9771664
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -3.6923045249569564e-12,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 1.0000000000000001e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 0.7853981633974483
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      },
+      "1.5707963267948966": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 3008113884.871432,
+              "imag": 0.0,
+              "real": -3008113884.871432
+            },
+            {
+              "abs": 4897984954.517108,
+              "imag": 0.0,
+              "real": -4897984954.517108
+            },
+            {
+              "abs": 4064820738.197312,
+              "imag": 0.0,
+              "real": -4064820738.197312
+            },
+            {
+              "abs": 3427466007.2300887,
+              "imag": 0.0,
+              "real": -3427466007.2300887
+            },
+            {
+              "abs": 2929043160.251411,
+              "imag": 0.0,
+              "real": -2929043160.251411
+            },
+            {
+              "abs": 2531921217.295143,
+              "imag": 0.0,
+              "real": -2531921217.295143
+            },
+            {
+              "abs": 2210398218.825585,
+              "imag": 0.0,
+              "real": -2210398218.825585
+            },
+            {
+              "abs": 1946435190.3387706,
+              "imag": 0.0,
+              "real": -1946435190.3387706
+            },
+            {
+              "abs": 1727069438.9771664,
+              "imag": 0.0,
+              "real": -1727069438.9771664
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -3.6923045249569564e-12,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 1.0000000000000001e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 1.5707963267948966
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      },
+      "3.141592653589793": {
+        "components": {
+          "matsubara_sum_terms": [
+            {
+              "abs": 3008113884.871432,
+              "imag": 0.0,
+              "real": -3008113884.871432
+            },
+            {
+              "abs": 4897984954.517108,
+              "imag": 0.0,
+              "real": -4897984954.517108
+            },
+            {
+              "abs": 4064820738.197312,
+              "imag": 0.0,
+              "real": -4064820738.197312
+            },
+            {
+              "abs": 3427466007.2300887,
+              "imag": 0.0,
+              "real": -3427466007.2300887
+            },
+            {
+              "abs": 2929043160.251411,
+              "imag": 0.0,
+              "real": -2929043160.251411
+            },
+            {
+              "abs": 2531921217.295143,
+              "imag": 0.0,
+              "real": -2531921217.295143
+            },
+            {
+              "abs": 2210398218.825585,
+              "imag": 0.0,
+              "real": -2210398218.825585
+            },
+            {
+              "abs": 1946435190.3387706,
+              "imag": 0.0,
+              "real": -1946435190.3387706
+            },
+            {
+              "abs": 1727069438.9771664,
+              "imag": 0.0,
+              "real": -1727069438.9771664
+            }
+          ],
+          "measure_sum_scaffold": 2.170294678525846e+16
+        },
+        "free_energy_density_J_m2": -3.6923045249569564e-12,
+        "grid": {
+          "Q0_excluded": true,
+          "Q_max_m_inv": 500000000.0,
+          "n_Q": 12,
+          "n_max": 8,
+          "n_phi": 12,
+          "num_Q_used": 11,
+          "separation_m": 1.0000000000000001e-07,
+          "temperature_K": 10.0,
+          "theta_rad": 3.141592653589793
+        },
+        "imag_part_J_m2": 0.0,
+        "scope": "toy_model_not_material_prediction"
+      }
+    },
+    "zero": {
+      "components": {
+        "matsubara_sum_terms": [
+          {
+            "abs": 0.0,
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "abs": 0.0,
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "abs": 0.0,
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "abs": 0.0,
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "abs": 0.0,
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "abs": 0.0,
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "abs": 0.0,
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "abs": 0.0,
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "abs": 0.0,
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        "measure_sum_scaffold": 2.170294678525846e+16
+      },
+      "free_energy_density_J_m2": 0.0,
+      "grid": {
+        "Q0_excluded": true,
+        "Q_max_m_inv": 500000000.0,
+        "n_Q": 12,
+        "n_max": 8,
+        "n_phi": 12,
+        "num_Q_used": 11,
+        "separation_m": 1.0000000000000001e-07,
+        "temperature_K": 10.0,
+        "theta_rad": 0.0
+      },
+      "imag_part_J_m2": 0.0,
+      "scope": "toy_model_not_material_prediction"
+    }
+  },
+  "boundary": {
+    "no_E_ET_added": true,
+    "no_bubble_sign_change": true,
+    "no_direct_contact_change": true,
+    "no_fitted_contact": true,
+    "no_force_output": true,
+    "no_heavy_response_run": true,
+    "no_main_response_change": true,
+    "no_real_LNO327_energy": true,
+    "no_real_material_response_grid": true,
+    "no_residual_tuning": true,
+    "no_source_observable_change": true,
+    "no_torque_output": true,
+    "not_casimir_ready_claim": true,
+    "toy_model_only": true
+  },
+  "checks": {
+    "Q_max_convergence": "PASS",
+    "anisotropic_toy_periodicity": "PASS",
+    "distance_dependence": "PASS",
+    "imaginary_part_sanity": "PASS",
+    "isotropic_angle_independence": "PASS",
+    "n_Q_convergence": "PASS",
+    "n_max_convergence": "PASS",
+    "n_phi_convergence": "PASS",
+    "zero_toy_integration": "PASS"
+  },
+  "convergence_scans": {
+    "Q_max": {
+      "free_energy_density_J_m2": [
+        -9.584195651604788e-11,
+        -3.6923045249569564e-12,
+        -7.749333241351442e-14
+      ],
+      "imag_part_J_m2": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relative_changes": [
+        null,
+        0.9614750714699912,
+        0.9790122044675018
+      ],
+      "status": "PASS",
+      "values": [
+        250000000.0,
+        500000000.0,
+        750000000.0
+      ]
+    },
+    "n_Q": {
+      "free_energy_density_J_m2": [
+        -4.343291118123455e-14,
+        -3.6923045249569564e-12,
+        -2.3569261594417926e-11
+      ],
+      "imag_part_J_m2": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relative_changes": [
+        null,
+        84.01167489210897,
+        5.3833471576109195
+      ],
+      "status": "PASS",
+      "values": [
+        8,
+        12,
+        16
+      ]
+    },
+    "n_max": {
+      "free_energy_density_J_m2": [
+        -1.652763814387433e-12,
+        -2.5303746169448495e-12,
+        -3.6923045249569564e-12
+      ],
+      "imag_part_J_m2": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relative_changes": [
+        null,
+        0.5309958960365351,
+        0.45919284055062576
+      ],
+      "status": "PASS",
+      "values": [
+        2,
+        4,
+        8
+      ]
+    },
+    "n_phi": {
+      "free_energy_density_J_m2": [
+        -3.692304524956956e-12,
+        -3.6923045249569564e-12,
+        -3.6923045249569564e-12
+      ],
+      "imag_part_J_m2": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "relative_changes": [
+        null,
+        2.1877761205401476e-16,
+        0.0
+      ],
+      "status": "PASS",
+      "values": [
+        8,
+        12,
+        16
+      ]
+    }
+  },
+  "diagnostic_status": {
+    "recommended_next_action": "Proceed to real-material response/reflection grid generation planning; still do not run production torque.",
+    "stage5_10_status": "STAGE5_10_TOY_CASIMIR_INTEGRATION_CONVERGENCE_AUDIT_PASSED"
+  },
+  "input": {
+    "input_json": "validation/outputs/response/casimir_grid/stage5_9_casimir_grid_planning_scaffold.json",
+    "input_stage": "Stage 5.9",
+    "input_status": "STAGE5_9_CASIMIR_GRID_SCAFFOLD_PASSED"
+  },
+  "purpose": "Toy-model full Casimir integration convergence audit",
+  "scope": {
+    "no_force": true,
+    "no_real_LNO327_energy": true,
+    "no_torque": true,
+    "not_material_prediction": true,
+    "toy_model_only": true
+  },
+  "stage": "Stage 5.10",
+  "toy_models": {
+    "anisotropic_relative_rotation": {
+      "mixing0": 0.05,
+      "rp0": 0.35,
+      "rs0": -0.25,
+      "toy_rotation_only": true
+    },
+    "isotropic_identical": {
+      "r0": 0.3,
+      "r_p": "+r0*f(xi,Q)",
+      "r_s": "-r0*f(xi,Q)"
+    },
+    "zero": {
+      "R": "0"
+    }
+  },
+  "warnings": [
+    "Toy-model full integration is not a real material Casimir energy calculation.",
+    "No LNO327 material response grid is used.",
+    "Do not interpret toy energy density as physical prediction.",
+    "Next real-material stage requires R_TE_TM(i*xi_n,Q,phi) or sigma_tilde(i*xi_n,Q,phi) on a production grid."
+  ]
+}
