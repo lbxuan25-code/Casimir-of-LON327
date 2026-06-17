@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
 from pathlib import Path
 import sys
@@ -233,6 +234,68 @@ def _dry_run_result(point: MaterialReflectionGridPoint, convention: SheetConduct
     }
 
 
+def _run_real_point_job(
+    index: int,
+    point: MaterialReflectionGridPoint,
+    response_config: dict[str, Any],
+    separation_m: float,
+    convention: SheetConductivityUnitConvention,
+) -> tuple[int, dict[str, Any]]:
+    return index, run_real_point(point, response_config=response_config, separation_m=separation_m, convention=convention)
+
+
+def _parallel_failure_result(
+    point: MaterialReflectionGridPoint,
+    convention: SheetConductivityUnitConvention,
+    separation_m: float,
+    exc: BaseException,
+) -> dict[str, Any]:
+    converted = grid_point_to_si_and_model_q(point, convention.lattice_a_x_m, convention.lattice_a_y_m)
+    return {
+        "point_id": _point_id(converted),
+        **converted,
+        "integrand_identical_sheet": {"separation_m": separation_m, "status": "NOT_COMPUTED"},
+        "runtime_seconds": 0.0,
+        "status": "FAIL",
+        "error": {"type": type(exc).__name__, "message": str(exc)},
+    }
+
+
+def run_real_points(
+    points: list[MaterialReflectionGridPoint],
+    *,
+    response_config: dict[str, Any],
+    separation_m: float,
+    convention: SheetConductivityUnitConvention,
+    workers: int,
+) -> list[dict[str, Any]]:
+    """Run point-level real response calculations with stable output order."""
+
+    if workers < 1:
+        raise ValueError("workers must be >= 1")
+    if workers == 1 or len(points) <= 1:
+        return [
+            run_real_point(point, response_config=response_config, separation_m=separation_m, convention=convention)
+            for point in points
+        ]
+
+    indexed_rows: dict[int, dict[str, Any]] = {}
+    actual_workers = min(int(workers), len(points))
+    with ProcessPoolExecutor(max_workers=actual_workers) as executor:
+        future_to_point = {
+            executor.submit(_run_real_point_job, index, point, response_config, separation_m, convention): (index, point)
+            for index, point in enumerate(points)
+        }
+        for future in as_completed(future_to_point):
+            index, point = future_to_point[future]
+            try:
+                result_index, row = future.result()
+                indexed_rows[result_index] = row
+            except Exception as exc:
+                indexed_rows[index] = _parallel_failure_result(point, convention, separation_m, exc)
+    return [indexed_rows[index] for index in range(len(points))]
+
+
 def _q_direction_diagnostics(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     diagnostics: list[dict[str, Any]] = []
     grouped: dict[tuple[int, float], dict[float, dict[str, Any]]] = {}
@@ -318,7 +381,10 @@ def run_prototype(
     dry_run_grid_only: bool,
     allow_stage5_10_monitor: bool,
     response_config: dict[str, Any],
+    workers: int = 1,
 ) -> dict[str, Any]:
+    if workers < 1:
+        raise ValueError("workers must be >= 1")
     data = json.loads(input_json.read_text(encoding="utf-8"))
     input_status = data.get("diagnostic_status", {}).get("stage5_10_status")
     input_ok = input_status == "STAGE5_10_TOY_CASIMIR_INTEGRATION_CONVERGENCE_AUDIT_PASSED" or (
@@ -336,10 +402,13 @@ def run_prototype(
     if dry_run_grid_only:
         rows = [_dry_run_result(point, convention, separation_m) for point in points]
     else:
-        rows = [
-            run_real_point(point, response_config=response_config, separation_m=separation_m, convention=convention)
-            for point in points
-        ]
+        rows = run_real_points(
+            points,
+            response_config=response_config,
+            separation_m=separation_m,
+            convention=convention,
+            workers=workers,
+        )
     checks = _checks(rows, input_ok=input_ok, dry_run=dry_run_grid_only)
     summary = _summary(rows) if not dry_run_grid_only else {
         "num_success": 0,
@@ -388,6 +457,8 @@ def run_prototype(
             "phi_deg_values": sorted({point.phi_deg for point in points}),
             "num_requested_points": len(points),
             "smoke": bool(smoke),
+            "workers": int(workers),
+            "parallelism": "point-level multiprocessing" if workers > 1 and not dry_run_grid_only else "sequential",
             "n0_excluded": True,
             "Q0_excluded": True,
             "zero_mode_note": "n=0 excluded in Stage 5.11; zero-mode audit is deferred to a later stage.",
@@ -457,6 +528,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--separation-nm", type=float, default=100.0)
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--dry-run-grid-only", action="store_true")
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="Point-level multiprocessing worker count; this is separate from BLAS/OpenMP threading.",
+    )
     parser.add_argument("--allow-stage5-10-monitor", action="store_true")
     parser.add_argument("--adaptive-level", type=int, default=4)
     parser.add_argument("--gauss-order", type=int, default=5)
@@ -476,6 +553,7 @@ def main() -> None:
         dry_run_grid_only=args.dry_run_grid_only,
         allow_stage5_10_monitor=args.allow_stage5_10_monitor,
         response_config=_response_config(args),
+        workers=args.workers,
     )
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.parent.mkdir(parents=True, exist_ok=True)

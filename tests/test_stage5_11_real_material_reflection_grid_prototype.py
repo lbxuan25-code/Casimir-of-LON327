@@ -123,6 +123,43 @@ def test_script_with_synthetic_stage5_10_input_smoke_dry_run(tmp_path):
     assert output_md.exists()
 
 
+def test_dry_run_workers_preserve_point_order(tmp_path):
+    input_json = tmp_path / "stage5_10.json"
+    _synthetic_stage5_10(input_json)
+
+    outputs = []
+    for workers in (1, 2):
+        output_json = tmp_path / f"stage5_11_workers_{workers}.json"
+        output_md = tmp_path / f"stage5_11_workers_{workers}.md"
+        subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "--input-json",
+                str(input_json),
+                "--output-json",
+                str(output_json),
+                "--output-md",
+                str(output_md),
+                "--temperature-K",
+                "10",
+                "--separation-nm",
+                "100",
+                "--smoke",
+                "--dry-run-grid-only",
+                "--workers",
+                str(workers),
+            ],
+            check=True,
+        )
+        outputs.append(json.loads(output_json.read_text(encoding="utf-8")))
+
+    ids_1 = [row["point_id"] for row in outputs[0]["point_results"]]
+    ids_2 = [row["point_id"] for row in outputs[1]["point_results"]]
+    assert outputs[0]["prototype_grid"]["num_requested_points"] == outputs[1]["prototype_grid"]["num_requested_points"] == 8
+    assert ids_1 == ids_2
+
+
 def test_no_g_symbol():
     text = SCRIPT.read_text(encoding="utf-8") + "\n" + DOC.read_text(encoding="utf-8")
     assert " g " not in text

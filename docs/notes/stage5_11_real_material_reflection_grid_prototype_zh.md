@@ -92,6 +92,27 @@ M=I-e^{-2\kappa d}R^{TE/TM}R^{TE/TM}
 
 计算 identical-sheet pointwise \(\log\det M\)。这只说明真实材料 reflection matrix 能接入 trace-log integrand helper，不是物理能量。
 
+## point-level 并行运行
+
+脚本支持 `--workers N` 对不同 \((n,Q,\varphi)\) 点做多进程并行。这个并行是 grid point 级别的 multiprocessing，不是 BLAS/OpenMP threading。默认 `--workers 1` 保持顺序运行；例如 `--workers 8` 会尝试用 8 个进程并行计算不同离散点，并在输出 JSON/MD 中保持原始点顺序。
+
+为了避免“多进程乘以多线程”的过度占用，建议并行点计算前设置：
+
+```bash
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+```
+
+然后再运行：
+
+```bash
+python validation/scripts/response/stage5_11_real_material_reflection_grid_prototype.py \
+  --smoke \
+  --workers 8
+```
+
 ## 下一步
 
 后续仍需 material grid convergence strategy，包括更多 \((n,Q,\varphi)\) 覆盖、response-cost audit、插值策略、\(Q=0\) 与 \(n=0\) 单独审计，以及真实材料 production grid 的收敛验证。
