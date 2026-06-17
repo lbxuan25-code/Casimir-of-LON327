@@ -1,0 +1,321 @@
+{
+  "boundary": {
+    "no_E_ET_added": true,
+    "no_bubble_sign_change": true,
+    "no_direct_contact_change": true,
+    "no_fitted_contact": true,
+    "no_force_output": true,
+    "no_main_response_change": true,
+    "no_residual_tuning": true,
+    "no_response_rerun": true,
+    "no_source_observable_change": true,
+    "no_torque_output": true,
+    "not_casimir_ready_claim": true,
+    "not_production_energy": true,
+    "small_grid_only": true,
+    "uses_stage5_11c_reflection_grid": true
+  },
+  "checks": {
+    "distance_trend": "PASS",
+    "finite_values": "PASS",
+    "imaginary_part": "PASS",
+    "input_status": "PASS",
+    "negative_sign_sanity": "PASS",
+    "warnings_present": "PASS"
+  },
+  "diagnostic_status": {
+    "recommended_next_action": "Proceed to material-grid convergence planning; do not interpret prototype energy as physical prediction.",
+    "stage5_12_status": "STAGE5_12_SMALL_REAL_MATERIAL_ENERGY_PROTOTYPE_PASSED"
+  },
+  "grid_summary": {
+    "Q_nm_inv_values": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "n_values": [
+      1,
+      2,
+      4
+    ],
+    "num_points_used": 36,
+    "phi_deg_values": [
+      0.0,
+      45.0,
+      90.0,
+      135.0
+    ]
+  },
+  "input": {
+    "input_json": "validation/outputs/response/material_reflection_grid/stage5_11c_real_material_reflection_grid_full36_order7_workers8.json",
+    "input_stage": "Stage 5.11",
+    "input_status": "STAGE5_11_REAL_MATERIAL_REFLECTION_GRID_PROTOTYPE_PASSED"
+  },
+  "purpose": "Small real-material Casimir energy-integration prototype",
+  "scope": {
+    "Q_grid_sparse": true,
+    "angular_grid_sparse": true,
+    "matsubara_grid_incomplete": true,
+    "n0_excluded": true,
+    "no_force": true,
+    "no_torque": true,
+    "not_production_energy": true,
+    "small_grid_only": true,
+    "zero_mode_not_included": true
+  },
+  "separation_scan": [
+    {
+      "F_proto_over_area_J_m2": {
+        "abs": 1.130697882320405e-09,
+        "im": 8.575857801000892e-28,
+        "re": -1.130697882320405e-09
+      },
+      "imag_part_J_m2": 8.575857801000892e-28,
+      "limitations": {
+        "Q_grid_sparse": true,
+        "angular_grid_sparse": true,
+        "matsubara_grid_incomplete": true,
+        "n0_excluded": true,
+        "not_physical_prediction": true,
+        "not_production_quadrature": true,
+        "zero_mode_not_included": true
+      },
+      "num_points_used": 36,
+      "partial_by_Q": {
+        "0.05": {
+          "abs": 1.1083746190032323e-09,
+          "im": 8.591057082475822e-28,
+          "re": -1.1083746190032323e-09
+        },
+        "0.1": {
+          "abs": 2.2320564956420332e-11,
+          "im": -1.5196192079727825e-30,
+          "re": -2.2320564956420332e-11
+        },
+        "0.2": {
+          "abs": 2.6983607519398604e-15,
+          "im": -3.089395202186374e-34,
+          "re": -2.6983607519398604e-15
+        }
+      },
+      "partial_by_n": {
+        "1": {
+          "abs": 3.7789441760760897e-10,
+          "im": 7.33015556556341e-29,
+          "re": -3.7789441760760897e-10
+        },
+        "2": {
+          "abs": 3.772589219671436e-10,
+          "im": 5.930573741655324e-28,
+          "re": -3.772589219671436e-10
+        },
+        "4": {
+          "abs": 3.755445427456521e-10,
+          "im": 1.9122685027892282e-28,
+          "re": -3.755445427456521e-10
+        }
+      },
+      "partial_by_phi": {
+        "0.0": {
+          "abs": 2.82551501123168e-10,
+          "im": 4.0193574877993858e-28,
+          "re": -2.82551501123168e-10
+        },
+        "135.0": {
+          "abs": 2.827974400370343e-10,
+          "im": 1.937017330983108e-28,
+          "re": -2.827974400370343e-10
+        },
+        "45.0": {
+          "abs": 2.827974400370343e-10,
+          "im": 1.0795446234526944e-28,
+          "re": -2.827974400370343e-10
+        },
+        "90.0": {
+          "abs": 2.82551501123168e-10,
+          "im": 1.5399383587657042e-28,
+          "re": -2.82551501123168e-10
+        }
+      },
+      "separation_nm": 50.0,
+      "warnings": [
+        "n0_excluded",
+        "zero_mode_not_included",
+        "matsubara_grid_incomplete",
+        "angular_grid_sparse",
+        "Q_grid_sparse",
+        "not_production_quadrature",
+        "not_physical_prediction"
+      ]
+    },
+    {
+      "F_proto_over_area_J_m2": {
+        "abs": 7.444254384879716e-12,
+        "im": 5.749973186574136e-30,
+        "re": -7.444254384879716e-12
+      },
+      "imag_part_J_m2": 5.749973186574136e-30,
+      "limitations": {
+        "Q_grid_sparse": true,
+        "angular_grid_sparse": true,
+        "matsubara_grid_incomplete": true,
+        "n0_excluded": true,
+        "not_physical_prediction": true,
+        "not_production_quadrature": true,
+        "zero_mode_not_included": true
+      },
+      "num_points_used": 36,
+      "partial_by_Q": {
+        "0.05": {
+          "abs": 7.443241058341277e-12,
+          "im": 5.750042173216491e-30,
+          "re": -7.443241058341277e-12
+        },
+        "0.1": {
+          "abs": 1.0133265384387499e-15,
+          "im": -6.898664171809556e-35,
+          "re": -1.0133265384387499e-15
+        },
+        "0.2": {
+          "abs": 6.367698342536087e-43,
+          "im": -6.367698342536087e-43,
+          "re": 3.289546701096419e-76
+        }
+      },
+      "partial_by_n": {
+        "1": {
+          "abs": 2.4879712597587984e-12,
+          "im": 4.551740067463445e-31,
+          "re": -2.4879712597587984e-12
+        },
+        "2": {
+          "abs": 2.483807538194652e-12,
+          "im": 3.997745788264093e-30,
+          "re": -2.483807538194652e-12
+        },
+        "4": {
+          "abs": 2.472475586926267e-12,
+          "im": 1.2970533915636982e-30,
+          "re": -2.472475586926267e-12
+        }
+      },
+      "partial_by_phi": {
+        "0.0": {
+          "abs": 1.8602633935797516e-12,
+          "im": 2.7344841713195e-30,
+          "re": -1.8602633935797516e-12
+        },
+        "135.0": {
+          "abs": 1.861863798860107e-12,
+          "im": 1.2903090060329109e-30,
+          "re": -1.861863798860107e-12
+        },
+        "45.0": {
+          "abs": 1.861863798860107e-12,
+          "im": 6.566667374935956e-31,
+          "re": -1.861863798860107e-12
+        },
+        "90.0": {
+          "abs": 1.8602633935797516e-12,
+          "im": 1.0685132717281294e-30,
+          "re": -1.8602633935797516e-12
+        }
+      },
+      "separation_nm": 100.0,
+      "warnings": [
+        "n0_excluded",
+        "zero_mode_not_included",
+        "matsubara_grid_incomplete",
+        "angular_grid_sparse",
+        "Q_grid_sparse",
+        "not_production_quadrature",
+        "not_physical_prediction"
+      ]
+    },
+    {
+      "F_proto_over_area_J_m2": {
+        "abs": 3.3791143356842674e-16,
+        "im": 2.6103717880570567e-34,
+        "re": -3.3791143356842674e-16
+      },
+      "imag_part_J_m2": 2.6103717880570567e-34,
+      "limitations": {
+        "Q_grid_sparse": true,
+        "angular_grid_sparse": true,
+        "matsubara_grid_incomplete": true,
+        "n0_excluded": true,
+        "not_physical_prediction": true,
+        "not_production_quadrature": true,
+        "zero_mode_not_included": true
+      },
+      "num_points_used": 36,
+      "partial_by_Q": {
+        "0.05": {
+          "abs": 3.3791143356842674e-16,
+          "im": 2.61037178947894e-34,
+          "re": -3.3791143356842674e-16
+        },
+        "0.1": {
+          "abs": 1.4218833201151522e-43,
+          "im": -1.4218833201151522e-43,
+          "re": 1.6985042773788086e-77
+        },
+        "0.2": {
+          "abs": 2.7052070484866614e-60,
+          "im": -2.7052070484866614e-60,
+          "re": 5.937114257684554e-111
+        }
+      },
+      "partial_by_n": {
+        "1": {
+          "abs": 1.129356200614375e-16,
+          "im": 2.0652919184891846e-35,
+          "re": -1.129356200614375e-16
+        },
+        "2": {
+          "abs": 1.1274611715580943e-16,
+          "im": 1.8149688179031545e-34,
+          "re": -1.1274611715580943e-16
+        },
+        "4": {
+          "abs": 1.122296963511799e-16,
+          "im": 5.888737783049827e-35,
+          "re": -1.122296963511799e-16
+        }
+      },
+      "partial_by_phi": {
+        "0.0": {
+          "abs": 8.444153773881555e-17,
+          "im": 1.2415282509102618e-34,
+          "re": -8.444153773881555e-17
+        },
+        "135.0": {
+          "abs": 8.451417904539786e-17,
+          "im": 5.857481611116633e-35,
+          "re": -8.451417904539786e-17
+        },
+        "45.0": {
+          "abs": 8.451417904539786e-17,
+          "im": 2.979033047824515e-35,
+          "re": -8.451417904539786e-17
+        },
+        "90.0": {
+          "abs": 8.444153773881555e-17,
+          "im": 4.851920712526796e-35,
+          "re": -8.444153773881555e-17
+        }
+      },
+      "separation_nm": 200.0,
+      "warnings": [
+        "n0_excluded",
+        "zero_mode_not_included",
+        "matsubara_grid_incomplete",
+        "angular_grid_sparse",
+        "Q_grid_sparse",
+        "not_production_quadrature",
+        "not_physical_prediction"
+      ]
+    }
+  ],
+  "stage": "Stage 5.12"
+}
