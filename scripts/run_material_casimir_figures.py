@@ -42,15 +42,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--pairings", nargs="+", choices=list(DEFAULT_PAIRINGS), default=list(DEFAULT_PAIRINGS))
     parser.add_argument("--n-max", type=int, default=8)
     parser.add_argument("--N-Q", type=int, default=16)
-    parser.add_argument("--N-phi", type=int, default=16)
+    parser.add_argument("--N-phi", type=int, default=24)
     parser.add_argument("--Q-max-nm-inv", type=float, default=0.25)
     parser.add_argument("--theta-deg", nargs="+", type=float, default=list(DEFAULT_THETA_DEG))
     parser.add_argument("--distance-nm", nargs="+", type=float, default=list(DEFAULT_DISTANCE_NM))
     parser.add_argument("--zero-mode-omega-eV", nargs="+", type=float, default=list(DEFAULT_ZERO_MODE_OMEGA_EV))
     parser.add_argument("--temperature-K", type=float, default=10.0)
-    parser.add_argument("--eta-eV", type=float, default=1e-4)
-    parser.add_argument("--bdg-nk", type=int, default=32)
-    parser.add_argument("--delta0-eV", type=float, default=0.04)
+    parser.add_argument("--adaptive-level", type=int, default=4)
+    parser.add_argument("--gauss-order", type=int, default=7)
+    parser.add_argument("--coarse-grid", type=int, default=32)
+    parser.add_argument("--fermi-window-eV", type=float, default=0.05)
+    parser.add_argument("--eta-eV", type=float, default=1e-10)
     parser.add_argument("--dry-run-grid-only", action="store_true", help="Write a plan report without computing response.")
     return parser.parse_args()
 
@@ -66,9 +68,11 @@ def main() -> None:
         distance_nm=_parse_float_tuple(args.distance_nm),
         zero_mode_omega_eV=_parse_float_tuple(args.zero_mode_omega_eV),
         temperature_K=args.temperature_K,
+        adaptive_level=args.adaptive_level,
+        gauss_order=args.gauss_order,
+        coarse_grid=args.coarse_grid,
+        fermi_window_eV=args.fermi_window_eV,
         eta_eV=args.eta_eV,
-        bdg_nk=args.bdg_nk,
-        delta0_eV=args.delta0_eV,
     )
     for subdir in ("cache", "data", "figures"):
         (args.output_dir / subdir).mkdir(parents=True, exist_ok=True)
