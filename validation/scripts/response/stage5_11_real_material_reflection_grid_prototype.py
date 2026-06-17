@@ -23,6 +23,11 @@ from lno327.casimir_integrand import casimir_integrand_single_point  # noqa: E40
 from lno327.conductivity import KuboConfig  # noqa: E402
 from lno327.conductivity_conventions import spatial_response_to_bilayer_sheet_conductivity_model  # noqa: E402
 from lno327.conductivity_units import SheetConductivityUnitConvention, model_to_dimensionless_sheet_conductivity  # noqa: E402
+from lno327.material_response_cache import (  # noqa: E402
+    cache_path_for_point,
+    load_reusable_point_cache,
+    write_point_cache,
+)
 from lno327.material_reflection_grid import (  # noqa: E402
     MaterialReflectionGridPoint,
     complex_matrix_to_jsonable,
@@ -41,6 +46,7 @@ OUTPUT_DIR = ROOT / "validation" / "outputs" / "response" / "material_reflection
 DEFAULT_INPUT = ROOT / "validation" / "outputs" / "response" / "casimir_toy_integration" / "stage5_10_toy_casimir_integration_convergence_audit.json"
 JSON_OUTPUT = OUTPUT_DIR / "stage5_11_real_material_reflection_grid_prototype.json"
 MD_OUTPUT = OUTPUT_DIR / "stage5_11_real_material_reflection_grid_prototype.md"
+DEFAULT_CACHE_DIR = OUTPUT_DIR / "cache"
 
 BOUNDARY = {
     "no_main_response_change": True,
@@ -87,6 +93,15 @@ def _response_config(args: argparse.Namespace) -> dict[str, Any]:
 
 def _point_id(point: dict[str, Any]) -> str:
     return f"n{point['n']}_Q{point['Q_nm_inv']:.3f}_phi{point['phi_deg']:.1f}"
+
+
+def _lattice_convention_payload() -> dict[str, Any]:
+    return {
+        "a_x_m": LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_x_m,
+        "a_y_m": LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_y_m,
+        "source": LNO327_THIN_FILM_SLAO_IN_PLANE.source_note,
+        "is_placeholder": LNO327_THIN_FILM_SLAO_IN_PLANE.is_placeholder,
+    }
 
 
 def _ward_status(total: float) -> str:
@@ -240,8 +255,34 @@ def _run_real_point_job(
     response_config: dict[str, Any],
     separation_m: float,
     convention: SheetConductivityUnitConvention,
+    cache_dir: Path | None = None,
+    resume: bool = False,
+    skip_existing: bool = False,
+    force_recompute: bool = False,
+    lattice_convention: dict[str, Any] | None = None,
 ) -> tuple[int, dict[str, Any]]:
-    return index, run_real_point(point, response_config=response_config, separation_m=separation_m, convention=convention)
+    if cache_dir is None or lattice_convention is None:
+        return index, run_real_point(point, response_config=response_config, separation_m=separation_m, convention=convention)
+
+    converted = grid_point_to_si_and_model_q(point, convention.lattice_a_x_m, convention.lattice_a_y_m)
+    point_id = _point_id(converted)
+    cache_path = cache_path_for_point(cache_dir, point_id)
+    should_read_cache = (resume or skip_existing) and not force_recompute
+    if should_read_cache:
+        cached = load_reusable_point_cache(
+            cache_dir,
+            point_id=point_id,
+            response_config=response_config,
+            lattice_convention=lattice_convention,
+        )
+        if cached is not None:
+            cached["cache"] = {"source": "hit", "path": str(cache_path)}
+            return index, cached
+
+    row = run_real_point(point, response_config=response_config, separation_m=separation_m, convention=convention)
+    row["cache"] = {"source": "computed", "path": str(cache_path)}
+    write_point_cache(cache_dir, row, response_config=response_config, lattice_convention=lattice_convention)
+    return index, row
 
 
 def _parallel_failure_result(
@@ -268,6 +309,11 @@ def run_real_points(
     separation_m: float,
     convention: SheetConductivityUnitConvention,
     workers: int,
+    cache_dir: Path | None = None,
+    resume: bool = False,
+    skip_existing: bool = False,
+    force_recompute: bool = False,
+    lattice_convention: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Run point-level real response calculations with stable output order."""
 
@@ -275,15 +321,38 @@ def run_real_points(
         raise ValueError("workers must be >= 1")
     if workers == 1 or len(points) <= 1:
         return [
-            run_real_point(point, response_config=response_config, separation_m=separation_m, convention=convention)
-            for point in points
+            _run_real_point_job(
+                index,
+                point,
+                response_config,
+                separation_m,
+                convention,
+                cache_dir,
+                resume,
+                skip_existing,
+                force_recompute,
+                lattice_convention,
+            )[1]
+            for index, point in enumerate(points)
         ]
 
     indexed_rows: dict[int, dict[str, Any]] = {}
     actual_workers = min(int(workers), len(points))
     with ProcessPoolExecutor(max_workers=actual_workers) as executor:
         future_to_point = {
-            executor.submit(_run_real_point_job, index, point, response_config, separation_m, convention): (index, point)
+            executor.submit(
+                _run_real_point_job,
+                index,
+                point,
+                response_config,
+                separation_m,
+                convention,
+                cache_dir,
+                resume,
+                skip_existing,
+                force_recompute,
+                lattice_convention,
+            ): (index, point)
             for index, point in enumerate(points)
         }
         for future in as_completed(future_to_point):
@@ -382,6 +451,10 @@ def run_prototype(
     allow_stage5_10_monitor: bool,
     response_config: dict[str, Any],
     workers: int = 1,
+    cache_dir: Path | None = DEFAULT_CACHE_DIR,
+    resume: bool = False,
+    skip_existing: bool = False,
+    force_recompute: bool = False,
 ) -> dict[str, Any]:
     if workers < 1:
         raise ValueError("workers must be >= 1")
@@ -399,6 +472,7 @@ def run_prototype(
         lattice_a_y_m=LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_y_m,
         unit_cell_area_m2=LNO327_THIN_FILM_SLAO_IN_PLANE.unit_cell_area_m2,
     )
+    lattice_convention = _lattice_convention_payload()
     if dry_run_grid_only:
         rows = [_dry_run_result(point, convention, separation_m) for point in points]
     else:
@@ -408,6 +482,11 @@ def run_prototype(
             separation_m=separation_m,
             convention=convention,
             workers=workers,
+            cache_dir=cache_dir,
+            resume=resume,
+            skip_existing=skip_existing,
+            force_recompute=force_recompute,
+            lattice_convention=lattice_convention,
         )
     checks = _checks(rows, input_ok=input_ok, dry_run=dry_run_grid_only)
     summary = _summary(rows) if not dry_run_grid_only else {
@@ -463,13 +542,17 @@ def run_prototype(
             "Q0_excluded": True,
             "zero_mode_note": "n=0 excluded in Stage 5.11; zero-mode audit is deferred to a later stage.",
         },
-        "lattice_convention": {
-            "a_x_m": LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_x_m,
-            "a_y_m": LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_y_m,
-            "source": LNO327_THIN_FILM_SLAO_IN_PLANE.source_note,
-            "is_placeholder": LNO327_THIN_FILM_SLAO_IN_PLANE.is_placeholder,
-        },
+        "lattice_convention": lattice_convention,
         "response_config": dict(response_config),
+        "cache": {
+            "cache_dir": str(cache_dir) if cache_dir is not None else None,
+            "resume": bool(resume),
+            "skip_existing": bool(skip_existing),
+            "force_recompute": bool(force_recompute),
+            "enabled": cache_dir is not None and not dry_run_grid_only,
+            "reusable_statuses": ["PASS", "MONITOR"],
+            "write_policy": "atomic temp-file then rename per point",
+        },
         "point_results": rows,
         "q_direction_diagnostics": [] if dry_run_grid_only else _q_direction_diagnostics(rows),
         "summary": summary,
@@ -500,21 +583,22 @@ def render_markdown(data: dict[str, Any]) -> str:
             "## 4. Prototype grid\n\n" + _table(("quantity", "value"), list(data["prototype_grid"].items())),
             "## 5. Lattice convention\n\n" + _table(("quantity", "value"), list(data["lattice_convention"].items())),
             "## 6. Response numerical config\n\n" + _table(("quantity", "value"), list(data["response_config"].items())),
-            "## 7. Pointwise results summary\n\n" + _table(("quantity", "value"), list(data["summary"].items())),
-            "## 8. Ward residual summary\n\n"
+            "## 7. Cache and resume\n\n" + _table(("quantity", "value"), list(data["cache"].items())),
+            "## 8. Pointwise results summary\n\n" + _table(("quantity", "value"), list(data["summary"].items())),
+            "## 9. Ward residual summary\n\n"
             + "Corrected Ward residuals are recorded per point when real response is run.",
-            "## 9. Conductivity summary\n\n"
+            "## 10. Conductivity summary\n\n"
             + "`sigma_tilde_xy`, `sigma_tilde_LT`, `R_E_LT`, and `R_TE_TM` are retained per point in JSON.",
-            "## 10. Reflection matrix summary\n\n"
+            "## 11. Reflection matrix summary\n\n"
             + "TE/TM ordering is `['s', 'p']`; rows are reflected polarization and columns are incident polarization.",
-            "## 11. Integrand hook-in summary\n\n"
+            "## 12. Integrand hook-in summary\n\n"
             + "Identical-sheet `logdet` values are pointwise hook-in checks only, not an energy integral.",
-            "## 12. q-direction diagnostic spot checks\n\n"
+            "## 13. q-direction diagnostic spot checks\n\n"
             + _table(("quantity", "value"), [("num_diagnostics", len(data["q_direction_diagnostics"]))]),
-            "## 13. What this is not\n\n"
+            "## 14. What this is not\n\n"
             + "This is not a production grid, not a full Matsubara sum, not a full Q integral, and not Casimir energy/force/torque.",
-            "## 14. Diagnostic decision\n\n" + _table(("quantity", "value"), list(data["diagnostic_status"].items())),
-            "## 15. Recommended next step\n\n" + data["diagnostic_status"]["recommended_next_action"],
+            "## 15. Diagnostic decision\n\n" + _table(("quantity", "value"), list(data["diagnostic_status"].items())),
+            "## 16. Recommended next step\n\n" + data["diagnostic_status"]["recommended_next_action"],
         ]
     ) + "\n"
 
@@ -534,6 +618,15 @@ def parse_args() -> argparse.Namespace:
         default=1,
         help="Point-level multiprocessing worker count; this is separate from BLAS/OpenMP threading.",
     )
+    parser.add_argument(
+        "--cache-dir",
+        type=Path,
+        default=DEFAULT_CACHE_DIR,
+        help="Directory for one JSON cache file per grid point.",
+    )
+    parser.add_argument("--resume", action="store_true", help="Reuse valid PASS/MONITOR point cache entries and compute only missing/invalid points.")
+    parser.add_argument("--skip-existing", action="store_true", help="Skip computation for valid existing point cache entries; invalid/FAIL cache entries are recomputed.")
+    parser.add_argument("--force-recompute", action="store_true", help="Ignore point cache reads and recompute all points, while still writing fresh cache files.")
     parser.add_argument("--allow-stage5-10-monitor", action="store_true")
     parser.add_argument("--adaptive-level", type=int, default=4)
     parser.add_argument("--gauss-order", type=int, default=5)
@@ -554,6 +647,10 @@ def main() -> None:
         allow_stage5_10_monitor=args.allow_stage5_10_monitor,
         response_config=_response_config(args),
         workers=args.workers,
+        cache_dir=args.cache_dir,
+        resume=args.resume,
+        skip_existing=args.skip_existing,
+        force_recompute=args.force_recompute,
     )
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_md.parent.mkdir(parents=True, exist_ok=True)

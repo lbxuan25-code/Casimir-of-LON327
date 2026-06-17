@@ -113,6 +113,39 @@ python validation/scripts/response/stage5_11_real_material_reflection_grid_proto
   --workers 8
 ```
 
+## cache、resume 与断点续算
+
+脚本支持把每个 \((n,Q,\varphi)\) 点的真实材料 response/reflection 结果写入独立 JSON cache 文件。默认 cache 目录为：
+
+```text
+validation/outputs/response/material_reflection_grid/cache
+```
+
+每个点使用稳定、可读的文件名，例如：
+
+```text
+n1_Q0.050_phi0.0.json
+```
+
+`--resume` 会优先读取已有 cache，只有缺失或无效的点才重新计算。`--skip-existing` 会跳过已有且合格的点 cache；若 cache 的 `response_config`、`lattice_convention` 或 `point_id` 不匹配，或者该点状态为 `FAIL`，则默认重新计算。`--force-recompute` 会忽略 cache 读取并全部重算，同时写入新的点 cache。
+
+推荐的断点续算运行方式是先限制 BLAS/OpenMP 线程数，再用 `--workers` 控制点级多进程：
+
+```bash
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+
+python validation/scripts/response/stage5_11_real_material_reflection_grid_prototype.py \
+  --workers 8 \
+  --resume \
+  --skip-existing \
+  --cache-dir validation/outputs/response/material_reflection_grid/cache
+```
+
+cache 写入使用同目录临时文件加 atomic rename，避免多进程运行时留下半写入 JSON。最终主 JSON/MD 的 `point_results` 仍按原始 grid point 顺序输出，不按进程完成顺序排序。
+
 ## 下一步
 
 后续仍需 material grid convergence strategy，包括更多 \((n,Q,\varphi)\) 覆盖、response-cost audit、插值策略、\(Q=0\) 与 \(n=0\) 单独审计，以及真实材料 production grid 的收敛验证。
