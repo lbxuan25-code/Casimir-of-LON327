@@ -151,14 +151,28 @@
         ]
       ],
       "metadata": {
+        "amplitude_phase_schur_formula": "Pi_GI = K_munu - K_mu_a inv(K_ab) K_b_nu",
         "collective_channels": [
-          "global_phase_only"
+          "amplitude_eta1",
+          "phase_eta2"
         ],
+        "collective_counterterm": "goldstone_gap_equation",
+        "collective_inverse_method": "inv",
+        "collective_mode": "amplitude_phase",
+        "collective_mode_disabled_reason": null,
+        "collective_total_condition_number": 132.6893621261869,
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
         "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "eta2_phase_relation": "eta2 = delta0 * theta",
         "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "gauge_restored_selected": "bare_total",
+        "goldstone_condition_target": "K_eta2_eta2(q=0, omega=0) = 0",
+        "goldstone_counterterm_Cg": {
+          "imag": -0.0,
+          "real": 3.9039945648542136
+        },
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
@@ -200,6 +214,11 @@
         "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "bare_total",
         "validation_only_pairing": false,
+        "ward_residual_amplitude_phase_schur": {
+          "left_norm": 0.0006356944420008318,
+          "max_norm": 0.0006356944420008318,
+          "right_norm": 0.0006356944420008318
+        },
         "ward_residual_bare": {
           "left_norm": 0.006608870603571838,
           "max_norm": 0.006608870603571838,
@@ -375,14 +394,28 @@
         ]
       ],
       "metadata": {
+        "amplitude_phase_schur_formula": "Pi_GI = K_munu - K_mu_a inv(K_ab) K_b_nu",
         "collective_channels": [
-          "global_phase_only"
+          "amplitude_eta1",
+          "phase_eta2"
         ],
+        "collective_counterterm": "goldstone_gap_equation",
+        "collective_inverse_method": "inv",
+        "collective_mode": "amplitude_phase",
+        "collective_mode_disabled_reason": null,
+        "collective_total_condition_number": 132.02331656730126,
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
         "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "eta2_phase_relation": "eta2 = delta0 * theta",
         "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "gauge_restored_selected": "bare_total",
+        "goldstone_condition_target": "K_eta2_eta2(q=0, omega=0) = 0",
+        "goldstone_counterterm_Cg": {
+          "imag": -0.0,
+          "real": 3.9039945648542136
+        },
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
@@ -424,6 +457,11 @@
         "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "bare_total",
         "validation_only_pairing": false,
+        "ward_residual_amplitude_phase_schur": {
+          "left_norm": 0.0011619701997555307,
+          "max_norm": 0.0011619701997555307,
+          "right_norm": 0.0011619701997555307
+        },
         "ward_residual_bare": {
           "left_norm": 0.006641977009573459,
           "max_norm": 0.006641977009573459,
@@ -599,14 +637,28 @@
         ]
       ],
       "metadata": {
+        "amplitude_phase_schur_formula": "Pi_GI = K_munu - K_mu_a inv(K_ab) K_b_nu",
         "collective_channels": [
-          "global_phase_only"
+          "amplitude_eta1",
+          "phase_eta2"
         ],
+        "collective_counterterm": "goldstone_gap_equation",
+        "collective_inverse_method": "inv",
+        "collective_mode": "amplitude_phase",
+        "collective_mode_disabled_reason": null,
+        "collective_total_condition_number": 34.55741569860774,
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
         "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "eta2_phase_relation": "eta2 = delta0 * theta",
         "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "gauge_restored_selected": "bare_total",
+        "goldstone_condition_target": "K_eta2_eta2(q=0, omega=0) = 0",
+        "goldstone_counterterm_Cg": {
+          "imag": -0.0,
+          "real": 3.9039945648542136
+        },
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
@@ -648,6 +700,11 @@
         "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "bare_total",
         "validation_only_pairing": false,
+        "ward_residual_amplitude_phase_schur": {
+          "left_norm": 0.00044428338176142766,
+          "max_norm": 0.0004442833817614277,
+          "right_norm": 0.0004442833817614277
+        },
         "ward_residual_bare": {
           "left_norm": 0.0130874149247102,
           "max_norm": 0.0130874149247102,
@@ -823,14 +880,28 @@
         ]
       ],
       "metadata": {
+        "amplitude_phase_schur_formula": "Pi_GI = K_munu - K_mu_a inv(K_ab) K_b_nu",
         "collective_channels": [
-          "global_phase_only"
+          "amplitude_eta1",
+          "phase_eta2"
         ],
+        "collective_counterterm": "goldstone_gap_equation",
+        "collective_inverse_method": "inv",
+        "collective_mode": "amplitude_phase",
+        "collective_mode_disabled_reason": null,
+        "collective_total_condition_number": 34.516787335781046,
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
         "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "eta2_phase_relation": "eta2 = delta0 * theta",
         "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "gauge_restored_selected": "bare_total",
+        "goldstone_condition_target": "K_eta2_eta2(q=0, omega=0) = 0",
+        "goldstone_counterterm_Cg": {
+          "imag": -0.0,
+          "real": 3.9039945648542136
+        },
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
@@ -872,6 +943,11 @@
         "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "bare_total",
         "validation_only_pairing": false,
+        "ward_residual_amplitude_phase_schur": {
+          "left_norm": 0.000730342226345355,
+          "max_norm": 0.000730342226345355,
+          "right_norm": 0.0007303422263453549
+        },
         "ward_residual_bare": {
           "left_norm": 0.01310472217996897,
           "max_norm": 0.01310472217996897,
@@ -1047,14 +1123,28 @@
         ]
       ],
       "metadata": {
+        "amplitude_phase_schur_formula": "Pi_GI = K_munu - K_mu_a inv(K_ab) K_b_nu",
         "collective_channels": [
-          "global_phase_only"
+          "amplitude_eta1",
+          "phase_eta2"
         ],
+        "collective_counterterm": "goldstone_gap_equation",
+        "collective_inverse_method": "inv",
+        "collective_mode": "amplitude_phase",
+        "collective_mode_disabled_reason": null,
+        "collective_total_condition_number": 19.88390325921874,
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
         "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "eta2_phase_relation": "eta2 = delta0 * theta",
         "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "gauge_restored_selected": "bare_total",
+        "goldstone_condition_target": "K_eta2_eta2(q=0, omega=0) = 0",
+        "goldstone_counterterm_Cg": {
+          "imag": -0.0,
+          "real": 2.076494224183955
+        },
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
@@ -1096,6 +1186,11 @@
         "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "bare_total",
         "validation_only_pairing": false,
+        "ward_residual_amplitude_phase_schur": {
+          "left_norm": 0.0006153241364176135,
+          "max_norm": 0.0006153241364176135,
+          "right_norm": 0.0006153241364176133
+        },
         "ward_residual_bare": {
           "left_norm": 0.0006675349900805482,
           "max_norm": 0.0006675349900805482,
@@ -1271,14 +1366,28 @@
         ]
       ],
       "metadata": {
+        "amplitude_phase_schur_formula": "Pi_GI = K_munu - K_mu_a inv(K_ab) K_b_nu",
         "collective_channels": [
-          "global_phase_only"
+          "amplitude_eta1",
+          "phase_eta2"
         ],
+        "collective_counterterm": "goldstone_gap_equation",
+        "collective_inverse_method": "inv",
+        "collective_mode": "amplitude_phase",
+        "collective_mode_disabled_reason": null,
+        "collective_total_condition_number": 19.945400208564756,
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
         "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "eta2_phase_relation": "eta2 = delta0 * theta",
         "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "gauge_restored_selected": "bare_total",
+        "goldstone_condition_target": "K_eta2_eta2(q=0, omega=0) = 0",
+        "goldstone_counterterm_Cg": {
+          "imag": -0.0,
+          "real": 2.076494224183955
+        },
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
@@ -1320,6 +1429,11 @@
         "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "bare_total",
         "validation_only_pairing": false,
+        "ward_residual_amplitude_phase_schur": {
+          "left_norm": 0.0008831534215614892,
+          "max_norm": 0.0008831534215614893,
+          "right_norm": 0.0008831534215614893
+        },
         "ward_residual_bare": {
           "left_norm": 0.0009404922907049319,
           "max_norm": 0.0009404922907049319,
@@ -1495,14 +1609,28 @@
         ]
       ],
       "metadata": {
+        "amplitude_phase_schur_formula": "Pi_GI = K_munu - K_mu_a inv(K_ab) K_b_nu",
         "collective_channels": [
-          "global_phase_only"
+          "amplitude_eta1",
+          "phase_eta2"
         ],
+        "collective_counterterm": "goldstone_gap_equation",
+        "collective_inverse_method": "inv",
+        "collective_mode": "amplitude_phase",
+        "collective_mode_disabled_reason": null,
+        "collective_total_condition_number": 6.31332124765098,
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
         "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "eta2_phase_relation": "eta2 = delta0 * theta",
         "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "gauge_restored_selected": "bare_total",
+        "goldstone_condition_target": "K_eta2_eta2(q=0, omega=0) = 0",
+        "goldstone_counterterm_Cg": {
+          "imag": -0.0,
+          "real": 2.076494224183955
+        },
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
@@ -1544,6 +1672,11 @@
         "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "bare_total",
         "validation_only_pairing": false,
+        "ward_residual_amplitude_phase_schur": {
+          "left_norm": 0.000608523128454947,
+          "max_norm": 0.0006085231284549471,
+          "right_norm": 0.0006085231284549471
+        },
         "ward_residual_bare": {
           "left_norm": 0.0006828245539813958,
           "max_norm": 0.0006828245539813958,
@@ -1719,14 +1852,28 @@
         ]
       ],
       "metadata": {
+        "amplitude_phase_schur_formula": "Pi_GI = K_munu - K_mu_a inv(K_ab) K_b_nu",
         "collective_channels": [
-          "global_phase_only"
+          "amplitude_eta1",
+          "phase_eta2"
         ],
+        "collective_counterterm": "goldstone_gap_equation",
+        "collective_inverse_method": "inv",
+        "collective_mode": "amplitude_phase",
+        "collective_mode_disabled_reason": null,
+        "collective_total_condition_number": 6.317519467814357,
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
         "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "eta2_phase_relation": "eta2 = delta0 * theta",
         "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "gauge_restored_selected": "bare_total",
+        "goldstone_condition_target": "K_eta2_eta2(q=0, omega=0) = 0",
+        "goldstone_counterterm_Cg": {
+          "imag": -0.0,
+          "real": 2.076494224183955
+        },
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
@@ -1768,6 +1915,11 @@
         "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "bare_total",
         "validation_only_pairing": false,
+        "ward_residual_amplitude_phase_schur": {
+          "left_norm": 0.0008639003186181315,
+          "max_norm": 0.0008639003186181315,
+          "right_norm": 0.0008639003186181314
+        },
         "ward_residual_bare": {
           "left_norm": 0.0009514055314417622,
           "max_norm": 0.0009514055314417622,

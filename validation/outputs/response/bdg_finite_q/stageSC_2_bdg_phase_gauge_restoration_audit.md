@@ -15,6 +15,7 @@
 | best_phase_phase_direct_convention_by_pairing | `{"dwave": "plus", "onsite_s": "plus", "spm": "plus"}` |
 | best_schur_sign_by_pairing | `{"dwave": "minus", "onsite_s": "minus", "spm": "minus"}` |
 | selected_convention | `{"phase_phase_direct_convention": "plus", "phase_phase_direct_included": true, "phase_vertex": "symmetric_kpm", "reason": "default derived convention; pass/fail judged separately", "schur_sign": "minus"}` |
+| phase_only_is_diagnostic_not_validation_final | True |
 | selected_gauge_restored_Ward | `[0.0031825722872174224, 0.0007238845635511018, 0.0009514055314417622]` |
 | finite_q_current_vertex_status | `["normal_state_exact_finite_q_peierls_vertex"]` |
 

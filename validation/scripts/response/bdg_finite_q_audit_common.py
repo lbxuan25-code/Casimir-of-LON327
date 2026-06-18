@@ -76,11 +76,21 @@ def write_report(name: str, payload: dict[str, Any]) -> None:
             lines.append(f"| {key} | {_md_value(value)} |")
         q_table = payload["summary"].get("q_scaling_table") if isinstance(payload.get("summary"), dict) else None
         if q_table:
-            lines.extend(["", "## Q Scaling", "", "| q_model | abs diff | relative diff |", "| --- | ---: | ---: |"])
+            lines.extend(
+                [
+                    "",
+                    "## Q Scaling",
+                    "",
+                    "| q_model | abs diff | relative diff | bare relative | phase-only relative | amplitude-phase relative |",
+                    "| --- | ---: | ---: | ---: | ---: | ---: |",
+                ]
+            )
             for row in q_table:
                 lines.append(
                     f"| {row['q_model_magnitude']:.6g} | {row['local_comparison_abs']:.6g} | "
-                    f"{row['local_comparison_relative']:.6g} |"
+                    f"{row['local_comparison_relative']:.6g} | {row.get('bare_relative', float('nan')):.6g} | "
+                    f"{row.get('phase_only_relative', float('nan')):.6g} | "
+                    f"{row.get('amplitude_phase_relative', float('nan')):.6g} |"
                 )
     for key in ("failures", "monitors"):
         if key in payload:
@@ -154,6 +164,12 @@ def _case_digest(case: dict[str, Any]) -> dict[str, Any]:
         "local_comparison_abs",
         "local_comparison_relative",
         "max_abs_sigma_tilde",
+        "amplitude_phase_Ward",
+        "phase_only_best_Ward",
+        "bare_Ward",
+        "collective_total_condition_number",
+        "goldstone_counterterm_Cg",
+        "extended_Ward_best",
         "sigma_diagonal_real",
         "sigma_diagonal_positive_sanity",
         "max_abs_R",
@@ -197,6 +213,8 @@ def response_case(
     phase_vertex: str = "symmetric_kpm",
     include_phase_phase_direct: bool = True,
     phase_phase_direct_convention: str = "plus",
+    collective_mode: str = "amplitude_phase",
+    collective_counterterm: str = "goldstone_gap_equation",
 ):
     points, weights = grid(quick)
     cfg = config(omega)
@@ -213,6 +231,8 @@ def response_case(
         phase_vertex=phase_vertex,  # type: ignore[arg-type]
         include_phase_phase_direct=include_phase_phase_direct,
         phase_phase_direct_convention=phase_phase_direct_convention,  # type: ignore[arg-type]
+        collective_mode=collective_mode,  # type: ignore[arg-type]
+        collective_counterterm=collective_counterterm,  # type: ignore[arg-type]
     )
 
 

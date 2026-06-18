@@ -14,11 +14,18 @@ DIRECT_CONVENTIONS = ("plus", "minus")
 C_THETA_CANDIDATES = (1j, -1j, 2j, -2j)
 
 
-def _extended_residuals(result, omega: float, q: np.ndarray, c_theta: complex) -> tuple[float, float]:
+def _extended_residuals_phase_only(result, omega: float, q: np.ndarray, c_theta: complex) -> tuple[float, float]:
     q_left = np.array([1j * omega, q[0], q[1]], dtype=complex)
     left = q_left @ result.bare_total + c_theta * result.phase_coupling_right
     theta = q_left @ result.phase_coupling_left + c_theta * result.phase_phase_total
     return float(np.linalg.norm(left)), float(abs(theta))
+
+
+def _extended_residuals_amplitude_phase(result, omega: float, q: np.ndarray, c_eta2: complex) -> tuple[float, float]:
+    q_left = np.array([1j * omega, q[0], q[1]], dtype=complex)
+    left = q_left @ result.bare_total + c_eta2 * result.collective_em_right[1]
+    collective = q_left @ result.em_collective_left + c_eta2 * result.collective_total[1]
+    return float(np.linalg.norm(left)), float(np.linalg.norm(collective))
 
 
 def main() -> None:
@@ -39,18 +46,21 @@ def main() -> None:
                     phase_vertex=phase_vertex,
                     include_phase_phase_direct=True,
                     phase_phase_direct_convention=direct_convention,
+                    collective_mode="amplitude_phase",
                 )
                 bare = ward_norms(result.bare_total, omega, q)
                 schur = ward_norms(result.gauge_restored, omega, q)
-                for c_theta in C_THETA_CANDIDATES:
-                    left_residual, theta_residual = _extended_residuals(result, omega, q, c_theta)
+                c_eta2_candidates = (2j * 0.04, -2j * 0.04)
+                for c_eta2 in c_eta2_candidates:
+                    left_residual, theta_residual = _extended_residuals_amplitude_phase(result, omega, q, c_eta2)
                     extended_max = max(left_residual, theta_residual)
                     cases.append(
                         {
                             "pairing": pairing,
                             "phase_vertex": phase_vertex,
                             "phase_phase_direct_convention": direct_convention,
-                            "C_theta": c_theta,
+                            "C_eta2": c_eta2,
+                            "C_eta2_candidates": list(c_eta2_candidates),
                             "extended_left_residual_max": left_residual,
                             "extended_theta_residual_max": theta_residual,
                             "extended_residual_max": extended_max,
@@ -63,6 +73,7 @@ def main() -> None:
                             "phase_phase_bubble_abs": float(abs(result.phase_phase_bubble)),
                             "phase_phase_direct_abs": float(abs(result.phase_phase_direct)),
                             "phase_phase_total_abs": float(abs(result.phase_phase_total)),
+                            "collective_total_condition_number": result.metadata["collective_total_condition_number"],
                             "metadata": result.metadata,
                         }
                     )
@@ -90,8 +101,8 @@ def main() -> None:
             "status": status_from_failures(failures),
             "quick": bool(args.quick),
             "summary": {
-                "best_C_theta_by_pairing": {
-                    pairing: best_by_pairing[pairing]["C_theta"] for pairing in PAIRINGS
+                "best_C_eta2_by_pairing": {
+                    pairing: best_by_pairing[pairing]["C_eta2"] for pairing in PAIRINGS
                 },
                 "best_extended_residual_by_pairing": {
                     pairing: best_by_pairing[pairing]["extended_residual_max"] for pairing in PAIRINGS

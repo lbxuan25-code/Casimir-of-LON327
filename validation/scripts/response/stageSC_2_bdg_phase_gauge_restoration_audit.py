@@ -44,6 +44,7 @@ def main() -> None:
                         phase_vertex=phase_vertex,
                         include_phase_phase_direct=direct_included,
                         phase_phase_direct_convention=direct_convention,
+                        collective_mode="phase_only",
                     )
                     bare = ward_norms(result.bare_total, omega, q)
                     minus = ward_norms(result.minus_schur, omega, q)
@@ -129,6 +130,7 @@ def main() -> None:
                     pairing: best_by_pairing[pairing]["best_schur_sign_this_case"] for pairing in PAIRINGS
                 },
                 "selected_convention": selected,
+                "phase_only_is_diagnostic_not_validation_final": True,
                 "selected_gauge_restored_Ward": [
                     case["selected_gauge_restored_Ward"]
                     for case in cases

@@ -378,6 +378,7 @@ def test_validation_scripts_write_under_validation_outputs_only():
         "stageSC_1_bdg_finite_q_bare_kernel_audit.py",
         "stageSC_2a_bdg_extended_ward_identity_audit.py",
         "stageSC_2_bdg_phase_gauge_restoration_audit.py",
+        "stageSC_2b_bdg_amplitude_phase_gauge_restoration_audit.py",
         "stageSC_3_bdg_normal_limit_audit.py",
         "stageSC_4_bdg_q0_limit_audit.py",
         "stageSC_5_bdg_reflection_input_audit.py",
@@ -416,9 +417,18 @@ def test_extended_ward_audit_scans_ctheta_candidates():
     stage2a = (
         ROOT / "validation" / "scripts" / "response" / "stageSC_2a_bdg_extended_ward_identity_audit.py"
     ).read_text(encoding="utf-8")
-    assert "C_THETA_CANDIDATES = (1j, -1j, 2j, -2j)" in stage2a
+    assert "2j * 0.04" in stage2a
     assert "extended_left_residual_max" in stage2a
     assert "extended_theta_residual_max" in stage2a
+
+
+def test_amplitude_phase_stage2b_is_material_gate():
+    stage2b = (
+        ROOT / "validation" / "scripts" / "response" / "stageSC_2b_bdg_amplitude_phase_gauge_restoration_audit.py"
+    ).read_text(encoding="utf-8")
+    assert "amplitude_phase_Ward" in stage2b
+    assert "goldstone_counterterm_Cg" in stage2b
+    assert "onsite_s amplitude-phase benchmark failed" in stage2b
 
 
 def test_stage5_requires_all_prior_stages_passed():
@@ -426,5 +436,5 @@ def test_stage5_requires_all_prior_stages_passed():
         encoding="utf-8"
     )
     assert "status != \"PASSED\"" in stage5
-    assert "stageSC_2a_bdg_extended_ward_identity_audit.json" in stage5
+    assert "stageSC_2b_bdg_amplitude_phase_gauge_restoration_audit.json" in stage5
     assert "prior StageSC reports are missing or failed" in stage5

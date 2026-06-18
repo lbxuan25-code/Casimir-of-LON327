@@ -17,12 +17,18 @@ def main() -> None:
     for qmag in (0.05, 0.02, 0.01, 0.005):
         q = np.array([qmag, 0.0])
         result = response_case("spm", omega, q, 0.04, args.quick, phase=True)
-        diff = result.gauge_restored[1:3, 1:3] - local[1:3, 1:3]
+        scale = max(np.linalg.norm(local[1:3, 1:3]), 1e-300)
+        bare_diff = float(np.linalg.norm(result.bare_total[1:3, 1:3] - local[1:3, 1:3]))
+        phase_diff = float(np.linalg.norm(result.minus_schur[1:3, 1:3] - local[1:3, 1:3]))
+        amp_diff = float(np.linalg.norm(result.amplitude_phase_schur[1:3, 1:3] - local[1:3, 1:3]))
         cases.append(
             {
                 "q_model_magnitude": qmag,
-                "local_comparison_abs": float(np.linalg.norm(diff)),
-                "local_comparison_relative": float(np.linalg.norm(diff) / max(np.linalg.norm(local[1:3, 1:3]), 1e-300)),
+                "local_comparison_abs": amp_diff,
+                "local_comparison_relative": float(amp_diff / scale),
+                "bare_relative": float(bare_diff / scale),
+                "phase_only_relative": float(phase_diff / scale),
+                "amplitude_phase_relative": float(amp_diff / scale),
                 "phase_vertex": result.metadata["phase_vertex"],
                 "phase_phase_direct_included": result.metadata["phase_phase_direct_included"],
                 "phase_phase_direct_convention": result.metadata["phase_phase_direct_convention"],
@@ -44,6 +50,9 @@ def main() -> None:
                         "q_model_magnitude": case["q_model_magnitude"],
                         "local_comparison_abs": case["local_comparison_abs"],
                         "local_comparison_relative": case["local_comparison_relative"],
+                        "bare_relative": case["bare_relative"],
+                        "phase_only_relative": case["phase_only_relative"],
+                        "amplitude_phase_relative": case["amplitude_phase_relative"],
                     }
                     for case in cases
                 ],

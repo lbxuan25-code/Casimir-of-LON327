@@ -3,7 +3,13 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from lno327.bdg_finite_q_response import bdg_finite_q_response_imag_axis
+from lno327.bdg_finite_q_response import (
+    _amplitude_vertex,
+    _eta2_phase_vertex,
+    _kubo_factor,
+    bdg_finite_q_response_imag_axis,
+    collective_goldstone_counterterm,
+)
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
 from lno327.pairing import PairingAmplitudes
 from lno327.ward_response import normal_physical_density_current_response_imag_axis
@@ -32,6 +38,7 @@ def test_bdg_finite_q_response_shapes_with_and_without_phase_correction():
             config,
             amp,
             include_phase_correction=include_phase,
+            collective_mode="phase_only",
         )
         assert result.bare_bubble.shape == (3, 3)
         assert result.direct.shape == (3, 3)
@@ -62,6 +69,7 @@ def test_small_phase_phase_has_clear_warning_metadata():
             config,
             amp,
             include_phase_correction=True,
+            collective_mode="phase_only",
         )
     assert result.metadata["phase_correction_status"] == "singular_phase_phase"
     assert result.metadata["warning"]
@@ -78,6 +86,7 @@ def test_schur_complement_defaults_to_minus_sign_and_records_plus_minus_ward():
         config,
         amp,
         include_phase_correction=True,
+        collective_mode="phase_only",
     )
     expected = result.bare_total - np.outer(result.phase_coupling_left, result.phase_coupling_right) / result.phase_phase
     assert np.allclose(result.gauge_restored, expected)
@@ -129,6 +138,7 @@ def test_q0_velocity_approximation_is_not_marked_gauge_closed():
         config,
         amp,
         current_vertex="q0_velocity",
+        collective_mode="phase_only",
     )
     assert result.metadata["finite_q_current_vertex_status"] == "q0_velocity_vertex_approximation_not_gauge_closed"
 
@@ -144,6 +154,7 @@ def test_phase_vertex_options_and_onsite_s_validation_pairing_run():
         config,
         amp,
         phase_vertex="midpoint",
+        collective_mode="phase_only",
     )
     symmetric = bdg_finite_q_response_imag_axis(
         "onsite_s",
@@ -155,8 +166,52 @@ def test_phase_vertex_options_and_onsite_s_validation_pairing_run():
         amp,
         phase_vertex="symmetric_kpm",
         include_phase_phase_direct=False,
+        collective_mode="phase_only",
     )
     assert midpoint.metadata["validation_only_pairing"] is True
     assert midpoint.metadata["phase_vertex"] == "midpoint"
     assert symmetric.metadata["phase_vertex"] == "symmetric_kpm"
     assert symmetric.metadata["phase_kernel_status"] == "bubble_only_not_expected_to_gauge_close"
+
+
+def test_amplitude_phase_collective_shapes_and_goldstone_counterterm():
+    q, points, weights, config, amp = _inputs()
+    result = bdg_finite_q_response_imag_axis(
+        "onsite_s",
+        config.omega_eV,
+        q,
+        points,
+        weights,
+        config,
+        amp,
+    )
+    assert result.collective_bubble.shape == (2, 2)
+    assert result.collective_counterterm.shape == (2, 2)
+    assert result.collective_total.shape == (2, 2)
+    assert result.em_collective_left.shape == (3, 2)
+    assert result.collective_em_right.shape == (2, 3)
+    assert result.amplitude_phase_schur.shape == (3, 3)
+    assert result.metadata["gauge_restored_selected"] == "amplitude_phase_schur"
+    cg = collective_goldstone_counterterm("onsite_s", points, weights, config, amp, "symmetric_kpm")
+    assert np.allclose(result.collective_counterterm, cg * np.eye(2))
+    assert result.metadata["goldstone_counterterm_Cg"] == cg
+
+
+def test_amplitude_and_eta2_vertices_have_bdg_shape():
+    phi = np.eye(4, dtype=complex)
+    assert _amplitude_vertex(phi).shape == (8, 8)
+    assert _eta2_phase_vertex(phi).shape == (8, 8)
+
+
+def test_static_kubo_factor_uses_derivative_limit_for_degenerate_terms():
+    value = _kubo_factor(
+        0.0,
+        0.0,
+        0.5,
+        0.5,
+        0.0,
+        static_limit=True,
+        temperature_eV=0.01,
+        eta_eV=1e-8,
+    )
+    assert value == pytest.approx(-25.0)

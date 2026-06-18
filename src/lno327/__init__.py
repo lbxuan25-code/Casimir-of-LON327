@@ -23,6 +23,9 @@ from .bdg_finite_q_response import (
     bdg_finite_q_contact_vertex,
     bdg_finite_q_response_imag_axis,
     bdg_finite_q_vector_vertex,
+    collective_form_factor,
+    collective_goldstone_counterterm,
+    pairing_form_factor_matrix,
 )
 from .casimir import CasimirSetup, casimir_energy_integrand, casimir_torque_integrand
 from .conductivity import (
@@ -133,6 +136,8 @@ __all__ = [
     "casimir_energy_integrand",
     "casimir_torque_integrand",
     "conductivity_eigensystem",
+    "collective_form_factor",
+    "collective_goldstone_counterterm",
     "conductivity_matrix_diagnostics",
     "conductivity_tensor_from_matrix",
     "compare_local_responses_imag_axis",
@@ -155,6 +160,7 @@ __all__ = [
     "normal_state_velocity_operator",
     "normal_state_velocity_operators",
     "pairing_matrix",
+    "pairing_form_factor_matrix",
     "rotate_conductivity",
     "spm_pairing_matrix",
     "require_sheet_conductivity_for_reflection",
