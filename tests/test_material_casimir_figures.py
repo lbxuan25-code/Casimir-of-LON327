@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import pytest
 
+from lno327.conductivity import KuboConfig
 from lno327.material_casimir_figures import (
     MaterialCasimirConfig,
     assemble_energy_data,
@@ -40,6 +41,9 @@ def _small_config() -> MaterialCasimirConfig:
         distance_nm=(50.0, 100.0),
         zero_mode_omega_eV=(1e-4, 1e-3),
         temperature_K=10.0,
+        adaptive_level=0,
+        gauss_order=1,
+        coarse_grid=1,
     )
 
 
@@ -91,6 +95,20 @@ def test_no_forbidden_local_or_old_paths_in_helper():
 
 def test_pairing_enters_cache_key_and_response_config_but_distance_theta_do_not():
     config = _small_config()
+    changed_distance_theta = MaterialCasimirConfig(
+        n_max=config.n_max,
+        N_Q=config.N_Q,
+        N_phi=config.N_phi,
+        Q_max_nm_inv=config.Q_max_nm_inv,
+        theta_deg=(0.0, 15.0),
+        distance_nm=(77.0,),
+        zero_mode_omega_eV=config.zero_mode_omega_eV,
+        temperature_K=config.temperature_K,
+        adaptive_level=config.adaptive_level,
+        gauss_order=config.gauss_order,
+        coarse_grid=config.coarse_grid,
+        delta0_eV=config.delta0_eV,
+    )
     assert point_id("s_pm", 1, 0.05, 0.0).startswith("s_pm_")
     assert point_id("d_wave", 1, 0.05, 0.0).startswith("d_wave_")
     base = response_config_for_pairing("s_pm", config)
@@ -102,6 +120,7 @@ def test_pairing_enters_cache_key_and_response_config_but_distance_theta_do_not(
     assert "distance_nm" not in point_cfg
     assert "theta_deg" not in point_cfg
     assert response_config_for_pairing("s_pm", config) != response_config_for_pairing("d_wave", config)
+    assert response_config_for_pairing("s_pm", config) == response_config_for_pairing("s_pm", changed_distance_theta)
 
 
 def test_q0_excluded_and_q_weight_appears_only_in_integration_weight():
@@ -127,14 +146,22 @@ def test_n0_uses_reflection_level_limit_marker_in_rows():
     n0_rows = [row for row in rows if row["n"] == 0]
     assert n0_rows
     assert all(row["n0_source"] == "reflection_level_average_over_zero_mode_omega_eV" for row in n0_rows)
+    real_row = compute_reflection_point("s_pm", 0, 0.05, 0.0, config)
+    assert real_row["n0_source"] == "reflection_level_average_over_zero_mode_omega_eV"
+    assert real_row["omega_eV"] is None
+    assert real_row["reflection_TE_TM"].shape == (2, 2)
 
 
-def test_finite_q_sc_response_fails_loudly_instead_of_local_q0_fallback():
+def test_finite_q_sc_adapter_supports_spm_and_dwave_without_local_q0_fallback():
     config = _small_config()
-    with pytest.raises(NotImplementedError, match="finite-q superconducting response"):
-        compute_reflection_point("s_pm", 1, 0.05, 0.0, config)
-    with pytest.raises(NotImplementedError, match="local q=0 fallback"):
-        finite_q_superconducting_response("d_wave", 0.01, np.zeros(2), object(), config)  # type: ignore[arg-type]
+    kubo = KuboConfig.from_kelvin(omega_eV=0.01, temperature_K=config.temperature_K, eta_eV=config.eta_eV, output_si=False)
+    for pairing in ("s_pm", "d_wave"):
+        response = finite_q_superconducting_response(pairing, 0.01, np.array([0.01, 0.02]), kubo, config)
+        assert response.shape == (3, 3)
+        assert np.isfinite(response).all()
+        row = compute_reflection_point(pairing, 1, 0.05, 0.0, config)
+        assert row["response_matrix"].shape == (3, 3)
+        assert row["reflection_TE_TM"].shape == (2, 2)
 
 
 def test_resume_skip_existing_reuses_pairing_safe_cache(tmp_path):
@@ -159,8 +186,77 @@ def test_resume_skip_existing_reuses_pairing_safe_cache(tmp_path):
         response_config=point_response_config("d_wave", row["n"], row["Q_nm_inv"], row["phi_deg"], config),
         lattice_convention=lattice,
     )
+    changed_temperature = MaterialCasimirConfig(
+        n_max=config.n_max,
+        N_Q=config.N_Q,
+        N_phi=config.N_phi,
+        Q_max_nm_inv=config.Q_max_nm_inv,
+        theta_deg=config.theta_deg,
+        distance_nm=config.distance_nm,
+        zero_mode_omega_eV=config.zero_mode_omega_eV,
+        temperature_K=20.0,
+        adaptive_level=config.adaptive_level,
+        gauss_order=config.gauss_order,
+        coarse_grid=config.coarse_grid,
+        delta0_eV=config.delta0_eV,
+    )
+    changed_zero = MaterialCasimirConfig(
+        n_max=config.n_max,
+        N_Q=config.N_Q,
+        N_phi=config.N_phi,
+        Q_max_nm_inv=config.Q_max_nm_inv,
+        theta_deg=config.theta_deg,
+        distance_nm=config.distance_nm,
+        zero_mode_omega_eV=(3e-4,),
+        temperature_K=config.temperature_K,
+        adaptive_level=config.adaptive_level,
+        gauss_order=config.gauss_order,
+        coarse_grid=config.coarse_grid,
+        delta0_eV=config.delta0_eV,
+    )
+    changed_delta = MaterialCasimirConfig(
+        n_max=config.n_max,
+        N_Q=config.N_Q,
+        N_phi=config.N_phi,
+        Q_max_nm_inv=config.Q_max_nm_inv,
+        theta_deg=config.theta_deg,
+        distance_nm=config.distance_nm,
+        zero_mode_omega_eV=config.zero_mode_omega_eV,
+        temperature_K=config.temperature_K,
+        adaptive_level=config.adaptive_level,
+        gauss_order=config.gauss_order,
+        coarse_grid=config.coarse_grid,
+        delta0_eV=0.08,
+    )
     assert hit is not None
     assert miss is None
+    assert (
+        load_reusable_point_cache(
+            tmp_path,
+            point_id=row["point_id"],
+            response_config=point_response_config("s_pm", row["n"], row["Q_nm_inv"], row["phi_deg"], changed_temperature),
+            lattice_convention=lattice,
+        )
+        is None
+    )
+    assert (
+        load_reusable_point_cache(
+            tmp_path,
+            point_id=row["point_id"],
+            response_config=point_response_config("s_pm", row["n"], row["Q_nm_inv"], row["phi_deg"], changed_zero),
+            lattice_convention=lattice,
+        )
+        is None
+    )
+    assert (
+        load_reusable_point_cache(
+            tmp_path,
+            point_id=row["point_id"],
+            response_config=point_response_config("s_pm", row["n"], row["Q_nm_inv"], row["phi_deg"], changed_delta),
+            lattice_convention=lattice,
+        )
+        is None
+    )
 
 
 def test_synthetic_reflection_rows_assemble_energy_and_torque(tmp_path):
@@ -189,6 +285,20 @@ def test_synthetic_reflection_rows_assemble_energy_and_torque(tmp_path):
     assert Path(paths["integrand_npz"]).exists()
     assert Path(paths["energy_json"]).exists()
     assert Path(paths["energy_npz"]).exists()
+    with np.load(paths["grid_npz"], allow_pickle=True) as loaded:
+        for key in ("reflection_TE_TM", "kappa_m_inv", "sigma_tilde_xy", "response_matrix", "ward_residual", "status"):
+            assert key in loaded.files
+
+
+def test_assemble_reports_fail_and_missing_points_clearly():
+    config = _small_config()
+    rows = _synthetic_reflection_provider("s_pm", config)
+    rows[0]["status"] = "FAIL"
+    with pytest.raises(ValueError, match="FAIL points"):
+        assemble_energy_data(["s_pm"], config, rows)
+    rows = _synthetic_reflection_provider("s_pm", config)[:-1]
+    with pytest.raises(ValueError, match="missing required points"):
+        assemble_energy_data(["s_pm"], config, rows)
 
 
 def test_plot_script_reads_saved_data_without_response(tmp_path):

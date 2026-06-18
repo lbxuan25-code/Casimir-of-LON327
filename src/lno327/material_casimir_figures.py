@@ -11,13 +11,17 @@ import numpy as np
 
 from .casimir_grid import matsubara_xi_grid
 from .casimir_integrand import casimir_integrand_single_point
-from .conductivity import KuboConfig
+from .bdg_response import bdg_current_vertex, bdg_diamagnetic_vertex
+from .conductivity import KuboConfig, fermi_function
 from .conductivity_conventions import spatial_response_to_bilayer_sheet_conductivity_model
 from .conductivity_units import SheetConductivityUnitConvention, model_to_dimensionless_sheet_conductivity
 from .constants import KB
 from .material_response_cache import atomic_write_json, cache_path_for_point, load_reusable_point_cache, to_jsonable, write_point_cache
 from .material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE
+from .model import normal_state_hamiltonian
+from .pairing import PairingAmplitudes, bdg_hamiltonian, pairing_matrix
 from .reflection_input import sigma_tilde_xy_to_te_tm_reflection_matrix
+from .ward_response import physical_ward_residuals
 
 PAIRING_ALIASES = {"s_pm": "spm", "d_wave": "dwave"}
 DEFAULT_PAIRINGS = ("s_pm", "d_wave")
@@ -55,6 +59,7 @@ class MaterialCasimirConfig:
     coarse_grid: int = 32
     fermi_window_eV: float = 0.05
     eta_eV: float = 1e-10
+    delta0_eV: float = 0.04
 
     @property
     def theta_rad(self) -> np.ndarray:
@@ -102,6 +107,10 @@ def response_config_for_pairing(pairing: str, config: MaterialCasimirConfig) -> 
         "coarse_grid": int(config.coarse_grid),
         "fermi_window_eV": float(config.fermi_window_eV),
         "eta_eV": float(config.eta_eV),
+        "temperature_K": float(config.temperature_K),
+        "zero_mode_omega_eV": [float(item) for item in config.zero_mode_omega_eV],
+        "pairing_amplitude": {"delta0_eV": float(config.delta0_eV)},
+        "lattice_convention": lattice_convention_payload(),
         "zero_mode_policy": "small-frequency finite-q reflection-level average",
     }
 
@@ -140,6 +149,147 @@ def q_phi_weight_map(config: MaterialCasimirConfig) -> dict[tuple[float, float],
     }
 
 
+def _cell_sample_points(x0: float, x1: float, y0: float, y1: float) -> tuple[tuple[float, float], ...]:
+    xm = 0.5 * (x0 + x1)
+    ym = 0.5 * (y0 + y1)
+    return ((x0, y0), (x0, y1), (x1, y0), (x1, y1), (xm, ym))
+
+
+def _cell_in_fermi_window(cell: tuple[float, float, float, float], q_model: np.ndarray, config: MaterialCasimirConfig) -> bool:
+    x0, x1, y0, y1 = cell
+    qx, qy = float(q_model[0]), float(q_model[1])
+    for kx, ky in _cell_sample_points(x0, x1, y0, y1):
+        for sx, sy in ((0.0, 0.0), (0.5 * qx, 0.5 * qy), (-0.5 * qx, -0.5 * qy)):
+            energies = np.linalg.eigvalsh(normal_state_hamiltonian(kx + sx, ky + sy))
+            if np.any(np.abs(energies) < config.fermi_window_eV):
+                return True
+    return False
+
+
+def _adaptive_cells(q_model: np.ndarray, config: MaterialCasimirConfig) -> list[tuple[float, float, float, float]]:
+    edges = np.linspace(-np.pi, np.pi, int(config.coarse_grid) + 1)
+    cells = [
+        (float(edges[ix]), float(edges[ix + 1]), float(edges[iy]), float(edges[iy + 1]))
+        for ix in range(int(config.coarse_grid))
+        for iy in range(int(config.coarse_grid))
+    ]
+    for _level in range(int(config.adaptive_level)):
+        next_cells = []
+        for cell in cells:
+            if _cell_in_fermi_window(cell, q_model, config):
+                x0, x1, y0, y1 = cell
+                xm = 0.5 * (x0 + x1)
+                ym = 0.5 * (y0 + y1)
+                next_cells.extend(
+                    [
+                        (x0, xm, y0, ym),
+                        (x0, xm, ym, y1),
+                        (xm, x1, y0, ym),
+                        (xm, x1, ym, y1),
+                    ]
+                )
+            else:
+                next_cells.append(cell)
+        cells = next_cells
+    return cells
+
+
+def _quadrature_points_for_cells(cells: list[tuple[float, float, float, float]], gauss_order: int) -> tuple[np.ndarray, np.ndarray]:
+    nodes, node_weights = np.polynomial.legendre.leggauss(int(gauss_order))
+    points = []
+    weights = []
+    bz_area = (2.0 * np.pi) ** 2
+    for x0, x1, y0, y1 in cells:
+        x_mid = 0.5 * (x0 + x1)
+        y_mid = 0.5 * (y0 + y1)
+        x_half = 0.5 * (x1 - x0)
+        y_half = 0.5 * (y1 - y0)
+        for i, node_x in enumerate(nodes):
+            for j, node_y in enumerate(nodes):
+                points.append((x_mid + x_half * node_x, y_mid + y_half * node_y))
+                weights.append(float(node_weights[i] * node_weights[j] * x_half * y_half / bz_area))
+    return np.asarray(points, dtype=float), np.asarray(weights, dtype=float)
+
+
+def _density_vertex_bdg() -> np.ndarray:
+    identity = np.eye(4, dtype=complex)
+    zero = np.zeros((4, 4), dtype=complex)
+    return np.block([[identity, zero], [zero, -identity]]).astype(complex)
+
+
+def _thermal_trace_bdg(points: np.ndarray, weights: np.ndarray, operator_builder, pairing_kind: str, kubo_config: KuboConfig, amp: PairingAmplitudes) -> complex:
+    total = 0.0 + 0.0j
+    for weight, (kx, ky) in zip(weights, points, strict=True):
+        delta = pairing_matrix(pairing_kind, float(kx), float(ky), amp)
+        energies, states = np.linalg.eigh(bdg_hamiltonian(float(kx), float(ky), delta))
+        occupations = fermi_function(energies, kubo_config.fermi_level_eV, kubo_config.temperature_eV)
+        operator = operator_builder(float(kx), float(ky))
+        operator_band = states.conjugate().T @ operator @ states
+        total += weight * np.sum(occupations * np.diag(operator_band))
+    return complex(total)
+
+
+def _finite_q_bdg_bubble(
+    points: np.ndarray,
+    weights: np.ndarray,
+    q_model: np.ndarray,
+    pairing_kind: str,
+    kubo_config: KuboConfig,
+    amp: PairingAmplitudes,
+) -> np.ndarray:
+    qx, qy = float(q_model[0]), float(q_model[1])
+    density = _density_vertex_bdg()
+    response = np.zeros((3, 3), dtype=complex)
+    for weight, (kx_raw, ky_raw) in zip(weights, points, strict=True):
+        kx = float(kx_raw)
+        ky = float(ky_raw)
+        kx_minus = kx - 0.5 * qx
+        ky_minus = ky - 0.5 * qy
+        kx_plus = kx + 0.5 * qx
+        ky_plus = ky + 0.5 * qy
+        delta_minus = pairing_matrix(pairing_kind, kx_minus, ky_minus, amp)
+        delta_plus = pairing_matrix(pairing_kind, kx_plus, ky_plus, amp)
+        energies_minus, states_minus = np.linalg.eigh(bdg_hamiltonian(kx_minus, ky_minus, delta_minus))
+        energies_plus, states_plus = np.linalg.eigh(bdg_hamiltonian(kx_plus, ky_plus, delta_plus))
+        occupations_minus = fermi_function(energies_minus, kubo_config.fermi_level_eV, kubo_config.temperature_eV)
+        occupations_plus = fermi_function(energies_plus, kubo_config.fermi_level_eV, kubo_config.temperature_eV)
+        current_x = bdg_current_vertex(kx, ky, "x")
+        current_y = bdg_current_vertex(kx, ky, "y")
+        observable_vertices = (density, -current_x, -current_y)
+        source_vertices = (density, current_x, current_y)
+        observable_matrices = tuple(states_minus.conjugate().T @ vertex @ states_plus for vertex in observable_vertices)
+        source_matrices = tuple(states_minus.conjugate().T @ vertex @ states_plus for vertex in source_vertices)
+        denominator = 1j * kubo_config.omega_eV + energies_minus[:, None] - energies_plus[None, :]
+        factor = (occupations_minus[:, None] - occupations_plus[None, :]) / denominator
+        for mu, observable_matrix in enumerate(observable_matrices):
+            for nu, source_matrix in enumerate(source_matrices):
+                response[mu, nu] += weight * np.sum(factor * observable_matrix * np.conjugate(source_matrix))
+    return 0.5 * response
+
+
+def _finite_q_bdg_direct(
+    points: np.ndarray,
+    weights: np.ndarray,
+    pairing_kind: str,
+    kubo_config: KuboConfig,
+    amp: PairingAmplitudes,
+) -> np.ndarray:
+    direct = np.zeros((3, 3), dtype=complex)
+    directions = ("x", "y")
+    for i, direction_i in enumerate(directions):
+        for j, direction_j in enumerate(directions):
+            value = _thermal_trace_bdg(
+                points,
+                weights,
+                lambda kx, ky, di=direction_i, dj=direction_j: bdg_diamagnetic_vertex(kx, ky, di, dj),
+                pairing_kind,
+                kubo_config,
+                amp,
+            )
+            direct[1 + i, 1 + j] = -value
+    return direct
+
+
 def finite_q_superconducting_response(
     pairing: str,
     omega_eV: float,
@@ -147,15 +297,17 @@ def finite_q_superconducting_response(
     kubo_config: KuboConfig,
     config: MaterialCasimirConfig,
 ) -> np.ndarray:
-    """Return finite-q superconducting response, or fail loudly.
+    """Return candidate gauge-closed finite-q BdG superconducting response."""
 
-    The repository currently has the validated Stage-5 finite-q normal response
-    chain, but no gauge-closed finite-q BdG pairing response adapter.  This
-    function deliberately refuses to fall back to local q=0 response.
-    """
-
-    _ = (pairing, omega_eV, q_model, kubo_config, config)
-    raise NotImplementedError("finite-q superconducting response for s_pm/d_wave is not implemented; refusing local q=0 fallback")
+    if omega_eV <= 0.0:
+        raise ValueError("finite-q superconducting response requires omega_eV > 0")
+    pairing_kind = canonical_pairing(pairing)
+    amp = PairingAmplitudes(delta0_eV=config.delta0_eV)
+    cells = _adaptive_cells(np.asarray(q_model, dtype=float), config)
+    points, weights = _quadrature_points_for_cells(cells, config.gauss_order)
+    bubble = _finite_q_bdg_bubble(points, weights, np.asarray(q_model, dtype=float), pairing_kind, kubo_config, amp)
+    direct = _finite_q_bdg_direct(points, weights, pairing_kind, kubo_config, amp)
+    return bubble + direct
 
 
 def stage5_reflection_from_response(
@@ -243,6 +395,11 @@ def compute_reflection_point(pairing: str, n: int, Q_nm_inv: float, phi_deg: flo
         reflection = package["reflection_TE_TM"]
         sigma = package["sigma_tilde_xy"]
         n0_source = None
+    left_ward, right_ward = physical_ward_residuals(response_matrix, float(omega_eV or config.zero_mode_omega_eV[0]), q_model)
+    ward_total = float(max(np.linalg.norm(left_ward), np.linalg.norm(right_ward)))
+    ward_status = "PASS" if ward_total < 1e-6 else ("MONITOR" if ward_total < 1e-5 else "FAIL")
+    finite_status = "PASS" if np.all(np.isfinite(reflection)) and np.all(np.isfinite(response_matrix)) and np.all(np.isfinite(sigma)) else "FAIL"
+    point_status = "FAIL" if "FAIL" in {ward_status, finite_status} else ("MONITOR" if "MONITOR" in {ward_status, finite_status} else "PASS")
     return {
         "point_id": point_id(pairing, n, Q_nm_inv, phi_deg),
         "pairing": pairing,
@@ -254,8 +411,13 @@ def compute_reflection_point(pairing: str, n: int, Q_nm_inv: float, phi_deg: flo
         "sigma_tilde_xy": sigma,
         "reflection_TE_TM": reflection,
         "kappa_m_inv": float(np.sqrt(geometry["Q_m_inv"] ** 2 + (geometry["xi_si"] / 299792458.0) ** 2)),
-        "ward_residual": {"status": "NOT_AVAILABLE_FINITE_Q_SC_ADAPTER", "total_max": None},
-        "status": "PASS",
+        "ward_residual": {
+            "left_max": float(np.linalg.norm(left_ward)),
+            "right_max": float(np.linalg.norm(right_ward)),
+            "total_max": ward_total,
+            "status": ward_status,
+        },
+        "status": point_status,
     }
 
 
@@ -271,8 +433,6 @@ def _cached_point_job(args: tuple[str, int, float, float, MaterialCasimirConfig,
             return cached
     try:
         row = compute_reflection_point(pairing, n, q, phi, config)
-    except NotImplementedError:
-        raise
     except Exception as exc:
         row = {
             "point_id": pid,
@@ -335,7 +495,28 @@ def _row_lookup(point_rows: list[dict[str, Any]]) -> dict[tuple[str, int, float,
     }
 
 
+def validate_complete_reflection_grid(pairings: list[str], config: MaterialCasimirConfig, point_rows: list[dict[str, Any]]) -> None:
+    failed = [row for row in point_rows if row.get("status") == "FAIL"]
+    if failed:
+        preview = [row.get("point_id", f"{row.get('pairing')} n={row.get('n')} Q={row.get('Q_nm_inv')} phi={row.get('phi_deg')}") for row in failed[:5]]
+        raise ValueError(f"reflection grid contains FAIL points: {preview}")
+    lookup = _row_lookup(point_rows)
+    missing = []
+    q_nodes = interior_q_nodes_nm_inv(config.Q_max_nm_inv, config.N_Q)
+    phi_nodes = uniform_phi_nodes_deg(config.N_phi)
+    for pairing in pairings:
+        for n in range(config.n_max + 1):
+            for q in q_nodes:
+                for phi in phi_nodes:
+                    key = (pairing, n, round(float(q), 12), round(float(phi), 12))
+                    if key not in lookup:
+                        missing.append({"pairing": pairing, "n": n, "Q_nm_inv": float(q), "phi_deg": float(phi)})
+    if missing:
+        raise ValueError(f"reflection grid is missing required points: {missing[:5]}")
+
+
 def trace_log_grid(pairings: list[str], config: MaterialCasimirConfig, point_rows: list[dict[str, Any]]) -> tuple[np.ndarray, list[dict[str, Any]]]:
+    validate_complete_reflection_grid(pairings, config, point_rows)
     lookup = _row_lookup(point_rows)
     q_nodes = interior_q_nodes_nm_inv(config.Q_max_nm_inv, config.N_Q)
     phi_nodes = uniform_phi_nodes_deg(config.N_phi)
@@ -452,6 +633,12 @@ def save_material_casimir_outputs(output_dir: Path, config: MaterialCasimirConfi
         n=np.asarray([row["n"] for row in point_rows], dtype=int),
         Q_nm_inv=np.asarray([row["Q_nm_inv"] for row in point_rows], dtype=float),
         phi_deg=np.asarray([row["phi_deg"] for row in point_rows], dtype=float),
+        reflection_TE_TM=np.asarray([np.asarray(row["reflection_TE_TM"], dtype=complex) for row in point_rows]),
+        kappa_m_inv=np.asarray([row["kappa_m_inv"] for row in point_rows], dtype=float),
+        sigma_tilde_xy=np.asarray([np.asarray(row["sigma_tilde_xy"], dtype=complex) for row in point_rows]),
+        response_matrix=np.asarray([np.asarray(row["response_matrix"], dtype=complex) for row in point_rows]),
+        ward_residual=np.asarray([to_jsonable(row.get("ward_residual", {})) for row in point_rows], dtype=object),
+        status=np.asarray([row["status"] for row in point_rows]),
     )
     np.savez_compressed(integrand_npz, logdet_grid=energy_data["logdet_grid"])
     np.savez_compressed(
