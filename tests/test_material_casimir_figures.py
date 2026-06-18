@@ -8,8 +8,8 @@ import sys
 import numpy as np
 import pytest
 
-from lno327.conductivity import KuboConfig
 from lno327.material_casimir_figures import (
+    MISSING_SC_BACKEND_MESSAGE,
     MaterialCasimirConfig,
     assemble_energy_data,
     compute_reflection_point,
@@ -91,6 +91,10 @@ def test_no_forbidden_local_or_old_paths_in_helper():
     assert "local_response_imag_axis" not in text
     assert "reflection_matrix_weak_2d" not in text
     assert "casimir_energy_integrand" not in text
+    assert "_finite_q_bdg_bubble" not in text
+    assert "_finite_q_bdg_direct" not in text
+    assert "_thermal_trace_bdg" not in text
+    assert "_density_vertex_bdg" not in text
 
 
 def test_pairing_enters_cache_key_and_response_config_but_distance_theta_do_not():
@@ -146,22 +150,27 @@ def test_n0_uses_reflection_level_limit_marker_in_rows():
     n0_rows = [row for row in rows if row["n"] == 0]
     assert n0_rows
     assert all(row["n0_source"] == "reflection_level_average_over_zero_mode_omega_eV" for row in n0_rows)
-    real_row = compute_reflection_point("s_pm", 0, 0.05, 0.0, config)
-    assert real_row["n0_source"] == "reflection_level_average_over_zero_mode_omega_eV"
-    assert real_row["omega_eV"] is None
-    assert real_row["reflection_TE_TM"].shape == (2, 2)
+    with pytest.raises(RuntimeError, match=MISSING_SC_BACKEND_MESSAGE):
+        compute_reflection_point("s_pm", 0, 0.05, 0.0, config)
 
 
-def test_finite_q_sc_adapter_supports_spm_and_dwave_without_local_q0_fallback():
+def test_missing_validated_finite_q_sc_backend_fails_loudly_without_local_q0_fallback():
     config = _small_config()
-    kubo = KuboConfig.from_kelvin(omega_eV=0.01, temperature_K=config.temperature_K, eta_eV=config.eta_eV, output_si=False)
     for pairing in ("s_pm", "d_wave"):
-        response = finite_q_superconducting_response(pairing, 0.01, np.array([0.01, 0.02]), kubo, config)
-        assert response.shape == (3, 3)
-        assert np.isfinite(response).all()
-        row = compute_reflection_point(pairing, 1, 0.05, 0.0, config)
-        assert row["response_matrix"].shape == (3, 3)
-        assert row["reflection_TE_TM"].shape == (2, 2)
+        with pytest.raises(RuntimeError, match=MISSING_SC_BACKEND_MESSAGE):
+            compute_reflection_point(pairing, 1, 0.05, 0.0, config)
+        with pytest.raises(RuntimeError, match=MISSING_SC_BACKEND_MESSAGE):
+            finite_q_superconducting_response(pairing, 0.01, np.array([0.01, 0.02]), object(), config)  # type: ignore[arg-type]
+    with pytest.raises(RuntimeError, match=MISSING_SC_BACKEND_MESSAGE):
+        run_point_grid(
+            ["s_pm"],
+            config,
+            cache_dir=Path("/tmp/not-used"),
+            workers=1,
+            resume=False,
+            skip_existing=False,
+            force_recompute=True,
+        )
 
 
 def test_resume_skip_existing_reuses_pairing_safe_cache(tmp_path):
