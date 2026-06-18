@@ -69,16 +69,25 @@ def write_report(name: str, payload: dict[str, Any]) -> None:
     json_path = OUTPUT_DIR / f"{name}.json"
     md_path = OUTPUT_DIR / f"{name}.md"
     json_path.write_text(json.dumps(cjson(payload), indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    lines = [
-        f"# {name}",
-        "",
-        f"- status: {payload.get('status')}",
-        f"- quick: {payload.get('quick')}",
-        f"- cases: {len(payload.get('cases', []))}",
-    ]
-    for key in ("summary", "failures", "monitors"):
+    lines = [f"# {name}", "", f"- status: {payload.get('status')}", f"- quick: {payload.get('quick')}", f"- cases: {len(payload.get('cases', []))}"]
+    if "summary" in payload:
+        lines.extend(["", "## Summary", "", "| key | value |", "| --- | --- |"])
+        for key, value in cjson(payload["summary"]).items():
+            lines.append(f"| {key} | {_md_value(value)} |")
+    for key in ("failures", "monitors"):
         if key in payload:
-            lines.append(f"- {key}: {cjson(payload[key])}")
+            values = payload.get(key) or []
+            lines.extend(["", f"## {key.title()}"])
+            if values:
+                lines.extend(f"- {item}" for item in values)
+            else:
+                lines.append("- none")
+    if payload.get("cases"):
+        lines.extend(["", "## Case Diagnostics", ""])
+        for index, case in enumerate(payload["cases"][:10]):
+            lines.append(f"### Case {index + 1}")
+            for key, value in _case_digest(case).items():
+                lines.append(f"- {key}: {_md_value(cjson(value))}")
     md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"wrote {json_path}")
     print(f"wrote {md_path}")
@@ -92,6 +101,62 @@ def matrix_diagnostics(matrix: np.ndarray) -> dict[str, float | bool]:
     }
 
 
+def _md_value(value: Any) -> str:
+    if isinstance(value, float):
+        return f"{value:.6g}"
+    if isinstance(value, dict):
+        return "`" + json.dumps(value, sort_keys=True) + "`"
+    if isinstance(value, list):
+        return "`" + json.dumps(value) + "`"
+    return str(value)
+
+
+def _case_digest(case: dict[str, Any]) -> dict[str, Any]:
+    keys = (
+        "pairing",
+        "omega_eV",
+        "q_model",
+        "delta0_eV",
+        "status",
+        "max_abs_bare_bubble",
+        "max_abs_direct",
+        "max_abs_bare_total",
+        "max_hermiticity_abs",
+        "max_bare_Ward",
+        "max_minus_schur_Ward",
+        "max_plus_schur_Ward",
+        "selected_gauge_restored_Ward",
+        "improvement_factor",
+        "phase_phase_abs",
+        "phase_correction_status",
+        "finite_q_current_vertex_status",
+        "max_component_difference",
+        "relative_difference",
+        "local_comparison_abs",
+        "local_comparison_relative",
+        "max_abs_sigma_tilde",
+        "sigma_diagonal_real",
+        "sigma_diagonal_positive_sanity",
+        "max_abs_R",
+        "q_sign_check_max_abs",
+        "reflection_finite",
+    )
+    digest = {key: case[key] for key in keys if key in case}
+    diagnostics = case.get("diagnostics")
+    if isinstance(diagnostics, dict):
+        for label, item in diagnostics.items():
+            if isinstance(item, dict):
+                digest[f"{label}_max_abs"] = item.get("max_abs")
+                digest[f"{label}_hermiticity_abs"] = item.get("hermiticity_abs")
+                digest[f"{label}_all_finite"] = item.get("all_finite")
+    metadata = case.get("metadata") or case.get("phase_correction_on_metadata") or {}
+    if isinstance(metadata, dict):
+        for key in ("finite_q_current_vertex_status", "phase_correction_status", "phase_phase_abs"):
+            if key in metadata and key not in digest:
+                digest[key] = metadata[key]
+    return digest
+
+
 def ward_norms(response: np.ndarray, omega_eV: float, q_model: np.ndarray) -> dict[str, float]:
     left, right = physical_ward_residuals(response, omega_eV, q_model)
     return {
@@ -101,7 +166,16 @@ def ward_norms(response: np.ndarray, omega_eV: float, q_model: np.ndarray) -> di
     }
 
 
-def response_case(pairing: str, omega: float, q: np.ndarray, delta0: float, quick: bool, *, phase: bool = True):
+def response_case(
+    pairing: str,
+    omega: float,
+    q: np.ndarray,
+    delta0: float,
+    quick: bool,
+    *,
+    phase: bool = True,
+    use_normal_backend_in_delta0_limit: bool = False,
+):
     points, weights = grid(quick)
     cfg = config(omega)
     return bdg_finite_q_response_imag_axis(
@@ -113,6 +187,7 @@ def response_case(pairing: str, omega: float, q: np.ndarray, delta0: float, quic
         cfg,
         PairingAmplitudes(delta0_eV=delta0),
         include_phase_correction=phase,
+        use_normal_backend_in_delta0_limit=use_normal_backend_in_delta0_limit,
     )
 
 

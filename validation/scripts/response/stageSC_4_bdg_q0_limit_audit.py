@@ -28,9 +28,29 @@ def main() -> None:
         )
     if cases[-1]["local_comparison_abs"] > cases[0]["local_comparison_abs"]:
         monitors.append("smallest q is not closer to local BdG than largest q")
+    if any(cases[index + 1]["local_comparison_abs"] > cases[index]["local_comparison_abs"] for index in range(len(cases) - 1)):
+        monitors.append("q-scaling is not monotonic decreasing")
     write_report(
         "stageSC_4_bdg_q0_limit_audit",
-        {"status": status_from_failures([], monitors), "quick": bool(args.quick), "monitors": monitors, "cases": cases},
+        {
+            "status": status_from_failures([], monitors),
+            "quick": bool(args.quick),
+            "summary": {
+                "q_scaling_table": [
+                    {
+                        "q_model_magnitude": case["q_model_magnitude"],
+                        "local_comparison_abs": case["local_comparison_abs"],
+                        "local_comparison_relative": case["local_comparison_relative"],
+                    }
+                    for case in cases
+                ],
+                "smallest_q_abs": cases[-1]["local_comparison_abs"],
+                "largest_q_abs": cases[0]["local_comparison_abs"],
+                "monotonic_decreasing": not monitors,
+            },
+            "monitors": monitors,
+            "cases": cases,
+        },
     )
 
 

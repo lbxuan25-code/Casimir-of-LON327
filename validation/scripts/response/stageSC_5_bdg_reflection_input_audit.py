@@ -4,34 +4,34 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import numpy as np
 
 from bdg_finite_q_audit_common import OUTPUT_DIR, parser, reflection_package, response_case, status_from_failures, write_report
 
 
-def _prior_stages_allow() -> bool:
+def _prior_stage_statuses() -> dict[str, str]:
     required = [
         "stageSC_1_bdg_finite_q_bare_kernel_audit.json",
         "stageSC_2_bdg_phase_gauge_restoration_audit.json",
         "stageSC_3_bdg_normal_limit_audit.json",
         "stageSC_4_bdg_q0_limit_audit.json",
     ]
+    statuses = {}
     for name in required:
         path = OUTPUT_DIR / name
         if not path.exists():
-            return False
-        status = json.loads(path.read_text(encoding="utf-8")).get("status")
-        if status not in {"PASSED", "MONITOR"}:
-            return False
-    return True
+            statuses[name] = "MISSING"
+        else:
+            statuses[name] = str(json.loads(path.read_text(encoding="utf-8")).get("status"))
+    return statuses
 
 
 def main() -> None:
     args = parser(__doc__).parse_args()
     failures: list[str] = []
-    if not _prior_stages_allow():
+    prior_statuses = _prior_stage_statuses()
+    if any(status != "PASSED" for status in prior_statuses.values()):
         failures.append("prior StageSC reports are missing or failed")
     q = np.array([0.01, 0.01])
     omega = 0.01
@@ -49,6 +49,7 @@ def main() -> None:
             "q_model": q,
             "sigma_diagonal_real": [float(sigma[0, 0].real), float(sigma[1, 1].real)],
             "sigma_diagonal_positive_sanity": bool(sigma[0, 0].real >= -1e-10 and sigma[1, 1].real >= -1e-10),
+            "max_abs_sigma_tilde": float(np.max(np.abs(package["sigma_tilde"]))),
             "offdiag": package["offdiag"],
             "q_sign_check_max_abs": q_sign_diff,
             "reflection_finite": bool(np.all(np.isfinite(refl))),
@@ -58,7 +59,22 @@ def main() -> None:
     ]
     write_report(
         "stageSC_5_bdg_reflection_input_audit",
-        {"status": status_from_failures(failures), "quick": bool(args.quick), "failures": failures, "cases": cases},
+        {
+            "status": status_from_failures(failures),
+            "quick": bool(args.quick),
+            "summary": {
+                "prior_stage_statuses": prior_statuses,
+                "max_abs_sigma_tilde": cases[0]["max_abs_sigma_tilde"],
+                "sigma_diagonal_real": cases[0]["sigma_diagonal_real"],
+                "sigma_diagonal_positive_sanity": cases[0]["sigma_diagonal_positive_sanity"],
+                "max_abs_R": cases[0]["max_abs_R"],
+                "q_sign_check_max_abs": cases[0]["q_sign_check_max_abs"],
+                "reflection_finite": cases[0]["reflection_finite"],
+                "status": status_from_failures(failures),
+            },
+            "failures": failures,
+            "cases": cases,
+        },
     )
 
 

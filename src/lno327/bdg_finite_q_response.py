@@ -11,6 +11,8 @@ import numpy as np
 from .bdg_response import bdg_current_vertex, bdg_diamagnetic_vertex
 from .conductivity import KuboConfig, fermi_function
 from .pairing import PairingAmplitudes, bdg_hamiltonian, pairing_matrix
+from .tb_fourier import peierls_hamiltonian_contact_vertex, peierls_hamiltonian_vector_vertex
+from .ward_response import physical_ward_residuals
 from .ward_response import normal_physical_density_current_response_components_imag_axis
 
 
@@ -97,6 +99,37 @@ def _normal_limit_components(
     )
 
 
+def bdg_finite_q_vector_vertex(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction: str,
+) -> np.ndarray:
+    """Return BdG finite-q source vertex built from the normal Peierls vertex."""
+
+    particle_block = peierls_hamiltonian_vector_vertex(kx, ky, qx, qy, direction)
+    hole_block = -peierls_hamiltonian_vector_vertex(-kx, -ky, -qx, -qy, direction).T
+    zero = np.zeros((4, 4), dtype=complex)
+    return np.block([[particle_block, zero], [zero, hole_block]]).astype(complex)
+
+
+def bdg_finite_q_contact_vertex(
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction_i: str,
+    direction_j: str,
+) -> np.ndarray:
+    """Return BdG finite-q contact vertex from the normal Peierls contact."""
+
+    particle_block = peierls_hamiltonian_contact_vertex(kx, ky, qx, qy, direction_i, direction_j)
+    hole_block = -peierls_hamiltonian_contact_vertex(-kx, -ky, -qx, -qy, direction_i, direction_j).T
+    zero = np.zeros((4, 4), dtype=complex)
+    return np.block([[particle_block, zero], [zero, hole_block]]).astype(complex)
+
+
 def _phase_vertex(pairing: np.ndarray) -> np.ndarray:
     zero = np.zeros_like(pairing)
     return np.block([[zero, 1j * pairing], [-1j * pairing.conjugate().T, zero]]).astype(complex)
@@ -160,6 +193,8 @@ def bdg_finite_q_response_imag_axis(
     pairing_params: PairingAmplitudes | None = None,
     *,
     include_phase_correction: bool = True,
+    use_normal_backend_in_delta0_limit: bool = False,
+    current_vertex: Literal["peierls", "q0_velocity"] = "peierls",
 ) -> BdGFiniteQResponseComponents:
     """Return finite-q BdG response components using Stage 4/5 conventions."""
 
@@ -168,8 +203,10 @@ def bdg_finite_q_response_imag_axis(
     if abs(float(config.omega_eV) - float(omega_eV)) > max(1e-14, 1e-10 * max(1.0, abs(float(omega_eV)))):
         raise ValueError("omega_eV must match config.omega_eV")
     q, points, weights = _validate_inputs(q_model, k_points, k_weights, config)
-    if _is_normal_limit(pairing_params):
+    if _is_normal_limit(pairing_params) and use_normal_backend_in_delta0_limit:
         return _normal_limit_components(q, points, weights, config, include_phase_correction=include_phase_correction)
+    if current_vertex not in {"peierls", "q0_velocity"}:
+        raise ValueError("current_vertex must be 'peierls' or 'q0_velocity'")
 
     qx, qy = float(q[0]), float(q[1])
     rho = _density_vertex()
@@ -192,8 +229,12 @@ def bdg_finite_q_response_imag_axis(
         occupations_minus = fermi_function(energies_minus, config.fermi_level_eV, config.temperature_eV)
         occupations_plus = fermi_function(energies_plus, config.fermi_level_eV, config.temperature_eV)
 
-        vx = bdg_current_vertex(kx, ky, "x")
-        vy = bdg_current_vertex(kx, ky, "y")
+        if current_vertex == "peierls":
+            vx = bdg_finite_q_vector_vertex(kx, ky, qx, qy, "x")
+            vy = bdg_finite_q_vector_vertex(kx, ky, qx, qy, "y")
+        else:
+            vx = bdg_current_vertex(kx, ky, "x")
+            vy = bdg_current_vertex(kx, ky, "y")
         observable_vertices = (rho, -vx, -vy)
         source_vertices = (rho, vx, vy)
         _add_bubble(
@@ -258,11 +299,20 @@ def bdg_finite_q_response_imag_axis(
 
         for i, direction_i in enumerate(directions):
             for j, direction_j in enumerate(directions):
-                vertex = bdg_diamagnetic_vertex(kx, ky, direction_i, direction_j)
+                if current_vertex == "peierls":
+                    vertex = bdg_finite_q_contact_vertex(kx, ky, qx, qy, direction_i, direction_j)
+                else:
+                    vertex = bdg_diamagnetic_vertex(kx, ky, direction_i, direction_j)
                 direct[1 + i, 1 + j] += -float(weight) * _thermal_expectation_bdg(kx, ky, delta_mid, vertex, config)
 
     bare_total = bubble + direct
     phase_phase = complex(phase_phase_matrix[0, 0])
+    minus_schur = bare_total.copy()
+    plus_schur = bare_total.copy()
+    if abs(phase_phase) > 0.0:
+        schur_term = np.outer(phase_left, phase_right) / phase_phase
+        minus_schur = bare_total - schur_term
+        plus_schur = bare_total + schur_term
     gauge_restored = bare_total.copy()
     phase_status = "disabled"
     warning_message = None
@@ -276,8 +326,11 @@ def bdg_finite_q_response_imag_axis(
             )
             warnings.warn(warning_message, RuntimeWarning, stacklevel=2)
         else:
-            gauge_restored = bare_total + np.outer(phase_left, phase_right) / phase_phase
+            gauge_restored = minus_schur
             phase_status = "applied"
+    ward_bare = _ward_metadata(bare_total, config.omega_eV, q)
+    ward_minus = _ward_metadata(minus_schur, config.omega_eV, q)
+    ward_plus = _ward_metadata(plus_schur, config.omega_eV, q)
 
     return BdGFiniteQResponseComponents(
         bare_bubble=bubble,
@@ -293,14 +346,40 @@ def bdg_finite_q_response_imag_axis(
             "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
             "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
             "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-            "phase_correction_formula": "Pi_GI = Pi_bare + K_mu_theta K_theta_nu / K_theta_theta",
-            "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+            "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+            "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+            "phase_correction_sign_checked": True,
+            "finite_q_current_vertex_status": (
+                "normal_state_exact_finite_q_peierls_vertex"
+                if current_vertex == "peierls"
+                else "q0_velocity_vertex_approximation_not_gauge_closed"
+            ),
             "collective_channels": ["global_phase_only"],
+            "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+            "phase_vertex_convention": (
+                "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; "
+                "for k-dependent Delta this implementation evaluates Delta at midpoint k, "
+                "while quasiparticles are routed through k±q/2."
+            ),
             "phase_correction_requested": bool(include_phase_correction),
             "phase_correction_applied": phase_status == "applied",
             "phase_correction_status": phase_status,
             "phase_phase_abs": float(abs(phase_phase)),
             "phase_phase_singular_threshold": float(threshold),
+            "ward_residual_bare": ward_bare,
+            "ward_residual_minus_schur": ward_minus,
+            "ward_residual_plus_schur": ward_plus,
+            "selected_gauge_restored": "minus_schur" if phase_status == "applied" else "bare_total",
+            "normal_backend_reference_used": False,
             "warning": warning_message,
         },
     )
+
+
+def _ward_metadata(response: np.ndarray, omega_eV: float, q: np.ndarray) -> dict[str, float]:
+    left, right = physical_ward_residuals(response, omega_eV, q)
+    return {
+        "left_norm": float(np.linalg.norm(left)),
+        "right_norm": float(np.linalg.norm(right)),
+        "max_norm": float(max(np.linalg.norm(left), np.linalg.norm(right))),
+    }

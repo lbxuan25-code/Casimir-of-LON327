@@ -1,24 +1,25 @@
 {
   "cases": [
     {
-      "max_abs_R": 0.9955648214937057,
+      "max_abs_R": 0.9955663719574961,
+      "max_abs_sigma_tilde": 0.6038923648098542,
       "no_casimir_energy_force_torque": true,
       "offdiag": {
-        "antisymmetric_offdiag_abs": 8.944667923012689e-17,
-        "relative_antisymmetric_to_symmetric": 5.037641866163774e-14,
-        "symmetric_offdiag_abs": 0.0017755664576100888
+        "antisymmetric_offdiag_abs": 1.3270634591224788e-16,
+        "relative_antisymmetric_to_symmetric": 5.03367985624342e-14,
+        "symmetric_offdiag_abs": 0.0026363684163912076
       },
       "omega_eV": 0.01,
       "q_model": [
         0.01,
         0.01
       ],
-      "q_sign_check_max_abs": 0.0005284809840941686,
+      "q_sign_check_max_abs": 0.00010279735143932103,
       "reflection_finite": true,
       "sigma_diagonal_positive_sanity": true,
       "sigma_diagonal_real": [
-        6.583980616267442,
-        6.583980616267447
+        6.585433149043177,
+        6.585433149043177
       ]
     }
   ],
@@ -26,5 +27,23 @@
     "prior StageSC reports are missing or failed"
   ],
   "quick": true,
-  "status": "FAILED"
+  "status": "FAILED",
+  "summary": {
+    "max_abs_R": 0.9955663719574961,
+    "max_abs_sigma_tilde": 0.6038923648098542,
+    "prior_stage_statuses": {
+      "stageSC_1_bdg_finite_q_bare_kernel_audit.json": "PASSED",
+      "stageSC_2_bdg_phase_gauge_restoration_audit.json": "FAILED",
+      "stageSC_3_bdg_normal_limit_audit.json": "PASSED",
+      "stageSC_4_bdg_q0_limit_audit.json": "PASSED"
+    },
+    "q_sign_check_max_abs": 0.00010279735143932103,
+    "reflection_finite": true,
+    "sigma_diagonal_positive_sanity": true,
+    "sigma_diagonal_real": [
+      6.585433149043177,
+      6.585433149043177
+    ],
+    "status": "FAILED"
+  }
 }

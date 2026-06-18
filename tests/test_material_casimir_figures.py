@@ -385,3 +385,31 @@ def test_validation_scripts_write_under_validation_outputs_only():
         assert "validation\" / \"outputs\" / \"response\" / \"bdg_finite_q\"" not in text or script_name.startswith("stageSC_5")
         assert "outputs/material_casimir" not in text
         assert "outputs\" / \"material_casimir" not in text
+
+
+def test_validation_scripts_encode_failed_ward_and_minus_schur_selection():
+    stage2 = (ROOT / "validation" / "scripts" / "response" / "stageSC_2_bdg_phase_gauge_restoration_audit.py").read_text(
+        encoding="utf-8"
+    )
+    assert "max_minus_schur_Ward" in stage2
+    assert "max_plus_schur_Ward" in stage2
+    assert "restored[\"max_norm\"] < 1e-6 and improvement > 10.0" in stage2
+    assert "case_status = \"FAILED\"" in stage2
+
+
+def test_validation_md_writer_includes_summary_and_case_diagnostics():
+    common = (ROOT / "validation" / "scripts" / "response" / "bdg_finite_q_audit_common.py").read_text(
+        encoding="utf-8"
+    )
+    assert "## Summary" in common
+    assert "## Case Diagnostics" in common
+    assert "max_minus_schur_Ward" in common
+    assert "selected_gauge_restored_Ward" in common
+
+
+def test_stage5_requires_all_prior_stages_passed():
+    stage5 = (ROOT / "validation" / "scripts" / "response" / "stageSC_5_bdg_reflection_input_audit.py").read_text(
+        encoding="utf-8"
+    )
+    assert "status != \"PASSED\"" in stage5
+    assert "prior StageSC reports are missing or failed" in stage5

@@ -15,6 +15,7 @@ def main() -> None:
     qs = (np.array([0.01, 0.0]), np.array([0.01, 0.01]))
     cases = []
     failures: list[str] = []
+    vertex_statuses: set[str] = set()
     for pairing in pairings:
         for omega in omegas:
             for q in qs:
@@ -26,6 +27,7 @@ def main() -> None:
                 }
                 if not all(item["all_finite"] for item in diag.values()):
                     failures.append(f"{pairing} omega={omega} q={q.tolist()} nonfinite")
+                vertex_statuses.add(str(result.metadata["finite_q_current_vertex_status"]))
                 cases.append(
                     {
                         "pairing": pairing,
@@ -43,6 +45,18 @@ def main() -> None:
         {
             "status": status_from_failures(failures),
             "quick": bool(args.quick),
+            "summary": {
+                "num_cases": len(cases),
+                "max_abs_bare_bubble": max(case["diagnostics"]["bare_bubble"]["max_abs"] for case in cases),
+                "max_abs_direct": max(case["diagnostics"]["direct"]["max_abs"] for case in cases),
+                "max_abs_bare_total": max(case["diagnostics"]["bare_total"]["max_abs"] for case in cases),
+                "max_hermiticity_abs": max(
+                    max(case["diagnostics"][key]["hermiticity_abs"] for key in ("bare_bubble", "direct", "bare_total"))
+                    for case in cases
+                ),
+                "failures": failures,
+                "finite_q_current_vertex_status": sorted(vertex_statuses),
+            },
             "failures": failures,
             "cases": cases,
         },

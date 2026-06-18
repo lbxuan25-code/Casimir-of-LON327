@@ -8,40 +8,40 @@
             "real": -1.3153091449229952
           },
           {
-            "imag": -5.3356298970633564e-05,
-            "real": -6.75985231468135e-18
+            "imag": -5.335600926605833e-05,
+            "real": -7.544416582075639e-19
           },
           {
-            "imag": -5.142995458548432e-22,
-            "real": -4.5528020914926655e-21
+            "imag": 4.197872435727891e-18,
+            "real": 1.2599615090406916e-20
           }
         ],
         [
           {
-            "imag": 5.335629897063358e-05,
-            "real": 6.841167477617763e-18
+            "imag": 5.335600926606582e-05,
+            "real": 6.189693262060792e-19
           },
           {
-            "imag": -5.0980795512868605e-20,
-            "real": 0.23791851032621156
+            "imag": 1.1143777212313986e-20,
+            "real": 0.23791512685016084
           },
           {
-            "imag": 4.7380905487041465e-21,
-            "real": -2.6562953225896634e-18
+            "imag": -8.099752558118844e-21,
+            "real": 5.353248226647001e-18
           }
         ],
         [
           {
-            "imag": 5.142995458548432e-22,
-            "real": 4.5528020914926655e-21
+            "imag": 4.1976066005585315e-18,
+            "real": 7.729175643696293e-21
           },
           {
-            "imag": 4.5263323118905714e-21,
-            "real": 2.046431600566212e-18
+            "imag": -1.3234889800844405e-21,
+            "real": 6.6407383064735375e-18
           },
           {
-            "imag": -5.389247126905526e-20,
-            "real": 0.23786964529279836
+            "imag": -4.354278744479178e-20,
+            "real": 0.2378695052433358
           }
         ]
       ],
@@ -52,58 +52,58 @@
             "real": -1.3153091449229952
           },
           {
-            "imag": -5.3356298970633564e-05,
-            "real": -6.75985231468135e-18
+            "imag": -5.335600926605833e-05,
+            "real": -7.544416582075639e-19
           },
           {
-            "imag": -5.142995458548432e-22,
-            "real": -4.5528020914926655e-21
+            "imag": 4.197872435727891e-18,
+            "real": 1.2599615090406916e-20
           }
         ],
         [
           {
-            "imag": 5.335629897063358e-05,
-            "real": 6.841167477617763e-18
+            "imag": 5.335600926606582e-05,
+            "real": 6.189693262060792e-19
           },
           {
-            "imag": -5.0980795512868605e-20,
-            "real": -0.06584064392072528
+            "imag": 1.11437772123136e-20,
+            "real": -0.06584724217803586
           },
           {
-            "imag": 4.7380905487041465e-21,
-            "real": -2.6562953225896634e-18
+            "imag": -8.099752558118844e-21,
+            "real": 7.087971702623808e-18
           }
         ],
         [
           {
-            "imag": 5.142995458548432e-22,
-            "real": 4.5528020914926655e-21
+            "imag": 4.1976066005585315e-18,
+            "real": 7.729175643696293e-21
           },
           {
-            "imag": 4.5263323118905714e-21,
-            "real": 2.046431600566212e-18
+            "imag": -1.3234889800844405e-21,
+            "real": 8.375461782450345e-18
           },
           {
-            "imag": -5.389247126905526e-20,
-            "real": -0.06588950895413853
+            "imag": -4.3542787444792165e-20,
+            "real": -0.0658901901912731
           }
         ]
       ],
       "diagnostics": {
         "bare_bubble": {
           "all_finite": true,
-          "hermiticity_abs": 1.3601026544401144e-17,
+          "hermiticity_abs": 8.395480449021675e-18,
           "max_abs": 1.3153091449229952
         },
         "bare_total": {
           "all_finite": true,
-          "hermiticity_abs": 1.3601026544401144e-17,
+          "hermiticity_abs": 8.395480449021675e-18,
           "max_abs": 1.3153091449229952
         },
         "direct": {
           "all_finite": true,
-          "hermiticity_abs": 0.0,
-          "max_abs": 0.3037591542469369
+          "hermiticity_abs": 7.703719777548943e-34,
+          "max_abs": 0.3037623690281967
         }
       },
       "direct": [
@@ -127,12 +127,12 @@
             "real": 0.0
           },
           {
-            "imag": 0.0,
-            "real": -0.30375915424693684
+            "imag": -3.851859888774472e-34,
+            "real": -0.3037623690281967
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": 1.734723475976807e-18
           }
         ],
         [
@@ -142,11 +142,11 @@
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": 1.734723475976807e-18
           },
           {
-            "imag": 0.0,
-            "real": -0.3037591542469369
+            "imag": -3.851859888774472e-34,
+            "real": -0.3037596954346089
           }
         ]
       ],
@@ -156,15 +156,37 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": false,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "disabled",
         "phase_phase_abs": 0.006238090689266791,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "ward_residual_bare": {
+          "left_norm": 0.006608870603571838,
+          "max_norm": 0.006608870603571838,
+          "right_norm": 0.006608870603571838
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0066183244464776214,
+          "max_norm": 0.0066183244464776214,
+          "right_norm": 0.0066183244464776214
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.006599416800272026,
+          "max_norm": 0.006599416800272026,
+          "right_norm": 0.006599416800272026
+        },
         "warning": null
       },
       "omega_eV": 0.005,
@@ -182,40 +204,40 @@
             "real": -1.3154952993195548
           },
           {
-            "imag": -5.33553645325308e-05,
-            "real": -3.4044531807479588e-18
+            "imag": -5.3355188206249854e-05,
+            "real": -3.0252664957425556e-18
           },
           {
-            "imag": -5.335536453253171e-05,
-            "real": -3.587718392438045e-18
+            "imag": -5.3355188206250586e-05,
+            "real": -2.083585635456696e-18
           }
         ],
         [
           {
-            "imag": 5.33553645325308e-05,
-            "real": 3.4857681368892185e-18
+            "imag": 5.335518820625341e-05,
+            "real": 3.0388194364889307e-18
           },
           {
-            "imag": 6.834497093158103e-20,
-            "real": 0.2379332512857645
+            "imag": 8.311510794932497e-21,
+            "real": 0.2379297275027609
           },
           {
-            "imag": -5.849821291974687e-21,
-            "real": -2.1385066045013106e-05
+            "imag": -4.91014411611474e-20,
+            "real": -2.166489855546324e-05
           }
         ],
         [
           {
-            "imag": 5.335536453253171e-05,
-            "real": 3.519955756657701e-18
+            "imag": 5.335518820625426e-05,
+            "real": 2.164900798393109e-18
           },
           {
-            "imag": -5.2145465815339615e-21,
-            "real": -2.138506604501354e-05
+            "imag": -5.545418826555465e-20,
+            "real": -2.1664898555460854e-05
           },
           {
-            "imag": 4.4998625322881456e-21,
-            "real": 0.23793325128576448
+            "imag": -2.1228763240561227e-20,
+            "real": 0.2379297275027609
           }
         ]
       ],
@@ -226,58 +248,58 @@
             "real": -1.3154952993195548
           },
           {
-            "imag": -5.33553645325308e-05,
-            "real": -3.4044531807479588e-18
+            "imag": -5.3355188206249854e-05,
+            "real": -3.0252664957425556e-18
           },
           {
-            "imag": -5.335536453253171e-05,
-            "real": -3.587718392438045e-18
+            "imag": -5.3355188206250586e-05,
+            "real": -2.083585635456696e-18
           }
         ],
         [
           {
-            "imag": 5.33553645325308e-05,
-            "real": 3.4857681368892185e-18
+            "imag": 5.335518820625341e-05,
+            "real": 3.0388194364889307e-18
           },
           {
-            "imag": 6.834497093158103e-20,
-            "real": -0.06582590296117233
+            "imag": 8.311510794933075e-21,
+            "real": -0.06583318270228414
           },
           {
-            "imag": -5.849821291974687e-21,
-            "real": -2.1385066045013106e-05
+            "imag": -4.91014411611474e-20,
+            "real": -2.274726307589738e-05
           }
         ],
         [
           {
-            "imag": 5.335536453253171e-05,
-            "real": 3.519955756657701e-18
+            "imag": 5.335518820625426e-05,
+            "real": 2.164900798393109e-18
           },
           {
-            "imag": -5.2145465815339615e-21,
-            "real": -2.138506604501354e-05
+            "imag": -5.545418826555465e-20,
+            "real": -2.2747263075894996e-05
           },
           {
-            "imag": 4.4998625322881456e-21,
-            "real": -0.06582590296117241
+            "imag": -2.122876324056065e-20,
+            "real": -0.0658331827022842
           }
         ]
       ],
       "diagnostics": {
         "bare_bubble": {
           "all_finite": true,
-          "hermiticity_abs": 7.107674149095746e-18,
+          "hermiticity_abs": 7.030591547498758e-18,
           "max_abs": 1.3154952993195548
         },
         "bare_total": {
           "all_finite": true,
-          "hermiticity_abs": 7.107674149095746e-18,
+          "hermiticity_abs": 7.030591547498758e-18,
           "max_abs": 1.3154952993195548
         },
         "direct": {
           "all_finite": true,
-          "hermiticity_abs": 0.0,
-          "max_abs": 0.3037591542469369
+          "hermiticity_abs": 1.1555579666323415e-33,
+          "max_abs": 0.3037629102050451
         }
       },
       "direct": [
@@ -301,12 +323,12 @@
             "real": 0.0
           },
           {
-            "imag": 0.0,
-            "real": -0.30375915424693684
+            "imag": 5.7777898331617076e-34,
+            "real": -0.30376291020504503
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": -1.0823645204341426e-06
           }
         ],
         [
@@ -316,11 +338,11 @@
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": -1.0823645204341426e-06
           },
           {
-            "imag": 0.0,
-            "real": -0.3037591542469369
+            "imag": 5.7777898331617076e-34,
+            "real": -0.3037629102050451
           }
         ]
       ],
@@ -330,15 +352,37 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": false,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "disabled",
         "phase_phase_abs": 0.00623800958536668,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "ward_residual_bare": {
+          "left_norm": 0.006641977009573459,
+          "max_norm": 0.006641977009573459,
+          "right_norm": 0.006641977009573459
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.006652220267537364,
+          "max_norm": 0.006652220267537364,
+          "right_norm": 0.006652220267537364
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.006631733843337246,
+          "max_norm": 0.006631733843337246,
+          "right_norm": 0.006631733843337246
+        },
         "warning": null
       },
       "omega_eV": 0.005,
@@ -356,40 +400,40 @@
             "real": -1.307194840801852
           },
           {
-            "imag": -0.00010642246595612707,
-            "real": -6.6925661349338364e-18
+            "imag": -0.00010642188735441329,
+            "real": -4.833911150861878e-19
           },
           {
-            "imag": 2.839297452588304e-22,
-            "real": 6.882142696440388e-21
+            "imag": 4.17375650195679e-18,
+            "real": -1.8264147925171652e-20
           }
         ],
         [
           {
-            "imag": 0.00010642246595612708,
-            "real": 6.597645505282151e-18
+            "imag": 0.00010642188735442071,
+            "real": 5.240486965543942e-19
           },
           {
-            "imag": -2.0439963808430415e-19,
-            "real": 0.23790099056284275
+            "imag": -9.740878893424535e-20,
+            "real": 0.23789760732853185
           },
           {
-            "imag": 2.2711070898256734e-20,
-            "real": 1.992221491941937e-18
+            "imag": -3.128727948920491e-20,
+            "real": -4.96022493912136e-18
           }
         ],
         [
           {
-            "imag": 5.633099971486082e-22,
-            "real": -2.03817302933058e-20
+            "imag": 4.1645479137875434e-18,
+            "real": 4.536920223730926e-20
           },
           {
-            "imag": 2.2287554424629584e-20,
-            "real": 8.849800232912753e-18
+            "imag": -1.5775988642610537e-20,
+            "real": -6.423897871976791e-18
           },
           {
-            "imag": -1.0741436562368677e-19,
-            "real": 0.2378522067484361
+            "imag": -9.380889890841457e-20,
+            "real": 0.2378520667049416
           }
         ]
       ],
@@ -400,58 +444,58 @@
             "real": -1.307194840801852
           },
           {
-            "imag": -0.00010642246595612707,
-            "real": -6.6925661349338364e-18
+            "imag": -0.00010642188735441329,
+            "real": -4.833911150861878e-19
           },
           {
-            "imag": 2.839297452588304e-22,
-            "real": 6.882142696440388e-21
+            "imag": 4.17375650195679e-18,
+            "real": -1.8264147925171652e-20
           }
         ],
         [
           {
-            "imag": 0.00010642246595612708,
-            "real": 6.597645505282151e-18
+            "imag": 0.00010642188735442071,
+            "real": 5.240486965543942e-19
           },
           {
-            "imag": -2.0439963808430415e-19,
-            "real": -0.06585816368409408
+            "imag": -9.740878893424573e-20,
+            "real": -0.06586476169966485
           },
           {
-            "imag": 2.2711070898256734e-20,
-            "real": 1.992221491941937e-18
+            "imag": -3.128727948920491e-20,
+            "real": -3.225501463144553e-18
           }
         ],
         [
           {
-            "imag": 5.633099971486082e-22,
-            "real": -2.03817302933058e-20
+            "imag": 4.1645479137875434e-18,
+            "real": 4.536920223730926e-20
           },
           {
-            "imag": 2.2287554424629584e-20,
-            "real": 8.849800232912753e-18
+            "imag": -1.5775988642610537e-20,
+            "real": -4.689174395999984e-18
           },
           {
-            "imag": -1.0741436562368677e-19,
-            "real": -0.06590694749850079
+            "imag": -9.380889890841495e-20,
+            "real": -0.0659076287296673
           }
         ]
       ],
       "diagnostics": {
         "bare_bubble": {
           "all_finite": true,
-          "hermiticity_abs": 1.3290218550224253e-17,
+          "hermiticity_abs": 8.338547219562552e-18,
           "max_abs": 1.307194840801852
         },
         "bare_total": {
           "all_finite": true,
-          "hermiticity_abs": 1.3290218550224253e-17,
+          "hermiticity_abs": 8.338547219562552e-18,
           "max_abs": 1.307194840801852
         },
         "direct": {
           "all_finite": true,
-          "hermiticity_abs": 0.0,
-          "max_abs": 0.3037591542469369
+          "hermiticity_abs": 7.703719777548943e-34,
+          "max_abs": 0.3037623690281967
         }
       },
       "direct": [
@@ -475,12 +519,12 @@
             "real": 0.0
           },
           {
-            "imag": 0.0,
-            "real": -0.30375915424693684
+            "imag": -3.851859888774472e-34,
+            "real": -0.3037623690281967
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": 1.734723475976807e-18
           }
         ],
         [
@@ -490,11 +534,11 @@
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": 1.734723475976807e-18
           },
           {
-            "imag": 0.0,
-            "real": -0.3037591542469369
+            "imag": -3.851859888774472e-34,
+            "real": -0.3037596954346089
           }
         ]
       ],
@@ -504,15 +548,37 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": false,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "disabled",
         "phase_phase_abs": 0.006213635049608605,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "ward_residual_bare": {
+          "left_norm": 0.0130874149247102,
+          "max_norm": 0.0130874149247102,
+          "right_norm": 0.0130874149247102
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.013157724615729512,
+          "max_norm": 0.013157724615729512,
+          "right_norm": 0.013157724615729512
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.013017105515619035,
+          "max_norm": 0.013017105515619035,
+          "right_norm": 0.013017105515619035
+        },
         "warning": null
       },
       "omega_eV": 0.01,
@@ -530,40 +596,40 @@
             "real": -1.3073803239587205
           },
           {
-            "imag": -0.0001064205876861603,
-            "real": -3.479276132325598e-18
+            "imag": -0.00010642023412033957,
+            "real": -2.8770228243503412e-18
           },
           {
-            "imag": -0.00010642058768616216,
-            "real": -3.5947815652146335e-18
+            "imag": -0.0001064202341203411,
+            "real": -2.0437648315013044e-18
           }
         ],
         [
           {
-            "imag": 0.0001064205876861603,
-            "real": 3.601248876730217e-18
+            "imag": 0.00010642023412034311,
+            "real": 2.9583386076722135e-18
           },
           {
-            "imag": 7.887994321305607e-20,
-            "real": 0.23791572514419707
+            "imag": 1.545835128739033e-20,
+            "real": 0.237912201609018
           },
           {
-            "imag": 2.84814828514265e-20,
-            "real": -2.1378604641460026e-05
+            "imag": -4.748678460544356e-20,
+            "real": -2.1658425238749095e-05
           }
         ],
         [
           {
-            "imag": 0.00010642058768616217,
-            "real": 3.554123983746427e-18
+            "imag": 0.00010642023412034478,
+            "real": 2.152185462340161e-18
           },
           {
-            "imag": 2.84814828514265e-20,
-            "real": -2.1378604641461815e-05
+            "imag": -4.748678460544356e-20,
+            "real": -2.165842523875175e-05
           },
           {
-            "imag": 2.5781565332052117e-20,
-            "real": 0.23791572514419707
+            "imag": -3.028142786434189e-20,
+            "real": 0.23791220160901805
           }
         ]
       ],
@@ -574,58 +640,58 @@
             "real": -1.3073803239587205
           },
           {
-            "imag": -0.0001064205876861603,
-            "real": -3.479276132325598e-18
+            "imag": -0.00010642023412033957,
+            "real": -2.8770228243503412e-18
           },
           {
-            "imag": -0.00010642058768616216,
-            "real": -3.5947815652146335e-18
+            "imag": -0.0001064202341203411,
+            "real": -2.0437648315013044e-18
           }
         ],
         [
           {
-            "imag": 0.0001064205876861603,
-            "real": 3.601248876730217e-18
+            "imag": 0.00010642023412034311,
+            "real": 2.9583386076722135e-18
           },
           {
-            "imag": 7.887994321305607e-20,
-            "real": -0.06584342910273977
+            "imag": 1.545835128739091e-20,
+            "real": -0.06585070859602704
           },
           {
-            "imag": 2.84814828514265e-20,
-            "real": -2.1378604641460026e-05
+            "imag": -4.748678460544356e-20,
+            "real": -2.2740789759183238e-05
           }
         ],
         [
           {
-            "imag": 0.00010642058768616217,
-            "real": 3.554123983746427e-18
+            "imag": 0.00010642023412034478,
+            "real": 2.152185462340161e-18
           },
           {
-            "imag": 2.84814828514265e-20,
-            "real": -2.1378604641461815e-05
+            "imag": -4.748678460544356e-20,
+            "real": -2.2740789759185894e-05
           },
           {
-            "imag": 2.5781565332052117e-20,
-            "real": -0.06584342910273983
+            "imag": -3.028142786434131e-20,
+            "real": -0.06585070859602704
           }
         ]
       ],
       "diagnostics": {
         "bare_bubble": {
           "all_finite": true,
-          "hermiticity_abs": 7.148918395041208e-18,
+          "hermiticity_abs": 6.823730263565037e-18,
           "max_abs": 1.3073803239587205
         },
         "bare_total": {
           "all_finite": true,
-          "hermiticity_abs": 7.148918395041208e-18,
+          "hermiticity_abs": 6.823730263565037e-18,
           "max_abs": 1.3073803239587205
         },
         "direct": {
           "all_finite": true,
-          "hermiticity_abs": 0.0,
-          "max_abs": 0.3037591542469369
+          "hermiticity_abs": 1.1555579666323415e-33,
+          "max_abs": 0.3037629102050451
         }
       },
       "direct": [
@@ -649,12 +715,12 @@
             "real": 0.0
           },
           {
-            "imag": 0.0,
-            "real": -0.30375915424693684
+            "imag": 5.7777898331617076e-34,
+            "real": -0.30376291020504503
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": -1.0823645204341426e-06
           }
         ],
         [
@@ -664,11 +730,11 @@
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": -1.0823645204341426e-06
           },
           {
-            "imag": 0.0,
-            "real": -0.3037591542469369
+            "imag": 5.7777898331617076e-34,
+            "real": -0.3037629102050451
           }
         ]
       ],
@@ -678,15 +744,37 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": false,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "disabled",
         "phase_phase_abs": 0.0062135540211814356,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "ward_residual_bare": {
+          "left_norm": 0.01310472217996897,
+          "max_norm": 0.01310472217996897,
+          "right_norm": 0.01310472217996897
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.013176611569097841,
+          "max_norm": 0.013176611569097841,
+          "right_norm": 0.013176611569097841
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.013032833378412757,
+          "max_norm": 0.013032833378412757,
+          "right_norm": 0.013032833378412757
+        },
         "warning": null
       },
       "omega_eV": 0.01,
@@ -704,40 +792,40 @@
             "real": -0.016620534381944652
           },
           {
-            "imag": -1.2012288260351962e-05,
-            "real": -2.5241568323697597e-19
+            "imag": -1.2012205616381758e-05,
+            "real": 1.4230167018374285e-19
           },
           {
-            "imag": -7.643145802644121e-22,
-            "real": -1.6940794399111085e-20
+            "imag": 1.7579242683711528e-20,
+            "real": -6.437463944535177e-20
           }
         ],
         [
           {
-            "imag": 1.2012288260351962e-05,
-            "real": 2.1006403587426096e-19
+            "imag": 1.2012205616381671e-05,
+            "real": 1.0164260322031214e-20
           },
           {
-            "imag": 6.680634485559863e-20,
-            "real": 0.23828240090538638
+            "imag": 8.191314438243139e-20,
+            "real": 0.23827898487780147
           },
           {
-            "imag": -1.6379760140609406e-20,
-            "real": -9.91878698015844e-18
+            "imag": 6.285815824067966e-21,
+            "real": -4.844636109681112e-18
           }
         ],
         [
           {
-            "imag": 5.591737883512613e-22,
-            "real": -3.896338011967274e-20
+            "imag": 1.7086242427160756e-20,
+            "real": 1.0164530821076547e-20
           },
           {
-            "imag": 3.9490305934938025e-21,
-            "real": -8.129853395557357e-18
+            "imag": -6.629782260335008e-21,
+            "real": 3.0574772609866063e-19
           },
           {
-            "imag": 1.7527886617657432e-20,
-            "real": 0.2382970619698379
+            "imag": -1.092797284673341e-19,
+            "real": 0.23829692519432155
           }
         ]
       ],
@@ -748,58 +836,58 @@
             "real": -0.016620534381944652
           },
           {
-            "imag": -1.2012288260351962e-05,
-            "real": -2.5241568323697597e-19
+            "imag": -1.2012205616381758e-05,
+            "real": 1.4230167018374285e-19
           },
           {
-            "imag": -7.643145802644121e-22,
-            "real": -1.6940794399111085e-20
+            "imag": 1.7579242683711528e-20,
+            "real": -6.437463944535177e-20
           }
         ],
         [
           {
-            "imag": 1.2012288260351962e-05,
-            "real": 2.1006403587426096e-19
+            "imag": 1.2012205616381671e-05,
+            "real": 1.0164260322031214e-20
           },
           {
-            "imag": 6.680634485559863e-20,
-            "real": -0.06623502067130554
+            "imag": 8.191314438243119e-20,
+            "real": -0.06624171093046433
           },
           {
-            "imag": -1.6379760140609406e-20,
-            "real": -9.91878698015844e-18
+            "imag": 6.285815824067966e-21,
+            "real": -3.977274371692709e-18
           }
         ],
         [
           {
-            "imag": 5.591737883512613e-22,
-            "real": -3.896338011967274e-20
+            "imag": 1.7086242427160756e-20,
+            "real": 1.0164530821076547e-20
           },
           {
-            "imag": 3.9490305934938025e-21,
-            "real": -8.129853395557357e-18
+            "imag": -6.629782260335008e-21,
+            "real": 1.173109464087064e-18
           },
           {
-            "imag": 1.7527886617657432e-20,
-            "real": -0.06622035960685402
+            "imag": -1.0927972846733373e-19,
+            "real": -0.06622104945127605
           }
         ]
       ],
       "diagnostics": {
         "bare_bubble": {
           "all_finite": true,
-          "hermiticity_abs": 1.788976772669436e-18,
-          "max_abs": 0.2382970619698379
+          "hermiticity_abs": 5.150383847265607e-18,
+          "max_abs": 0.23829692519432155
         },
         "bare_total": {
           "all_finite": true,
-          "hermiticity_abs": 1.788976772669436e-18,
-          "max_abs": 0.06623502067130554
+          "hermiticity_abs": 5.150383847265607e-18,
+          "max_abs": 0.06624171093046433
         },
         "direct": {
           "all_finite": true,
-          "hermiticity_abs": 0.0,
-          "max_abs": 0.3045174215766919
+          "hermiticity_abs": 7.703719777548943e-34,
+          "max_abs": 0.3045206958082658
         }
       },
       "direct": [
@@ -823,12 +911,12 @@
             "real": 0.0
           },
           {
-            "imag": 0.0,
-            "real": -0.3045174215766919
+            "imag": -1.925929944387236e-34,
+            "real": -0.3045206958082658
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": 8.673617379884035e-19
           }
         ],
         [
@@ -838,11 +926,11 @@
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": 8.673617379884035e-19
           },
           {
-            "imag": 0.0,
-            "real": -0.3045174215766919
+            "imag": 3.851859888774472e-34,
+            "real": -0.3045179746455976
           }
         ]
       ],
@@ -852,15 +940,37 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": false,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "disabled",
         "phase_phase_abs": 0.0033223384098657674,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "ward_residual_bare": {
+          "left_norm": 0.0006675349900805482,
+          "max_norm": 0.0006675349900805482,
+          "right_norm": 0.0006675349900805482
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006675398349199394,
+          "max_norm": 0.0006675398349199394,
+          "right_norm": 0.0006675398349199394
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0006675301452870404,
+          "max_norm": 0.0006675301452870404,
+          "right_norm": 0.0006675301452870404
+        },
         "warning": null
       },
       "omega_eV": 0.005,
@@ -878,40 +988,40 @@
             "real": -0.016646540535945355
           },
           {
-            "imag": -1.2012712075117816e-05,
-            "real": 1.7787691892340307e-19
+            "imag": -1.2012622804323218e-05,
+            "real": 5.082197683525802e-20
           },
           {
-            "imag": -1.201271207511783e-05,
-            "real": -1.3383120566617945e-19
+            "imag": -1.201262280432302e-05,
+            "real": -1.5754812818929986e-19
           }
         ],
         [
           {
-            "imag": 1.2012712075117816e-05,
-            "real": -2.829090043829363e-19
+            "imag": 1.2012622804323103e-05,
+            "real": 8.470329472543003e-21
           },
           {
-            "imag": -3.955417315027509e-20,
-            "real": 0.2383011018754592
+            "imag": 2.933921852726849e-20,
+            "real": 0.23829754877774534
           },
           {
-            "imag": 9.214842643055136e-21,
-            "real": -2.434177812019615e-05
+            "imag": -8.301534008207337e-21,
+            "real": -2.4614941888421497e-05
           }
         ],
         [
           {
-            "imag": 1.2012712075117833e-05,
-            "real": -8.131516293641283e-20
+            "imag": 1.2012622804323331e-05,
+            "real": 1.0503208545953324e-19
           },
           {
-            "imag": 1.0485392063936587e-20,
-            "real": -2.434177812019702e-05
+            "imag": -7.665432117154059e-21,
+            "real": -2.4614941888422422e-05
           },
           {
-            "imag": -2.6363123921891953e-20,
-            "real": 0.2383011018754592
+            "imag": 5.94737798488142e-21,
+            "real": 0.23829754877774523
           }
         ]
       ],
@@ -922,58 +1032,58 @@
             "real": -0.016646540535945355
           },
           {
-            "imag": -1.2012712075117816e-05,
-            "real": 1.7787691892340307e-19
+            "imag": -1.2012622804323218e-05,
+            "real": 5.082197683525802e-20
           },
           {
-            "imag": -1.201271207511783e-05,
-            "real": -1.3383120566617945e-19
+            "imag": -1.201262280432302e-05,
+            "real": -1.5754812818929986e-19
           }
         ],
         [
           {
-            "imag": 1.2012712075117816e-05,
-            "real": -2.829090043829363e-19
+            "imag": 1.2012622804323103e-05,
+            "real": 8.470329472543003e-21
           },
           {
-            "imag": -3.955417315027509e-20,
-            "real": -0.06621631970123273
+            "imag": 2.9339218527268106e-20,
+            "real": -0.06622370008836492
           },
           {
-            "imag": 9.214842643055136e-21,
-            "real": -2.434177812019615e-05
+            "imag": -8.301534008207337e-21,
+            "real": -2.572106863853002e-05
           }
         ],
         [
           {
-            "imag": 1.2012712075117833e-05,
-            "real": -8.131516293641283e-20
+            "imag": 1.2012622804323331e-05,
+            "real": 1.0503208545953324e-19
           },
           {
-            "imag": 1.0485392063936587e-20,
-            "real": -2.434177812019702e-05
+            "imag": -7.665432117154059e-21,
+            "real": -2.5721068638530945e-05
           },
           {
-            "imag": -2.6363123921891953e-20,
-            "real": -0.06621631970123273
+            "imag": 5.94737798488065e-21,
+            "real": -0.06622370008836498
           }
         ]
       ],
       "diagnostics": {
         "bare_bubble": {
           "all_finite": true,
-          "hermiticity_abs": 8.675854331267755e-19,
-          "max_abs": 0.2383011018754592
+          "hermiticity_abs": 9.250977816707348e-19,
+          "max_abs": 0.23829754877774534
         },
         "bare_total": {
           "all_finite": true,
-          "hermiticity_abs": 8.675854331267755e-19,
-          "max_abs": 0.06621631970123273
+          "hermiticity_abs": 9.250977816707348e-19,
+          "max_abs": 0.06622370008836498
         },
         "direct": {
           "all_finite": true,
-          "hermiticity_abs": 0.0,
-          "max_abs": 0.3045174215766919
+          "hermiticity_abs": 1.5407439555097887e-33,
+          "max_abs": 0.30452124886611026
         }
       },
       "direct": [
@@ -997,12 +1107,12 @@
             "real": 0.0
           },
           {
-            "imag": 0.0,
-            "real": -0.3045174215766919
+            "imag": -3.851859888774472e-34,
+            "real": -0.30452124886611026
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": -1.1061267501085228e-06
           }
         ],
         [
@@ -1012,11 +1122,11 @@
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": -1.1061267501085228e-06
           },
           {
-            "imag": 0.0,
-            "real": -0.3045174215766919
+            "imag": -7.703719777548943e-34,
+            "real": -0.3045212488661102
           }
         ]
       ],
@@ -1026,15 +1136,37 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": false,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "disabled",
         "phase_phase_abs": 0.003322389777042553,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "ward_residual_bare": {
+          "left_norm": 0.0009404922907049319,
+          "max_norm": 0.0009404922907049319,
+          "right_norm": 0.0009404922907049319
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0009405022731266338,
+          "max_norm": 0.0009405022731266338,
+          "right_norm": 0.0009405022731266338
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0009404823083646325,
+          "max_norm": 0.0009404823083646325,
+          "right_norm": 0.0009404823083646325
+        },
         "warning": null
       },
       "omega_eV": 0.005,
@@ -1052,40 +1184,40 @@
             "real": -0.016618332721257633
           },
           {
-            "imag": -2.402247540881798e-05,
-            "real": -1.0164381862777445e-19
+            "imag": -2.4022310134700468e-05,
+            "real": 3.0493321144111266e-20
           },
           {
-            "imag": -8.735021153961716e-22,
-            "real": -4.404584870917851e-20
+            "imag": 1.9442053728906186e-20,
+            "real": 6.098623675035486e-20
           }
         ],
         [
           {
-            "imag": 2.402247540881798e-05,
-            "real": 2.710491926939602e-20
+            "imag": 2.4022310134700383e-05,
+            "real": -1.3552540660364452e-19
           },
           {
-            "imag": 1.8424937809138723e-19,
-            "real": 0.23826473182565341
+            "imag": 5.69644797925061e-20,
+            "real": 0.2382613160432323
           },
           {
-            "imag": 6.89882700487321e-21,
-            "real": 1.1718389151920894e-18
+            "imag": 1.367839930558154e-20,
+            "real": 4.956382123474745e-18
           }
         ],
         [
           {
-            "imag": -8.271812240128533e-22,
-            "real": -1.1858325809605314e-20
+            "imag": 2.0308937787942112e-20,
+            "real": -3.3879963370624457e-21
           },
           {
-            "imag": -2.10532602545187e-20,
-            "real": 3.66550391190875e-18
+            "imag": 2.723258082287545e-20,
+            "real": 4.0894439019599685e-18
           },
           {
-            "imag": 2.52702265909694e-20,
-            "real": 0.23827938642268098
+            "imag": -2.82775142246228e-19,
+            "real": 0.2382792496526847
           }
         ]
       ],
@@ -1096,58 +1228,58 @@
             "real": -0.016618332721257633
           },
           {
-            "imag": -2.402247540881798e-05,
-            "real": -1.0164381862777445e-19
+            "imag": -2.4022310134700468e-05,
+            "real": 3.0493321144111266e-20
           },
           {
-            "imag": -8.735021153961716e-22,
-            "real": -4.404584870917851e-20
+            "imag": 1.9442053728906186e-20,
+            "real": 6.098623675035486e-20
           }
         ],
         [
           {
-            "imag": 2.402247540881798e-05,
-            "real": 2.710491926939602e-20
+            "imag": 2.4022310134700383e-05,
+            "real": -1.3552540660364452e-19
           },
           {
-            "imag": 1.8424937809138723e-19,
-            "real": -0.06625268975103851
+            "imag": 5.69644797925059e-20,
+            "real": -0.06625937976503349
           },
           {
-            "imag": 6.89882700487321e-21,
-            "real": 1.1718389151920894e-18
+            "imag": 1.367839930558154e-20,
+            "real": 5.8237438614631484e-18
           }
         ],
         [
           {
-            "imag": -8.271812240128533e-22,
-            "real": -1.1858325809605314e-20
+            "imag": 2.0308937787942112e-20,
+            "real": -3.3879963370624457e-21
           },
           {
-            "imag": -2.10532602545187e-20,
-            "real": 3.66550391190875e-18
+            "imag": 2.723258082287545e-20,
+            "real": 4.956805639948372e-18
           },
           {
-            "imag": 2.52702265909694e-20,
-            "real": -0.06623803515401094
+            "imag": -2.8277514224622763e-19,
+            "real": -0.06623872499291289
           }
         ]
       ],
       "diagnostics": {
         "bare_bubble": {
           "all_finite": true,
-          "hermiticity_abs": 2.4937051677835774e-18,
-          "max_abs": 0.23827938642268098
+          "hermiticity_abs": 8.679029831831864e-19,
+          "max_abs": 0.2382792496526847
         },
         "bare_total": {
           "all_finite": true,
-          "hermiticity_abs": 2.4937051677835774e-18,
-          "max_abs": 0.06625268975103851
+          "hermiticity_abs": 8.679029831831864e-19,
+          "max_abs": 0.06625937976503349
         },
         "direct": {
           "all_finite": true,
-          "hermiticity_abs": 0.0,
-          "max_abs": 0.3045174215766919
+          "hermiticity_abs": 7.703719777548943e-34,
+          "max_abs": 0.3045206958082658
         }
       },
       "direct": [
@@ -1171,12 +1303,12 @@
             "real": 0.0
           },
           {
-            "imag": 0.0,
-            "real": -0.3045174215766919
+            "imag": -1.925929944387236e-34,
+            "real": -0.3045206958082658
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": 8.673617379884035e-19
           }
         ],
         [
@@ -1186,11 +1318,11 @@
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": 8.673617379884035e-19
           },
           {
-            "imag": 0.0,
-            "real": -0.3045174215766919
+            "imag": 3.851859888774472e-34,
+            "real": -0.3045179746455976
           }
         ]
       ],
@@ -1200,15 +1332,37 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": false,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "disabled",
         "phase_phase_abs": 0.0033220272850884793,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "ward_residual_bare": {
+          "left_norm": 0.0006828245539813958,
+          "max_norm": 0.0006828245539813958,
+          "right_norm": 0.0006828245539813958
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006828403847563133,
+          "max_norm": 0.0006828403847563133,
+          "right_norm": 0.0006828403847563133
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0006828087240941216,
+          "max_norm": 0.0006828087240941216,
+          "right_norm": 0.0006828087240941216
+        },
         "warning": null
       },
       "omega_eV": 0.01,
@@ -1226,40 +1380,40 @@
             "real": -0.01664433625811335
           },
           {
-            "imag": -2.402332045322405e-05,
-            "real": 1.6940658945086007e-19
+            "imag": -2.4023141926451142e-05,
+            "real": -2.710505431213761e-20
           },
           {
-            "imag": -2.4023320453224063e-05,
-            "real": -1.7787691892340307e-19
+            "imag": -2.402314192645095e-05,
+            "real": 1.8634724839594607e-20
           }
         ],
         [
           {
-            "imag": 2.4023320453224046e-05,
-            "real": -1.8295911660692887e-19
+            "imag": 2.4023141926451023e-05,
+            "real": -8.300922883092143e-20
           },
           {
-            "imag": -7.914639660717546e-20,
-            "real": 0.23828342262527202
+            "imag": 1.081471464092104e-19,
+            "real": 0.23827986977839438
           },
           {
-            "imag": 1.6055676926530934e-20,
-            "real": -2.4332380471231825e-05
+            "imag": -3.374059594884046e-20,
+            "real": -2.460553332420885e-05
           }
         ],
         [
           {
-            "imag": 2.402332045322406e-05,
-            "real": 4.573977915173222e-20
+            "imag": 2.4023141926451257e-05,
+            "real": -4.2351647362715017e-20
           },
           {
-            "imag": 1.774808845981443e-20,
-            "real": -2.4332380471234267e-05
+            "imag": -3.41608037000174e-20,
+            "real": -2.460553332420896e-05
           },
           {
-            "imag": -2.558645194436692e-20,
-            "real": 0.238283422625272
+            "imag": 7.140121810360193e-21,
+            "real": 0.23827986977839424
           }
         ]
       ],
@@ -1270,58 +1424,58 @@
             "real": -0.01664433625811335
           },
           {
-            "imag": -2.402332045322405e-05,
-            "real": 1.6940658945086007e-19
+            "imag": -2.4023141926451142e-05,
+            "real": -2.710505431213761e-20
           },
           {
-            "imag": -2.4023320453224063e-05,
-            "real": -1.7787691892340307e-19
+            "imag": -2.402314192645095e-05,
+            "real": 1.8634724839594607e-20
           }
         ],
         [
           {
-            "imag": 2.4023320453224046e-05,
-            "real": -1.8295911660692887e-19
+            "imag": 2.4023141926451023e-05,
+            "real": -8.300922883092143e-20
           },
           {
-            "imag": -7.914639660717546e-20,
-            "real": -0.0662339989514199
+            "imag": 1.0814714640921002e-19,
+            "real": -0.06624137908771588
           },
           {
-            "imag": 1.6055676926530934e-20,
-            "real": -2.4332380471231825e-05
+            "imag": -3.374059594884046e-20,
+            "real": -2.5711660074317374e-05
           }
         ],
         [
           {
-            "imag": 2.402332045322406e-05,
-            "real": 4.573977915173222e-20
+            "imag": 2.4023141926451257e-05,
+            "real": -4.2351647362715017e-20
           },
           {
-            "imag": 1.774808845981443e-20,
-            "real": -2.4332380471234267e-05
+            "imag": -3.41608037000174e-20,
+            "real": -2.5711660074317482e-05
           },
           {
-            "imag": -2.558645194436692e-20,
-            "real": -0.06623399895141993
+            "imag": 7.140121810359422e-21,
+            "real": -0.06624137908771596
           }
         ]
       ],
       "diagnostics": {
         "bare_bubble": {
           "all_finite": true,
-          "hermiticity_abs": 2.4430768948884076e-18,
-          "max_abs": 0.23828342262527202
+          "hermiticity_abs": 3.142937408777644e-19,
+          "max_abs": 0.23827986977839438
         },
         "bare_total": {
           "all_finite": true,
-          "hermiticity_abs": 2.4430768948884076e-18,
-          "max_abs": 0.06623399895141993
+          "hermiticity_abs": 3.142937408777644e-19,
+          "max_abs": 0.06624137908771596
         },
         "direct": {
           "all_finite": true,
-          "hermiticity_abs": 0.0,
-          "max_abs": 0.3045174215766919
+          "hermiticity_abs": 1.5407439555097887e-33,
+          "max_abs": 0.30452124886611026
         }
       },
       "direct": [
@@ -1345,12 +1499,12 @@
             "real": 0.0
           },
           {
-            "imag": 0.0,
-            "real": -0.3045174215766919
+            "imag": -3.851859888774472e-34,
+            "real": -0.30452124886611026
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": -1.1061267501085228e-06
           }
         ],
         [
@@ -1360,11 +1514,11 @@
           },
           {
             "imag": 0.0,
-            "real": 0.0
+            "real": -1.1061267501085228e-06
           },
           {
-            "imag": 0.0,
-            "real": -0.3045174215766919
+            "imag": -7.703719777548943e-34,
+            "real": -0.3045212488661102
           }
         ]
       ],
@@ -1374,15 +1528,37 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": false,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "disabled",
         "phase_phase_abs": 0.003322078619939102,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "ward_residual_bare": {
+          "left_norm": 0.0009514055314417622,
+          "max_norm": 0.0009514055314417622,
+          "right_norm": 0.0009514055314417622
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0009514279370407013,
+          "max_norm": 0.0009514279370407013,
+          "right_norm": 0.0009514279370407013
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0009513831268731202,
+          "max_norm": 0.0009513831268731202,
+          "right_norm": 0.0009513831268731202
+        },
         "warning": null
       },
       "omega_eV": 0.01,
@@ -1395,5 +1571,16 @@
   ],
   "failures": [],
   "quick": true,
-  "status": "PASSED"
+  "status": "PASSED",
+  "summary": {
+    "failures": [],
+    "finite_q_current_vertex_status": [
+      "normal_state_exact_finite_q_peierls_vertex"
+    ],
+    "max_abs_bare_bubble": 1.3154952993195548,
+    "max_abs_bare_total": 1.3154952993195548,
+    "max_abs_direct": 0.30452124886611026,
+    "max_hermiticity_abs": 8.395480449021675e-18,
+    "num_cases": 8
+  }
 }

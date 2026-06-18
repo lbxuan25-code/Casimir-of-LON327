@@ -20,7 +20,9 @@ from .bdg_response import (
 from .bdg_finite_q_response import (
     BdGFiniteQResponseComponents,
     BdGPhaseCorrectionError,
+    bdg_finite_q_contact_vertex,
     bdg_finite_q_response_imag_axis,
+    bdg_finite_q_vector_vertex,
 )
 from .casimir import CasimirSetup, casimir_energy_integrand, casimir_torque_integrand
 from .conductivity import (
@@ -119,7 +121,9 @@ __all__ = [
     "bdg_diamagnetic_kernel",
     "bdg_diamagnetic_vertex",
     "bdg_eigensystem",
+    "bdg_finite_q_contact_vertex",
     "bdg_finite_q_response_imag_axis",
+    "bdg_finite_q_vector_vertex",
     "bdg_hamiltonian",
     "bdg_paramagnetic_kernel_imag_axis",
     "bdg_superconducting_response_imag_axis",

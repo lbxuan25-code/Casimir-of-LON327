@@ -2,22 +2,31 @@
   "cases": [
     {
       "bare_total_ward": {
-        "left_norm": 0.013104713499345657,
-        "max_norm": 0.013104713499345657,
-        "right_norm": 0.013104713499345657
+        "left_norm": 0.01310472217996897,
+        "max_norm": 0.01310472217996897,
+        "right_norm": 0.01310472217996897
       },
+      "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
       "gauge_restored_ward": {
-        "left_norm": 0.013032824650904141,
-        "max_norm": 0.013032824650904141,
-        "right_norm": 0.013032824650904141
+        "left_norm": 0.013176611569097841,
+        "max_norm": 0.013176611569097841,
+        "right_norm": 0.013176611569097841
       },
-      "improvement_factor": 1.0055159837078396,
+      "improvement_factor": 0.9945441672351131,
+      "max_bare_Ward": 0.01310472217996897,
+      "max_minus_schur_Ward": 0.013176611569097841,
+      "max_plus_schur_Ward": 0.013032833378412757,
+      "minus_schur_ward": {
+        "left_norm": 0.013176611569097841,
+        "max_norm": 0.013176611569097841,
+        "right_norm": 0.013176611569097841
+      },
       "omega_eV": 0.01,
       "pairing": "spm",
       "phase_correction_off_ward": {
-        "left_norm": 0.013104713499345657,
-        "max_norm": 0.013104713499345657,
-        "right_norm": 0.013104713499345657
+        "left_norm": 0.01310472217996897,
+        "max_norm": 0.01310472217996897,
+        "right_norm": 0.01310472217996897
       },
       "phase_correction_on_metadata": {
         "collective_channels": [
@@ -25,41 +34,80 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": true,
-        "phase_correction_formula": "Pi_GI = Pi_bare + K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "applied",
         "phase_phase_abs": 0.0062135540211814356,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "minus_schur",
+        "ward_residual_bare": {
+          "left_norm": 0.01310472217996897,
+          "max_norm": 0.01310472217996897,
+          "right_norm": 0.01310472217996897
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.013176611569097841,
+          "max_norm": 0.013176611569097841,
+          "right_norm": 0.013176611569097841
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.013032833378412757,
+          "max_norm": 0.013032833378412757,
+          "right_norm": 0.013032833378412757
+        },
         "warning": null
+      },
+      "phase_correction_status": "applied",
+      "phase_phase_abs": 0.0062135540211814356,
+      "plus_schur_ward": {
+        "left_norm": 0.013032833378412757,
+        "max_norm": 0.013032833378412757,
+        "right_norm": 0.013032833378412757
       },
       "q_model": [
         0.01,
         0.01
-      ]
+      ],
+      "selected_gauge_restored_Ward": 0.013176611569097841,
+      "status": "FAILED"
     },
     {
       "bare_total_ward": {
-        "left_norm": 0.0009512835510280974,
-        "max_norm": 0.0009512835510280974,
-        "right_norm": 0.0009512835510280974
+        "left_norm": 0.0009514055314417622,
+        "max_norm": 0.0009514055314417622,
+        "right_norm": 0.0009514055314417622
       },
+      "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
       "gauge_restored_ward": {
-        "left_norm": 0.0009512611455676939,
-        "max_norm": 0.0009512611455676939,
-        "right_norm": 0.0009512611455676939
+        "left_norm": 0.0009514279370407013,
+        "max_norm": 0.0009514279370407013,
+        "right_norm": 0.0009514279370407013
       },
-      "improvement_factor": 1.0000235534274766,
+      "improvement_factor": 0.9999764505559835,
+      "max_bare_Ward": 0.0009514055314417622,
+      "max_minus_schur_Ward": 0.0009514279370407013,
+      "max_plus_schur_Ward": 0.0009513831268731202,
+      "minus_schur_ward": {
+        "left_norm": 0.0009514279370407013,
+        "max_norm": 0.0009514279370407013,
+        "right_norm": 0.0009514279370407013
+      },
       "omega_eV": 0.01,
       "pairing": "dwave",
       "phase_correction_off_ward": {
-        "left_norm": 0.0009512835510280974,
-        "max_norm": 0.0009512835510280974,
-        "right_norm": 0.0009512835510280974
+        "left_norm": 0.0009514055314417622,
+        "max_norm": 0.0009514055314417622,
+        "right_norm": 0.0009514055314417622
       },
       "phase_correction_on_metadata": {
         "collective_channels": [
@@ -67,29 +115,72 @@
         ],
         "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
         "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
-        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
         "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
         "phase_correction_applied": true,
-        "phase_correction_formula": "Pi_GI = Pi_bare + K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
         "phase_correction_status": "applied",
         "phase_phase_abs": 0.003322078619939102,
         "phase_phase_singular_threshold": 1e-06,
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "minus_schur",
+        "ward_residual_bare": {
+          "left_norm": 0.0009514055314417622,
+          "max_norm": 0.0009514055314417622,
+          "right_norm": 0.0009514055314417622
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0009514279370407013,
+          "max_norm": 0.0009514279370407013,
+          "right_norm": 0.0009514279370407013
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0009513831268731202,
+          "max_norm": 0.0009513831268731202,
+          "right_norm": 0.0009513831268731202
+        },
         "warning": null
+      },
+      "phase_correction_status": "applied",
+      "phase_phase_abs": 0.003322078619939102,
+      "plus_schur_ward": {
+        "left_norm": 0.0009513831268731202,
+        "max_norm": 0.0009513831268731202,
+        "right_norm": 0.0009513831268731202
       },
       "q_model": [
         0.01,
         0.01
-      ]
+      ],
+      "selected_gauge_restored_Ward": 0.0009514279370407013,
+      "status": "FAILED"
     }
   ],
   "failures": [
-    "spm Ward not improved below monitor threshold",
-    "dwave Ward not improved below monitor threshold"
+    "spm Ward failed selected Schur-minus criterion",
+    "dwave Ward failed selected Schur-minus criterion"
   ],
   "monitors": [],
   "quick": true,
-  "status": "FAILED"
+  "status": "FAILED",
+  "summary": {
+    "finite_q_current_vertex_status": [
+      "normal_state_exact_finite_q_peierls_vertex"
+    ],
+    "max_bare_Ward": 0.01310472217996897,
+    "max_minus_schur_Ward": 0.013176611569097841,
+    "max_plus_schur_Ward": 0.013032833378412757,
+    "min_improvement_factor": 0.9945441672351131,
+    "phase_correction_status": [
+      "applied"
+    ],
+    "selected_gauge_restored_Ward": 0.013176611569097841
+  }
 }
