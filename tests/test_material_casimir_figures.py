@@ -11,6 +11,7 @@ import pytest
 from lno327.material_casimir_figures import (
     MISSING_SC_BACKEND_MESSAGE,
     MaterialCasimirConfig,
+    VALIDATION_MARKER_PATH,
     assemble_energy_data,
     compute_reflection_point,
     finite_q_superconducting_response,
@@ -95,6 +96,10 @@ def test_no_forbidden_local_or_old_paths_in_helper():
     assert "_finite_q_bdg_direct" not in text
     assert "_thermal_trace_bdg" not in text
     assert "_density_vertex_bdg" not in text
+    assert "stageSC_1" not in text
+    assert "stageSC_2" not in text
+    assert "stageSC_3" not in text
+    assert "stageSC_4" not in text
 
 
 def test_pairing_enters_cache_key_and_response_config_but_distance_theta_do_not():
@@ -150,18 +155,18 @@ def test_n0_uses_reflection_level_limit_marker_in_rows():
     n0_rows = [row for row in rows if row["n"] == 0]
     assert n0_rows
     assert all(row["n0_source"] == "reflection_level_average_over_zero_mode_omega_eV" for row in n0_rows)
-    with pytest.raises(RuntimeError, match=MISSING_SC_BACKEND_MESSAGE):
+    with pytest.raises(RuntimeError, match="validation marker is missing or not PASSED"):
         compute_reflection_point("s_pm", 0, 0.05, 0.0, config)
 
 
 def test_missing_validated_finite_q_sc_backend_fails_loudly_without_local_q0_fallback():
     config = _small_config()
     for pairing in ("s_pm", "d_wave"):
-        with pytest.raises(RuntimeError, match=MISSING_SC_BACKEND_MESSAGE):
+        with pytest.raises(RuntimeError, match="validation marker is missing or not PASSED"):
             compute_reflection_point(pairing, 1, 0.05, 0.0, config)
-        with pytest.raises(RuntimeError, match=MISSING_SC_BACKEND_MESSAGE):
+        with pytest.raises(RuntimeError, match="validation marker is missing or not PASSED"):
             finite_q_superconducting_response(pairing, 0.01, np.array([0.01, 0.02]), object(), config)  # type: ignore[arg-type]
-    with pytest.raises(RuntimeError, match=MISSING_SC_BACKEND_MESSAGE):
+    with pytest.raises(RuntimeError, match="validation marker is missing or not PASSED"):
         run_point_grid(
             ["s_pm"],
             config,
@@ -171,6 +176,12 @@ def test_missing_validated_finite_q_sc_backend_fails_loudly_without_local_q0_fal
             skip_existing=False,
             force_recompute=True,
         )
+
+
+def test_formal_validation_marker_path_and_override_flag_are_explicit():
+    assert VALIDATION_MARKER_PATH.name == "stageSC_5_bdg_reflection_input_audit.json"
+    script = RUN_SCRIPT.read_text(encoding="utf-8")
+    assert "--allow-unvalidated-bdg-response" in script
 
 
 def test_resume_skip_existing_reuses_pairing_safe_cache(tmp_path):
@@ -360,3 +371,17 @@ def test_run_script_dry_run_writes_plan_without_response(tmp_path):
     assert "material_casimir_dry_run_plan.json" in proc.stdout
     plan = json.loads((tmp_path / "data" / "material_casimir_dry_run_plan.json").read_text(encoding="utf-8"))
     assert plan["num_points"] == 2 * (1 + 1) * 2 * 24
+
+
+def test_validation_scripts_write_under_validation_outputs_only():
+    for script_name in (
+        "stageSC_1_bdg_finite_q_bare_kernel_audit.py",
+        "stageSC_2_bdg_phase_gauge_restoration_audit.py",
+        "stageSC_3_bdg_normal_limit_audit.py",
+        "stageSC_4_bdg_q0_limit_audit.py",
+        "stageSC_5_bdg_reflection_input_audit.py",
+    ):
+        text = (ROOT / "validation" / "scripts" / "response" / script_name).read_text(encoding="utf-8")
+        assert "validation\" / \"outputs\" / \"response\" / \"bdg_finite_q\"" not in text or script_name.startswith("stageSC_5")
+        assert "outputs/material_casimir" not in text
+        assert "outputs\" / \"material_casimir" not in text

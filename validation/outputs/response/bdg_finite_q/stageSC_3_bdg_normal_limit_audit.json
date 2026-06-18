@@ -1,0 +1,120 @@
+{
+  "cases": [
+    {
+      "absolute_difference": 1.300302501993714,
+      "delta0_eV": 0.04,
+      "max_component_difference": 1.3002975977763556,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": true,
+        "phase_correction_formula": "Pi_GI = Pi_bare + K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_status": "applied",
+        "phase_phase_abs": 0.006213635049608605,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "relative_difference": 19.009076168695774
+    },
+    {
+      "absolute_difference": 0.23007389946602472,
+      "delta0_eV": 0.01,
+      "max_component_difference": 0.23007344106250938,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": true,
+        "phase_correction_formula": "Pi_GI = Pi_bare + K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_status": "applied",
+        "phase_phase_abs": 0.00048576386550192924,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "relative_difference": 3.3634481621978627
+    },
+    {
+      "absolute_difference": 0.022792200588924057,
+      "delta0_eV": 0.003,
+      "max_component_difference": 0.02279214842642265,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": true,
+        "phase_correction_formula": "Pi_GI = Pi_bare + K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_status": "applied",
+        "phase_phase_abs": 4.4675288672656364e-05,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "relative_difference": 0.3331988663418309
+    },
+    {
+      "absolute_difference": 0.0025547326057620036,
+      "delta0_eV": 0.001,
+      "max_component_difference": 0.00255470935093183,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": true,
+        "phase_correction_formula": "Pi_GI = Pi_bare + K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_status": "applied",
+        "phase_phase_abs": 4.973764760767093e-06,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "relative_difference": 0.03734734627195322
+    },
+    {
+      "absolute_difference": 0.0,
+      "delta0_eV": 0.0,
+      "max_component_difference": 0.0,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "finite_q_current_vertex_status": "normal_state_finite_q_peierls_backend",
+        "nambu_prefactor": 0.5,
+        "normal_limit_delegated_to": "normal_physical_density_current_response_components_imag_axis",
+        "phase_correction_applied": false,
+        "phase_correction_requested": true,
+        "phase_correction_status": "skipped_normal_delta0_limit"
+      },
+      "relative_difference": 0.0
+    }
+  ],
+  "failures": [],
+  "quick": true,
+  "status": "PASSED"
+}

@@ -1,0 +1,95 @@
+{
+  "cases": [
+    {
+      "bare_total_ward": {
+        "left_norm": 0.013104713499345657,
+        "max_norm": 0.013104713499345657,
+        "right_norm": 0.013104713499345657
+      },
+      "gauge_restored_ward": {
+        "left_norm": 0.013032824650904141,
+        "max_norm": 0.013032824650904141,
+        "right_norm": 0.013032824650904141
+      },
+      "improvement_factor": 1.0055159837078396,
+      "omega_eV": 0.01,
+      "pairing": "spm",
+      "phase_correction_off_ward": {
+        "left_norm": 0.013104713499345657,
+        "max_norm": 0.013104713499345657,
+        "right_norm": 0.013104713499345657
+      },
+      "phase_correction_on_metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": true,
+        "phase_correction_formula": "Pi_GI = Pi_bare + K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_status": "applied",
+        "phase_phase_abs": 0.0062135540211814356,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "q_model": [
+        0.01,
+        0.01
+      ]
+    },
+    {
+      "bare_total_ward": {
+        "left_norm": 0.0009512835510280974,
+        "max_norm": 0.0009512835510280974,
+        "right_norm": 0.0009512835510280974
+      },
+      "gauge_restored_ward": {
+        "left_norm": 0.0009512611455676939,
+        "max_norm": 0.0009512611455676939,
+        "right_norm": 0.0009512611455676939
+      },
+      "improvement_factor": 1.0000235534274766,
+      "omega_eV": 0.01,
+      "pairing": "dwave",
+      "phase_correction_off_ward": {
+        "left_norm": 0.0009512835510280974,
+        "max_norm": 0.0009512835510280974,
+        "right_norm": 0.0009512835510280974
+      },
+      "phase_correction_on_metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": true,
+        "phase_correction_formula": "Pi_GI = Pi_bare + K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_status": "applied",
+        "phase_phase_abs": 0.003322078619939102,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "q_model": [
+        0.01,
+        0.01
+      ]
+    }
+  ],
+  "failures": [
+    "spm Ward not improved below monitor threshold",
+    "dwave Ward not improved below monitor threshold"
+  ],
+  "monitors": [],
+  "quick": true,
+  "status": "FAILED"
+}

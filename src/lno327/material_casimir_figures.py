@@ -9,14 +9,16 @@ from typing import Any, Callable
 
 import numpy as np
 
+from .bdg_finite_q_response import bdg_finite_q_response_imag_axis
 from .casimir_grid import matsubara_xi_grid
 from .casimir_integrand import casimir_integrand_single_point
-from .conductivity import KuboConfig
+from .conductivity import KuboConfig, k_weights, uniform_bz_mesh
 from .conductivity_conventions import spatial_response_to_bilayer_sheet_conductivity_model
 from .conductivity_units import SheetConductivityUnitConvention, model_to_dimensionless_sheet_conductivity
 from .constants import KB
 from .material_response_cache import atomic_write_json, cache_path_for_point, load_reusable_point_cache, to_jsonable, write_point_cache
 from .material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE
+from .pairing import PairingAmplitudes
 from .reflection_input import sigma_tilde_xy_to_te_tm_reflection_matrix
 from .ward_response import physical_ward_residuals
 
@@ -27,6 +29,11 @@ DEFAULT_DISTANCE_NM = (50.0, 75.0, 100.0, 150.0, 200.0)
 DEFAULT_ZERO_MODE_OMEGA_EV = (1e-4, 3e-4, 1e-3, 3e-3)
 REPORT_LABEL = "finite-grid publication-style candidate result; not full convergence audit"
 MISSING_SC_BACKEND_MESSAGE = "finite-q superconducting s_pm/d_wave response is not available as a validated pipeline"
+UNVALIDATED_BDG_RESPONSE_MESSAGE = (
+    "finite-q BdG response validation marker is missing or not PASSED; "
+    "rerun validation or pass --allow-unvalidated-bdg-response"
+)
+VALIDATION_MARKER_PATH = Path(__file__).resolve().parents[2] / "validation" / "outputs" / "response" / "bdg_finite_q" / "stageSC_5_bdg_reflection_input_audit.json"
 BOUNDARY = {
     "finite_grid_publication_style_candidate_result": True,
     "not_full_convergence_audit": True,
@@ -59,6 +66,7 @@ class MaterialCasimirConfig:
     fermi_window_eV: float = 0.05
     eta_eV: float = 1e-10
     delta0_eV: float = 0.04
+    allow_unvalidated_bdg_response: bool = False
 
     @property
     def theta_rad(self) -> np.ndarray:
@@ -155,10 +163,37 @@ def finite_q_superconducting_response(
     kubo_config: KuboConfig,
     config: MaterialCasimirConfig,
 ) -> np.ndarray:
-    """Call a validated finite-q SC backend, if one exists."""
+    """Call the validated finite-q SC backend after checking the validation marker."""
 
-    _ = (pairing, omega_eV, q_model, kubo_config, config)
-    raise RuntimeError(MISSING_SC_BACKEND_MESSAGE)
+    validation = _bdg_validation_status()
+    if validation.get("status") != "PASSED" and not config.allow_unvalidated_bdg_response:
+        raise RuntimeError(UNVALIDATED_BDG_RESPONSE_MESSAGE)
+    canonical = canonical_pairing(pairing)
+    points = uniform_bz_mesh(config.coarse_grid)
+    weights = k_weights(points)
+    components = bdg_finite_q_response_imag_axis(
+        canonical,  # type: ignore[arg-type]
+        omega_eV,
+        q_model,
+        points,
+        weights,
+        kubo_config,
+        PairingAmplitudes(delta0_eV=config.delta0_eV),
+        include_phase_correction=True,
+    )
+    return components.gauge_restored
+
+
+def _bdg_validation_status(marker_path: Path = VALIDATION_MARKER_PATH) -> dict[str, Any]:
+    if not marker_path.exists():
+        return {"status": "MISSING", "path": str(marker_path)}
+    try:
+        import json
+
+        data = json.loads(marker_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return {"status": "INVALID", "path": str(marker_path), "error": str(exc)}
+    return {"status": data.get("status"), "path": str(marker_path)}
 
 
 def stage5_reflection_from_response(
@@ -268,6 +303,7 @@ def compute_reflection_point(pairing: str, n: int, Q_nm_inv: float, phi_deg: flo
             "total_max": ward_total,
             "status": ward_status,
         },
+        "unvalidated_bdg_response_used": bool(config.allow_unvalidated_bdg_response and _bdg_validation_status().get("status") != "PASSED"),
         "status": point_status,
     }
 
@@ -285,7 +321,7 @@ def _cached_point_job(args: tuple[str, int, float, float, MaterialCasimirConfig,
     try:
         row = compute_reflection_point(pairing, n, q, phi, config)
     except RuntimeError as exc:
-        if str(exc) == MISSING_SC_BACKEND_MESSAGE:
+        if str(exc) in {MISSING_SC_BACKEND_MESSAGE, UNVALIDATED_BDG_RESPONSE_MESSAGE}:
             raise
         row = {
             "point_id": pid,
@@ -456,6 +492,7 @@ def diagnostics_from_rows(point_rows: list[dict[str, Any]], energy: np.ndarray, 
         "computed_points": int(computed),
         "max_imaginary_real_ratio": float(np.nanmax(np.abs(energy.imag) / np.maximum(np.abs(energy.real), 1e-300))),
         "max_angular_energy_variation": float(np.nanmax(np.abs(delta.real))),
+        "unvalidated_bdg_response_used": bool(any(row.get("unvalidated_bdg_response_used") for row in point_rows)),
     }
 
 
@@ -479,6 +516,7 @@ def save_material_casimir_outputs(output_dir: Path, config: MaterialCasimirConfi
             "boundary": BOUNDARY,
             "config": config.__dict__,
             "diagnostics": energy_data["diagnostics"],
+            "unvalidated_bdg_response_used": bool(energy_data["diagnostics"].get("unvalidated_bdg_response_used")),
             "report_label": REPORT_LABEL,
             "data_files": {
                 "grid_json": str(grid_json),

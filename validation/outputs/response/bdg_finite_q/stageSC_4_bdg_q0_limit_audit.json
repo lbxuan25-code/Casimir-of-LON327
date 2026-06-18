@@ -1,0 +1,31 @@
+{
+  "cases": [
+    {
+      "local_comparison_abs": 0.0019043500488465388,
+      "local_comparison_relative": 0.020426948560495675,
+      "q_model_magnitude": 0.05,
+      "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response"
+    },
+    {
+      "local_comparison_abs": 0.0002784144800739328,
+      "local_comparison_relative": 0.0029864038212995946,
+      "q_model_magnitude": 0.02,
+      "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response"
+    },
+    {
+      "local_comparison_abs": 6.87406205172969e-05,
+      "local_comparison_relative": 0.0007373440193801948,
+      "q_model_magnitude": 0.01,
+      "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response"
+    },
+    {
+      "local_comparison_abs": 1.713194268998108e-05,
+      "local_comparison_relative": 0.00018376522335353707,
+      "q_model_magnitude": 0.005,
+      "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response"
+    }
+  ],
+  "monitors": [],
+  "quick": true,
+  "status": "PASSED"
+}

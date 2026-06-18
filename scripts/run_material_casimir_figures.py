@@ -54,6 +54,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--fermi-window-eV", type=float, default=0.05)
     parser.add_argument("--eta-eV", type=float, default=1e-10)
     parser.add_argument("--delta0-eV", type=float, default=0.04)
+    parser.add_argument("--allow-unvalidated-bdg-response", action="store_true")
     parser.add_argument("--dry-run-grid-only", action="store_true", help="Write a plan report without computing response.")
     return parser.parse_args()
 
@@ -75,6 +76,7 @@ def main() -> None:
         fermi_window_eV=args.fermi_window_eV,
         eta_eV=args.eta_eV,
         delta0_eV=args.delta0_eV,
+        allow_unvalidated_bdg_response=args.allow_unvalidated_bdg_response,
     )
     for subdir in ("cache", "data", "figures"):
         (args.output_dir / subdir).mkdir(parents=True, exist_ok=True)

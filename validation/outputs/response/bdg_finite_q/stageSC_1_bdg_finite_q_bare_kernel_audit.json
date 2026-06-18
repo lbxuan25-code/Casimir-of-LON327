@@ -1,0 +1,1399 @@
+{
+  "cases": [
+    {
+      "bare_bubble": [
+        [
+          {
+            "imag": -1.2523678456146929e-20,
+            "real": -1.3153091449229952
+          },
+          {
+            "imag": -5.3356298970633564e-05,
+            "real": -6.75985231468135e-18
+          },
+          {
+            "imag": -5.142995458548432e-22,
+            "real": -4.5528020914926655e-21
+          }
+        ],
+        [
+          {
+            "imag": 5.335629897063358e-05,
+            "real": 6.841167477617763e-18
+          },
+          {
+            "imag": -5.0980795512868605e-20,
+            "real": 0.23791851032621156
+          },
+          {
+            "imag": 4.7380905487041465e-21,
+            "real": -2.6562953225896634e-18
+          }
+        ],
+        [
+          {
+            "imag": 5.142995458548432e-22,
+            "real": 4.5528020914926655e-21
+          },
+          {
+            "imag": 4.5263323118905714e-21,
+            "real": 2.046431600566212e-18
+          },
+          {
+            "imag": -5.389247126905526e-20,
+            "real": 0.23786964529279836
+          }
+        ]
+      ],
+      "bare_total": [
+        [
+          {
+            "imag": -1.2523678456146929e-20,
+            "real": -1.3153091449229952
+          },
+          {
+            "imag": -5.3356298970633564e-05,
+            "real": -6.75985231468135e-18
+          },
+          {
+            "imag": -5.142995458548432e-22,
+            "real": -4.5528020914926655e-21
+          }
+        ],
+        [
+          {
+            "imag": 5.335629897063358e-05,
+            "real": 6.841167477617763e-18
+          },
+          {
+            "imag": -5.0980795512868605e-20,
+            "real": -0.06584064392072528
+          },
+          {
+            "imag": 4.7380905487041465e-21,
+            "real": -2.6562953225896634e-18
+          }
+        ],
+        [
+          {
+            "imag": 5.142995458548432e-22,
+            "real": 4.5528020914926655e-21
+          },
+          {
+            "imag": 4.5263323118905714e-21,
+            "real": 2.046431600566212e-18
+          },
+          {
+            "imag": -5.389247126905526e-20,
+            "real": -0.06588950895413853
+          }
+        ]
+      ],
+      "diagnostics": {
+        "bare_bubble": {
+          "all_finite": true,
+          "hermiticity_abs": 1.3601026544401144e-17,
+          "max_abs": 1.3153091449229952
+        },
+        "bare_total": {
+          "all_finite": true,
+          "hermiticity_abs": 1.3601026544401144e-17,
+          "max_abs": 1.3153091449229952
+        },
+        "direct": {
+          "all_finite": true,
+          "hermiticity_abs": 0.0,
+          "max_abs": 0.3037591542469369
+        }
+      },
+      "direct": [
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.30375915424693684
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3037591542469369
+          }
+        ]
+      ],
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": false,
+        "phase_correction_requested": false,
+        "phase_correction_status": "disabled",
+        "phase_phase_abs": 0.006238090689266791,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "omega_eV": 0.005,
+      "pairing": "spm",
+      "q_model": [
+        0.01,
+        0.0
+      ]
+    },
+    {
+      "bare_bubble": [
+        [
+          {
+            "imag": -2.9797361769875205e-19,
+            "real": -1.3154952993195548
+          },
+          {
+            "imag": -5.33553645325308e-05,
+            "real": -3.4044531807479588e-18
+          },
+          {
+            "imag": -5.335536453253171e-05,
+            "real": -3.587718392438045e-18
+          }
+        ],
+        [
+          {
+            "imag": 5.33553645325308e-05,
+            "real": 3.4857681368892185e-18
+          },
+          {
+            "imag": 6.834497093158103e-20,
+            "real": 0.2379332512857645
+          },
+          {
+            "imag": -5.849821291974687e-21,
+            "real": -2.1385066045013106e-05
+          }
+        ],
+        [
+          {
+            "imag": 5.335536453253171e-05,
+            "real": 3.519955756657701e-18
+          },
+          {
+            "imag": -5.2145465815339615e-21,
+            "real": -2.138506604501354e-05
+          },
+          {
+            "imag": 4.4998625322881456e-21,
+            "real": 0.23793325128576448
+          }
+        ]
+      ],
+      "bare_total": [
+        [
+          {
+            "imag": -2.9797361769875205e-19,
+            "real": -1.3154952993195548
+          },
+          {
+            "imag": -5.33553645325308e-05,
+            "real": -3.4044531807479588e-18
+          },
+          {
+            "imag": -5.335536453253171e-05,
+            "real": -3.587718392438045e-18
+          }
+        ],
+        [
+          {
+            "imag": 5.33553645325308e-05,
+            "real": 3.4857681368892185e-18
+          },
+          {
+            "imag": 6.834497093158103e-20,
+            "real": -0.06582590296117233
+          },
+          {
+            "imag": -5.849821291974687e-21,
+            "real": -2.1385066045013106e-05
+          }
+        ],
+        [
+          {
+            "imag": 5.335536453253171e-05,
+            "real": 3.519955756657701e-18
+          },
+          {
+            "imag": -5.2145465815339615e-21,
+            "real": -2.138506604501354e-05
+          },
+          {
+            "imag": 4.4998625322881456e-21,
+            "real": -0.06582590296117241
+          }
+        ]
+      ],
+      "diagnostics": {
+        "bare_bubble": {
+          "all_finite": true,
+          "hermiticity_abs": 7.107674149095746e-18,
+          "max_abs": 1.3154952993195548
+        },
+        "bare_total": {
+          "all_finite": true,
+          "hermiticity_abs": 7.107674149095746e-18,
+          "max_abs": 1.3154952993195548
+        },
+        "direct": {
+          "all_finite": true,
+          "hermiticity_abs": 0.0,
+          "max_abs": 0.3037591542469369
+        }
+      },
+      "direct": [
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.30375915424693684
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3037591542469369
+          }
+        ]
+      ],
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": false,
+        "phase_correction_requested": false,
+        "phase_correction_status": "disabled",
+        "phase_phase_abs": 0.00623800958536668,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "omega_eV": 0.005,
+      "pairing": "spm",
+      "q_model": [
+        0.01,
+        0.01
+      ]
+    },
+    {
+      "bare_bubble": [
+        [
+          {
+            "imag": -2.292723653755012e-19,
+            "real": -1.307194840801852
+          },
+          {
+            "imag": -0.00010642246595612707,
+            "real": -6.6925661349338364e-18
+          },
+          {
+            "imag": 2.839297452588304e-22,
+            "real": 6.882142696440388e-21
+          }
+        ],
+        [
+          {
+            "imag": 0.00010642246595612708,
+            "real": 6.597645505282151e-18
+          },
+          {
+            "imag": -2.0439963808430415e-19,
+            "real": 0.23790099056284275
+          },
+          {
+            "imag": 2.2711070898256734e-20,
+            "real": 1.992221491941937e-18
+          }
+        ],
+        [
+          {
+            "imag": 5.633099971486082e-22,
+            "real": -2.03817302933058e-20
+          },
+          {
+            "imag": 2.2287554424629584e-20,
+            "real": 8.849800232912753e-18
+          },
+          {
+            "imag": -1.0741436562368677e-19,
+            "real": 0.2378522067484361
+          }
+        ]
+      ],
+      "bare_total": [
+        [
+          {
+            "imag": -2.292723653755012e-19,
+            "real": -1.307194840801852
+          },
+          {
+            "imag": -0.00010642246595612707,
+            "real": -6.6925661349338364e-18
+          },
+          {
+            "imag": 2.839297452588304e-22,
+            "real": 6.882142696440388e-21
+          }
+        ],
+        [
+          {
+            "imag": 0.00010642246595612708,
+            "real": 6.597645505282151e-18
+          },
+          {
+            "imag": -2.0439963808430415e-19,
+            "real": -0.06585816368409408
+          },
+          {
+            "imag": 2.2711070898256734e-20,
+            "real": 1.992221491941937e-18
+          }
+        ],
+        [
+          {
+            "imag": 5.633099971486082e-22,
+            "real": -2.03817302933058e-20
+          },
+          {
+            "imag": 2.2287554424629584e-20,
+            "real": 8.849800232912753e-18
+          },
+          {
+            "imag": -1.0741436562368677e-19,
+            "real": -0.06590694749850079
+          }
+        ]
+      ],
+      "diagnostics": {
+        "bare_bubble": {
+          "all_finite": true,
+          "hermiticity_abs": 1.3290218550224253e-17,
+          "max_abs": 1.307194840801852
+        },
+        "bare_total": {
+          "all_finite": true,
+          "hermiticity_abs": 1.3290218550224253e-17,
+          "max_abs": 1.307194840801852
+        },
+        "direct": {
+          "all_finite": true,
+          "hermiticity_abs": 0.0,
+          "max_abs": 0.3037591542469369
+        }
+      },
+      "direct": [
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.30375915424693684
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3037591542469369
+          }
+        ]
+      ],
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": false,
+        "phase_correction_requested": false,
+        "phase_correction_status": "disabled",
+        "phase_phase_abs": 0.006213635049608605,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "omega_eV": 0.01,
+      "pairing": "spm",
+      "q_model": [
+        0.01,
+        0.0
+      ]
+    },
+    {
+      "bare_bubble": [
+        [
+          {
+            "imag": -6.2702275664989625e-19,
+            "real": -1.3073803239587205
+          },
+          {
+            "imag": -0.0001064205876861603,
+            "real": -3.479276132325598e-18
+          },
+          {
+            "imag": -0.00010642058768616216,
+            "real": -3.5947815652146335e-18
+          }
+        ],
+        [
+          {
+            "imag": 0.0001064205876861603,
+            "real": 3.601248876730217e-18
+          },
+          {
+            "imag": 7.887994321305607e-20,
+            "real": 0.23791572514419707
+          },
+          {
+            "imag": 2.84814828514265e-20,
+            "real": -2.1378604641460026e-05
+          }
+        ],
+        [
+          {
+            "imag": 0.00010642058768616217,
+            "real": 3.554123983746427e-18
+          },
+          {
+            "imag": 2.84814828514265e-20,
+            "real": -2.1378604641461815e-05
+          },
+          {
+            "imag": 2.5781565332052117e-20,
+            "real": 0.23791572514419707
+          }
+        ]
+      ],
+      "bare_total": [
+        [
+          {
+            "imag": -6.2702275664989625e-19,
+            "real": -1.3073803239587205
+          },
+          {
+            "imag": -0.0001064205876861603,
+            "real": -3.479276132325598e-18
+          },
+          {
+            "imag": -0.00010642058768616216,
+            "real": -3.5947815652146335e-18
+          }
+        ],
+        [
+          {
+            "imag": 0.0001064205876861603,
+            "real": 3.601248876730217e-18
+          },
+          {
+            "imag": 7.887994321305607e-20,
+            "real": -0.06584342910273977
+          },
+          {
+            "imag": 2.84814828514265e-20,
+            "real": -2.1378604641460026e-05
+          }
+        ],
+        [
+          {
+            "imag": 0.00010642058768616217,
+            "real": 3.554123983746427e-18
+          },
+          {
+            "imag": 2.84814828514265e-20,
+            "real": -2.1378604641461815e-05
+          },
+          {
+            "imag": 2.5781565332052117e-20,
+            "real": -0.06584342910273983
+          }
+        ]
+      ],
+      "diagnostics": {
+        "bare_bubble": {
+          "all_finite": true,
+          "hermiticity_abs": 7.148918395041208e-18,
+          "max_abs": 1.3073803239587205
+        },
+        "bare_total": {
+          "all_finite": true,
+          "hermiticity_abs": 7.148918395041208e-18,
+          "max_abs": 1.3073803239587205
+        },
+        "direct": {
+          "all_finite": true,
+          "hermiticity_abs": 0.0,
+          "max_abs": 0.3037591542469369
+        }
+      },
+      "direct": [
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.30375915424693684
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3037591542469369
+          }
+        ]
+      ],
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": false,
+        "phase_correction_requested": false,
+        "phase_correction_status": "disabled",
+        "phase_phase_abs": 0.0062135540211814356,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "omega_eV": 0.01,
+      "pairing": "spm",
+      "q_model": [
+        0.01,
+        0.01
+      ]
+    },
+    {
+      "bare_bubble": [
+        [
+          {
+            "imag": -2.07787769740851e-21,
+            "real": -0.016620534381944652
+          },
+          {
+            "imag": -1.2012288260351962e-05,
+            "real": -2.5241568323697597e-19
+          },
+          {
+            "imag": -7.643145802644121e-22,
+            "real": -1.6940794399111085e-20
+          }
+        ],
+        [
+          {
+            "imag": 1.2012288260351962e-05,
+            "real": 2.1006403587426096e-19
+          },
+          {
+            "imag": 6.680634485559863e-20,
+            "real": 0.23828240090538638
+          },
+          {
+            "imag": -1.6379760140609406e-20,
+            "real": -9.91878698015844e-18
+          }
+        ],
+        [
+          {
+            "imag": 5.591737883512613e-22,
+            "real": -3.896338011967274e-20
+          },
+          {
+            "imag": 3.9490305934938025e-21,
+            "real": -8.129853395557357e-18
+          },
+          {
+            "imag": 1.7527886617657432e-20,
+            "real": 0.2382970619698379
+          }
+        ]
+      ],
+      "bare_total": [
+        [
+          {
+            "imag": -2.07787769740851e-21,
+            "real": -0.016620534381944652
+          },
+          {
+            "imag": -1.2012288260351962e-05,
+            "real": -2.5241568323697597e-19
+          },
+          {
+            "imag": -7.643145802644121e-22,
+            "real": -1.6940794399111085e-20
+          }
+        ],
+        [
+          {
+            "imag": 1.2012288260351962e-05,
+            "real": 2.1006403587426096e-19
+          },
+          {
+            "imag": 6.680634485559863e-20,
+            "real": -0.06623502067130554
+          },
+          {
+            "imag": -1.6379760140609406e-20,
+            "real": -9.91878698015844e-18
+          }
+        ],
+        [
+          {
+            "imag": 5.591737883512613e-22,
+            "real": -3.896338011967274e-20
+          },
+          {
+            "imag": 3.9490305934938025e-21,
+            "real": -8.129853395557357e-18
+          },
+          {
+            "imag": 1.7527886617657432e-20,
+            "real": -0.06622035960685402
+          }
+        ]
+      ],
+      "diagnostics": {
+        "bare_bubble": {
+          "all_finite": true,
+          "hermiticity_abs": 1.788976772669436e-18,
+          "max_abs": 0.2382970619698379
+        },
+        "bare_total": {
+          "all_finite": true,
+          "hermiticity_abs": 1.788976772669436e-18,
+          "max_abs": 0.06623502067130554
+        },
+        "direct": {
+          "all_finite": true,
+          "hermiticity_abs": 0.0,
+          "max_abs": 0.3045174215766919
+        }
+      },
+      "direct": [
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3045174215766919
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3045174215766919
+          }
+        ]
+      ],
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": false,
+        "phase_correction_requested": false,
+        "phase_correction_status": "disabled",
+        "phase_phase_abs": 0.0033223384098657674,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "omega_eV": 0.005,
+      "pairing": "dwave",
+      "q_model": [
+        0.01,
+        0.0
+      ]
+    },
+    {
+      "bare_bubble": [
+        [
+          {
+            "imag": -3.705769144237564e-22,
+            "real": -0.016646540535945355
+          },
+          {
+            "imag": -1.2012712075117816e-05,
+            "real": 1.7787691892340307e-19
+          },
+          {
+            "imag": -1.201271207511783e-05,
+            "real": -1.3383120566617945e-19
+          }
+        ],
+        [
+          {
+            "imag": 1.2012712075117816e-05,
+            "real": -2.829090043829363e-19
+          },
+          {
+            "imag": -3.955417315027509e-20,
+            "real": 0.2383011018754592
+          },
+          {
+            "imag": 9.214842643055136e-21,
+            "real": -2.434177812019615e-05
+          }
+        ],
+        [
+          {
+            "imag": 1.2012712075117833e-05,
+            "real": -8.131516293641283e-20
+          },
+          {
+            "imag": 1.0485392063936587e-20,
+            "real": -2.434177812019702e-05
+          },
+          {
+            "imag": -2.6363123921891953e-20,
+            "real": 0.2383011018754592
+          }
+        ]
+      ],
+      "bare_total": [
+        [
+          {
+            "imag": -3.705769144237564e-22,
+            "real": -0.016646540535945355
+          },
+          {
+            "imag": -1.2012712075117816e-05,
+            "real": 1.7787691892340307e-19
+          },
+          {
+            "imag": -1.201271207511783e-05,
+            "real": -1.3383120566617945e-19
+          }
+        ],
+        [
+          {
+            "imag": 1.2012712075117816e-05,
+            "real": -2.829090043829363e-19
+          },
+          {
+            "imag": -3.955417315027509e-20,
+            "real": -0.06621631970123273
+          },
+          {
+            "imag": 9.214842643055136e-21,
+            "real": -2.434177812019615e-05
+          }
+        ],
+        [
+          {
+            "imag": 1.2012712075117833e-05,
+            "real": -8.131516293641283e-20
+          },
+          {
+            "imag": 1.0485392063936587e-20,
+            "real": -2.434177812019702e-05
+          },
+          {
+            "imag": -2.6363123921891953e-20,
+            "real": -0.06621631970123273
+          }
+        ]
+      ],
+      "diagnostics": {
+        "bare_bubble": {
+          "all_finite": true,
+          "hermiticity_abs": 8.675854331267755e-19,
+          "max_abs": 0.2383011018754592
+        },
+        "bare_total": {
+          "all_finite": true,
+          "hermiticity_abs": 8.675854331267755e-19,
+          "max_abs": 0.06621631970123273
+        },
+        "direct": {
+          "all_finite": true,
+          "hermiticity_abs": 0.0,
+          "max_abs": 0.3045174215766919
+        }
+      },
+      "direct": [
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3045174215766919
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3045174215766919
+          }
+        ]
+      ],
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": false,
+        "phase_correction_requested": false,
+        "phase_correction_status": "disabled",
+        "phase_phase_abs": 0.003322389777042553,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "omega_eV": 0.005,
+      "pairing": "dwave",
+      "q_model": [
+        0.01,
+        0.01
+      ]
+    },
+    {
+      "bare_bubble": [
+        [
+          {
+            "imag": 7.14684051895167e-22,
+            "real": -0.016618332721257633
+          },
+          {
+            "imag": -2.402247540881798e-05,
+            "real": -1.0164381862777445e-19
+          },
+          {
+            "imag": -8.735021153961716e-22,
+            "real": -4.404584870917851e-20
+          }
+        ],
+        [
+          {
+            "imag": 2.402247540881798e-05,
+            "real": 2.710491926939602e-20
+          },
+          {
+            "imag": 1.8424937809138723e-19,
+            "real": 0.23826473182565341
+          },
+          {
+            "imag": 6.89882700487321e-21,
+            "real": 1.1718389151920894e-18
+          }
+        ],
+        [
+          {
+            "imag": -8.271812240128533e-22,
+            "real": -1.1858325809605314e-20
+          },
+          {
+            "imag": -2.10532602545187e-20,
+            "real": 3.66550391190875e-18
+          },
+          {
+            "imag": 2.52702265909694e-20,
+            "real": 0.23827938642268098
+          }
+        ]
+      ],
+      "bare_total": [
+        [
+          {
+            "imag": 7.14684051895167e-22,
+            "real": -0.016618332721257633
+          },
+          {
+            "imag": -2.402247540881798e-05,
+            "real": -1.0164381862777445e-19
+          },
+          {
+            "imag": -8.735021153961716e-22,
+            "real": -4.404584870917851e-20
+          }
+        ],
+        [
+          {
+            "imag": 2.402247540881798e-05,
+            "real": 2.710491926939602e-20
+          },
+          {
+            "imag": 1.8424937809138723e-19,
+            "real": -0.06625268975103851
+          },
+          {
+            "imag": 6.89882700487321e-21,
+            "real": 1.1718389151920894e-18
+          }
+        ],
+        [
+          {
+            "imag": -8.271812240128533e-22,
+            "real": -1.1858325809605314e-20
+          },
+          {
+            "imag": -2.10532602545187e-20,
+            "real": 3.66550391190875e-18
+          },
+          {
+            "imag": 2.52702265909694e-20,
+            "real": -0.06623803515401094
+          }
+        ]
+      ],
+      "diagnostics": {
+        "bare_bubble": {
+          "all_finite": true,
+          "hermiticity_abs": 2.4937051677835774e-18,
+          "max_abs": 0.23827938642268098
+        },
+        "bare_total": {
+          "all_finite": true,
+          "hermiticity_abs": 2.4937051677835774e-18,
+          "max_abs": 0.06625268975103851
+        },
+        "direct": {
+          "all_finite": true,
+          "hermiticity_abs": 0.0,
+          "max_abs": 0.3045174215766919
+        }
+      },
+      "direct": [
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3045174215766919
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3045174215766919
+          }
+        ]
+      ],
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": false,
+        "phase_correction_requested": false,
+        "phase_correction_status": "disabled",
+        "phase_phase_abs": 0.0033220272850884793,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "omega_eV": 0.01,
+      "pairing": "dwave",
+      "q_model": [
+        0.01,
+        0.0
+      ]
+    },
+    {
+      "bare_bubble": [
+        [
+          {
+            "imag": 2.8852059765849605e-21,
+            "real": -0.01664433625811335
+          },
+          {
+            "imag": -2.402332045322405e-05,
+            "real": 1.6940658945086007e-19
+          },
+          {
+            "imag": -2.4023320453224063e-05,
+            "real": -1.7787691892340307e-19
+          }
+        ],
+        [
+          {
+            "imag": 2.4023320453224046e-05,
+            "real": -1.8295911660692887e-19
+          },
+          {
+            "imag": -7.914639660717546e-20,
+            "real": 0.23828342262527202
+          },
+          {
+            "imag": 1.6055676926530934e-20,
+            "real": -2.4332380471231825e-05
+          }
+        ],
+        [
+          {
+            "imag": 2.402332045322406e-05,
+            "real": 4.573977915173222e-20
+          },
+          {
+            "imag": 1.774808845981443e-20,
+            "real": -2.4332380471234267e-05
+          },
+          {
+            "imag": -2.558645194436692e-20,
+            "real": 0.238283422625272
+          }
+        ]
+      ],
+      "bare_total": [
+        [
+          {
+            "imag": 2.8852059765849605e-21,
+            "real": -0.01664433625811335
+          },
+          {
+            "imag": -2.402332045322405e-05,
+            "real": 1.6940658945086007e-19
+          },
+          {
+            "imag": -2.4023320453224063e-05,
+            "real": -1.7787691892340307e-19
+          }
+        ],
+        [
+          {
+            "imag": 2.4023320453224046e-05,
+            "real": -1.8295911660692887e-19
+          },
+          {
+            "imag": -7.914639660717546e-20,
+            "real": -0.0662339989514199
+          },
+          {
+            "imag": 1.6055676926530934e-20,
+            "real": -2.4332380471231825e-05
+          }
+        ],
+        [
+          {
+            "imag": 2.402332045322406e-05,
+            "real": 4.573977915173222e-20
+          },
+          {
+            "imag": 1.774808845981443e-20,
+            "real": -2.4332380471234267e-05
+          },
+          {
+            "imag": -2.558645194436692e-20,
+            "real": -0.06623399895141993
+          }
+        ]
+      ],
+      "diagnostics": {
+        "bare_bubble": {
+          "all_finite": true,
+          "hermiticity_abs": 2.4430768948884076e-18,
+          "max_abs": 0.23828342262527202
+        },
+        "bare_total": {
+          "all_finite": true,
+          "hermiticity_abs": 2.4430768948884076e-18,
+          "max_abs": 0.06623399895141993
+        },
+        "direct": {
+          "all_finite": true,
+          "hermiticity_abs": 0.0,
+          "max_abs": 0.3045174215766919
+        }
+      },
+      "direct": [
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3045174215766919
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -0.3045174215766919
+          }
+        ]
+      ],
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "finite_q_current_vertex_status": "q0_velocity_vertex_approximation",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "phase_correction_applied": false,
+        "phase_correction_requested": false,
+        "phase_correction_status": "disabled",
+        "phase_phase_abs": 0.003322078619939102,
+        "phase_phase_singular_threshold": 1e-06,
+        "warning": null
+      },
+      "omega_eV": 0.01,
+      "pairing": "dwave",
+      "q_model": [
+        0.01,
+        0.01
+      ]
+    }
+  ],
+  "failures": [],
+  "quick": true,
+  "status": "PASSED"
+}

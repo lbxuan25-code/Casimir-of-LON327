@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+"""Audit small-q BdG response against existing local BdG convention."""
+
+from __future__ import annotations
+
+import numpy as np
+
+from bdg_finite_q_audit_common import local_bdg_response_as_pi, parser, response_case, status_from_failures, write_report
+
+
+def main() -> None:
+    args = parser(__doc__).parse_args()
+    omega = 0.01
+    local = local_bdg_response_as_pi("spm", omega, 0.04, args.quick)
+    cases = []
+    monitors: list[str] = []
+    for qmag in (0.05, 0.02, 0.01, 0.005):
+        q = np.array([qmag, 0.0])
+        result = response_case("spm", omega, q, 0.04, args.quick, phase=True)
+        diff = result.gauge_restored[1:3, 1:3] - local[1:3, 1:3]
+        cases.append(
+            {
+                "q_model_magnitude": qmag,
+                "local_comparison_abs": float(np.linalg.norm(diff)),
+                "local_comparison_relative": float(np.linalg.norm(diff) / max(np.linalg.norm(local[1:3, 1:3]), 1e-300)),
+                "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response",
+            }
+        )
+    if cases[-1]["local_comparison_abs"] > cases[0]["local_comparison_abs"]:
+        monitors.append("smallest q is not closer to local BdG than largest q")
+    write_report(
+        "stageSC_4_bdg_q0_limit_audit",
+        {"status": status_from_failures([], monitors), "quick": bool(args.quick), "monitors": monitors, "cases": cases},
+    )
+
+
+if __name__ == "__main__":
+    main()
