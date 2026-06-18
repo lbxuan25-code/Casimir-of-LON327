@@ -16,7 +16,9 @@ from .ward_response import physical_ward_residuals
 from .ward_response import normal_physical_density_current_response_components_imag_axis
 
 
-PairingName = Literal["spm", "dwave"]
+PairingName = Literal["onsite_s", "spm", "dwave"]
+PhaseVertexName = Literal["midpoint", "symmetric_kpm"]
+PhaseDirectConvention = Literal["plus", "minus"]
 
 
 @dataclass(frozen=True)
@@ -24,11 +26,24 @@ class BdGFiniteQResponseComponents:
     bare_bubble: np.ndarray
     direct: np.ndarray
     bare_total: np.ndarray
+
     phase_coupling_left: np.ndarray
     phase_coupling_right: np.ndarray
-    phase_phase: complex
+    phase_phase_bubble: complex
+    phase_phase_direct: complex
+    phase_phase_total: complex
+
+    minus_schur: np.ndarray
+    plus_schur: np.ndarray
     gauge_restored: np.ndarray
+
     metadata: dict[str, Any]
+
+    @property
+    def phase_phase(self) -> complex:
+        """Backward-compatible alias for the total phase kernel."""
+
+        return self.phase_phase_total
 
 
 class BdGPhaseCorrectionError(RuntimeError):
@@ -85,7 +100,11 @@ def _normal_limit_components(
         bare_total=total,
         phase_coupling_left=left,
         phase_coupling_right=right,
-        phase_phase=phase_phase,
+        phase_phase_bubble=phase_phase,
+        phase_phase_direct=phase_phase,
+        phase_phase_total=phase_phase,
+        minus_schur=total.copy(),
+        plus_schur=total.copy(),
         gauge_restored=total.copy(),
         metadata={
             "normal_limit_delegated_to": "normal_physical_density_current_response_components_imag_axis",
@@ -97,6 +116,18 @@ def _normal_limit_components(
             "phase_correction_status": "skipped_normal_delta0_limit",
         },
     )
+
+
+def _pairing_matrix_for_kind(
+    kind: PairingName,
+    kx: float,
+    ky: float,
+    amp: PairingAmplitudes | None,
+) -> np.ndarray:
+    if kind == "onsite_s":
+        amplitude = amp or PairingAmplitudes()
+        return amplitude.delta0_eV * np.eye(4, dtype=complex)
+    return pairing_matrix(kind, kx, ky, amp)
 
 
 def bdg_finite_q_vector_vertex(
@@ -133,6 +164,29 @@ def bdg_finite_q_contact_vertex(
 def _phase_vertex(pairing: np.ndarray) -> np.ndarray:
     zero = np.zeros_like(pairing)
     return np.block([[zero, 1j * pairing], [-1j * pairing.conjugate().T, zero]]).astype(complex)
+
+
+def _phase_phase_direct_vertex(delta_theta: np.ndarray) -> np.ndarray:
+    zero = np.zeros_like(delta_theta)
+    return np.block([[zero, -delta_theta], [-delta_theta.conjugate().T, zero]]).astype(complex)
+
+
+def _phase_pairing_matrix(
+    pairing: PairingName,
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    pairing_params: PairingAmplitudes | None,
+    phase_vertex: PhaseVertexName,
+) -> np.ndarray:
+    if phase_vertex == "midpoint":
+        return _pairing_matrix_for_kind(pairing, kx, ky, pairing_params)
+    if phase_vertex == "symmetric_kpm":
+        delta_minus = _pairing_matrix_for_kind(pairing, kx - 0.5 * qx, ky - 0.5 * qy, pairing_params)
+        delta_plus = _pairing_matrix_for_kind(pairing, kx + 0.5 * qx, ky + 0.5 * qy, pairing_params)
+        return 0.5 * (delta_minus + delta_plus)
+    raise ValueError("phase_vertex must be 'midpoint' or 'symmetric_kpm'")
 
 
 def _density_vertex() -> np.ndarray:
@@ -195,11 +249,14 @@ def bdg_finite_q_response_imag_axis(
     include_phase_correction: bool = True,
     use_normal_backend_in_delta0_limit: bool = False,
     current_vertex: Literal["peierls", "q0_velocity"] = "peierls",
+    phase_vertex: PhaseVertexName = "symmetric_kpm",
+    include_phase_phase_direct: bool = True,
+    phase_phase_direct_convention: PhaseDirectConvention = "plus",
 ) -> BdGFiniteQResponseComponents:
     """Return finite-q BdG response components using Stage 4/5 conventions."""
 
-    if pairing not in {"spm", "dwave"}:
-        raise ValueError("pairing must be 'spm' or 'dwave'")
+    if pairing not in {"onsite_s", "spm", "dwave"}:
+        raise ValueError("pairing must be 'onsite_s', 'spm', or 'dwave'")
     if abs(float(config.omega_eV) - float(omega_eV)) > max(1e-14, 1e-10 * max(1.0, abs(float(omega_eV)))):
         raise ValueError("omega_eV must match config.omega_eV")
     q, points, weights = _validate_inputs(q_model, k_points, k_weights, config)
@@ -207,6 +264,10 @@ def bdg_finite_q_response_imag_axis(
         return _normal_limit_components(q, points, weights, config, include_phase_correction=include_phase_correction)
     if current_vertex not in {"peierls", "q0_velocity"}:
         raise ValueError("current_vertex must be 'peierls' or 'q0_velocity'")
+    if phase_vertex not in {"midpoint", "symmetric_kpm"}:
+        raise ValueError("phase_vertex must be 'midpoint' or 'symmetric_kpm'")
+    if phase_phase_direct_convention not in {"plus", "minus"}:
+        raise ValueError("phase_phase_direct_convention must be 'plus' or 'minus'")
 
     qx, qy = float(q[0]), float(q[1])
     rho = _density_vertex()
@@ -214,7 +275,9 @@ def bdg_finite_q_response_imag_axis(
     direct = np.zeros((3, 3), dtype=complex)
     phase_left = np.zeros(3, dtype=complex)
     phase_right = np.zeros(3, dtype=complex)
-    phase_phase_matrix = np.zeros((1, 1), dtype=complex)
+    phase_phase_bubble_matrix = np.zeros((1, 1), dtype=complex)
+    phase_phase_direct_plus = 0.0 + 0.0j
+    phase_phase_direct_minus = 0.0 + 0.0j
     directions = ("x", "y")
 
     for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
@@ -222,8 +285,8 @@ def bdg_finite_q_response_imag_axis(
         ky = float(ky_value)
         kx_minus, ky_minus = kx - 0.5 * qx, ky - 0.5 * qy
         kx_plus, ky_plus = kx + 0.5 * qx, ky + 0.5 * qy
-        delta_minus = pairing_matrix(pairing, kx_minus, ky_minus, pairing_params)
-        delta_plus = pairing_matrix(pairing, kx_plus, ky_plus, pairing_params)
+        delta_minus = _pairing_matrix_for_kind(pairing, kx_minus, ky_minus, pairing_params)
+        delta_plus = _pairing_matrix_for_kind(pairing, kx_plus, ky_plus, pairing_params)
         energies_minus, states_minus = np.linalg.eigh(bdg_hamiltonian(kx_minus, ky_minus, delta_minus))
         energies_plus, states_plus = np.linalg.eigh(bdg_hamiltonian(kx_plus, ky_plus, delta_plus))
         occupations_minus = fermi_function(energies_minus, config.fermi_level_eV, config.temperature_eV)
@@ -251,8 +314,9 @@ def bdg_finite_q_response_imag_axis(
             float(weight),
         )
 
-        delta_mid = pairing_matrix(pairing, kx, ky, pairing_params)
-        theta = _phase_vertex(delta_mid)
+        delta_mid = _pairing_matrix_for_kind(pairing, kx, ky, pairing_params)
+        delta_theta = _phase_pairing_matrix(pairing, kx, ky, qx, qy, pairing_params, phase_vertex)
+        theta = _phase_vertex(delta_theta)
         tmp_left = np.zeros((3, 1), dtype=complex)
         _add_bubble(
             tmp_left,
@@ -284,7 +348,7 @@ def bdg_finite_q_response_imag_axis(
         )
         phase_right += tmp_right[0, :]
         _add_bubble(
-            phase_phase_matrix,
+            phase_phase_bubble_matrix,
             (theta,),
             (theta,),
             energies_minus,
@@ -296,6 +360,10 @@ def bdg_finite_q_response_imag_axis(
             config.omega_eV,
             float(weight),
         )
+        theta_theta = _phase_phase_direct_vertex(delta_theta)
+        direct_value = float(weight) * _thermal_expectation_bdg(kx, ky, delta_mid, theta_theta, config)
+        phase_phase_direct_plus += direct_value
+        phase_phase_direct_minus -= direct_value
 
         for i, direction_i in enumerate(directions):
             for j, direction_j in enumerate(directions):
@@ -306,11 +374,16 @@ def bdg_finite_q_response_imag_axis(
                 direct[1 + i, 1 + j] += -float(weight) * _thermal_expectation_bdg(kx, ky, delta_mid, vertex, config)
 
     bare_total = bubble + direct
-    phase_phase = complex(phase_phase_matrix[0, 0])
+    phase_phase_bubble = complex(phase_phase_bubble_matrix[0, 0])
+    selected_phase_phase_direct = (
+        phase_phase_direct_plus if phase_phase_direct_convention == "plus" else phase_phase_direct_minus
+    )
+    phase_phase_direct = selected_phase_phase_direct if include_phase_phase_direct else 0.0 + 0.0j
+    phase_phase_total = phase_phase_bubble + phase_phase_direct
     minus_schur = bare_total.copy()
     plus_schur = bare_total.copy()
-    if abs(phase_phase) > 0.0:
-        schur_term = np.outer(phase_left, phase_right) / phase_phase
+    if abs(phase_phase_total) > 0.0:
+        schur_term = np.outer(phase_left, phase_right) / phase_phase_total
         minus_schur = bare_total - schur_term
         plus_schur = bare_total + schur_term
     gauge_restored = bare_total.copy()
@@ -318,10 +391,10 @@ def bdg_finite_q_response_imag_axis(
     warning_message = None
     threshold = max(100.0 * float(config.eta_eV), 1e-14)
     if include_phase_correction:
-        if abs(phase_phase) <= threshold:
+        if abs(phase_phase_total) <= threshold:
             phase_status = "singular_phase_phase"
             warning_message = (
-                f"Global phase correction skipped because |K_theta_theta|={abs(phase_phase):.3e} "
+                f"Global phase correction skipped because |K_theta_theta|={abs(phase_phase_total):.3e} "
                 f"is below threshold {threshold:.3e}."
             )
             warnings.warn(warning_message, RuntimeWarning, stacklevel=2)
@@ -338,7 +411,11 @@ def bdg_finite_q_response_imag_axis(
         bare_total=bare_total,
         phase_coupling_left=phase_left,
         phase_coupling_right=phase_right,
-        phase_phase=phase_phase,
+        phase_phase_bubble=phase_phase_bubble,
+        phase_phase_direct=phase_phase_direct,
+        phase_phase_total=phase_phase_total,
+        minus_schur=minus_schur,
+        plus_schur=plus_schur,
         gauge_restored=gauge_restored,
         metadata={
             "nambu_basis": "(c_k, c^dagger_-k)",
@@ -349,22 +426,39 @@ def bdg_finite_q_response_imag_axis(
             "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
             "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
             "phase_correction_sign_checked": True,
+            "validation_only_pairing": pairing == "onsite_s",
             "finite_q_current_vertex_status": (
                 "normal_state_exact_finite_q_peierls_vertex"
                 if current_vertex == "peierls"
                 else "q0_velocity_vertex_approximation_not_gauge_closed"
             ),
             "collective_channels": ["global_phase_only"],
-            "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+            "phase_vertex": phase_vertex,
+            "phase_vertex_status": f"{phase_vertex}_pair_center_of_mass_phase_not_full_gauge_closure_proof",
             "phase_vertex_convention": (
                 "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; "
-                "for k-dependent Delta this implementation evaluates Delta at midpoint k, "
+                f"for k-dependent Delta this implementation uses phase_vertex={phase_vertex}, "
                 "while quasiparticles are routed through k±q/2."
+            ),
+            "phase_phase_direct_included": bool(include_phase_phase_direct),
+            "phase_phase_total_definition": "bubble + direct",
+            "phase_phase_direct_convention": phase_phase_direct_convention,
+            "phase_phase_direct_plus_convention": phase_phase_direct_plus,
+            "phase_phase_direct_minus_convention": phase_phase_direct_minus,
+            "phase_kernel_status": (
+                "bubble_plus_direct"
+                if include_phase_phase_direct
+                else "bubble_only_not_expected_to_gauge_close"
             ),
             "phase_correction_requested": bool(include_phase_correction),
             "phase_correction_applied": phase_status == "applied",
             "phase_correction_status": phase_status,
-            "phase_phase_abs": float(abs(phase_phase)),
+            "phase_phase_bubble": phase_phase_bubble,
+            "phase_phase_direct": phase_phase_direct,
+            "phase_phase_total": phase_phase_total,
+            "phase_phase_abs": float(abs(phase_phase_total)),
+            "phase_phase_bubble_abs": float(abs(phase_phase_bubble)),
+            "phase_phase_direct_abs": float(abs(phase_phase_direct)),
             "phase_phase_singular_threshold": float(threshold),
             "ward_residual_bare": ward_bare,
             "ward_residual_minus_schur": ward_minus,

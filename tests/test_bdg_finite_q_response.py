@@ -39,9 +39,15 @@ def test_bdg_finite_q_response_shapes_with_and_without_phase_correction():
         assert result.gauge_restored.shape == (3, 3)
         assert result.phase_coupling_left.shape == (3,)
         assert result.phase_coupling_right.shape == (3,)
+        assert isinstance(result.phase_phase_bubble, complex)
+        assert isinstance(result.phase_phase_direct, complex)
+        assert result.phase_phase == result.phase_phase_total
+        assert result.minus_schur.shape == (3, 3)
+        assert result.plus_schur.shape == (3, 3)
         assert np.all(np.isfinite(result.gauge_restored))
         assert result.metadata["nambu_prefactor"] == 0.5
         assert result.metadata["collective_channels"] == ["global_phase_only"]
+        assert result.metadata["phase_phase_total_definition"] == "bubble + direct"
 
 
 def test_small_phase_phase_has_clear_warning_metadata():
@@ -125,3 +131,32 @@ def test_q0_velocity_approximation_is_not_marked_gauge_closed():
         current_vertex="q0_velocity",
     )
     assert result.metadata["finite_q_current_vertex_status"] == "q0_velocity_vertex_approximation_not_gauge_closed"
+
+
+def test_phase_vertex_options_and_onsite_s_validation_pairing_run():
+    q, points, weights, config, amp = _inputs()
+    midpoint = bdg_finite_q_response_imag_axis(
+        "onsite_s",
+        config.omega_eV,
+        q,
+        points,
+        weights,
+        config,
+        amp,
+        phase_vertex="midpoint",
+    )
+    symmetric = bdg_finite_q_response_imag_axis(
+        "onsite_s",
+        config.omega_eV,
+        q,
+        points,
+        weights,
+        config,
+        amp,
+        phase_vertex="symmetric_kpm",
+        include_phase_phase_direct=False,
+    )
+    assert midpoint.metadata["validation_only_pairing"] is True
+    assert midpoint.metadata["phase_vertex"] == "midpoint"
+    assert symmetric.metadata["phase_vertex"] == "symmetric_kpm"
+    assert symmetric.metadata["phase_kernel_status"] == "bubble_only_not_expected_to_gauge_close"

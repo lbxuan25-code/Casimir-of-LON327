@@ -23,6 +23,9 @@ def main() -> None:
                 "q_model_magnitude": qmag,
                 "local_comparison_abs": float(np.linalg.norm(diff)),
                 "local_comparison_relative": float(np.linalg.norm(diff) / max(np.linalg.norm(local[1:3, 1:3]), 1e-300)),
+                "phase_vertex": result.metadata["phase_vertex"],
+                "phase_phase_direct_included": result.metadata["phase_phase_direct_included"],
+                "phase_phase_direct_convention": result.metadata["phase_phase_direct_convention"],
                 "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response",
             }
         )
@@ -47,6 +50,9 @@ def main() -> None:
                 "smallest_q_abs": cases[-1]["local_comparison_abs"],
                 "largest_q_abs": cases[0]["local_comparison_abs"],
                 "monotonic_decreasing": not monitors,
+                "phase_vertex": cases[0]["phase_vertex"],
+                "phase_phase_direct_included": cases[0]["phase_phase_direct_included"],
+                "phase_phase_direct_convention": cases[0]["phase_phase_direct_convention"],
             },
             "monitors": monitors,
             "cases": cases,

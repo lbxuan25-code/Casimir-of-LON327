@@ -1,9 +1,9 @@
 {
   "cases": [
     {
-      "absolute_difference": 1.3140502140481112,
+      "absolute_difference": 0.2376036471512957,
       "delta0_eV": 0.04,
-      "max_component_difference": 1.3140454291280537,
+      "max_component_difference": 0.16605886219429633,
       "metadata": {
         "collective_channels": [
           "global_phase_only"
@@ -21,35 +21,64 @@
         "phase_correction_requested": true,
         "phase_correction_sign_checked": true,
         "phase_correction_status": "applied",
-        "phase_phase_abs": 0.006213635049608605,
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 3.8684360443394517e-05,
+        "phase_phase_bubble": {
+          "imag": -6.2270550943444534e-21,
+          "real": -0.011245464808871009
+        },
+        "phase_phase_bubble_abs": 0.011245464808871009,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 0.011284149169314403
+        },
+        "phase_phase_direct_abs": 0.011284149169314403,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -0.011284149169314403
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 0.011284149169314403
+        },
         "phase_phase_singular_threshold": 1e-06,
-        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
-        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "phase_phase_total": {
+          "imag": -6.2270550943444534e-21,
+          "real": 3.8684360443394517e-05
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "minus_schur",
+        "validation_only_pairing": true,
         "ward_residual_bare": {
-          "left_norm": 0.0130874149247102,
-          "max_norm": 0.0130874149247102,
-          "right_norm": 0.0130874149247102
+          "left_norm": 0.015163094917268107,
+          "max_norm": 0.015163094917268107,
+          "right_norm": 0.015163094917268107
         },
         "ward_residual_minus_schur": {
-          "left_norm": 0.013157724615729512,
-          "max_norm": 0.013157724615729512,
-          "right_norm": 0.013157724615729512
+          "left_norm": 0.0017539715335477778,
+          "max_norm": 0.0017539715335477778,
+          "right_norm": 0.0017539715335477778
         },
         "ward_residual_plus_schur": {
-          "left_norm": 0.013017105515619035,
-          "max_norm": 0.013017105515619035,
-          "right_norm": 0.013017105515619035
+          "left_norm": 0.03173313538630363,
+          "max_norm": 0.03173313538630363,
+          "right_norm": 0.03173313538630363
         },
         "warning": null
       },
-      "relative_difference": 19.210055985751286,
+      "pairing": "onsite_s",
+      "relative_difference": 2.4276177740668694,
       "used_normal_backend_shortcut": false
     },
     {
-      "absolute_difference": 0.23565456937218698,
+      "absolute_difference": 0.018124014068874202,
       "delta0_eV": 0.01,
-      "max_component_difference": 0.23565414062611784,
+      "max_component_difference": 0.012806255720933211,
       "metadata": {
         "collective_channels": [
           "global_phase_only"
@@ -67,35 +96,64 @@
         "phase_correction_requested": true,
         "phase_correction_sign_checked": true,
         "phase_correction_status": "applied",
-        "phase_phase_abs": 0.00048576386550192924,
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 6.214760294441166e-06,
+        "phase_phase_bubble": {
+          "imag": -1.5389728247269038e-21,
+          "real": -0.0008124752262211439
+        },
+        "phase_phase_bubble_abs": 0.0008124752262211439,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 0.0008186899865155851
+        },
+        "phase_phase_direct_abs": 0.0008186899865155851,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -0.0008186899865155851
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 0.0008186899865155851
+        },
         "phase_phase_singular_threshold": 1e-06,
-        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
-        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "phase_phase_total": {
+          "imag": -1.5389728247269038e-21,
+          "real": 6.214760294441166e-06
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "minus_schur",
+        "validation_only_pairing": true,
         "ward_residual_bare": {
-          "left_norm": 0.002425863494703547,
-          "max_norm": 0.002425863494703547,
-          "right_norm": 0.002425863494703547
+          "left_norm": 0.0025757934896108044,
+          "max_norm": 0.0025757934896108044,
+          "right_norm": 0.0025757934896108044
         },
         "ward_residual_minus_schur": {
-          "left_norm": 0.0024530181168192938,
-          "max_norm": 0.0024530181168192938,
-          "right_norm": 0.0024530181168192938
+          "left_norm": 0.000563550802479502,
+          "max_norm": 0.000563550802479502,
+          "right_norm": 0.000563550802479502
         },
         "ward_residual_plus_schur": {
-          "left_norm": 0.002398732858599291,
-          "max_norm": 0.002398732858599291,
-          "right_norm": 0.002398732858599291
+          "left_norm": 0.0051572533287955555,
+          "max_norm": 0.0051572533287955555,
+          "right_norm": 0.0051572533287955555
         },
         "warning": null
       },
-      "relative_difference": 3.4450325189333166,
+      "pairing": "onsite_s",
+      "relative_difference": 0.18721490438136223,
       "used_normal_backend_shortcut": false
     },
     {
-      "absolute_difference": 0.023388818457527872,
+      "absolute_difference": 0.02450225769619414,
       "delta0_eV": 0.003,
-      "max_component_difference": 0.023388779098701292,
+      "max_component_difference": 0.02450225692855336,
       "metadata": {
         "collective_channels": [
           "global_phase_only"
@@ -108,40 +166,69 @@
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
-        "phase_correction_applied": true,
+        "phase_correction_applied": false,
         "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": true,
         "phase_correction_sign_checked": true,
-        "phase_correction_status": "applied",
-        "phase_phase_abs": 4.4675288672656364e-05,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 6.125316667834749e-07,
+        "phase_phase_bubble": {
+          "imag": 3.6807154627505047e-22,
+          "real": -7.415196311846623e-05
+        },
+        "phase_phase_bubble_abs": 7.415196311846623e-05,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 7.476449478524971e-05
+        },
+        "phase_phase_direct_abs": 7.476449478524971e-05,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -7.476449478524971e-05
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 7.476449478524971e-05
+        },
         "phase_phase_singular_threshold": 1e-06,
-        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
-        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
-        "selected_gauge_restored": "minus_schur",
+        "phase_phase_total": {
+          "imag": 3.6807154627505047e-22,
+          "real": 6.125316667834749e-07
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": true,
         "ward_residual_bare": {
-          "left_norm": 0.0007214302202263888,
-          "max_norm": 0.0007214302202263888,
-          "right_norm": 0.0007214302202263888
+          "left_norm": 0.0007263473965643116,
+          "max_norm": 0.0007263473965643117,
+          "right_norm": 0.0007263473965643117
         },
         "ward_residual_minus_schur": {
-          "left_norm": 0.0007224275460028558,
-          "max_norm": 0.0007224275460028558,
-          "right_norm": 0.0007224275460028558
+          "left_norm": 0.0006716467633412917,
+          "max_norm": 0.0006716467633412917,
+          "right_norm": 0.0006716467633412917
         },
         "ward_residual_plus_schur": {
-          "left_norm": 0.0007204441086178649,
-          "max_norm": 0.0007204441086178649,
-          "right_norm": 0.0007204441086178649
+          "left_norm": 0.0008579548324547198,
+          "max_norm": 0.0008579548324547198,
+          "right_norm": 0.0008579548324547198
         },
-        "warning": null
+        "warning": "Global phase correction skipped because |K_theta_theta|=6.125e-07 is below threshold 1.000e-06."
       },
-      "relative_difference": 0.34192102188016293,
+      "pairing": "onsite_s",
+      "relative_difference": 0.3581989761853992,
       "used_normal_backend_shortcut": false
     },
     {
-      "absolute_difference": 0.002622054512959687,
+      "absolute_difference": 0.0027454033247194436,
       "delta0_eV": 0.001,
-      "max_component_difference": 0.0026220501322384102,
+      "max_component_difference": 0.0027454032424983807,
       "metadata": {
         "collective_channels": [
           "global_phase_only"
@@ -154,34 +241,63 @@
         "nambu_basis": "(c_k, c^dagger_-k)",
         "nambu_prefactor": 0.5,
         "normal_backend_reference_used": false,
-        "phase_correction_applied": true,
+        "phase_correction_applied": false,
         "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
         "phase_correction_requested": true,
         "phase_correction_sign_checked": true,
-        "phase_correction_status": "applied",
-        "phase_phase_abs": 4.973764760767093e-06,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 6.862685735083256e-08,
+        "phase_phase_bubble": {
+          "imag": -4.208183090318472e-24,
+          "real": -8.249664447298206e-06
+        },
+        "phase_phase_bubble_abs": 8.249664447298206e-06,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 8.318291304649038e-06
+        },
+        "phase_phase_direct_abs": 8.318291304649038e-06,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -8.318291304649038e-06
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 8.318291304649038e-06
+        },
         "phase_phase_singular_threshold": 1e-06,
-        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
-        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
-        "selected_gauge_restored": "minus_schur",
+        "phase_phase_total": {
+          "imag": -4.208183090318472e-24,
+          "real": 6.862685735083256e-08
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": true,
         "ward_residual_bare": {
-          "left_norm": 0.0006842608329896267,
-          "max_norm": 0.0006842608329896267,
-          "right_norm": 0.0006842608329896267
+          "left_norm": 0.0006843551442270572,
+          "max_norm": 0.0006843551442270572,
+          "right_norm": 0.0006843551442270572
         },
         "ward_residual_minus_schur": {
-          "left_norm": 0.0006842770565248154,
-          "max_norm": 0.0006842770565248154,
-          "right_norm": 0.0006842770565248154
+          "left_norm": 0.000682444212003258,
+          "max_norm": 0.000682444212003258,
+          "right_norm": 0.000682444212003258
         },
         "ward_residual_plus_schur": {
-          "left_norm": 0.0006842447779866452,
-          "max_norm": 0.0006842447779866452,
-          "right_norm": 0.0006842447779866452
+          "left_norm": 0.0006874668114602642,
+          "max_norm": 0.0006874668114602642,
+          "right_norm": 0.0006874668114602642
         },
-        "warning": null
+        "warning": "Global phase correction skipped because |K_theta_theta|=6.863e-08 is below threshold 1.000e-06."
       },
-      "relative_difference": 0.03833180247898255,
+      "pairing": "onsite_s",
+      "relative_difference": 0.0401351040251726,
       "used_normal_backend_shortcut": false
     },
     {
@@ -205,11 +321,39 @@
         "phase_correction_requested": true,
         "phase_correction_sign_checked": true,
         "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
         "phase_phase_abs": 0.0,
+        "phase_phase_bubble": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_bubble_abs": 0.0,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_direct_abs": 0.0,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 0.0
+        },
         "phase_phase_singular_threshold": 1e-06,
-        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation evaluates Delta at midpoint k, while quasiparticles are routed through k\u00b1q/2.",
-        "phase_vertex_status": "midpoint_pair_relative_momentum_global_center_of_mass_phase_not_full_gauge_closure_proof",
+        "phase_phase_total": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
         "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": true,
         "ward_residual_bare": {
           "left_norm": 0.0006838071218582925,
           "max_norm": 0.0006838071218582925,
@@ -227,6 +371,757 @@
         },
         "warning": "Global phase correction skipped because |K_theta_theta|=0.000e+00 is below threshold 1.000e-06."
       },
+      "pairing": "onsite_s",
+      "relative_difference": 1.2172789973372595e-15,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 0.04276974026714038,
+      "delta0_eV": 0.04,
+      "max_component_difference": 0.03001854533278192,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": true,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "applied",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 3.275625415812607e-05,
+        "phase_phase_bubble": {
+          "imag": 2.0351310838613757e-21,
+          "real": -0.006213635049608605
+        },
+        "phase_phase_bubble_abs": 0.006213635049608605,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 0.006246391303766731
+        },
+        "phase_phase_direct_abs": 0.006246391303766731,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -0.006246391303766731
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 0.006246391303766731
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": 2.0351310838613757e-21,
+          "real": 3.275625415812607e-05
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "minus_schur",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.0130874149247102,
+          "max_norm": 0.0130874149247102,
+          "right_norm": 0.0130874149247102
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0004417864638627202,
+          "max_norm": 0.0004417864638627202,
+          "right_norm": 0.0004417864638627202
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.026427162854101342,
+          "max_norm": 0.026427162854101342,
+          "right_norm": 0.026427162854101342
+        },
+        "warning": null
+      },
+      "pairing": "spm",
+      "relative_difference": 0.43884170491441843,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 0.003476347429400006,
+      "delta0_eV": 0.01,
+      "max_component_difference": 0.0024311487336726536,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": true,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "applied",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 5.815464977122775e-06,
+        "phase_phase_bubble": {
+          "imag": -3.640399211083194e-22,
+          "real": -0.00048576386550192924
+        },
+        "phase_phase_bubble_abs": 0.00048576386550192924,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 0.000491579330479052
+        },
+        "phase_phase_direct_abs": 0.000491579330479052,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -0.000491579330479052
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 0.000491579330479052
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": -3.640399211083194e-22,
+          "real": 5.815464977122775e-06
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "minus_schur",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.002425863494703547,
+          "max_norm": 0.002425863494703547,
+          "right_norm": 0.002425863494703547
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006565799398489193,
+          "max_norm": 0.0006565799398489193,
+          "right_norm": 0.0006565799398489193
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.004736139856262685,
+          "max_norm": 0.004736139856262685,
+          "right_norm": 0.004736139856262685
+        },
+        "warning": null
+      },
+      "pairing": "spm",
+      "relative_difference": 0.035541011176858525,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 0.023090503719573763,
+      "delta0_eV": 0.003,
+      "max_component_difference": 0.02309046376256197,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 5.764494267008203e-07,
+        "phase_phase_bubble": {
+          "imag": 4.3243735492457865e-22,
+          "real": -4.4675288672656364e-05
+        },
+        "phase_phase_bubble_abs": 4.4675288672656364e-05,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 4.5251738099357185e-05
+        },
+        "phase_phase_direct_abs": 4.5251738099357185e-05,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -4.5251738099357185e-05
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 4.5251738099357185e-05
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": 4.3243735492457865e-22,
+          "real": 5.764494267008203e-07
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.0007214302202263888,
+          "max_norm": 0.0007214302202263888,
+          "right_norm": 0.0007214302202263888
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006812227244763928,
+          "max_norm": 0.0006812227244763928,
+          "right_norm": 0.0006812227244763928
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0008281664731286518,
+          "max_norm": 0.0008281664731286518,
+          "right_norm": 0.0008281664731286518
+        },
+        "warning": "Global phase correction skipped because |K_theta_theta|=5.764e-07 is below threshold 1.000e-06."
+      },
+      "pairing": "spm",
+      "relative_difference": 0.3375599441109969,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 0.00258838418944326,
+      "delta0_eV": 0.001,
+      "max_component_difference": 0.00258837974158512,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 6.461630814590614e-08,
+        "phase_phase_bubble": {
+          "imag": 1.4222518429125115e-24,
+          "real": -4.973764760767093e-06
+        },
+        "phase_phase_bubble_abs": 4.973764760767093e-06,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 5.038381068912999e-06
+        },
+        "phase_phase_direct_abs": 5.038381068912999e-06,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -5.038381068912999e-06
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 5.038381068912999e-06
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": 1.4222518429125115e-24,
+          "real": 6.461630814590614e-08
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.0006842608329896267,
+          "max_norm": 0.0006842608329896267,
+          "right_norm": 0.0006842608329896267
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006835185307774206,
+          "max_norm": 0.0006835185307774206,
+          "right_norm": 0.0006835185307774206
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0006860013228875193,
+          "max_norm": 0.0006860013228875193,
+          "right_norm": 0.0006860013228875193
+        },
+        "warning": "Global phase correction skipped because |K_theta_theta|=6.462e-08 is below threshold 1.000e-06."
+      },
+      "pairing": "spm",
+      "relative_difference": 0.03783957437546789,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 8.782528718348408e-17,
+      "delta0_eV": 0.0,
+      "max_component_difference": 8.326680065956345e-17,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 0.0,
+        "phase_phase_bubble": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_bubble_abs": 0.0,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_direct_abs": 0.0,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.0006838071218582925,
+          "max_norm": 0.0006838071218582925,
+          "right_norm": 0.0006838071218582925
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006838071218582925,
+          "max_norm": 0.0006838071218582925,
+          "right_norm": 0.0006838071218582925
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0006838071218582925,
+          "max_norm": 0.0006838071218582925,
+          "right_norm": 0.0006838071218582925
+        },
+        "warning": "Global phase correction skipped because |K_theta_theta|=0.000e+00 is below threshold 1.000e-06."
+      },
+      "pairing": "spm",
+      "relative_difference": 1.2172789973372595e-15,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 0.016870026557492732,
+      "delta0_eV": 0.04,
+      "max_component_difference": 0.01659500537161005,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 3.8423347463066235e-07,
+        "phase_phase_bubble": {
+          "imag": -2.1175823681308785e-21,
+          "real": -0.0033219857603207057
+        },
+        "phase_phase_bubble_abs": 0.0033219857603207057,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 0.0033223699937953363
+        },
+        "phase_phase_direct_abs": 0.0033223699937953363,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -0.0033223699937953363
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 0.0033223699937953363
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": -2.1175823681308785e-21,
+          "real": 3.8423347463066235e-07
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.0006828245539813958,
+          "max_norm": 0.0006828245539813958,
+          "right_norm": 0.0006828245539813958
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0005859859352356288,
+          "max_norm": 0.0005859859352356288,
+          "right_norm": 0.0005859859352356287
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0008468724808506173,
+          "max_norm": 0.0008468724808506174,
+          "right_norm": 0.0008468724808506174
+        },
+        "warning": "Global phase correction skipped because |K_theta_theta|=3.842e-07 is below threshold 1.000e-06."
+      },
+      "pairing": "dwave",
+      "relative_difference": 0.24260271007830295,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 0.0010886037839481274,
+      "delta0_eV": 0.01,
+      "max_component_difference": 0.001071107856539444,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 2.4661751783550167e-08,
+        "phase_phase_bubble": {
+          "imag": -1.555099551598754e-22,
+          "real": -0.00020920446526979125
+        },
+        "phase_phase_bubble_abs": 0.00020920446526979125,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 0.0002092291270215748
+        },
+        "phase_phase_direct_abs": 0.0002092291270215748,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -0.0002092291270215748
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 0.0002092291270215748
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": -1.555099551598754e-22,
+          "real": 2.4661751783550167e-08
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.000682516512355896,
+          "max_norm": 0.000682516512355896,
+          "right_norm": 0.000682516512355896
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006773129086476966,
+          "max_norm": 0.0006773129086476966,
+          "right_norm": 0.0006773129086476966
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0006880677387580477,
+          "max_norm": 0.0006880677387580477,
+          "right_norm": 0.0006880677387580477
+        },
+        "warning": "Global phase correction skipped because |K_theta_theta|=2.466e-08 is below threshold 1.000e-06."
+      },
+      "pairing": "dwave",
+      "relative_difference": 0.015658546831637463,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 9.81667971564565e-05,
+      "delta0_eV": 0.003,
+      "max_component_difference": 9.659044195087461e-05,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 2.2231332466523005e-09,
+        "phase_phase_bubble": {
+          "imag": -1.6130021944783202e-23,
+          "real": -1.883717944147179e-05
+        },
+        "phase_phase_bubble_abs": 1.883717944147179e-05,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 1.883940257471844e-05
+        },
+        "phase_phase_direct_abs": 1.883940257471844e-05,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -1.883940257471844e-05
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 1.883940257471844e-05
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": -1.6130021944783202e-23,
+          "real": 2.2231332466523005e-09
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.0006836838954759343,
+          "max_norm": 0.0006836838954759343,
+          "right_norm": 0.0006836838954759343
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006832206415482741,
+          "max_norm": 0.0006832206415482741,
+          "right_norm": 0.0006832206415482741
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0006841499997880596,
+          "max_norm": 0.0006841499997880596,
+          "right_norm": 0.0006841499997880596
+        },
+        "warning": "Global phase correction skipped because |K_theta_theta|=2.223e-09 is below threshold 1.000e-06."
+      },
+      "pairing": "dwave",
+      "relative_difference": 0.00141205757155291,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 1.0909305308885978e-05,
+      "delta0_eV": 0.001,
+      "max_component_difference": 1.0734137884421745e-05,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 2.4704975785722053e-10,
+        "phase_phase_bubble": {
+          "imag": 9.305781891221666e-25,
+          "real": -2.093105769567407e-06
+        },
+        "phase_phase_bubble_abs": 2.093105769567407e-06,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 2.0933528193252642e-06
+        },
+        "phase_phase_direct_abs": 2.0933528193252642e-06,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": -2.0933528193252642e-06
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 2.0933528193252642e-06
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": 9.305781891221666e-25,
+          "real": 2.4704975785722053e-10
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.0006837933608001806,
+          "max_norm": 0.0006837933608001806,
+          "right_norm": 0.0006837933608001806
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006837419378660853,
+          "max_norm": 0.0006837419378660853,
+          "right_norm": 0.0006837419378660853
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0006838448189607562,
+          "max_norm": 0.0006838448189607562,
+          "right_norm": 0.0006838448189607562
+        },
+        "warning": "Global phase correction skipped because |K_theta_theta|=2.470e-10 is below threshold 1.000e-06."
+      },
+      "pairing": "dwave",
+      "relative_difference": 0.00015692257295498805,
+      "used_normal_backend_shortcut": false
+    },
+    {
+      "absolute_difference": 8.782528718348408e-17,
+      "delta0_eV": 0.0,
+      "max_component_difference": 8.326680065956345e-17,
+      "metadata": {
+        "collective_channels": [
+          "global_phase_only"
+        ],
+        "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
+        "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
+        "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
+        "finite_q_current_vertex_status": "normal_state_exact_finite_q_peierls_vertex",
+        "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+        "nambu_basis": "(c_k, c^dagger_-k)",
+        "nambu_prefactor": 0.5,
+        "normal_backend_reference_used": false,
+        "phase_correction_applied": false,
+        "phase_correction_formula": "Pi_GI = Pi_bare - K_mu_theta K_theta_nu / K_theta_theta",
+        "phase_correction_requested": true,
+        "phase_correction_sign_checked": true,
+        "phase_correction_status": "singular_phase_phase",
+        "phase_kernel_status": "bubble_plus_direct",
+        "phase_phase_abs": 0.0,
+        "phase_phase_bubble": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_bubble_abs": 0.0,
+        "phase_phase_direct": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_direct_abs": 0.0,
+        "phase_phase_direct_convention": "plus",
+        "phase_phase_direct_included": true,
+        "phase_phase_direct_minus_convention": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_direct_plus_convention": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_singular_threshold": 1e-06,
+        "phase_phase_total": {
+          "imag": 0.0,
+          "real": 0.0
+        },
+        "phase_phase_total_definition": "bubble + direct",
+        "phase_vertex": "symmetric_kpm",
+        "phase_vertex_convention": "Gamma_theta(k) = dH_BdG/dtheta at pair center-of-mass phase; for k-dependent Delta this implementation uses phase_vertex=symmetric_kpm, while quasiparticles are routed through k\u00b1q/2.",
+        "phase_vertex_status": "symmetric_kpm_pair_center_of_mass_phase_not_full_gauge_closure_proof",
+        "selected_gauge_restored": "bare_total",
+        "validation_only_pairing": false,
+        "ward_residual_bare": {
+          "left_norm": 0.0006838071218582925,
+          "max_norm": 0.0006838071218582925,
+          "right_norm": 0.0006838071218582925
+        },
+        "ward_residual_minus_schur": {
+          "left_norm": 0.0006838071218582925,
+          "max_norm": 0.0006838071218582925,
+          "right_norm": 0.0006838071218582925
+        },
+        "ward_residual_plus_schur": {
+          "left_norm": 0.0006838071218582925,
+          "max_norm": 0.0006838071218582925,
+          "right_norm": 0.0006838071218582925
+        },
+        "warning": "Global phase correction skipped because |K_theta_theta|=0.000e+00 is below threshold 1.000e-06."
+      },
+      "pairing": "dwave",
       "relative_difference": 1.2172789973372595e-15,
       "used_normal_backend_shortcut": false
     }
@@ -244,25 +1139,71 @@
     ],
     "normal_backend_reference_used_only_for_comparison": true,
     "shortcut_reference_diff_not_used_for_pass": 0.0,
-    "small_delta_trend": [
-      {
-        "delta0_eV": 0.04,
-        "max_component_difference": 1.3140454291280537
-      },
-      {
-        "delta0_eV": 0.01,
-        "max_component_difference": 0.23565414062611784
-      },
-      {
-        "delta0_eV": 0.003,
-        "max_component_difference": 0.023388779098701292
-      },
-      {
-        "delta0_eV": 0.001,
-        "max_component_difference": 0.0026220501322384102
-      }
-    ],
-    "true_BdG_delta0_0_abs_diff_to_normal": 8.326680065956345e-17,
-    "true_BdG_delta0_0_rel_diff_to_normal": 1.2172789973372595e-15
+    "small_delta_trend": {
+      "dwave": [
+        {
+          "delta0_eV": 0.04,
+          "max_component_difference": 0.01659500537161005
+        },
+        {
+          "delta0_eV": 0.01,
+          "max_component_difference": 0.001071107856539444
+        },
+        {
+          "delta0_eV": 0.003,
+          "max_component_difference": 9.659044195087461e-05
+        },
+        {
+          "delta0_eV": 0.001,
+          "max_component_difference": 1.0734137884421745e-05
+        }
+      ],
+      "onsite_s": [
+        {
+          "delta0_eV": 0.04,
+          "max_component_difference": 0.16605886219429633
+        },
+        {
+          "delta0_eV": 0.01,
+          "max_component_difference": 0.012806255720933211
+        },
+        {
+          "delta0_eV": 0.003,
+          "max_component_difference": 0.02450225692855336
+        },
+        {
+          "delta0_eV": 0.001,
+          "max_component_difference": 0.0027454032424983807
+        }
+      ],
+      "spm": [
+        {
+          "delta0_eV": 0.04,
+          "max_component_difference": 0.03001854533278192
+        },
+        {
+          "delta0_eV": 0.01,
+          "max_component_difference": 0.0024311487336726536
+        },
+        {
+          "delta0_eV": 0.003,
+          "max_component_difference": 0.02309046376256197
+        },
+        {
+          "delta0_eV": 0.001,
+          "max_component_difference": 0.00258837974158512
+        }
+      ]
+    },
+    "true_BdG_delta0_0_abs_diff_to_normal": {
+      "dwave": 8.326680065956345e-17,
+      "onsite_s": 8.326680065956345e-17,
+      "spm": 8.326680065956345e-17
+    },
+    "true_BdG_delta0_0_rel_diff_to_normal": {
+      "dwave": 1.2172789973372595e-15,
+      "onsite_s": 1.2172789973372595e-15,
+      "spm": 1.2172789973372595e-15
+    }
   }
 }

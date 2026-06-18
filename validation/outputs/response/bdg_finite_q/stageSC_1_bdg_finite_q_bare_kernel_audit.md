@@ -36,7 +36,7 @@
 - bare_total_all_finite: True
 - finite_q_current_vertex_status: normal_state_exact_finite_q_peierls_vertex
 - phase_correction_status: disabled
-- phase_phase_abs: 0.00623809
+- phase_phase_abs: 8.30061e-06
 ### Case 2
 - pairing: spm
 - omega_eV: 0.005
@@ -52,7 +52,7 @@
 - bare_total_all_finite: True
 - finite_q_current_vertex_status: normal_state_exact_finite_q_peierls_vertex
 - phase_correction_status: disabled
-- phase_phase_abs: 0.00623801
+- phase_phase_abs: 8.38172e-06
 ### Case 3
 - pairing: spm
 - omega_eV: 0.01
@@ -68,7 +68,7 @@
 - bare_total_all_finite: True
 - finite_q_current_vertex_status: normal_state_exact_finite_q_peierls_vertex
 - phase_correction_status: disabled
-- phase_phase_abs: 0.00621364
+- phase_phase_abs: 3.27563e-05
 ### Case 4
 - pairing: spm
 - omega_eV: 0.01
@@ -84,7 +84,7 @@
 - bare_total_all_finite: True
 - finite_q_current_vertex_status: normal_state_exact_finite_q_peierls_vertex
 - phase_correction_status: disabled
-- phase_phase_abs: 0.00621355
+- phase_phase_abs: 3.28373e-05
 ### Case 5
 - pairing: dwave
 - omega_eV: 0.005
@@ -100,7 +100,7 @@
 - bare_total_all_finite: True
 - finite_q_current_vertex_status: normal_state_exact_finite_q_peierls_vertex
 - phase_correction_status: disabled
-- phase_phase_abs: 0.00332234
+- phase_phase_abs: 7.31126e-08
 ### Case 6
 - pairing: dwave
 - omega_eV: 0.005
@@ -116,7 +116,7 @@
 - bare_total_all_finite: True
 - finite_q_current_vertex_status: normal_state_exact_finite_q_peierls_vertex
 - phase_correction_status: disabled
-- phase_phase_abs: 0.00332239
+- phase_phase_abs: 4.25109e-08
 ### Case 7
 - pairing: dwave
 - omega_eV: 0.01
@@ -132,7 +132,7 @@
 - bare_total_all_finite: True
 - finite_q_current_vertex_status: normal_state_exact_finite_q_peierls_vertex
 - phase_correction_status: disabled
-- phase_phase_abs: 0.00332203
+- phase_phase_abs: 3.84233e-07
 ### Case 8
 - pairing: dwave
 - omega_eV: 0.01
@@ -148,4 +148,4 @@
 - bare_total_all_finite: True
 - finite_q_current_vertex_status: normal_state_exact_finite_q_peierls_vertex
 - phase_correction_status: disabled
-- phase_phase_abs: 0.00332208
+- phase_phase_abs: 3.5366e-07

@@ -13,6 +13,7 @@ from bdg_finite_q_audit_common import OUTPUT_DIR, parser, reflection_package, re
 def _prior_stage_statuses() -> dict[str, str]:
     required = [
         "stageSC_1_bdg_finite_q_bare_kernel_audit.json",
+        "stageSC_2a_bdg_extended_ward_identity_audit.json",
         "stageSC_2_bdg_phase_gauge_restoration_audit.json",
         "stageSC_3_bdg_normal_limit_audit.json",
         "stageSC_4_bdg_q0_limit_audit.json",

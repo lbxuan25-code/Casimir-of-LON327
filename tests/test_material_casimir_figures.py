@@ -376,6 +376,7 @@ def test_run_script_dry_run_writes_plan_without_response(tmp_path):
 def test_validation_scripts_write_under_validation_outputs_only():
     for script_name in (
         "stageSC_1_bdg_finite_q_bare_kernel_audit.py",
+        "stageSC_2a_bdg_extended_ward_identity_audit.py",
         "stageSC_2_bdg_phase_gauge_restoration_audit.py",
         "stageSC_3_bdg_normal_limit_audit.py",
         "stageSC_4_bdg_q0_limit_audit.py",
@@ -393,8 +394,11 @@ def test_validation_scripts_encode_failed_ward_and_minus_schur_selection():
     )
     assert "max_minus_schur_Ward" in stage2
     assert "max_plus_schur_Ward" in stage2
-    assert "restored[\"max_norm\"] < 1e-6 and improvement > 10.0" in stage2
-    assert "case_status = \"FAILED\"" in stage2
+    assert "onsite_s" in stage2
+    assert "PHASE_VERTICES" in stage2
+    assert "phase_phase_direct_included" in stage2
+    assert "selected_ward < 1e-6 and improvement > 10.0" in stage2
+    assert "return \"FAILED\"" in stage2
 
 
 def test_validation_md_writer_includes_summary_and_case_diagnostics():
@@ -405,6 +409,16 @@ def test_validation_md_writer_includes_summary_and_case_diagnostics():
     assert "## Case Diagnostics" in common
     assert "max_minus_schur_Ward" in common
     assert "selected_gauge_restored_Ward" in common
+    assert "## Q Scaling" in common
+
+
+def test_extended_ward_audit_scans_ctheta_candidates():
+    stage2a = (
+        ROOT / "validation" / "scripts" / "response" / "stageSC_2a_bdg_extended_ward_identity_audit.py"
+    ).read_text(encoding="utf-8")
+    assert "C_THETA_CANDIDATES = (1j, -1j, 2j, -2j)" in stage2a
+    assert "extended_left_residual_max" in stage2a
+    assert "extended_theta_residual_max" in stage2a
 
 
 def test_stage5_requires_all_prior_stages_passed():
@@ -412,4 +426,5 @@ def test_stage5_requires_all_prior_stages_passed():
         encoding="utf-8"
     )
     assert "status != \"PASSED\"" in stage5
+    assert "stageSC_2a_bdg_extended_ward_identity_audit.json" in stage5
     assert "prior StageSC reports are missing or failed" in stage5

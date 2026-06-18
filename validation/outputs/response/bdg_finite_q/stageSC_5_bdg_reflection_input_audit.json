@@ -1,25 +1,25 @@
 {
   "cases": [
     {
-      "max_abs_R": 0.9955663719574961,
-      "max_abs_sigma_tilde": 0.6038923648098542,
+      "max_abs_R": 0.99547206141979,
+      "max_abs_sigma_tilde": 0.5975727174371485,
       "no_casimir_energy_force_torque": true,
       "offdiag": {
-        "antisymmetric_offdiag_abs": 1.3270634591224788e-16,
-        "relative_antisymmetric_to_symmetric": 5.03367985624342e-14,
-        "symmetric_offdiag_abs": 0.0026363684163912076
+        "antisymmetric_offdiag_abs": 1.3183898497208157e-16,
+        "relative_antisymmetric_to_symmetric": 1.989144212569153e-15,
+        "symmetric_offdiag_abs": 0.06627924920627049
       },
       "omega_eV": 0.01,
       "q_model": [
         0.01,
         0.01
       ],
-      "q_sign_check_max_abs": 0.00010279735143932103,
+      "q_sign_check_max_abs": 0.059938630463661643,
       "reflection_finite": true,
       "sigma_diagonal_positive_sanity": true,
       "sigma_diagonal_real": [
-        6.585433149043177,
-        6.585433149043177
+        6.516517531420517,
+        6.516517531420514
       ]
     }
   ],
@@ -29,20 +29,21 @@
   "quick": true,
   "status": "FAILED",
   "summary": {
-    "max_abs_R": 0.9955663719574961,
-    "max_abs_sigma_tilde": 0.6038923648098542,
+    "max_abs_R": 0.99547206141979,
+    "max_abs_sigma_tilde": 0.5975727174371485,
     "prior_stage_statuses": {
       "stageSC_1_bdg_finite_q_bare_kernel_audit.json": "PASSED",
       "stageSC_2_bdg_phase_gauge_restoration_audit.json": "FAILED",
+      "stageSC_2a_bdg_extended_ward_identity_audit.json": "FAILED",
       "stageSC_3_bdg_normal_limit_audit.json": "PASSED",
       "stageSC_4_bdg_q0_limit_audit.json": "PASSED"
     },
-    "q_sign_check_max_abs": 0.00010279735143932103,
+    "q_sign_check_max_abs": 0.059938630463661643,
     "reflection_finite": true,
     "sigma_diagonal_positive_sanity": true,
     "sigma_diagonal_real": [
-      6.585433149043177,
-      6.585433149043177
+      6.516517531420517,
+      6.516517531420514
     ],
     "status": "FAILED"
   }

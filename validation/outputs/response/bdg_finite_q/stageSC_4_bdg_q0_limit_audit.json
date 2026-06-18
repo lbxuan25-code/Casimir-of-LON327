@@ -1,26 +1,38 @@
 {
   "cases": [
     {
-      "local_comparison_abs": 0.0015454825008929941,
-      "local_comparison_relative": 0.016577567535973222,
+      "local_comparison_abs": 0.01928786296994261,
+      "local_comparison_relative": 0.2068906317762049,
+      "phase_phase_direct_convention": "plus",
+      "phase_phase_direct_included": true,
+      "phase_vertex": "symmetric_kpm",
       "q_model_magnitude": 0.05,
       "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response"
     },
     {
-      "local_comparison_abs": 0.00022358777071320948,
-      "local_comparison_relative": 0.0023983069152023733,
+      "local_comparison_abs": 0.0029896057243429825,
+      "local_comparison_relative": 0.032067908095103945,
+      "phase_phase_direct_convention": "plus",
+      "phase_phase_direct_included": true,
+      "phase_vertex": "symmetric_kpm",
       "q_model_magnitude": 0.02,
       "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response"
     },
     {
-      "local_comparison_abs": 5.5120522237880654e-05,
-      "local_comparison_relative": 0.0005912484803215817,
+      "local_comparison_abs": 0.0007443060964462481,
+      "local_comparison_relative": 0.007983775017927937,
+      "phase_phase_direct_convention": "plus",
+      "phase_phase_direct_included": true,
+      "phase_vertex": "symmetric_kpm",
       "q_model_magnitude": 0.01,
       "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response"
     },
     {
-      "local_comparison_abs": 1.3732276097772581e-05,
-      "local_comparison_relative": 0.0001472988107609881,
+      "local_comparison_abs": 0.000185886396440559,
+      "local_comparison_relative": 0.0019939043562327715,
+      "phase_phase_direct_convention": "plus",
+      "phase_phase_direct_included": true,
+      "phase_vertex": "symmetric_kpm",
       "q_model_magnitude": 0.005,
       "sign_prefactor_diagnostic": "finite-q Pi spatial block compared to local Pi=-omega*sigma_like_response"
     }
@@ -29,30 +41,33 @@
   "quick": true,
   "status": "PASSED",
   "summary": {
-    "largest_q_abs": 0.0015454825008929941,
+    "largest_q_abs": 0.01928786296994261,
     "monotonic_decreasing": true,
+    "phase_phase_direct_convention": "plus",
+    "phase_phase_direct_included": true,
+    "phase_vertex": "symmetric_kpm",
     "q_scaling_table": [
       {
-        "local_comparison_abs": 0.0015454825008929941,
-        "local_comparison_relative": 0.016577567535973222,
+        "local_comparison_abs": 0.01928786296994261,
+        "local_comparison_relative": 0.2068906317762049,
         "q_model_magnitude": 0.05
       },
       {
-        "local_comparison_abs": 0.00022358777071320948,
-        "local_comparison_relative": 0.0023983069152023733,
+        "local_comparison_abs": 0.0029896057243429825,
+        "local_comparison_relative": 0.032067908095103945,
         "q_model_magnitude": 0.02
       },
       {
-        "local_comparison_abs": 5.5120522237880654e-05,
-        "local_comparison_relative": 0.0005912484803215817,
+        "local_comparison_abs": 0.0007443060964462481,
+        "local_comparison_relative": 0.007983775017927937,
         "q_model_magnitude": 0.01
       },
       {
-        "local_comparison_abs": 1.3732276097772581e-05,
-        "local_comparison_relative": 0.0001472988107609881,
+        "local_comparison_abs": 0.000185886396440559,
+        "local_comparison_relative": 0.0019939043562327715,
         "q_model_magnitude": 0.005
       }
     ],
-    "smallest_q_abs": 1.3732276097772581e-05
+    "smallest_q_abs": 0.000185886396440559
   }
 }

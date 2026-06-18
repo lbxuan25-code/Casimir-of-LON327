@@ -74,6 +74,14 @@ def write_report(name: str, payload: dict[str, Any]) -> None:
         lines.extend(["", "## Summary", "", "| key | value |", "| --- | --- |"])
         for key, value in cjson(payload["summary"]).items():
             lines.append(f"| {key} | {_md_value(value)} |")
+        q_table = payload["summary"].get("q_scaling_table") if isinstance(payload.get("summary"), dict) else None
+        if q_table:
+            lines.extend(["", "## Q Scaling", "", "| q_model | abs diff | relative diff |", "| --- | ---: | ---: |"])
+            for row in q_table:
+                lines.append(
+                    f"| {row['q_model_magnitude']:.6g} | {row['local_comparison_abs']:.6g} | "
+                    f"{row['local_comparison_relative']:.6g} |"
+                )
     for key in ("failures", "monitors"):
         if key in payload:
             values = payload.get(key) or []
@@ -128,6 +136,17 @@ def _case_digest(case: dict[str, Any]) -> dict[str, Any]:
         "selected_gauge_restored_Ward",
         "improvement_factor",
         "phase_phase_abs",
+        "phase_phase_bubble_abs",
+        "phase_phase_direct_abs",
+        "phase_phase_total_abs",
+        "phase_phase_bubble",
+        "phase_phase_direct",
+        "phase_phase_total",
+        "phase_vertex",
+        "phase_phase_direct_convention",
+        "C_theta",
+        "extended_left_residual_max",
+        "extended_theta_residual_max",
         "phase_correction_status",
         "finite_q_current_vertex_status",
         "max_component_difference",
@@ -175,6 +194,9 @@ def response_case(
     *,
     phase: bool = True,
     use_normal_backend_in_delta0_limit: bool = False,
+    phase_vertex: str = "symmetric_kpm",
+    include_phase_phase_direct: bool = True,
+    phase_phase_direct_convention: str = "plus",
 ):
     points, weights = grid(quick)
     cfg = config(omega)
@@ -188,6 +210,9 @@ def response_case(
         PairingAmplitudes(delta0_eV=delta0),
         include_phase_correction=phase,
         use_normal_backend_in_delta0_limit=use_normal_backend_in_delta0_limit,
+        phase_vertex=phase_vertex,  # type: ignore[arg-type]
+        include_phase_phase_direct=include_phase_phase_direct,
+        phase_phase_direct_convention=phase_phase_direct_convention,  # type: ignore[arg-type]
     )
 
 
