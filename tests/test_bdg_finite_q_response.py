@@ -1,8 +1,20 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import numpy as np
 import pytest
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "validation" / "scripts" / "response"))
+
+from bdg_bubble_ward_transfer_common import (  # noqa: E402
+    StageSC0bInputs,
+    _status_and_dominant,
+    audit_pairing,
+    convention_summary,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -215,3 +227,55 @@ def test_static_kubo_factor_uses_derivative_limit_for_degenerate_terms():
         eta_eV=1e-8,
     )
     assert value == pytest.approx(-25.0)
+
+
+def test_stageSC_0b_helper_uses_stageSC_0_best_convention():
+    convention = convention_summary(0.04)
+    assert convention["candidate"] == "A"
+    assert convention["candidate_ordering"] == "rho_Hp_minus_Hm_rho"
+    assert convention["qV_sign"] == -1
+    assert convention["C_eta2"] == 2j * 0.04
+
+
+def test_stageSC_0b_onsite_s_band_pair_identity_is_closed():
+    result = audit_pairing(StageSC0bInputs(pairing="onsite_s"))
+    assert result["max_band_pair_identity_abs"] < 1e-10
+
+
+def test_stageSC_0b_records_right_vertex_orientation_difference():
+    result = audit_pairing(StageSC0bInputs(pairing="onsite_s"))
+    assert "right_vertex_impl_vs_explicit_max_abs" in result
+    assert set(result["right_vertex_impl_vs_explicit_by_channel"]) == {"rho", "Vx", "Vy", "eta1", "eta2"}
+
+
+def test_stageSC_0b_right_vertex_mismatch_prevents_passed():
+    status, dominant = _status_and_dominant(
+        band_abs=1e-12,
+        transfer_abs=1e-12,
+        right_abs=1e-6,
+        contact_abs=1e-12,
+    )
+    assert status == "FAILED"
+    assert dominant == "right_vertex_orientation"
+
+
+def test_stageSC_0b_bubble_transfer_mismatch_prevents_passed():
+    status, dominant = _status_and_dominant(
+        band_abs=1e-12,
+        transfer_abs=1e-6,
+        right_abs=1e-12,
+        contact_abs=1e-12,
+    )
+    assert status == "FAILED"
+    assert dominant == "bubble_transfer"
+
+
+def test_stageSC_0b_contact_only_remainder_is_not_passed():
+    status, dominant = _status_and_dominant(
+        band_abs=1e-12,
+        transfer_abs=1e-12,
+        right_abs=1e-12,
+        contact_abs=5e-7,
+    )
+    assert status == "MONITOR"
+    assert dominant == "contact_remainder"
