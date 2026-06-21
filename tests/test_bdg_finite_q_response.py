@@ -12,8 +12,12 @@ sys.path.insert(0, str(ROOT / "validation" / "scripts" / "response"))
 from bdg_bubble_ward_transfer_common import (  # noqa: E402
     StageSC0bInputs,
     _status_and_dominant,
+    audit_contact_remainder_pairing,
     audit_pairing,
+    compute_equal_time_remainder,
     convention_summary,
+    needed_eta2_contact_if_only_eta2,
+    stageSC_0c_status,
 )
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
@@ -279,3 +283,44 @@ def test_stageSC_0b_contact_only_remainder_is_not_passed():
     )
     assert status == "MONITOR"
     assert dominant == "contact_remainder"
+
+
+def test_stageSC_0c_equal_time_remainder_records_explicit_reverse_q_orientation():
+    result = compute_equal_time_remainder(StageSC0bInputs(pairing="onsite_s"), (0.01, 0.0))
+    assert "equal_time_remainder_explicit_reverse_q" in result
+    assert "equal_time_remainder_impl_conjugate" in result
+    assert "equal_time_remainder_orientation_diff" in result
+    assert result["equal_time_remainder_orientation_diff_max_abs"] < 1e-10
+
+
+def test_stageSC_0c_needed_eta2_contact_formula():
+    components = {
+        "D_0B_existing": {"available": True, "value": 1.0 + 2.0j},
+        "D_xB_existing": {"available": True, "value": -0.5 + 0.25j},
+        "D_yB_existing": {"available": False, "value": None},
+        "D_eta2B_existing": {"available": False, "value": None},
+    }
+    e_b = 0.25 - 0.75j
+    q = (0.01, 0.02)
+    omega = 0.01
+    delta0 = 0.04
+    expected = -(e_b + 1j * omega * (1.0 + 2.0j) + q[0] * (-0.5 + 0.25j)) / (2j * delta0)
+    actual = needed_eta2_contact_if_only_eta2(e_b, components, q, omega, delta0)
+    assert actual == pytest.approx(expected)
+
+
+def test_stageSC_0c_unavailable_direct_blocks_prevent_passed():
+    assert stageSC_0c_status(1e-12, 1e-12, unavailable_blocks=True) == "FAILED"
+
+
+def test_stageSC_0c_large_onsite_contact_residual_fails():
+    result = audit_contact_remainder_pairing(StageSC0bInputs(pairing="onsite_s"))
+    assert result["max_contact_closure_abs"] >= 1e-5
+    assert result["status"] == "FAILED"
+
+
+def test_stageSC_0c_script_does_not_call_casimir_pipeline():
+    script = ROOT / "validation" / "scripts" / "response" / "stageSC_0c_bdg_contact_remainder_decomposition_audit.py"
+    text = script.read_text(encoding="utf-8")
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text

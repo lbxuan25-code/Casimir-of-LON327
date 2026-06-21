@@ -48,6 +48,8 @@ BUBBLE_TRANSFER_PASS = 1e-10
 RIGHT_VERTEX_PASS = 1e-10
 BUBBLE_DIRECT_PASS = 1e-8
 BUBBLE_DIRECT_MONITOR = 1e-6
+CONTACT_CLOSURE_PASS = 1e-8
+CONTACT_CLOSURE_MONITOR = 1e-5
 NambuPrefactor = 0.5
 
 
@@ -318,6 +320,296 @@ def _contact_remainder(
     total = {channel: bubble_direct[channel] + direct[channel] for channel in CHANNELS}
     missing_contact = bool(max(abs(value) for value in total.values()) >= BUBBLE_DIRECT_PASS)
     return direct, total, missing_contact
+
+
+def compute_equal_time_remainder(
+    inputs: StageSC0bInputs,
+    q_model: tuple[float, float] | np.ndarray,
+) -> dict[str, Any]:
+    """Compute E_B with explicit reverse-q right vertices and impl conjugates."""
+
+    pairing = inputs.pairing
+    amp = PairingAmplitudes(delta0_eV=inputs.delta0_eV)
+    cfg = config(inputs.omega_eV, inputs.temperature_K, inputs.eta_eV)
+    phase_vertex = inputs.phase_vertex or PHASE_VERTEX_BY_OPERATOR_BEST[pairing]
+    weights = np.full(len(inputs.k_points), 1.0 / len(inputs.k_points), dtype=float)
+    qx, qy = (float(value) for value in q_model)
+    explicit = {channel: 0.0 + 0.0j for channel in CHANNELS}
+    impl = {channel: 0.0 + 0.0j for channel in CHANNELS}
+    orientation_diff_by_channel = {channel: 0.0 for channel in CHANNELS}
+
+    for weight, (kx, ky) in zip(weights, inputs.k_points, strict=True):
+        kx_minus, ky_minus = kx - 0.5 * qx, ky - 0.5 * qy
+        kx_plus, ky_plus = kx + 0.5 * qx, ky + 0.5 * qy
+        e_minus, u_minus = _diag_bdg(pairing, kx_minus, ky_minus, amp)
+        e_plus, u_plus = _diag_bdg(pairing, kx_plus, ky_plus, amp)
+        f_minus = fermi_function(e_minus, cfg.fermi_level_eV, cfg.temperature_eV)
+        f_plus = fermi_function(e_plus, cfg.fermi_level_eV, cfg.temperature_eV)
+        vertices = bdg_vertices(pairing, kx, ky, qx, qy, amp, phase_vertex)
+        reverse_vertices = bdg_vertices(pairing, kx, ky, -qx, -qy, amp, phase_vertex)
+        band = {name: u_minus.conjugate().T @ vertex @ u_plus for name, vertex in vertices.items()}
+        reverse_band = {name: u_plus.conjugate().T @ vertex @ u_minus for name, vertex in reverse_vertices.items()}
+        for channel in CHANNELS:
+            orientation_diff_by_channel[channel] = max(
+                orientation_diff_by_channel[channel],
+                float(np.max(np.abs(np.conjugate(band[channel]) - reverse_band[channel].T))),
+            )
+        for m in range(len(e_minus)):
+            for n in range(len(e_plus)):
+                occ_diff = float(f_minus[m] - f_plus[n])
+                if occ_diff == 0.0:
+                    continue
+                prefactor = NambuPrefactor * float(weight) * occ_diff
+                rho_mn = band["rho"][m, n]
+                for channel in CHANNELS:
+                    explicit[channel] += prefactor * rho_mn * reverse_band[channel][n, m]
+                    impl[channel] += prefactor * rho_mn * np.conjugate(band[channel][m, n])
+
+    orientation_diff = {channel: explicit[channel] - impl[channel] for channel in CHANNELS}
+    return {
+        "q_model": [qx, qy],
+        "equal_time_remainder_explicit_reverse_q": explicit,
+        "equal_time_remainder_impl_conjugate": impl,
+        "equal_time_remainder_orientation_diff": orientation_diff,
+        "equal_time_remainder_orientation_diff_max_abs": max(float(abs(value)) for value in orientation_diff.values()),
+        "right_vertex_orientation_diff_by_channel": orientation_diff_by_channel,
+    }
+
+
+def direct_block_available(source_channel: str, block: str) -> bool:
+    """Return whether an existing diagnostic direct block is implemented."""
+
+    if block == "D_0B":
+        return False
+    if block in {"D_xB", "D_yB"}:
+        return source_channel in {"Vx", "Vy"}
+    if block == "D_eta2B":
+        return source_channel in {"eta1", "eta2"}
+    raise ValueError(f"unknown direct block {block}")
+
+
+def existing_direct_contact_components(
+    inputs: StageSC0bInputs,
+    q_model: tuple[float, float] | np.ndarray,
+) -> dict[str, Any]:
+    """Project the existing response-code direct/contact blocks onto source channels."""
+
+    pairing = inputs.pairing
+    phase_vertex = inputs.phase_vertex or PHASE_VERTEX_BY_OPERATOR_BEST[pairing]
+    q = np.asarray(q_model, dtype=float)
+    points = np.asarray(inputs.k_points, dtype=float)
+    weights = np.full(len(inputs.k_points), 1.0 / len(inputs.k_points), dtype=float)
+    cfg = config(inputs.omega_eV, inputs.temperature_K, inputs.eta_eV)
+    result = bdg_finite_q_response_imag_axis(
+        pairing,  # type: ignore[arg-type]
+        inputs.omega_eV,
+        q,
+        points,
+        weights,
+        cfg,
+        PairingAmplitudes(delta0_eV=inputs.delta0_eV),
+        include_phase_correction=False,
+        phase_vertex=phase_vertex,  # type: ignore[arg-type]
+        collective_mode="amplitude_phase",
+        collective_counterterm="goldstone_gap_equation",
+    )
+    em_index = {"rho": 0, "Vx": 1, "Vy": 2}
+    eta_index = {"eta1": 0, "eta2": 1}
+    output: dict[str, Any] = {}
+    for channel in CHANNELS:
+        blocks: dict[str, dict[str, Any]] = {}
+        for block in ("D_0B", "D_xB", "D_yB", "D_eta2B"):
+            available = direct_block_available(channel, block)
+            value: complex | None = None
+            if available and block in {"D_xB", "D_yB"}:
+                value = complex(result.direct[1 if block == "D_xB" else 2, em_index[channel]])
+            elif available and block == "D_eta2B":
+                value = complex(result.collective_counterterm[1, eta_index[channel]])
+            blocks[f"{block}_existing"] = {"available": available, "value": value}
+        output[channel] = blocks
+    return {
+        "q_model": q,
+        "components_by_channel": output,
+        "goldstone_counterterm_Cg_existing": result.metadata["goldstone_counterterm_Cg"],
+        "direct_matrix_existing": result.direct,
+        "collective_counterterm_existing": result.collective_counterterm,
+    }
+
+
+def direct_projection_from_components(
+    components: dict[str, dict[str, Any]],
+    q_model: tuple[float, float] | np.ndarray,
+    omega_eV: float,
+    delta0_eV: float,
+) -> complex:
+    qx, qy = (float(value) for value in q_model)
+    terms = (
+        (1j * float(omega_eV), "D_0B_existing"),
+        (qx, "D_xB_existing"),
+        (qy, "D_yB_existing"),
+        (c_eta2(delta0_eV), "D_eta2B_existing"),
+    )
+    total = 0.0 + 0.0j
+    for coefficient, key in terms:
+        block = components[key]
+        if block["available"]:
+            total += coefficient * complex(block["value"])
+    return total
+
+
+def needed_eta2_contact_if_only_eta2(
+    equal_time_remainder: complex,
+    components: dict[str, dict[str, Any]],
+    q_model: tuple[float, float] | np.ndarray,
+    omega_eV: float,
+    delta0_eV: float,
+) -> complex:
+    qx, qy = (float(value) for value in q_model)
+    subtotal = equal_time_remainder
+    for coefficient, key in (
+        (1j * float(omega_eV), "D_0B_existing"),
+        (qx, "D_xB_existing"),
+        (qy, "D_yB_existing"),
+    ):
+        block = components[key]
+        if block["available"]:
+            subtotal += coefficient * complex(block["value"])
+    return -subtotal / c_eta2(delta0_eV)
+
+
+def audit_contact_remainder_pairing(inputs: StageSC0bInputs) -> dict[str, Any]:
+    pairing = inputs.pairing
+    phase_vertex = inputs.phase_vertex or PHASE_VERTEX_BY_OPERATOR_BEST[pairing]
+    q_cases = []
+    for q_model in inputs.q_model_list:
+        equal_time = compute_equal_time_remainder(inputs, q_model)
+        direct = existing_direct_contact_components(inputs, q_model)
+        channel_rows: dict[str, Any] = {}
+        for channel in CHANNELS:
+            components = direct["components_by_channel"][channel]
+            e_b = equal_time["equal_time_remainder_explicit_reverse_q"][channel]
+            projection = direct_projection_from_components(components, q_model, inputs.omega_eV, inputs.delta0_eV)
+            residual = e_b + projection
+            needed = needed_eta2_contact_if_only_eta2(
+                e_b,
+                components,
+                q_model,
+                inputs.omega_eV,
+                inputs.delta0_eV,
+            )
+            row = {
+                "source_channel": channel,
+                "E_B": e_b,
+                "E_B_abs": float(abs(e_b)),
+                "direct_blocks_available": {
+                    key.removesuffix("_existing"): bool(value["available"]) for key, value in components.items()
+                },
+                **components,
+                "D_projection_existing": projection,
+                "D_projection_existing_abs": float(abs(projection)),
+                "contact_closure_residual": residual,
+                "contact_closure_abs": float(abs(residual)),
+                "D_eta2B_needed_if_only_eta2_contact": needed,
+                "dominant_missing_block_guess": _missing_block_guess(channel, residual, direct, needed),
+            }
+            if channel == "eta2":
+                cg = complex(direct["goldstone_counterterm_Cg_existing"])
+                row["goldstone_counterterm_Cg_existing"] = cg
+                row["D_eta2_eta2_needed"] = needed
+                row["needed_minus_goldstone_counterterm"] = needed - cg
+            channel_rows[channel] = row
+        max_channel = max(CHANNELS, key=lambda channel: float(channel_rows[channel]["contact_closure_abs"]))
+        unavailable = any(
+            not bool(block["available"])
+            for row in channel_rows.values()
+            for key, block in row.items()
+            if key.endswith("_existing") and isinstance(block, dict) and "available" in block
+        )
+        q_cases.append(
+            {
+                "q_model": list(q_model),
+                "equal_time_remainder_explicit_reverse_q": equal_time["equal_time_remainder_explicit_reverse_q"],
+                "equal_time_remainder_impl_conjugate": equal_time["equal_time_remainder_impl_conjugate"],
+                "equal_time_remainder_orientation_diff": equal_time["equal_time_remainder_orientation_diff"],
+                "equal_time_remainder_orientation_diff_max_abs": equal_time[
+                    "equal_time_remainder_orientation_diff_max_abs"
+                ],
+                "right_vertex_orientation_diff_by_channel": equal_time["right_vertex_orientation_diff_by_channel"],
+                "channel_decomposition": {
+                    channel: {
+                        "E_B_abs": channel_rows[channel]["E_B_abs"],
+                        "D_projection_existing_abs": channel_rows[channel]["D_projection_existing_abs"],
+                        "contact_closure_abs": channel_rows[channel]["contact_closure_abs"],
+                        "dominant_missing_block_guess": channel_rows[channel]["dominant_missing_block_guess"],
+                    }
+                    for channel in CHANNELS
+                },
+                "channel_rows": channel_rows,
+                "max_contact_closure_abs": float(channel_rows[max_channel]["contact_closure_abs"]),
+                "dominant_source_channel": max_channel,
+                "dominant_missing_block_guess": channel_rows[max_channel]["dominant_missing_block_guess"],
+                "unavailable_contact_block_present": unavailable,
+                "goldstone_counterterm_Cg_existing": direct["goldstone_counterterm_Cg_existing"],
+            }
+        )
+    max_case = max(q_cases, key=lambda case: float(case["max_contact_closure_abs"]))
+    max_abs = float(max_case["max_contact_closure_abs"])
+    orientation_max = max(float(case["equal_time_remainder_orientation_diff_max_abs"]) for case in q_cases)
+    unavailable = any(bool(case["unavailable_contact_block_present"]) for case in q_cases)
+    status = stageSC_0c_status(max_abs, orientation_max, unavailable)
+    return {
+        "pairing": pairing,
+        "status": status,
+        "phase_vertex": phase_vertex,
+        "candidate": "A",
+        "candidate_ordering": "rho_Hp_minus_Hm_rho",
+        "qV_sign": -1,
+        "C_eta2": c_eta2(inputs.delta0_eV),
+        "source_channels": list(CHANNELS),
+        "left_channels": ["rho", "Jx=-Vx", "Jy=-Vy", "eta2"],
+        "q_cases": q_cases,
+        "max_contact_closure_abs": max_abs,
+        "dominant_source_channel": max_case["dominant_source_channel"],
+        "dominant_missing_block_guess": max_case["dominant_missing_block_guess"],
+        "unavailable_contact_block_present": unavailable,
+        "equal_time_remainder_orientation_diff_max_abs": orientation_max,
+        "representative_channel_rows": max_case["channel_rows"],
+        "representative_q_model": max_case["q_model"],
+    }
+
+
+def _missing_block_guess(
+    channel: str,
+    residual: complex,
+    direct: dict[str, Any],
+    needed_eta2: complex,
+) -> str:
+    if abs(residual) < CONTACT_CLOSURE_PASS:
+        return "none"
+    if channel == "rho":
+        return "density_equal_time_or_normal_ordering"
+    if channel in {"Vx", "Vy"}:
+        return "em_em_contact"
+    if channel == "eta1":
+        return "eta_em_mixed_contact"
+    if channel == "eta2":
+        cg = complex(direct["goldstone_counterterm_Cg_existing"])
+        if abs(needed_eta2 - cg) >= CONTACT_CLOSURE_PASS:
+            return "eta_eta_counterterm"
+        return "undetermined"
+    return "undetermined"
+
+
+def stageSC_0c_status(max_contact_abs: float, orientation_diff_abs: float, unavailable_blocks: bool) -> str:
+    if orientation_diff_abs > RIGHT_VERTEX_PASS:
+        return "FAILED"
+    if unavailable_blocks:
+        return "FAILED"
+    if max_contact_abs < CONTACT_CLOSURE_PASS:
+        return "PASSED"
+    if max_contact_abs < CONTACT_CLOSURE_MONITOR:
+        return "MONITOR"
+    return "FAILED"
 
 
 def _status_and_dominant(
