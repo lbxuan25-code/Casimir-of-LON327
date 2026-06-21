@@ -375,6 +375,7 @@ def test_run_script_dry_run_writes_plan_without_response(tmp_path):
 
 def test_validation_scripts_write_under_validation_outputs_only():
     for script_name in (
+        "stageSC_0_bdg_operator_ward_vertex_audit.py",
         "stageSC_1_bdg_finite_q_bare_kernel_audit.py",
         "stageSC_2a_bdg_extended_ward_identity_audit.py",
         "stageSC_2_bdg_phase_gauge_restoration_audit.py",
@@ -384,9 +385,23 @@ def test_validation_scripts_write_under_validation_outputs_only():
         "stageSC_5_bdg_reflection_input_audit.py",
     ):
         text = (ROOT / "validation" / "scripts" / "response" / script_name).read_text(encoding="utf-8")
-        assert "validation\" / \"outputs\" / \"response\" / \"bdg_finite_q\"" not in text or script_name.startswith("stageSC_5")
+        assert (
+            "validation\" / \"outputs\" / \"response\" / \"bdg_finite_q\"" not in text
+            or script_name.startswith(("stageSC_0", "stageSC_5"))
+        )
         assert "outputs/material_casimir" not in text
         assert "outputs\" / \"material_casimir" not in text
+
+
+def test_stage0_operator_ward_audit_scans_requested_candidates():
+    text = (ROOT / "validation" / "scripts" / "response" / "stageSC_0_bdg_operator_ward_vertex_audit.py").read_text(
+        encoding="utf-8"
+    )
+    assert "CANDIDATE_SPECS" in text
+    assert "2.0 * amp.delta0_eV" in text
+    assert "qv_sign in (1, -1)" in text
+    assert "operator_residual_max_abs" in text
+    assert "onsite_s operator identity failed" in text
 
 
 def test_validation_scripts_encode_failed_ward_and_minus_schur_selection():
