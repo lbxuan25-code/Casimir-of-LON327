@@ -248,6 +248,7 @@ def compute_bdg_components_for_composite_grid(
     *,
     delta0_eV: float = 0.04,
     chunk_size: int = 512,
+    phase_vertex: str | None = None,
 ) -> dict[str, Any]:
     """Accumulate composite linear kernels, then apply one amplitude-phase Schur."""
 
@@ -261,7 +262,9 @@ def compute_bdg_components_for_composite_grid(
     e_band = np.zeros(2, dtype=complex)
     e_shifted = np.zeros(2, dtype=complex)
     qd = np.zeros(2, dtype=complex)
-    phase_vertex = PHASE_VERTEX_BY_OPERATOR_BEST[pairing]
+    selected_phase_vertex = phase_vertex or PHASE_VERTEX_BY_OPERATOR_BEST[pairing]
+    if selected_phase_vertex not in {"midpoint", "symmetric_kpm"}:
+        raise ValueError("phase_vertex must be midpoint or symmetric_kpm")
 
     for start in range(0, points.shape[0], chunk_size):
         stop = min(start + chunk_size, points.shape[0])
@@ -289,7 +292,7 @@ def compute_bdg_components_for_composite_grid(
         rho_stack = np.broadcast_to(RHO, (p.shape[0], 8, 8))
         observable = np.stack((rho_stack, -vx, -vy), axis=0)
         source = np.stack((rho_stack, vx, vy), axis=0)
-        collective = _collective_vertices(_collective_phi_batch(pairing, p, q, phase_vertex))
+        collective = _collective_vertices(_collective_phi_batch(pairing, p, q, selected_phase_vertex))
         observable_band = _transform(um, observable, up)
         source_band = _transform(um, source, up)
         collective_band = _transform(um, collective, up)
@@ -308,7 +311,7 @@ def compute_bdg_components_for_composite_grid(
         direct[1:, 1:] -= np.einsum("b,stb->st", w, contact_expectation, optimize=True)
 
         collective_zero = _collective_vertices(
-            _collective_phi_batch(pairing, p, np.zeros(2), phase_vertex)
+            _collective_phi_batch(pairing, p, np.zeros(2), selected_phase_vertex)
         )
         eta2_zero_band = _transform(uc, collective_zero[1:2], uc)
         static_raw = _static_raw_factor(ec, fc, cfg)
@@ -361,6 +364,8 @@ def compute_bdg_components_for_composite_grid(
             "E_band_plus_qD_abs": float(abs(e_band[j] + qd[j])),
         }
     sigma = spatial_response_to_bilayer_sheet_conductivity_model(amplitude_phase, omega_eV)
+    bare_left, bare_right = physical_ward_residuals(bare_total, omega_eV, q)
+    amplitude_left, amplitude_right = physical_ward_residuals(amplitude_phase, omega_eV, q)
     diag_norm = float(np.sqrt(abs(sigma[0, 0]) ** 2 + abs(sigma[1, 1]) ** 2))
     offdiag_norm = float(np.sqrt(abs(sigma[0, 1]) ** 2 + abs(sigma[1, 0]) ** 2))
     return {
@@ -369,11 +374,19 @@ def compute_bdg_components_for_composite_grid(
         "collective_total": collective_total,
         "em_collective_left": em_collective_left,
         "collective_em_right": collective_em_right,
+        "phase_vertex": selected_phase_vertex,
         "contact_closure": closure,
-        "bare_total_ward_max_abs": _ward_max(bare_total, omega_eV, q),
-        "amplitude_phase_ward_max_abs": _ward_max(amplitude_phase, omega_eV, q),
+        "bare_left_ward": bare_left,
+        "bare_right_ward": bare_right,
+        "amplitude_phase_left_ward": amplitude_left,
+        "amplitude_phase_right_ward": amplitude_right,
+        "bare_total_ward_max_abs": float(max(np.max(np.abs(bare_left)), np.max(np.abs(bare_right)))),
+        "amplitude_phase_ward_max_abs": float(
+            max(np.max(np.abs(amplitude_left)), np.max(np.abs(amplitude_right)))
+        ),
         "collective_condition_number": condition,
         "collective_inverse_method": inverse_method,
+        "collective_total_det_abs": float(abs(np.linalg.det(collective_total))),
         "sigma_diag_min_real": float(min(sigma[0, 0].real, sigma[1, 1].real)),
         "sigma_offdiag_rel": float(offdiag_norm / max(diag_norm, 1e-300)),
         "sigma_xx_yy_anisotropy": float(
@@ -465,4 +478,3 @@ def recommend_strategy(rows: list[dict[str, Any]]) -> dict[str, Any] | None:
         "smallest passing onsite_s AP Ward residual, then contact closure/material monitor/cost ordering"
     )
     return best
-

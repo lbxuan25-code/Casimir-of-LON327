@@ -37,6 +37,11 @@ from bdg_quadrature_strategy_common import (  # noqa: E402
     single_composite_schur,
     strategy_origins,
 )
+from bdg_commensurate_q_common import (  # noqa: E402
+    build_dwave_decomposition,
+    commensurate_case_status,
+    commensurate_q_spec,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -561,3 +566,81 @@ def test_stageSC_0f_no_passing_onsite_strategy_returns_null_recommendation():
             }
         )
     assert recommend_strategy(failing_rows) is None
+
+
+def test_stageSC_2bC_q_half_lands_on_periodic_grid_step():
+    spec = commensurate_q_spec(24, (1, 1))
+    assert spec["q_half_in_grid_steps"] == pytest.approx([1.0, 1.0])
+    assert spec["q_half_lands_on_grid"] is True
+
+
+@pytest.mark.parametrize("pairing", ["onsite_s", "spm"])
+def test_stageSC_2bC_commensurate_contact_and_ap_ward_close(pairing):
+    n_grid = 4
+    spec = commensurate_q_spec(n_grid, (1, 0))
+    points, weights = composite_uniform_quadrature(n_grid, [(0.0, 0.0)])
+    cfg = KuboConfig.from_kelvin(omega_eV=0.01, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+    result = compute_bdg_components_for_composite_grid(
+        pairing,
+        0.01,
+        np.asarray(spec["q_model"]),
+        points,
+        weights,
+        cfg,
+        phase_vertex="midpoint",
+        chunk_size=32,
+    )
+    contact = max(
+        result["contact_closure"][channel]["E_band_plus_qD_abs"]
+        for channel in ("Vx", "Vy")
+    )
+    assert contact < 1e-10
+    assert result["amplitude_phase_ward_max_abs"] < 1e-8
+
+
+def test_stageSC_2bC_bare_ward_is_monitor_only():
+    status, dominant = commensurate_case_status(
+        "onsite_s",
+        contact_closure_abs=1e-14,
+        amplitude_phase_ward_abs=1e-14,
+        bare_ward_monitor_abs=1.0,
+        collective_condition_number=10.0,
+    )
+    assert status == "PASSED"
+    assert dominant == "none"
+
+
+def test_stageSC_2bC_dwave_failure_builds_form_factor_decomposition():
+    cases = []
+    for phase_vertex, residual in (("symmetric_kpm", 2e-4), ("midpoint", 4e-4)):
+        cases.append(
+            {
+                "pairing": "dwave",
+                "phase_vertex": phase_vertex,
+                "N": 24,
+                "q_model": [0.5, 0.0],
+                "amplitude_phase_ward_max_abs": residual,
+                "left_ward_components": {"rho": residual, "x": 0.0, "y": 0.0},
+                "right_ward_components": {"rho": residual, "x": 0.0, "y": 0.0},
+                "collective_condition_number": 5.0,
+                "contact_closure_max_abs": 1e-15,
+            }
+        )
+    decomposition = build_dwave_decomposition(cases)
+    assert set(decomposition) >= {"symmetric_kpm", "midpoint", "best_phase_vertex"}
+    assert decomposition["best_phase_vertex"] == "symmetric_kpm"
+    assert decomposition["residual_ratio_midpoint_over_symmetric"] == pytest.approx(2.0)
+
+
+def test_stageSC_2bC_script_does_not_call_casimir_pipeline():
+    script = (
+        ROOT
+        / "validation"
+        / "scripts"
+        / "response"
+        / "stageSC_2bC_bdg_amplitude_phase_commensurate_q_audit.py"
+    )
+    text = script.read_text(encoding="utf-8")
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+    assert "bare_total_ward_max_abs is monitor-only" in text
