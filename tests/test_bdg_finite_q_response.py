@@ -30,6 +30,13 @@ from bdg_shifted_grid_assembly_common import (  # noqa: E402
     matrix_fermi_function,
     shifted_trace_direct_terms,
 )
+from bdg_quadrature_strategy_common import (  # noqa: E402
+    composite_uniform_quadrature,
+    compute_bdg_components_for_composite_grid,
+    recommend_strategy,
+    single_composite_schur,
+    strategy_origins,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -464,3 +471,93 @@ def test_stageSC_0e_script_does_not_call_casimir_pipeline():
     assert "run_material_casimir_figures" not in text
     assert "outputs/material_casimir" not in text
     assert '"formal_casimir_ran": False' in text
+
+
+def test_stageSC_0f_composite_quadrature_weights_are_normalized():
+    origins = strategy_origins("multi_origin_symmetric", np.array([0.01, 0.01]))
+    _, weights = composite_uniform_quadrature(6, origins)
+    assert np.sum(weights) == pytest.approx(1.0)
+
+
+def test_stageSC_0f_multi_origin_composite_point_count():
+    origins = strategy_origins("multi_origin_symmetric", np.array([0.01, 0.01]))
+    points, _ = composite_uniform_quadrature(5, origins)
+    assert len(origins) == 7
+    assert points.shape == (5 * 5 * len(origins), 2)
+
+
+def test_stageSC_0f_schur_is_applied_once_to_composite_kernels():
+    bare_a = np.diag([2.0, 3.0, 4.0]).astype(complex)
+    bare_b = np.diag([4.0, 5.0, 6.0]).astype(complex)
+    left_a = np.ones((3, 2), dtype=complex)
+    left_b = 2.0 * np.ones((3, 2), dtype=complex)
+    right_a = left_a.T
+    right_b = left_b.T
+    collective_a = np.diag([2.0, 3.0]).astype(complex)
+    collective_b = np.diag([5.0, 7.0]).astype(complex)
+    composite, _, _ = single_composite_schur(
+        0.5 * (bare_a + bare_b),
+        0.5 * (left_a + left_b),
+        0.5 * (collective_a + collective_b),
+        0.5 * (right_a + right_b),
+    )
+    schur_a, _, _ = single_composite_schur(bare_a, left_a, collective_a, right_a)
+    schur_b, _, _ = single_composite_schur(bare_b, left_b, collective_b, right_b)
+    assert not np.allclose(composite, 0.5 * (schur_a + schur_b))
+
+
+def test_stageSC_0f_grid_step_reference_keeps_shifted_direct_identity():
+    n_grid = 4
+    q = np.array([4.0 * np.pi / n_grid, 0.0])
+    points, weights = composite_uniform_quadrature(n_grid, [(0.0, 0.0)])
+    cfg = KuboConfig.from_kelvin(omega_eV=0.01, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+    result = compute_bdg_components_for_composite_grid(
+        "onsite_s", 0.01, q, points, weights, cfg, chunk_size=32
+    )
+    assert max(
+        result["contact_closure"][channel]["E_shifted_plus_qD_abs"]
+        for channel in ("Vx", "Vy")
+    ) < 1e-10
+
+
+def test_stageSC_0f_ordinary_and_multi_origin_are_distinct_strategies():
+    q = np.array([0.01, 0.01])
+    ordinary = strategy_origins("ordinary_uniform", q)
+    multi = strategy_origins("multi_origin_symmetric", q)
+    assert len(ordinary) == 1
+    assert len(multi) == 7
+    assert ordinary != multi
+
+
+def test_stageSC_0f_script_does_not_call_casimir_pipeline():
+    script = (
+        ROOT
+        / "validation"
+        / "scripts"
+        / "response"
+        / "stageSC_0f_bdg_quadrature_strategy_comparison_audit.py"
+    )
+    text = script.read_text(encoding="utf-8")
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+    assert '"formal_casimir_ran": False' in text
+
+
+def test_stageSC_0f_no_passing_onsite_strategy_returns_null_recommendation():
+    failing_rows = []
+    for q in ([0.01, 0.0], [0.01, 0.01]):
+        failing_rows.append(
+            {
+                "pairing": "onsite_s",
+                "strategy": "ordinary_uniform",
+                "N": 24,
+                "num_origins": 1,
+                "num_k_points_total": 576,
+                "q_model": q,
+                "bare_total_ward_max_abs": 1e-4,
+                "amplitude_phase_ward_max_abs": 1e-4,
+                "Vx": {"E_band_plus_qD_abs": 1e-4},
+                "Vy": {"E_band_plus_qD_abs": 1e-4},
+            }
+        )
+    assert recommend_strategy(failing_rows) is None
