@@ -24,6 +24,12 @@ from bdg_contact_identity_common import (  # noqa: E402
     bdg_contact_identity_residual,
     normal_contact_identity_residual,
 )
+from bdg_shifted_grid_assembly_common import (  # noqa: E402
+    case_dominant_failure,
+    commensurate_grid_spec,
+    matrix_fermi_function,
+    shifted_trace_direct_terms,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -34,6 +40,11 @@ from lno327.bdg_finite_q_response import (
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
 from lno327.pairing import PairingAmplitudes
 from lno327.ward_response import normal_physical_density_current_response_imag_axis
+from lno327.tb_fourier import (
+    normal_state_hamiltonian_from_hoppings,
+    peierls_hamiltonian_contact_vertex,
+    peierls_hamiltonian_vector_vertex,
+)
 
 
 def _inputs(delta0: float = 0.04):
@@ -376,3 +387,80 @@ def test_stageSC_0d_closure_failure_is_not_contact_identity(part_b_abs, fixed_q_
     status, dominant, _ = assess_stageSC_0d(1e-13, part_b_abs, fixed_q_abs)
     assert status == "FAILED"
     assert dominant == expected
+
+
+def test_stageSC_0e_matrix_fermi_function_is_hermitian_and_reconstructs_eigenbasis():
+    hamiltonian = np.array([[0.2, 0.1 - 0.03j], [0.1 + 0.03j, -0.4]], dtype=complex)
+    cfg = KuboConfig.from_kelvin(omega_eV=0.01, temperature_K=10.0, output_si=False)
+    actual = matrix_fermi_function(hamiltonian, cfg)
+    eigenvalues, eigenvectors = np.linalg.eigh(hamiltonian)
+    occupations = 1.0 / (np.exp(np.clip(eigenvalues / cfg.temperature_eV, -700.0, 700.0)) + 1.0)
+    expected = eigenvectors @ np.diag(occupations) @ eigenvectors.conjugate().T
+    assert np.allclose(actual, actual.conjugate().T)
+    assert np.allclose(actual, expected)
+
+
+def test_stageSC_0e_shifted_trace_and_direct_cancel_for_finite_fourier_toy():
+    hopping = 0.7
+    terms = [
+        ((1, 0), hopping * np.eye(4, dtype=complex)),
+        ((-1, 0), hopping * np.eye(4, dtype=complex)),
+    ]
+    kx, ky = 0.31, 0.0
+    qx, qy = 0.2, 0.0
+    hamiltonian = normal_state_hamiltonian_from_hoppings(kx, ky, hopping_terms=terms)
+    vector_plus = peierls_hamiltonian_vector_vertex(
+        kx + 0.5 * qx, ky, -qx, -qy, "x", hopping_terms=terms
+    )
+    vector_minus = peierls_hamiltonian_vector_vertex(
+        kx - 0.5 * qx, ky, -qx, -qy, "x", hopping_terms=terms
+    )
+    q_contact = qx * peierls_hamiltonian_contact_vertex(
+        kx, ky, qx, qy, "x", "x", hopping_terms=terms
+    )
+    cfg = KuboConfig.from_kelvin(
+        omega_eV=0.01,
+        temperature_K=300.0,
+        fermi_level_eV=1.3,
+        output_si=False,
+    )
+    shifted, direct = shifted_trace_direct_terms(
+        hamiltonian, np.eye(4), vector_plus, vector_minus, q_contact, cfg
+    )
+    assert abs(shifted) > 1e-6
+    assert abs(shifted + direct) < 1e-12
+
+
+def test_stageSC_0e_grid_step_commensurate_half_q_is_one_grid_spacing():
+    spec = commensurate_grid_spec(24, "grid_step_commensurate")
+    assert spec["q_half_in_grid_steps"] == pytest.approx([1.0, 0.0])
+    assert spec["q_half_lands_on_grid"] is True
+
+
+def test_stageSC_0e_records_distinct_half_and_grid_step_commensurate_grids():
+    half = commensurate_grid_spec(24, "half_step_commensurate")
+    full = commensurate_grid_spec(24, "grid_step_commensurate")
+    assert half["grid_type"] == "half_step_commensurate"
+    assert full["grid_type"] == "grid_step_commensurate"
+    assert half["q_half_in_grid_steps"] == pytest.approx([0.5, 0.0])
+    assert half["q_half_lands_on_grid"] is False
+    assert full["q_half_lands_on_grid"] is True
+
+
+def test_stageSC_0e_direct_failure_has_priority_over_band_shifted_failure():
+    dominant = case_dominant_failure(1e-5, 1e-4, 1e-4)
+    assert dominant == "direct_expectation_mismatch"
+
+
+def test_stageSC_0e_script_does_not_call_casimir_pipeline():
+    script = (
+        ROOT
+        / "validation"
+        / "scripts"
+        / "response"
+        / "stageSC_0e_bdg_shifted_grid_response_assembly_audit.py"
+    )
+    text = script.read_text(encoding="utf-8")
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+    assert '"formal_casimir_ran": False' in text
