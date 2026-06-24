@@ -19,6 +19,11 @@ from bdg_bubble_ward_transfer_common import (  # noqa: E402
     needed_eta2_contact_if_only_eta2,
     stageSC_0c_status,
 )
+from bdg_contact_identity_common import (  # noqa: E402
+    assess_stageSC_0d,
+    bdg_contact_identity_residual,
+    normal_contact_identity_residual,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -324,3 +329,50 @@ def test_stageSC_0c_script_does_not_call_casimir_pipeline():
     text = script.read_text(encoding="utf-8")
     assert "run_material_casimir_figures" not in text
     assert "outputs/material_casimir" not in text
+
+
+@pytest.mark.parametrize("k_model", [(0.13, 0.27), (0.41, -0.22), (1.11, 0.73)])
+@pytest.mark.parametrize("q_model", [(0.01, 0.0), (0.01, 0.01)])
+@pytest.mark.parametrize("direction_j", ["x", "y"])
+def test_stageSC_0d_normal_contact_identity(k_model, q_model, direction_j):
+    residual = normal_contact_identity_residual(k_model, q_model, direction_j)
+    assert np.max(np.abs(residual)) < 1e-12
+
+
+@pytest.mark.parametrize("k_model", [(0.13, 0.27), (0.41, -0.22), (-0.64, 1.37)])
+@pytest.mark.parametrize("q_model", [(0.01, 0.0), (0.01, 0.01)])
+@pytest.mark.parametrize("direction_j", ["x", "y"])
+def test_stageSC_0d_onsite_s_bdg_contact_identity(k_model, q_model, direction_j):
+    residual = bdg_contact_identity_residual(k_model, q_model, direction_j)
+    assert np.max(np.abs(residual)) < 1e-12
+
+
+def test_stageSC_0d_script_does_not_call_casimir_pipeline():
+    script = (
+        ROOT
+        / "validation"
+        / "scripts"
+        / "response"
+        / "stageSC_0d_bdg_exact_contact_identity_quadrature_audit.py"
+    )
+    text = script.read_text(encoding="utf-8")
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+    assert '"formal_casimir_ran": False' in text
+
+
+def test_stageSC_0d_partA_failure_cannot_pass():
+    status, dominant, interpretation = assess_stageSC_0d(1e-9, 1e-12, 1e-12)
+    assert status == "FAILED"
+    assert dominant == "contact_vertex_identity"
+    assert interpretation == "contact_vertex_formula_or_bdg_hole_routing_failed"
+
+
+@pytest.mark.parametrize(
+    ("part_b_abs", "fixed_q_abs", "expected"),
+    [(1e-4, 1e-4, "shift_invariant_quadrature"), (1e-12, 1e-4, "fixed_q_quadrature")],
+)
+def test_stageSC_0d_closure_failure_is_not_contact_identity(part_b_abs, fixed_q_abs, expected):
+    status, dominant, _ = assess_stageSC_0d(1e-13, part_b_abs, fixed_q_abs)
+    assert status == "FAILED"
+    assert dominant == expected
