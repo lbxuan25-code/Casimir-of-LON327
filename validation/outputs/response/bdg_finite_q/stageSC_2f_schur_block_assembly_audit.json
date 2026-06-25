@@ -1,0 +1,1221 @@
+{
+  "cases": [
+    {
+      "N": 24,
+      "bare_ward_monitor": 0.018075841964840113,
+      "baseline_restored_ward": 3.4483054221327112e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.893062322008359,
+        "etaeta_only": 1.893062322008359,
+        "mixed_only": 1.893062322008359,
+        "mixed_plus_etaeta": 1.893062322008359
+      },
+      "collective_condition_number": 1.893062322008359,
+      "contact_closure_max_abs": 1.665443849972704e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 3.4483054221327112e-16,
+      "improvement_factor": 99.39063689072985,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 2.0133408387383817e-14,
+      "mixed_only_restored_ward": 3.469446951953614e-18,
+      "mixed_plus_etaeta_restored_ward": 3.469446951953614e-18,
+      "pairing": "onsite_s",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.5323115447541586,
+        "em_em_direct": 0.5323115447541586,
+        "eta_eta_counterterm_candidate": 3.816402310247922e-16,
+        "mixed_direct_candidate": 3.469446951953614e-18,
+        "total_candidate": 3.816402310247922e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 3.816402310247922e-16,
+        "Vy": 8.182556849537598e-19,
+        "eta1": 1.465959487733249e-17,
+        "eta2": 2.3597152153206396e-16,
+        "rho": 5.2838023519555097e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 24,
+      "bare_ward_monitor": 0.014245031761102124,
+      "baseline_restored_ward": 1.7347238351842932e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.4594921922803148,
+        "etaeta_only": 1.4594921922803148,
+        "mixed_only": 1.4594921922803148,
+        "mixed_plus_etaeta": 1.4594921922803148
+      },
+      "collective_condition_number": 1.4594921922803148,
+      "contact_closure_max_abs": 3.885791148398821e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 1.7347238351842932e-16,
+      "improvement_factor": 1.470583081617437,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 1.0549234687026856e-13,
+      "mixed_only_restored_ward": 1.179616341890958e-16,
+      "mixed_plus_etaeta_restored_ward": 1.179616341890958e-16,
+      "pairing": "onsite_s",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.5323115447541591,
+        "em_em_direct": 0.5323115447541591,
+        "eta_eta_counterterm_candidate": 1.6662090698673975e-16,
+        "mixed_direct_candidate": 1.179616341890958e-16,
+        "total_candidate": 1.6662090698673975e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 7.286845259561201e-17,
+        "Vy": 1.6132991554585974e-16,
+        "eta1": 1.0243808665937192e-17,
+        "eta2": 1.6662090698673975e-16,
+        "rho": 6.045920532186822e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 36,
+      "bare_ward_monitor": 0.022027144274960286,
+      "baseline_restored_ward": 1.2056624319008614e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 2.4176540710781973,
+        "etaeta_only": 2.4176540710781973,
+        "mixed_only": 2.4176540710781973,
+        "mixed_plus_etaeta": 2.4176540710781973
+      },
+      "collective_condition_number": 2.4176540710781973,
+      "contact_closure_max_abs": 1.1102313313257213e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 1.2056624319008614e-16,
+      "improvement_factor": 34.75085362587728,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 1.2883939249159335e-14,
+      "mixed_only_restored_ward": 3.469446951953614e-18,
+      "mixed_plus_etaeta_restored_ward": 3.469446951953614e-18,
+      "pairing": "onsite_s",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.5576518903579857,
+        "em_em_direct": 0.5576518903579857,
+        "eta_eta_counterterm_candidate": 2.0823803556074532e-16,
+        "mixed_direct_candidate": 3.469446951953614e-18,
+        "total_candidate": 2.0823803556074532e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 6.939017110842785e-17,
+        "Vy": 1.7894874220671396e-18,
+        "eta1": 1.2899973514121792e-17,
+        "eta2": 2.0823803556074532e-16,
+        "rho": 3.9632038790938965e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 36,
+      "bare_ward_monitor": 0.017997120512569853,
+      "baseline_restored_ward": 2.289835715311024e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.6653893533483408,
+        "etaeta_only": 1.6653893533483408,
+        "mixed_only": 1.6653893533483408,
+        "mixed_plus_etaeta": 1.6653893533483408
+      },
+      "collective_condition_number": 1.6653893533483408,
+      "contact_closure_max_abs": 1.665334617386708e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 2.289835715311024e-16,
+      "improvement_factor": 4.399989281036598,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 1.2306889777592893e-13,
+      "mixed_only_restored_ward": 5.204184758312774e-17,
+      "mixed_plus_etaeta_restored_ward": 5.204184758312774e-17,
+      "pairing": "onsite_s",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.557651890357986,
+        "em_em_direct": 0.557651890357986,
+        "eta_eta_counterterm_candidate": 2.359224058030786e-16,
+        "mixed_direct_candidate": 5.204184758312774e-17,
+        "total_candidate": 2.359224058030786e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 2.359224058030786e-16,
+        "Vy": 1.3877800779470086e-16,
+        "eta1": 7.532274206003633e-18,
+        "eta2": 2.777505195212899e-17,
+        "rho": 2.4689973870336213e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 48,
+      "bare_ward_monitor": 0.021234816808217864,
+      "baseline_restored_ward": 1.3292536560192557e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 2.922733024223334,
+        "etaeta_only": 2.922733024223334,
+        "mixed_only": 2.922733024223334,
+        "mixed_plus_etaeta": 2.922733024223334
+      },
+      "collective_condition_number": 2.922733024223334,
+      "contact_closure_max_abs": 2.775672086954032e-17,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 1.3292536560192557e-16,
+      "improvement_factor": 16.25718261720094,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 1.2365272464058706e-14,
+      "mixed_only_restored_ward": 8.176408467066346e-18,
+      "mixed_plus_etaeta_restored_ward": 8.176408467066346e-18,
+      "pairing": "onsite_s",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.5460748429535665,
+        "em_em_direct": 0.5460748429535665,
+        "eta_eta_counterterm_candidate": 2.220530578229356e-16,
+        "mixed_direct_candidate": 8.176408467066346e-18,
+        "total_candidate": 2.220530578229356e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 6.591968110898812e-17,
+        "Vy": 8.62062009418369e-18,
+        "eta1": 2.27049490575463e-17,
+        "eta2": 2.220530578229356e-16,
+        "rho": 2.0562944433688732e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 48,
+      "bare_ward_monitor": 0.01764975307454281,
+      "baseline_restored_ward": 7.342010397576474e-17,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.9965666599233791,
+        "etaeta_only": 1.9965666599233791,
+        "mixed_only": 1.9965666599233791,
+        "mixed_plus_etaeta": 1.9965666599233791
+      },
+      "collective_condition_number": 1.9965666599233791,
+      "contact_closure_max_abs": 8.326694192437137e-17,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 7.342010397576474e-17,
+      "improvement_factor": 14.096527067857297,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 1.109503920033413e-13,
+      "mixed_only_restored_ward": 5.208382435073404e-18,
+      "mixed_plus_etaeta_restored_ward": 5.208382435073404e-18,
+      "pairing": "onsite_s",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.5460748429535667,
+        "em_em_direct": 0.5460748429535667,
+        "eta_eta_counterterm_candidate": 4.163347770995694e-16,
+        "mixed_direct_candidate": 5.208382435073404e-18,
+        "total_candidate": 4.163347770995694e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 3.4695061203868706e-17,
+        "Vy": 3.469456982361589e-17,
+        "eta1": 2.2117461963404502e-17,
+        "eta2": 4.163347770995694e-16,
+        "rho": 2.2610993885431026e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 24,
+      "bare_ward_monitor": 0.012384532322692359,
+      "baseline_restored_ward": 4.801960535378631e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 2.8968134119175017,
+        "etaeta_only": 2.8968134119175017,
+        "mixed_only": 2.8968134119175017,
+        "mixed_plus_etaeta": 2.8968134119175017
+      },
+      "collective_condition_number": 2.8968134119175017,
+      "contact_closure_max_abs": 1.5367793340658963e-18,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 4.801960535378631e-16,
+      "improvement_factor": 477.2349928518202,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 4.6642029186435686e-14,
+      "mixed_only_restored_ward": 1.006204617704893e-18,
+      "mixed_plus_etaeta_restored_ward": 1.006204617704893e-18,
+      "pairing": "spm",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.3222954816556036,
+        "em_em_direct": 0.3222954816556036,
+        "eta_eta_counterterm_candidate": 4.7791886562902e-16,
+        "mixed_direct_candidate": 1.006204617704893e-18,
+        "total_candidate": 4.7791886562902e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 4.7791886562902e-16,
+        "Vy": 8.744128655302088e-19,
+        "eta1": 5.499356093323994e-18,
+        "eta2": 2.0825803389329076e-17,
+        "rho": 1.2236578968321251e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 24,
+      "bare_ward_monitor": 0.010161767950911851,
+      "baseline_restored_ward": 1.5352372104080745e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.9496180342064615,
+        "etaeta_only": 1.9496180342064615,
+        "mixed_only": 1.9496180342064615,
+        "mixed_plus_etaeta": 1.9496180342064615
+      },
+      "collective_condition_number": 1.9496180342064615,
+      "contact_closure_max_abs": 2.2205107503407187e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 1.5352372104080745e-16,
+      "improvement_factor": 5.056416332766528,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 3.1166409040140926e-14,
+      "mixed_only_restored_ward": 3.03621598652676e-17,
+      "mixed_plus_etaeta_restored_ward": 3.03621598652676e-17,
+      "pairing": "spm",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.32229548165560334,
+        "em_em_direct": 0.32229548165560334,
+        "eta_eta_counterterm_candidate": 2.6368923392824553e-16,
+        "mixed_direct_candidate": 3.03621598652676e-17,
+        "total_candidate": 2.6368923392824553e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 1.1623661531283562e-16,
+        "Vy": 1.7347412592924238e-16,
+        "eta1": 1.9012163717833415e-17,
+        "eta2": 2.6368923392824553e-16,
+        "rho": 4.330933107498294e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 36,
+      "bare_ward_monitor": 0.01643245674411994,
+      "baseline_restored_ward": 6.96126366120937e-17,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 4.035699290237186,
+        "etaeta_only": 4.035699290237186,
+        "mixed_only": 4.035699290237186,
+        "mixed_plus_etaeta": 4.035699290237186
+      },
+      "collective_condition_number": 4.035699290237186,
+      "contact_closure_max_abs": 2.220447480762933e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 6.96126366120937e-17,
+      "improvement_factor": 2.2526951306175524,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 9.050767941341612e-15,
+      "mixed_only_restored_ward": 3.090193416141941e-17,
+      "mixed_plus_etaeta_restored_ward": 3.090193416141941e-17,
+      "pairing": "spm",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.3316074077469483,
+        "em_em_direct": 0.3316074077469483,
+        "eta_eta_counterterm_candidate": 1.1814483750190106e-16,
+        "mixed_direct_candidate": 3.090193416141941e-17,
+        "total_candidate": 1.1814483750190106e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 1.995574408045174e-17,
+        "Vy": 3.0784304350628216e-17,
+        "eta1": 4.81854722660281e-18,
+        "eta2": 1.1814483750190106e-16,
+        "rho": 4.953908475654343e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 36,
+      "bare_ward_monitor": 0.012305761956485806,
+      "baseline_restored_ward": 8.847206590969801e-17,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 2.5585951650747187,
+        "etaeta_only": 2.5585951650747187,
+        "mixed_only": 2.5585951650747187,
+        "mixed_plus_etaeta": 2.5585951650747187
+      },
+      "collective_condition_number": 2.5585951650747187,
+      "contact_closure_max_abs": 2.4980018102663004e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 8.847206590969801e-17,
+      "improvement_factor": 1.7586399161842532,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 1.473605819032205e-14,
+      "mixed_only_restored_ward": 5.030709532719873e-17,
+      "mixed_plus_etaeta_restored_ward": 5.030709532719873e-17,
+      "pairing": "spm",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.3316074077469481,
+        "em_em_direct": 0.3316074077469481,
+        "eta_eta_counterterm_candidate": 8.066464832638961e-17,
+        "mixed_direct_candidate": 5.030709532719873e-17,
+        "total_candidate": 8.066464832638961e-17
+      },
+      "residual_by_right_channel": {
+        "Vx": 1.9082055609841677e-17,
+        "Vy": 8.066464832638961e-17,
+        "eta1": 3.0447250908442114e-17,
+        "eta2": 6.948825430939063e-17,
+        "rho": 3.334220143799681e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 48,
+      "bare_ward_monitor": 0.015354518944644312,
+      "baseline_restored_ward": 5.580351252540597e-17,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 5.958925123652421,
+        "etaeta_only": 5.958925123652421,
+        "mixed_only": 5.958925123652421,
+        "mixed_plus_etaeta": 5.958925123652421
+      },
+      "collective_condition_number": 5.958925123652421,
+      "contact_closure_max_abs": 2.775664815983955e-17,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 5.580351252540597e-17,
+      "improvement_factor": 16.08426740578452,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 1.3655380697846658e-13,
+      "mixed_only_restored_ward": 3.469446951953614e-18,
+      "mixed_plus_etaeta_restored_ward": 3.469446951953614e-18,
+      "pairing": "spm",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.3257930037282556,
+        "em_em_direct": 0.3257930037282556,
+        "eta_eta_counterterm_candidate": 8.673901785352139e-17,
+        "mixed_direct_candidate": 3.469446951953614e-18,
+        "total_candidate": 8.673901785352139e-17
+      },
+      "residual_by_right_channel": {
+        "Vx": 1.7347262518290382e-17,
+        "Vy": 2.5914968854843014e-18,
+        "eta1": 1.3438629891958462e-17,
+        "eta2": 8.673901785352139e-17,
+        "rho": 7.88335780287323e-18
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 48,
+      "bare_ward_monitor": 0.013417687245897312,
+      "baseline_restored_ward": 7.719607629127344e-17,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 3.5816318642368237,
+        "etaeta_only": 3.5816318642368237,
+        "mixed_only": 3.5816318642368237,
+        "mixed_plus_etaeta": 3.5816318642368237
+      },
+      "collective_condition_number": 3.5816318642368237,
+      "contact_closure_max_abs": 2.7756612748767434e-17,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 7.719607629127344e-17,
+      "improvement_factor": 1.3040404786257496,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 1.8284938642335997e-14,
+      "mixed_only_restored_ward": 5.919760740297401e-17,
+      "mixed_plus_etaeta_restored_ward": 5.919760740297401e-17,
+      "pairing": "spm",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.32579300372825554,
+        "em_em_direct": 0.32579300372825554,
+        "eta_eta_counterterm_candidate": 7.893052199460502e-17,
+        "mixed_direct_candidate": 5.919760740297401e-17,
+        "total_candidate": 7.893052199460502e-17
+      },
+      "residual_by_right_channel": {
+        "Vx": 7.893052199460502e-17,
+        "Vy": 3.989863996796948e-17,
+        "eta1": 5.228588174754334e-18,
+        "eta2": 6.950305578927782e-18,
+        "rho": 1.1348495443119402e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 24,
+      "bare_ward_monitor": 0.006349671740115936,
+      "baseline_restored_ward": 0.0008740857762858619,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.038857136645342,
+        "etaeta_only": 1.0758836193872772,
+        "mixed_only": 1.038857136645342,
+        "mixed_plus_etaeta": 1.0758836193872772
+      },
+      "collective_condition_number": 1.038857136645342,
+      "contact_closure_max_abs": 1.1102977182320856e-16,
+      "etaeta_metric_factor": 0.9655850343604879,
+      "etaeta_only_restored_ward": 0.0006789251477076631,
+      "improvement_factor": 69593691290650.47,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 0.01747529357397359,
+      "mixed_only_restored_ward": 1.255984213619792e-17,
+      "mixed_plus_etaeta_restored_ward": 0.00022631481023434763,
+      "pairing": "dwave",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.27777690405615596,
+        "em_em_direct": 0.19377053740172587,
+        "eta_eta_counterterm_candidate": 0.006714991960853553,
+        "mixed_direct_candidate": 1.255984213619792e-17,
+        "total_candidate": 0.006714991960853553
+      },
+      "residual_by_right_channel": {
+        "Vx": 2.1163988574565415e-16,
+        "Vy": 1.2123013172461447e-17,
+        "eta1": 1.2311395230587939e-17,
+        "eta2": 0.006714991960853553,
+        "rho": 4.0195426800426067e-16
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 24,
+      "bare_ward_monitor": 0.00451388817592442,
+      "baseline_restored_ward": 0.0008339764188671453,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.1028002600986253,
+        "etaeta_only": 1.0289274373524808,
+        "mixed_only": 1.1028002600986253,
+        "mixed_plus_etaeta": 1.0289274373524808
+      },
+      "collective_condition_number": 1.1028002600986253,
+      "contact_closure_max_abs": 1.6653979335119754e-16,
+      "etaeta_metric_factor": 0.9330127018922195,
+      "etaeta_only_restored_ward": 0.0005697951341055422,
+      "improvement_factor": 5674612263947.596,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 0.018508772242030243,
+      "mixed_only_restored_ward": 1.469662384099142e-16,
+      "mixed_plus_etaeta_restored_ward": 0.00032405663699710505,
+      "pairing": "dwave",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.27849378000159164,
+        "em_em_direct": 0.1870555454408722,
+        "eta_eta_counterterm_candidate": 0.013429983921707231,
+        "mixed_direct_candidate": 1.469662384099142e-16,
+        "total_candidate": 0.013429983921707231
+      },
+      "residual_by_right_channel": {
+        "Vx": 2.6801903953863947e-16,
+        "Vy": 2.2571525141252188e-17,
+        "eta1": 1.8833525003127417e-17,
+        "eta2": 0.013429983921707231,
+        "rho": 3.171837084129966e-16
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 36,
+      "bare_ward_monitor": 0.008626413782332603,
+      "baseline_restored_ward": 0.0006361751491695761,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.2299211216362504,
+        "etaeta_only": 1.249182358163462,
+        "mixed_only": 1.2299211216362504,
+        "mixed_plus_etaeta": 1.249182358163462
+      },
+      "collective_condition_number": 1.2299211216362504,
+      "contact_closure_max_abs": 1.6653366640019744e-16,
+      "etaeta_metric_factor": 0.9845779924275697,
+      "etaeta_only_restored_ward": 0.0005110880700024094,
+      "improvement_factor": 104425601143808.08,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 0.013361952768030257,
+      "mixed_only_restored_ward": 6.0921377727428874e-18,
+      "mixed_plus_etaeta_restored_ward": 0.00013504865327892528,
+      "pairing": "dwave",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.2008348812611223,
+        "em_em_direct": 0.2008348812611223,
+        "eta_eta_counterterm_candidate": 0.0030743071882635975,
+        "mixed_direct_candidate": 6.0921377727428874e-18,
+        "total_candidate": 0.0030743071882635975
+      },
+      "residual_by_right_channel": {
+        "Vx": 1.569243967321093e-17,
+        "Vy": 5.981010635602891e-18,
+        "eta1": 1.2009033544246975e-17,
+        "eta2": 0.0030743071882635975,
+        "rho": 2.199181734975579e-16
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 36,
+      "bare_ward_monitor": 0.006368195432661861,
+      "baseline_restored_ward": 0.0006309484849081632,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.0045471129852854,
+        "etaeta_only": 1.026422684126045,
+        "mixed_only": 1.0045471129852854,
+        "mixed_plus_etaeta": 1.026422684126045
+      },
+      "collective_condition_number": 1.0045471129852854,
+      "contact_closure_max_abs": 2.220446078674049e-16,
+      "etaeta_metric_factor": 0.9698463103929543,
+      "etaeta_only_restored_ward": 0.0004526019333965948,
+      "improvement_factor": 34611562227830.38,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 0.012958737367691731,
+      "mixed_only_restored_ward": 1.8229413649547195e-17,
+      "mixed_plus_etaeta_restored_ward": 0.00019796192657372744,
+      "pairing": "dwave",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.19776057407285846,
+        "em_em_direct": 0.19776057407285846,
+        "eta_eta_counterterm_candidate": 0.006148614376527424,
+        "mixed_direct_candidate": 1.8229413649547195e-17,
+        "total_candidate": 0.006148614376527424
+      },
+      "residual_by_right_channel": {
+        "Vx": 1.2923815010143003e-16,
+        "Vy": 9.454828459204558e-17,
+        "eta1": 2.0513836113977768e-18,
+        "eta2": 0.006148614376527424,
+        "rho": 8.181177355329648e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 48,
+      "bare_ward_monitor": 0.0083779385038139,
+      "baseline_restored_ward": 0.000472351040181452,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.321134512585131,
+        "etaeta_only": 1.3327234420265834,
+        "mixed_only": 1.321134512585131,
+        "mixed_plus_etaeta": 1.3327234420265834
+      },
+      "collective_condition_number": 1.321134512585131,
+      "contact_closure_max_abs": 2.77572333811921e-17,
+      "etaeta_metric_factor": 0.9913000743845615,
+      "etaeta_only_restored_ward": 0.00040304618259175845,
+      "improvement_factor": 25586150080861.87,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 0.008943581684288611,
+      "mixed_only_restored_ward": 1.8461200246564835e-17,
+      "mixed_plus_etaeta_restored_ward": 7.34471022129314e-05,
+      "pairing": "dwave",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.19650907926126507,
+        "em_em_direct": 0.19650907926126507,
+        "eta_eta_counterterm_candidate": 0.0016883534377113325,
+        "mixed_direct_candidate": 1.8461200246564835e-17,
+        "total_candidate": 0.0016883534377113325
+      },
+      "residual_by_right_channel": {
+        "Vx": 3.6479296535239346e-17,
+        "Vy": 1.8907461594650852e-17,
+        "eta1": 1.1255851455204284e-17,
+        "eta2": 0.0016883534377113325,
+        "rho": 2.5347377571346036e-16
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 48,
+      "bare_ward_monitor": 0.006588705992045243,
+      "baseline_restored_ward": 0.0004735834443887815,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.0684791514504264,
+        "etaeta_only": 1.086996738246367,
+        "mixed_only": 1.0684791514504264,
+        "mixed_plus_etaeta": 1.086996738246367
+      },
+      "collective_condition_number": 1.0684791514504264,
+      "contact_closure_max_abs": 8.32667503378753e-17,
+      "etaeta_metric_factor": 0.9829629131445343,
+      "etaeta_only_restored_ward": 0.0003676286772994475,
+      "improvement_factor": 10108996778261.986,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 0.009860327362020863,
+      "mixed_only_restored_ward": 4.6847719390628145e-17,
+      "mixed_plus_etaeta_restored_ward": 0.00011416169149291739,
+      "pairing": "dwave",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.19482072582355364,
+        "em_em_direct": 0.19482072582355364,
+        "eta_eta_counterterm_candidate": 0.0033767068754227553,
+        "mixed_direct_candidate": 4.6847719390628145e-17,
+        "total_candidate": 0.0033767068754227553
+      },
+      "residual_by_right_channel": {
+        "Vx": 7.909610162008327e-18,
+        "Vy": 8.413603284462748e-17,
+        "eta1": 7.507938224443367e-18,
+        "eta2": 0.0033767068754227553,
+        "rho": 2.090014129857931e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 24,
+      "bare_ward_monitor": 0.008379783206815159,
+      "baseline_restored_ward": 2.869433269269049e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.116801771814474,
+        "etaeta_only": 1.116801771814474,
+        "mixed_only": 1.116801771814474,
+        "mixed_plus_etaeta": 1.116801771814474
+      },
+      "collective_condition_number": 1.116801771814474,
+      "contact_closure_max_abs": 1.1102991250882288e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 2.869433269269049e-16,
+      "improvement_factor": 8.395076653329868,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 8.901147875522658e-15,
+      "mixed_only_restored_ward": 3.4179953176852786e-17,
+      "mixed_plus_etaeta_restored_ward": 3.4179953176852786e-17,
+      "pairing": "dwave_const_form",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.2779349927189882,
+        "em_em_direct": 0.24196514459010035,
+        "eta_eta_counterterm_candidate": 2.8623220860447165e-16,
+        "mixed_direct_candidate": 3.4179953176852786e-17,
+        "total_candidate": 2.8623220860447165e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 2.8623220860447165e-16,
+        "Vy": 3.6344738425416216e-17,
+        "eta1": 3.434913157322094e-18,
+        "eta2": 9.691548195021522e-18,
+        "rho": 1.1251289042624073e-16
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 24,
+      "bare_ward_monitor": 0.006816619473029447,
+      "baseline_restored_ward": 3.7171871536401024e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.0165444911529713,
+        "etaeta_only": 1.0165444911529713,
+        "mixed_only": 1.0165444911529713,
+        "mixed_plus_etaeta": 1.0165444911529713
+      },
+      "collective_condition_number": 1.0165444911529713,
+      "contact_closure_max_abs": 1.6654053196378925e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 3.7171871536401024e-16,
+      "improvement_factor": 11.249602901265355,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 7.74149166527688e-15,
+      "mixed_only_restored_ward": 3.3042829922663256e-17,
+      "mixed_plus_etaeta_restored_ward": 3.3042829922663256e-17,
+      "pairing": "dwave_const_form",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.2786529874713559,
+        "em_em_direct": 0.24196514459010027,
+        "eta_eta_counterterm_candidate": 3.7816972510130704e-16,
+        "mixed_direct_candidate": 3.3042829922663256e-17,
+        "total_candidate": 3.7816972510130704e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 3.7816972510130704e-16,
+        "Vy": 3.18323159200037e-16,
+        "eta1": 6.020425524401888e-18,
+        "eta2": 1.2490249767400034e-16,
+        "rho": 2.620539424684499e-16
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 36,
+      "bare_ward_monitor": 0.013050194723128903,
+      "baseline_restored_ward": 6.652093860312582e-17,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.4455139151191274,
+        "etaeta_only": 1.4455139151191274,
+        "mixed_only": 1.4455139151191274,
+        "mixed_plus_etaeta": 1.4455139151191274
+      },
+      "collective_condition_number": 1.4455139151191274,
+      "contact_closure_max_abs": 1.1102289733148087e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 6.652093860312582e-17,
+      "improvement_factor": 13.985512254741494,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 3.012038874147407e-15,
+      "mixed_only_restored_ward": 4.756417740835578e-18,
+      "mixed_plus_etaeta_restored_ward": 4.756417740835578e-18,
+      "pairing": "dwave_const_form",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.26426198451229854,
+        "em_em_direct": 0.26426198451229854,
+        "eta_eta_counterterm_candidate": 2.706294861951484e-16,
+        "mixed_direct_candidate": 4.756417740835578e-18,
+        "total_candidate": 2.706294861951484e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 9.367526555989036e-17,
+        "Vy": 5.9967919680216385e-18,
+        "eta1": 2.2542734978676557e-18,
+        "eta2": 2.706294861951484e-16,
+        "rho": 3.0493358800068554e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 36,
+      "bare_ward_monitor": 0.011035093332760506,
+      "baseline_restored_ward": 4.165321114808347e-17,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.042562693432786,
+        "etaeta_only": 1.042562693432786,
+        "mixed_only": 1.042562693432786,
+        "mixed_plus_etaeta": 1.042562693432786
+      },
+      "collective_condition_number": 1.042562693432786,
+      "contact_closure_max_abs": 1.9428907152899603e-16,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 4.165321114808347e-17,
+      "improvement_factor": 1.1433249038555444,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 1.0474616332812e-15,
+      "mixed_only_restored_ward": 3.643164861328537e-17,
+      "mixed_plus_etaeta_restored_ward": 3.643164861328537e-17,
+      "pairing": "dwave_const_form",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.26426198451229843,
+        "em_em_direct": 0.26426198451229843,
+        "eta_eta_counterterm_candidate": 1.387825769129738e-16,
+        "mixed_direct_candidate": 3.643164861328537e-17,
+        "total_candidate": 1.387825769129738e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 1.9084076211344573e-17,
+        "Vy": 5.725734802778892e-17,
+        "eta1": 4.446502632102933e-18,
+        "eta2": 1.387825769129738e-16,
+        "rho": 3.316387696428682e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 48,
+      "bare_ward_monitor": 0.012858242164316863,
+      "baseline_restored_ward": 5.787972267763155e-17,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.431062204855996,
+        "etaeta_only": 1.431062204855996,
+        "mixed_only": 1.431062204855996,
+        "mixed_plus_etaeta": 1.431062204855996
+      },
+      "collective_condition_number": 1.431062204855996,
+      "contact_closure_max_abs": 5.551174120234455e-17,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 5.787972267763155e-17,
+      "improvement_factor": 4.957985627825495,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_direct_delta_norm": 1.4846800398961627e-15,
+      "mixed_only_restored_ward": 1.1674040028029854e-17,
+      "mixed_plus_etaeta_restored_ward": 1.1674040028029854e-17,
+      "pairing": "dwave_const_form",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.2531613100515816,
+        "em_em_direct": 0.2531613100515816,
+        "eta_eta_counterterm_candidate": 5.733658576300843e-17,
+        "mixed_direct_candidate": 1.1674040028029854e-17,
+        "total_candidate": 5.733658576300843e-17
+      },
+      "residual_by_right_channel": {
+        "Vx": 4.857871909468561e-17,
+        "Vy": 1.1352674418734316e-17,
+        "eta1": 3.939102547958285e-18,
+        "eta2": 3.47248463821301e-17,
+        "rho": 5.733658576300843e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    },
+    {
+      "N": 48,
+      "bare_ward_monitor": 0.011273959429133687,
+      "baseline_restored_ward": 1.1363659308728955e-16,
+      "best_candidate": "mixed_only",
+      "candidate_condition_numbers": {
+        "baseline": 1.078270312154788,
+        "etaeta_only": 1.078270312154788,
+        "mixed_only": 1.078270312154788,
+        "mixed_plus_etaeta": 1.078270312154788
+      },
+      "collective_condition_number": 1.078270312154788,
+      "contact_closure_max_abs": 5.55120526521978e-17,
+      "etaeta_metric_factor": 1.0,
+      "etaeta_only_restored_ward": 1.1363659308728955e-16,
+      "improvement_factor": 1.7466088688871715,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_direct_delta_norm": 1.5569390964350484e-15,
+      "mixed_only_restored_ward": 6.506127107879143e-17,
+      "mixed_plus_etaeta_restored_ward": 6.506127107879143e-17,
+      "pairing": "dwave_const_form",
+      "phase_vertex": "exact_goldstone_tangent",
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "residual_by_block": {
+        "bubble_only": 0.2531613100515816,
+        "em_em_direct": 0.2531613100515816,
+        "eta_eta_counterterm_candidate": 1.179714057448216e-16,
+        "mixed_direct_candidate": 6.506127107879143e-17,
+        "total_candidate": 1.179714057448216e-16
+      },
+      "residual_by_right_channel": {
+        "Vx": 1.179714057448216e-16,
+        "Vy": 1.216587199594559e-17,
+        "eta1": 5.5420823430863795e-19,
+        "eta2": 4.164696583205964e-17,
+        "rho": 1.0419677161900394e-17
+      },
+      "status": "DIAGNOSTIC_RECORDED"
+    }
+  ],
+  "diagnostic_only": true,
+  "dominant_missing_block_inferred": "mixed_direct",
+  "dominant_missing_block_reason": "mixed-only reduces dwave residual by >10x",
+  "exact_goldstone_operator_ward": [
+    {
+      "C_theta": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "identity": "rho_Hp_minus_Hm_rho",
+      "normalization_factor": 1.0,
+      "operator_ward_fro": 1.6414424881091326e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "onsite_s",
+      "phase_vertex": "exact_goldstone_tangent",
+      "qV_sign": -1,
+      "q_model_list": [
+        [
+          0.01,
+          0.0
+        ],
+        [
+          0.01,
+          0.01
+        ]
+      ],
+      "status": "PASSED"
+    },
+    {
+      "C_theta": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "identity": "rho_Hp_minus_Hm_rho",
+      "normalization_factor": 1.0,
+      "operator_ward_fro": 1.6414424881091326e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "spm",
+      "phase_vertex": "exact_goldstone_tangent",
+      "qV_sign": -1,
+      "q_model_list": [
+        [
+          0.01,
+          0.0
+        ],
+        [
+          0.01,
+          0.01
+        ]
+      ],
+      "status": "PASSED"
+    },
+    {
+      "C_theta": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "identity": "rho_Hp_minus_Hm_rho",
+      "normalization_factor": 1.0,
+      "operator_ward_fro": 1.6503355952425512e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "dwave",
+      "phase_vertex": "exact_goldstone_tangent",
+      "qV_sign": -1,
+      "q_model_list": [
+        [
+          0.01,
+          0.0
+        ],
+        [
+          0.01,
+          0.01
+        ]
+      ],
+      "status": "PASSED"
+    }
+  ],
+  "formal_casimir_ran": false,
+  "include_eta_eta_bond_counterterm_options": [
+    false,
+    true
+  ],
+  "include_mixed_bond_direct_options": [
+    false,
+    true
+  ],
+  "no_candidate_closed_dwave": false,
+  "pairing_sector_AA_contact_needed_suspected": false,
+  "phase_vertex": "exact_goldstone_tangent",
+  "production_default_modified": false,
+  "q_scaling": {
+    "dwave": {
+      "baseline": {
+        "power": 0.6020878719833725,
+        "prefactor": 0.0010526617362015952
+      },
+      "mixed_only": {
+        "power": 1.7072579878997096,
+        "prefactor": 9.944043115087402e-17
+      }
+    },
+    "dwave_const_form": {
+      "baseline": {
+        "power": 1.705895997773957,
+        "prefactor": 4.681601198161262e-16
+      },
+      "mixed_only": {
+        "power": 1.274635852508647,
+        "prefactor": 6.714170247831385e-17
+      }
+    },
+    "onsite_s": {
+      "baseline": {
+        "power": 0.7701994393836941,
+        "prefactor": 3.0350894252366624e-16
+      },
+      "mixed_only": {
+        "power": 2.666885080594904,
+        "prefactor": 1.1371498676053778e-16
+      }
+    },
+    "spm": {
+      "baseline": {
+        "power": 1.392125987176163,
+        "prefactor": 3.600669122770828e-16
+      },
+      "mixed_only": {
+        "power": 0.5849930856654132,
+        "prefactor": 2.3892559237914614e-17
+      }
+    }
+  },
+  "quick": true,
+  "status": "PASSED_STAGE2F_MIXED_DIRECT_IDENTIFIED"
+}

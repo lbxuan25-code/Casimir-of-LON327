@@ -122,6 +122,10 @@ def _pairing_batch(pairing: str, points: np.ndarray, delta0_eV: float) -> np.nda
         orbital[0, 1] = orbital[1, 0] = orbital[2, 3] = orbital[3, 2] = 1.0
         form = delta0_eV * (np.cos(points[:, 0]) + np.cos(points[:, 1]))
         return form[:, None, None] * orbital[None, :, :]
+    if pairing == "dwave_const_form":
+        orbital = np.zeros((4, 4), dtype=complex)
+        orbital[0, 1] = orbital[1, 0] = orbital[2, 3] = orbital[3, 2] = 1.0
+        return np.broadcast_to(delta0_eV * orbital, (count, 4, 4)).copy()
     raise ValueError(f"unknown pairing {pairing}")
 
 
@@ -166,6 +170,10 @@ def _collective_phi_batch(pairing: str, points: np.ndarray, q: np.ndarray, phase
         matrix = np.zeros((4, 4), dtype=complex)
         matrix[0, 2] = matrix[2, 0] = 1.0
         return np.broadcast_to(matrix, (count, 4, 4)).copy()
+    if pairing == "dwave_const_form":
+        orbital = np.zeros((4, 4), dtype=complex)
+        orbital[0, 1] = orbital[1, 0] = orbital[2, 3] = orbital[3, 2] = 1.0
+        return np.broadcast_to(orbital, (count, 4, 4)).copy()
     orbital = np.zeros((4, 4), dtype=complex)
     orbital[0, 1] = orbital[1, 0] = orbital[2, 3] = orbital[3, 2] = 1.0
     if phase_vertex == "midpoint":
@@ -181,6 +189,10 @@ def _collective_phi_batch(pairing: str, points: np.ndarray, q: np.ndarray, phase
 
 
 def _bond_phi_batch(pairing: str, points: np.ndarray, q: np.ndarray, delta0_eV: float, *, endpoint: bool) -> np.ndarray:
+    if pairing == "dwave_const_form":
+        orbital = np.zeros((4, 4), dtype=complex)
+        orbital[0, 1] = orbital[1, 0] = orbital[2, 3] = orbital[3, 2] = 1.0
+        return np.broadcast_to(orbital, (points.shape[0], 4, 4)).copy()
     amp = PairingAmplitudes(delta0_eV=delta0_eV)
     builder = bond_endpoint_gauge_form_factor if endpoint else bond_center_form_factor
     return np.asarray(
@@ -394,8 +406,12 @@ def compute_bdg_components_for_composite_grid(
     diag_norm = float(np.sqrt(abs(sigma[0, 0]) ** 2 + abs(sigma[1, 1]) ** 2))
     offdiag_norm = float(np.sqrt(abs(sigma[0, 1]) ** 2 + abs(sigma[1, 0]) ** 2))
     return {
+        "bare_bubble": bare_bubble,
+        "direct": direct,
         "bare_total": bare_total,
         "amplitude_phase_schur": amplitude_phase,
+        "collective_bubble": collective_bubble,
+        "collective_counterterm": collective_counterterm,
         "collective_total": collective_total,
         "em_collective_left": em_collective_left,
         "collective_em_right": collective_em_right,

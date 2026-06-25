@@ -55,6 +55,9 @@ from pairing_bond_goldstone_common import (  # noqa: E402
 from stageSC_2e_unified_goldstone_tangent_audit import (  # noqa: E402
     build_payload as build_stageSC_2e_payload,
 )
+from stageSC_2f_schur_block_assembly_audit import (  # noqa: E402
+    build_payload as build_stageSC_2f_payload,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -747,6 +750,61 @@ def test_stageSC_2e_payload_reports_dwave_schur_or_internal_diagnosis_without_ex
 
 def test_stageSC_2e_script_does_not_call_casimir_pipeline():
     script = ROOT / "validation" / "scripts" / "response" / "stageSC_2e_unified_goldstone_tangent_audit.py"
+    text = script.read_text(encoding="utf-8")
+    assert '"formal_casimir_ran": False' in text
+    assert '"production_default_modified": False' in text
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+
+
+def test_stageSC_2f_payload_contains_block_decomposition_and_control_pairing():
+    payload = build_stageSC_2f_payload(quick=True)
+    assert payload["diagnostic_only"] is True
+    assert payload["production_default_modified"] is False
+    assert payload["formal_casimir_ran"] is False
+    assert {case["pairing"] for case in payload["cases"]} >= {
+        "onsite_s",
+        "spm",
+        "dwave",
+        "dwave_const_form",
+    }
+    sample = payload["cases"][0]
+    assert set(sample["residual_by_right_channel"]) == {"rho", "Vx", "Vy", "eta1", "eta2"}
+    assert set(sample["residual_by_block"]) >= {
+        "bubble_only",
+        "em_em_direct",
+        "mixed_direct_candidate",
+        "eta_eta_counterterm_candidate",
+        "total_candidate",
+    }
+    assert payload["dominant_missing_block_inferred"]
+    exact = payload["exact_goldstone_operator_ward"]
+    assert all(row["status"] == "PASSED" for row in exact)
+
+
+def test_stageSC_2f_validation_pairings_do_not_regress_and_reports_candidate_status():
+    payload = build_stageSC_2f_payload(quick=True)
+    for case in payload["cases"]:
+        if case["pairing"] not in {"onsite_s", "spm"}:
+            continue
+        assert min(
+            case["baseline_restored_ward"],
+            case["mixed_only_restored_ward"],
+            case["etaeta_only_restored_ward"],
+            case["mixed_plus_etaeta_restored_ward"],
+        ) < 1e-6
+    assert payload["status"] in {
+        "PASSED_STAGE2F_MIXED_DIRECT_IDENTIFIED",
+        "PASSED_STAGE2F_ETAETA_COUNTERTERM_IDENTIFIED",
+        "PASSED_STAGE2F_BOTH_BLOCKS_NEEDED",
+        "PARTIAL_STAGE2F_NO_CANDIDATE_CLOSED_DWAVE",
+    }
+    if payload["no_candidate_closed_dwave"]:
+        assert payload["dominant_missing_block_inferred"] == "no_candidate_closed_dwave"
+
+
+def test_stageSC_2f_script_does_not_call_casimir_pipeline():
+    script = ROOT / "validation" / "scripts" / "response" / "stageSC_2f_schur_block_assembly_audit.py"
     text = script.read_text(encoding="utf-8")
     assert '"formal_casimir_ran": False' in text
     assert '"production_default_modified": False' in text
