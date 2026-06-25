@@ -58,6 +58,11 @@ from stageSC_2e_unified_goldstone_tangent_audit import (  # noqa: E402
 from stageSC_2f_schur_block_assembly_audit import (  # noqa: E402
     build_payload as build_stageSC_2f_payload,
 )
+from stageSC_2g_analytic_mixed_direct_audit import (  # noqa: E402
+    ANALYTIC_CANDIDATES,
+    bond_mixed_direct_form_factor,
+    build_payload as build_stageSC_2g_payload,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -805,6 +810,55 @@ def test_stageSC_2f_validation_pairings_do_not_regress_and_reports_candidate_sta
 
 def test_stageSC_2f_script_does_not_call_casimir_pipeline():
     script = ROOT / "validation" / "scripts" / "response" / "stageSC_2f_schur_block_assembly_audit.py"
+    text = script.read_text(encoding="utf-8")
+    assert '"formal_casimir_ran": False' in text
+    assert '"production_default_modified": False' in text
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+
+
+def test_stageSC_2g_payload_is_diagnostic_only():
+    payload = build_stageSC_2g_payload(quick=True)
+    assert payload["diagnostic_only"] is True
+    assert payload["production_default_modified"] is False
+    assert payload["formal_casimir_ran"] is False
+    assert payload["analytic_mixed_direct_tested"] is True
+
+
+def test_stageSC_2g_contains_analytic_candidates_and_channel_residuals():
+    payload = build_stageSC_2g_payload(quick=True)
+    sample = payload["cases"][0]
+    assert set(ANALYTIC_CANDIDATES) <= set(sample["analytic_candidates"])
+    for candidate in ANALYTIC_CANDIDATES:
+        assert {"left_ward", "right_ward", "max_ward"} <= set(sample["analytic_candidates"][candidate])
+    assert set(sample["residual_by_right_channel_baseline"]) == {"rho", "Vx", "Vy", "eta1", "eta2"}
+    assert set(sample["residual_by_right_channel_best_analytic"]) == {"rho", "Vx", "Vy", "eta1", "eta2"}
+
+
+def test_stageSC_2g_validation_pairings_do_not_regress():
+    payload = build_stageSC_2g_payload(quick=True)
+    for case in payload["cases"]:
+        if case["pairing"] not in {"onsite_s", "spm"}:
+            continue
+        best = min(candidate["max_ward"] for candidate in case["analytic_candidates"].values())
+        assert min(case["baseline_restored_ward"], best) < 1e-6
+
+
+def test_stageSC_2g_does_not_use_lsq_as_production_formula():
+    payload = build_stageSC_2g_payload(quick=True)
+    assert payload["least_squares_candidate_used_as_production_formula"] is False
+    assert "stage2f_lsq_mixed_only_restored_ward" in payload["cases"][0]
+
+
+def test_stageSC_2g_mixed_form_factor_vanishes_for_local_pairings():
+    amp = PairingAmplitudes(delta0_eV=0.04)
+    for pairing in ("onsite_s", "spm", "dwave_const_form"):
+        actual = bond_mixed_direct_form_factor(pairing, 0.13, 0.27, 0.01, 0.0, "x", amp)
+        np.testing.assert_allclose(actual, np.zeros((4, 4), dtype=complex))
+
+
+def test_stageSC_2g_script_does_not_call_casimir_pipeline():
+    script = ROOT / "validation" / "scripts" / "response" / "stageSC_2g_analytic_mixed_direct_audit.py"
     text = script.read_text(encoding="utf-8")
     assert '"formal_casimir_ran": False' in text
     assert '"production_default_modified": False' in text
