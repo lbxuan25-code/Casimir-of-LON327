@@ -1,0 +1,609 @@
+{
+  "collective_basis_projection": [
+    {
+      "basis_phase_vertices": [
+        "midpoint"
+      ],
+      "collective_basis_projection_relative_residual": 6.661338147750938e-16,
+      "collective_basis_projection_residual": 3.76822190084106e-15,
+      "num_phase_channels": 1,
+      "pairing": "onsite_s",
+      "status": "PASSED"
+    },
+    {
+      "basis_phase_vertices": [
+        "midpoint"
+      ],
+      "collective_basis_projection_relative_residual": 0.0,
+      "collective_basis_projection_residual": 0.0,
+      "num_phase_channels": 1,
+      "pairing": "spm",
+      "status": "PASSED"
+    },
+    {
+      "basis_phase_vertices": [
+        "symmetric_kpm"
+      ],
+      "collective_basis_projection_relative_residual": 2.183360952646269e-16,
+      "collective_basis_projection_residual": 1.9357399876532506e-15,
+      "num_phase_channels": 1,
+      "pairing": "dwave",
+      "status": "PASSED"
+    }
+  ],
+  "commensurate_q_schur_ward": [
+    {
+      "N": 24,
+      "amplitude_phase_ward_max_abs": 3.4483054221327112e-16,
+      "bare_ward_monitor": 0.018075841964840113,
+      "collective_condition_number": 1.893062322008359,
+      "contact_closure_max_abs": 1.665443849972704e-16,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "onsite_s",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 24,
+      "amplitude_phase_ward_max_abs": 1.7347238351842932e-16,
+      "bare_ward_monitor": 0.014245031761102124,
+      "collective_condition_number": 1.4594921922803148,
+      "contact_closure_max_abs": 3.885791148398821e-16,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "onsite_s",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 36,
+      "amplitude_phase_ward_max_abs": 1.2056624319008614e-16,
+      "bare_ward_monitor": 0.022027144274960286,
+      "collective_condition_number": 2.4176540710781973,
+      "contact_closure_max_abs": 1.1102313313257213e-16,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "onsite_s",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 36,
+      "amplitude_phase_ward_max_abs": 2.289835715311024e-16,
+      "bare_ward_monitor": 0.017997120512569853,
+      "collective_condition_number": 1.6653893533483408,
+      "contact_closure_max_abs": 1.665334617386708e-16,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "onsite_s",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 48,
+      "amplitude_phase_ward_max_abs": 1.3292536560192557e-16,
+      "bare_ward_monitor": 0.021234816808217864,
+      "collective_condition_number": 2.922733024223334,
+      "contact_closure_max_abs": 2.775672086954032e-17,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "onsite_s",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 48,
+      "amplitude_phase_ward_max_abs": 7.342010397576474e-17,
+      "bare_ward_monitor": 0.01764975307454281,
+      "collective_condition_number": 1.9965666599233791,
+      "contact_closure_max_abs": 8.326694192437137e-17,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "onsite_s",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 24,
+      "amplitude_phase_ward_max_abs": 4.801960535378631e-16,
+      "bare_ward_monitor": 0.012384532322692359,
+      "collective_condition_number": 2.8968134119175017,
+      "contact_closure_max_abs": 1.5367793340658963e-18,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "spm",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 24,
+      "amplitude_phase_ward_max_abs": 1.5352372104080745e-16,
+      "bare_ward_monitor": 0.010161767950911851,
+      "collective_condition_number": 1.9496180342064615,
+      "contact_closure_max_abs": 2.2205107503407187e-16,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "spm",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 36,
+      "amplitude_phase_ward_max_abs": 6.96126366120937e-17,
+      "bare_ward_monitor": 0.01643245674411994,
+      "collective_condition_number": 4.035699290237186,
+      "contact_closure_max_abs": 2.220447480762933e-16,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "spm",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 36,
+      "amplitude_phase_ward_max_abs": 8.847206590969801e-17,
+      "bare_ward_monitor": 0.012305761956485806,
+      "collective_condition_number": 2.5585951650747187,
+      "contact_closure_max_abs": 2.4980018102663004e-16,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "spm",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 48,
+      "amplitude_phase_ward_max_abs": 5.580351252540597e-17,
+      "bare_ward_monitor": 0.015354518944644312,
+      "collective_condition_number": 5.958925123652421,
+      "contact_closure_max_abs": 2.775664815983955e-17,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "spm",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 48,
+      "amplitude_phase_ward_max_abs": 7.719607629127344e-17,
+      "bare_ward_monitor": 0.013417687245897312,
+      "collective_condition_number": 3.5816318642368237,
+      "contact_closure_max_abs": 2.7756612748767434e-17,
+      "dominant_failure": "none",
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "spm",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "status": "PASSED"
+    },
+    {
+      "N": 24,
+      "amplitude_phase_ward_max_abs": 0.0008740857762858619,
+      "bare_ward_monitor": 0.006349671740115936,
+      "collective_condition_number": 1.038857136645342,
+      "contact_closure_max_abs": 1.1102977182320856e-16,
+      "dominant_failure": "dwave_form_factor",
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "dwave",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "status": "FAILED"
+    },
+    {
+      "N": 24,
+      "amplitude_phase_ward_max_abs": 0.0008339764188671453,
+      "bare_ward_monitor": 0.00451388817592442,
+      "collective_condition_number": 1.1028002600986253,
+      "contact_closure_max_abs": 1.6653979335119754e-16,
+      "dominant_failure": "dwave_form_factor",
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "dwave",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "status": "FAILED"
+    },
+    {
+      "N": 36,
+      "amplitude_phase_ward_max_abs": 0.0006361751491695761,
+      "bare_ward_monitor": 0.008626413782332603,
+      "collective_condition_number": 1.2299211216362504,
+      "contact_closure_max_abs": 1.6653366640019744e-16,
+      "dominant_failure": "dwave_form_factor",
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "dwave",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "status": "FAILED"
+    },
+    {
+      "N": 36,
+      "amplitude_phase_ward_max_abs": 0.0006309484849081632,
+      "bare_ward_monitor": 0.006368195432661861,
+      "collective_condition_number": 1.0045471129852854,
+      "contact_closure_max_abs": 2.220446078674049e-16,
+      "dominant_failure": "dwave_form_factor",
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "dwave",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "status": "FAILED"
+    },
+    {
+      "N": 48,
+      "amplitude_phase_ward_max_abs": 0.000472351040181452,
+      "bare_ward_monitor": 0.0083779385038139,
+      "collective_condition_number": 1.321134512585131,
+      "contact_closure_max_abs": 2.77572333811921e-17,
+      "dominant_failure": "dwave_form_factor",
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "dwave",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "status": "FAILED"
+    },
+    {
+      "N": 48,
+      "amplitude_phase_ward_max_abs": 0.0004735834443887815,
+      "bare_ward_monitor": 0.006588705992045243,
+      "collective_condition_number": 1.0684791514504264,
+      "contact_closure_max_abs": 8.32667503378753e-17,
+      "dominant_failure": "dwave_form_factor",
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "dwave",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "status": "FAILED"
+    }
+  ],
+  "delta0_eV": 0.04,
+  "diagnostic_only": true,
+  "formal_casimir_ran": false,
+  "interpretation": "dwave reconstruction/operator/projection pass, but the amplitude-phase Ward Schur residual remains above threshold.",
+  "next_step": "Audit the nonlocal pairing counterterm block before changing production defaults.",
+  "operator_ward": [
+    {
+      "C_eta2": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "candidate_ordering": "rho_Hp_minus_Hm_rho",
+      "operator_ward_fro": 1.6414424881091326e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "onsite_s",
+      "phase_vertex": "midpoint",
+      "qV_sign": -1,
+      "status": "PASSED"
+    },
+    {
+      "C_eta2": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "candidate_ordering": "rho_Hp_minus_Hm_rho",
+      "operator_ward_fro": 1.6414424881091326e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "onsite_s",
+      "phase_vertex": "symmetric_kpm",
+      "qV_sign": -1,
+      "status": "PASSED"
+    },
+    {
+      "C_eta2": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "candidate_ordering": "rho_Hp_minus_Hm_rho",
+      "operator_ward_fro": 1.6414424881091326e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "onsite_s",
+      "phase_vertex": "bond_endpoint_gauge",
+      "qV_sign": -1,
+      "status": "PASSED"
+    },
+    {
+      "C_eta2": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "candidate_ordering": "rho_Hp_minus_Hm_rho",
+      "operator_ward_fro": 1.6414424881091326e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "spm",
+      "phase_vertex": "midpoint",
+      "qV_sign": -1,
+      "status": "PASSED"
+    },
+    {
+      "C_eta2": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "candidate_ordering": "rho_Hp_minus_Hm_rho",
+      "operator_ward_fro": 1.6414424881091326e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "spm",
+      "phase_vertex": "symmetric_kpm",
+      "qV_sign": -1,
+      "status": "PASSED"
+    },
+    {
+      "C_eta2": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "candidate_ordering": "rho_Hp_minus_Hm_rho",
+      "operator_ward_fro": 1.6414424881091326e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "spm",
+      "phase_vertex": "bond_endpoint_gauge",
+      "qV_sign": -1,
+      "status": "PASSED"
+    },
+    {
+      "C_eta2": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "candidate_ordering": "rho_Hp_minus_Hm_rho",
+      "operator_ward_fro": 9.996392299453446e-06,
+      "operator_ward_max_abs": 1.955328716496396e-06,
+      "pairing": "dwave",
+      "phase_vertex": "midpoint",
+      "qV_sign": -1,
+      "status": "FAILED"
+    },
+    {
+      "C_eta2": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "candidate_ordering": "rho_Hp_minus_Hm_rho",
+      "operator_ward_fro": 1.6484673491163076e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "dwave",
+      "phase_vertex": "symmetric_kpm",
+      "qV_sign": -1,
+      "status": "PASSED"
+    },
+    {
+      "C_eta2": {
+        "imag": 0.08,
+        "real": 0.0
+      },
+      "candidate": "A",
+      "candidate_ordering": "rho_Hp_minus_Hm_rho",
+      "operator_ward_fro": 1.6503355952425512e-15,
+      "operator_ward_max_abs": 6.019490501633145e-16,
+      "pairing": "dwave",
+      "phase_vertex": "bond_endpoint_gauge",
+      "qV_sign": -1,
+      "status": "PASSED"
+    }
+  ],
+  "pairing_reconstruction": [
+    {
+      "bond_reconstruction_fro": 0.0,
+      "bond_reconstruction_max_abs": 0.0,
+      "pairing": "onsite_s",
+      "status": "PASSED"
+    },
+    {
+      "bond_reconstruction_fro": 0.0,
+      "bond_reconstruction_max_abs": 0.0,
+      "pairing": "spm",
+      "status": "PASSED"
+    },
+    {
+      "bond_reconstruction_fro": 1.962615573354719e-17,
+      "bond_reconstruction_max_abs": 6.938893903907228e-18,
+      "pairing": "dwave",
+      "status": "PASSED"
+    }
+  ],
+  "phase_vertex_comparison": [
+    {
+      "center_convention": "bond centers are retained explicitly; current bonds have C_b=(0,0) or endpoint-origin convention",
+      "diff_to_existing_best": 0.0,
+      "diff_to_midpoint": 0.0,
+      "diff_to_symmetric_kpm": 0.0,
+      "pairing": "onsite_s",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.01,
+        0.0
+      ]
+    },
+    {
+      "center_convention": "bond centers are retained explicitly; current bonds have C_b=(0,0) or endpoint-origin convention",
+      "diff_to_existing_best": 0.0,
+      "diff_to_midpoint": 0.0,
+      "diff_to_symmetric_kpm": 0.0,
+      "pairing": "onsite_s",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.01,
+        0.01
+      ]
+    },
+    {
+      "center_convention": "bond centers are retained explicitly; current bonds have C_b=(0,0) or endpoint-origin convention",
+      "diff_to_existing_best": 0.0,
+      "diff_to_midpoint": 0.0,
+      "diff_to_symmetric_kpm": 0.0,
+      "pairing": "spm",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.01,
+        0.0
+      ]
+    },
+    {
+      "center_convention": "bond centers are retained explicitly; current bonds have C_b=(0,0) or endpoint-origin convention",
+      "diff_to_existing_best": 0.0,
+      "diff_to_midpoint": 0.0,
+      "diff_to_symmetric_kpm": 0.0,
+      "pairing": "spm",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.01,
+        0.01
+      ]
+    },
+    {
+      "center_convention": "bond centers are retained explicitly; current bonds have C_b=(0,0) or endpoint-origin convention",
+      "diff_to_existing_best": 4.440892098500626e-16,
+      "diff_to_midpoint": 1.23944978493995e-05,
+      "diff_to_symmetric_kpm": 4.440892098500626e-16,
+      "pairing": "dwave",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.01,
+        0.0
+      ]
+    },
+    {
+      "center_convention": "bond centers are retained explicitly; current bonds have C_b=(0,0) or endpoint-origin convention",
+      "diff_to_existing_best": 2.220446049250313e-16,
+      "diff_to_midpoint": 2.4441608955871885e-05,
+      "diff_to_symmetric_kpm": 2.220446049250313e-16,
+      "pairing": "dwave",
+      "phase_vertex": "bond_endpoint_gauge",
+      "q_model": [
+        0.01,
+        0.01
+      ]
+    }
+  ],
+  "production_default_modified": false,
+  "quick": true,
+  "schur_prerequisites_passed": true,
+  "status": "PARTIAL_PASS_DWAVE_COUNTERTERM_BLOCKED"
+}

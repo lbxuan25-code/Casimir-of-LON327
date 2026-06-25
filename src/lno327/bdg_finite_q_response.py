@@ -11,13 +11,14 @@ import numpy as np
 from .bdg_response import bdg_current_vertex, bdg_diamagnetic_vertex
 from .conductivity import KuboConfig, fermi_function
 from .pairing import PairingAmplitudes, bdg_hamiltonian, pairing_matrix
+from .pairing_bonds import bond_endpoint_gauge_form_factor
 from .tb_fourier import peierls_hamiltonian_contact_vertex, peierls_hamiltonian_vector_vertex
 from .ward_response import physical_ward_residuals
 from .ward_response import normal_physical_density_current_response_components_imag_axis
 
 
 PairingName = Literal["onsite_s", "spm", "dwave"]
-PhaseVertexName = Literal["midpoint", "symmetric_kpm"]
+PhaseVertexName = Literal["midpoint", "symmetric_kpm", "bond_endpoint_gauge"]
 PhaseDirectConvention = Literal["plus", "minus"]
 CollectiveMode = Literal["none", "phase_only", "amplitude_phase"]
 CollectiveCounterterm = Literal["none", "goldstone_gap_equation"]
@@ -214,7 +215,10 @@ def _phase_pairing_matrix(
         delta_minus = _pairing_matrix_for_kind(pairing, kx - 0.5 * qx, ky - 0.5 * qy, pairing_params)
         delta_plus = _pairing_matrix_for_kind(pairing, kx + 0.5 * qx, ky + 0.5 * qy, pairing_params)
         return 0.5 * (delta_minus + delta_plus)
-    raise ValueError("phase_vertex must be 'midpoint' or 'symmetric_kpm'")
+    if phase_vertex == "bond_endpoint_gauge":
+        amp = pairing_params or PairingAmplitudes()
+        return amp.delta0_eV * bond_endpoint_gauge_form_factor(pairing, kx, ky, qx, qy, amp)
+    raise ValueError("phase_vertex must be 'midpoint', 'symmetric_kpm', or 'bond_endpoint_gauge'")
 
 
 def collective_form_factor(
@@ -232,7 +236,9 @@ def collective_form_factor(
         phi_minus = pairing_form_factor_matrix(pairing, kx - 0.5 * qx, ky - 0.5 * qy, pairing_params)
         phi_plus = pairing_form_factor_matrix(pairing, kx + 0.5 * qx, ky + 0.5 * qy, pairing_params)
         return 0.5 * (phi_minus + phi_plus)
-    raise ValueError("phase_vertex must be 'midpoint' or 'symmetric_kpm'")
+    if phase_vertex == "bond_endpoint_gauge":
+        return bond_endpoint_gauge_form_factor(pairing, kx, ky, qx, qy, pairing_params)
+    raise ValueError("phase_vertex must be 'midpoint', 'symmetric_kpm', or 'bond_endpoint_gauge'")
 
 
 def _amplitude_vertex(phi: np.ndarray) -> np.ndarray:
@@ -407,8 +413,8 @@ def bdg_finite_q_response_imag_axis(
         return _normal_limit_components(q, points, weights, config, include_phase_correction=include_phase_correction)
     if current_vertex not in {"peierls", "q0_velocity"}:
         raise ValueError("current_vertex must be 'peierls' or 'q0_velocity'")
-    if phase_vertex not in {"midpoint", "symmetric_kpm"}:
-        raise ValueError("phase_vertex must be 'midpoint' or 'symmetric_kpm'")
+    if phase_vertex not in {"midpoint", "symmetric_kpm", "bond_endpoint_gauge"}:
+        raise ValueError("phase_vertex must be 'midpoint', 'symmetric_kpm', or 'bond_endpoint_gauge'")
     if phase_phase_direct_convention not in {"plus", "minus"}:
         raise ValueError("phase_phase_direct_convention must be 'plus' or 'minus'")
     if collective_mode not in {"none", "phase_only", "amplitude_phase"}:

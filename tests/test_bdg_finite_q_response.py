@@ -42,15 +42,22 @@ from bdg_commensurate_q_common import (  # noqa: E402
     commensurate_case_status,
     commensurate_q_spec,
 )
+from stageSC_2d_pairing_bond_collective_vertex_audit import (  # noqa: E402
+    operator_ward_rows,
+    projection_rows,
+    reconstruction_rows,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
     _kubo_factor,
     bdg_finite_q_response_imag_axis,
     collective_goldstone_counterterm,
+    collective_form_factor,
 )
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
-from lno327.pairing import PairingAmplitudes
+from lno327.pairing import PairingAmplitudes, dwave_pairing_matrix, spm_pairing_matrix
+from lno327.pairing_bonds import bond_endpoint_gauge_form_factor, pairing_from_bonds
 from lno327.ward_response import normal_physical_density_current_response_imag_axis
 from lno327.tb_fourier import (
     normal_state_hamiltonian_from_hoppings,
@@ -644,3 +651,49 @@ def test_stageSC_2bC_script_does_not_call_casimir_pipeline():
     assert "run_material_casimir_figures" not in text
     assert "outputs/material_casimir" not in text
     assert "bare_total_ward_max_abs is monitor-only" in text
+
+
+def test_stageSC_2d_pairing_bond_reconstruction_matches_current_pairing_functions():
+    amp = PairingAmplitudes(delta0_eV=0.04)
+    for kx, ky in [(0.0, 0.0), (0.13, 0.27), (1.11, 0.73)]:
+        np.testing.assert_allclose(pairing_from_bonds("onsite_s", kx, ky, amp), amp.delta0_eV * np.eye(4))
+        np.testing.assert_allclose(pairing_from_bonds("spm", kx, ky, amp), spm_pairing_matrix(kx, ky, amp))
+        np.testing.assert_allclose(pairing_from_bonds("dwave", kx, ky, amp), dwave_pairing_matrix(kx, ky, amp))
+    rows = reconstruction_rows(amp)
+    assert {row["pairing"]: row["status"] for row in rows} == {
+        "onsite_s": "PASSED",
+        "spm": "PASSED",
+        "dwave": "PASSED",
+    }
+
+
+@pytest.mark.parametrize("pairing", ["onsite_s", "spm", "dwave"])
+def test_stageSC_2d_q0_bond_endpoint_phase_vertex_matches_existing_normalization(pairing):
+    amp = PairingAmplitudes(delta0_eV=0.04)
+    kx, ky = 0.41, -0.22
+    exact = bond_endpoint_gauge_form_factor(pairing, kx, ky, 0.0, 0.0, amp)
+    existing = collective_form_factor(pairing, kx, ky, 0.0, 0.0, amp, "midpoint")
+    np.testing.assert_allclose(exact, existing, atol=1e-14)
+
+
+def test_stageSC_2d_bond_endpoint_operator_ward_passes_for_reconstructed_pairings():
+    rows = operator_ward_rows(PairingAmplitudes(delta0_eV=0.04))
+    selected = [row for row in rows if row["phase_vertex"] == "bond_endpoint_gauge"]
+    assert {row["pairing"] for row in selected} == {"onsite_s", "spm", "dwave"}
+    assert all(row["status"] == "PASSED" for row in selected)
+
+
+def test_stageSC_2d_collective_basis_projection_residual_is_reported():
+    rows = projection_rows(PairingAmplitudes(delta0_eV=0.04))
+    assert {row["pairing"] for row in rows} == {"onsite_s", "spm", "dwave"}
+    assert all("collective_basis_projection_relative_residual" in row for row in rows)
+    assert all(row["num_phase_channels"] >= 1 for row in rows)
+
+
+def test_stageSC_2d_payload_is_diagnostic_only_and_does_not_call_casimir_pipeline():
+    script = ROOT / "validation" / "scripts" / "response" / "stageSC_2d_pairing_bond_collective_vertex_audit.py"
+    text = script.read_text(encoding="utf-8")
+    assert '"formal_casimir_ran": False' in text
+    assert '"production_default_modified": False' in text
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text

@@ -17,6 +17,8 @@ from lno327.conductivity_conventions import (  # noqa: E402
     spatial_response_to_bilayer_sheet_conductivity_model,
 )
 from lno327.model import NormalStateParameters  # noqa: E402
+from lno327.pairing import PairingAmplitudes  # noqa: E402
+from lno327.pairing_bonds import bond_center_form_factor, bond_endpoint_gauge_form_factor  # noqa: E402
 from lno327.tb_fourier import normal_state_hopping_terms, sinc_stable  # noqa: E402
 from lno327.ward_response import physical_ward_residuals  # noqa: E402
 
@@ -178,15 +180,26 @@ def _collective_phi_batch(pairing: str, points: np.ndarray, q: np.ndarray, phase
     return form[:, None, None] * orbital[None, :, :]
 
 
-def _collective_vertices(phi: np.ndarray) -> np.ndarray:
+def _bond_phi_batch(pairing: str, points: np.ndarray, q: np.ndarray, delta0_eV: float, *, endpoint: bool) -> np.ndarray:
+    amp = PairingAmplitudes(delta0_eV=delta0_eV)
+    builder = bond_endpoint_gauge_form_factor if endpoint else bond_center_form_factor
+    return np.asarray(
+        [builder(pairing, float(kx), float(ky), float(q[0]), float(q[1]), amp) for kx, ky in points],
+        dtype=complex,
+    )
+
+
+def _collective_vertices(phi: np.ndarray, phase_phi: np.ndarray | None = None) -> np.ndarray:
+    phase = phi if phase_phi is None else phase_phi
     count = phi.shape[0]
     eta1 = np.zeros((count, 8, 8), dtype=complex)
     eta2 = np.zeros_like(eta1)
     phi_dag = np.swapaxes(phi.conjugate(), 1, 2)
+    phase_dag = np.swapaxes(phase.conjugate(), 1, 2)
     eta1[:, :4, 4:] = phi
     eta1[:, 4:, :4] = phi_dag
-    eta2[:, :4, 4:] = 1j * phi
-    eta2[:, 4:, :4] = -1j * phi_dag
+    eta2[:, :4, 4:] = 1j * phase
+    eta2[:, 4:, :4] = -1j * phase_dag
     return np.stack((eta1, eta2), axis=0)
 
 
@@ -263,8 +276,8 @@ def compute_bdg_components_for_composite_grid(
     e_shifted = np.zeros(2, dtype=complex)
     qd = np.zeros(2, dtype=complex)
     selected_phase_vertex = phase_vertex or PHASE_VERTEX_BY_OPERATOR_BEST[pairing]
-    if selected_phase_vertex not in {"midpoint", "symmetric_kpm"}:
-        raise ValueError("phase_vertex must be midpoint or symmetric_kpm")
+    if selected_phase_vertex not in {"midpoint", "symmetric_kpm", "bond_endpoint_gauge"}:
+        raise ValueError("phase_vertex must be midpoint, symmetric_kpm, or bond_endpoint_gauge")
 
     for start in range(0, points.shape[0], chunk_size):
         stop = min(start + chunk_size, points.shape[0])
@@ -292,7 +305,13 @@ def compute_bdg_components_for_composite_grid(
         rho_stack = np.broadcast_to(RHO, (p.shape[0], 8, 8))
         observable = np.stack((rho_stack, -vx, -vy), axis=0)
         source = np.stack((rho_stack, vx, vy), axis=0)
-        collective = _collective_vertices(_collective_phi_batch(pairing, p, q, selected_phase_vertex))
+        if selected_phase_vertex == "bond_endpoint_gauge":
+            collective = _collective_vertices(
+                _bond_phi_batch(pairing, p, q, delta0_eV, endpoint=False),
+                _bond_phi_batch(pairing, p, q, delta0_eV, endpoint=True),
+            )
+        else:
+            collective = _collective_vertices(_collective_phi_batch(pairing, p, q, selected_phase_vertex))
         observable_band = _transform(um, observable, up)
         source_band = _transform(um, source, up)
         collective_band = _transform(um, collective, up)
@@ -310,9 +329,15 @@ def compute_bdg_components_for_composite_grid(
         )
         direct[1:, 1:] -= np.einsum("b,stb->st", w, contact_expectation, optimize=True)
 
-        collective_zero = _collective_vertices(
-            _collective_phi_batch(pairing, p, np.zeros(2), selected_phase_vertex)
-        )
+        if selected_phase_vertex == "bond_endpoint_gauge":
+            collective_zero = _collective_vertices(
+                _bond_phi_batch(pairing, p, np.zeros(2), delta0_eV, endpoint=False),
+                _bond_phi_batch(pairing, p, np.zeros(2), delta0_eV, endpoint=True),
+            )
+        else:
+            collective_zero = _collective_vertices(
+                _collective_phi_batch(pairing, p, np.zeros(2), selected_phase_vertex)
+            )
         eta2_zero_band = _transform(uc, collective_zero[1:2], uc)
         static_raw = _static_raw_factor(ec, fc, cfg)
         goldstone_bubble += _bubble_from_bands(
