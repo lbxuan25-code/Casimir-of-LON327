@@ -47,6 +47,14 @@ from stageSC_2d_pairing_bond_collective_vertex_audit import (  # noqa: E402
     projection_rows,
     reconstruction_rows,
 )
+from pairing_bond_goldstone_common import (  # noqa: E402
+    goldstone_dimension_rows,
+    q0_normalization_rows as goldstone_q0_normalization_rows,
+    reconstruction_rows as goldstone_reconstruction_rows,
+)
+from stageSC_2e_unified_goldstone_tangent_audit import (  # noqa: E402
+    build_payload as build_stageSC_2e_payload,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -692,6 +700,53 @@ def test_stageSC_2d_collective_basis_projection_residual_is_reported():
 
 def test_stageSC_2d_payload_is_diagnostic_only_and_does_not_call_casimir_pipeline():
     script = ROOT / "validation" / "scripts" / "response" / "stageSC_2d_pairing_bond_collective_vertex_audit.py"
+    text = script.read_text(encoding="utf-8")
+    assert '"formal_casimir_ran": False' in text
+    assert '"production_default_modified": False' in text
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+
+
+def test_stageSC_2e_goldstone_dimension_is_one_for_total_charge_u1():
+    rows = goldstone_dimension_rows()
+    assert {row["pairing"] for row in rows} == {"onsite_s", "spm", "dwave"}
+    assert all(row["goldstone_dimension"] == 1 for row in rows)
+    assert all(row["bond_resolved_internal_modes_are_goldstone"] is False for row in rows)
+
+
+def test_stageSC_2e_reconstruction_and_q0_goldstone_normalization_pass():
+    amp = PairingAmplitudes(delta0_eV=0.04)
+    recon = goldstone_reconstruction_rows(amp)
+    norm = goldstone_q0_normalization_rows(amp)
+    assert all(row["status"] == "PASSED" for row in recon)
+    assert all(row["status"] == "PASSED" for row in norm)
+    assert all(row["normalization_factor_abs"] == pytest.approx(1.0) for row in norm)
+
+
+def test_stageSC_2e_payload_reports_dwave_schur_or_internal_diagnosis_without_extra_goldstone():
+    payload = build_stageSC_2e_payload(quick=True)
+    assert payload["formal_casimir_ran"] is False
+    assert payload["production_default_modified"] is False
+    assert payload["minimal_collective_basis"]["goldstone_dimension"] == 1
+    assert payload["minimal_collective_basis"]["bond_resolved_goldstones_added"] is False
+    exact = [
+        row
+        for row in payload["exact_goldstone_operator_ward"]
+        if row["phase_vertex"] == "exact_goldstone_tangent"
+    ]
+    assert all(row["status"] == "PASSED" for row in exact)
+    assert payload["status"] in {
+        "PASSED",
+        "PARTIAL_PASS_DWAVE_SCHUR_BLOCKED",
+        "PARTIAL_PASS_DWAVE_INTERNAL_MODE_NEEDED",
+    }
+    if payload["status"] != "PASSED":
+        assert payload["dwave_internal_mode_diagnosis"]
+        assert "not an additional Goldstone" in payload["dwave_internal_mode_diagnosis"][0]["marker"]
+
+
+def test_stageSC_2e_script_does_not_call_casimir_pipeline():
+    script = ROOT / "validation" / "scripts" / "response" / "stageSC_2e_unified_goldstone_tangent_audit.py"
     text = script.read_text(encoding="utf-8")
     assert '"formal_casimir_ran": False' in text
     assert '"production_default_modified": False' in text
