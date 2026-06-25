@@ -75,6 +75,10 @@ from stageSC_2j_longitudinal_ward_completion_audit import (  # noqa: E402
     REQUIRED_VARIANTS as REQUIRED_VARIANTS_2J,
     build_payload as build_stageSC_2j_payload,
 )
+from stageSC_2k_gauge_covariant_collective_package_audit import (  # noqa: E402
+    REQUIRED_PACKAGE_VARIANTS as REQUIRED_PACKAGE_VARIANTS_2K,
+    build_payload as build_stageSC_2k_payload,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -1042,3 +1046,56 @@ def test_stageSC_2j_no_transverse_claim():
         write_report(payload)
     text = report.read_text(encoding="utf-8")
     assert "longitudinal part only" in text or "only the longitudinal" in text
+
+
+def test_stageSC_2k_payload_is_diagnostic_only():
+    payload = build_stageSC_2k_payload(quick=True)
+    assert payload["diagnostic_only"] is True
+    assert payload["production_default_modified"] is False
+    assert payload["formal_casimir_ran"] is False
+    assert payload["gauge_covariant_collective_package_tested"] is True
+    assert payload["lsq_used_to_define_package"] is False
+    assert payload["valid_for_casimir_input"] is False
+
+
+def test_stageSC_2k_lsq_reference_closes_or_reports_failure():
+    payload = build_stageSC_2k_payload(quick=True)
+    if payload["status"] != "FAILED_STAGE2K_LSQ_REFERENCE_NOT_CLOSING":
+        for case in payload["cases"]:
+            if case["pairing"] == "dwave":
+                assert case["lsq_mixed_only_restored_ward"] < 1e-8
+
+
+def test_stageSC_2k_contains_required_package_variants():
+    payload = build_stageSC_2k_payload(quick=True)
+    for case in payload["cases"]:
+        if case["pairing"] == "dwave":
+            assert set(REQUIRED_PACKAGE_VARIANTS_2K) <= set(case["variants"])
+
+
+def test_stageSC_2k_control_pairings_present():
+    payload = build_stageSC_2k_payload(quick=True)
+    assert {case["pairing"] for case in payload["cases"]} >= {
+        "onsite_s",
+        "spm",
+        "dwave",
+        "dwave_const_form",
+    }
+
+
+def test_stageSC_2k_script_does_not_call_casimir_pipeline():
+    script = ROOT / "validation" / "scripts" / "response" / "stageSC_2k_gauge_covariant_collective_package_audit.py"
+    text = script.read_text(encoding="utf-8")
+    assert '"formal_casimir_ran": False' in text
+    assert '"production_default_modified": False' in text
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+
+
+def test_stageSC_2k_lsq_not_used_to_define_package():
+    payload = build_stageSC_2k_payload(quick=True)
+    assert payload["lsq_used_to_define_package"] is False
+    script = ROOT / "validation" / "scripts" / "response" / "stageSC_2k_gauge_covariant_collective_package_audit.py"
+    text = script.read_text(encoding="utf-8")
+    assert "_mixed_direct_candidate" not in text
+    assert "np.linalg.lstsq" not in text

@@ -1,0 +1,2665 @@
+{
+  "analytic_formula_claimed": "forward_gauge_covariant_package_diagnostic",
+  "cases": [
+    {
+      "AA_required": true,
+      "C_candidate_metadata": {
+        "bond_metric": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": 3.3504858802503406e-19,
+              "real": 2.5060691170322427
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.9318516525781364
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 3.9318516525781364
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.8660254037844384
+                }
+              ]
+            ]
+          },
+          "description": "forward finite-q bond-metric counterterm",
+          "matrix_norm": 4.927830917233955,
+          "package_mode": "replacement"
+        },
+        "bubble": {
+          "bond_metric_info": {},
+          "description": "collective_bubble only",
+          "matrix_norm": 2.6650892415705547,
+          "package_mode": "replacement"
+        },
+        "collective_total": {
+          "bond_metric_info": {},
+          "description": "current collective_total bubble plus counterterm",
+          "matrix_norm": 0.8792404379083517,
+          "package_mode": "replacement"
+        },
+        "counterterm": {
+          "bond_metric_info": {},
+          "description": "collective_counterterm only",
+          "matrix_norm": 3.544116933551365,
+          "package_mode": "replacement"
+        },
+        "hybrid": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": 3.3504858802503406e-19,
+              "real": 2.5060691170322427
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.9318516525781364
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 3.9318516525781364
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.8660254037844384
+                }
+              ]
+            ]
+          },
+          "description": "collective_bubble plus forward finite-q bond metric",
+          "matrix_norm": 3.579687062512446,
+          "package_mode": "replacement"
+        }
+      },
+      "N": 24,
+      "baseline_restored_ward": 0.0008740857762858619,
+      "best_package_closes_dwave": false,
+      "best_package_restored_ward": 0.004666503353136381,
+      "best_package_variant": "pkg_bubble_spatial_with_i",
+      "etaeta_replacement_required": false,
+      "lsq_mixed_only_restored_ward": 1.255984213619792e-17,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_only_insufficient": true,
+      "pairing": "dwave",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "sign_or_convention_ambiguity": false,
+      "stage2j_best_longitudinal_restored_ward": 0.000557985478974593,
+      "supports_bond_metric_counterterm": false,
+      "supports_gauge_covariant_package": false,
+      "variants": {
+        "pkg_bond_metric_spatial_with_i": {
+          "C_candidate": "bond_metric",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 13320.938688696811,
+          "delta_AA_norm": 0.05654321338911765,
+          "delta_Aeta_norm": 0.5278387590359863,
+          "delta_etaA_norm": 0.5278387590359863,
+          "delta_etaeta_norm": 4.350611016552433,
+          "improvement_factor_vs_baseline": 0.0001592577005095279,
+          "improvement_factor_vs_stage2j": 0.00010166448958453159,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 5.488499290705055,
+          "variant": "pkg_bond_metric_spatial_with_i"
+        },
+        "pkg_bubble_spatial_with_i": {
+          "C_candidate": "bubble",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0126525607375867,
+          "delta_AA_norm": 0.0442682688454857,
+          "delta_Aeta_norm": 0.28973515405906314,
+          "delta_etaA_norm": 0.28973515405906314,
+          "delta_etaeta_norm": 3.544116933551365,
+          "improvement_factor_vs_baseline": 0.18731064999629418,
+          "improvement_factor_vs_stage2j": 0.11957250145327082,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.004666503353136381,
+          "variant": "pkg_bubble_spatial_with_i"
+        },
+        "pkg_counterterm_spatial_with_i": {
+          "C_candidate": "counterterm",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0,
+          "delta_AA_norm": 0.05850268167795038,
+          "delta_Aeta_norm": 0.3828991561973981,
+          "delta_etaA_norm": 0.3828991561973981,
+          "delta_etaeta_norm": 2.6650892415705547,
+          "improvement_factor_vs_baseline": 0.11264851174970243,
+          "improvement_factor_vs_stage2j": 0.07191083013788364,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.007759408115644021,
+          "variant": "pkg_counterterm_spatial_with_i"
+        },
+        "pkg_hybrid_bond_metric_spatial_with_i": {
+          "C_candidate": "hybrid",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.615217839026392,
+          "delta_AA_norm": 0.012274944543631946,
+          "delta_Aeta_norm": 0.38477306122668453,
+          "delta_etaA_norm": 0.38493611058085014,
+          "delta_etaeta_norm": 3.484746555994666,
+          "improvement_factor_vs_baseline": 0.14390906586766355,
+          "improvement_factor_vs_stage2j": 0.09186646348160388,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.006073875686815013,
+          "variant": "pkg_hybrid_bond_metric_spatial_with_i"
+        },
+        "pkg_total_spacetime_omega_minus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.014249998580153075,
+          "delta_Aeta_norm": 0.09321504173196732,
+          "delta_etaA_norm": 0.09321504173196732,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.07339269441280263,
+          "improvement_factor_vs_stage2j": 0.046851303220120835,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_minus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.011909710949832442,
+          "variant": "pkg_total_spacetime_omega_minus_with_i"
+        },
+        "pkg_total_spacetime_omega_plus_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.014229222634418014,
+          "delta_Aeta_norm": 0.0931470649867076,
+          "delta_etaA_norm": 0.0931470649867076,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.06826478569697575,
+          "improvement_factor_vs_stage2j": 0.04357782745999944,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01280434366506164,
+          "variant": "pkg_total_spacetime_omega_plus_no_i"
+        },
+        "pkg_total_spacetime_omega_plus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.014229222634418014,
+          "delta_Aeta_norm": 0.0931470649867076,
+          "delta_etaA_norm": 0.0931470649867076,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.07345018886233104,
+          "improvement_factor_vs_stage2j": 0.04688800564547639,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.011900388410493757,
+          "variant": "pkg_total_spacetime_omega_plus_with_i"
+        },
+        "pkg_total_spacetime_omega_zero_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.014239604923668579,
+          "delta_Aeta_norm": 0.09318104096186575,
+          "delta_etaA_norm": 0.09318104096186575,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.07342144086768941,
+          "improvement_factor_vs_stage2j": 0.046869653941336055,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_zero",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.011905047979935805,
+          "variant": "pkg_total_spacetime_omega_zero_with_i"
+        },
+        "pkg_total_spatial_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.014234412832464679,
+          "delta_Aeta_norm": 0.09316405142545044,
+          "delta_etaA_norm": 0.09316405142545044,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.06825232310012377,
+          "improvement_factor_vs_stage2j": 0.04356987177846065,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.012806681686183907,
+          "variant": "pkg_total_spatial_no_i"
+        },
+        "pkg_total_spatial_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.014234412832464679,
+          "delta_Aeta_norm": 0.09316405142545044,
+          "delta_etaA_norm": 0.09316405142545044,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.07343572751360301,
+          "improvement_factor_vs_stage2j": 0.0468787740313539,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01190273189741259,
+          "variant": "pkg_total_spatial_with_i"
+        },
+        "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.014234412832464679,
+          "delta_Aeta_norm": 0.09316405142545044,
+          "delta_etaA_norm": 0.09316405142545044,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.07343572751360301,
+          "improvement_factor_vs_stage2j": 0.0468787740313539,
+          "include_AA": true,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01190273189741259,
+          "variant": "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta"
+        },
+        "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.09316405142545044,
+          "delta_etaA_norm": 0.09316405142545044,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.04515873183311061,
+          "improvement_factor_vs_stage2j": 0.02882773898787557,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01935585302785181,
+          "variant": "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA"
+        },
+        "pkg_total_spatial_with_i_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.09316405142545044,
+          "delta_etaA_norm": 0.09316405142545044,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.04515873183311061,
+          "improvement_factor_vs_stage2j": 0.02882773898787557,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01935585302785181,
+          "variant": "pkg_total_spatial_with_i_no_AA"
+        },
+        "pkg_total_spatial_with_i_only_mixed": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.038857136645342,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.09316405142545044,
+          "delta_etaA_norm": 0.09316405142545044,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.04515873183311061,
+          "improvement_factor_vs_stage2j": 0.02882773898787557,
+          "include_AA": false,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01935585302785181,
+          "variant": "pkg_total_spatial_with_i_only_mixed"
+        }
+      }
+    },
+    {
+      "AA_required": true,
+      "C_candidate_metadata": {
+        "bond_metric": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": 3.3504858802503406e-19,
+              "real": 2.5060691170322427
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.8637033051562724
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 3.8637033051562724
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.7320508075688767
+                }
+              ]
+            ]
+          },
+          "description": "forward finite-q bond-metric counterterm",
+          "matrix_norm": 4.8442634350431435,
+          "package_mode": "replacement"
+        },
+        "bubble": {
+          "bond_metric_info": {},
+          "description": "collective_bubble only",
+          "matrix_norm": 2.3199021720347512,
+          "package_mode": "replacement"
+        },
+        "collective_total": {
+          "bond_metric_info": {},
+          "description": "current collective_total bubble plus counterterm",
+          "matrix_norm": 1.2264721234520215,
+          "package_mode": "replacement"
+        },
+        "counterterm": {
+          "bond_metric_info": {},
+          "description": "collective_counterterm only",
+          "matrix_norm": 3.544116933551365,
+          "package_mode": "replacement"
+        },
+        "hybrid": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": 3.3504858802503406e-19,
+              "real": 2.5060691170322427
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.8637033051562724
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 3.8637033051562724
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.7320508075688767
+                }
+              ]
+            ]
+          },
+          "description": "collective_bubble plus forward finite-q bond metric",
+          "matrix_norm": 3.598155627823782,
+          "package_mode": "replacement"
+        }
+      },
+      "N": 24,
+      "baseline_restored_ward": 0.0008339764188671453,
+      "best_package_closes_dwave": false,
+      "best_package_restored_ward": 0.002433710372237008,
+      "best_package_variant": "pkg_bubble_spatial_with_i",
+      "etaeta_replacement_required": false,
+      "lsq_mixed_only_restored_ward": 1.469662384099142e-16,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_only_insufficient": true,
+      "pairing": "dwave",
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "sign_or_convention_ambiguity": false,
+      "stage2j_best_longitudinal_restored_ward": 0.00025459644933732185,
+      "supports_bond_metric_counterterm": false,
+      "supports_gauge_covariant_package": false,
+      "variants": {
+        "pkg_bond_metric_spatial_with_i": {
+          "C_candidate": "bond_metric",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.5166133870924864e+16,
+          "delta_AA_norm": 0.027291872550142458,
+          "delta_Aeta_norm": 0.363605583384679,
+          "delta_etaA_norm": 0.363605583384679,
+          "delta_etaeta_norm": 4.073464681681701,
+          "improvement_factor_vs_baseline": 0.1620860949552396,
+          "improvement_factor_vs_stage2j": 0.04948166798122606,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.005145268131096931,
+          "variant": "pkg_bond_metric_spatial_with_i"
+        },
+        "pkg_bubble_spatial_with_i": {
+          "C_candidate": "bubble",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0530154957342617,
+          "delta_AA_norm": 0.018646572300855393,
+          "delta_Aeta_norm": 0.17259336344399234,
+          "delta_etaA_norm": 0.17259336344399234,
+          "delta_etaeta_norm": 3.544116933551365,
+          "improvement_factor_vs_baseline": 0.34267693821782674,
+          "improvement_factor_vs_stage2j": 0.10461246836997408,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.002433710372237008,
+          "variant": "pkg_bubble_spatial_with_i"
+        },
+        "pkg_counterterm_spatial_with_i": {
+          "C_candidate": "counterterm",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0,
+          "delta_AA_norm": 0.02925134083897519,
+          "delta_Aeta_norm": 0.27075058985778727,
+          "delta_etaA_norm": 0.27075058985778727,
+          "delta_etaeta_norm": 2.3199021720347512,
+          "improvement_factor_vs_baseline": 0.14229636922711686,
+          "improvement_factor_vs_stage2j": 0.043440257469183605,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.005860841168308725,
+          "variant": "pkg_counterterm_spatial_with_i"
+        },
+        "pkg_hybrid_bond_metric_spatial_with_i": {
+          "C_candidate": "hybrid",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.954717912520585,
+          "delta_AA_norm": 0.008645300249287065,
+          "delta_Aeta_norm": 0.2739199093160888,
+          "delta_etaA_norm": 0.27306706943561165,
+          "delta_etaeta_norm": 3.4274677369920235,
+          "improvement_factor_vs_baseline": 0.20706141408828174,
+          "improvement_factor_vs_stage2j": 0.06321174031905022,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.004027676631782178,
+          "variant": "pkg_hybrid_bond_metric_spatial_with_i"
+        },
+        "pkg_total_spacetime_omega_minus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.010610572535820633,
+          "delta_Aeta_norm": 0.09818567296865834,
+          "delta_etaA_norm": 0.09818567296865834,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.10159228260865151,
+          "improvement_factor_vs_stage2j": 0.031014107649915214,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_minus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.008209052867526816,
+          "variant": "pkg_total_spacetime_omega_minus_with_i"
+        },
+        "pkg_total_spacetime_omega_plus_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.010602834812928019,
+          "delta_Aeta_norm": 0.09814986566016146,
+          "delta_etaA_norm": 0.09814986566016146,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.09186664548071546,
+          "improvement_factor_vs_stage2j": 0.02804506365262901,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.009078119860621368,
+          "variant": "pkg_total_spacetime_omega_plus_no_i"
+        },
+        "pkg_total_spacetime_omega_plus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.010602834812928019,
+          "delta_Aeta_norm": 0.09814986566016146,
+          "delta_etaA_norm": 0.09814986566016146,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.10163311263574366,
+          "improvement_factor_vs_stage2j": 0.03102657224686165,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.008205754967440027,
+          "variant": "pkg_total_spacetime_omega_plus_with_i"
+        },
+        "pkg_total_spacetime_omega_zero_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.010606702615980762,
+          "delta_Aeta_norm": 0.09816776604917492,
+          "delta_etaA_norm": 0.09816776604917492,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.10161269724386787,
+          "improvement_factor_vs_stage2j": 0.031020339832891878,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_zero",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.008207403616750998,
+          "variant": "pkg_total_spacetime_omega_zero_with_i"
+        },
+        "pkg_total_spatial_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.0106047685381198,
+          "delta_Aeta_norm": 0.09815881544662547,
+          "delta_etaA_norm": 0.09815881544662547,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.09185832871108977,
+          "improvement_factor_vs_stage2j": 0.028042524707919354,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.009078941785345828,
+          "variant": "pkg_total_spatial_no_i"
+        },
+        "pkg_total_spatial_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.0106047685381198,
+          "delta_Aeta_norm": 0.09815881544662547,
+          "delta_etaA_norm": 0.09815881544662547,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.10162289041481098,
+          "improvement_factor_vs_stage2j": 0.03102345160568412,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.008206580382263934,
+          "variant": "pkg_total_spatial_with_i"
+        },
+        "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.0106047685381198,
+          "delta_Aeta_norm": 0.09815881544662547,
+          "delta_etaA_norm": 0.09815881544662547,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.10162289041481098,
+          "improvement_factor_vs_stage2j": 0.03102345160568412,
+          "include_AA": true,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.008206580382263934,
+          "variant": "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta"
+        },
+        "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.09815881544662547,
+          "delta_etaA_norm": 0.09815881544662547,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.06061216871550704,
+          "improvement_factor_vs_stage2j": 0.018503692181806274,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.013759224204326822,
+          "variant": "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA"
+        },
+        "pkg_total_spatial_with_i_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.09815881544662547,
+          "delta_etaA_norm": 0.09815881544662547,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.06061216871550704,
+          "improvement_factor_vs_stage2j": 0.018503692181806274,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.013759224204326822,
+          "variant": "pkg_total_spatial_with_i_no_AA"
+        },
+        "pkg_total_spatial_with_i_only_mixed": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.1028002600986253,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.09815881544662547,
+          "delta_etaA_norm": 0.09815881544662547,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.06061216871550704,
+          "improvement_factor_vs_stage2j": 0.018503692181806274,
+          "include_AA": false,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.013759224204326822,
+          "variant": "pkg_total_spatial_with_i_only_mixed"
+        }
+      }
+    },
+    {
+      "AA_required": true,
+      "C_candidate_metadata": {
+        "bond_metric": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": -1.82122540856539e-19,
+              "real": 2.5488648556173237
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.9696155060244154
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 3.9696155060244154
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.9396926207859084
+                }
+              ]
+            ]
+          },
+          "description": "forward finite-q bond-metric counterterm",
+          "matrix_norm": 5.059226776138692,
+          "package_mode": "replacement"
+        },
+        "bubble": {
+          "bond_metric_info": {},
+          "description": "collective_bubble only",
+          "matrix_norm": 2.7847357667960058,
+          "package_mode": "replacement"
+        },
+        "collective_total": {
+          "bond_metric_info": {},
+          "description": "current collective_total bubble plus counterterm",
+          "matrix_norm": 0.8257123785324129,
+          "package_mode": "replacement"
+        },
+        "counterterm": {
+          "bond_metric_info": {},
+          "description": "collective_counterterm only",
+          "matrix_norm": 3.60463924747016,
+          "package_mode": "replacement"
+        },
+        "hybrid": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": -1.82122540856539e-19,
+              "real": 2.5488648556173237
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.9696155060244154
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 3.9696155060244154
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.9396926207859084
+                }
+              ]
+            ]
+          },
+          "description": "collective_bubble plus forward finite-q bond metric",
+          "matrix_norm": 3.6660637917458754,
+          "package_mode": "replacement"
+        }
+      },
+      "N": 36,
+      "baseline_restored_ward": 0.0006361751491695761,
+      "best_package_closes_dwave": false,
+      "best_package_restored_ward": 0.006792044479539464,
+      "best_package_variant": "pkg_bubble_spatial_with_i",
+      "etaeta_replacement_required": false,
+      "lsq_mixed_only_restored_ward": 6.0921377727428874e-18,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_only_insufficient": true,
+      "pairing": "dwave",
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "sign_or_convention_ambiguity": false,
+      "stage2j_best_longitudinal_restored_ward": 0.0005735981800217907,
+      "supports_bond_metric_counterterm": false,
+      "supports_gauge_covariant_package": false,
+      "variants": {
+        "pkg_bond_metric_spatial_with_i": {
+          "C_candidate": "bond_metric",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 68279.5486745141,
+          "delta_AA_norm": 0.13186040470157329,
+          "delta_Aeta_norm": 0.8167629830832707,
+          "delta_etaA_norm": 0.8167629830832707,
+          "delta_etaeta_norm": 4.516318553032525,
+          "improvement_factor_vs_baseline": 1.0978263702244769e-05,
+          "improvement_factor_vs_stage2j": 9.89839368549172e-06,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 57.948612496846366,
+          "variant": "pkg_bond_metric_spatial_with_i"
+        },
+        "pkg_bubble_spatial_with_i": {
+          "C_candidate": "bubble",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.062760674949875,
+          "delta_AA_norm": 0.1065232003360534,
+          "delta_Aeta_norm": 0.46480110728343327,
+          "delta_etaA_norm": 0.46480110728343327,
+          "delta_etaeta_norm": 3.60463924747016,
+          "improvement_factor_vs_baseline": 0.09366475014791306,
+          "improvement_factor_vs_stage2j": 0.08445147580374557,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.006792044479539464,
+          "variant": "pkg_bubble_spatial_with_i"
+        },
+        "pkg_counterterm_spatial_with_i": {
+          "C_candidate": "counterterm",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0,
+          "delta_AA_norm": 0.13387887573347707,
+          "delta_Aeta_norm": 0.5841567951043783,
+          "delta_etaA_norm": 0.5841567951043783,
+          "delta_etaeta_norm": 2.7847357667960058,
+          "improvement_factor_vs_baseline": 0.06071881265842372,
+          "improvement_factor_vs_stage2j": 0.05474624477145721,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01047739771771241,
+          "variant": "pkg_counterterm_spatial_with_i"
+        },
+        "pkg_hybrid_bond_metric_spatial_with_i": {
+          "C_candidate": "hybrid",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.570370637427525,
+          "delta_AA_norm": 0.0253372043655199,
+          "delta_Aeta_norm": 0.5924798289833795,
+          "delta_etaA_norm": 0.5878542484574746,
+          "delta_etaeta_norm": 3.577464368331974,
+          "improvement_factor_vs_baseline": 0.07514544378096694,
+          "improvement_factor_vs_stage2j": 0.06775380938088639,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.008465917787695712,
+          "variant": "pkg_hybrid_bond_metric_spatial_with_i"
+        },
+        "pkg_total_spacetime_omega_minus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.027423120169291368,
+          "delta_Aeta_norm": 0.11953195021261538,
+          "delta_etaA_norm": 0.11953195021261538,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.03774170204774168,
+          "improvement_factor_vs_stage2j": 0.03402926322062097,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_minus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.016856027011310754,
+          "variant": "pkg_total_spacetime_omega_minus_with_i"
+        },
+        "pkg_total_spacetime_omega_plus_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.02733324296153354,
+          "delta_Aeta_norm": 0.11933591097973138,
+          "delta_etaA_norm": 0.11933591097973138,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.03640466917626282,
+          "improvement_factor_vs_stage2j": 0.03282374674813588,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.017475097660944704,
+          "variant": "pkg_total_spacetime_omega_plus_no_i"
+        },
+        "pkg_total_spacetime_omega_plus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.02733324296153354,
+          "delta_Aeta_norm": 0.11933591097973138,
+          "delta_etaA_norm": 0.11933591097973138,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.03780604626468993,
+          "improvement_factor_vs_stage2j": 0.03408727825906538,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01682733879960758,
+          "variant": "pkg_total_spacetime_omega_plus_with_i"
+        },
+        "pkg_total_spacetime_omega_zero_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.027378126243649555,
+          "delta_Aeta_norm": 0.11943385015131855,
+          "delta_etaA_norm": 0.11943385015131855,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.03777387315884578,
+          "improvement_factor_vs_stage2j": 0.034058269840578824,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_zero",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01684167113322872,
+          "variant": "pkg_total_spacetime_omega_zero_with_i"
+        },
+        "pkg_total_spatial_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.027355675397423673,
+          "delta_Aeta_norm": 0.11938487052229159,
+          "delta_etaA_norm": 0.11938487052229159,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.03638957655808952,
+          "improvement_factor_vs_stage2j": 0.032810138705873834,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01748234547753077,
+          "variant": "pkg_total_spatial_no_i"
+        },
+        "pkg_total_spatial_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.027355675397423673,
+          "delta_Aeta_norm": 0.11938487052229159,
+          "delta_etaA_norm": 0.11938487052229159,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.037789758790813865,
+          "improvement_factor_vs_stage2j": 0.03407259289233161,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.0168345914217431,
+          "variant": "pkg_total_spatial_with_i"
+        },
+        "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.027355675397423673,
+          "delta_Aeta_norm": 0.11938487052229159,
+          "delta_etaA_norm": 0.11938487052229159,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.037789758790813865,
+          "improvement_factor_vs_stage2j": 0.03407259289233161,
+          "include_AA": true,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.0168345914217431,
+          "variant": "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta"
+        },
+        "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.11938487052229159,
+          "delta_etaA_norm": 0.11938487052229159,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.024112592419495205,
+          "improvement_factor_vs_stage2j": 0.02174077240439796,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.02638352351758013,
+          "variant": "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA"
+        },
+        "pkg_total_spatial_with_i_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.11938487052229159,
+          "delta_etaA_norm": 0.11938487052229159,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.024112592419495205,
+          "improvement_factor_vs_stage2j": 0.02174077240439796,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.02638352351758013,
+          "variant": "pkg_total_spatial_with_i_no_AA"
+        },
+        "pkg_total_spatial_with_i_only_mixed": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.2299211216362504,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.11938487052229159,
+          "delta_etaA_norm": 0.11938487052229159,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.024112592419495205,
+          "improvement_factor_vs_stage2j": 0.02174077240439796,
+          "include_AA": false,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.02638352351758013,
+          "variant": "pkg_total_spatial_with_i_only_mixed"
+        }
+      }
+    },
+    {
+      "AA_required": true,
+      "C_candidate_metadata": {
+        "bond_metric": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": -1.82122540856539e-19,
+              "real": 2.5488648556173237
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.9392310120488307
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 3.9392310120488307
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.8793852415718173
+                }
+              ]
+            ]
+          },
+          "description": "forward finite-q bond-metric counterterm",
+          "matrix_norm": 5.020872031528055,
+          "package_mode": "replacement"
+        },
+        "bubble": {
+          "bond_metric_info": {},
+          "description": "collective_bubble only",
+          "matrix_norm": 2.5102756990787944,
+          "package_mode": "replacement"
+        },
+        "collective_total": {
+          "bond_metric_info": {},
+          "description": "current collective_total bubble plus counterterm",
+          "matrix_norm": 1.0944287043051093,
+          "package_mode": "replacement"
+        },
+        "counterterm": {
+          "bond_metric_info": {},
+          "description": "collective_counterterm only",
+          "matrix_norm": 3.60463924747016,
+          "package_mode": "replacement"
+        },
+        "hybrid": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": -1.82122540856539e-19,
+              "real": 2.5488648556173237
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.9392310120488307
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 3.9392310120488307
+                },
+                {
+                  "imag": 0.0,
+                  "real": 3.8793852415718173
+                }
+              ]
+            ]
+          },
+          "description": "collective_bubble plus forward finite-q bond metric",
+          "matrix_norm": 3.6994707568792027,
+          "package_mode": "replacement"
+        }
+      },
+      "N": 36,
+      "baseline_restored_ward": 0.0006309484849081632,
+      "best_package_closes_dwave": false,
+      "best_package_restored_ward": 0.0038960602894256647,
+      "best_package_variant": "pkg_bubble_spatial_with_i",
+      "etaeta_replacement_required": false,
+      "lsq_mixed_only_restored_ward": 1.8229413649547195e-17,
+      "m_case": [
+        1,
+        1
+      ],
+      "mixed_only_insufficient": true,
+      "pairing": "dwave",
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "sign_or_convention_ambiguity": false,
+      "stage2j_best_longitudinal_restored_ward": 0.00026643857164671686,
+      "supports_bond_metric_counterterm": false,
+      "supports_gauge_covariant_package": false,
+      "variants": {
+        "pkg_bond_metric_spatial_with_i": {
+          "C_candidate": "bond_metric",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 3967026592518850.5,
+          "delta_AA_norm": 0.0649209668348348,
+          "delta_Aeta_norm": 0.5709289506066252,
+          "delta_etaA_norm": 0.5709289506066252,
+          "delta_etaeta_norm": 4.316994067139979,
+          "improvement_factor_vs_baseline": 0.10331216878626917,
+          "improvement_factor_vs_stage2j": 0.04362693206109314,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.006107203946259816,
+          "variant": "pkg_bond_metric_spatial_with_i"
+        },
+        "pkg_bubble_spatial_with_i": {
+          "C_candidate": "bubble",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0019799049420697,
+          "delta_AA_norm": 0.04657024600221011,
+          "delta_Aeta_norm": 0.28737178296943183,
+          "delta_etaA_norm": 0.28737178296943183,
+          "delta_etaeta_norm": 3.60463924747016,
+          "improvement_factor_vs_baseline": 0.1619452570127384,
+          "improvement_factor_vs_stage2j": 0.06838666546558851,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.0038960602894256647,
+          "variant": "pkg_bubble_spatial_with_i"
+        },
+        "pkg_counterterm_spatial_with_i": {
+          "C_candidate": "counterterm",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0,
+          "delta_AA_norm": 0.06693943786673853,
+          "delta_Aeta_norm": 0.41306123109450654,
+          "delta_etaA_norm": 0.41306123109450654,
+          "delta_etaeta_norm": 2.5102756990787944,
+          "improvement_factor_vs_baseline": 0.07740229120402554,
+          "improvement_factor_vs_stage2j": 0.03268564138573935,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.008151547907607014,
+          "variant": "pkg_counterterm_spatial_with_i"
+        },
+        "pkg_hybrid_bond_metric_spatial_with_i": {
+          "C_candidate": "hybrid",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.8286927724468192,
+          "delta_AA_norm": 0.018350720832624675,
+          "delta_Aeta_norm": 0.4233181322368761,
+          "delta_etaA_norm": 0.42118718675850275,
+          "delta_etaeta_norm": 3.5507085954715096,
+          "improvement_factor_vs_baseline": 0.10790852395786847,
+          "improvement_factor_vs_stage2j": 0.04556789290971166,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.005847068069937729,
+          "variant": "pkg_hybrid_bond_metric_spatial_with_i"
+        },
+        "pkg_total_spacetime_omega_minus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.020394284566149348,
+          "delta_Aeta_norm": 0.12577384074227094,
+          "delta_etaA_norm": 0.12577384074227094,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.051926860331249464,
+          "improvement_factor_vs_stage2j": 0.02192780999984563,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_minus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.012150715080465974,
+          "variant": "pkg_total_spacetime_omega_minus_with_i"
+        },
+        "pkg_total_spacetime_omega_plus_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.02036083677899472,
+          "delta_Aeta_norm": 0.12567066029168722,
+          "delta_etaA_norm": 0.12567066029168722,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.04934391301716723,
+          "improvement_factor_vs_stage2j": 0.020837076272031126,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.012786754157268598,
+          "variant": "pkg_total_spacetime_omega_plus_no_i"
+        },
+        "pkg_total_spacetime_omega_plus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.02036083677899472,
+          "delta_Aeta_norm": 0.12567066029168722,
+          "delta_etaA_norm": 0.12567066029168722,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.0519717100422029,
+          "improvement_factor_vs_stage2j": 0.021946749252749833,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.012140229451673042,
+          "variant": "pkg_total_spacetime_omega_plus_with_i"
+        },
+        "pkg_total_spacetime_omega_zero_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.020377550378578108,
+          "delta_Aeta_norm": 0.12572222934688917,
+          "delta_etaA_norm": 0.12572222934688917,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.05194928470868587,
+          "improvement_factor_vs_stage2j": 0.021937279424429624,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_zero",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.012145470114676463,
+          "variant": "pkg_total_spacetime_omega_zero_with_i"
+        },
+        "pkg_total_spatial_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.020369191864528423,
+          "delta_Aeta_norm": 0.12569644217465542,
+          "delta_etaA_norm": 0.12569644217465542,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.04933378807641168,
+          "improvement_factor_vs_stage2j": 0.02083280068564421,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.012789378426219883,
+          "variant": "pkg_total_spatial_no_i"
+        },
+        "pkg_total_spatial_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.020369191864528423,
+          "delta_Aeta_norm": 0.12569644217465542,
+          "delta_etaA_norm": 0.12569644217465542,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.05196046441397424,
+          "improvement_factor_vs_stage2j": 0.021942000419534157,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.012142856920625906,
+          "variant": "pkg_total_spatial_with_i"
+        },
+        "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.020369191864528423,
+          "delta_Aeta_norm": 0.12569644217465542,
+          "delta_etaA_norm": 0.12569644217465542,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.05196046441397424,
+          "improvement_factor_vs_stage2j": 0.021942000419534157,
+          "include_AA": true,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.012142856920625906,
+          "variant": "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta"
+        },
+        "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.12569644217465542,
+          "delta_etaA_norm": 0.12569644217465542,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.0327713587932602,
+          "improvement_factor_vs_stage2j": 0.01383877485508065,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.019253046200755183,
+          "variant": "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA"
+        },
+        "pkg_total_spatial_with_i_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.12569644217465542,
+          "delta_etaA_norm": 0.12569644217465542,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.0327713587932602,
+          "improvement_factor_vs_stage2j": 0.01383877485508065,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.019253046200755183,
+          "variant": "pkg_total_spatial_with_i_no_AA"
+        },
+        "pkg_total_spatial_with_i_only_mixed": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0045471129852854,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.12569644217465542,
+          "delta_etaA_norm": 0.12569644217465542,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 0.0327713587932602,
+          "improvement_factor_vs_stage2j": 0.01383877485508065,
+          "include_AA": false,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.019253046200755183,
+          "variant": "pkg_total_spatial_with_i_only_mixed"
+        }
+      }
+    },
+    {
+      "AA_required": true,
+      "C_candidate_metadata": {
+        "bond_metric": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": 1.544129379240157e-33,
+              "real": 6.6538943094269865
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                }
+              ]
+            ]
+          },
+          "description": "forward finite-q bond-metric counterterm",
+          "matrix_norm": 13.307788618853973,
+          "package_mode": "replacement"
+        },
+        "bubble": {
+          "bond_metric_info": {},
+          "description": "collective_bubble only",
+          "matrix_norm": 6.412309821308494,
+          "package_mode": "replacement"
+        },
+        "collective_total": {
+          "bond_metric_info": {},
+          "description": "current collective_total bubble plus counterterm",
+          "matrix_norm": 3.2110672469202672,
+          "package_mode": "replacement"
+        },
+        "counterterm": {
+          "bond_metric_info": {},
+          "description": "collective_counterterm only",
+          "matrix_norm": 9.410027574988803,
+          "package_mode": "replacement"
+        },
+        "hybrid": {
+          "bond_metric_info": {
+            "M22_q0": 4.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": 1.544129379240157e-33,
+              "real": 6.6538943094269865
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 4.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 4.0
+                }
+              ]
+            ]
+          },
+          "description": "collective_bubble plus forward finite-q bond metric",
+          "matrix_norm": 9.942815085592901,
+          "package_mode": "replacement"
+        }
+      },
+      "N": 24,
+      "baseline_restored_ward": 3.4483054221327112e-16,
+      "best_package_closes_dwave": false,
+      "best_package_restored_ward": 0.009700421212728128,
+      "best_package_variant": "pkg_bond_metric_spatial_with_i",
+      "etaeta_replacement_required": false,
+      "lsq_mixed_only_restored_ward": 3.469446951953614e-18,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_only_insufficient": true,
+      "pairing": "onsite_s",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "sign_or_convention_ambiguity": false,
+      "stage2j_best_longitudinal_restored_ward": 3.4543047560100397e-16,
+      "supports_bond_metric_counterterm": true,
+      "supports_gauge_covariant_package": false,
+      "variants": {
+        "pkg_bond_metric_spatial_with_i": {
+          "C_candidate": "bond_metric",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0594749170066416e+16,
+          "delta_AA_norm": 0.15533117504920124,
+          "delta_Aeta_norm": 1.4377463070628886,
+          "delta_etaA_norm": 1.4377463070628886,
+          "delta_etaeta_norm": 11.387112724764739,
+          "improvement_factor_vs_baseline": 3.5547996798408266e-14,
+          "improvement_factor_vs_stage2j": 3.5609842915661987e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.009700421212728128,
+          "variant": "pkg_bond_metric_spatial_with_i"
+        },
+        "pkg_bubble_spatial_with_i": {
+          "C_candidate": "bubble",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.3511232245326126,
+          "delta_AA_norm": 0.12032029014288866,
+          "delta_Aeta_norm": 0.7874992686123669,
+          "delta_etaA_norm": 0.7874992686123669,
+          "delta_etaeta_norm": 9.410027574988803,
+          "improvement_factor_vs_baseline": 2.6377559078059807e-14,
+          "improvement_factor_vs_stage2j": 2.642345054195466e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01307287536321329,
+          "variant": "pkg_bubble_spatial_with_i"
+        },
+        "pkg_counterterm_spatial_with_i": {
+          "C_candidate": "counterterm",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0,
+          "delta_AA_norm": 0.15533117504920124,
+          "delta_Aeta_norm": 1.0166401633500848,
+          "delta_etaA_norm": 1.0166401633500848,
+          "delta_etaeta_norm": 6.412309821308494,
+          "improvement_factor_vs_baseline": 1.5390362034536926e-14,
+          "improvement_factor_vs_stage2j": 1.5417138061899678e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.022405616023810877,
+          "variant": "pkg_counterterm_spatial_with_i"
+        },
+        "pkg_hybrid_bond_metric_spatial_with_i": {
+          "C_candidate": "hybrid",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.9604111076792656,
+          "delta_AA_norm": 0.0350108849063126,
+          "delta_Aeta_norm": 1.0394592293268226,
+          "delta_etaA_norm": 1.0448299469682993,
+          "delta_etaeta_norm": 9.410027574988803,
+          "improvement_factor_vs_baseline": 2.0975733357214905e-14,
+          "improvement_factor_vs_stage2j": 2.101222676842032e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.016439498745566467,
+          "variant": "pkg_hybrid_bond_metric_spatial_with_i"
+        },
+        "pkg_total_spacetime_omega_minus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.03504921952713044,
+          "delta_Aeta_norm": 0.22928766399907916,
+          "delta_etaA_norm": 0.22928766399907916,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 9.466246360073415e-15,
+          "improvement_factor_vs_stage2j": 9.48271565891064e-15,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_minus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.036427378825433065,
+          "variant": "pkg_total_spacetime_omega_minus_with_i"
+        },
+        "pkg_total_spacetime_omega_plus_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.03499811912323525,
+          "delta_Aeta_norm": 0.229120456766885,
+          "delta_etaA_norm": 0.229120456766885,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 9.473154625164584e-15,
+          "improvement_factor_vs_stage2j": 9.489635942945526e-15,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.03640081428600984,
+          "variant": "pkg_total_spacetime_omega_plus_no_i"
+        },
+        "pkg_total_spacetime_omega_plus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.03499811912323525,
+          "delta_Aeta_norm": 0.229120456766885,
+          "delta_etaA_norm": 0.229120456766885,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 9.473154625164495e-15,
+          "improvement_factor_vs_stage2j": 9.489635942945438e-15,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.03640081428601018,
+          "variant": "pkg_total_spacetime_omega_plus_with_i"
+        },
+        "pkg_total_spacetime_omega_zero_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.03502365534578926,
+          "delta_Aeta_norm": 0.22920402988803965,
+          "delta_etaA_norm": 0.22920402988803965,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 9.469700492618952e-15,
+          "improvement_factor_vs_stage2j": 9.486175800928035e-15,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_zero",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.036414091710930595,
+          "variant": "pkg_total_spacetime_omega_zero_with_i"
+        },
+        "pkg_total_spatial_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.0350108849063126,
+          "delta_Aeta_norm": 0.2291622395176797,
+          "delta_etaA_norm": 0.2291622395176797,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 9.471415423792665e-15,
+          "improvement_factor_vs_stage2j": 9.487893715725133e-15,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.036407498434398694,
+          "variant": "pkg_total_spatial_no_i"
+        },
+        "pkg_total_spatial_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.0350108849063126,
+          "delta_Aeta_norm": 0.2291622395176797,
+          "delta_etaA_norm": 0.2291622395176797,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 9.471415423792575e-15,
+          "improvement_factor_vs_stage2j": 9.487893715725043e-15,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.03640749843439904,
+          "variant": "pkg_total_spatial_with_i"
+        },
+        "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.0350108849063126,
+          "delta_Aeta_norm": 0.2291622395176797,
+          "delta_etaA_norm": 0.2291622395176797,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 9.471415423792575e-15,
+          "improvement_factor_vs_stage2j": 9.487893715725043e-15,
+          "include_AA": true,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.03640749843439904,
+          "variant": "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta"
+        },
+        "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.2291622395176797,
+          "delta_etaA_norm": 0.2291622395176797,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 6.2995225779114495e-15,
+          "improvement_factor_vs_stage2j": 6.310482436330628e-15,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.05473915490395728,
+          "variant": "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA"
+        },
+        "pkg_total_spatial_with_i_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.2291622395176797,
+          "delta_etaA_norm": 0.2291622395176797,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 6.2995225779114495e-15,
+          "improvement_factor_vs_stage2j": 6.310482436330628e-15,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.05473915490395728,
+          "variant": "pkg_total_spatial_with_i_no_AA"
+        },
+        "pkg_total_spatial_with_i_only_mixed": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.893062322008359,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.2291622395176797,
+          "delta_etaA_norm": 0.2291622395176797,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 6.2995225779114495e-15,
+          "improvement_factor_vs_stage2j": 6.310482436330628e-15,
+          "include_AA": false,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.05473915490395728,
+          "variant": "pkg_total_spatial_with_i_only_mixed"
+        }
+      }
+    },
+    {
+      "AA_required": true,
+      "C_candidate_metadata": {
+        "bond_metric": {
+          "bond_metric_info": {
+            "M22_q0": 2.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": -9.971930820061033e-35,
+              "real": 4.028693520695045
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 2.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 2.0
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 2.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 2.0
+                }
+              ]
+            ]
+          },
+          "description": "forward finite-q bond-metric counterterm",
+          "matrix_norm": 8.05738704139009,
+          "package_mode": "replacement"
+        },
+        "bubble": {
+          "bond_metric_info": {},
+          "description": "collective_bubble only",
+          "matrix_norm": 4.045467814620494,
+          "package_mode": "replacement"
+        },
+        "collective_total": {
+          "bond_metric_info": {},
+          "description": "current collective_total bubble plus counterterm",
+          "matrix_norm": 1.9374326784562999,
+          "package_mode": "replacement"
+        },
+        "counterterm": {
+          "bond_metric_info": {},
+          "description": "collective_counterterm only",
+          "matrix_norm": 5.697433015611546,
+          "package_mode": "replacement"
+        },
+        "hybrid": {
+          "bond_metric_info": {
+            "M22_q0": 2.0,
+            "bond_metric_available": true,
+            "counterterm_scale": {
+              "imag": -9.971930820061033e-35,
+              "real": 4.028693520695045
+            },
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "raw_metric": [
+              [
+                {
+                  "imag": 0.0,
+                  "real": 2.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 2.0
+                }
+              ],
+              [
+                {
+                  "imag": -0.0,
+                  "real": 2.0
+                },
+                {
+                  "imag": 0.0,
+                  "real": 2.0
+                }
+              ]
+            ]
+          },
+          "description": "collective_bubble plus forward finite-q bond metric",
+          "matrix_norm": 6.017839176226865,
+          "package_mode": "replacement"
+        }
+      },
+      "N": 24,
+      "baseline_restored_ward": 4.801960535378631e-16,
+      "best_package_closes_dwave": false,
+      "best_package_restored_ward": 0.006333521154497383,
+      "best_package_variant": "pkg_bubble_spatial_with_i",
+      "etaeta_replacement_required": false,
+      "lsq_mixed_only_restored_ward": 1.006204617704893e-18,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_only_insufficient": true,
+      "pairing": "spm",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "sign_or_convention_ambiguity": false,
+      "stage2j_best_longitudinal_restored_ward": 4.756962630805339e-16,
+      "supports_bond_metric_counterterm": false,
+      "supports_gauge_covariant_package": false,
+      "variants": {
+        "pkg_bond_metric_spatial_with_i": {
+          "C_candidate": "bond_metric",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 5.329156915775629e+50,
+          "delta_AA_norm": 0.0940474358896986,
+          "delta_Aeta_norm": 0.8705036422747596,
+          "delta_etaA_norm": 0.8705036422747596,
+          "delta_etaeta_norm": 6.987599931772768,
+          "improvement_factor_vs_baseline": 5.761509708295982e-14,
+          "improvement_factor_vs_stage2j": 5.707520121721514e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.008334552536576136,
+          "variant": "pkg_bond_metric_spatial_with_i"
+        },
+        "pkg_bubble_spatial_with_i": {
+          "C_candidate": "bubble",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.5457138217358464,
+          "delta_AA_norm": 0.07929114943495635,
+          "delta_Aeta_norm": 0.5189645328858866,
+          "delta_etaA_norm": 0.5189645328858866,
+          "delta_etaeta_norm": 5.697433015611546,
+          "improvement_factor_vs_baseline": 7.581818104402788e-14,
+          "improvement_factor_vs_stage2j": 7.510770888366668e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.006333521154497383,
+          "variant": "pkg_bubble_spatial_with_i"
+        },
+        "pkg_counterterm_spatial_with_i": {
+          "C_candidate": "counterterm",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0,
+          "delta_AA_norm": 0.0940474358896986,
+          "delta_Aeta_norm": 0.6155390285000711,
+          "delta_etaA_norm": 0.6155390285000711,
+          "delta_etaeta_norm": 4.045467814620494,
+          "improvement_factor_vs_baseline": 5.394731886346498e-14,
+          "improvement_factor_vs_stage2j": 5.3441792779208696e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.008901203315649274,
+          "variant": "pkg_counterterm_spatial_with_i"
+        },
+        "pkg_hybrid_bond_metric_spatial_with_i": {
+          "C_candidate": "hybrid",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.8670718741375458,
+          "delta_AA_norm": 0.01475628645474225,
+          "delta_Aeta_norm": 0.6207806371792005,
+          "delta_etaA_norm": 0.6253590934889164,
+          "delta_etaeta_norm": 5.697433015611546,
+          "improvement_factor_vs_baseline": 6.701178047325932e-14,
+          "improvement_factor_vs_stage2j": 6.63838307679658e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.007165845320726594,
+          "variant": "pkg_hybrid_bond_metric_spatial_with_i"
+        },
+        "pkg_total_spacetime_omega_minus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.014772443619790656,
+          "delta_Aeta_norm": 0.09666033866455727,
+          "delta_etaA_norm": 0.09666033866455727,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 3.154099594426041e-14,
+          "improvement_factor_vs_stage2j": 3.124543359734193e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_minus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.015224505097634544,
+          "variant": "pkg_total_spacetime_omega_minus_with_i"
+        },
+        "pkg_total_spacetime_omega_plus_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.014750905969432819,
+          "delta_Aeta_norm": 0.09658984944848188,
+          "delta_etaA_norm": 0.09658984944848188,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 3.156401389170665e-14,
+          "improvement_factor_vs_stage2j": 3.126823584967884e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.015213402680196931,
+          "variant": "pkg_total_spacetime_omega_plus_no_i"
+        },
+        "pkg_total_spacetime_omega_plus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.014750905969432819,
+          "delta_Aeta_norm": 0.09658984944848188,
+          "delta_etaA_norm": 0.09658984944848188,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 3.156401389170566e-14,
+          "improvement_factor_vs_stage2j": 3.126823584967786e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01521340268019741,
+          "variant": "pkg_total_spacetime_omega_plus_with_i"
+        },
+        "pkg_total_spacetime_omega_zero_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.014761668902617386,
+          "delta_Aeta_norm": 0.0966250812008281,
+          "delta_etaA_norm": 0.0966250812008281,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 3.155250491798305e-14,
+          "improvement_factor_vs_stage2j": 3.125683472350991e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_zero",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.015218951864077832,
+          "variant": "pkg_total_spacetime_omega_zero_with_i"
+        },
+        "pkg_total_spatial_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.01475628645474225,
+          "delta_Aeta_norm": 0.0966074637185726,
+          "delta_etaA_norm": 0.0966074637185726,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 3.1558169954748384e-14,
+          "improvement_factor_vs_stage2j": 3.1262446674711153e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.015216219895717071,
+          "variant": "pkg_total_spatial_no_i"
+        },
+        "pkg_total_spatial_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.01475628645474225,
+          "delta_Aeta_norm": 0.0966074637185726,
+          "delta_etaA_norm": 0.0966074637185726,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 3.155816995474739e-14,
+          "improvement_factor_vs_stage2j": 3.1262446674710175e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.015216219895717548,
+          "variant": "pkg_total_spatial_with_i"
+        },
+        "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.01475628645474225,
+          "delta_Aeta_norm": 0.0966074637185726,
+          "delta_etaA_norm": 0.0966074637185726,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 3.155816995474739e-14,
+          "improvement_factor_vs_stage2j": 3.1262446674710175e-14,
+          "include_AA": true,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.015216219895717548,
+          "variant": "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta"
+        },
+        "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.0966074637185726,
+          "delta_etaA_norm": 0.0966074637185726,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 2.0930330099787165e-14,
+          "improvement_factor_vs_stage2j": 2.073419750153301e-14,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.02294259341579835,
+          "variant": "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA"
+        },
+        "pkg_total_spatial_with_i_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.0966074637185726,
+          "delta_etaA_norm": 0.0966074637185726,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 2.0930330099787165e-14,
+          "improvement_factor_vs_stage2j": 2.073419750153301e-14,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.02294259341579835,
+          "variant": "pkg_total_spatial_with_i_no_AA"
+        },
+        "pkg_total_spatial_with_i_only_mixed": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 2.8968134119175017,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.0966074637185726,
+          "delta_etaA_norm": 0.0966074637185726,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 2.0930330099787165e-14,
+          "improvement_factor_vs_stage2j": 2.073419750153301e-14,
+          "include_AA": false,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.02294259341579835,
+          "variant": "pkg_total_spatial_with_i_only_mixed"
+        }
+      }
+    },
+    {
+      "AA_required": true,
+      "C_candidate_metadata": {
+        "bond_metric": {
+          "bond_metric_info": {
+            "bond_metric_available": false,
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "fallback": "identity_metric_for_pairing_without_bond_representation"
+          },
+          "description": "forward finite-q bond-metric counterterm",
+          "matrix_norm": 4.277379863761086,
+          "package_mode": "replacement"
+        },
+        "bubble": {
+          "bond_metric_info": {},
+          "description": "collective_bubble only",
+          "matrix_norm": 3.2422919437378384,
+          "package_mode": "replacement"
+        },
+        "collective_total": {
+          "bond_metric_info": {},
+          "description": "current collective_total bubble plus counterterm",
+          "matrix_norm": 1.0371712687336976,
+          "package_mode": "replacement"
+        },
+        "counterterm": {
+          "bond_metric_info": {},
+          "description": "collective_counterterm only",
+          "matrix_norm": 4.277379863761086,
+          "package_mode": "replacement"
+        },
+        "hybrid": {
+          "bond_metric_info": {
+            "bond_metric_available": false,
+            "counterterm_scale_definition": "collective_counterterm[1,1]",
+            "fallback": "identity_metric_for_pairing_without_bond_representation"
+          },
+          "description": "collective_bubble plus forward finite-q bond metric",
+          "matrix_norm": 1.0371712687336976,
+          "package_mode": "replacement"
+        }
+      },
+      "N": 24,
+      "baseline_restored_ward": 2.869433269269049e-16,
+      "best_package_closes_dwave": false,
+      "best_package_restored_ward": 0.0059714540477043224,
+      "best_package_variant": "pkg_bubble_spatial_with_i",
+      "etaeta_replacement_required": false,
+      "lsq_mixed_only_restored_ward": 3.4179953176852786e-17,
+      "m_case": [
+        1,
+        0
+      ],
+      "mixed_only_insufficient": true,
+      "pairing": "dwave_const_form",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "sign_or_convention_ambiguity": false,
+      "stage2j_best_longitudinal_restored_ward": 2.8509106244301256e-16,
+      "supports_bond_metric_counterterm": false,
+      "supports_gauge_covariant_package": false,
+      "variants": {
+        "pkg_bond_metric_spatial_with_i": {
+          "C_candidate": "bond_metric",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0,
+          "delta_AA_norm": 0.07060664116816813,
+          "delta_Aeta_norm": 0.46211938580951584,
+          "delta_etaA_norm": 0.46211938580951584,
+          "delta_etaeta_norm": 3.2422919437378384,
+          "improvement_factor_vs_baseline": 2.7660898700678314e-14,
+          "improvement_factor_vs_stage2j": 2.7482343231887567e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.010373608248667218,
+          "variant": "pkg_bond_metric_spatial_with_i"
+        },
+        "pkg_bubble_spatial_with_i": {
+          "C_candidate": "bubble",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0358862799227482,
+          "delta_AA_norm": 0.054455382073022425,
+          "delta_Aeta_norm": 0.35640975652174983,
+          "delta_etaA_norm": 0.35640975652174983,
+          "delta_etaeta_norm": 4.277379863761086,
+          "improvement_factor_vs_baseline": 4.8052505241536264e-14,
+          "improvement_factor_vs_stage2j": 4.7742318732673416e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.0059714540477043224,
+          "variant": "pkg_bubble_spatial_with_i"
+        },
+        "pkg_counterterm_spatial_with_i": {
+          "C_candidate": "counterterm",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.0,
+          "delta_AA_norm": 0.07060664116816813,
+          "delta_Aeta_norm": 0.46211938580951584,
+          "delta_etaA_norm": 0.46211938580951584,
+          "delta_etaeta_norm": 3.2422919437378384,
+          "improvement_factor_vs_baseline": 2.7660898700678314e-14,
+          "improvement_factor_vs_stage2j": 2.7482343231887567e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.010373608248667218,
+          "variant": "pkg_counterterm_spatial_with_i"
+        },
+        "pkg_hybrid_bond_metric_spatial_with_i": {
+          "C_candidate": "hybrid",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.01615125909514571,
+          "delta_Aeta_norm": 0.10571012893595583,
+          "delta_etaA_norm": 0.10571012893595583,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.704286867528514e-14,
+          "improvement_factor_vs_stage2j": 1.6932854266903676e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01683656269340491,
+          "variant": "pkg_hybrid_bond_metric_spatial_with_i"
+        },
+        "pkg_total_spacetime_omega_minus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.016168943663667754,
+          "delta_Aeta_norm": 0.10576798592901179,
+          "delta_etaA_norm": 0.10576798592901179,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.7033559840170038e-14,
+          "improvement_factor_vs_stage2j": 1.6923605521789117e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_minus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.016845763869641033,
+          "variant": "pkg_total_spacetime_omega_minus_with_i"
+        },
+        "pkg_total_spacetime_omega_plus_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.016145369970361045,
+          "delta_Aeta_norm": 0.10569085499281798,
+          "delta_etaA_norm": 0.10569085499281798,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.7045990569558173e-14,
+          "improvement_factor_vs_stage2j": 1.693595600885623e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.016833479154878025,
+          "variant": "pkg_total_spacetime_omega_plus_no_i"
+        },
+        "pkg_total_spacetime_omega_plus_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.016145369970361045,
+          "delta_Aeta_norm": 0.10569085499281798,
+          "delta_etaA_norm": 0.10569085499281798,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.7045990569557883e-14,
+          "improvement_factor_vs_stage2j": 1.693595600885594e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_plus",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.016833479154878313,
+          "variant": "pkg_total_spacetime_omega_plus_with_i"
+        },
+        "pkg_total_spacetime_omega_zero_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.01615715036802551,
+          "delta_Aeta_norm": 0.10572940639391892,
+          "delta_etaA_norm": 0.10572940639391892,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.703977520486396e-14,
+          "improvement_factor_vs_stage2j": 1.6929780765322528e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spacetime",
+          "lambda_denominator": "omega_zero",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01683961927179636,
+          "variant": "pkg_total_spacetime_omega_zero_with_i"
+        },
+        "pkg_total_spatial_no_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "no_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.01615125909514571,
+          "delta_Aeta_norm": 0.10571012893595583,
+          "delta_etaA_norm": 0.10571012893595583,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.7042868675285427e-14,
+          "improvement_factor_vs_stage2j": 1.6932854266903963e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.016836562693404625,
+          "variant": "pkg_total_spatial_no_i"
+        },
+        "pkg_total_spatial_with_i": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.01615125909514571,
+          "delta_Aeta_norm": 0.10571012893595583,
+          "delta_etaA_norm": 0.10571012893595583,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.704286867528514e-14,
+          "improvement_factor_vs_stage2j": 1.6932854266903676e-14,
+          "include_AA": true,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01683656269340491,
+          "variant": "pkg_total_spatial_with_i"
+        },
+        "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.01615125909514571,
+          "delta_Aeta_norm": 0.10571012893595583,
+          "delta_etaA_norm": 0.10571012893595583,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.704286867528514e-14,
+          "improvement_factor_vs_stage2j": 1.6932854266903676e-14,
+          "include_AA": true,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.01683656269340491,
+          "variant": "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta"
+        },
+        "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.10571012893595583,
+          "delta_etaA_norm": 0.10571012893595583,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.1344618867879957e-14,
+          "improvement_factor_vs_stage2j": 1.1271387561763464e-14,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.02529334217999409,
+          "variant": "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA"
+        },
+        "pkg_total_spatial_with_i_no_AA": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.10571012893595583,
+          "delta_etaA_norm": 0.10571012893595583,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.1344618867879957e-14,
+          "improvement_factor_vs_stage2j": 1.1271387561763464e-14,
+          "include_AA": false,
+          "include_etaeta": true,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.02529334217999409,
+          "variant": "pkg_total_spatial_with_i_no_AA"
+        },
+        "pkg_total_spatial_with_i_only_mixed": {
+          "C_candidate": "collective_total",
+          "alpha_convention": "with_i",
+          "collective_condition_number": 1.116801771814474,
+          "delta_AA_norm": 0.0,
+          "delta_Aeta_norm": 0.10571012893595583,
+          "delta_etaA_norm": 0.10571012893595583,
+          "delta_etaeta_norm": 0.0,
+          "improvement_factor_vs_baseline": 1.1344618867879957e-14,
+          "improvement_factor_vs_stage2j": 1.1271387561763464e-14,
+          "include_AA": false,
+          "include_etaeta": false,
+          "include_mixed": true,
+          "lambda_convention": "spatial",
+          "lambda_denominator": "q_squared",
+          "package_mode": "replacement",
+          "physical_schur_restored_ward": 0.02529334217999409,
+          "variant": "pkg_total_spatial_with_i_only_mixed"
+        }
+      }
+    }
+  ],
+  "diagnostic_only": true,
+  "formal_casimir_ran": false,
+  "gauge_covariant_collective_package_tested": true,
+  "lsq_candidate_used_as_production_formula": false,
+  "lsq_used_to_define_package": false,
+  "package_generation": "AA, Aeta, etaA, and etaeta blocks are generated from the same C(Q), lambda gradient, and alpha convention.",
+  "production_default_modified": false,
+  "quick": true,
+  "required_package_variants": [
+    "pkg_total_spatial_no_i",
+    "pkg_total_spatial_with_i",
+    "pkg_total_spacetime_omega_plus_no_i",
+    "pkg_total_spacetime_omega_plus_with_i",
+    "pkg_bubble_spatial_with_i",
+    "pkg_counterterm_spatial_with_i",
+    "pkg_bond_metric_spatial_with_i",
+    "pkg_hybrid_bond_metric_spatial_with_i",
+    "pkg_total_spatial_with_i_no_AA",
+    "pkg_total_spatial_with_i_only_mixed",
+    "pkg_total_spatial_with_i_etaeta_plus_mixed_no_AA",
+    "pkg_total_spatial_with_i_AA_plus_mixed_no_etaeta"
+  ],
+  "status": "FAILED_STAGE2K_CONTROL_REGRESSION",
+  "valid_for_casimir_input": false
+}
