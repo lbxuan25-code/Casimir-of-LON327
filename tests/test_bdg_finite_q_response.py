@@ -63,6 +63,10 @@ from stageSC_2g_analytic_mixed_direct_audit import (  # noqa: E402
     bond_mixed_direct_form_factor,
     build_payload as build_stageSC_2g_payload,
 )
+from stageSC_2h_lsq_mixed_block_projection_audit import (  # noqa: E402
+    BASIS_NAMES,
+    build_payload as build_stageSC_2h_payload,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -859,6 +863,54 @@ def test_stageSC_2g_mixed_form_factor_vanishes_for_local_pairings():
 
 def test_stageSC_2g_script_does_not_call_casimir_pipeline():
     script = ROOT / "validation" / "scripts" / "response" / "stageSC_2g_analytic_mixed_direct_audit.py"
+    text = script.read_text(encoding="utf-8")
+    assert '"formal_casimir_ran": False' in text
+    assert '"production_default_modified": False' in text
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+
+
+def test_stageSC_2h_payload_is_diagnostic_only():
+    payload = build_stageSC_2h_payload(quick=True)
+    assert payload["diagnostic_only"] is True
+    assert payload["production_default_modified"] is False
+    assert payload["formal_casimir_ran"] is False
+    assert payload["analytic_formula_claimed"] is False
+    assert payload["lsq_candidate_used_as_production_formula"] is False
+
+
+def test_stageSC_2h_contains_projection_basis_results():
+    payload = build_stageSC_2h_payload(quick=True)
+    assert set(BASIS_NAMES) <= set(payload["candidate_basis_names"])
+    dwave_cases = [case for case in payload["cases"] if case["pairing"] == "dwave"]
+    assert dwave_cases
+    for case in dwave_cases:
+        assert set(BASIS_NAMES) <= set(case["single_basis_projection"])
+        assert "multi_basis_projection" in case
+        assert "relative_residual" in case["multi_basis_projection"]
+        assert "parity_symmetry_audit" in case
+
+
+def test_stageSC_2h_lsq_reference_closes_or_reports_failure():
+    payload = build_stageSC_2h_payload(quick=True)
+    if payload["status"] != "FAILED_STAGE2H_LSQ_REFERENCE_NOT_CLOSING":
+        for case in payload["cases"]:
+            if case["pairing"] == "dwave":
+                assert case["lsq_mixed_only_restored_ward"] < 1e-8
+
+
+def test_stageSC_2h_control_pairings_are_present():
+    payload = build_stageSC_2h_payload(quick=True)
+    assert {case["pairing"] for case in payload["cases"]} >= {
+        "onsite_s",
+        "spm",
+        "dwave",
+        "dwave_const_form",
+    }
+
+
+def test_stageSC_2h_script_does_not_call_casimir_pipeline():
+    script = ROOT / "validation" / "scripts" / "response" / "stageSC_2h_lsq_mixed_block_projection_audit.py"
     text = script.read_text(encoding="utf-8")
     assert '"formal_casimir_ran": False' in text
     assert '"production_default_modified": False' in text

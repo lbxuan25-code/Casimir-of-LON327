@@ -1,0 +1,4775 @@
+{
+  "analytic_formula_claimed": false,
+  "candidate_basis_names": [
+    "basis_d_difference",
+    "basis_endpoint_sum",
+    "basis_endpoint_difference",
+    "basis_partial_q_phi",
+    "basis_partial_k_phi",
+    "basis_phi_qi",
+    "basis_phi_omega"
+  ],
+  "cases": [
+    {
+      "N": 24,
+      "baseline_restored_ward": 3.4483054221327112e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9768135853242865,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9768137174300505,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 3.469446951953614e-18,
+      "lsq_target_norm": 2.0133408387383817e-14,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": -2.208810534618833e-29,
+            "real": -2.8398992587956425e-29
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 3.0884622008168135e-14,
+            "real": 7.274472176929117e-17
+          },
+          {
+            "imag": 2.3806630409489497e-15,
+            "real": -3.0167202033477354e-15
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.04583521952591285,
+        "relative_residual": 0.9768135853242865,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "onsite_s",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.13307788618853858,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.02828427124746218,
+          "thermal_expectation_norm": 0.003764011029995526
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.1330778861885392,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 1.0471975511966005,
+          "thermal_expectation_norm": 0.13935883653505815
+        }
+      },
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 2.0133408387383817e-14
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 2.0133408387383817e-14
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 2.0133408387383817e-14
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 2.0133408387383817e-14
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 2.0133408387383817e-14
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.003764011029995526,
+          "coefficient": {
+            "imag": 8.109381764556022e-13,
+            "real": -1.1122678408656366e-15
+          },
+          "explained_norm_fraction": 0.022984945500365117,
+          "relative_residual": 0.9884407187584063,
+          "target_norm": 2.0133408387383817e-14
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.13935883653505815,
+          "coefficient": {
+            "imag": 3.093008932306452e-14,
+            "real": 1.512960989473803e-17
+          },
+          "explained_norm_fraction": 0.04583496144048538,
+          "relative_residual": 0.9768137174300505,
+          "target_norm": 2.0133408387383817e-14
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 24,
+      "baseline_restored_ward": 1.7347238351842932e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9999580729058796,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9999580729058796,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 1.179616341890958e-16,
+      "lsq_target_norm": 1.0549234687026856e-13,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 7.888609052210118e-31,
+            "real": -7.888609052210118e-31
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 4.8995695621648025e-15,
+            "real": 3.78534887845427e-17
+          },
+          {
+            "imag": 9.357488578093487e-17,
+            "real": 7.229483824000025e-19
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 8.38524303596877e-05,
+        "relative_residual": 0.9999580729058796,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "onsite_s",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.13307788618853858,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.02828427124746218,
+          "thermal_expectation_norm": 0.003764011029995526
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.13307788618853916,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 1.4809609793861263,
+          "thermal_expectation_norm": 0.19708315666441442
+        }
+      },
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0549234687026856e-13
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0549234687026856e-13
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0549234687026856e-13
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0549234687026856e-13
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0549234687026856e-13
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.003764011029995526,
+          "coefficient": {
+            "imag": 2.5663443725659743e-13,
+            "real": 1.9827269863526534e-15
+          },
+          "explained_norm_fraction": 8.38524303596877e-05,
+          "relative_residual": 0.9999580729058796,
+          "target_norm": 1.0549234687026856e-13
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.19708315666441442,
+          "coefficient": {
+            "imag": 4.901356710839333e-15,
+            "real": 3.786729608156615e-17
+          },
+          "explained_norm_fraction": 8.38524303596877e-05,
+          "relative_residual": 0.9999580729058796,
+          "target_norm": 1.0549234687026856e-13
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 36,
+      "baseline_restored_ward": 1.2056624319008614e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9931572837824243,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9931588012926638,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 3.469446951953614e-18,
+      "lsq_target_norm": 1.2883939249159335e-14,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": -5.206481974458678e-29,
+            "real": 5.36425415550288e-29
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": -1.5241446927900964e-14,
+            "real": -2.5648061651861756e-17
+          },
+          {
+            "imag": -7.536723333617522e-15,
+            "real": -2.7490087813315407e-15
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.013638609669917146,
+        "relative_residual": 0.9931572837824243,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "onsite_s",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.13941297258949978,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.028284271247461235,
+          "thermal_expectation_norm": 0.0039431943321362895
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.1394129725894981,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.6981317007977237,
+          "thermal_expectation_norm": 0.09732861566717275
+        }
+      },
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2883939249159335e-14
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2883939249159335e-14
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2883939249159335e-14
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2883939249159335e-14
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2883939249159335e-14
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0039431943321362895,
+          "coefficient": {
+            "imag": -2.735501549934642e-13,
+            "real": -3.196651903911029e-15
+          },
+          "explained_norm_fraction": 0.007010229849930494,
+          "relative_residual": 0.9964887205332881,
+          "target_norm": 1.2883939249159335e-14
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.09732861566717275,
+          "coefficient": {
+            "imag": -1.5457358147087998e-14,
+            "real": -1.0440136215921196e-16
+          },
+          "explained_norm_fraction": 0.01363559541491921,
+          "relative_residual": 0.9931588012926638,
+          "target_norm": 1.2883939249159335e-14
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 36,
+      "baseline_restored_ward": 2.289835715311024e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9996770520659057,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9996770520659057,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 5.204184758312774e-17,
+      "lsq_target_norm": 1.2306889777592893e-13,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 3.1554436208840472e-30
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": -2.270296850576739e-14,
+            "real": 7.990622913464928e-18
+          },
+          {
+            "imag": -6.503921388994502e-16,
+            "real": 2.289144843110791e-19
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.0006457915728204089,
+        "relative_residual": 0.9996770520659057,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "onsite_s",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.13941297258949978,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.028284271247461235,
+          "thermal_expectation_norm": 0.0039431943321362895
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.13941297258949892,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.9873073195907309,
+          "thermal_expectation_norm": 0.1376434482835142
+        }
+      },
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2306889777592893e-13
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2306889777592893e-13
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2306889777592893e-13
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2306889777592893e-13
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2306889777592893e-13
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0039431943321362895,
+          "coefficient": {
+            "imag": -7.931334929433359e-13,
+            "real": 2.791542727348936e-16
+          },
+          "explained_norm_fraction": 0.0006457915728204089,
+          "relative_residual": 0.9996770520659057,
+          "target_norm": 1.2306889777592893e-13
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.1376434482835142,
+          "coefficient": {
+            "imag": -2.2721600868061107e-14,
+            "real": 7.997180830376491e-18
+          },
+          "explained_norm_fraction": 0.0006457915728204089,
+          "relative_residual": 0.9996770520659057,
+          "target_norm": 1.2306889777592893e-13
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 48,
+      "baseline_restored_ward": 1.3292536560192557e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9908924215272378,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9909307414617472,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 8.176408467066346e-18,
+      "lsq_target_norm": 1.2365272464058706e-14,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 4.733165431326071e-29,
+            "real": 1.4830585018155022e-28
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 2.1737297193575793e-14,
+            "real": -1.0036956647604471e-16
+          },
+          {
+            "imag": 3.945812281979041e-14,
+            "real": -8.030545382778174e-16
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.018132208959886875,
+        "relative_residual": 0.9908924215272378,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "onsite_s",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.13651871073839672,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.028284271247460843,
+          "thermal_expectation_norm": 0.003861332244878458
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.1365187107383911,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.5235987755983004,
+          "thermal_expectation_norm": 0.07148102978888013
+        }
+      },
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2365272464058706e-14
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2365272464058706e-14
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2365272464058706e-14
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2365272464058706e-14
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.2365272464058706e-14
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.003861332244878458,
+          "coefficient": {
+            "imag": 3.2399867770410585e-13,
+            "real": -2.116889091132441e-15
+          },
+          "explained_norm_fraction": 0.010236982886951851,
+          "relative_residual": 0.9948683415975443,
+          "target_norm": 1.2365272464058706e-14
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.07148102978888013,
+          "coefficient": {
+            "imag": 2.324448646363102e-14,
+            "real": -1.310439903174752e-16
+          },
+          "explained_norm_fraction": 0.018056265626071877,
+          "relative_residual": 0.9909307414617472,
+          "target_norm": 1.2365272464058706e-14
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 48,
+      "baseline_restored_ward": 7.342010397576474e-17,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9999902215693384,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9999902215693384,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 5.208382435073404e-18,
+      "lsq_target_norm": 1.109503920033413e-13,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 7.888609052210118e-31,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 4.846589825344897e-15,
+            "real": 1.5100991778541218e-17
+          },
+          {
+            "imag": 1.8512609468220637e-16,
+            "real": 5.768153969148301e-19
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 1.9556765705530665e-05,
+        "relative_residual": 0.9999902215693384,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "onsite_s",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.13651871073839672,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.028284271247460843,
+          "thermal_expectation_norm": 0.003861332244878458
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.1365187107383911,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.7404804896930632,
+          "thermal_expectation_norm": 0.1010894417798295
+        }
+      },
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.109503920033413e-13
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.109503920033413e-13
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.109503920033413e-13
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.109503920033413e-13
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.109503920033413e-13
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.003861332244878458,
+          "coefficient": {
+            "imag": 1.270685510135689e-13,
+            "real": 3.959198556755404e-16
+          },
+          "explained_norm_fraction": 1.9556765705530665e-05,
+          "relative_residual": 0.9999902215693384,
+          "target_norm": 1.109503920033413e-13
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.1010894417798295,
+          "coefficient": {
+            "imag": 4.853661121280203e-15,
+            "real": 1.5123024503756626e-17
+          },
+          "explained_norm_fraction": 1.9556765705530665e-05,
+          "relative_residual": 0.9999902215693384,
+          "target_norm": 1.109503920033413e-13
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 24,
+      "baseline_restored_ward": 4.801960535378631e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9916846009735847,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9916846286617805,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 1.006204617704893e-18,
+      "lsq_target_norm": 4.6642029186435686e-14,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 7.395570986446986e-31,
+            "real": 1.262177448353619e-29
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 7.126752222882469e-14,
+            "real": 2.370168624006347e-16
+          },
+          {
+            "imag": -6.769146312101097e-15,
+            "real": 4.285073935164289e-16
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.01656165219186212,
+        "relative_residual": 0.9916846009735847,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "spm",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.11394866031222994,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.020000000000000198,
+          "thermal_expectation_norm": 0.0022789732062446213
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.1139486603122306,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.740480489693063,
+          "thermal_expectation_norm": 0.084376759787869
+        }
+      },
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 4.6642029186435686e-14
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 4.6642029186435686e-14
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 4.6642029186435686e-14
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 4.6642029186435686e-14
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 4.6642029186435686e-14
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0022789732062446213,
+          "coefficient": {
+            "imag": 1.859010222634753e-12,
+            "real": 6.633594340972569e-15
+          },
+          "explained_norm_fraction": 0.008250735246639773,
+          "relative_residual": 0.9958660877614822,
+          "target_norm": 4.6642029186435686e-14
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.084376759787869,
+          "coefficient": {
+            "imag": 7.113824105729467e-14,
+            "real": 2.4520075078018233e-16
+          },
+          "explained_norm_fraction": 0.016561597275946416,
+          "relative_residual": 0.9916846286617805,
+          "target_norm": 4.6642029186435686e-14
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 24,
+      "baseline_restored_ward": 1.5352372104080745e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9975057139202113,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9975057139202113,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 3.03621598652676e-17,
+      "lsq_target_norm": 3.1166409040140926e-14,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 1.8428681053856232e-14,
+            "real": 1.4495721785945931e-16
+          },
+          {
+            "imag": 3.5196188212622174e-16,
+            "real": 2.7684789311018093e-18
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.004982350696529636,
+        "relative_residual": 0.9975057139202113,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "spm",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.11394866031222994,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.020000000000000198,
+          "thermal_expectation_norm": 0.0022789732062446213
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.11394866031223057,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 1.0471975511966007,
+          "thermal_expectation_norm": 0.11932675804110114
+        }
+      },
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.1166409040140926e-14
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.1166409040140926e-14
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.1166409040140926e-14
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.1166409040140926e-14
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.1166409040140926e-14
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0022789732062446213,
+          "coefficient": {
+            "imag": 9.652754454511944e-13,
+            "real": 7.592710657465805e-15
+          },
+          "explained_norm_fraction": 0.004982350696529636,
+          "relative_residual": 0.9975057139202113,
+          "target_norm": 3.1166409040140926e-14
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.11932675804110114,
+          "coefficient": {
+            "imag": 1.843540303065468e-14,
+            "real": 1.450100919122648e-16
+          },
+          "explained_norm_fraction": 0.004982350696529636,
+          "relative_residual": 0.9975057139202113,
+          "target_norm": 3.1166409040140926e-14
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 36,
+      "baseline_restored_ward": 6.96126366120937e-17,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 1.0,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_d_difference",
+      "best_single_basis_relative_residual": 1.0,
+      "dominant_basis_family": "unclear_integrated_best_basis_d_difference",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 3.090193416141941e-17,
+      "lsq_target_norm": 9.050767941341612e-15,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.0,
+        "relative_residual": 1.0,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "spm",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.11724092335478252,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.01999999999999953,
+          "thermal_expectation_norm": 0.002344818467095595
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.11724092335478106,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.49365365979536824,
+          "thermal_expectation_norm": 0.05787641089187593
+        }
+      },
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 9.050767941341612e-15
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 9.050767941341612e-15
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 9.050767941341612e-15
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 9.050767941341612e-15
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 9.050767941341612e-15
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.002344818467095595,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 9.050767941341612e-15
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.05787641089187593,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 9.050767941341612e-15
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 36,
+      "baseline_restored_ward": 8.847206590969801e-17,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9989984308266586,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9989984308266586,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 5.030709532719873e-17,
+      "lsq_target_norm": 1.473605819032205e-14,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 1.232595164407831e-32,
+            "real": 1.5777218104420236e-30
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": -8.048609510785485e-15,
+            "real": 1.0116338172914446e-16
+          },
+          {
+            "imag": -2.3057567795843136e-16,
+            "real": 2.898117407175422e-18
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.0020021352058737785,
+        "relative_residual": 0.9989984308266586,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "spm",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.11724092335478252,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.01999999999999953,
+          "thermal_expectation_norm": 0.002344818467095595
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.1172409233547817,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.6981317007977198,
+          "thermal_expectation_norm": 0.08184960522476886
+        }
+      },
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.473605819032205e-14
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.473605819032205e-14
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.473605819032205e-14
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.473605819032205e-14
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.473605819032205e-14
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.002344818467095595,
+          "coefficient": {
+            "imag": -2.8118004801903193e-13,
+            "real": 3.534166304658011e-15
+          },
+          "explained_norm_fraction": 0.0020021352058737785,
+          "relative_residual": 0.9989984308266586,
+          "target_norm": 1.473605819032205e-14
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.08184960522476886,
+          "coefficient": {
+            "imag": -8.05521501738818e-15,
+            "real": 1.0124640667712514e-16
+          },
+          "explained_norm_fraction": 0.0020021352058737785,
+          "relative_residual": 0.9989984308266586,
+          "target_norm": 1.473605819032205e-14
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 48,
+      "baseline_restored_ward": 5.580351252540597e-17,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9999925574866337,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9999925856242313,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 3.469446951953614e-18,
+      "lsq_target_norm": 1.3655380697846658e-13,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": -2.6993834100531498e-30,
+            "real": -6.626431603856499e-29
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 1.3089193023284408e-14,
+            "real": -7.92073201966433e-17
+          },
+          {
+            "imag": -1.986927152900402e-14,
+            "real": 8.171883077986783e-16
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 1.488497134150002e-05,
+        "relative_residual": 0.9999925574866337,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "spm",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.1151852210996961,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.01999999999999925,
+          "thermal_expectation_norm": 0.002303704421993836
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.11518522109969144,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.3702402448465316,
+          "thermal_expectation_norm": 0.04264620446265164
+        }
+      },
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.3655380697846658e-13
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.3655380697846658e-13
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.3655380697846658e-13
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.3655380697846658e-13
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.3655380697846658e-13
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.002303704421993836,
+          "coefficient": {
+            "imag": 1.514678644850338e-13,
+            "real": -2.1963308903618936e-16
+          },
+          "explained_norm_fraction": 6.5296184605934116e-06,
+          "relative_residual": 0.9999967351854402,
+          "target_norm": 1.3655380697846658e-13
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.04264620446265164,
+          "coefficient": {
+            "imag": 1.2330242756210161e-14,
+            "real": -4.7993026127111164e-17
+          },
+          "explained_norm_fraction": 1.4828696564439525e-05,
+          "relative_residual": 0.9999925856242313,
+          "target_norm": 1.3655380697846658e-13
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 48,
+      "baseline_restored_ward": 7.719607629127344e-17,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.9998500515710143,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_phi_qi",
+      "best_single_basis_relative_residual": 0.9998500515710143,
+      "dominant_basis_family": "unclear_integrated_best_basis_phi_qi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 5.919760740297401e-17,
+      "lsq_target_norm": 1.8284938642335997e-14,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": -7.888609052210118e-31
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": -5.242079953577957e-15,
+            "real": 6.261175167138567e-17
+          },
+          {
+            "imag": -2.002327048067677e-16,
+            "real": 2.3915927457943843e-18
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.00029987437344014545,
+        "relative_residual": 0.9998500515710143,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "spm",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.1151852210996961,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.01999999999999925,
+          "thermal_expectation_norm": 0.002303704421993836
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.11518522109969144,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.5235987755983004,
+          "thermal_expectation_norm": 0.060310840734817954
+        }
+      },
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.8284938642335997e-14
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.8284938642335997e-14
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.8284938642335997e-14
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.8284938642335997e-14
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.8284938642335997e-14
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.002303704421993836,
+          "coefficient": {
+            "imag": -1.3743756496889714e-13,
+            "real": 1.6415634184061325e-15
+          },
+          "explained_norm_fraction": 0.00029987437344014545,
+          "relative_residual": 0.9998500515710143,
+          "target_norm": 1.8284938642335997e-14
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.060310840734817954,
+          "coefficient": {
+            "imag": -5.249728279515239e-15,
+            "real": 6.270310378515954e-17
+          },
+          "explained_norm_fraction": 0.00029987437344014545,
+          "relative_residual": 0.9998500515710143,
+          "target_norm": 1.8284938642335997e-14
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 24,
+      "baseline_restored_ward": 0.0008740857762858619,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.6886407208096601,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_partial_q_phi",
+      "best_single_basis_relative_residual": 0.688709594417326,
+      "dominant_basis_family": "unclear_integrated_best_basis_partial_q_phi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 1.255984213619792e-17,
+      "lsq_target_norm": 0.01747529357397359,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 3.0605808736290025e-17,
+            "real": 2.400385387088795e-19
+          },
+          {
+            "imag": -0.026241208244658157,
+            "real": -1.6602899610695943e-12
+          },
+          {
+            "imag": 4.2218081606675877e-17,
+            "real": 5.013663106817792e-18
+          },
+          {
+            "imag": 0.030393875527341352,
+            "real": -4.0440741033709315e-17
+          },
+          {
+            "imag": 2.7508739931271912e-17,
+            "real": -4.267691451151998e-19
+          },
+          {
+            "imag": -0.24176063961473404,
+            "real": 3.2786273695961654e-16
+          },
+          {
+            "imag": 1.803564350817688e-13,
+            "real": 5.8652355975491455e-15
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.5257739576427518,
+        "relative_residual": 0.6886407208096601,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 6.5229645435965985e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9554491314176599,
+          "thermal_expectation_norm": 1.275532535104416e-17
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 8.880114273493457e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9662210973805636,
+          "thermal_expectation_norm": 1.7460268031693112e-17
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.035441169335513605,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.18301270189221958,
+          "thermal_expectation_norm": 0.006486184158312026
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 8.880114273493457e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9662210973805636,
+          "thermal_expectation_norm": 1.7460268031693112e-17
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.035441169335513605,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.18301270189221958,
+          "thermal_expectation_norm": 0.006486184158312026
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.050113855519123784,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.027806565425397004,
+          "thermal_expectation_norm": 0.0013934942022114083
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.050113855519123666,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 1.0295109591440086,
+          "thermal_expectation_norm": 0.05159276346189728
+        }
+      },
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 1.275532535104416e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.01747529357397359
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 1.7460268031693112e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.01747529357397359
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.006486184158312026,
+          "coefficient": {
+            "imag": -0.02624120824465849,
+            "real": -1.6601251598046731e-12
+          },
+          "explained_norm_fraction": 9.48630852294352e-05,
+          "relative_residual": 0.9999525673324563,
+          "target_norm": 0.01747529357397359
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 1.7460268031693112e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.01747529357397359
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.006486184158312026,
+          "coefficient": {
+            "imag": 1.9534196776941732,
+            "real": -3.5524551673744428e-15
+          },
+          "explained_norm_fraction": 0.5256790945575223,
+          "relative_residual": 0.688709594417326,
+          "target_norm": 0.01747529357397359
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0013934942022114083,
+          "coefficient": {
+            "imag": -6.429314485120009,
+            "real": 1.5189312176165597e-14
+          },
+          "explained_norm_fraction": 0.2628395472787536,
+          "relative_residual": 0.8585804870373228,
+          "target_norm": 0.01747529357397359
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.05159276346189728,
+          "coefficient": {
+            "imag": -0.2455817234398049,
+            "real": 4.466068121935916e-16
+          },
+          "explained_norm_fraction": 0.5256790945575223,
+          "relative_residual": 0.688709594417326,
+          "target_norm": 0.01747529357397359
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 24,
+      "baseline_restored_ward": 0.0008339764188671453,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.21297820039673201,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_partial_q_phi",
+      "best_single_basis_relative_residual": 0.21297856917488636,
+      "dominant_basis_family": "unclear_integrated_best_basis_partial_q_phi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 1.469662384099142e-16,
+      "lsq_target_norm": 0.018508772242030243,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 9.3426609758994e-19,
+            "real": 6.094979891002258e-19
+          },
+          {
+            "imag": -0.0007997213562997013,
+            "real": -3.9140912733159894e-13
+          },
+          {
+            "imag": 6.160572714587444e-18,
+            "real": -2.443536406493779e-17
+          },
+          {
+            "imag": 0.03173760651175789,
+            "real": -5.149960319306146e-17
+          },
+          {
+            "imag": 5.861029482493759e-17,
+            "real": 6.382380913305272e-19
+          },
+          {
+            "imag": -0.24807347630650073,
+            "real": 3.7686867515596134e-16
+          },
+          {
+            "imag": -0.004737854400500373,
+            "real": 7.392903563635533e-18
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.9546402861557695,
+        "relative_residual": 0.21297820039673201,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 6.678057742534956e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9098593171027438,
+          "thermal_expectation_norm": 1.2754150799730502e-17
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 9.037735531278931e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9318516525781348,
+          "thermal_expectation_norm": 1.745956432166533e-17
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.03544116933551368,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.25881904510252046,
+          "thermal_expectation_norm": 0.009172849604734381
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 9.037735531278931e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9318516525781348,
+          "thermal_expectation_norm": 1.745956432166533e-17
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.03544116933551368,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.25881904510252046,
+          "thermal_expectation_norm": 0.009172849604734381
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.050121382340644914,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.027320508075688744,
+          "thermal_expectation_norm": 0.0013693416310022726
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.050121382340644983,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 1.4304984577154038,
+          "thermal_expectation_norm": 0.07169856013685673
+        }
+      },
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 1.2754150799730502e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.018508772242030243
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 1.745956432166533e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.018508772242030243
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.009172849604734381,
+          "coefficient": {
+            "imag": -0.0007997213562996662,
+            "real": -3.9152429071098274e-13
+          },
+          "explained_norm_fraction": 1.5708355127763696e-07,
+          "relative_residual": 0.9999999214582213,
+          "target_norm": 0.018508772242030243
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 1.745956432166533e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.018508772242030243
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.009172849604734381,
+          "coefficient": {
+            "imag": 1.9714836578816037,
+            "real": -3.1322844678986592e-15
+          },
+          "explained_norm_fraction": 0.9546401290722182,
+          "relative_residual": 0.21297856917488636,
+          "target_norm": 0.018508772242030243
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0013693416310022726,
+          "coefficient": {
+            "imag": -13.206436350513286,
+            "real": 2.0982345079982336e-14
+          },
+          "explained_norm_fraction": 0.9546401290722182,
+          "relative_residual": 0.21297856917488636,
+          "target_norm": 0.018508772242030243
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.07169856013685673,
+          "coefficient": {
+            "imag": -0.25222435509752167,
+            "real": 4.007329957084128e-16
+          },
+          "explained_norm_fraction": 0.9546401290722182,
+          "relative_residual": 0.21297856917488636,
+          "target_norm": 0.018508772242030243
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 36,
+      "baseline_restored_ward": 0.0006361751491695761,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.7661402123450767,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_partial_q_phi",
+      "best_single_basis_relative_residual": 0.766274427653696,
+      "dominant_basis_family": "unclear_integrated_best_basis_partial_q_phi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 6.0921377727428874e-18,
+      "lsq_target_norm": 0.013361952768030257,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 4.446433379616759e-16,
+            "real": 2.1125298779005864e-18
+          },
+          {
+            "imag": -0.04329543091125431,
+            "real": -6.62311351595779e-13
+          },
+          {
+            "imag": 2.7503527558801276e-18,
+            "real": 2.953394750662833e-17
+          },
+          {
+            "imag": 0.029991383259543657,
+            "real": 1.4474099002681484e-16
+          },
+          {
+            "imag": -6.792403059681038e-17,
+            "real": -6.970903670084571e-19
+          },
+          {
+            "imag": -0.23932169678255102,
+            "real": -1.1518563880486e-15
+          },
+          {
+            "imag": 8.413762579446288e-14,
+            "real": 1.065680611247663e-14
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.41302917502784087,
+        "relative_residual": 0.7661402123450767,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 2.333819210967779e-17,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9799184249291384,
+          "thermal_expectation_norm": 4.620771656248689e-17
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 5.0599386623683004e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.98486589491227,
+          "thermal_expectation_norm": 1.0043299681282851e-17
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.036046392474701476,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.12278780396897328,
+          "thermal_expectation_norm": 0.0044260573729723186
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 5.0599386623683004e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.98486589491227,
+          "thermal_expectation_norm": 1.0043299681282851e-17
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.036046392474701476,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.12278780396897328,
+          "thermal_expectation_norm": 0.0044260573729723186
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.05097580385432748,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.02807024268076744,
+          "thermal_expectation_norm": 0.0014309031850381726
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.05097580385432732,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.6928489015352598,
+          "thermal_expectation_norm": 0.035318529705347546
+        }
+      },
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 4.620771656248689e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.013361952768030257
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 1.0043299681282851e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.013361952768030257
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0044260573729723186,
+          "coefficient": {
+            "imag": -0.04329543091125428,
+            "real": -6.622569438901933e-13
+          },
+          "explained_norm_fraction": 0.00020567350384026462,
+          "relative_residual": 0.9998971579598372,
+          "target_norm": 0.013361952768030257
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 1.0043299681282851e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.013361952768030257
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0044260573729723186,
+          "coefficient": {
+            "imag": 1.9397023844236225,
+            "real": 6.934571008469979e-15
+          },
+          "explained_norm_fraction": 0.4128235015240006,
+          "relative_residual": 0.766274427653696,
+          "target_norm": 0.013361952768030257
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0014309031850381726,
+          "coefficient": {
+            "imag": -4.24254923128173,
+            "real": -9.858435585333272e-15
+          },
+          "explained_norm_fraction": 0.20641175076199636,
+          "relative_residual": 0.8908357027185224,
+          "target_norm": 0.013361952768030257
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.035318529705347546,
+          "coefficient": {
+            "imag": -0.24308016532891744,
+            "real": -8.690039402786949e-16
+          },
+          "explained_norm_fraction": 0.4128235015240006,
+          "relative_residual": 0.766274427653696,
+          "target_norm": 0.013361952768030257
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 36,
+      "baseline_restored_ward": 0.0006309484849081632,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.2954014223197674,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_partial_q_phi",
+      "best_single_basis_relative_residual": 0.295405477620307,
+      "dominant_basis_family": "unclear_integrated_best_basis_partial_q_phi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 1.8229413649547195e-17,
+      "lsq_target_norm": 0.012958737367691731,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 1.4266111629745167e-16,
+            "real": -3.615438074949908e-17
+          },
+          {
+            "imag": -0.0032045345125114467,
+            "real": -1.9099565679026043e-13
+          },
+          {
+            "imag": -5.80458549218064e-17,
+            "real": 1.5126907108778622e-17
+          },
+          {
+            "imag": 0.031023005081672363,
+            "real": -7.321752796066172e-18
+          },
+          {
+            "imag": 3.2961392552921855e-17,
+            "real": 6.456274199306739e-19
+          },
+          {
+            "imag": -0.24565886870522316,
+            "real": 8.234515500027406e-17
+          },
+          {
+            "imag": -0.007037608188383845,
+            "real": 2.7236344418962027e-18
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.9127379996914584,
+        "relative_residual": 0.2954014223197674,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 2.3699257444991826e-17,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9596310721020298,
+          "thermal_expectation_norm": 4.644180127495134e-17
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 5.0983696128225886e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9696155060244063,
+          "thermal_expectation_norm": 1.0041827844859018e-17
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.036046392474701525,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.17364817766693075,
+          "thermal_expectation_norm": 0.006259390364698886
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 5.0983696128225886e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9696155060244063,
+          "thermal_expectation_norm": 1.0041827844859018e-17
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.036046392474701525,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.17364817766693075,
+          "thermal_expectation_norm": 0.006259390364698886
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.050977297112346526,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.027854569612800705,
+          "thermal_expectation_norm": 0.0014199506710882808
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.050977297112346415,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.9723079029386718,
+          "thermal_expectation_norm": 0.04956562885278715
+        }
+      },
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 4.644180127495134e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.012958737367691731
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 1.0041827844859018e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.012958737367691731
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.006259390364698886,
+          "coefficient": {
+            "imag": -0.003204534512511439,
+            "real": -1.91036979370709e-13
+          },
+          "explained_norm_fraction": 2.3958995403194905e-06,
+          "relative_residual": 0.9999988020495123,
+          "target_norm": 0.012958737367691731
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 1.0041827844859018e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.012958737367691731
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.006259390364698886,
+          "coefficient": {
+            "imag": 1.9778946103158417,
+            "real": -7.553782205933138e-16
+          },
+          "explained_norm_fraction": 0.9127356037919183,
+          "relative_residual": 0.295405477620307,
+          "target_norm": 0.012958737367691731
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0014199506710882808,
+          "coefficient": {
+            "imag": -8.718904619913465,
+            "real": 3.329883830976337e-15
+          },
+          "explained_norm_fraction": 0.9127356037919183,
+          "relative_residual": 0.295405477620307,
+          "target_norm": 0.012958737367691731
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.04956562885278715,
+          "coefficient": {
+            "imag": -0.24977821834907812,
+            "real": 9.539465516256235e-17
+          },
+          "explained_norm_fraction": 0.9127356037919183,
+          "relative_residual": 0.295405477620307,
+          "target_norm": 0.012958737367691731
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 48,
+      "baseline_restored_ward": 0.000472351040181452,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.7143211892128023,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_partial_q_phi",
+      "best_single_basis_relative_residual": 0.7145197781733831,
+      "dominant_basis_family": "unclear_integrated_best_basis_partial_q_phi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 1.8461200246564835e-17,
+      "lsq_target_norm": 0.008943581684288611,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": -1.7193103531007482e-16,
+            "real": -7.477866280042654e-20
+          },
+          {
+            "imag": -0.04658812903818338,
+            "real": -1.173165731227499e-12
+          },
+          {
+            "imag": -2.50428335494927e-17,
+            "real": -1.0752090844489736e-17
+          },
+          {
+            "imag": 0.02985204205309182,
+            "real": -2.636779683484747e-16
+          },
+          {
+            "imag": 1.583935401089264e-18,
+            "real": -1.8182813623877845e-19
+          },
+          {
+            "imag": -0.23847523455037645,
+            "real": 2.1224341728576235e-15
+          },
+          {
+            "imag": 2.525598545403962e-13,
+            "real": -1.1759419393103654e-14
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.4897452386416079,
+        "relative_residual": 0.7143211892128023,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 5.796541412302866e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.988648513937368,
+          "thermal_expectation_norm": 1.1527283465552507e-17
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 1.4842875003368977e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.991463237493738,
+          "thermal_expectation_norm": 2.955903990792406e-18
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.03503668716880225,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0922959556412583,
+          "thermal_expectation_norm": 0.003233744524748416
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 1.4842875003368977e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.991463237493738,
+          "thermal_expectation_norm": 2.955903990792406e-18
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.03503668716880225,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0922959556412583,
+          "thermal_expectation_norm": 0.003233744524748416
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.04954890096070608,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.028163543194310824,
+          "thermal_expectation_norm": 0.0013954726124374747
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.049548900960706056,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.5213638564003744,
+          "thermal_expectation_norm": 0.025833006085273925
+        }
+      },
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 1.1527283465552507e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.008943581684288611
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 2.955903990792406e-18,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.008943581684288611
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.003233744524748416,
+          "coefficient": {
+            "imag": -0.046588129038183386,
+            "real": -1.173180436960186e-12
+          },
+          "explained_norm_fraction": 0.0002837520425482687,
+          "relative_residual": 0.999858113912895,
+          "target_norm": 0.008943581684288611
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 2.955903990792406e-18,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.008943581684288611
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.003233744524748416,
+          "coefficient": {
+            "imag": 1.9349290010333424,
+            "real": -1.3514060243564515e-14
+          },
+          "explained_norm_fraction": 0.4894614865990594,
+          "relative_residual": 0.7145197781733831,
+          "target_norm": 0.008943581684288611
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0013954726124374747,
+          "coefficient": {
+            "imag": -3.1705486757337473,
+            "real": 1.6035486075271617e-14
+          },
+          "explained_norm_fraction": 0.2447307432995104,
+          "relative_residual": 0.8690622858578605,
+          "target_norm": 0.008943581684288611
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.025833006085273925,
+          "coefficient": {
+            "imag": -0.24221207714712406,
+            "real": 1.6916955635801467e-15
+          },
+          "explained_norm_fraction": 0.4894614865990594,
+          "relative_residual": 0.7145197781733831,
+          "target_norm": 0.008943581684288611
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 48,
+      "baseline_restored_ward": 0.0004735834443887815,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 0.40387732554364436,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_partial_q_phi",
+      "best_single_basis_relative_residual": 0.4038972021436551,
+      "dominant_basis_family": "unclear_integrated_best_basis_partial_q_phi",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 4.6847719390628145e-17,
+      "lsq_target_norm": 0.009860327362020863,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": -7.735238091601926e-17,
+            "real": 5.145843103284992e-17
+          },
+          {
+            "imag": -0.008639463131163814,
+            "real": 5.050473927958876e-14
+          },
+          {
+            "imag": -8.643191402922349e-19,
+            "real": 5.7247754057810305e-18
+          },
+          {
+            "imag": 0.03064545306001324,
+            "real": 3.6686691011478256e-17
+          },
+          {
+            "imag": 2.895451471006872e-17,
+            "real": -3.8005851995348225e-18
+          },
+          {
+            "imag": -0.24376175148862916,
+            "real": -3.129007469793166e-16
+          },
+          {
+            "imag": -0.009311013044676852,
+            "real": -1.1546753136970622e-17
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.8368831059117131,
+        "relative_residual": 0.40387732554364436,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 5.741068054644755e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9772318589307172,
+          "thermal_expectation_norm": 1.1351422661933005e-17
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 1.990410354469376e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9828897227476139,
+          "thermal_expectation_norm": 3.946764235927761e-18
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.03503668716880284,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.13052619222005088,
+          "thermal_expectation_norm": 0.004573205364148949
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 1.990410354469376e-18,
+          "parity_under_k_to_minus_k": "odd",
+          "raw_form_factor_norm_before_expectation": 1.9828897227476139,
+          "thermal_expectation_norm": 3.946764235927761e-18
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.03503668716880284,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.13052619222005088,
+          "thermal_expectation_norm": 0.004573205364148949
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.049549358174744394,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.02804229538599897,
+          "thermal_expectation_norm": 0.001389477738122845
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.04954935817474432,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.7341455764537447,
+          "thermal_expectation_norm": 0.036376442120110736
+        }
+      },
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 1.1351422661933005e-17,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.009860327362020863
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 3.946764235927761e-18,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.009860327362020863
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.004573205364148949,
+          "coefficient": {
+            "imag": -0.00863946313116383,
+            "real": 5.0595089117287146e-14
+          },
+          "explained_norm_fraction": 1.605581118591104e-05,
+          "relative_residual": 0.9999919720621832,
+          "target_norm": 0.009860327362020863
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 3.946764235927761e-18,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 0.009860327362020863
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.004573205364148949,
+          "coefficient": {
+            "imag": 1.9724175761932665,
+            "real": 2.3424241946168183e-15
+          },
+          "explained_norm_fraction": 0.8368670501005274,
+          "relative_residual": 0.4038972021436551,
+          "target_norm": 0.009860327362020863
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.001389477738122845,
+          "coefficient": {
+            "imag": -6.491842504778025,
+            "real": -7.709622441947429e-15
+          },
+          "explained_norm_fraction": 0.8368670501005274,
+          "relative_residual": 0.4038972021436551,
+          "target_norm": 0.009860327362020863
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.036376442120110736,
+          "coefficient": {
+            "imag": -0.24797011785827872,
+            "real": -2.9448669879949755e-16
+          },
+          "explained_norm_fraction": 0.8368670501005274,
+          "relative_residual": 0.4038972021436551,
+          "target_norm": 0.009860327362020863
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 24,
+      "baseline_restored_ward": 2.869433269269049e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 1.0,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_d_difference",
+      "best_single_basis_relative_residual": 1.0,
+      "dominant_basis_family": "unclear_integrated_best_basis_d_difference",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 3.4179953176852786e-17,
+      "lsq_target_norm": 8.901147875522658e-15,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.0,
+        "relative_residual": 1.0,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave_const_form",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.06049128614752458,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.02828427124746218,
+          "thermal_expectation_norm": 0.0017109519455044367
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.06049128614752484,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 1.0471975511966005,
+          "thermal_expectation_norm": 0.06334632672242085
+        }
+      },
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 8.901147875522658e-15
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 8.901147875522658e-15
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 8.901147875522658e-15
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 8.901147875522658e-15
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 8.901147875522658e-15
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0017109519455044367,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 8.901147875522658e-15
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.06334632672242085,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 8.901147875522658e-15
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 24,
+      "baseline_restored_ward": 3.7171871536401024e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 1.0,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_d_difference",
+      "best_single_basis_relative_residual": 1.0,
+      "dominant_basis_family": "unclear_integrated_best_basis_d_difference",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 3.3042829922663256e-17,
+      "lsq_target_norm": 7.74149166527688e-15,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.0,
+        "relative_residual": 1.0,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave_const_form",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.06049128614752458,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.02828427124746218,
+          "thermal_expectation_norm": 0.0017109519455044367
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.060491286147524824,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 1.4809609793861263,
+          "thermal_expectation_norm": 0.08958523437736478
+        }
+      },
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 7.74149166527688e-15
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 7.74149166527688e-15
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 7.74149166527688e-15
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 7.74149166527688e-15
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 7.74149166527688e-15
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0017109519455044367,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 7.74149166527688e-15
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.08958523437736478,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 7.74149166527688e-15
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 36,
+      "baseline_restored_ward": 6.652093860312582e-17,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 1.0,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_d_difference",
+      "best_single_basis_relative_residual": 1.0,
+      "dominant_basis_family": "unclear_integrated_best_basis_d_difference",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 4.756417740835578e-18,
+      "lsq_target_norm": 3.012038874147407e-15,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.0,
+        "relative_residual": 1.0,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave_const_form",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.06606549612807612,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.028284271247461235,
+          "thermal_expectation_norm": 0.0018686144125846051
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.06606549612807534,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.6981317007977237,
+          "thermal_expectation_norm": 0.046122417175938665
+        }
+      },
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.012038874147407e-15
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.012038874147407e-15
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.012038874147407e-15
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.012038874147407e-15
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.012038874147407e-15
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0018686144125846051,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.012038874147407e-15
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.046122417175938665,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 3.012038874147407e-15
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 36,
+      "baseline_restored_ward": 4.165321114808347e-17,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 1.0,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_d_difference",
+      "best_single_basis_relative_residual": 1.0,
+      "dominant_basis_family": "unclear_integrated_best_basis_d_difference",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 3.643164861328537e-17,
+      "lsq_target_norm": 1.0474616332812e-15,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.0,
+        "relative_residual": 1.0,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave_const_form",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.06606549612807612,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.028284271247461235,
+          "thermal_expectation_norm": 0.0018686144125846051
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.06606549612807572,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.9873073195907309,
+          "thermal_expectation_norm": 0.06522694789964224
+        }
+      },
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0474616332812e-15
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0474616332812e-15
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0474616332812e-15
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0474616332812e-15
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0474616332812e-15
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0018686144125846051,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0474616332812e-15
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.06522694789964224,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.0474616332812e-15
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 48,
+      "baseline_restored_ward": 5.787972267763155e-17,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 1.0,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_d_difference",
+      "best_single_basis_relative_residual": 1.0,
+      "dominant_basis_family": "unclear_integrated_best_basis_d_difference",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 1.1674040028029854e-17,
+      "lsq_target_norm": 1.4846800398961627e-15,
+      "m_case": [
+        1,
+        0
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.0,
+        "relative_residual": 1.0,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave_const_form",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.06329032751289781,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.028284271247460843,
+          "thermal_expectation_norm": 0.0017901207907154355
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.06329032751289523,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.5235987755983004,
+          "thermal_expectation_norm": 0.03313873799296737
+        }
+      },
+      "q_model": [
+        0.2617993877991494,
+        0.0
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.4846800398961627e-15
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.4846800398961627e-15
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.4846800398961627e-15
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.4846800398961627e-15
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.4846800398961627e-15
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0017901207907154355,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.4846800398961627e-15
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.03313873799296737,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.4846800398961627e-15
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    },
+    {
+      "N": 48,
+      "baseline_restored_ward": 1.1363659308728955e-16,
+      "basis_self_checks": {
+        "endpoint_sum_equivalence_max_abs": 0.0,
+        "endpoint_sum_vs_partial_q_relation_max_abs": 0.0
+      },
+      "best_multi_basis_relative_residual": 1.0,
+      "best_multi_basis_set": [
+        "basis_d_difference",
+        "basis_endpoint_sum",
+        "basis_endpoint_difference",
+        "basis_partial_q_phi",
+        "basis_partial_k_phi",
+        "basis_phi_qi",
+        "basis_phi_omega"
+      ],
+      "best_single_basis": "basis_d_difference",
+      "best_single_basis_relative_residual": 1.0,
+      "dominant_basis_family": "unclear_integrated_best_basis_d_difference",
+      "k_resolved_note": "Integrated projection only; strict k-resolved LSQ target is unavailable in this audit.",
+      "k_resolved_target_available": false,
+      "lsq_mixed_only_restored_ward": 6.506127107879143e-17,
+      "lsq_target_norm": 1.5569390964350484e-15,
+      "m_case": [
+        1,
+        1
+      ],
+      "multi_basis_projection": {
+        "coefficients": [
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          {
+            "imag": 0.0,
+            "real": 0.0
+          }
+        ],
+        "condition_number": Infinity,
+        "explained_norm_fraction": 0.0,
+        "relative_residual": 1.0,
+        "selected_basis_set": [
+          "basis_d_difference",
+          "basis_endpoint_sum",
+          "basis_endpoint_difference",
+          "basis_partial_q_phi",
+          "basis_partial_k_phi",
+          "basis_phi_qi",
+          "basis_phi_omega"
+        ]
+      },
+      "pairing": "dwave_const_form",
+      "parity_symmetry_audit": {
+        "basis_d_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_difference": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_endpoint_sum": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_k_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_partial_q_phi": {
+          "cancellation_ratio": 0.0,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.0,
+          "thermal_expectation_norm": 0.0
+        },
+        "basis_phi_omega": {
+          "cancellation_ratio": 0.06329032751289781,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.028284271247460843,
+          "thermal_expectation_norm": 0.0017901207907154355
+        },
+        "basis_phi_qi": {
+          "cancellation_ratio": 0.06329032751289523,
+          "parity_under_k_to_minus_k": "even",
+          "raw_form_factor_norm_before_expectation": 0.7404804896930632,
+          "thermal_expectation_norm": 0.046865252709583013
+        }
+      },
+      "q_model": [
+        0.2617993877991494,
+        0.2617993877991494
+      ],
+      "single_basis_projection": {
+        "basis_d_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.5569390964350484e-15
+        },
+        "basis_endpoint_difference": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.5569390964350484e-15
+        },
+        "basis_endpoint_sum": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.5569390964350484e-15
+        },
+        "basis_partial_k_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.5569390964350484e-15
+        },
+        "basis_partial_q_phi": {
+          "basis_norm": 0.0,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.5569390964350484e-15
+        },
+        "basis_phi_omega": {
+          "basis_norm": 0.0017901207907154355,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.5569390964350484e-15
+        },
+        "basis_phi_qi": {
+          "basis_norm": 0.046865252709583013,
+          "coefficient": {
+            "imag": 0.0,
+            "real": 0.0
+          },
+          "explained_norm_fraction": 0.0,
+          "relative_residual": 1.0,
+          "target_norm": 1.5569390964350484e-15
+        }
+      },
+      "supports_endpoint_sum_hypothesis": false,
+      "supports_hopping_difference_hypothesis": false,
+      "supports_partial_k_phi_hypothesis": false,
+      "supports_partial_q_phi_hypothesis": false
+    }
+  ],
+  "diagnostic_only": true,
+  "formal_casimir_ran": false,
+  "k_resolved_target_available": false,
+  "lsq_candidate_used_as_production_formula": false,
+  "lsq_mixed_block_projected": true,
+  "production_default_modified": false,
+  "projection_level": "integrated",
+  "quick": true,
+  "status": "PARTIAL_STAGE2H_INTEGRATED_ONLY_K_RESOLVED_NEEDED"
+}
