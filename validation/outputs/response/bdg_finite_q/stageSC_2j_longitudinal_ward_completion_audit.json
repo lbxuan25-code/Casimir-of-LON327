@@ -1,0 +1,2577 @@
+{
+  "analytic_formula_claimed": "longitudinal_response_completion_only",
+  "cases": [
+    {
+      "N": 24,
+      "baseline_full_5x5_left_ward": 0.006714991960853553,
+      "baseline_full_5x5_right_ward": 0.039442878168811646,
+      "baseline_left_collective_columns_ward": 0.006714991960853553,
+      "baseline_restored_ward": 0.0008740857762858619,
+      "baseline_right_collective_rows_ward": 0.007729126781848214,
+      "best_full_ward_max": 0.039442878168811646,
+      "best_schur_restored_ward": 0.000557985478974593,
+      "best_variant_by_full_ward": "left_only_longitudinal",
+      "best_variant_by_schur": "right_only_longitudinal",
+      "lsq_mixed_only_restored_ward": 1.255984213619792e-17,
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "dwave",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "sign_convention_issue_suspected": false,
+      "supports_hermitianized_completion": false,
+      "supports_left_right_independent_completion": false,
+      "supports_longitudinal_completion": false,
+      "variants": {
+        "both_longitudinal_hermitianized": {
+          "condition_number_collective_total": 1.038857136645342,
+          "delta_left_norm": 0.012824689960706183,
+          "delta_right_norm": 0.012824689960706183,
+          "full_5x5_ward_max": 0.039442878168811646,
+          "left_collective_columns_ward_max": 2.0328790734103208e-20,
+          "left_full_5x5_ward_max": 0.0010259751968567056,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -9.617556276272038e-19,
+              "real": -0.0010259751968567056
+            },
+            "Vy": {
+              "imag": -6.02029023371547e-19,
+              "real": 1.2108055559613692e-17
+            },
+            "eta1": {
+              "imag": -2.0328790734103208e-20,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 3.851859888774472e-34
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": -4.018194868438678e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0011159709579491826,
+          "right_collective_rows_ward_max": 0.014444118742701767,
+          "right_full_5x5_ward_max": 0.039442878168811646,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.5647153023633405e-17,
+              "real": 0.00042762010014974795
+            },
+            "Vy": {
+              "imag": -9.906330465665437e-18,
+              "real": 1.6648020990636856e-17
+            },
+            "eta1": {
+              "imag": -0.0008974138782178418,
+              "real": -2.3693054846159506e-17
+            },
+            "eta2": {
+              "imag": 0.014444118742701767,
+              "real": -5.396720169586957e-19
+            },
+            "rho": {
+              "imag": -0.039442878168811646,
+              "real": 3.7142349886413105e-16
+            }
+          },
+          "variant": "both_longitudinal_hermitianized"
+        },
+        "both_longitudinal_independent": {
+          "condition_number_collective_total": 1.038857136645342,
+          "delta_left_norm": 0.012824689960706183,
+          "delta_right_norm": 0.014860712480937033,
+          "full_5x5_ward_max": 0.039442878168811646,
+          "left_collective_columns_ward_max": 2.0328790734103208e-20,
+          "left_full_5x5_ward_max": 0.0011809235837902813,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -8.792998172457483e-19,
+              "real": 0.0011809235837902813
+            },
+            "Vy": {
+              "imag": -6.02029023371547e-19,
+              "real": 1.2108055559613692e-17
+            },
+            "eta1": {
+              "imag": -2.0328790734103208e-20,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 3.851859888774472e-34
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": -4.018194868438678e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.001180923583790282,
+          "right_collective_rows_ward_max": 5.421010862427522e-20,
+          "right_full_5x5_ward_max": 0.039442878168811646,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.5647153023633405e-17,
+              "real": 0.00042762010014974795
+            },
+            "Vy": {
+              "imag": -9.906330465665437e-18,
+              "real": 1.6648020990636856e-17
+            },
+            "eta1": {
+              "imag": -5.421010862427522e-20,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.039442878168811646,
+              "real": 3.7142349886413105e-16
+            }
+          },
+          "variant": "both_longitudinal_independent"
+        },
+        "both_longitudinal_opposite_sign": {
+          "condition_number_collective_total": 1.038857136645342,
+          "delta_left_norm": 0.012824689960706183,
+          "delta_right_norm": 0.014860712480937033,
+          "full_5x5_ward_max": 0.039442878168811646,
+          "left_collective_columns_ward_max": 0.013429983921707106,
+          "left_full_5x5_ward_max": 0.013429983921707106,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.5969629134751714e-18,
+              "real": -0.0011809235837907045
+            },
+            "Vy": {
+              "imag": -6.02029023371547e-19,
+              "real": 1.2108055559613692e-17
+            },
+            "eta1": {
+              "imag": -8.043424867126836e-18,
+              "real": 2.3264945455347797e-17
+            },
+            "eta2": {
+              "imag": 0.013429983921707106,
+              "real": -3.617749947055233e-18
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": -4.018194868438678e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0026040028199037627,
+          "right_collective_rows_ward_max": 0.015458253563696428,
+          "right_full_5x5_ward_max": 0.039442878168811646,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.6199904499099914e-17,
+              "real": -0.0016243302935632408
+            },
+            "Vy": {
+              "imag": -9.906330465665437e-18,
+              "real": 1.6648020990636856e-17
+            },
+            "eta1": {
+              "imag": -0.0017948277564356755,
+              "real": -2.4121164236971212e-17
+            },
+            "eta2": {
+              "imag": 0.015458253563696428,
+              "real": -4.697093980972624e-18
+            },
+            "rho": {
+              "imag": -0.039442878168811646,
+              "real": 3.7142349886413105e-16
+            }
+          },
+          "variant": "both_longitudinal_opposite_sign"
+        },
+        "density_plus_vector_min_norm": {
+          "condition_number_collective_total": 1.038857136645342,
+          "delta_left_norm": 0.01282235165738983,
+          "delta_right_norm": 0.014858002953191408,
+          "full_5x5_ward_max": 0.03946246570702276,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 0.0011804929915804029,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -8.79430655575508e-19,
+              "real": 0.0011804929915804029
+            },
+            "Vy": {
+              "imag": -6.02029023371547e-19,
+              "real": 1.2108055559613692e-17
+            },
+            "eta1": {
+              "imag": -2.0328790734103208e-20,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": -6.938893903907228e-18,
+              "real": 3.851859888774472e-34
+            },
+            "rho": {
+              "imag": -2.2545755387457997e-05,
+              "real": -4.018126361649414e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0011804929915804033,
+          "right_collective_rows_ward_max": 1.0842021724855044e-19,
+          "right_full_5x5_ward_max": 0.03946246570702276,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.5647253796656572e-17,
+              "real": 0.0004272460057262329
+            },
+            "Vy": {
+              "imag": -9.906330465665437e-18,
+              "real": 1.6648020990636856e-17
+            },
+            "eta1": {
+              "imag": 1.0842021724855044e-19,
+              "real": 3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.03946246570702276,
+              "real": 3.714287753272854e-16
+            }
+          },
+          "variant": "density_plus_vector_min_norm"
+        },
+        "left_only_longitudinal": {
+          "condition_number_collective_total": 1.038857136645342,
+          "delta_left_norm": 0.012824689960706183,
+          "delta_right_norm": 0.0,
+          "full_5x5_ward_max": 0.039442878168811646,
+          "left_collective_columns_ward_max": 2.0328790734103208e-20,
+          "left_full_5x5_ward_max": 4.0195426800426067e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.2381313653604597e-18,
+              "real": -2.1163626406917047e-16
+            },
+            "Vy": {
+              "imag": -6.02029023371547e-19,
+              "real": 1.2108055559613692e-17
+            },
+            "eta1": {
+              "imag": -2.0328790734103208e-20,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 3.851859888774472e-34
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": -4.018194868438678e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0005579854789746,
+          "right_collective_rows_ward_max": 0.007729126781848214,
+          "right_full_5x5_ward_max": 0.039442878168811646,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.5647153023633405e-17,
+              "real": 0.00042762010014974795
+            },
+            "Vy": {
+              "imag": -9.906330465665437e-18,
+              "real": 1.6648020990636856e-17
+            },
+            "eta1": {
+              "imag": -0.0008974138782178378,
+              "real": -1.2060582118485606e-17
+            },
+            "eta2": {
+              "imag": 0.007729126781848214,
+              "real": -2.348546990486312e-18
+            },
+            "rho": {
+              "imag": -0.039442878168811646,
+              "real": 3.7142349886413105e-16
+            }
+          },
+          "variant": "left_only_longitudinal"
+        },
+        "right_only_longitudinal": {
+          "condition_number_collective_total": 1.038857136645342,
+          "delta_left_norm": 0.0,
+          "delta_right_norm": 0.014860712480937033,
+          "full_5x5_ward_max": 0.039442878168811646,
+          "left_collective_columns_ward_max": 0.006714991960853553,
+          "left_full_5x5_ward_max": 0.006714991960853553,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -8.792998172457483e-19,
+              "real": 0.0011809235837902813
+            },
+            "Vy": {
+              "imag": -6.02029023371547e-19,
+              "real": 1.2108055559613692e-17
+            },
+            "eta1": {
+              "imag": -4.0318768289304696e-18,
+              "real": 1.1632472727673898e-17
+            },
+            "eta2": {
+              "imag": 0.006714991960853553,
+              "real": -1.8088749735276164e-18
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": -4.018194868438678e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.000557985478974593,
+          "right_collective_rows_ward_max": 5.421010862427522e-20,
+          "right_full_5x5_ward_max": 0.039442878168811646,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.592352876136666e-17,
+              "real": -0.0005983550967067468
+            },
+            "Vy": {
+              "imag": -9.906330465665437e-18,
+              "real": 1.6648020990636856e-17
+            },
+            "eta1": {
+              "imag": -5.421010862427522e-20,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.039442878168811646,
+              "real": 3.7142349886413105e-16
+            }
+          },
+          "variant": "right_only_longitudinal"
+        }
+      }
+    },
+    {
+      "N": 24,
+      "baseline_full_5x5_left_ward": 0.013429983921707231,
+      "baseline_full_5x5_right_ward": 0.039576447788509356,
+      "baseline_left_collective_columns_ward": 0.013429983921707231,
+      "baseline_restored_ward": 0.0008339764188671453,
+      "baseline_right_collective_rows_ward": 0.013764575301489432,
+      "best_full_ward_max": 0.039576447788509356,
+      "best_schur_restored_ward": 0.00025459644933732185,
+      "best_variant_by_full_ward": "left_only_longitudinal",
+      "best_variant_by_schur": "left_only_longitudinal",
+      "lsq_mixed_only_restored_ward": 1.469662384099142e-16,
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "dwave",
+      "q_model": [
+        0.5235987755982988,
+        0.5235987755982988
+      ],
+      "sign_convention_issue_suspected": false,
+      "supports_hermitianized_completion": false,
+      "supports_left_right_independent_completion": false,
+      "supports_longitudinal_completion": false,
+      "variants": {
+        "both_longitudinal_hermitianized": {
+          "condition_number_collective_total": 1.1028002600986253,
+          "delta_left_norm": 0.018136850475660927,
+          "delta_right_norm": 0.018136850475660927,
+          "full_5x5_ward_max": 0.039576447788509356,
+          "left_collective_columns_ward_max": 0.0,
+          "left_full_5x5_ward_max": 0.0010259751968565269,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.474205339264495e-18,
+              "real": -0.0010259751968562359
+            },
+            "Vy": {
+              "imag": -9.15457994196515e-19,
+              "real": -0.0010259751968565269
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": 2.1467203015212988e-17,
+              "real": -3.164564173426168e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0010259751968565275,
+          "right_collective_rows_ward_max": 0.027194559223196663,
+          "right_full_5x5_ward_max": 0.039576447788509356,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.592011240730771e-18,
+              "real": 0.0006736088576871713
+            },
+            "Vy": {
+              "imag": -4.070854951536128e-18,
+              "real": 0.0006736088576868764
+            },
+            "eta1": {
+              "imag": -0.001973935299833037,
+              "real": -3.9366739136807364e-17
+            },
+            "eta2": {
+              "imag": 0.027194559223196663,
+              "real": -2.0625127762990017e-18
+            },
+            "rho": {
+              "imag": -0.039576447788509356,
+              "real": 2.9030720626197564e-16
+            }
+          },
+          "variant": "both_longitudinal_hermitianized"
+        },
+        "both_longitudinal_independent": {
+          "condition_number_collective_total": 1.1028002600986253,
+          "delta_left_norm": 0.018136850475660927,
+          "delta_right_norm": 0.01877887826739624,
+          "full_5x5_ward_max": 0.039576447788509356,
+          "left_collective_columns_ward_max": 0.0,
+          "left_full_5x5_ward_max": 0.0010515360954207447,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.3166409695661711e-18,
+              "real": 0.0010515360954207447
+            },
+            "Vy": {
+              "imag": -7.578936244981911e-19,
+              "real": 0.0010515360954204541
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": 2.1467203015212988e-17,
+              "real": -3.164564173426168e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0010537319015776823,
+          "right_collective_rows_ward_max": 3.0814879110195774e-33,
+          "right_full_5x5_ward_max": 0.039576447788509356,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.592011240730771e-18,
+              "real": 0.0006736088576871713
+            },
+            "Vy": {
+              "imag": -4.070854951536128e-18,
+              "real": 0.0006736088576868764
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.039576447788509356,
+              "real": 2.9030720626197564e-16
+            }
+          },
+          "variant": "both_longitudinal_independent"
+        },
+        "both_longitudinal_opposite_sign": {
+          "condition_number_collective_total": 1.1028002600986253,
+          "delta_left_norm": 0.018136850475660927,
+          "delta_right_norm": 0.01877887826739624,
+          "full_5x5_ward_max": 0.039576447788509356,
+          "left_collective_columns_ward_max": 0.026859967843414462,
+          "left_full_5x5_ward_max": 0.026859967843414462,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.706499293518922e-18,
+              "real": -0.0010515360954202078
+            },
+            "Vy": {
+              "imag": -1.1477519484509417e-18,
+              "real": -0.0010515360954204988
+            },
+            "eta1": {
+              "imag": 1.1926223897340549e-18,
+              "real": 3.7648164736268444e-17
+            },
+            "eta2": {
+              "imag": 0.026859967843414462,
+              "real": -9.782079743636269e-19
+            },
+            "rho": {
+              "imag": 2.1467203015212988e-17,
+              "real": -3.164564173426168e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.00233282474932423,
+          "right_collective_rows_ward_max": 0.027529150602978864,
+          "right_full_5x5_ward_max": 0.039576447788509356,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.666740825286872e-18,
+              "real": -0.0013783415360258365
+            },
+            "Vy": {
+              "imag": -4.145584536092231e-18,
+              "real": -0.0013783415360261327
+            },
+            "eta1": {
+              "imag": -0.003947870599666075,
+              "real": -4.108531353734627e-17
+            },
+            "eta2": {
+              "imag": 0.027529150602978864,
+              "real": -5.10323352696163e-18
+            },
+            "rho": {
+              "imag": -0.039576447788509356,
+              "real": 2.9030720626197564e-16
+            }
+          },
+          "variant": "both_longitudinal_opposite_sign"
+        },
+        "density_plus_vector_min_norm": {
+          "condition_number_collective_total": 1.1028002600986253,
+          "delta_left_norm": 0.018135196819408582,
+          "delta_right_norm": 0.01877716607323658,
+          "full_5x5_ward_max": 0.03959603889840769,
+          "left_collective_columns_ward_max": 3.0814879110195774e-33,
+          "left_full_5x5_ward_max": 0.0010513443532030363,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.316676513899814e-18,
+              "real": 0.0010513443532030363
+            },
+            "Vy": {
+              "imag": -7.579291688318341e-19,
+              "real": 0.0010513443532027466
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 3.851859888774472e-34
+            },
+            "rho": {
+              "imag": -2.0079198084455192e-05,
+              "real": -3.164526951487018e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.00105316054796487,
+          "right_collective_rows_ward_max": 2.168404344971009e-19,
+          "right_full_5x5_ward_max": 0.03959603889840769,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.592018054009142e-18,
+              "real": 0.0006734217763683121
+            },
+            "Vy": {
+              "imag": -4.070861764814499e-18,
+              "real": 0.000673421776368018
+            },
+            "eta1": {
+              "imag": 2.168404344971009e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.03959603889840769,
+              "real": 2.9030791974681826e-16
+            }
+          },
+          "variant": "density_plus_vector_min_norm"
+        },
+        "left_only_longitudinal": {
+          "condition_number_collective_total": 1.1028002600986253,
+          "delta_left_norm": 0.018136850475660927,
+          "delta_right_norm": 0.0,
+          "full_5x5_ward_max": 0.039576447788509356,
+          "left_collective_columns_ward_max": 0.0,
+          "left_full_5x5_ward_max": 3.1718370841299653e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.5115701315425464e-18,
+              "real": 2.680147770384167e-16
+            },
+            "Vy": {
+              "imag": -9.528227864745664e-19,
+              "real": -2.2551405187698492e-17
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": 2.1467203015212988e-17,
+              "real": -3.164564173426168e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.00025459644933732185,
+          "right_collective_rows_ward_max": 0.013764575301489432,
+          "right_full_5x5_ward_max": 0.039576447788509356,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.592011240730771e-18,
+              "real": 0.0006736088576871713
+            },
+            "Vy": {
+              "imag": -4.070854951536128e-18,
+              "real": 0.0006736088576868764
+            },
+            "eta1": {
+              "imag": -0.0019739352998330373,
+              "real": -2.0542656768673136e-17
+            },
+            "eta2": {
+              "imag": 0.013764575301489432,
+              "real": -2.551616763480815e-18
+            },
+            "rho": {
+              "imag": -0.039576447788509356,
+              "real": 2.9030720626197564e-16
+            }
+          },
+          "variant": "left_only_longitudinal"
+        },
+        "right_only_longitudinal": {
+          "condition_number_collective_total": 1.1028002600986253,
+          "delta_left_norm": 0.0,
+          "delta_right_norm": 0.01877887826739624,
+          "full_5x5_ward_max": 0.039576447788509356,
+          "left_collective_columns_ward_max": 0.013429983921707231,
+          "left_full_5x5_ward_max": 0.013429983921707231,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.3166409695661711e-18,
+              "real": 0.0010515360954207447
+            },
+            "Vy": {
+              "imag": -7.578936244981911e-19,
+              "real": 0.0010515360954204541
+            },
+            "eta1": {
+              "imag": 5.963111948670274e-19,
+              "real": 1.8824082368134225e-17
+            },
+            "eta2": {
+              "imag": 0.013429983921707231,
+              "real": -4.891039871818135e-19
+            },
+            "rho": {
+              "imag": 2.1467203015212988e-17,
+              "real": -3.164564173426168e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0002545964493373236,
+          "right_collective_rows_ward_max": 3.0814879110195774e-33,
+          "right_full_5x5_ward_max": 0.039576447788509356,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.629376033008821e-18,
+              "real": -0.00035236633916933303
+            },
+            "Vy": {
+              "imag": -4.10821974381418e-18,
+              "real": -0.00035236633916962794
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.039576447788509356,
+              "real": 2.9030720626197564e-16
+            }
+          },
+          "variant": "right_only_longitudinal"
+        }
+      }
+    },
+    {
+      "N": 36,
+      "baseline_full_5x5_left_ward": 0.0030743071882635975,
+      "baseline_full_5x5_right_ward": 0.04293965125767842,
+      "baseline_left_collective_columns_ward": 0.0030743071882635975,
+      "baseline_restored_ward": 0.0006361751491695761,
+      "baseline_right_collective_rows_ward": 0.004976183802035294,
+      "best_full_ward_max": 0.04293965125767842,
+      "best_schur_restored_ward": 0.0005735981800217907,
+      "best_variant_by_full_ward": "left_only_longitudinal",
+      "best_variant_by_schur": "left_only_longitudinal",
+      "lsq_mixed_only_restored_ward": 6.0921377727428874e-18,
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "dwave",
+      "q_model": [
+        0.3490658503988659,
+        0.0
+      ],
+      "sign_convention_issue_suspected": false,
+      "supports_hermitianized_completion": false,
+      "supports_left_right_independent_completion": false,
+      "supports_longitudinal_completion": false,
+      "variants": {
+        "both_longitudinal_hermitianized": {
+          "condition_number_collective_total": 1.2299211216362504,
+          "delta_left_norm": 0.00880724134071176,
+          "delta_right_norm": 0.00880724134071176,
+          "full_5x5_ward_max": 0.04293965125767842,
+          "left_collective_columns_ward_max": 3.0814879110195774e-33,
+          "left_full_5x5_ward_max": 0.0007045793072569563,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 4.2986400473694947e-19,
+              "real": -0.0007045793072569563
+            },
+            "Vy": {
+              "imag": -1.0972985066092907e-18,
+              "real": 5.8794918326831546e-18
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": -1.5407439555097887e-33
+            },
+            "rho": {
+              "imag": 6.158268339717665e-17,
+              "real": -2.1111981465533992e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0011471963600436404,
+          "right_collective_rows_ward_max": 0.008050490990298892,
+          "right_full_5x5_ward_max": 0.04293965125767842,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.2231395650847837e-17,
+              "real": -8.967307566237065e-05
+            },
+            "Vy": {
+              "imag": -1.2425016143155494e-17,
+              "real": 4.332371030119095e-18
+            },
+            "eta1": {
+              "imag": -0.002630405015826831,
+              "real": -2.38728854838031e-17
+            },
+            "eta2": {
+              "imag": 0.008050490990298892,
+              "real": 5.378062754994497e-18
+            },
+            "rho": {
+              "imag": -0.04293965125767842,
+              "real": 1.8781702018445965e-16
+            }
+          },
+          "variant": "both_longitudinal_hermitianized"
+        },
+        "both_longitudinal_independent": {
+          "condition_number_collective_total": 1.2299211216362504,
+          "delta_left_norm": 0.00880724134071176,
+          "delta_right_norm": 0.016124827018649347,
+          "full_5x5_ward_max": 0.04293965125767842,
+          "left_collective_columns_ward_max": 3.0814879110195774e-33,
+          "left_full_5x5_ward_max": 0.001140457319751929,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -8.026971865337903e-19,
+              "real": 0.001140457319751929
+            },
+            "Vy": {
+              "imag": -1.0972985066092907e-18,
+              "real": 5.8794918326831546e-18
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": -1.5407439555097887e-33
+            },
+            "rho": {
+              "imag": 6.158268339717665e-17,
+              "real": -2.1111981465533992e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0011455377454816812,
+          "right_collective_rows_ward_max": 1.5407439555097887e-33,
+          "right_full_5x5_ward_max": 0.04293965125767842,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.2231395650847837e-17,
+              "real": -8.967307566237065e-05
+            },
+            "Vy": {
+              "imag": -1.2425016143155494e-17,
+              "real": 4.332371030119095e-18
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": -1.5407439555097887e-33
+            },
+            "rho": {
+              "imag": -0.04293965125767842,
+              "real": 1.8781702018445965e-16
+            }
+          },
+          "variant": "both_longitudinal_independent"
+        },
+        "both_longitudinal_opposite_sign": {
+          "condition_number_collective_total": 1.2299211216362504,
+          "delta_left_norm": 0.00880724134071176,
+          "delta_right_norm": 0.016124827018649347,
+          "full_5x5_ward_max": 0.04293965125767842,
+          "left_collective_columns_ward_max": 0.006148614376527195,
+          "left_full_5x5_ward_max": 0.006148614376527195,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 3.96633705912036e-18,
+              "real": -0.0011404573197519594
+            },
+            "Vy": {
+              "imag": -1.0972985066092907e-18,
+              "real": 5.8794918326831546e-18
+            },
+            "eta1": {
+              "imag": 2.8189256484623115e-18,
+              "real": 2.3852069194429183e-17
+            },
+            "eta2": {
+              "imag": 0.006148614376527195,
+              "real": 1.0052711921768252e-17
+            },
+            "rho": {
+              "imag": 6.158268339717665e-17,
+              "real": -2.1111981465533992e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.002248214972794434,
+          "right_collective_rows_ward_max": 0.009952367604070589,
+          "right_full_5x5_ward_max": 0.04293965125767842,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.927483787735165e-18,
+              "real": -0.001498831690176252
+            },
+            "Vy": {
+              "imag": -1.2425016143155494e-17,
+              "real": 4.332371030119095e-18
+            },
+            "eta1": {
+              "imag": -0.005260810031653665,
+              "real": -2.3893701773177012e-17
+            },
+            "eta2": {
+              "imag": 0.009952367604070589,
+              "real": 2.0808837431757248e-17
+            },
+            "rho": {
+              "imag": -0.04293965125767842,
+              "real": 1.8781702018445965e-16
+            }
+          },
+          "variant": "both_longitudinal_opposite_sign"
+        },
+        "density_plus_vector_min_norm": {
+          "condition_number_collective_total": 1.2299211216362504,
+          "delta_left_norm": 0.008803629505264164,
+          "delta_right_norm": 0.016118214253135237,
+          "full_5x5_ward_max": 0.042959819415957945,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 0.0011395221121454965,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -8.007418143227352e-19,
+              "real": 0.0011395221121454965
+            },
+            "Vy": {
+              "imag": -1.0972985066092907e-18,
+              "real": 5.8794918326831546e-18
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -3.264490384382451e-05,
+              "real": -2.111880700217097e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0011430813370012778,
+          "right_collective_rows_ward_max": 6.938893903907228e-18,
+          "right_full_5x5_ward_max": 0.042959819415957945,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.2230451014050994e-17,
+              "real": -9.025085083735548e-05
+            },
+            "Vy": {
+              "imag": -1.2425016143155494e-17,
+              "real": 4.332371030119095e-18
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": -6.938893903907228e-18,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.042959819415957945,
+              "real": 1.8778404613977883e-16
+            }
+          },
+          "variant": "density_plus_vector_min_norm"
+        },
+        "left_only_longitudinal": {
+          "condition_number_collective_total": 1.2299211216362504,
+          "delta_left_norm": 0.00880724134071176,
+          "delta_right_norm": 0.0,
+          "full_5x5_ward_max": 0.04293965125767842,
+          "left_collective_columns_ward_max": 3.0814879110195774e-33,
+          "left_full_5x5_ward_max": 2.1991817349755787e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 1.5818199362932852e-18,
+              "real": -1.5612511283791264e-17
+            },
+            "Vy": {
+              "imag": -1.0972985066092907e-18,
+              "real": 5.8794918326831546e-18
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": -1.5407439555097887e-33
+            },
+            "rho": {
+              "imag": 6.158268339717665e-17,
+              "real": -2.1111981465533992e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0005735981800217907,
+          "right_collective_rows_ward_max": 0.004976183802035294,
+          "right_full_5x5_ward_max": 0.04293965125767842,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.2231395650847837e-17,
+              "real": -8.967307566237065e-05
+            },
+            "Vy": {
+              "imag": -1.2425016143155494e-17,
+              "real": 4.332371030119095e-18
+            },
+            "eta1": {
+              "imag": -0.0026304050158268326,
+              "real": -1.1946850886588506e-17
+            },
+            "eta2": {
+              "imag": 0.004976183802035294,
+              "real": 1.0404418715878624e-17
+            },
+            "rho": {
+              "imag": -0.04293965125767842,
+              "real": 1.8781702018445965e-16
+            }
+          },
+          "variant": "left_only_longitudinal"
+        },
+        "right_only_longitudinal": {
+          "condition_number_collective_total": 1.2299211216362504,
+          "delta_left_norm": 0.0,
+          "delta_right_norm": 0.016124827018649347,
+          "full_5x5_ward_max": 0.04293965125767842,
+          "left_collective_columns_ward_max": 0.0030743071882635975,
+          "left_full_5x5_ward_max": 0.0030743071882635975,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -8.026971865337903e-19,
+              "real": 0.001140457319751929
+            },
+            "Vy": {
+              "imag": -1.0972985066092907e-18,
+              "real": 5.8794918326831546e-18
+            },
+            "eta1": {
+              "imag": 1.4094628242311558e-18,
+              "real": 1.1926034597214592e-17
+            },
+            "eta2": {
+              "imag": 0.0030743071882635975,
+              "real": 5.026355960884125e-18
+            },
+            "rho": {
+              "imag": 6.158268339717665e-17,
+              "real": -2.1111981465533992e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.0005735981800217907,
+          "right_collective_rows_ward_max": 1.5407439555097887e-33,
+          "right_full_5x5_ward_max": 0.04293965125767842,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.10794397192915e-17,
+              "real": -0.0007942523829193113
+            },
+            "Vy": {
+              "imag": -1.2425016143155494e-17,
+              "real": 4.332371030119095e-18
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": -1.5407439555097887e-33
+            },
+            "rho": {
+              "imag": -0.04293965125767842,
+              "real": 1.8781702018445965e-16
+            }
+          },
+          "variant": "right_only_longitudinal"
+        }
+      }
+    },
+    {
+      "N": 36,
+      "baseline_full_5x5_left_ward": 0.006148614376527424,
+      "baseline_full_5x5_right_ward": 0.03986132672605409,
+      "baseline_left_collective_columns_ward": 0.006148614376527424,
+      "baseline_restored_ward": 0.0006309484849081632,
+      "baseline_right_collective_rows_ward": 0.006801621291321842,
+      "best_full_ward_max": 0.03986132672605409,
+      "best_schur_restored_ward": 0.00026643857164671686,
+      "best_variant_by_full_ward": "left_only_longitudinal",
+      "best_variant_by_schur": "left_only_longitudinal",
+      "lsq_mixed_only_restored_ward": 1.8229413649547195e-17,
+      "m_case": [
+        1,
+        1
+      ],
+      "pairing": "dwave",
+      "q_model": [
+        0.3490658503988659,
+        0.3490658503988659
+      ],
+      "sign_convention_issue_suspected": false,
+      "supports_hermitianized_completion": false,
+      "supports_left_right_independent_completion": false,
+      "supports_longitudinal_completion": false,
+      "variants": {
+        "both_longitudinal_hermitianized": {
+          "condition_number_collective_total": 1.0045471129852854,
+          "delta_left_norm": 0.012455320151128033,
+          "delta_right_norm": 0.012455320151128033,
+          "full_5x5_ward_max": 0.03986132672605409,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 0.0007045793072570968,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 5.487617744958603e-19,
+              "real": -0.0007045793072570968
+            },
+            "Vy": {
+              "imag": -1.0721252510903424e-18,
+              "real": -0.0007045793072570621
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 3.851859888774472e-34
+            },
+            "eta2": {
+              "imag": -6.938893903907228e-18,
+              "real": -1.925929944387236e-34
+            },
+            "rho": {
+              "imag": 8.239936510889834e-18,
+              "real": -8.139575995242237e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.0007045793072570968,
+          "right_collective_rows_ward_max": 0.012950235667849266,
+          "right_full_5x5_ward_max": 0.03986132672605409,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -4.1013058414168546e-18,
+              "real": 0.00020843694087926273
+            },
+            "Vy": {
+              "imag": -5.620919770941047e-20,
+              "real": 0.0002084369408792983
+            },
+            "eta1": {
+              "imag": -0.0021755013106379826,
+              "real": -3.628482769576727e-18
+            },
+            "eta2": {
+              "imag": 0.012950235667849266,
+              "real": -2.7059464442395653e-18
+            },
+            "rho": {
+              "imag": -0.03986132672605409,
+              "real": 6.710763216684659e-17
+            }
+          },
+          "variant": "both_longitudinal_hermitianized"
+        },
+        "both_longitudinal_independent": {
+          "condition_number_collective_total": 1.0045471129852854,
+          "delta_left_norm": 0.012455320151128033,
+          "delta_right_norm": 0.014465745924868583,
+          "full_5x5_ward_max": 0.03986132672605409,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 0.0007794083876780308,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 8.588403961825789e-19,
+              "real": 0.0007794083876779961
+            },
+            "Vy": {
+              "imag": -7.620466294036237e-19,
+              "real": 0.0007794083876780308
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 3.851859888774472e-34
+            },
+            "eta2": {
+              "imag": -6.938893903907228e-18,
+              "real": -1.925929944387236e-34
+            },
+            "rho": {
+              "imag": 8.239936510889834e-18,
+              "real": -8.139575995242237e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.0007833813183632079,
+          "right_collective_rows_ward_max": 6.938893903907228e-18,
+          "right_full_5x5_ward_max": 0.03986132672605409,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -4.1013058414168546e-18,
+              "real": 0.00020843694087926273
+            },
+            "Vy": {
+              "imag": -5.620919770941047e-20,
+              "real": 0.0002084369408792983
+            },
+            "eta1": {
+              "imag": 6.505213034913027e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": -6.938893903907228e-18,
+              "real": 3.851859888774472e-34
+            },
+            "rho": {
+              "imag": -0.03986132672605409,
+              "real": 6.710763216684659e-17
+            }
+          },
+          "variant": "both_longitudinal_independent"
+        },
+        "both_longitudinal_opposite_sign": {
+          "condition_number_collective_total": 1.0045471129852854,
+          "delta_left_norm": 0.012455320151128033,
+          "delta_right_norm": 0.014465745924868583,
+          "full_5x5_ward_max": 0.03986132672605409,
+          "left_collective_columns_ward_max": 0.012297228753054855,
+          "left_full_5x5_ward_max": 0.012297228753054855,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 2.7850523672347014e-19,
+              "real": -0.0007794083876782546
+            },
+            "Vy": {
+              "imag": -1.3423817888627325e-18,
+              "real": -0.0007794083876782199
+            },
+            "eta1": {
+              "imag": 3.686287386450715e-18,
+              "real": 1.8011063791291993e-18
+            },
+            "eta2": {
+              "imag": 0.012297228753054855,
+              "real": 3.475132396552511e-19
+            },
+            "rho": {
+              "imag": 8.239936510889834e-18,
+              "real": -8.139575995242237e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.001890383740654214,
+          "right_collective_rows_ward_max": 0.013603242582643685,
+          "right_full_5x5_ward_max": 0.03986132672605409,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -4.0614837575025265e-18,
+              "real": -0.0012007216736346724
+            },
+            "Vy": {
+              "imag": -1.6387113795082e-20,
+              "real": -0.001200721673634636
+            },
+            "eta1": {
+              "imag": -0.0043510026212759696,
+              "real": -5.455859160024256e-18
+            },
+            "eta2": {
+              "imag": 0.013603242582643685,
+              "real": -5.0643796488238804e-18
+            },
+            "rho": {
+              "imag": -0.03986132672605409,
+              "real": 6.710763216684659e-17
+            }
+          },
+          "variant": "both_longitudinal_opposite_sign"
+        },
+        "density_plus_vector_min_norm": {
+          "condition_number_collective_total": 1.0045471129852854,
+          "delta_left_norm": 0.01245276541210032,
+          "delta_right_norm": 0.014462778822840626,
+          "full_5x5_ward_max": 0.03988150315695869,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 0.0007790886880165004,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 8.58721374526547e-19,
+              "real": 0.0007790886880164657
+            },
+            "Vy": {
+              "imag": -7.621656510596557e-19,
+              "real": 0.0007790886880165004
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 3.851859888774472e-34
+            },
+            "eta2": {
+              "imag": -6.938893903907228e-18,
+              "real": -1.925929944387236e-34
+            },
+            "rho": {
+              "imag": -2.2319246844859902e-05,
+              "real": -8.138745067330664e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.0007824496797639007,
+          "right_collective_rows_ward_max": 2.168404344971009e-19,
+          "right_full_5x5_ward_max": 0.03988150315695869,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -4.101297674256384e-18,
+              "real": 0.0002081479347951446
+            },
+            "Vy": {
+              "imag": -5.62010305489397e-20,
+              "real": 0.00020814793479518104
+            },
+            "eta1": {
+              "imag": 2.168404344971009e-19,
+              "real": -7.703719777548943e-34
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.03988150315695869,
+              "real": 6.710706199148356e-17
+            }
+          },
+          "variant": "density_plus_vector_min_norm"
+        },
+        "left_only_longitudinal": {
+          "condition_number_collective_total": 1.0045471129852854,
+          "delta_left_norm": 0.012455320151128033,
+          "delta_right_norm": 0.0,
+          "full_5x5_ward_max": 0.03986132672605409,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 1.2923815010143003e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 5.6867281645302455e-19,
+              "real": -1.2923689896027213e-16
+            },
+            "Vy": {
+              "imag": -1.0522142091331781e-18,
+              "real": -9.454242944073599e-17
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 3.851859888774472e-34
+            },
+            "eta2": {
+              "imag": -6.938893903907228e-18,
+              "real": -1.925929944387236e-34
+            },
+            "rho": {
+              "imag": 8.239936510889834e-18,
+              "real": -8.139575995242237e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.00026643857164671686,
+          "right_collective_rows_ward_max": 0.006801621291321842,
+          "right_full_5x5_ward_max": 0.03986132672605409,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -4.1013058414168546e-18,
+              "real": 0.00020843694087926273
+            },
+            "Vy": {
+              "imag": -5.620919770941047e-20,
+              "real": 0.0002084369408792983
+            },
+            "eta1": {
+              "imag": -0.0021755013106379848,
+              "real": -2.7279295800121276e-18
+            },
+            "eta2": {
+              "imag": 0.006801621291321842,
+              "real": -2.53218982441194e-18
+            },
+            "rho": {
+              "imag": -0.03986132672605409,
+              "real": 6.710763216684659e-17
+            }
+          },
+          "variant": "left_only_longitudinal"
+        },
+        "right_only_longitudinal": {
+          "condition_number_collective_total": 1.0045471129852854,
+          "delta_left_norm": 0.0,
+          "delta_right_norm": 0.014465745924868583,
+          "full_5x5_ward_max": 0.03986132672605409,
+          "left_collective_columns_ward_max": 0.006148614376527424,
+          "left_full_5x5_ward_max": 0.006148614376527424,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 8.588403961825789e-19,
+              "real": 0.0007794083876779961
+            },
+            "Vy": {
+              "imag": -7.620466294036237e-19,
+              "real": 0.0007794083876780308
+            },
+            "eta1": {
+              "imag": 1.8431436932253575e-18,
+              "real": 9.005531895645997e-19
+            },
+            "eta2": {
+              "imag": 0.006148614376527424,
+              "real": 1.7375661982762546e-19
+            },
+            "rho": {
+              "imag": 8.239936510889834e-18,
+              "real": -8.139575995242237e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.00027736288563941225,
+          "right_collective_rows_ward_max": 6.938893903907228e-18,
+          "right_full_5x5_ward_max": 0.03986132672605409,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -4.081394799459691e-18,
+              "real": -0.0004961423663777048
+            },
+            "Vy": {
+              "imag": -3.6298155752246233e-20,
+              "real": -0.0004961423663776684
+            },
+            "eta1": {
+              "imag": 6.505213034913027e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": -6.938893903907228e-18,
+              "real": 3.851859888774472e-34
+            },
+            "rho": {
+              "imag": -0.03986132672605409,
+              "real": 6.710763216684659e-17
+            }
+          },
+          "variant": "right_only_longitudinal"
+        }
+      }
+    },
+    {
+      "N": 24,
+      "baseline_full_5x5_left_ward": 3.816402310247922e-16,
+      "baseline_full_5x5_right_ward": 0.041163261594789016,
+      "baseline_left_collective_columns_ward": 2.359715215320639e-16,
+      "baseline_restored_ward": 3.4483054221327112e-16,
+      "baseline_right_collective_rows_ward": 0.0033486040362620956,
+      "best_full_ward_max": 0.041163261594789016,
+      "best_schur_restored_ward": 3.4543047560100397e-16,
+      "best_variant_by_full_ward": "left_only_longitudinal",
+      "best_variant_by_schur": "both_longitudinal_hermitianized",
+      "lsq_mixed_only_restored_ward": 3.469446951953614e-18,
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "onsite_s",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "sign_convention_issue_suspected": true,
+      "supports_hermitianized_completion": true,
+      "supports_left_right_independent_completion": false,
+      "supports_longitudinal_completion": true,
+      "variants": {
+        "both_longitudinal_hermitianized": {
+          "condition_number_collective_total": 1.893062322008359,
+          "delta_left_norm": 4.515412439490909e-16,
+          "delta_right_norm": 4.515412439490909e-16,
+          "full_5x5_ward_max": 0.041163261594789016,
+          "left_collective_columns_ward_max": 3.0814879110195774e-33,
+          "left_full_5x5_ward_max": 3.4694856103305414e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.6378274343313913e-18,
+              "real": 3.469446951953614e-16
+            },
+            "Vy": {
+              "imag": 6.423339966140465e-19,
+              "real": 5.069017683466618e-19
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 7.703719777548943e-34
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": 5.18027332298333e-17
+            }
+          },
+          "physical_schur_restored_ward": 3.4543047560100397e-16,
+          "right_collective_rows_ward_max": 0.0033486040362623315,
+          "right_full_5x5_ward_max": 0.041163261594789016,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -7.870532098264261e-19,
+              "real": -0.00027453137735563085
+            },
+            "Vy": {
+              "imag": 8.788654356025544e-19,
+              "real": 7.597919250789057e-19
+            },
+            "eta1": {
+              "imag": 0.0016906935527621371,
+              "real": 3.0080232668919853e-17
+            },
+            "eta2": {
+              "imag": 0.0033486040362623315,
+              "real": 7.237381325130603e-18
+            },
+            "rho": {
+              "imag": -0.041163261594789016,
+              "real": -5.064275159735071e-17
+            }
+          },
+          "variant": "both_longitudinal_hermitianized"
+        },
+        "both_longitudinal_independent": {
+          "condition_number_collective_total": 1.893062322008359,
+          "delta_left_norm": 4.515412439490909e-16,
+          "delta_right_norm": 0.0071642877517467006,
+          "full_5x5_ward_max": 0.041163261594789016,
+          "left_collective_columns_ward_max": 3.0814879110195774e-33,
+          "left_full_5x5_ward_max": 0.0005116290094358232,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -2.7436178467494782e-18,
+              "real": 0.0005116290094358232
+            },
+            "Vy": {
+              "imag": 6.423339966140465e-19,
+              "real": 5.069017683466618e-19
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 7.703719777548943e-34
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": 5.18027332298333e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.000511629009435821,
+          "right_collective_rows_ward_max": 0.0,
+          "right_full_5x5_ward_max": 0.041163261594789016,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -7.870532098264261e-19,
+              "real": -0.00027453137735563085
+            },
+            "Vy": {
+              "imag": 8.788654356025544e-19,
+              "real": 7.597919250789057e-19
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.041163261594789016,
+              "real": -5.064275159735071e-17
+            }
+          },
+          "variant": "both_longitudinal_independent"
+        },
+        "both_longitudinal_opposite_sign": {
+          "condition_number_collective_total": 1.893062322008359,
+          "delta_left_norm": 4.515412439490909e-16,
+          "delta_right_norm": 0.0071642877517467006,
+          "full_5x5_ward_max": 0.041163261594789016,
+          "left_collective_columns_ward_max": 4.719430430641278e-16,
+          "left_full_5x5_ward_max": 0.0005116290094350599,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 9.39298172164656e-19,
+              "real": -0.0005116290094350599
+            },
+            "Vy": {
+              "imag": 6.423339966140465e-19,
+              "real": 5.069017683466618e-19
+            },
+            "eta1": {
+              "imag": -2.168404344971009e-18,
+              "real": -2.9238893796906246e-17
+            },
+            "eta2": {
+              "imag": 4.718447854656915e-16,
+              "real": 9.62986632642382e-18
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": 5.18027332298333e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.0005116290094351314,
+          "right_collective_rows_ward_max": 0.006697208072524191,
+          "right_full_5x5_ward_max": 0.041163261594789016,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": 6.842819842515345e-19,
+              "real": -0.0002745313773557037
+            },
+            "Vy": {
+              "imag": 8.788654356025544e-19,
+              "real": 7.597919250789057e-19
+            },
+            "eta1": {
+              "imag": 0.0033813871055242764,
+              "real": 3.0921571540933454e-17
+            },
+            "eta2": {
+              "imag": 0.006697208072524191,
+              "real": 2.4104628976685022e-17
+            },
+            "rho": {
+              "imag": -0.041163261594789016,
+              "real": -5.064275159735071e-17
+            }
+          },
+          "variant": "both_longitudinal_opposite_sign"
+        },
+        "density_plus_vector_min_norm": {
+          "condition_number_collective_total": 1.893062322008359,
+          "delta_left_norm": 4.514589152229047e-16,
+          "delta_right_norm": 0.007162981499676627,
+          "full_5x5_ward_max": 0.041163261594789016,
+          "left_collective_columns_ward_max": 1.5407439555097887e-33,
+          "left_full_5x5_ward_max": 0.0005114424575972179,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -2.7429464083223237e-18,
+              "real": 0.0005114424575972179
+            },
+            "Vy": {
+              "imag": 6.423339966140465e-19,
+              "real": 5.069017683466618e-19
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -1.5407439555097887e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -9.767831428041801e-06,
+              "real": 5.1767576795998514e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.0005114424575972139,
+          "right_collective_rows_ward_max": 1.3877787807814457e-17,
+          "right_full_5x5_ward_max": 0.041163261594789016,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -7.867849683070824e-19,
+              "real": -0.00027453137735563085
+            },
+            "Vy": {
+              "imag": 8.788654356025544e-19,
+              "real": 7.597919250789057e-19
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 1.3877787807814457e-17,
+              "real": -1.5407439555097887e-33
+            },
+            "rho": {
+              "imag": -0.041163261594789016,
+              "real": -5.065679669046001e-17
+            }
+          },
+          "variant": "density_plus_vector_min_norm"
+        },
+        "left_only_longitudinal": {
+          "condition_number_collective_total": 1.893062322008359,
+          "delta_left_norm": 4.515412439490909e-16,
+          "delta_right_norm": 0.0,
+          "full_5x5_ward_max": 0.041163261594789016,
+          "left_collective_columns_ward_max": 3.0814879110195774e-33,
+          "left_full_5x5_ward_max": 3.816402310247922e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -9.02159837292411e-19,
+              "real": 3.8163916471489756e-16
+            },
+            "Vy": {
+              "imag": 6.423339966140465e-19,
+              "real": 5.069017683466618e-19
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": -3.0814879110195774e-33
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 7.703719777548943e-34
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": 5.18027332298333e-17
+            }
+          },
+          "physical_schur_restored_ward": 3.817485845866605e-16,
+          "right_collective_rows_ward_max": 0.0033486040362620956,
+          "right_full_5x5_ward_max": 0.041163261594789016,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -7.870532098264261e-19,
+              "real": -0.00027453137735563085
+            },
+            "Vy": {
+              "imag": 8.788654356025544e-19,
+              "real": 7.597919250789057e-19
+            },
+            "eta1": {
+              "imag": 0.0016906935527621382,
+              "real": 1.546078577046673e-17
+            },
+            "eta2": {
+              "imag": 0.0033486040362620956,
+              "real": 1.2052314488342512e-17
+            },
+            "rho": {
+              "imag": -0.041163261594789016,
+              "real": -5.064275159735071e-17
+            }
+          },
+          "variant": "left_only_longitudinal"
+        },
+        "right_only_longitudinal": {
+          "condition_number_collective_total": 1.893062322008359,
+          "delta_left_norm": 0.0,
+          "delta_right_norm": 0.0071642877517467006,
+          "full_5x5_ward_max": 0.041163261594789016,
+          "left_collective_columns_ward_max": 2.359715215320639e-16,
+          "left_full_5x5_ward_max": 0.0005116290094358232,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -2.7436178467494782e-18,
+              "real": 0.0005116290094358232
+            },
+            "Vy": {
+              "imag": 6.423339966140465e-19,
+              "real": 5.069017683466618e-19
+            },
+            "eta1": {
+              "imag": -1.0842021724855044e-18,
+              "real": -1.4619446898453123e-17
+            },
+            "eta2": {
+              "imag": 2.3592239273284576e-16,
+              "real": 4.814933163211911e-18
+            },
+            "rho": {
+              "imag": -1.0408340855860843e-17,
+              "real": 5.18027332298333e-17
+            }
+          },
+          "physical_schur_restored_ward": 0.0005116290094357847,
+          "right_collective_rows_ward_max": 0.0,
+          "right_full_5x5_ward_max": 0.041163261594789016,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -5.138561278744582e-20,
+              "real": -0.000274531377355669
+            },
+            "Vy": {
+              "imag": 8.788654356025544e-19,
+              "real": 7.597919250789057e-19
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.041163261594789016,
+              "real": -5.064275159735071e-17
+            }
+          },
+          "variant": "right_only_longitudinal"
+        }
+      }
+    },
+    {
+      "N": 24,
+      "baseline_full_5x5_left_ward": 4.7791886562902e-16,
+      "baseline_full_5x5_right_ward": 0.039695150141800604,
+      "baseline_left_collective_columns_ward": 2.0825803389329073e-17,
+      "baseline_restored_ward": 4.801960535378631e-16,
+      "baseline_right_collective_rows_ward": 0.0030961330806730733,
+      "best_full_ward_max": 0.039695150141800604,
+      "best_schur_restored_ward": 4.756962630805339e-16,
+      "best_variant_by_full_ward": "left_only_longitudinal",
+      "best_variant_by_schur": "left_only_longitudinal",
+      "lsq_mixed_only_restored_ward": 1.006204617704893e-18,
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "spm",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "sign_convention_issue_suspected": true,
+      "supports_hermitianized_completion": true,
+      "supports_left_right_independent_completion": false,
+      "supports_longitudinal_completion": true,
+      "variants": {
+        "both_longitudinal_hermitianized": {
+          "condition_number_collective_total": 2.8968134119175017,
+          "delta_left_norm": 4.113772261415779e-17,
+          "delta_right_norm": 4.113772261415779e-17,
+          "full_5x5_ward_max": 0.039695150141800604,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 4.805206404450307e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.4664311915889361e-18,
+              "real": 4.805184028455756e-16
+            },
+            "Vy": {
+              "imag": -5.524239871456274e-20,
+              "real": -8.72666108422352e-19
+            },
+            "eta1": {
+              "imag": -2.168404344971009e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": 1.0408340855860843e-17,
+              "real": 6.434306914981594e-18
+            }
+          },
+          "physical_schur_restored_ward": 4.793822334776571e-16,
+          "right_collective_rows_ward_max": 0.0030961330806730525,
+          "right_full_5x5_ward_max": 0.039695150141800604,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.946893382728564e-19,
+              "real": -0.00028506723453154605
+            },
+            "Vy": {
+              "imag": -7.127560221111923e-19,
+              "real": 1.0233498767583732e-18
+            },
+            "eta1": {
+              "imag": 0.0012217213852833597,
+              "real": -1.0762587877176773e-17
+            },
+            "eta2": {
+              "imag": 0.0030961330806730525,
+              "real": -1.5796452911910749e-18
+            },
+            "rho": {
+              "imag": -0.039695150141800604,
+              "real": -5.6288764349669734e-18
+            }
+          },
+          "variant": "both_longitudinal_hermitianized"
+        },
+        "both_longitudinal_independent": {
+          "condition_number_collective_total": 2.8968134119175017,
+          "delta_left_norm": 4.113772261415779e-17,
+          "delta_right_norm": 0.0063568895464312485,
+          "full_5x5_ward_max": 0.039695150141800604,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 0.00047305428888955604,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.2250791694210362e-18,
+              "real": 0.00047305428888955604
+            },
+            "Vy": {
+              "imag": -5.524239871456274e-20,
+              "real": -8.72666108422352e-19
+            },
+            "eta1": {
+              "imag": -2.168404344971009e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": 1.0408340855860843e-17,
+              "real": 6.434306914981594e-18
+            }
+          },
+          "physical_schur_restored_ward": 0.0007223138593792054,
+          "right_collective_rows_ward_max": 6.938893903907228e-18,
+          "right_full_5x5_ward_max": 0.039695150141800604,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.946893382728564e-19,
+              "real": -0.00028506723453154605
+            },
+            "Vy": {
+              "imag": -7.127560221111923e-19,
+              "real": 1.0233498767583732e-18
+            },
+            "eta1": {
+              "imag": 2.168404344971009e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.039695150141800604,
+              "real": -5.6288764349669734e-18
+            }
+          },
+          "variant": "both_longitudinal_independent"
+        },
+        "both_longitudinal_opposite_sign": {
+          "condition_number_collective_total": 2.8968134119175017,
+          "delta_left_norm": 4.113772261415779e-17,
+          "delta_right_norm": 0.0063568895464312485,
+          "full_5x5_ward_max": 0.039695150141800604,
+          "left_collective_columns_ward_max": 4.1651606778658146e-17,
+          "left_full_5x5_ward_max": 0.00047305428888860107,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.896116480346874e-18,
+              "real": -0.00047305428888860107
+            },
+            "Vy": {
+              "imag": -5.524239871456274e-20,
+              "real": -8.72666108422352e-19
+            },
+            "eta1": {
+              "imag": -1.5178830414797062e-18,
+              "real": 1.0921490644574798e-17
+            },
+            "eta2": {
+              "imag": -4.163336342344337e-17,
+              "real": -1.2326383473871476e-18
+            },
+            "rho": {
+              "imag": 1.0408340855860843e-17,
+              "real": 6.434306914981594e-18
+            }
+          },
+          "physical_schur_restored_ward": 0.0007223138593791777,
+          "right_collective_rows_ward_max": 0.006192266161346147,
+          "right_full_5x5_ward_max": 0.039695150141800604,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.1830226048628943e-18,
+              "real": -0.00028506723453154
+            },
+            "Vy": {
+              "imag": -7.127560221111923e-19,
+              "real": 1.0233498767583732e-18
+            },
+            "eta1": {
+              "imag": 0.002443442770566721,
+              "real": -1.0603685109778748e-17
+            },
+            "eta2": {
+              "imag": 0.006192266161346147,
+              "real": -4.391928929769297e-18
+            },
+            "rho": {
+              "imag": -0.039695150141800604,
+              "real": -5.6288764349669734e-18
+            }
+          },
+          "variant": "both_longitudinal_opposite_sign"
+        },
+        "density_plus_vector_min_norm": {
+          "condition_number_collective_total": 2.8968134119175017,
+          "delta_left_norm": 4.1130222045059385e-17,
+          "delta_right_norm": 0.00635573050586546,
+          "full_5x5_ward_max": 0.039695150141800604,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 0.0004728818022914057,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.2252015073278188e-18,
+              "real": 0.0004728818022914057
+            },
+            "Vy": {
+              "imag": -5.524239871456274e-20,
+              "real": -8.72666108422352e-19
+            },
+            "eta1": {
+              "imag": -2.168404344971009e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -9.031377159924442e-06,
+              "real": 6.4407125128016594e-18
+            }
+          },
+          "physical_schur_restored_ward": 0.000721787114507301,
+          "right_collective_rows_ward_max": 0.0,
+          "right_full_5x5_ward_max": 0.039695150141800604,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.947236736179067e-19,
+              "real": -0.00028506723453154605
+            },
+            "Vy": {
+              "imag": -7.127560221111923e-19,
+              "real": 1.0233498767583732e-18
+            },
+            "eta1": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.039695150141800604,
+              "real": -5.627078640504173e-18
+            }
+          },
+          "variant": "density_plus_vector_min_norm"
+        },
+        "left_only_longitudinal": {
+          "condition_number_collective_total": 2.8968134119175017,
+          "delta_left_norm": 4.113772261415779e-17,
+          "delta_right_norm": 0.0,
+          "full_5x5_ward_max": 0.039695150141800604,
+          "left_collective_columns_ward_max": 6.938893903907228e-18,
+          "left_full_5x5_ward_max": 4.7791886562902e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.560597824883955e-18,
+              "real": 4.779163176316104e-16
+            },
+            "Vy": {
+              "imag": -5.524239871456274e-20,
+              "real": -8.72666108422352e-19
+            },
+            "eta1": {
+              "imag": -2.168404344971009e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": 1.0408340855860843e-17,
+              "real": 6.434306914981594e-18
+            }
+          },
+          "physical_schur_restored_ward": 4.756962630805339e-16,
+          "right_collective_rows_ward_max": 0.0030961330806730733,
+          "right_full_5x5_ward_max": 0.039695150141800604,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -9.946893382728564e-19,
+              "real": -0.00028506723453154605
+            },
+            "Vy": {
+              "imag": -7.127560221111923e-19,
+              "real": 1.0233498767583732e-18
+            },
+            "eta1": {
+              "imag": 0.0012217213852833606,
+              "real": -5.301842554889374e-18
+            },
+            "eta2": {
+              "imag": 0.0030961330806730733,
+              "real": -2.1959644648846485e-18
+            },
+            "rho": {
+              "imag": -0.039695150141800604,
+              "real": -5.6288764349669734e-18
+            }
+          },
+          "variant": "left_only_longitudinal"
+        },
+        "right_only_longitudinal": {
+          "condition_number_collective_total": 2.8968134119175017,
+          "delta_left_norm": 0.0,
+          "delta_right_norm": 0.0063568895464312485,
+          "full_5x5_ward_max": 0.039695150141800604,
+          "left_collective_columns_ward_max": 2.0825803389329073e-17,
+          "left_full_5x5_ward_max": 0.00047305428888955604,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.2250791694210362e-18,
+              "real": 0.00047305428888955604
+            },
+            "Vy": {
+              "imag": -5.524239871456274e-20,
+              "real": -8.72666108422352e-19
+            },
+            "eta1": {
+              "imag": -6.505213034913027e-19,
+              "real": 5.4607453222874e-18
+            },
+            "eta2": {
+              "imag": -2.0816681711721685e-17,
+              "real": -6.163191736935738e-19
+            },
+            "rho": {
+              "imag": 1.0408340855860843e-17,
+              "real": 6.434306914981594e-18
+            }
+          },
+          "physical_schur_restored_ward": 0.0007223138593792054,
+          "right_collective_rows_ward_max": 6.938893903907228e-18,
+          "right_full_5x5_ward_max": 0.039695150141800604,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": -1.0888559715678754e-18,
+              "real": -0.0002850672345315426
+            },
+            "Vy": {
+              "imag": -7.127560221111923e-19,
+              "real": 1.0233498767583732e-18
+            },
+            "eta1": {
+              "imag": 2.168404344971009e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.039695150141800604,
+              "real": -5.6288764349669734e-18
+            }
+          },
+          "variant": "right_only_longitudinal"
+        }
+      }
+    },
+    {
+      "N": 24,
+      "baseline_full_5x5_left_ward": 2.8623220860447165e-16,
+      "baseline_full_5x5_right_ward": 0.04029554093882894,
+      "baseline_left_collective_columns_ward": 9.691548195021522e-18,
+      "baseline_restored_ward": 2.869433269269049e-16,
+      "baseline_right_collective_rows_ward": 0.001007878945378772,
+      "best_full_ward_max": 0.04029554093882894,
+      "best_schur_restored_ward": 2.8509106244301256e-16,
+      "best_variant_by_full_ward": "left_only_longitudinal",
+      "best_variant_by_schur": "both_longitudinal_hermitianized",
+      "lsq_mixed_only_restored_ward": 3.4179953176852786e-17,
+      "m_case": [
+        1,
+        0
+      ],
+      "pairing": "dwave_const_form",
+      "q_model": [
+        0.5235987755982988,
+        0.0
+      ],
+      "sign_convention_issue_suspected": true,
+      "supports_hermitianized_completion": true,
+      "supports_left_right_independent_completion": false,
+      "supports_longitudinal_completion": true,
+      "variants": {
+        "both_longitudinal_hermitianized": {
+          "condition_number_collective_total": 1.116801771814474,
+          "delta_left_norm": 1.963765744128789e-17,
+          "delta_right_norm": 1.963765744128789e-17,
+          "full_5x5_ward_max": 0.04029554093882894,
+          "left_collective_columns_ward_max": 2.710505431213761e-20,
+          "left_full_5x5_ward_max": 2.862294743216704e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 2.4019897925962556e-19,
+              "real": 2.8622937353617317e-16
+            },
+            "Vy": {
+              "imag": 5.604579520740668e-20,
+              "real": 3.6344695212379556e-17
+            },
+            "eta1": {
+              "imag": 2.710505431213761e-20,
+              "real": -3.851859888774472e-34
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -8.673617379884035e-19,
+              "real": 1.125095471312667e-16
+            }
+          },
+          "physical_schur_restored_ward": 2.8509106244301256e-16,
+          "right_collective_rows_ward_max": 0.001007878945378779,
+          "right_full_5x5_ward_max": 0.04029554093882894,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": 1.5430943384654542e-18,
+              "real": -0.0006155955834494208
+            },
+            "Vy": {
+              "imag": -3.3800842476070195e-18,
+              "real": 3.1916656219618816e-17
+            },
+            "eta1": {
+              "imag": -0.0006643365858199426,
+              "real": -3.007282069085532e-18
+            },
+            "eta2": {
+              "imag": 0.001007878945378779,
+              "real": 9.26048801011996e-18
+            },
+            "rho": {
+              "imag": -0.04029554093882894,
+              "real": -2.979379843098073e-17
+            }
+          },
+          "variant": "both_longitudinal_hermitianized"
+        },
+        "both_longitudinal_independent": {
+          "condition_number_collective_total": 1.116801771814474,
+          "delta_left_norm": 1.963765744128789e-17,
+          "delta_right_norm": 0.0023054486601107164,
+          "full_5x5_ward_max": 0.04029554093882894,
+          "left_collective_columns_ward_max": 2.710505431213761e-20,
+          "left_full_5x5_ward_max": 0.00015399255954775398,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.174699365304043e-18,
+              "real": 0.00015399255954775398
+            },
+            "Vy": {
+              "imag": 5.604579520740668e-20,
+              "real": 3.6344695212379556e-17
+            },
+            "eta1": {
+              "imag": 2.710505431213761e-20,
+              "real": -3.851859888774472e-34
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -8.673617379884035e-19,
+              "real": 1.125095471312667e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.00015399255954775227,
+          "right_collective_rows_ward_max": 6.938893903907228e-18,
+          "right_full_5x5_ward_max": 0.04029554093882894,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": 1.5430943384654542e-18,
+              "real": -0.0006155955834494208
+            },
+            "Vy": {
+              "imag": -3.3800842476070195e-18,
+              "real": 3.1916656219618816e-17
+            },
+            "eta1": {
+              "imag": -1.0842021724855044e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 1.5407439555097887e-33
+            },
+            "rho": {
+              "imag": -0.04029554093882894,
+              "real": -2.979379843098073e-17
+            }
+          },
+          "variant": "both_longitudinal_independent"
+        },
+        "both_longitudinal_opposite_sign": {
+          "condition_number_collective_total": 1.116801771814474,
+          "delta_left_norm": 1.963765744128789e-17,
+          "delta_right_norm": 0.0023054486601107164,
+          "full_5x5_ward_max": 0.04029554093882894,
+          "left_collective_columns_ward_max": 1.9383096390043044e-17,
+          "left_full_5x5_ward_max": 0.0001539925595471798,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 3.722614343188041e-18,
+              "real": -0.0001539925595471798
+            },
+            "Vy": {
+              "imag": 5.604579520740668e-20,
+              "real": 3.6344695212379556e-17
+            },
+            "eta1": {
+              "imag": -4.4181238528784306e-18,
+              "real": 5.283319742738951e-18
+            },
+            "eta2": {
+              "imag": 1.3877787807814457e-17,
+              "real": 1.3531867248350323e-17
+            },
+            "rho": {
+              "imag": -8.673617379884035e-19,
+              "real": 1.125095471312667e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.00015399255954718207,
+          "right_collective_rows_ward_max": 0.002015757890757544,
+          "right_full_5x5_ward_max": 0.04029554093882894,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": 3.6106113578302016e-18,
+              "real": -0.0006155955834494225
+            },
+            "Vy": {
+              "imag": -3.3800842476070195e-18,
+              "real": 3.1916656219618816e-17
+            },
+            "eta1": {
+              "imag": -0.0013286731716398807,
+              "real": -7.312443954321123e-19
+            },
+            "eta2": {
+              "imag": 0.002015757890757544,
+              "real": 3.205284326859024e-17
+            },
+            "rho": {
+              "imag": -0.04029554093882894,
+              "real": -2.979379843098073e-17
+            }
+          },
+          "variant": "both_longitudinal_opposite_sign"
+        },
+        "density_plus_vector_min_norm": {
+          "condition_number_collective_total": 1.116801771814474,
+          "delta_left_norm": 1.963407694151276e-17,
+          "delta_right_norm": 0.002305028311684038,
+          "full_5x5_ward_max": 0.04029554093882894,
+          "left_collective_columns_ward_max": 2.710505431213761e-20,
+          "left_full_5x5_ward_max": 0.0001539364102782926,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.1738065280531185e-18,
+              "real": 0.0001539364102782926
+            },
+            "Vy": {
+              "imag": 5.604579520740668e-20,
+              "real": 3.6344695212379556e-17
+            },
+            "eta1": {
+              "imag": 2.710505431213761e-20,
+              "real": -7.703719777548943e-34
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -2.9399688741080926e-06,
+              "real": 1.1246279828212743e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.00015393641027829083,
+          "right_collective_rows_ward_max": 5.421010862427522e-20,
+          "right_full_5x5_ward_max": 0.04029554093882894,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": 1.543471270865886e-18,
+              "real": -0.0006155955834494208
+            },
+            "Vy": {
+              "imag": -3.3800842476070195e-18,
+              "real": 3.1916656219618816e-17
+            },
+            "eta1": {
+              "imag": 5.421010862427522e-20,
+              "real": 1.925929944387236e-34
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -0.04029554093882894,
+              "real": -2.9813534565315666e-17
+            }
+          },
+          "variant": "density_plus_vector_min_norm"
+        },
+        "left_only_longitudinal": {
+          "condition_number_collective_total": 1.116801771814474,
+          "delta_left_norm": 1.963765744128789e-17,
+          "delta_right_norm": 0.0,
+          "full_5x5_ward_max": 0.04029554093882894,
+          "left_collective_columns_ward_max": 2.710505431213761e-20,
+          "left_full_5x5_ward_max": 2.8623220860447165e-16,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": 1.273957488941999e-18,
+              "real": 2.8622937353617317e-16
+            },
+            "Vy": {
+              "imag": 5.604579520740668e-20,
+              "real": 3.6344695212379556e-17
+            },
+            "eta1": {
+              "imag": 2.710505431213761e-20,
+              "real": -3.851859888774472e-34
+            },
+            "eta2": {
+              "imag": 0.0,
+              "real": 0.0
+            },
+            "rho": {
+              "imag": -8.673617379884035e-19,
+              "real": 1.125095471312667e-16
+            }
+          },
+          "physical_schur_restored_ward": 2.8693693305351825e-16,
+          "right_collective_rows_ward_max": 0.001007878945378772,
+          "right_full_5x5_ward_max": 0.04029554093882894,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": 1.5430943384654542e-18,
+              "real": -0.0006155955834494208
+            },
+            "Vy": {
+              "imag": -3.3800842476070195e-18,
+              "real": 3.1916656219618816e-17
+            },
+            "eta1": {
+              "imag": -0.0006643365858199405,
+              "real": -3.6562219771605615e-19
+            },
+            "eta2": {
+              "imag": 0.001007878945378772,
+              "real": 1.602642163429512e-17
+            },
+            "rho": {
+              "imag": -0.04029554093882894,
+              "real": -2.979379843098073e-17
+            }
+          },
+          "variant": "left_only_longitudinal"
+        },
+        "right_only_longitudinal": {
+          "condition_number_collective_total": 1.116801771814474,
+          "delta_left_norm": 0.0,
+          "delta_right_norm": 0.0023054486601107164,
+          "full_5x5_ward_max": 0.04029554093882894,
+          "left_collective_columns_ward_max": 9.691548195021522e-18,
+          "left_full_5x5_ward_max": 0.00015399255954775398,
+          "left_ward_by_channel": {
+            "Vx": {
+              "imag": -1.174699365304043e-18,
+              "real": 0.00015399255954775398
+            },
+            "Vy": {
+              "imag": 5.604579520740668e-20,
+              "real": 3.6344695212379556e-17
+            },
+            "eta1": {
+              "imag": -2.1955093992831465e-18,
+              "real": 2.6416598713694754e-18
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 6.765933624175161e-18
+            },
+            "rho": {
+              "imag": -8.673617379884035e-19,
+              "real": 1.125095471312667e-16
+            }
+          },
+          "physical_schur_restored_ward": 0.00015399255954775227,
+          "right_collective_rows_ward_max": 6.938893903907228e-18,
+          "right_full_5x5_ward_max": 0.04029554093882894,
+          "right_ward_by_channel": {
+            "Vx": {
+              "imag": 2.5768528481478275e-18,
+              "real": -0.0006155955834494225
+            },
+            "Vy": {
+              "imag": -3.3800842476070195e-18,
+              "real": 3.1916656219618816e-17
+            },
+            "eta1": {
+              "imag": -1.0842021724855044e-19,
+              "real": 0.0
+            },
+            "eta2": {
+              "imag": 6.938893903907228e-18,
+              "real": 1.5407439555097887e-33
+            },
+            "rho": {
+              "imag": -0.04029554093882894,
+              "real": -2.979379843098073e-17
+            }
+          },
+          "variant": "right_only_longitudinal"
+        }
+      }
+    }
+  ],
+  "diagnostic_only": true,
+  "formal_casimir_ran": false,
+  "hermitianized_completion_implementation": "delta_right = delta_left.conjugate().T at the same finite-q response point",
+  "longitudinal_ward_completion_tested": true,
+  "lsq_candidate_used_as_production_formula": false,
+  "production_default_modified": false,
+  "quick": true,
+  "required_variants": [
+    "left_only_longitudinal",
+    "right_only_longitudinal",
+    "both_longitudinal_independent",
+    "both_longitudinal_hermitianized",
+    "both_longitudinal_opposite_sign"
+  ],
+  "right_ward_convention_tested": "same_column_vector_[iomega,qx,qy,0,2iDelta0]",
+  "status": "PARTIAL_STAGE2J_LONGITUDINAL_IMPROVES_BUT_NOT_CLOSED",
+  "transverse_part_claimed": false,
+  "ward_basis": [
+    "rho",
+    "Vx",
+    "Vy",
+    "eta1",
+    "eta2"
+  ]
+}

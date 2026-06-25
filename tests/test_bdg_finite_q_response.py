@@ -71,6 +71,10 @@ from stageSC_2i_k_resolved_mixed_block_audit import (  # noqa: E402
     BASIS_NAMES as BASIS_NAMES_2I,
     build_payload as build_stageSC_2i_payload,
 )
+from stageSC_2j_longitudinal_ward_completion_audit import (  # noqa: E402
+    REQUIRED_VARIANTS as REQUIRED_VARIANTS_2J,
+    build_payload as build_stageSC_2j_payload,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -983,3 +987,58 @@ def test_stageSC_2i_script_does_not_call_casimir_pipeline():
     assert '"production_default_modified": False' in text
     assert "run_material_casimir_figures" not in text
     assert "outputs/material_casimir" not in text
+
+
+def test_stageSC_2j_payload_is_diagnostic_only():
+    payload = build_stageSC_2j_payload(quick=True)
+    assert payload["diagnostic_only"] is True
+    assert payload["production_default_modified"] is False
+    assert payload["formal_casimir_ran"] is False
+    assert payload["longitudinal_ward_completion_tested"] is True
+    assert payload["transverse_part_claimed"] is False
+
+
+def test_stageSC_2j_lsq_reference_closes_or_reports_failure():
+    payload = build_stageSC_2j_payload(quick=True)
+    if payload["status"] != "FAILED_STAGE2J_LSQ_REFERENCE_NOT_CLOSING":
+        for case in payload["cases"]:
+            if case["pairing"] == "dwave":
+                assert case["lsq_mixed_only_restored_ward"] < 1e-8
+
+
+def test_stageSC_2j_contains_required_variants():
+    payload = build_stageSC_2j_payload(quick=True)
+    for case in payload["cases"]:
+        if case["pairing"] == "dwave":
+            assert set(REQUIRED_VARIANTS_2J) <= set(case["variants"])
+
+
+def test_stageSC_2j_control_pairings_present():
+    payload = build_stageSC_2j_payload(quick=True)
+    assert {case["pairing"] for case in payload["cases"]} >= {
+        "onsite_s",
+        "spm",
+        "dwave",
+        "dwave_const_form",
+    }
+
+
+def test_stageSC_2j_script_does_not_call_casimir_pipeline():
+    script = ROOT / "validation" / "scripts" / "response" / "stageSC_2j_longitudinal_ward_completion_audit.py"
+    text = script.read_text(encoding="utf-8")
+    assert '"formal_casimir_ran": False' in text
+    assert '"production_default_modified": False' in text
+    assert "run_material_casimir_figures" not in text
+    assert "outputs/material_casimir" not in text
+
+
+def test_stageSC_2j_no_transverse_claim():
+    payload = build_stageSC_2j_payload(quick=True)
+    assert payload["transverse_part_claimed"] is False
+    report = ROOT / "validation" / "outputs" / "response" / "bdg_finite_q" / "stageSC_2j_longitudinal_ward_completion_audit.md"
+    if not report.exists():
+        from stageSC_2j_longitudinal_ward_completion_audit import write_report
+
+        write_report(payload)
+    text = report.read_text(encoding="utf-8")
+    assert "longitudinal part only" in text or "only the longitudinal" in text
