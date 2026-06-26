@@ -421,6 +421,27 @@ def bdg_finite_q_response_imag_axis(
         raise ValueError("collective_mode must be 'none', 'phase_only', or 'amplitude_phase'")
     if collective_counterterm not in {"none", "goldstone_gap_equation"}:
         raise ValueError("collective_counterterm must be 'none' or 'goldstone_gap_equation'")
+    from .finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
+    from .pairing_ansatz import build_pairing_ansatz
+
+    ansatz = build_pairing_ansatz(pairing, phase_vertex=phase_vertex)
+    return finite_q_bdg_response_from_ansatz(
+        ansatz,
+        omega_eV,
+        q,
+        points,
+        weights,
+        config,
+        pairing_params,
+        FiniteQEngineOptions(
+            include_phase_correction=include_phase_correction,
+            current_vertex=current_vertex,
+            include_phase_phase_direct=include_phase_phase_direct,
+            phase_phase_direct_convention=phase_phase_direct_convention,
+            collective_mode=collective_mode,
+            collective_counterterm=collective_counterterm,
+        ),
+    )
     amp = pairing_params or PairingAmplitudes()
     delta0 = float(amp.delta0_eV)
     collective_mode_disabled_reason = None

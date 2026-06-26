@@ -25,6 +25,7 @@ from .conductivity import (
 from .gap_analysis import gap_statistics_by_band, gap_statistics_on_fermi_surface
 from .model import NormalStateParameters, normal_state_hamiltonian
 from .pairing import PairingAmplitudes, PairingKind, bdg_hamiltonian, pairing_matrix
+from .pairing_ansatz import PairingAnsatz, build_pairing_ansatz
 from .response_interface import (
     LocalSheetResponse,
     ResponseKind,
@@ -39,6 +40,7 @@ from .response_units import (
     require_sheet_conductivity_for_reflection,
     sheet_conductivity_to_reflection_dimensionless,
 )
+from .ward_validation import WardValidationReport, validate_physical_ward_identity
 
 __all__ = [
     "BdGKernelComponents",
@@ -49,14 +51,17 @@ __all__ = [
     "LocalSheetResponse",
     "NormalStateParameters",
     "PairingAmplitudes",
+    "PairingAnsatz",
     "PairingKind",
     "ResponseKind",
     "ResponseUnitConvention",
     "SheetConductivityConvention",
+    "WardValidationReport",
     "bdg_hamiltonian",
     "bdg_superconducting_response_imag_axis",
     "bdg_total_kernel_imag_axis",
     "bosonic_matsubara_energy_eV",
+    "build_pairing_ansatz",
     "casimir_energy_integrand",
     "casimir_torque_integrand",
     "compare_local_responses_imag_axis",
@@ -72,4 +77,5 @@ __all__ = [
     "sheet_conductivity_to_reflection_dimensionless",
     "uniform_bz_mesh",
     "validate_local_response_symmetry",
+    "validate_physical_ward_identity",
 ]

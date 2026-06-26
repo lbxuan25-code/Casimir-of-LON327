@@ -79,6 +79,7 @@ from stageSC_2k_gauge_covariant_collective_package_audit import (  # noqa: E402
     REQUIRED_PACKAGE_VARIANTS as REQUIRED_PACKAGE_VARIANTS_2K,
     build_payload as build_stageSC_2k_payload,
 )
+from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -89,7 +90,9 @@ from lno327.bdg_finite_q_response import (
 )
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
 from lno327.pairing import PairingAmplitudes, dwave_pairing_matrix, spm_pairing_matrix
+from lno327.pairing_ansatz import build_pairing_ansatz
 from lno327.pairing_bonds import bond_endpoint_gauge_form_factor, pairing_from_bonds
+from lno327.ward_validation import validate_physical_ward_identity
 from lno327.ward_response import normal_physical_density_current_response_imag_axis
 from lno327.tb_fourier import (
     normal_state_hamiltonian_from_hoppings,
@@ -138,6 +141,98 @@ def test_bdg_finite_q_response_shapes_with_and_without_phase_correction():
         assert result.metadata["nambu_prefactor"] == 0.5
         assert result.metadata["collective_channels"] == ["global_phase_only"]
         assert result.metadata["phase_phase_total_definition"] == "bubble + direct"
+
+
+def test_finite_q_wrapper_matches_generic_ansatz_engine():
+    q, points, weights, config, amp = _inputs()
+    wrapper = bdg_finite_q_response_imag_axis(
+        "dwave",
+        config.omega_eV,
+        q,
+        points,
+        weights,
+        config,
+        amp,
+        phase_vertex="bond_endpoint_gauge",
+    )
+    engine = finite_q_bdg_response_from_ansatz(
+        build_pairing_ansatz("dwave", phase_vertex="bond_endpoint_gauge"),
+        config.omega_eV,
+        q,
+        points,
+        weights,
+        config,
+        amp,
+        FiniteQEngineOptions(),
+    )
+    for field in (
+        "bare_bubble",
+        "direct",
+        "bare_total",
+        "em_collective_left",
+        "collective_em_right",
+        "collective_bubble",
+        "collective_counterterm",
+        "collective_total",
+        "amplitude_phase_schur",
+    ):
+        np.testing.assert_allclose(getattr(wrapper, field), getattr(engine, field), rtol=1e-12, atol=1e-12)
+
+
+def test_generic_finite_q_engine_has_no_pairing_name_branching():
+    text = (ROOT / "src" / "lno327" / "finite_q_engine.py").read_text(encoding="utf-8")
+    forbidden = [
+        'pairing == "dwave"',
+        "pairing == 'dwave'",
+        'pairing == "spm"',
+        "pairing == 'spm'",
+        'ansatz.name == "dwave"',
+        "ansatz.name == 'dwave'",
+        'ansatz.name == "spm"',
+        "ansatz.name == 'spm'",
+    ]
+    assert not any(item in text for item in forbidden)
+
+
+def test_pairing_ansatz_shapes_and_counterterms():
+    _, points, weights, config, amp = _inputs()
+    for name in ("onsite_s", "spm", "dwave"):
+        ansatz = build_pairing_ansatz(name, phase_vertex="bond_endpoint_gauge")
+        assert ansatz.mean_pairing(0.2, -0.1, amp).shape == (4, 4)
+        assert ansatz.collective_form_factor(0.2, -0.1, 0.05, 0.0, amp).shape == (4, 4)
+        vertices = ansatz.collective_vertices(0.2, -0.1, 0.05, 0.0, amp)
+        assert len(vertices) == len(ansatz.channel_names)
+        assert all(vertex.shape == (8, 8) for vertex in vertices)
+        assert ansatz.hs_counterterm(config, points, weights, amp).shape == (
+            len(ansatz.channel_names),
+            len(ansatz.channel_names),
+        )
+
+
+def test_ward_validation_is_pure_diagnostic():
+    response = np.array([[1.0, 0.2j, 0.0], [-0.2j, 0.7, 0.1], [0.0, 0.1, 0.4]], dtype=complex)
+    before = response.copy()
+    report = validate_physical_ward_identity(response, 0.01, np.array([0.1, 0.0]), tolerance=1e-8)
+    np.testing.assert_allclose(response, before)
+    assert report.left_residual.shape == (3,)
+    assert report.right_residual.shape == (3,)
+    assert isinstance(report.passed, bool)
+
+
+def test_raw_finite_q_response_is_not_casimir_ready():
+    q, points, weights, config, amp = _inputs()
+    result = bdg_finite_q_response_imag_axis(
+        "spm",
+        config.omega_eV,
+        q,
+        points,
+        weights,
+        config,
+        amp,
+        phase_vertex="bond_endpoint_gauge",
+    )
+    assert result.metadata.get("valid_for_casimir_input") is False
+    assert "casimir_gating_status" in result.metadata
 
 
 def test_small_phase_phase_has_clear_warning_metadata():

@@ -161,7 +161,7 @@ def test_second_run_reads_response_cache(quick_run, tmp_path):
         capture_output=True,
     )
 
-    summary = SUMMARY.read_text(encoding="utf-8")
+    summary = (second_output.parent / "refined_convergence_summary.md").read_text(encoding="utf-8")
     assert "response_cache_used=True" in summary
     assert "response_cache_rebuilt=False" in summary
     assert "response_cache_misses=0" in summary
