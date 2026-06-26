@@ -14,7 +14,7 @@
 
 ## 阅读顺序
 
-1. `../docs/reports/current_project_status.md`
+1. `../docs/current_route.md`
 2. `normal_state/README.md`
 3. `pairing/gap_structure/README.md`
 4. `bdg/total_kernel_imag/README.md`
