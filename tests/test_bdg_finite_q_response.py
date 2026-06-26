@@ -194,6 +194,19 @@ def test_generic_finite_q_engine_has_no_pairing_name_branching():
     assert not any(item in text for item in forbidden)
 
 
+def test_generic_finite_q_engine_does_not_import_legacy_facade():
+    text = (ROOT / "src" / "lno327" / "finite_q_engine.py").read_text(encoding="utf-8")
+    assert "from .bdg_finite_q_response import" not in text
+
+
+def test_legacy_finite_q_wrapper_has_no_unreachable_engine_body():
+    text = (ROOT / "src" / "lno327" / "bdg_finite_q_response.py").read_text(encoding="utf-8")
+    after_return = text.split("return finite_q_bdg_response_from_ansatz(", maxsplit=1)[1]
+    assert "for weight, (kx_value, ky_value) in zip" not in after_return
+    assert "collective_inv = np.linalg" not in after_return
+    assert "amplitude_phase_schur = bare_total - em_collective_left" not in after_return
+
+
 def test_pairing_ansatz_shapes_and_counterterms():
     _, points, weights, config, amp = _inputs()
     for name in ("onsite_s", "spm", "dwave"):

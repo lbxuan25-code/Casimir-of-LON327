@@ -9,17 +9,17 @@ import warnings
 import numpy as np
 
 from .bdg_response import bdg_current_vertex, bdg_diamagnetic_vertex
-from .bdg_finite_q_response import (
+from .finite_q_primitives import (
     BdGFiniteQResponseComponents,
-    _add_bubble,
-    _density_vertex,
-    _phase_phase_direct_vertex,
-    _phase_vertex,
-    _thermal_expectation_bdg,
-    _validate_inputs,
-    _ward_metadata,
+    add_bubble,
     bdg_finite_q_contact_vertex,
     bdg_finite_q_vector_vertex,
+    density_vertex,
+    phase_phase_direct_vertex,
+    phase_vertex,
+    thermal_expectation_bdg,
+    validate_finite_q_inputs,
+    ward_metadata,
 )
 from .conductivity import KuboConfig, fermi_function
 from .pairing import PairingAmplitudes, bdg_hamiltonian
@@ -67,7 +67,7 @@ def finite_q_bdg_response_from_ansatz(
         raise ValueError("collective_mode must be 'none', 'phase_only', or 'amplitude_phase'")
     if opts.collective_counterterm not in {"none", "goldstone_gap_equation"}:
         raise ValueError("collective_counterterm must be 'none' or 'goldstone_gap_equation'")
-    q, points, weights = _validate_inputs(q_model, k_points, k_weights, config)
+    q, points, weights = validate_finite_q_inputs(q_model, k_points, k_weights, config)
     amp = pairing_params or PairingAmplitudes()
     delta0 = float(amp.delta0_eV)
     collective_mode = opts.collective_mode
@@ -77,7 +77,7 @@ def finite_q_bdg_response_from_ansatz(
         collective_mode_disabled_reason = "delta0=0 normal limit"
 
     qx, qy = float(q[0]), float(q[1])
-    rho = _density_vertex()
+    rho = density_vertex()
     bubble = np.zeros((3, 3), dtype=complex)
     direct = np.zeros((3, 3), dtype=complex)
     phase_left = np.zeros(3, dtype=complex)
@@ -110,7 +110,7 @@ def finite_q_bdg_response_from_ansatz(
             vy = bdg_current_vertex(kx, ky, "y")
         observable_vertices = (rho, -vx, -vy)
         source_vertices = (rho, vx, vy)
-        _add_bubble(
+        add_bubble(
             bubble,
             observable_vertices,
             source_vertices,
@@ -125,7 +125,7 @@ def finite_q_bdg_response_from_ansatz(
         )
         if collective_mode == "amplitude_phase":
             collective_vertices = ansatz.collective_vertices(kx, ky, qx, qy, amp)
-            _add_bubble(
+            add_bubble(
                 em_collective_left,
                 observable_vertices,
                 collective_vertices,
@@ -138,7 +138,7 @@ def finite_q_bdg_response_from_ansatz(
                 config.omega_eV,
                 float(weight),
             )
-            _add_bubble(
+            add_bubble(
                 collective_em_right,
                 collective_vertices,
                 source_vertices,
@@ -151,7 +151,7 @@ def finite_q_bdg_response_from_ansatz(
                 config.omega_eV,
                 float(weight),
             )
-            _add_bubble(
+            add_bubble(
                 collective_bubble,
                 collective_vertices,
                 collective_vertices,
@@ -167,9 +167,9 @@ def finite_q_bdg_response_from_ansatz(
 
         delta_mid = ansatz.mean_pairing(kx, ky, amp)
         delta_theta = ansatz.phase_pairing_matrix(kx, ky, qx, qy, amp)
-        theta = _phase_vertex(delta_theta)
+        theta = phase_vertex(delta_theta)
         tmp_left = np.zeros((3, 1), dtype=complex)
-        _add_bubble(
+        add_bubble(
             tmp_left,
             observable_vertices,
             (theta,),
@@ -184,7 +184,7 @@ def finite_q_bdg_response_from_ansatz(
         )
         phase_left += tmp_left[:, 0]
         tmp_right = np.zeros((1, 3), dtype=complex)
-        _add_bubble(
+        add_bubble(
             tmp_right,
             (theta,),
             source_vertices,
@@ -198,7 +198,7 @@ def finite_q_bdg_response_from_ansatz(
             float(weight),
         )
         phase_right += tmp_right[0, :]
-        _add_bubble(
+        add_bubble(
             phase_phase_bubble_matrix,
             (theta,),
             (theta,),
@@ -211,8 +211,8 @@ def finite_q_bdg_response_from_ansatz(
             config.omega_eV,
             float(weight),
         )
-        theta_theta = _phase_phase_direct_vertex(delta_theta)
-        direct_value = float(weight) * _thermal_expectation_bdg(kx, ky, delta_mid, theta_theta, config)
+        theta_theta = phase_phase_direct_vertex(delta_theta)
+        direct_value = float(weight) * thermal_expectation_bdg(kx, ky, delta_mid, theta_theta, config)
         phase_phase_direct_plus += direct_value
         phase_phase_direct_minus -= direct_value
 
@@ -222,7 +222,7 @@ def finite_q_bdg_response_from_ansatz(
                     vertex = bdg_finite_q_contact_vertex(kx, ky, qx, qy, direction_i, direction_j)
                 else:
                     vertex = bdg_diamagnetic_vertex(kx, ky, direction_i, direction_j)
-                direct[1 + i, 1 + j] += -float(weight) * _thermal_expectation_bdg(kx, ky, delta_mid, vertex, config)
+                direct[1 + i, 1 + j] += -float(weight) * thermal_expectation_bdg(kx, ky, delta_mid, vertex, config)
 
     bare_total = bubble + direct
     phase_phase_bubble = complex(phase_phase_bubble_matrix[0, 0])
@@ -252,9 +252,11 @@ def finite_q_bdg_response_from_ansatz(
         else:
             gauge_restored = minus_schur
             phase_status = "applied"
-    ward_bare = _ward_metadata(bare_total, config.omega_eV, q)
-    ward_minus = _ward_metadata(minus_schur, config.omega_eV, q)
-    ward_plus = _ward_metadata(plus_schur, config.omega_eV, q)
+    # Legacy diagnostic metadata only; the engine never uses Ward residuals to
+    # modify or repair the response. Use ward_validation.py for formal reports.
+    ward_bare = ward_metadata(bare_total, config.omega_eV, q)
+    ward_minus = ward_metadata(minus_schur, config.omega_eV, q)
+    ward_plus = ward_metadata(plus_schur, config.omega_eV, q)
     collective_counterterm_matrix = np.zeros((2, 2), dtype=complex)
     goldstone_counterterm_cg = 0.0 + 0.0j
     if collective_mode == "amplitude_phase" and opts.collective_counterterm == "goldstone_gap_equation":
@@ -276,7 +278,7 @@ def finite_q_bdg_response_from_ansatz(
         if opts.include_phase_correction:
             gauge_restored = amplitude_phase_schur
             phase_status = "amplitude_phase_applied"
-    ward_amp_phase = _ward_metadata(amplitude_phase_schur, config.omega_eV, q)
+    ward_amp_phase = ward_metadata(amplitude_phase_schur, config.omega_eV, q)
     selected_gauge = (
         "amplitude_phase_schur"
         if collective_mode == "amplitude_phase" and opts.include_phase_correction

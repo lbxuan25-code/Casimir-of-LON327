@@ -1,4 +1,9 @@
-"""Pairing ansatz inputs for the generic finite-q BdG response engine."""
+"""Pairing ansatz inputs for the generic finite-q BdG response engine.
+
+Phase-vertex choices such as midpoint, symmetric_kpm, and endpoint gauge are
+model-input / order-parameter-vertex preprocessing. They are intentionally kept
+outside the generic response engine.
+"""
 
 from __future__ import annotations
 
@@ -45,7 +50,11 @@ def _kubo_static_factor(
 
 @dataclass(frozen=True)
 class PairingAnsatz:
-    """Minimal separable pairing ansatz consumed by the generic response engine."""
+    """Minimal separable fixed-form-factor ansatz.
+
+    Only eta1 amplitude and eta2 phase are retained. Bond-resolved extra modes
+    and omitted xi-like modes are not introduced in this input layer.
+    """
 
     name: PairingAnsatzName
     phase_vertex: PhaseVertexName = "bond_endpoint_gauge"

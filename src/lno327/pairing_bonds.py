@@ -1,4 +1,8 @@
-"""Real-space pairing-bond diagnostics for finite-q collective vertices."""
+"""Real-space pairing-bond preprocessing for finite-q collective vertices.
+
+These helpers belong to the model-input / order-parameter-vertex layer. They
+do not define the generic response engine or add bond-resolved collective modes.
+"""
 
 from __future__ import annotations
 
