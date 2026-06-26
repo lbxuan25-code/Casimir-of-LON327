@@ -1,0 +1,84 @@
+{
+  "status": "DIAGNOSTIC_ONLY",
+  "diagnostic_only": true,
+  "valid_for_casimir_input": false,
+  "summary": {
+    "unit_conversion_candidate_available": true,
+    "reflection_input_formatter_available": true,
+    "te_tm_adapter_available": true,
+    "full_lifshitz_casimir_pipeline_validated": false,
+    "blocking_reason": "raw response still requires Ward validation, accepted unit policy, and n=0 policy before formal Casimir input"
+  },
+  "stages": {
+    "response_to_conductivity_convention": {
+      "source": "stage5_1_response_to_conductivity_convention_audit.json",
+      "status": "CONVENTION_NOT_UNIQUELY_DETERMINED_FROM_CODE"
+    },
+    "bilayer_sheet_conductivity_convention": {
+      "source": "stage5_1b_bilayer_sheet_conductivity_convention.json",
+      "status": "CONVENTION_FIXED"
+    },
+    "conductivity_sanity_scan": {
+      "source": "stage5_2_bilayer_sheet_conductivity_sanity_scan.json",
+      "status": "CONDUCTIVITY_SANITY_MONITOR_OFFDIAG"
+    },
+    "conductivity_symmetry_convergence": {
+      "source": "stage5_3_bilayer_sheet_conductivity_symmetry_convergence_audit.json",
+      "status": "CONDUCTIVITY_SYMMETRY_AUDIT_REQUIRES_FURTHER_SOURCE_SYMMETRY_AUDIT"
+    },
+    "offdiag_convergence": {
+      "source": "stage5_3b_bilayer_sheet_conductivity_offdiag_convergence_audit.json",
+      "status": "STAGE5_3B_PASSED_STABLE_FINITE_Q_LATTICE_TENSOR_EFFECT"
+    },
+    "unit_conversion": {
+      "source": "stage5_4a_conductivity_unit_conversion.json",
+      "status": "STAGE5_4A_CONDUCTIVITY_UNIT_CONVERSION_PASSED"
+    },
+    "dimensionless_sheet_conductivity": {
+      "source": "stage5_4b_si_sheet_dimensionless_conductivity.json",
+      "status": "STAGE5_4B_CONDUCTIVITY_CONVERSION_PASSED"
+    },
+    "reflection_input_tensor": {
+      "source": "stage5_5b_reflection_input_tensor.json",
+      "status": "STAGE5_5B_REFLECTION_INPUT_FORMATTER_PASSED"
+    },
+    "te_tm_reflection_adapter": {
+      "source": "stage5_6_te_tm_reflection_adapter.json",
+      "status": "STAGE5_6_TE_TM_ADAPTER_PASSED"
+    },
+    "pre_lifshitz_readiness": {
+      "source": "stage5_7_pre_lifshitz_readiness_audit.json",
+      "status": "STAGE5_7_PRE_LIFSHITZ_READINESS_PASSED"
+    },
+    "casimir_integrand_prototype": {
+      "source": "stage5_8_casimir_integrand_prototype.json",
+      "status": "STAGE5_8_CASIMIR_INTEGRAND_PROTOTYPE_PASSED"
+    },
+    "casimir_grid_scaffold": {
+      "source": "stage5_9_casimir_grid_planning_scaffold.json",
+      "status": "STAGE5_9_CASIMIR_GRID_SCAFFOLD_PASSED"
+    },
+    "toy_casimir_integration": {
+      "source": "stage5_10_toy_casimir_integration_convergence_audit.json",
+      "status": "STAGE5_10_TOY_CASIMIR_INTEGRATION_CONVERGENCE_AUDIT_PASSED"
+    },
+    "material_reflection_grid_latest": {
+      "source": "stage5_11c_real_material_reflection_grid_full36_order7_workers8.json",
+      "status": "STAGE5_11_REAL_MATERIAL_REFLECTION_GRID_PROTOTYPE_PASSED"
+    },
+    "small_real_material_energy_prototype": {
+      "source": "stage5_12_small_real_material_energy_prototype.json",
+      "status": "STAGE5_12_SMALL_REAL_MATERIAL_ENERGY_PROTOTYPE_PASSED"
+    },
+    "zero_mode_grid_convergence": {
+      "source": "stage5_13_zero_mode_grid_convergence_audit.json",
+      "status": "STAGE5_13_ZERO_MODE_GRID_CONVERGENCE_AUDIT_PASSED"
+    }
+  },
+  "casimir_boundary": {
+    "no_formal_energy_force_torque_claim": true,
+    "requires_ward_validation": true,
+    "requires_unit_policy": true,
+    "requires_n0_policy": true
+  }
+}

@@ -179,7 +179,7 @@ def test_missing_validated_finite_q_sc_backend_fails_loudly_without_local_q0_fal
 
 
 def test_formal_validation_marker_path_and_override_flag_are_explicit():
-    assert VALIDATION_MARKER_PATH.name == "stageSC_5_bdg_reflection_input_audit.json"
+    assert VALIDATION_MARKER_PATH.name == "bdg_finite_q_validation_status.json"
     script = RUN_SCRIPT.read_text(encoding="utf-8")
     assert "--allow-unvalidated-bdg-response" in script
 

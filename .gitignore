@@ -31,6 +31,7 @@ validation/logs/**/*.log
 !validation/outputs/**/*summary*.md
 !validation/outputs/**/*summary*.json
 !validation/outputs/**/*summary*.csv
+!validation/outputs/**/*status*.json
 !validation/outputs/**/command.sh
 !validation/outputs/**/*command*.sh
 

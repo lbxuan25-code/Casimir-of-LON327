@@ -1,0 +1,99 @@
+{
+  "status": "FAILED",
+  "diagnostic_only": true,
+  "valid_for_casimir_input": false,
+  "summary": {
+    "finite_q_bdg_engine_available": true,
+    "generic_engine_separated_from_pairing_ansatz": true,
+    "raw_finite_q_bdg_not_casimir_ready": true,
+    "blocking_reason": "amplitude/phase Ward restoration and reflection-input audit are not fully validated"
+  },
+  "stages": {
+    "operator_ward_vertex_audit": {
+      "source": "stageSC_0_bdg_operator_ward_vertex_audit.json",
+      "status": "PASSED"
+    },
+    "bubble_ward_transfer": {
+      "source": "stageSC_0b_bdg_bubble_ward_transfer_audit.json",
+      "status": "FAILED"
+    },
+    "contact_remainder_decomposition": {
+      "source": "stageSC_0c_bdg_contact_remainder_decomposition_audit.json",
+      "status": "FAILED"
+    },
+    "shifted_grid_response_assembly": {
+      "source": "stageSC_0e_bdg_shifted_grid_response_assembly_audit.json",
+      "status": "PASSED"
+    },
+    "bare_kernel_audit": {
+      "source": "stageSC_1_bdg_finite_q_bare_kernel_audit.json",
+      "status": "PASSED"
+    },
+    "phase_gauge_restoration": {
+      "source": "stageSC_2_bdg_phase_gauge_restoration_audit.json",
+      "status": "FAILED"
+    },
+    "extended_ward_identity": {
+      "source": "stageSC_2a_bdg_extended_ward_identity_audit.json",
+      "status": "FAILED"
+    },
+    "amplitude_phase_gauge_restoration": {
+      "source": "stageSC_2b_bdg_amplitude_phase_gauge_restoration_audit.json",
+      "status": "FAILED"
+    },
+    "commensurate_q_collective_control": {
+      "source": "stageSC_2bC_bdg_amplitude_phase_commensurate_q_audit.json",
+      "status": "PARTIAL_PASS_MATERIAL_DWAVE_BLOCKED"
+    },
+    "pairing_bond_collective_vertex": {
+      "source": "stageSC_2d_pairing_bond_collective_vertex_audit.json",
+      "status": "PARTIAL_PASS_DWAVE_COUNTERTERM_BLOCKED"
+    },
+    "unified_goldstone_tangent": {
+      "source": "stageSC_2e_unified_goldstone_tangent_audit.json",
+      "status": "PARTIAL_PASS_DWAVE_SCHUR_BLOCKED"
+    },
+    "schur_block_assembly": {
+      "source": "stageSC_2f_schur_block_assembly_audit.json",
+      "status": "PASSED_STAGE2F_MIXED_DIRECT_IDENTIFIED"
+    },
+    "analytic_mixed_direct": {
+      "source": "stageSC_2g_analytic_mixed_direct_audit.json",
+      "status": "PARTIAL_STAGE2G_LSQ_CLOSES_BUT_ANALYTIC_DOES_NOT"
+    },
+    "lsq_mixed_block_projection": {
+      "source": "stageSC_2h_lsq_mixed_block_projection_audit.json",
+      "status": "PARTIAL_STAGE2H_INTEGRATED_ONLY_K_RESOLVED_NEEDED"
+    },
+    "k_resolved_mixed_block": {
+      "source": "stageSC_2i_k_resolved_mixed_block_audit.json",
+      "status": "PARTIAL_STAGE2I_NO_CLEAR_K_BASIS"
+    },
+    "longitudinal_ward_completion": {
+      "source": "stageSC_2j_longitudinal_ward_completion_audit.json",
+      "status": "PARTIAL_STAGE2J_LONGITUDINAL_IMPROVES_BUT_NOT_CLOSED"
+    },
+    "gauge_covariant_collective_package": {
+      "source": "stageSC_2k_gauge_covariant_collective_package_audit.json",
+      "status": "FAILED_STAGE2K_CONTROL_REGRESSION"
+    },
+    "normal_limit": {
+      "source": "stageSC_3_bdg_normal_limit_audit.json",
+      "status": "PASSED"
+    },
+    "q0_limit": {
+      "source": "stageSC_4_bdg_q0_limit_audit.json",
+      "status": "PASSED"
+    },
+    "reflection_input_audit": {
+      "source": "stageSC_5_bdg_reflection_input_audit.json",
+      "status": "FAILED"
+    }
+  },
+  "casimir_boundary": {
+    "no_casimir_energy_force_torque": true,
+    "requires_ward_validation": true,
+    "requires_unit_conversion_policy": true,
+    "requires_n0_policy": true
+  }
+}

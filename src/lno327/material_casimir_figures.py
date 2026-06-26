@@ -33,7 +33,14 @@ UNVALIDATED_BDG_RESPONSE_MESSAGE = (
     "finite-q BdG response validation marker is missing or not PASSED; "
     "rerun validation or pass --allow-unvalidated-bdg-response"
 )
-VALIDATION_MARKER_PATH = Path(__file__).resolve().parents[2] / "validation" / "outputs" / "response" / "bdg_finite_q" / "stageSC_5_bdg_reflection_input_audit.json"
+VALIDATION_MARKER_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "validation"
+    / "outputs"
+    / "response"
+    / "bdg_finite_q"
+    / "bdg_finite_q_validation_status.json"
+)
 BOUNDARY = {
     "finite_grid_publication_style_candidate_result": True,
     "not_full_convergence_audit": True,
@@ -193,7 +200,12 @@ def _bdg_validation_status(marker_path: Path = VALIDATION_MARKER_PATH) -> dict[s
         data = json.loads(marker_path.read_text(encoding="utf-8"))
     except Exception as exc:
         return {"status": "INVALID", "path": str(marker_path), "error": str(exc)}
-    return {"status": data.get("status"), "path": str(marker_path)}
+    return {
+        "status": data.get("status"),
+        "valid_for_casimir_input": data.get("valid_for_casimir_input"),
+        "diagnostic_only": data.get("diagnostic_only"),
+        "path": str(marker_path),
+    }
 
 
 def stage5_reflection_from_response(

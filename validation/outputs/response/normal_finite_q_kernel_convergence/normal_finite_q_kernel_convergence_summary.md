@@ -1,29 +1,33 @@
-# normal finite-q current-current kernel 收敛诊断
+# Normal finite-q current-current kernel 收敛诊断
 
-本脚本只测试 normal finite-q current-current kernel (K)。
-q=0 与 q!=0 都通过同一 K 接口 normal_current_current_kernel_imag_axis 计算。
-q=0 分支不再调用 public local sigma。
-public sigma 不进入 K 字段或主判据；若另行比较只能作为 auxiliary/debug。
-默认只测 n>=1 positive Matsubara；本阶段不处理 n=0 true static。
-Matsubara 频率直接使用 bosonic_matsubara_energy_eV(n, temperature_K)；不使用 omega+eta 频率展宽。
-current-current-only 不是 gauge-closed finite-q conductivity。
-Ward identity 尚未检查。
-本脚本不修改 BdG、Casimir、reflection matrix。
-本脚本不输出最终 finite-q conductivity 或 Casimir 结论。
+## 检验对象
 
-run_command = `python validation/scripts/numerical_stability/diagnose_normal_finite_q_response.py --matsubara-n-list 1 2 4 8 --temperature 30 --q-list 0 1e-4 2e-4 5e-4 1e-3 2e-3 5e-3 --q-angle-list 0 pi/8 pi/4 '3*pi/8' pi/2 --nk-list 16 24 32 --output-prefix validation/outputs/response/normal_finite_q_kernel_convergence/data/normal_finite_q_kernel_convergence_full`
-quick_mode=False
-finite_momentum_resolved=True
-normal_state=True
-current_current_kernel_only=True
-midpoint_vertex_approximation=True
-not_peierls_exact_vertex=True
-ward_identity_not_yet_checked=True
-not_final_casimir_input=True
+本目录检验 normal-state finite-q current-current kernel `K_ij(q, iOmega_n)` 的数值一致性。它关注 kernel 层的同接口计算和有限动量行为，不等于完整 finite-q conductivity。
 
-## 快速诊断状态
-- q=0 same-interface error: 0
-- smallest sampled nonzero q: 0.0001
-- maximum same-interface error at smallest nonzero q: 0.000205641
-- maximum C4 covariance error: 6.58137e-15
-- all K components finite: True
+## 当前设置
+
+- `q=0` 和 `q!=0` 使用同一 finite-q kernel 接口计算。
+- `q=0` 分支不再调用 public local sigma。
+- 默认只检查 `n>=1` 的正 Matsubara 点。
+- 本阶段不处理 `n=0` true static。
+- Matsubara 频率直接使用 bosonic Matsubara energy，不使用额外 `omega+eta` 展宽。
+- current-current-only 不是 gauge-closed finite-q conductivity。
+- Ward identity 尚未在该诊断中闭合检查。
+
+## 关键结果
+
+- q=0 same-interface error: `0`
+- smallest sampled nonzero q: `0.0001`
+- maximum same-interface error at smallest nonzero q: `0.000205641`
+- maximum C4 covariance error: `6.58137e-15`
+- all K components finite: `true`
+
+## 当前结论
+
+该诊断可作为 normal-state finite-q current-current kernel 的数值一致性证据：同一接口在 `q=0` 极限上闭合，非零小 q 的误差处于可追踪范围，C4 covariance 检查未显示明显数值破坏。
+
+但它不代表完整 finite-q conductivity，也不代表 gauge-closed finite-q response。该结果不进入正式 Casimir input。
+
+## 复现入口
+
+主要命令保存在 `command.sh`。运行后生成的 `data/`、`figures/` 仍为 ignored artifact。

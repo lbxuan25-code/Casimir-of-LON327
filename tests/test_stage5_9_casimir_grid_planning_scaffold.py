@@ -91,10 +91,12 @@ def test_round_trip_factor_range():
     assert all(0.0 < factor <= 1.0 for factor in factors)
 
 
-def test_q_zero_warning_present():
+def test_q_zero_warning_present(tmp_path):
     module = _load_module()
+    input_json = tmp_path / "stage5_8.json"
+    _synthetic_stage5_8(input_json)
     data = module.run_scaffold(
-        Path("validation/outputs/response/casimir_integrand/stage5_8_casimir_integrand_prototype.json"),
+        input_json,
         temperature_K=10.0,
         n_max=8,
         q_max_nm_inv=0.5,
@@ -106,10 +108,12 @@ def test_q_zero_warning_present():
     assert module.Q0_WARNING in data["warnings"]
 
 
-def test_response_grid_insufficiency_warning_present():
+def test_response_grid_insufficiency_warning_present(tmp_path):
     module = _load_module()
+    input_json = tmp_path / "stage5_8.json"
+    _synthetic_stage5_8(input_json)
     data = module.run_scaffold(
-        Path("validation/outputs/response/casimir_integrand/stage5_8_casimir_integrand_prototype.json"),
+        input_json,
         temperature_K=10.0,
         n_max=8,
         q_max_nm_inv=0.5,
