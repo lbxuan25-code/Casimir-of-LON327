@@ -1,30 +1,52 @@
-# 验证指南
+# Validation Guide
 
-本目录集中保存数值可信度、收敛性、公式诊断、Casimir convergence benchmark、
-历史 smoke 和 cache。主 `scripts/` / `outputs/` 保存当前计算入口、材料结果和边界
-清楚的初级结论。
+`validation/` stores validation logic, lightweight conclusions, and reproduction
+entry points. It is not a long-term home for raw numerical artifacts.
 
-## 目录结构
+## Directory Layout
 
-- `scripts/numerical_stability/`：response convergence、normal sampling、high-Nk、n=0 sensitivity 等。
-- `scripts/response/`：local sheet response、static policy。
-- `scripts/casimir/`：local-response Casimir convergence、refinement 和流程检查。
-- `scripts/smoke/`：历史 smoke / plumbing 检查。
-- `outputs/`：上述验证脚本对应的当前输出和 summary。
-- `cache/`：可复用中间张量，例如 local-response Casimir response tensors。
+- `scripts/`: reproducible validation, diagnostic, convergence, and smoke-entry scripts.
+- `outputs/`: lightweight summaries, reports, command records, and small machine-readable metrics.
+- `cache/`: regenerable response tensors or intermediate arrays used to speed up validation.
+- `reports/`: curated inventory and cross-topic validation summaries.
 
-## 阅读顺序
+## Artifact Policy
 
-1. `../docs/reports/current_project_status.md`
-2. `outputs/numerical_stability/README.md`
-3. `../outputs/casimir/local_response_distance_scan/distance_scan_summary.md`
-4. `outputs/response/normal_finite_q_kernel_convergence/normal_finite_q_kernel_convergence_summary.md`
+Long-term Git-tracked evidence should be compact:
 
-## 维护原则
+- README files;
+- summary markdown;
+- small summary JSON or CSV;
+- command scripts or reproduction command records;
+- validation report documents.
 
-- validation 结果是支撑证据，不是主 `outputs/` 的材料本征结果。
-- 大型 `.csv`、`.npz`、`.png` 继续保留并上传，便于 ChatGPT 或外部审阅复查。
-- `.csv` 作为可读表格摘要；同名 `.npz` 可以额外包含运行参数、网格列表、
-  partial sums 或其他中间数组，因此不要求两者字段完全一一对应。
-- 新的 convergence / diagnostic / benchmark-only 输出默认写入 `validation/outputs/`。
-- 新的 cache 默认写入 `validation/cache/`。
+Generated artifacts are ignored by default:
+
+- `.npz` / `.npy`;
+- raw, expanded, or large data CSV files;
+- cache tensors;
+- intermediate outputs;
+- repeated benchmark figures;
+- scratch logs.
+
+`validation/cache/` is always regenerable. `validation/outputs/` may contain
+small summaries, but large data products should be recreated by running the
+corresponding script.
+
+Any large artifact that must be kept should be justified in
+`validation/reports/validation_artifact_inventory.md` or in the report that
+uses it. New validation tasks should write raw artifacts to ignored paths and
+emit a compact summary markdown/json/csv next to them.
+
+## Reading Order
+
+1. `validation/reports/validation_summary.md`
+2. `validation/reports/validation_artifact_inventory.md`
+3. Topic-specific summaries under `validation/outputs/**`
+4. Reproduction scripts under `validation/scripts/**`
+
+## Reproduction
+
+Reports list their primary script entry points. Existing `command.sh` files or
+command snippets should be kept when available. If an ignored artifact is
+needed for inspection, rerun the corresponding script and regenerate it locally.

@@ -6,7 +6,35 @@ __pycache__/
 !outputs/**/.gitkeep
 !outputs/**/README.md
 
-# Large reproducible unit-audit data
+# Validation generated artifacts
+validation/cache/**/*.npz
+validation/cache/**/*.npy
+validation/cache/**/*.csv
+validation/cache/**/*.jsonl
+
+validation/outputs/**/data/*.npz
+validation/outputs/**/data/*.npy
+validation/outputs/**/data/*.csv
+validation/outputs/**/data/*expanded*.csv
+validation/outputs/**/data/*raw*.csv
+validation/outputs/**/raw/**
+validation/outputs/**/intermediate/**
+validation/outputs/**/figures/*.png
+validation/outputs/**/figures/*.pdf
+validation/logs/*.log
+validation/logs/**/*.log
+
+# Keep validation documentation and lightweight summaries
+!validation/README.md
+!validation/reports/**
+!validation/outputs/**/README.md
+!validation/outputs/**/*summary*.md
+!validation/outputs/**/*summary*.json
+!validation/outputs/**/*summary*.csv
+!validation/outputs/**/command.sh
+!validation/outputs/**/*command*.sh
+
+# Historical large reproducible unit-audit data
 validation/outputs/**/data/*.npz
 validation/outputs/**/data/*expanded*.csv
 validation/outputs/units/casimir_q_grid_model_q_audit/data/casimir_q_grid_model_q_audit.csv

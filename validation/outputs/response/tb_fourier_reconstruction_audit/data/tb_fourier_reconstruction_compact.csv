@@ -1,2 +1,0 @@
-hamiltonian_representation,num_k_points,max_abs_reconstruction_error,max_rel_reconstruction_error,max_hopping_hermiticity_error,quick_mode,expanded_data_written,response_computed,conductivity_computed,ward_identity_checked,casimir_computed,not_final_casimir_conclusion
-H0_hop(k)=sum_R t_R exp(i k.R); equivalent to existing H0_trig(k),640,1.3049093780328145e-15,6.143281294369017e-16,0.0,False,False,False,False,False,False,True
