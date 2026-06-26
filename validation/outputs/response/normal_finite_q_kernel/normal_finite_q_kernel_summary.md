@@ -1,33 +1,55 @@
-# Normal finite-q current-current kernel 收敛诊断
+# Normal finite-q current-current kernel 同接口收敛检验
 
-## 检验对象
+## 检验目的
 
-本目录检验 normal-state finite-q current-current kernel `K_ij(q, iOmega_n)` 的数值一致性。它关注 kernel 层的同接口计算和有限动量行为，不等于完整 finite-q conductivity。
+确认 normal-state finite-q current-current kernel `K_ij(q, iOmega_n)` 在 `q=0` 与 `q!=0` 下使用同一计算接口，并检查小 q 极限的数值连续性。
 
-## 当前设置
+## 被检验对象
 
-- `q=0` 和 `q!=0` 使用同一 finite-q kernel 接口计算。
-- `q=0` 分支不再调用 public local sigma。
-- 默认只检查 `n>=1` 的正 Matsubara 点。
-- 本阶段不处理 `n=0` true static。
-- Matsubara 频率直接使用 bosonic Matsubara energy，不使用额外 `omega+eta` 展宽。
-- current-current-only 不是 gauge-closed finite-q conductivity。
-- Ward identity 尚未在该诊断中闭合检查。
+- `normal_current_current_kernel_imag_axis` 对应的 finite-q current-current kernel；
+- `K_xx`、`K_xy`、`K_yx`、`K_yy` 等 kernel 分量；
+- C4 rotation covariance 的数值一致性。
 
-## 关键结果
+## 检验方法与判据
 
-- q=0 same-interface error: `0`
-- smallest sampled nonzero q: `0.0001`
-- maximum same-interface error at smallest nonzero q: `0.000205641`
-- maximum C4 covariance error: `6.58137e-15`
-- all K components finite: `true`
+- `q=0` 与 `q!=0` 均从同一 finite-q kernel 接口进入，不调用 public local sigma 分支。
+- 只检查 `n>=1` 的 positive Matsubara 点。
+- 不处理 `n=0` true static。
+- 比较 `q=0` same-interface error、小 q same-interface error、C4 covariance error 和 kernel 分量有限性。
+- 本检验不检查 Ward identity，不生成 gauge-closed finite-q conductivity，也不进入 Casimir input。
 
-## 当前结论
+## 主要结果
 
-该诊断可作为 normal-state finite-q current-current kernel 的数值一致性证据：同一接口在 `q=0` 极限上闭合，非零小 q 的误差处于可追踪范围，C4 covariance 检查未显示明显数值破坏。
+- `q=0` 同接口误差为 `0`。
+- 最小采样非零 q 为 `0.0001`。
+- 最小非零 q 下最大 same-interface error 约为 `0.000205641`。
+- 最大 C4 covariance error 约为 `6.58137e-15`。
+- 所有 kernel 分量均为 finite。
 
-但它不代表完整 finite-q conductivity，也不代表 gauge-closed finite-q response。该结果不进入正式 Casimir input。
+## 当前判定
+
+诊断通过：该检验可以支撑 normal-state finite-q current-current kernel 的接口一致性和基础数值稳定性。
+
+## 对主流程的影响
+
+- 不阻塞 local `q=0` response。
+- 不证明完整 finite-q conductivity。
+- 不提供 reflection input。
+- 不允许作为 formal Casimir input。
+
+## 边界说明
+
+- `diagnostic_only`: true
+- `valid_for_casimir_input`: false
+- `checks_ward_validation`: false
+- `checks_unit_conversion`: false
+- `checks_n0_policy`: false
+- `production_use_allowed`: false
 
 ## 复现入口
 
-主要命令保存在 `command.sh`。运行后生成的 `data/`、`figures/` 仍为 ignored artifact。
+运行 `validation/outputs/response/normal_finite_q_kernel/command.sh`。生成的 `data/` 和 `figures/` 是 ignored artifact。
+
+## 历史来源 / 旧 stage 对照
+
+本检验来自早期 finite-q kernel convergence diagnostic。旧 stage 名称不再作为阅读入口。

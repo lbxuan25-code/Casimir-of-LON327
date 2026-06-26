@@ -1,4 +1,4 @@
-# reflection input
+# reflection input validation
 
 本目录验证 reflection input formatting 和 TE/TM adapter 的轻量证据。
 
@@ -7,7 +7,7 @@
 - dimensionless sheet conductivity 到 reflection input tensor 的 formatting；
 - TE/TM reflection adapter convention；
 - pre-Lifshitz readiness；
-- scaffold / prototype 层面的 reflection grid 与 toy integration 状态。
+- prototype / scaffold 层面的 reflection grid 与 toy integration 状态。
 
 ## 本目录不验证什么
 
@@ -22,6 +22,6 @@
 
 ## diagnostic-only
 
-当前状态为 diagnostic-only。Stage 5 prototype / scaffold 的通过只说明局部格式和 adapter 检查可运行，不能提升 raw finite-q BdG response。
+当前状态为 diagnostic-only / candidate。prototype / scaffold 通过只说明局部格式和 adapter 检查可运行，不能提升 raw finite-q BdG response。
 
 摘要见 `reflection_input_summary.md`，状态见 `reflection_input_status.json`，复现入口见 `command.sh`。

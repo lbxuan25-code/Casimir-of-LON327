@@ -1,52 +1,45 @@
-# Validation Guide
+# Validation 指南
 
-`validation/` stores validation logic, lightweight conclusions, and reproduction
-entry points. It is not a long-term home for raw numerical artifacts.
+`validation/` 保存验证逻辑、轻量结论和复现入口。这里不是 raw numerical artifacts 的长期仓库。
 
-## Directory Layout
+## 目录组织
 
-- `scripts/`: reproducible validation, diagnostic, convergence, and smoke-entry scripts.
-- `outputs/`: lightweight summaries, reports, command records, and small machine-readable metrics.
-- `cache/`: regenerable response tensors or intermediate arrays used to speed up validation.
-- `reports/`: curated inventory and cross-topic validation summaries.
+- `scripts/`：可复现的 validation、diagnostic、convergence 和 smoke 脚本。
+- `outputs/`：按具体检验对象组织的 README、summary、status marker 和 command。
+- `cache/`：可再生成的响应张量或中间数组缓存。
+- `reports/`：跨主题总览、artifact policy 和维护说明。
 
-## Artifact Policy
+报告按“检验对象”阅读，不按历史 stage 编号阅读。旧 stage 名称只作为历史来源、脚本入口或附录对照保留。
 
-Long-term Git-tracked evidence should be compact:
+## Artifact 策略
 
-- README files;
-- summary markdown;
-- small summary JSON or CSV;
-- command scripts or reproduction command records;
-- validation report documents.
+长期进入 Git 的证据应保持紧凑：
 
-Generated artifacts are ignored by default:
+- README；
+- summary markdown；
+- 小型 status / summary JSON 或 CSV；
+- `command.sh` 或复现命令；
+- validation report 文档。
 
-- `.npz` / `.npy`;
-- raw, expanded, or large data CSV files;
-- cache tensors;
-- intermediate outputs;
-- repeated benchmark figures;
-- scratch logs.
+默认不跟踪：
 
-`validation/cache/` is always regenerable. `validation/outputs/` may contain
-small summaries, but large data products should be recreated by running the
-corresponding script.
+- `.npz` / `.npy`；
+- raw、expanded 或大型 data CSV；
+- cache tensors；
+- intermediate outputs；
+- repeated benchmark figures；
+- scratch logs。
 
-Any large artifact that must be kept should be justified in
-`validation/reports/validation_artifact_inventory.md` or in the report that
-uses it. New validation tasks should write raw artifacts to ignored paths and
-emit a compact summary markdown/json/csv next to them.
+`validation/cache/` 总是可再生成。`validation/outputs/` 只保留小型摘要、状态和复现入口。需要复查 raw artifact 时，运行对应目录的 `command.sh` 或 `validation/scripts/**` 重新生成本地 ignored 输出。
 
-## Reading Order
+## 阅读顺序
 
 1. `validation/reports/validation_summary.md`
 2. `validation/reports/validation_artifact_inventory.md`
-3. Topic-specific summaries under `validation/outputs/**`
-4. Reproduction scripts under `validation/scripts/**`
+3. `validation/outputs/**/README.md`
+4. `validation/outputs/**/*summary*.md`
+5. `validation/outputs/**/command.sh`
 
-## Reproduction
+## 边界
 
-Reports list their primary script entry points. Existing `command.sh` files or
-command snippets should be kept when available. If an ignored artifact is
-needed for inspection, rerun the corresponding script and regenerate it locally.
+validation 报告只说明当前检验结果和适用范围。除非 summary/status 明确写成 production-ready，否则 diagnostic-only 结果不得作为正式 Casimir energy、force、torque 输入。

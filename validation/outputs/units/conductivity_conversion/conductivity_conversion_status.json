@@ -8,7 +8,7 @@
     "full_casimir_pipeline_validated": false,
     "blocking_reason": "Ward validation, accepted unit policy, and n=0 policy are required before formal Casimir input"
   },
-  "stages": {
+  "checks": {
     "response_to_conductivity_convention": {
       "source": "stage5_1_response_to_conductivity_convention_audit.json",
       "status": "CONVENTION_NOT_UNIQUELY_DETERMINED_FROM_CODE"

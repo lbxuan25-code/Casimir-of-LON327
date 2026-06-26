@@ -1,87 +1,56 @@
-# Validation Artifact Inventory
+# Validation artifact inventory
 
-This inventory is a maintenance policy for `validation/`, not a file-by-file
-manifest. The goal is to preserve conclusions and reproducibility while keeping
-large generated artifacts out of version control.
+本文件是 `validation/` 的维护政策，不是逐文件流水账。目标是在保留结论和复现能力的同时，让大型 generated artifacts 退出版本控制。
 
-## Keep In Git
+## 长期保留
 
-Keep artifacts that are useful for review without rerunning heavy jobs:
+保留便于 review 且无需重新跑重任务的轻量证据：
 
-- `validation/README.md` and report documents;
-- topic README files;
-- summary markdown files;
-- small summary JSON or CSV files;
-- command scripts or command snippets used for reproduction;
-- validation scripts and tests.
+- `validation/README.md`；
+- `validation/reports/*.md`；
+- topic README；
+- summary markdown；
+- 小型 status / summary JSON 或 CSV；
+- `command.sh` 或复现命令片段；
+- validation scripts 和 tests。
 
-Small machine-readable metrics are allowed when they are summaries rather than
-raw arrays. If a JSON summary grows into a large raw dump, split it into a small
-summary and an ignored raw artifact.
+小型 machine-readable metrics 可以保留；如果 JSON 变成 raw dump，应拆成小型 status/summary 和 ignored raw artifact。
 
-## Do Not Keep In Git
+## 不长期保留
 
-The following are regenerable and should be ignored or removed from tracking:
+以下内容可再生成，应 ignore 或从 Git 删除：
 
-- `validation/cache/**/*.npz`, `.npy`, `.csv`, `.jsonl`;
-- `validation/outputs/**/data/*.npz` and `.npy`;
-- `validation/outputs/**/data/*.csv` unless it is a compact summary CSV;
-- `*expanded*.csv`, `*raw*.csv`, and raw/intermediate output directories;
-- repeated figures under `validation/outputs/**/figures`;
-- benchmark scratch outputs and logs.
+- `validation/cache/**/*.npz`、`.npy`、`.csv`、`.jsonl`；
+- `validation/outputs/**/data/*.npz` 和 `.npy`；
+- raw / expanded / large data CSV；
+- `raw/`、`intermediate/` 输出目录；
+- repeated figures；
+- benchmark scratch outputs 和 logs。
 
-Figures are optional evidence. Keep only a small number when a report explicitly
-references them and text/table summaries are not enough. Prefer moving such
-figures near the report or under `docs/assets/validation/` with provenance.
+图像只在报告明确引用且文字/表格不足以表达时保留；优先放在报告附近或 `docs/assets/validation/`，并说明来源。
 
-## Cache Versus Outputs
+## cache 与 outputs 的区别
 
-`validation/cache/` contains reusable intermediate tensors. It exists to speed
-up local validation and is always safe to regenerate.
+`validation/cache/` 是复用中间张量，存在目的只是加速本地 validation，始终可再生成。
 
-`validation/outputs/` contains script outputs. Only lightweight summaries and
-reproduction records should be tracked. Data arrays and plots in subdirectories
-such as `data/`, `raw/`, `intermediate/`, and `figures/` are local artifacts.
+`validation/outputs/` 保存脚本输出。长期保留的只应是 README、summary、status marker 和 command。`data/`、`figures/`、`raw/`、`intermediate/` 默认是本地 artifact。
 
-## Regeneration Policy
+## 再生成策略
 
-When a raw artifact is needed for review:
+需要复查 raw artifact 时：
 
-1. Read the topic summary under `validation/outputs/**`.
-2. Find the corresponding script under `validation/scripts/**`.
-3. Recreate outputs locally, usually with an `--output-prefix` or default path.
-4. Commit only updated summaries or reports unless there is a documented reason
-   to keep a larger artifact.
+1. 阅读对应 `validation/outputs/**/README.md` 和 summary。
+2. 查看同目录 `command.sh`。
+3. 运行对应 `validation/scripts/**` 重新生成本地 ignored 输出。
+4. 只提交新的 README、summary、status 或 command，除非报告明确说明必须保留大型 artifact。
 
-Common entry points:
+## 当前组织方式
 
-- numerical stability: `validation/scripts/numerical_stability/*.py`;
-- response and Ward diagnostics: `validation/scripts/response/*.py`;
-- local-response Casimir convergence: `validation/scripts/casimir/*.py`;
-- unit/reflection audits: `validation/scripts/units/*.py` and response stage-5 scripts;
-- smoke/plumbing checks: `validation/scripts/smoke/*.py`.
+- response kernel / Ward / BdG：`validation/outputs/response/`
+- unit conversion / q-grid mapping：`validation/outputs/units/`
+- reflection input / adapter：`validation/outputs/reflection/`
+- 跨主题总览：`validation/reports/validation_summary.md`
 
-## Current Gitignore Policy
+## cleanup snapshot
 
-`.gitignore` ignores validation cache tensors, binary data arrays, raw/expanded
-CSV files, raw/intermediate directories, and repeated figures. It explicitly
-allows README files, reports, summary markdown/json/csv, and command records.
-
-The policy is intentionally conservative: preserve scripts and conclusions,
-regenerate bulky evidence on demand.
-
-## Cleanup Snapshot
-
-On 2026-06-26, the repository policy changed from tracking bulky validation
-artifacts to tracking lightweight evidence. The cleanup removed tracked
-regenerable artifacts in these categories:
-
-- cache tensors under `validation/cache/`;
-- binary arrays and CSV data tables under `validation/outputs/**/data/`;
-- repeated figures under `validation/outputs/**/figures/`;
-- scratch logs under `validation/logs/`.
-
-The retained evidence is the scripts, README files, markdown reports, summary
-JSON/CSV where present, and command records. The deleted artifacts can be
-regenerated from the script entry points listed above and from the topic-level
-summaries under `validation/outputs/**`.
+从 2026-06-26 起，仓库策略从“保留 bulky validation outputs”改为“保留轻量证据”。已删除或忽略的类别包括 cache tensors、binary arrays、CSV data tables、repeated figures 和 scratch logs。删除的 artifact 可由 summary 中列出的脚本入口重新生成。

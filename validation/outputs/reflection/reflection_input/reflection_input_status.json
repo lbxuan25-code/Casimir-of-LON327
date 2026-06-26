@@ -8,7 +8,7 @@
     "full_lifshitz_casimir_pipeline_validated": false,
     "blocking_reason": "raw response still requires Ward validation, accepted unit policy, and n=0 policy before formal Casimir input"
   },
-  "stages": {
+  "checks": {
     "reflection_input_tensor": {
       "source": "stage5_5b_reflection_input_tensor.json",
       "status": "STAGE5_5B_REFLECTION_INPUT_FORMATTER_PASSED"

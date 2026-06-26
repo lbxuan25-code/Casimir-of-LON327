@@ -1,29 +1,81 @@
-# Ward convention / response convention 摘要
+# Ward / response convention 数值检验
 
-## 检验对象
+## 检验目的
 
-本目录归纳 normal-state response convention 与 Ward residual convention 的审计，包括 Peierls vertex、contact term、density-current response convention、right Ward source convention、equal-time / commutator bookkeeping 和 targeted refinement。
+确认 normal-state response 中 current vertex、contact term、density-current residual 和 left/right Ward source convention 是否一致，并记录 residual diagnostic 的适用边界。
 
-## 已确认内容
+## 被检验对象
 
-- Stage 4.13 支持 positive bubble sign；主路径 bubble prefactor 修正后，total bookkeeping 与 `C-K` 结构一致。
-- Stage 4.17 确认 right Ward diagnostic sign convention；旧 right residual 主要是诊断约定问题。
-- Stage 4.18 corrected full response Ward validation 达到数值闭合，记录的 `max_corrected_norm` 为 `4.139011615628368e-07`。
-- Stage 4.20 targeted clean run 通过 targeted refinement；但 user-run targeted refinement 仍提示部分 cluster 需要更高 refinement 或更宽 Fermi window。
-- response-level convention scan 中，physical-current convention with contact minus 是当前最佳 spatial-residual diagnostic case；该结果仍需 analytic convention closure 支撑。
+- Peierls current vertex；
+- finite-q contact term；
+- density-current response residual；
+- right Ward source convention；
+- response-level residual diagnostic。
 
-## 当前边界
+## 检验方法与判据
 
-- 这些检查是 normal-state diagnostic 和 response convention 支撑证据。
-- 它们不代表 superconducting finite-q gauge closure。
-- 它们不修改 response 公式。
-- 它们不使用 LSQ 或 repair 修正 response。
-- 它们只支持 response convention，不直接提供 Casimir input。
+- 比较 bubble sign、direct contact bookkeeping 和 `C-K` 结构。
+- 检查 right Ward source sign convention 对 residual 的影响。
+- 对 corrected full response Ward residual 做数值闭合检查。
+- 使用 targeted refinement 复查最坏参数 cluster。
+- 本检验只报告 residual 和 convention，不修改 response，不拟合 contact，不使用 LSQ repair。
 
-## 当前结论
+## 主要结果
 
-Ward / response convention 的 normal-state 约定已得到一组可追踪的数值证据支撑，特别是 corrected right Ward convention 和 targeted refinement 路径。但 finite-q superconducting BdG collective-sector closure 仍由 `bdg_finite_q/` 的 status marker 控制，不能由本目录的 normal-state convention 结果替代。
+### Peierls vertex 与 contact term convention
+
+状态：诊断通过。
+
+说明：positive bubble sign 与主路径 bookkeeping 得到支持，direct contact 与 `C-K` 结构的关系被记录为当前 convention 证据。
+
+### density-current Ward residual convention
+
+状态：诊断通过。
+
+说明：right Ward diagnostic sign convention 已确认；旧 right residual 主要来自 diagnostic convention，而不是 response 公式需要被调参。
+
+### corrected full response Ward residual
+
+状态：诊断通过。
+
+说明：corrected residual 的最大范数记录为 `4.139011615628368e-07`。targeted clean run 通过；但 user-run targeted refinement 仍提示部分 cluster 需要更高 refinement 或更宽 Fermi window。
+
+### response-level repair / LSQ
+
+状态：不适用 production。
+
+说明：LSQ 或 response-level repair 只能作为 diagnostic reference，不能进入 production response pipeline。
+
+## 当前判定
+
+诊断通过：该目录支持 normal-state response convention，但不证明 superconducting finite-q gauge closure。
+
+## 对主流程的影响
+
+- 不阻塞 local response。
+- 不直接提供 finite-q BdG response。
+- 不提供 formal Casimir input。
+- finite-q superconducting collective-sector closure 仍由 `validation/outputs/response/bdg_finite_q/` 控制。
+
+## 边界说明
+
+- `diagnostic_only`: true
+- `valid_for_casimir_input`: false
+- `checks_ward_validation`: true, but only for normal-state convention diagnostics
+- `checks_unit_conversion`: false
+- `checks_n0_policy`: false
+- `production_use_allowed`: false
 
 ## 复现入口
 
-主要命令保存在 `command.sh`。运行脚本会重新生成 ignored stage JSON/MD/data/figures。
+运行 `validation/outputs/response/ward_convention/command.sh`。生成的旧脚本 JSON/MD/data/figures 是 ignored artifact。
+
+## 历史来源 / 旧 stage 对照
+
+| 旧 stage 文件 | 现在对应的检验内容 | 当前状态 |
+|---|---|---|
+| `stage4_13_bubble_sign_fix_regression.json` | bubble sign 与 direct contact bookkeeping | 诊断通过 |
+| `stage4_17_right_ward_source_convention_audit.json` | right Ward source convention | 诊断通过 |
+| `stage4_18_corrected_full_response_ward_validation.json` | corrected full response residual | 诊断通过 |
+| `stage4_19_multi_parameter_ward_robustness_scan.json` | 多参数 robustness scan | 未完全闭合 |
+| `stage4_20_targeted_no003_clean.json` | targeted refinement clean case | 诊断通过 |

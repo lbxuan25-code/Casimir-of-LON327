@@ -1,12 +1,12 @@
-# q-grid mapping
+# q-grid mapping validation
 
 本目录验证 q-grid / model-q mapping 的轻量证据。
 
 ## 本目录验证什么
 
-- Casimir / reflection 积分中 model-q 和 physical-q 的覆盖关系；
-- q-grid scaffold 是否提示 `Q=0` 与 response grid 覆盖限制；
-- historical `casimir_q_grid_model_q_audit` 的结论入口。
+- Casimir / reflection planning 中 model-q 和 physical-q 的覆盖关系；
+- q-grid scaffold 是否明确记录 `Q=0` 与 response grid 覆盖限制；
+- small-q diagnostic range 与 Casimir-relevant q range 的差异。
 
 ## 本目录不验证什么
 

@@ -1,24 +1,84 @@
-# Reflection input 摘要
+# TE/TM reflection input adapter 检验
 
-## 检验对象
+## 检验目的
 
-本目录归纳 reflection input tensor formatting、TE/TM reflection adapter、pre-Lifshitz readiness、Casimir integrand prototype、toy integration、material reflection grid 和 zero-mode grid convergence planning 的状态。
+确认 dimensionless sheet conductivity 能否被格式化为 reflection input tensor，并进入 TE/TM reflection adapter 的候选路径；同时明确 prototype / scaffold 不等于 formal Casimir pipeline。
 
-## 当前状态
+## 被检验对象
 
-- Stage 5.5b reflection input tensor formatter：`STAGE5_5B_REFLECTION_INPUT_FORMATTER_PASSED`。
-- Stage 5.6 TE/TM adapter：`STAGE5_6_TE_TM_ADAPTER_PASSED`。
-- Stage 5.7 pre-Lifshitz readiness：`STAGE5_7_PRE_LIFSHITZ_READINESS_PASSED`。
-- Stage 5.8 integrand prototype：`STAGE5_8_CASIMIR_INTEGRAND_PROTOTYPE_PASSED`。
-- Stage 5.10 toy integration：`STAGE5_10_TOY_CASIMIR_INTEGRATION_CONVERGENCE_AUDIT_PASSED`。
-- Stage 5.11 material reflection grid 有早期 failed、monitor 和后续 passed 版本；latest consolidated status 记录 `STAGE5_11_REAL_MATERIAL_REFLECTION_GRID_PROTOTYPE_PASSED`。
-- Stage 5.12 small real-material energy prototype：`STAGE5_12_SMALL_REAL_MATERIAL_ENERGY_PROTOTYPE_PASSED`，但仍不是物理预测。
-- Stage 5.13 zero-mode grid convergence audit：`STAGE5_13_ZERO_MODE_GRID_CONVERGENCE_AUDIT_PASSED`，仍需人工接受 zero-mode 与 Q->0 policy。
+- reflection input tensor formatter；
+- TE/TM reflection adapter；
+- pre-Lifshitz readiness checks；
+- trace-log integrand prototype；
+- toy integration / material reflection grid scaffold；
+- zero-mode grid convergence planning。
 
-## 结论
+## 检验方法与判据
 
-reflection input formatting 和 TE/TM adapter 有候选通过证据，prototype/scaffold 路径可复查。但这不是完整 Lifshitz/Casimir production pipeline。
+- 检查 reflection input tensor 是否有限、是否排除未定义的 q-zero 输入。
+- 检查 TE/TM adapter formula deltas 和 q-sign consistency。
+- 记录 prototype integrand、toy integration、material reflection grid 和 zero-mode grid planning 的 candidate 状态。
+- 本检验不检查 upstream Ward closure，不接受 unit policy，不决定 `n=0` policy，不计算 formal energy、force 或 torque。
 
-## 边界
+## 主要结果
 
-raw response 没有 Ward validation、unit policy、`n=0` policy 时不能进入正式 Casimir input。本目录不改变任何数值状态，也不把 diagnostic-only 结果写成 production-ready。
+### reflection input tensor formatting
+
+状态：candidate / 诊断通过。
+
+说明：formatter 可以把 dimensionless sheet conductivity 组织为 reflection input tensor，并保持有限输出。
+
+### TE/TM reflection adapter
+
+状态：candidate / 诊断通过。
+
+说明：adapter 可以把 candidate tensor 放入 TE/TM reflection matrix 格式，并通过 adapter formula 与代表性 q-sign consistency 检查。
+
+### pre-Lifshitz / integrand / toy integration prototype
+
+状态：diagnostic-only。
+
+说明：这些检查说明局部 prototype 路径可运行，但不计算正式 Lifshitz energy、force 或 torque。
+
+### material reflection grid 与 zero-mode planning
+
+状态：candidate / 仍需人工 policy 接受。
+
+说明：latest material reflection grid prototype 记录为 passed candidate；zero-mode grid convergence audit 通过 planning 检查，但仍需接受 zero-mode 与 `Q -> 0` policy。
+
+## 当前判定
+
+candidate / diagnostic-only：reflection formatting 和 TE/TM adapter 有可复查证据，但不能绕过 upstream finite-q BdG、unit conversion 和 `n=0` policy gate。
+
+## 对主流程的影响
+
+- 不阻塞 local `q=0` response。
+- 对 reflection input formatting 有支撑意义。
+- 不允许 formal Casimir input。
+- 不计算 energy、force 或 torque。
+
+## 边界说明
+
+- `diagnostic_only`: true
+- `valid_for_casimir_input`: false
+- `checks_ward_validation`: false
+- `checks_unit_conversion`: depends on upstream unit conversion
+- `checks_n0_policy`: planning only
+- `production_use_allowed`: false
+
+## 复现入口
+
+运行 `validation/outputs/reflection/reflection_input/command.sh`。
+
+## 历史来源 / 旧 stage 对照
+
+| 旧 stage 文件 | 现在对应的检验内容 | 当前状态 |
+|---|---|---|
+| `stage5_5b_reflection_input_tensor.json` | reflection input tensor formatting | candidate / 诊断通过 |
+| `stage5_6_te_tm_reflection_adapter.json` | TE/TM reflection adapter | candidate / 诊断通过 |
+| `stage5_7_pre_lifshitz_readiness_audit.json` | pre-Lifshitz readiness checks | diagnostic-only |
+| `stage5_8_casimir_integrand_prototype.json` | trace-log integrand prototype | diagnostic-only |
+| `stage5_10_toy_casimir_integration_convergence_audit.json` | toy integration convergence | diagnostic-only |
+| `stage5_11c_real_material_reflection_grid_full36_order7_workers8.json` | material reflection grid prototype | candidate |
+| `stage5_12_small_real_material_energy_prototype.json` | small material energy prototype | diagnostic-only |
+| `stage5_13_zero_mode_grid_convergence_audit.json` | zero-mode grid convergence planning | candidate / policy pending |

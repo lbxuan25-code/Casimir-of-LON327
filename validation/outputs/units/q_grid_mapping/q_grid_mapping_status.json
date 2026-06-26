@@ -8,7 +8,7 @@
     "production_integration_grid_validated": false,
     "blocking_reason": "q-grid planning does not validate response, reflection adapter, or full Casimir integration"
   },
-  "stages": {
+  "checks": {
     "casimir_grid_scaffold": {
       "source": "stage5_9_casimir_grid_planning_scaffold.json",
       "status": "STAGE5_9_CASIMIR_GRID_SCAFFOLD_PASSED"
