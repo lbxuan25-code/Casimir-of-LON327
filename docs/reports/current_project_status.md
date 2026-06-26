@@ -37,4 +37,4 @@ zero-torque baseline 的初级结论；`n0_policy=skip` 与 finite-momentum resp
 ## 当前 active outputs
 
 - `outputs/casimir/local_response_distance_scan/`
-- `validation/outputs/response/normal_finite_q_kernel_convergence/`
+- `validation/outputs/response/normal_finite_q_kernel/`

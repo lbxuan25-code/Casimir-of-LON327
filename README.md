@@ -38,7 +38,7 @@ finite-q conductivity，也不能作为 Casimir 输入。finite-q / Casimir resp
 当前 active 输出：
 
 - local-response Casimir 初级结论：`outputs/casimir/local_response_distance_scan/`
-- finite-q Stage 1 K 收敛诊断：`validation/outputs/response/normal_finite_q_kernel_convergence/`
+- finite-q Stage 1 K 收敛诊断：`validation/outputs/response/normal_finite_q_kernel/`
 - finite-q / Casimir response 总览：`docs/notes/casimir_torque_response_pipeline_zh.md`
 
 旧 mixed sigma/K diagnostics 已删除，不作为 validation evidence。

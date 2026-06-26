@@ -51,5 +51,5 @@ local-response 结果现在作为边界清楚的初级结论：
 - `not_final_casimir_conclusion=True`
 
 finite-q 当前只保留 Stage 1 normal current-current kernel convergence diagnostic：
-`validation/outputs/response/normal_finite_q_kernel_convergence/`。它不是 finite-q
+`validation/outputs/response/normal_finite_q_kernel/`。它不是 finite-q
 conductivity，也不能把当前 local baseline 误解为有限动量 Casimir 输入。

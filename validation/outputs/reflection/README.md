@@ -1,0 +1,9 @@
+# Reflection validation outputs
+
+本目录保存 reflection 层级 validation 的轻量证据，不保存 raw numerical artifacts。
+
+## 子目录
+
+- `reflection_input/`：reflection input tensor formatting、TE/TM adapter、pre-Lifshitz readiness 和 prototype reflection/grid 状态。
+
+本目录不验证 response Ward closure，不验证 conductivity unit policy 本身，也不计算正式 Casimir energy、force 或 torque。

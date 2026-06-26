@@ -1,34 +1,38 @@
 # Response validation 轻量证据目录
 
-本目录保存 response validation 的长期证据：中文摘要、状态 marker 和复现入口。它不是 raw numerical artifacts 仓库。
+本目录只保存 response 层级的长期验证证据：中文 README、summary、status marker 和复现入口。它不是 raw numerical artifacts 仓库。
 
-`data/`、`figures/`、`raw/`、`intermediate/` 默认视为可再生成输出，并由 `.gitignore` 排除。若未来必须保留大型 artifact，需要在 `validation/reports/validation_artifact_inventory.md` 或对应子目录 README 中说明原因。
+`data/`、`figures/`、`raw/`、`intermediate/` 默认视为可再生成输出，并由 `.gitignore` 排除。
 
-## 目录组织
+## 当前子目录
 
-当前 response validation 按计算流程收敛为四个目录：
+1. `normal_finite_q_kernel/`：验证 normal-state finite-q current-current kernel 的同接口与收敛行为。
+2. `bdg_finite_q/`：验证 finite-q BdG superconducting response 的 diagnostic 状态和 Casimir input gate。
+3. `ward_convention/`：验证 normal-state Ward / response convention。
 
-1. `normal_finite_q_kernel_convergence/`：normal finite-q current-current kernel 的同接口与收敛诊断。
-2. `bdg_finite_q/`：finite-q BdG superconducting response 的 diagnostic 状态、失败边界和 Casimir input gate。
-3. `ward_convention/`：Peierls vertex、contact term、density-current response convention 与 Ward residual convention 的约定审计。
-4. `unit_reflection/`：response-to-sheet-conductivity、单位转换、reflection input、TE/TM adapter、q-grid / model-q mapping 的候选流程审计。
+单位换算、q-grid mapping、reflection input 已拆出 response 层级：
 
-## 当前支撑证据
+- `validation/outputs/units/conductivity_conversion/`
+- `validation/outputs/units/q_grid_mapping/`
+- `validation/outputs/reflection/reflection_input/`
 
-已可作为当前代码路径支撑证据的内容包括：
+## 本目录验证什么
 
-- normal-state finite-q kernel 的 q=0/q!=0 同接口一致性诊断；
-- response / Ward convention 的 normal-state 约定审计；
-- sheet conductivity、SI / dimensionless sheet scaling、reflection tensor formatting 和 TE/TM adapter 的格式与单位链候选检查；
-- BdG finite-q engine 可用性、PairingAnsatz input layer 分离、normal limit 与 q->0 limit 诊断。
+- response kernel / response convention 的数值一致性；
+- finite-q BdG pipeline 是否具备通过 Casimir input gate 的条件；
+- Ward diagnostic convention 是否支持当前 response 约定。
 
-## 明确边界
+## 本目录不验证什么
 
-以下内容仍是 diagnostic-only：
+- 不验证 SI 单位换算链；
+- 不验证 q-grid 与 model-q mapping；
+- 不验证 TE/TM reflection adapter；
+- 不计算正式 Casimir energy、force 或 torque。
 
-- raw finite-q BdG response；
-- response-level / LSQ / quick audit 产生的修复式候选；
-- 未经 Ward validation、unit policy、n=0 policy 同时闭合的 reflection input；
-- 任何 stage5 prototype / scaffold / toy integration 输出。
+## production relevance
 
-这些结果不能直接作为正式 Casimir energy、force 或 torque input。当前 production 路径仍必须通过 consolidated validation marker 检查；marker 为 `FAILED` 时默认拒绝使用 finite-q BdG response，除非显式启用 diagnostic override。
+`normal_finite_q_kernel/` 和 `ward_convention/` 是 response convention 与 kernel 层的支撑证据。`bdg_finite_q/` 是 production gate：当前 consolidated status 为 `FAILED`，因此 finite-q BdG response 仍不能作为正式 Casimir input。
+
+## diagnostic-only 边界
+
+raw finite-q BdG response、LSQ/response-level repair、quick audit 和任何未通过 consolidated gate 的结果均为 diagnostic-only。
