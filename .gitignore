@@ -5,6 +5,10 @@ __pycache__/
 
 !outputs/**/.gitkeep
 !outputs/**/README.md
+outputs/**/data/*
+outputs/**/figures/*
+!outputs/**/data/.gitkeep
+!outputs/**/figures/.gitkeep
 
 # Validation generated artifacts
 validation/cache/**/*.npz

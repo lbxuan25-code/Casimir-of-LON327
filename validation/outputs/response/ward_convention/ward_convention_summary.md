@@ -55,7 +55,7 @@
 - 不阻塞 local response。
 - 不直接提供 finite-q BdG response。
 - 不提供 formal Casimir input。
-- finite-q superconducting collective-sector closure 仍由 `validation/outputs/response/bdg_finite_q/` 控制。
+- finite-q superconducting collective-sector closure 仍由 `validation/outputs/bdg_finite_q/` 控制。
 
 ## 边界说明
 

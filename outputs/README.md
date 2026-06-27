@@ -1,16 +1,15 @@
 # 输出指南
 
-本目录只保留材料、模型本征特性和已形成初级结论的关键计算结果，方便直接阅读当前物理对象。
-数值收敛性、公式诊断、Casimir convergence benchmark 和 cache 已统一移动到
-`../validation/`。
+本目录只保留材料、模型本征特性和已形成初级结论的轻量说明文件，方便直接阅读当前物理对象。
+raw 数组、scratch 图、cache、临时结果和大型 CSV 不在 Git 中跟踪；需要时由对应脚本重新生成。
+数值收敛性、公式诊断、Casimir convergence benchmark 和 cache 已统一移动到 `../validation/`。
 
 ## 当前保留内容
 
-- `normal_state/`：normal-state conductivity 与 band / block inspection 输出。
-- `pairing/`：pairing 和 gap structure 输出。
-- `bdg/`：BdG paramagnetic / diamagnetic / total kernel 与 superconducting response 输出。
-- `casimir/local_response_distance_scan/`：当前 local-response Casimir zero-torque baseline
-  的初级结论；仍跳过 n=0 且不含 finite-momentum response。
+- `normal_state/`：normal-state conductivity 与 band / block inspection 的 README 和可再生成目录。
+- `pairing/`：pairing 和 gap structure 的 README 和可再生成目录。
+- `bdg/`：BdG paramagnetic / diamagnetic / total kernel 与 superconducting response 的 README 和可再生成目录。
+- `casimir/local_response_distance_scan/`：local-response baseline 的轻量说明与复现命令；仍跳过 n=0 且不含 finite-momentum response。
 
 ## 阅读顺序
 
@@ -31,4 +30,5 @@
 
 - `outputs/` 面向当前材料本征结果和边界清楚的初级结论。
 - `validation/` 面向“为什么这些计算可信”的支撑证据。
+- `outputs/**/data/` 和 `outputs/**/figures/` 只保留 `.gitkeep`；生成内容不提交。
 - 需要追溯 validation 证据时先看 `../validation/README.md`。

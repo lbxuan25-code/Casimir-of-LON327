@@ -1,0 +1,28 @@
+{
+  "status": "FAILED",
+  "diagnostic_only": true,
+  "valid_for_casimir_input": false,
+  "active_output_location": "validation/outputs/bdg_finite_q/",
+  "current_workflows": [
+    "validation/scripts/bdg_finite_q/q0_bdg_response_alignment.py",
+    "validation/scripts/bdg_finite_q/finite_q_ward_scan.py",
+    "validation/scripts/bdg_finite_q/dwave_pairing_tangent_diagnostics.py",
+    "validation/scripts/bdg_finite_q/goldstone_counterterm_diagnostics.py"
+  ],
+  "summary": {
+    "finite_q_bdg_engine_available": true,
+    "generic_engine_separated_from_pairing_ansatz": true,
+    "q0_definition_alignment_required": true,
+    "raw_finite_q_bdg_not_casimir_ready": true,
+    "blocking_reason": "superconducting finite-q Ward closure is not validated"
+  },
+  "boundary": {
+    "raw_finite_q_bdg_response": "diagnostic_only",
+    "formal_casimir_input": false,
+    "no_casimir_energy_force_torque": true,
+    "no_finite_q_material_casimir_candidate": true,
+    "requires_ward_validation": true,
+    "requires_unit_conversion_policy": true,
+    "requires_n0_policy": true
+  }
+}

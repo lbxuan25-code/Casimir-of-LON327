@@ -2,6 +2,8 @@
 
 本目录保存 diagnostic-only finite-q BdG validation 的轻量输出和复现入口。这里的结果用于定位 superconducting BdG finite-q Ward closure blocker，不是 formal finite-q Casimir 输入。
 
+`bdg_finite_q_validation_status.json` 是当前唯一 active BdG finite-q validation status marker。旧目录 `validation/outputs/response/bdg_finite_q/` 只保留迁移说明，不再保存 active status JSON。
+
 ## 可提交内容
 
 - 小型 markdown summary；

@@ -33,7 +33,7 @@
 | unit conversion | `conductivity_units.py`, `conductivity_conventions.py`, `response_units.py` | response 到 sheet / dimensionless convention |
 | reflection input | `reflection_input.py`, `lifshitz_readiness.py` | 下游 input adapter 与 readiness check |
 | Casimir scaffold / benchmark | `casimir.py`, `casimir_grid.py`, `casimir_integrand.py`, `casimir_toy_integration.py` | local / prototype Casimir 计算组件 |
-| material-grid prototypes | `material_reflection_grid.py`, `material_energy_prototype.py`, `material_grid_convergence.py`, `material_production_grid.py`, `material_casimir_figures.py` | material response/reflection/grid planning 候选路径 |
+| material-grid prototypes | `material_reflection_grid.py`, `material_energy_prototype.py`, `material_grid_convergence.py`, `material_production_grid.py` | material response/reflection/grid planning 候选路径；finite-q material Casimir candidate path 已移除 |
 | validation evidence | `validation/` | summary / status / command |
 | current material outputs | `outputs/` | 当前主结果 |
 

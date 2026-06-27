@@ -33,7 +33,7 @@
 
 当前判定：未通过。它不阻塞 local `q=0` response，但阻塞 raw finite-q BdG response 进入 formal Casimir input。
 
-复现入口：`validation/outputs/response/bdg_finite_q/command.sh`。
+复现入口：`validation/outputs/bdg_finite_q/command.sh`。
 
 ## Ward / response convention
 
