@@ -15,10 +15,13 @@
 收敛性、数值稳定性、static / n=0 policy、Casimir convergence benchmark
 和历史 smoke 入口都已移动到：
 
+- `../validation/scripts/bdg_finite_q/`：当前 BdG finite-q validation workflows。
 - `../validation/scripts/numerical_stability/`
-- `../validation/scripts/response/`
+- `../validation/scripts/response/`：非 BdG finite-q 的 response validation 与历史对照入口；当前 BdG finite-q workflow 不在这里。
 - `../validation/scripts/casimir/`
 - `../validation/scripts/smoke/`
+
+已删除的历史 numbered workflow 不再作为 runnable entry 保留；Git history 是这些旧脚本的归档位置。
 
 ## 新脚本放置规则
 
