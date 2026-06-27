@@ -55,26 +55,26 @@ class FiniteQDiagnosticReport:
 
     def format_text(self) -> str:
         lines = [
-            "Finite-q diagnostic report",
-            f"pairing_name: {self.pairing_name}",
-            f"phase_vertex: {self.phase_vertex}",
+            "finite-q 诊断报告",
+            f"配对名称: {self.pairing_name}",
+            f"相位顶点: {self.phase_vertex}",
             f"omega_eV: {self.omega_eV:.12g}",
             f"q_model: [{self.q_model[0]:.12g}, {self.q_model[1]:.12g}]",
-            f"nk: {self.nk if self.nk is not None else 'provided_mesh'}",
-            f"mesh_size: {self.mesh_size}",
+            f"nk: {self.nk if self.nk is not None else '外部网格'}",
+            f"网格点数: {self.mesh_size}",
             f"delta0_eV: {self.delta0_eV:.12g}",
-            f"current_vertex: {self.current_vertex}",
-            f"collective_mode: {self.collective_mode}",
-            f"collective_counterterm: {self.collective_counterterm}",
-            f"bare_ward_residual_norm: {self.bare_ward_residual_norm:.12e}",
-            f"minus_schur_ward_residual_norm: {self.minus_schur_ward_residual_norm:.12e}",
+            f"电流顶点: {self.current_vertex}",
+            f"collective mode: {self.collective_mode}",
+            f"collective counterterm: {self.collective_counterterm}",
+            f"bare Ward 残差范数: {self.bare_ward_residual_norm:.12e}",
+            f"minus Schur Ward 残差范数: {self.minus_schur_ward_residual_norm:.12e}",
             (
-                "amplitude_phase_schur_ward_residual_norm: "
+                "amplitude-phase Schur Ward 残差范数: "
                 f"{self.amplitude_phase_schur_ward_residual_norm:.12e}"
             ),
-            f"collective_matrix_condition_number: {self.collective_matrix_condition_number}",
-            f"inverse_method: {self.inverse_method}",
-            f"selected_response_name: {self.selected_response_name}",
+            f"collective 矩阵条件数: {self.collective_matrix_condition_number}",
+            f"求逆方法: {self.inverse_method}",
+            f"选中响应名称: {self.selected_response_name}",
             f"valid_for_casimir_input: {self.valid_for_casimir_input}",
         ]
         return "\n".join(lines)
@@ -164,7 +164,7 @@ def run_finite_q_diagnostic(
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run finite-q Ward-closure diagnostics.")
+    parser = argparse.ArgumentParser(description="运行 finite-q Ward closure 诊断。")
     parser.add_argument("pairing", choices=("onsite_s", "spm", "dwave"))
     parser.add_argument("--omega", type=float, default=0.01)
     parser.add_argument("--qx", type=float, default=0.01)

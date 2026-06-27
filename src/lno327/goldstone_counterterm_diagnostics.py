@@ -1,0 +1,158 @@
+"""Goldstone counterterm and eta2-normalization diagnostics."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Literal
+import warnings
+
+import numpy as np
+
+from .conductivity import KuboConfig, k_weights, uniform_bz_mesh
+from .finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
+from .pairing import PairingAmplitudes
+from .pairing_ansatz import build_pairing_ansatz
+
+GoldstonePairingName = Literal["onsite_s", "spm", "dwave"]
+
+
+@dataclass(frozen=True)
+class GoldstoneCountertermRow:
+    pairing_name: str
+    eta2_kernel_after_counterterm: complex
+    eta2_kernel_abs: float
+    goldstone_condition_passed: bool
+    eta2_normalization_status: str
+    counterterm_only_collective_kernel: bool
+    collective_matrix_condition_number: float | None
+    inverse_method: str
+    valid_for_casimir_input: bool = False
+
+
+@dataclass(frozen=True)
+class GoldstoneCountertermReport:
+    omega_eV: float
+    q_model: tuple[float, float]
+    nk: int | None
+    mesh_size: int
+    delta0_eV: float
+    rows: tuple[GoldstoneCountertermRow, ...]
+    passed: bool
+    notes: tuple[str, ...]
+    valid_for_casimir_input: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "omega_eV": self.omega_eV,
+            "q_model": list(self.q_model),
+            "nk": self.nk,
+            "mesh_size": self.mesh_size,
+            "delta0_eV": self.delta0_eV,
+            "rows": [
+                {
+                    **row.__dict__,
+                    "eta2_kernel_after_counterterm": [
+                        float(np.real(row.eta2_kernel_after_counterterm)),
+                        float(np.imag(row.eta2_kernel_after_counterterm)),
+                    ],
+                    "valid_for_casimir_input": False,
+                }
+                for row in self.rows
+            ],
+            "passed": self.passed,
+            "notes": list(self.notes),
+            "valid_for_casimir_input": False,
+        }
+
+    def format_text(self) -> str:
+        lines = [
+            "Goldstone counterterm 与 eta2 归一化诊断报告",
+            f"omega_eV: {self.omega_eV:.12g}",
+            f"q_model: [{self.q_model[0]:.12g}, {self.q_model[1]:.12g}]",
+            f"nk: {self.nk if self.nk is not None else '外部网格'}",
+            f"网格点数: {self.mesh_size}",
+            f"delta0_eV: {self.delta0_eV:.12g}",
+        ]
+        for row in self.rows:
+            lines.append(
+                f"- {row.pairing_name}: |K_eta2_eta2|={row.eta2_kernel_abs:.6e}, "
+                f"通过={row.goldstone_condition_passed}, inverse={row.inverse_method}"
+            )
+        lines.append(f"总体通过: {self.passed}")
+        lines.append("valid_for_casimir_input: False")
+        return "\n".join(lines)
+
+
+def run_goldstone_counterterm_diagnostics(
+    pairing_names: tuple[GoldstonePairingName, ...] = ("onsite_s", "spm", "dwave"),
+    *,
+    nk: int = 3,
+    k_points: np.ndarray | None = None,
+    weights: np.ndarray | None = None,
+    pairing_params: PairingAmplitudes | None = None,
+    tolerance: float = 1e-8,
+) -> GoldstoneCountertermReport:
+    points = uniform_bz_mesh(nk) if k_points is None else np.asarray(k_points, dtype=float)
+    mesh_weights = k_weights(points) if weights is None else np.asarray(weights, dtype=float)
+    config = KuboConfig.from_kelvin(omega_eV=0.0, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+    amp = pairing_params or PairingAmplitudes()
+    options = FiniteQEngineOptions(
+        current_vertex="peierls",
+        collective_mode="amplitude_phase",
+        collective_counterterm="goldstone_gap_equation",
+        include_phase_phase_direct=True,
+    )
+    rows: list[GoldstoneCountertermRow] = []
+    for pairing_name in pairing_names:
+        ansatz = build_pairing_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            response = finite_q_bdg_response_from_ansatz(
+                ansatz,
+                0.0,
+                np.array([0.0, 0.0]),
+                points,
+                mesh_weights,
+                config,
+                amp,
+                options,
+            )
+        eta2_kernel = complex(response.collective_total[1, 1])
+        eta2_abs = float(abs(eta2_kernel))
+        normalization_status = str(response.metadata.get("eta2_phase_relation", "missing_eta2_metadata"))
+        rows.append(
+            GoldstoneCountertermRow(
+                pairing_name=pairing_name,
+                eta2_kernel_after_counterterm=eta2_kernel,
+                eta2_kernel_abs=eta2_abs,
+                goldstone_condition_passed=eta2_abs <= tolerance,
+                eta2_normalization_status=normalization_status,
+                counterterm_only_collective_kernel=response.collective_counterterm.shape == (2, 2)
+                and response.bare_total.shape == (3, 3),
+                collective_matrix_condition_number=response.metadata.get("collective_total_condition_number"),
+                inverse_method=str(response.metadata.get("collective_inverse_method", "not_used")),
+                valid_for_casimir_input=False,
+            )
+        )
+    passed = all(
+        row.goldstone_condition_passed
+        and row.eta2_normalization_status == "eta2 = delta0 * theta"
+        and row.counterterm_only_collective_kernel
+        for row in rows
+    )
+    notes = (
+        "本诊断只检查 counterterm 与 eta2 归一化，不重写 counterterm 物理。",
+        "counterterm 应只进入 collective kernel，不混入 q=0 local response 对照。",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+    )
+    return GoldstoneCountertermReport(
+        omega_eV=0.0,
+        q_model=(0.0, 0.0),
+        nk=nk if k_points is None else None,
+        mesh_size=int(points.shape[0]),
+        delta0_eV=float(amp.delta0_eV),
+        rows=tuple(rows),
+        passed=bool(passed),
+        notes=notes,
+        valid_for_casimir_input=False,
+    )
