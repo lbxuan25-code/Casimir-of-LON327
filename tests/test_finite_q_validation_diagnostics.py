@@ -9,13 +9,15 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = ROOT / "validation" / "scripts" / "bdg_finite_q"
-NEW_DIAGNOSTIC_FILES = (
+DIAGNOSTIC_SCRIPT_FILES = (
     SCRIPT_DIR / "q0_bdg_response_alignment.py",
+    SCRIPT_DIR / "dwave_raw_bubble_vertex_audit.py",
     SCRIPT_DIR / "finite_q_ward_scan.py",
     SCRIPT_DIR / "dwave_pairing_tangent_diagnostics.py",
     SCRIPT_DIR / "goldstone_counterterm_diagnostics.py",
-    ROOT / "docs" / "bdg_finite_q_validation_plan.md",
-    ROOT / "docs" / "finite_q_diagnostic_pipeline.md",
+)
+NEW_DIAGNOSTIC_FILES = (
+    *DIAGNOSTIC_SCRIPT_FILES,
     ROOT / "validation" / "outputs" / "bdg_finite_q" / "README.md",
     ROOT / "validation" / "outputs" / "bdg_finite_q" / "command.sh",
 )
@@ -76,24 +78,68 @@ def test_q0_alignment_reports_transformed_comparison_rows():
         assert ("finite_q_total_q0", "local_K_total") in pairs
         assert ("finite_q_total_q0", "omega * local_superconducting_response") in pairs
         assert ("finite_q_direct_q0", "local_K_total - local_K_para") in pairs
+        assert ("finite_q_direct_q0", "-local_K_total - local_K_para") in pairs
+        assert ("finite_q_direct_q0", "local_K_total + local_K_para") in pairs
         assert ("finite_q_minus_schur_q0", "local_K_total") in pairs
+        assert ("finite_q_minus_schur_q0", "-local_K_total") in pairs
+        assert ("finite_q_minus_schur_q0", "-omega * local_superconducting_response") in pairs
         assert ("finite_q_amplitude_phase_schur_q0", "local_K_total") in pairs
+        assert ("finite_q_amplitude_phase_schur_q0", "-local_K_total") in pairs
+        assert (
+            "finite_q_amplitude_phase_schur_q0",
+            "-omega * local_superconducting_response",
+        ) in pairs
         assert report.valid_for_casimir_input is False
         assert "transformed comparison table" in report.format_text()
 
 
-def test_spm_q0_alignment_keeps_raw_bubble_local_k_para_as_best_transformed_match():
+def test_spm_q0_alignment_passes_convention_aware_rule_without_promoting_to_casimir_input():
     module = _load_validation_script("q0_bdg_response_alignment")
     report = module.run_q0_bdg_response_alignment("spm", nk=2)
+    assert report.passed is True
     assert report.best_transformed_match["finite_q_raw_bubble_q0"] == "local_K_para"
-    raw_rows = [
-        row
+    passed_pairs = {
+        (row.finite_q_quantity, row.transformed_local_quantity)
         for row in report.transformed_comparison_rows
-        if row.finite_q_quantity == "finite_q_raw_bubble_q0"
-    ]
-    best_row = min(raw_rows, key=lambda row: row.relative_norm_difference)
-    assert best_row.transformed_local_quantity == "local_K_para"
+        if row.passes_tolerance
+    }
+    assert ("finite_q_raw_bubble_q0", "local_K_para") in passed_pairs
+    assert ("finite_q_direct_q0", "-local_K_total - local_K_para") in passed_pairs
+    assert ("finite_q_total_q0", "-local_K_total") in passed_pairs
+    assert ("finite_q_minus_schur_q0", "-local_K_total") in passed_pairs
+    assert ("finite_q_amplitude_phase_schur_q0", "-local_K_total") in passed_pairs
     assert report.valid_for_casimir_input is False
+    assert any("convention-aware" in note for note in report.pass_fail_notes)
+
+
+def test_dwave_q0_alignment_keeps_conservative_diagnostic_status():
+    module = _load_validation_script("q0_bdg_response_alignment")
+    report = module.run_q0_bdg_response_alignment("dwave", nk=2)
+    assert report.passed is False
+    assert report.valid_for_casimir_input is False
+    assert any("保守" in note for note in report.pass_fail_notes)
+
+
+def test_dwave_raw_bubble_vertex_audit_runs_tiny_grid_and_is_not_casimir_ready():
+    module = _load_validation_script("dwave_raw_bubble_vertex_audit")
+    report = module.run_dwave_raw_bubble_vertex_audit(nk=2)
+    assert report.valid_for_casimir_input is False
+    assert report.q_model == (0.0, 0.0)
+    assert report.mesh_size == 4
+    assert {row.pairing_name for row in report.rows} == {"spm", "dwave"}
+    assert report.interpretation
+    for row in report.rows:
+        assert row.valid_for_casimir_input is False
+        assert np.isfinite(row.finite_q_raw_bubble_norm)
+        assert np.isfinite(row.local_k_para_norm)
+        assert np.isfinite(row.raw_vs_local_abs)
+        assert np.isfinite(row.raw_vs_local_rel)
+        assert np.isfinite(row.finite_q_vs_local_vertex_max_abs)
+        assert np.isfinite(row.finite_q_vs_local_vertex_max_rel)
+        assert row.evidence
+    text = report.format_text()
+    assert "valid_for_casimir_input: False" in text
+    assert "d-wave raw-bubble / vertex audit" in text
 
 
 def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():
@@ -173,6 +219,6 @@ def test_new_diagnostic_code_does_not_do_response_fitting_or_repair():
         "fitted" + "_ward",
         "ward" + "_correction",
     )
-    for path in NEW_DIAGNOSTIC_FILES[:4]:
+    for path in DIAGNOSTIC_SCRIPT_FILES:
         text = path.read_text(encoding="utf-8").lower()
         assert not any(item in text for item in forbidden)

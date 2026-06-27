@@ -240,6 +240,8 @@ def _transformed_local_comparators(
         "finite_q_direct_q0": [
             ("local_K_total - local_K_para", local_k_total - local_k_para),
             ("local_K_para - local_K_total", local_k_para - local_k_total),
+            ("-local_K_total - local_K_para", -local_k_total - local_k_para),
+            ("local_K_total + local_K_para", local_k_total + local_k_para),
         ],
         "finite_q_total_q0": [
             ("local_K_total", local_k_total),
@@ -249,9 +251,15 @@ def _transformed_local_comparators(
         ],
         "finite_q_minus_schur_q0": [
             ("local_K_total", local_k_total),
+            ("-local_K_total", -local_k_total),
+            ("omega * local_superconducting_response", omega_eV * local_response),
+            ("-omega * local_superconducting_response", -omega_eV * local_response),
         ],
         "finite_q_amplitude_phase_schur_q0": [
             ("local_K_total", local_k_total),
+            ("-local_K_total", -local_k_total),
+            ("omega * local_superconducting_response", omega_eV * local_response),
+            ("-omega * local_superconducting_response", -omega_eV * local_response),
         ],
     }
 
@@ -293,6 +301,77 @@ def _best_transformed_matches(rows: tuple[TransformedComparisonRow, ...]) -> dic
         if current is None or row.relative_norm_difference < current[1]:
             best[row.finite_q_quantity] = (row.transformed_local_quantity, row.relative_norm_difference)
     return {name: value[0] for name, value in best.items()}
+
+
+def _row_passes(
+    rows: tuple[TransformedComparisonRow, ...],
+    finite_q_quantity: str,
+    transformed_local_quantity: str,
+) -> bool:
+    return any(
+        row.finite_q_quantity == finite_q_quantity
+        and row.transformed_local_quantity == transformed_local_quantity
+        and row.passes_tolerance
+        for row in rows
+    )
+
+
+def _convention_aware_pass_status(
+    pairing_name: AlignmentPairingName,
+    rows: tuple[TransformedComparisonRow, ...],
+) -> tuple[bool, tuple[str, ...]]:
+    notes: list[str] = []
+    if pairing_name == "spm":
+        raw_ok = _row_passes(rows, "finite_q_raw_bubble_q0", "local_K_para")
+        direct_ok = _row_passes(rows, "finite_q_direct_q0", "-local_K_total - local_K_para")
+        total_ok = _row_passes(rows, "finite_q_total_q0", "-local_K_total") or _row_passes(
+            rows,
+            "finite_q_total_q0",
+            "-omega * local_superconducting_response",
+        )
+        minus_schur_ok = _row_passes(rows, "finite_q_minus_schur_q0", "-local_K_total") or _row_passes(
+            rows,
+            "finite_q_minus_schur_q0",
+            "-omega * local_superconducting_response",
+        )
+        amplitude_phase_schur_ok = _row_passes(
+            rows,
+            "finite_q_amplitude_phase_schur_q0",
+            "-local_K_total",
+        ) or _row_passes(
+            rows,
+            "finite_q_amplitude_phase_schur_q0",
+            "-omega * local_superconducting_response",
+        )
+        passed = raw_ok and direct_ok and total_ok and minus_schur_ok and amplitude_phase_schur_ok
+        notes.append(
+            "spm 使用 convention-aware q=0 判据：raw bubble 对齐 local_K_para，"
+            "direct/contact 对齐 -local_K_total - local_K_para，total/Schur 对齐 "
+            "-local_K_total 或 -omega * local_superconducting_response。"
+        )
+        if not raw_ok:
+            notes.append("spm raw bubble 未对齐 local_K_para。")
+        if not direct_ok:
+            notes.append("spm direct/contact 未对齐 -local_K_total - local_K_para。")
+        if not total_ok:
+            notes.append("spm total 未对齐 -local_K_total 或 -omega * local_superconducting_response。")
+        if not minus_schur_ok:
+            notes.append("spm minus-Schur 未对齐 total 的 q=0 sign convention。")
+        if not amplitude_phase_schur_ok:
+            notes.append("spm amplitude/phase Schur 未对齐 total 的 q=0 sign convention。")
+        return bool(passed), tuple(notes)
+
+    if pairing_name == "dwave":
+        return (
+            False,
+            (
+                "dwave 保持保守 q=0 判据：raw-bubble 顶角/组装问题需由专门 raw-bubble audit 判定；"
+                "本 alignment 报告不因 transformed total/contact 局部对齐而升级为通过。",
+            ),
+        )
+    if pairing_name == "normal":
+        return False, ("normal q=0 alignment 属于独立 convention 问题；本报告保持保守未通过。",)
+    return False, ("onsite_s 当前没有既有 local BdG public API 作为直接对照，保持 diagnostic-only。",)
 
 
 def _convention_table(local_names: tuple[str, ...]) -> dict[str, dict[str, str | bool]]:
@@ -407,17 +486,18 @@ def run_q0_bdg_response_alignment(
     for finite_name in finite_q:
         best_transformed.setdefault(finite_name, None)
 
-    passed = bool(local and all(best_matches[name] is not None for name in ("finite_q_total_q0",)))
+    passed, pass_rule_notes = _convention_aware_pass_status(pairing_name, transformed_rows)
     notes = [
         "q=0 对齐是有限 q Ward 诊断的前置检查，不是最终物理结论。",
         "有限 q 矩阵为 3x3 density-current 对象；与 2x2 local 对象比较时只使用 current-current 子块。",
         "transformed comparison table 显式比较符号、omega 因子和 direct/contact 组合约定。",
         "若没有明确 local 匹配，本报告保守标记为未通过。",
+        *pass_rule_notes,
     ]
     if not local:
         notes.append("当前 onsite_s 没有既有 local BdG public API 作为直接对照。")
         notes.append("onsite_s 报告仅打印 finite-q matrix norms，并明确保持 diagnostic-only。")
-    if not passed:
+    if not passed and pairing_name != "spm":
         notes.append("未找到满足容差的清楚 q=0 local 匹配。")
     return Q0BdGAlignmentReport(
         pairing_name=pairing_name,
