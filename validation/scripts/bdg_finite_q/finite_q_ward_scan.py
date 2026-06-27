@@ -1,18 +1,27 @@
+#!/usr/bin/env python3
 """Finite-q Ward residual scans for superconducting BdG diagnostics."""
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass
+from pathlib import Path
+import sys
 from typing import Any, Literal
 
 import numpy as np
 
-from .conductivity import KuboConfig, k_weights, uniform_bz_mesh
-from .finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
-from .pairing import PairingAmplitudes
-from .pairing_ansatz import build_pairing_ansatz
-from .q0_bdg_response_alignment import run_q0_bdg_response_alignment
-from .ward_validation import validate_physical_ward_identity
+ROOT = Path(__file__).resolve().parents[3]
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(SCRIPT_DIR))
+
+from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
+from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
+from lno327.pairing import PairingAmplitudes  # noqa: E402
+from lno327.pairing_ansatz import build_pairing_ansatz  # noqa: E402
+from lno327.ward_validation import validate_physical_ward_identity  # noqa: E402
+from q0_bdg_response_alignment import run_q0_bdg_response_alignment  # noqa: E402
 
 WardScanPairingName = Literal["onsite_s", "spm", "dwave"]
 
@@ -224,3 +233,26 @@ def run_finite_q_ward_scan(
         notes=notes,
         valid_for_casimir_input=False,
     )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="运行有限 q Ward 残差扫描诊断。")
+    parser.add_argument("--pairings", nargs="+", choices=("onsite_s", "spm", "dwave"), default=["onsite_s", "spm", "dwave"])
+    parser.add_argument("--omega", type=float, default=0.01)
+    parser.add_argument("--q-values", nargs="+", type=float, default=[0.005, 0.01, 0.02])
+    parser.add_argument("--nk", type=int, default=3)
+    parser.add_argument("--delta0", type=float, default=0.04)
+    args = parser.parse_args(argv)
+    report = run_finite_q_ward_scan(
+        tuple(args.pairings),
+        omega_eV=args.omega,
+        q_values=tuple(args.q_values),
+        nk=args.nk,
+        pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+    )
+    print(report.format_text())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

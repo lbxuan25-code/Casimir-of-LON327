@@ -1,16 +1,23 @@
+#!/usr/bin/env python3
 """dwave pairing representation and endpoint-gauge tangent diagnostics."""
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass
+from pathlib import Path
+import sys
 from typing import Any
 
 import numpy as np
 
-from .finite_q_primitives import phase_vertex
-from .pairing import PairingAmplitudes, dwave_pairing_matrix
-from .pairing_ansatz import build_pairing_ansatz
-from .pairing_bonds import bond_endpoint_gauge_form_factor, pairing_from_bonds
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "src"))
+
+from lno327.finite_q_primitives import phase_vertex  # noqa: E402
+from lno327.pairing import PairingAmplitudes, dwave_pairing_matrix  # noqa: E402
+from lno327.pairing_ansatz import build_pairing_ansatz  # noqa: E402
+from lno327.pairing_bonds import bond_endpoint_gauge_form_factor, pairing_from_bonds  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -123,3 +130,21 @@ def run_dwave_pairing_tangent_diagnostics(
         notes=notes,
         valid_for_casimir_input=False,
     )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="运行 dwave pairing 重构与 tangent 诊断。")
+    parser.add_argument("--delta0", type=float, default=0.04)
+    parser.add_argument("--qx", type=float, default=0.01)
+    parser.add_argument("--qy", type=float, default=0.0)
+    args = parser.parse_args(argv)
+    report = run_dwave_pairing_tangent_diagnostics(
+        q_model=(args.qx, args.qy),
+        pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+    )
+    print(report.format_text())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,17 +1,24 @@
+#!/usr/bin/env python3
 """q=0 BdG response definition-alignment diagnostics."""
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass
+from pathlib import Path
+import sys
 from typing import Any, Literal
 
 import numpy as np
 
-from .bdg_finite_q_response import bdg_finite_q_response_imag_axis
-from .bdg_response import bdg_superconducting_response_imag_axis, bdg_total_kernel_imag_axis
-from .conductivity import KuboConfig, k_weights, kubo_conductivity_imag_axis, uniform_bz_mesh
-from .pairing import PairingAmplitudes
-from .ward_response import normal_physical_density_current_response_components_imag_axis
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "src"))
+
+from lno327.bdg_finite_q_response import bdg_finite_q_response_imag_axis  # noqa: E402
+from lno327.bdg_response import bdg_superconducting_response_imag_axis, bdg_total_kernel_imag_axis  # noqa: E402
+from lno327.conductivity import KuboConfig, k_weights, kubo_conductivity_imag_axis, uniform_bz_mesh  # noqa: E402
+from lno327.pairing import PairingAmplitudes  # noqa: E402
+from lno327.ward_response import normal_physical_density_current_response_components_imag_axis  # noqa: E402
 
 AlignmentPairingName = Literal["normal", "onsite_s", "spm", "dwave"]
 
@@ -282,3 +289,24 @@ def run_q0_bdg_response_alignment(
         pass_fail_notes=tuple(notes),
         valid_for_casimir_input=False,
     )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="运行 q=0 BdG response definition alignment 诊断。")
+    parser.add_argument("pairing", choices=("normal", "onsite_s", "spm", "dwave"))
+    parser.add_argument("--omega", type=float, default=0.01)
+    parser.add_argument("--nk", type=int, default=3)
+    parser.add_argument("--delta0", type=float, default=0.04)
+    args = parser.parse_args(argv)
+    report = run_q0_bdg_response_alignment(
+        args.pairing,
+        omega_eV=args.omega,
+        nk=args.nk,
+        pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+    )
+    print(report.format_text())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

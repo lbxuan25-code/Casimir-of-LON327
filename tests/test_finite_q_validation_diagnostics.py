@@ -1,27 +1,47 @@
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
+import shlex
+import sys
 
 import numpy as np
 
-from lno327.dwave_pairing_tangent_diagnostics import run_dwave_pairing_tangent_diagnostics
-from lno327.finite_q_ward_scan import run_finite_q_ward_scan
-from lno327.goldstone_counterterm_diagnostics import run_goldstone_counterterm_diagnostics
-from lno327.q0_bdg_response_alignment import run_q0_bdg_response_alignment
-
 ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_DIR = ROOT / "validation" / "scripts" / "bdg_finite_q"
 NEW_DIAGNOSTIC_FILES = (
+    SCRIPT_DIR / "q0_bdg_response_alignment.py",
+    SCRIPT_DIR / "finite_q_ward_scan.py",
+    SCRIPT_DIR / "dwave_pairing_tangent_diagnostics.py",
+    SCRIPT_DIR / "goldstone_counterterm_diagnostics.py",
+    ROOT / "docs" / "bdg_finite_q_validation_plan.md",
+    ROOT / "docs" / "finite_q_diagnostic_pipeline.md",
+    ROOT / "validation" / "outputs" / "bdg_finite_q" / "README.md",
+    ROOT / "validation" / "outputs" / "bdg_finite_q" / "command.sh",
+)
+MOVED_CORE_FILES = (
     ROOT / "src" / "lno327" / "q0_bdg_response_alignment.py",
     ROOT / "src" / "lno327" / "finite_q_ward_scan.py",
     ROOT / "src" / "lno327" / "dwave_pairing_tangent_diagnostics.py",
     ROOT / "src" / "lno327" / "goldstone_counterterm_diagnostics.py",
-    ROOT / "docs" / "bdg_finite_q_validation_plan.md",
 )
 
 
+def _load_validation_script(name: str):
+    path = SCRIPT_DIR / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_q0_alignment_diagnostics_run_for_all_cases_and_are_finite():
+    module = _load_validation_script("q0_bdg_response_alignment")
     for pairing_name in ("normal", "onsite_s", "spm", "dwave"):
-        report = run_q0_bdg_response_alignment(pairing_name, nk=2)
+        report = module.run_q0_bdg_response_alignment(pairing_name, nk=2)
         assert report.q_model == (0.0, 0.0)
         assert report.mesh_size == 4
         assert report.valid_for_casimir_input is False
@@ -33,7 +53,8 @@ def test_q0_alignment_diagnostics_run_for_all_cases_and_are_finite():
 
 
 def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():
-    report = run_finite_q_ward_scan(nk=2, q_values=(0.005,), q_directions=((1.0, 0.0),))
+    module = _load_validation_script("finite_q_ward_scan")
+    report = module.run_finite_q_ward_scan(nk=2, q_values=(0.005,), q_directions=((1.0, 0.0),))
     assert report.valid_for_casimir_input is False
     assert {row.pairing_name for row in report.rows} == {"onsite_s", "spm", "dwave"}
     assert {row.response_name for row in report.rows} == {
@@ -50,7 +71,8 @@ def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():
 
 
 def test_dwave_reconstruction_and_tangent_diagnostic_reports_structured_errors():
-    report = run_dwave_pairing_tangent_diagnostics()
+    module = _load_validation_script("dwave_pairing_tangent_diagnostics")
+    report = module.run_dwave_pairing_tangent_diagnostics()
     assert report.valid_for_casimir_input is False
     assert len(report.reconstruction_errors) == len(report.k_points)
     assert len(report.q0_tangent_errors) == len(report.k_points)
@@ -61,7 +83,8 @@ def test_dwave_reconstruction_and_tangent_diagnostic_reports_structured_errors()
 
 
 def test_goldstone_counterterm_diagnostic_reports_eta2_status_for_all_pairings():
-    report = run_goldstone_counterterm_diagnostics(nk=2)
+    module = _load_validation_script("goldstone_counterterm_diagnostics")
+    report = module.run_goldstone_counterterm_diagnostics(nk=2)
     assert report.valid_for_casimir_input is False
     assert {row.pairing_name for row in report.rows} == {"onsite_s", "spm", "dwave"}
     for row in report.rows:
@@ -79,6 +102,21 @@ def test_new_diagnostic_names_use_physics_labels():
         assert forbidden_label not in path.name
         text = path.read_text(encoding="utf-8")
         assert forbidden_label not in text
+
+
+def test_validation_workflows_are_not_left_in_core_package():
+    assert not any(path.exists() for path in MOVED_CORE_FILES)
+
+
+def test_bdg_finite_q_command_references_existing_current_scripts():
+    command_path = ROOT / "validation" / "outputs" / "bdg_finite_q" / "command.sh"
+    for line in command_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        parts = shlex.split(stripped)
+        if len(parts) >= 2 and parts[0] == "python":
+            assert (ROOT / parts[1]).exists()
 
 
 def test_new_diagnostic_code_does_not_do_response_fitting_or_repair():

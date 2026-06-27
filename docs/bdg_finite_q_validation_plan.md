@@ -2,6 +2,8 @@
 
 本文档记录当前 superconducting BdG finite-q Ward closure blocker 的数值验证顺序。目标是定位定义、表示和 Goldstone 归一化问题，而不是通过拟合或修补响应来让 Ward 残差变小。
 
+core finite-q 计算位于 `src/lno327/finite_q_engine.py`。可复用的基础诊断 helper 保留在 `src/lno327/finite_q_diagnostics.py`。项目级 validation workflow 位于 `validation/scripts/bdg_finite_q/`，轻量 summary 与复现命令位于 `validation/outputs/bdg_finite_q/`。
+
 ## 验证顺序
 
 1. **q=0 响应定义对齐**  
@@ -36,3 +38,4 @@
 - 可能出现的 massive internal pairing-shape modes 只能作为诊断线索，不是新的 Goldstone modes，也不是 production modes。
 - finite-q 诊断输出始终是 `valid_for_casimir_input=False`，不是 Casimir-ready 输入。
 - Ward validation 只检查残差，不修补 response；禁止 response-level 拟合、残差投影或修复。
+- `validation/scripts/bdg_finite_q/` 下的 workflow 是 validation 层，不是稳定 public API；raw arrays、大型 CSV、expanded logs 和 cache tensors 不应提交到 `validation/outputs/bdg_finite_q/`。

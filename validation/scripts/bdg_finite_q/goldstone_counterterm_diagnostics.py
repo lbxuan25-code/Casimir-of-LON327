@@ -1,17 +1,24 @@
+#!/usr/bin/env python3
 """Goldstone counterterm and eta2-normalization diagnostics."""
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass
+from pathlib import Path
+import sys
 from typing import Any, Literal
 import warnings
 
 import numpy as np
 
-from .conductivity import KuboConfig, k_weights, uniform_bz_mesh
-from .finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
-from .pairing import PairingAmplitudes
-from .pairing_ansatz import build_pairing_ansatz
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "src"))
+
+from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
+from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
+from lno327.pairing import PairingAmplitudes  # noqa: E402
+from lno327.pairing_ansatz import build_pairing_ansatz  # noqa: E402
 
 GoldstonePairingName = Literal["onsite_s", "spm", "dwave"]
 
@@ -156,3 +163,22 @@ def run_goldstone_counterterm_diagnostics(
         notes=notes,
         valid_for_casimir_input=False,
     )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="运行 Goldstone counterterm 与 eta2 归一化诊断。")
+    parser.add_argument("--pairings", nargs="+", choices=("onsite_s", "spm", "dwave"), default=["onsite_s", "spm", "dwave"])
+    parser.add_argument("--nk", type=int, default=3)
+    parser.add_argument("--delta0", type=float, default=0.04)
+    args = parser.parse_args(argv)
+    report = run_goldstone_counterterm_diagnostics(
+        tuple(args.pairings),
+        nk=args.nk,
+        pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+    )
+    print(report.format_text())
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -11,6 +11,8 @@
 
 报告按“检验对象”阅读，不按历史 stage 编号阅读。旧 stage 名称只作为历史来源、脚本入口或附录对照保留。
 
+BdG finite-q blocker 的项目级 validation workflow 位于 `validation/scripts/bdg_finite_q/`。core finite-q 计算仍位于 `src/lno327/finite_q_engine.py`，基础可复用 helper 可保留在 `src/lno327/finite_q_diagnostics.py`。对应轻量输出和复现命令位于 `validation/outputs/bdg_finite_q/`。
+
 ## Artifact 策略
 
 长期进入 Git 的证据应保持紧凑：
