@@ -79,7 +79,12 @@ from stageSC_2k_gauge_covariant_collective_package_audit import (  # noqa: E402
     REQUIRED_PACKAGE_VARIANTS as REQUIRED_PACKAGE_VARIANTS_2K,
     build_payload as build_stageSC_2k_payload,
 )
-from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
+from lno327.finite_q_diagnostics import run_finite_q_diagnostic
+from lno327.finite_q_engine import (
+    FiniteQEngineOptions,
+    apply_amplitude_phase_schur,
+    finite_q_bdg_response_from_ansatz,
+)
 from lno327.bdg_finite_q_response import (
     _amplitude_vertex,
     _eta2_phase_vertex,
@@ -232,6 +237,18 @@ def test_ward_validation_is_pure_diagnostic():
     assert isinstance(report.passed, bool)
 
 
+def test_amplitude_phase_schur_helper_matches_matrix_formula():
+    bare = np.array([[2.0, 0.1], [0.2, 3.0]], dtype=complex)
+    left = np.array([[1.0, 0.5], [0.25, 0.75]], dtype=complex)
+    kernel = np.array([[4.0, 0.2], [0.1, 2.0]], dtype=complex)
+    right = np.array([[0.5, 0.1], [0.3, 0.8]], dtype=complex)
+    result = apply_amplitude_phase_schur(bare, left, kernel, right)
+    expected = bare - left @ np.linalg.inv(kernel) @ right
+    np.testing.assert_allclose(result.corrected_response, expected)
+    assert result.inverse_method == "inv"
+    assert result.status == "applied"
+
+
 def test_raw_finite_q_response_is_not_casimir_ready():
     q, points, weights, config, amp = _inputs()
     result = bdg_finite_q_response_imag_axis(
@@ -246,6 +263,22 @@ def test_raw_finite_q_response_is_not_casimir_ready():
     )
     assert result.metadata.get("valid_for_casimir_input") is False
     assert "casimir_gating_status" in result.metadata
+
+
+def test_finite_q_diagnostic_report_defaults_and_gating_for_all_ansatz_names():
+    for name in ("onsite_s", "spm", "dwave"):
+        report = run_finite_q_diagnostic(name, nk=2)
+        assert report.pairing_name == name
+        assert report.phase_vertex == "bond_endpoint_gauge"
+        assert report.current_vertex == "peierls"
+        assert report.collective_mode == "amplitude_phase"
+        assert report.collective_counterterm == "goldstone_gap_equation"
+        assert report.selected_response_name == "amplitude_phase_schur"
+        assert report.valid_for_casimir_input is False
+        assert report.mesh_size == 4
+        assert np.isfinite(report.bare_ward_residual_norm)
+        assert np.isfinite(report.minus_schur_ward_residual_norm)
+        assert np.isfinite(report.amplitude_phase_schur_ward_residual_norm)
 
 
 def test_small_phase_phase_has_clear_warning_metadata():

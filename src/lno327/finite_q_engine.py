@@ -40,6 +40,83 @@ class FiniteQEngineOptions:
     collective_counterterm: CollectiveCounterterm = "goldstone_gap_equation"
 
 
+@dataclass(frozen=True)
+class SchurResult:
+    corrected_response: np.ndarray
+    condition_number: float | None
+    inverse_method: Literal["inv", "pinv_diagnostic", "not_used"]
+    status: str
+    warning: str | None = None
+
+
+def apply_phase_only_schur(
+    bare_response: np.ndarray,
+    phase_left: np.ndarray,
+    phase_phase_total: complex,
+    phase_right: np.ndarray,
+    *,
+    sign: Literal["minus", "plus"] = "minus",
+) -> SchurResult:
+    """Apply the existing one-channel phase Schur correction."""
+
+    bare = np.asarray(bare_response, dtype=complex)
+    left = np.asarray(phase_left, dtype=complex)
+    right = np.asarray(phase_right, dtype=complex)
+    kernel = complex(phase_phase_total)
+    if sign not in {"minus", "plus"}:
+        raise ValueError("sign must be 'minus' or 'plus'")
+    if abs(kernel) <= 0.0:
+        return SchurResult(
+            corrected_response=bare.copy(),
+            condition_number=None,
+            inverse_method="not_used",
+            status="skipped_zero_phase_kernel",
+            warning="phase_phase_total is zero; phase-only Schur correction was skipped",
+        )
+    schur_term = np.outer(left, right) / kernel
+    corrected = bare - schur_term if sign == "minus" else bare + schur_term
+    return SchurResult(
+        corrected_response=corrected,
+        condition_number=None,
+        inverse_method="not_used",
+        status=f"{sign}_phase_schur_applied",
+    )
+
+
+def apply_amplitude_phase_schur(
+    bare_response: np.ndarray,
+    em_collective_left: np.ndarray,
+    collective_total: np.ndarray,
+    collective_em_right: np.ndarray,
+    *,
+    condition_threshold: float = 1e12,
+) -> SchurResult:
+    """Apply K_AA - K_Aeta inv(K_etaeta) K_etaA with diagnostic pinv fallback."""
+
+    bare = np.asarray(bare_response, dtype=complex)
+    left = np.asarray(em_collective_left, dtype=complex)
+    kernel = np.asarray(collective_total, dtype=complex)
+    right = np.asarray(collective_em_right, dtype=complex)
+    condition = float(np.linalg.cond(kernel))
+    if not np.isfinite(condition) or condition > condition_threshold:
+        kernel_inv = np.linalg.pinv(kernel)
+        inverse_method: Literal["inv", "pinv_diagnostic", "not_used"] = "pinv_diagnostic"
+        status = "applied_with_pinv_diagnostic"
+        warning = f"collective_total condition number {condition:.3e} exceeds threshold {condition_threshold:.3e}"
+    else:
+        kernel_inv = np.linalg.inv(kernel)
+        inverse_method = "inv"
+        status = "applied"
+        warning = None
+    return SchurResult(
+        corrected_response=bare - left @ kernel_inv @ right,
+        condition_number=condition,
+        inverse_method=inverse_method,
+        status=status,
+        warning=warning,
+    )
+
+
 def finite_q_bdg_response_from_ansatz(
     ansatz: PairingAnsatz,
     omega_eV: float,
@@ -231,12 +308,22 @@ def finite_q_bdg_response_from_ansatz(
     )
     phase_phase_direct = selected_phase_phase_direct if opts.include_phase_phase_direct else 0.0 + 0.0j
     phase_phase_total = phase_phase_bubble + phase_phase_direct
-    minus_schur = bare_total.copy()
-    plus_schur = bare_total.copy()
-    if abs(phase_phase_total) > 0.0:
-        schur_term = np.outer(phase_left, phase_right) / phase_phase_total
-        minus_schur = bare_total - schur_term
-        plus_schur = bare_total + schur_term
+    minus_schur_result = apply_phase_only_schur(
+        bare_total,
+        phase_left,
+        phase_phase_total,
+        phase_right,
+        sign="minus",
+    )
+    plus_schur_result = apply_phase_only_schur(
+        bare_total,
+        phase_left,
+        phase_phase_total,
+        phase_right,
+        sign="plus",
+    )
+    minus_schur = minus_schur_result.corrected_response
+    plus_schur = plus_schur_result.corrected_response
     gauge_restored = bare_total.copy()
     phase_status = "disabled"
     warning_message = None
@@ -267,14 +354,15 @@ def finite_q_bdg_response_from_ansatz(
     collective_condition: float | None = None
     collective_inverse_method = "not_used"
     if collective_mode == "amplitude_phase":
-        collective_condition = float(np.linalg.cond(collective_total))
-        if not np.isfinite(collective_condition) or collective_condition > 1e12:
-            collective_inv = np.linalg.pinv(collective_total)
-            collective_inverse_method = "pinv_diagnostic"
-        else:
-            collective_inv = np.linalg.inv(collective_total)
-            collective_inverse_method = "inv"
-        amplitude_phase_schur = bare_total - em_collective_left @ collective_inv @ collective_em_right
+        amp_phase_schur_result = apply_amplitude_phase_schur(
+            bare_total,
+            em_collective_left,
+            collective_total,
+            collective_em_right,
+        )
+        collective_condition = amp_phase_schur_result.condition_number
+        collective_inverse_method = amp_phase_schur_result.inverse_method
+        amplitude_phase_schur = amp_phase_schur_result.corrected_response
         if opts.include_phase_correction:
             gauge_restored = amplitude_phase_schur
             phase_status = "amplitude_phase_applied"
@@ -330,6 +418,10 @@ def finite_q_bdg_response_from_ansatz(
             "goldstone_condition_target": "K_eta2_eta2(q=0, omega=0) = 0",
             "collective_total_condition_number": collective_condition,
             "collective_inverse_method": collective_inverse_method,
+            "phase_only_schur_status": minus_schur_result.status,
+            "amplitude_phase_schur_status": (
+                amp_phase_schur_result.status if collective_mode == "amplitude_phase" else "not_used"
+            ),
             "amplitude_phase_schur_formula": "Pi_GI = K_munu - K_mu_a inv(K_ab) K_b_nu",
             "phase_vertex": ansatz.phase_vertex,
             "phase_vertex_status": f"{ansatz.phase_vertex}_pair_center_of_mass_phase_not_full_gauge_closure_proof",
