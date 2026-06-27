@@ -24,6 +24,28 @@ AlignmentPairingName = Literal["normal", "onsite_s", "spm", "dwave"]
 
 
 @dataclass(frozen=True)
+class TransformedComparisonRow:
+    finite_q_quantity: str
+    transformed_local_quantity: str
+    absolute_norm_difference: float
+    relative_norm_difference: float
+    finite_q_matrix_norm: float
+    transformed_local_matrix_norm: float
+    passes_tolerance: bool
+
+    def to_dict(self) -> dict[str, float | str | bool]:
+        return {
+            "finite_q_quantity": self.finite_q_quantity,
+            "transformed_local_quantity": self.transformed_local_quantity,
+            "absolute_norm_difference": self.absolute_norm_difference,
+            "relative_norm_difference": self.relative_norm_difference,
+            "finite_q_matrix_norm": self.finite_q_matrix_norm,
+            "transformed_local_matrix_norm": self.transformed_local_matrix_norm,
+            "passes_tolerance": self.passes_tolerance,
+        }
+
+
+@dataclass(frozen=True)
 class Q0BdGAlignmentReport:
     pairing_name: str
     omega_eV: float
@@ -38,6 +60,8 @@ class Q0BdGAlignmentReport:
     pairwise_difference_norms: dict[str, float]
     relative_difference_norms: dict[str, float]
     best_matching_local_quantity: dict[str, str | None]
+    transformed_comparison_rows: tuple[TransformedComparisonRow, ...]
+    best_transformed_match: dict[str, str | None]
     convention_table: dict[str, dict[str, str | bool]]
     convention_notes: tuple[str, ...]
     passed: bool
@@ -57,6 +81,8 @@ class Q0BdGAlignmentReport:
             "pairwise_difference_norms": self.pairwise_difference_norms,
             "relative_difference_norms": self.relative_difference_norms,
             "best_matching_local_quantity": self.best_matching_local_quantity,
+            "transformed_comparison_rows": [row.to_dict() for row in self.transformed_comparison_rows],
+            "best_transformed_match": self.best_transformed_match,
             "convention_table": self.convention_table,
             "convention_notes": list(self.convention_notes),
             "passed": self.passed,
@@ -78,8 +104,31 @@ class Q0BdGAlignmentReport:
         ]
         for name, best in self.best_matching_local_quantity.items():
             lines.append(f"- {name}: {best}")
+        lines.append("最佳 transformed 匹配:")
+        for name, best in self.best_transformed_match.items():
+            lines.append(f"- {name}: {best}")
+        lines.append("transformed comparison table（按 relative norm 升序）:")
+        if self.transformed_comparison_rows:
+            lines.append(
+                "finite_q_quantity | transformed_local_quantity | abs_diff | rel_diff | "
+                "finite_q_norm | local_norm | pass"
+            )
+            for row in sorted(self.transformed_comparison_rows, key=lambda item: item.relative_norm_difference):
+                lines.append(
+                    f"{row.finite_q_quantity} | {row.transformed_local_quantity} | "
+                    f"{row.absolute_norm_difference:.6e} | {row.relative_norm_difference:.6e} | "
+                    f"{row.finite_q_matrix_norm:.6e} | {row.transformed_local_matrix_norm:.6e} | "
+                    f"{row.passes_tolerance}"
+                )
+        else:
+            lines.append("- 无 transformed local comparator；仅报告 finite-q matrix norms。")
+        lines.append("finite-q matrix norms:")
+        for name in self.finite_q_matrices:
+            lines.append(f"- {name}: {self.matrix_norms[name]:.6e}")
         lines.append("说明:")
         lines.extend(f"- {note}" for note in self.pass_fail_notes)
+        lines.extend(f"- {note}" for note in self.convention_notes if note not in self.pass_fail_notes)
+        lines.append("本报告只用于 convention 诊断；finite-q 输出不是 formal Casimir input。")
         lines.append("valid_for_casimir_input: False")
         return "\n".join(lines)
 
@@ -154,6 +203,96 @@ def _local_q0_matrices(
         "local_K_total": kernels.total,
         "local_superconducting_response": response.sigma_like_response,
     }
+
+
+def _transformed_local_comparators(
+    pairing_name: AlignmentPairingName,
+    local: dict[str, np.ndarray],
+    omega_eV: float,
+) -> dict[str, list[tuple[str, np.ndarray]]]:
+    if pairing_name == "normal":
+        density_total = local["local_normal_density_current_total"]
+        sigma_like = local["local_normal_sigma_like"]
+        normal_comparators = [
+            ("local_normal_density_current_total_current_block", density_total),
+            ("omega * local_normal_sigma_like", omega_eV * sigma_like),
+            ("-omega * local_normal_sigma_like", -omega_eV * sigma_like),
+        ]
+        return {
+            "finite_q_raw_bubble_q0": normal_comparators,
+            "finite_q_direct_q0": normal_comparators,
+            "finite_q_total_q0": normal_comparators,
+            "finite_q_minus_schur_q0": normal_comparators,
+            "finite_q_amplitude_phase_schur_q0": normal_comparators,
+        }
+
+    if pairing_name == "onsite_s":
+        return {}
+
+    local_k_para = local["local_K_para"]
+    local_k_total = local["local_K_total"]
+    local_response = local["local_superconducting_response"]
+    return {
+        "finite_q_raw_bubble_q0": [
+            ("local_K_para", local_k_para),
+            ("-local_K_para", -local_k_para),
+        ],
+        "finite_q_direct_q0": [
+            ("local_K_total - local_K_para", local_k_total - local_k_para),
+            ("local_K_para - local_K_total", local_k_para - local_k_total),
+        ],
+        "finite_q_total_q0": [
+            ("local_K_total", local_k_total),
+            ("-local_K_total", -local_k_total),
+            ("omega * local_superconducting_response", omega_eV * local_response),
+            ("-omega * local_superconducting_response", -omega_eV * local_response),
+        ],
+        "finite_q_minus_schur_q0": [
+            ("local_K_total", local_k_total),
+        ],
+        "finite_q_amplitude_phase_schur_q0": [
+            ("local_K_total", local_k_total),
+        ],
+    }
+
+
+def _transformed_comparison_rows(
+    finite_q: dict[str, np.ndarray],
+    comparators: dict[str, list[tuple[str, np.ndarray]]],
+    tolerance: float,
+) -> tuple[TransformedComparisonRow, ...]:
+    rows: list[TransformedComparisonRow] = []
+    for finite_name, finite_matrix in finite_q.items():
+        finite_block = _current_block(finite_matrix)
+        finite_norm = float(np.linalg.norm(finite_block))
+        for comparator_name, comparator_matrix in comparators.get(finite_name, []):
+            local_block = _current_block(comparator_matrix)
+            if finite_block.shape != local_block.shape:
+                continue
+            diff = float(np.linalg.norm(finite_block - local_block))
+            local_norm = float(np.linalg.norm(local_block))
+            rel = _relative_norm(diff, finite_block, local_block)
+            rows.append(
+                TransformedComparisonRow(
+                    finite_q_quantity=finite_name,
+                    transformed_local_quantity=comparator_name,
+                    absolute_norm_difference=diff,
+                    relative_norm_difference=rel,
+                    finite_q_matrix_norm=finite_norm,
+                    transformed_local_matrix_norm=local_norm,
+                    passes_tolerance=bool(rel <= tolerance),
+                )
+            )
+    return tuple(rows)
+
+
+def _best_transformed_matches(rows: tuple[TransformedComparisonRow, ...]) -> dict[str, str | None]:
+    best: dict[str, tuple[str, float]] = {}
+    for row in rows:
+        current = best.get(row.finite_q_quantity)
+        if current is None or row.relative_norm_difference < current[1]:
+            best[row.finite_q_quantity] = (row.transformed_local_quantity, row.relative_norm_difference)
+    return {name: value[0] for name, value in best.items()}
 
 
 def _convention_table(local_names: tuple[str, ...]) -> dict[str, dict[str, str | bool]]:
@@ -259,14 +398,25 @@ def run_q0_bdg_response_alignment(
                 best_name = local_name
         best_matches[finite_name] = best_name if best_relative <= tolerance else None
 
+    transformed_rows = _transformed_comparison_rows(
+        finite_q,
+        _transformed_local_comparators(pairing_name, local, float(kubo.omega_eV)) if local else {},
+        tolerance,
+    )
+    best_transformed = _best_transformed_matches(transformed_rows)
+    for finite_name in finite_q:
+        best_transformed.setdefault(finite_name, None)
+
     passed = bool(local and all(best_matches[name] is not None for name in ("finite_q_total_q0",)))
     notes = [
         "q=0 对齐是有限 q Ward 诊断的前置检查，不是最终物理结论。",
         "有限 q 矩阵为 3x3 density-current 对象；与 2x2 local 对象比较时只使用 current-current 子块。",
+        "transformed comparison table 显式比较符号、omega 因子和 direct/contact 组合约定。",
         "若没有明确 local 匹配，本报告保守标记为未通过。",
     ]
     if not local:
         notes.append("当前 onsite_s 没有既有 local BdG public API 作为直接对照。")
+        notes.append("onsite_s 报告仅打印 finite-q matrix norms，并明确保持 diagnostic-only。")
     if not passed:
         notes.append("未找到满足容差的清楚 q=0 local 匹配。")
     return Q0BdGAlignmentReport(
@@ -283,6 +433,8 @@ def run_q0_bdg_response_alignment(
         pairwise_difference_norms=difference_norms,
         relative_difference_norms=relative_norms,
         best_matching_local_quantity=best_matches,
+        transformed_comparison_rows=transformed_rows,
+        best_transformed_match=best_transformed,
         convention_table=_convention_table(tuple(local.keys())),
         convention_notes=tuple(notes),
         passed=passed,

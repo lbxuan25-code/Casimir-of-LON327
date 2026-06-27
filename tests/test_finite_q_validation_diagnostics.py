@@ -52,6 +52,50 @@ def test_q0_alignment_diagnostics_run_for_all_cases_and_are_finite():
         assert "valid_for_casimir_input: False" in report.format_text()
 
 
+def test_q0_alignment_reports_transformed_comparison_rows():
+    module = _load_validation_script("q0_bdg_response_alignment")
+
+    normal_report = module.run_q0_bdg_response_alignment("normal", nk=2)
+    normal_pairs = {
+        (row.finite_q_quantity, row.transformed_local_quantity)
+        for row in normal_report.transformed_comparison_rows
+    }
+    assert ("finite_q_total_q0", "local_normal_density_current_total_current_block") in normal_pairs
+    assert ("finite_q_total_q0", "omega * local_normal_sigma_like") in normal_pairs
+    assert ("finite_q_total_q0", "-omega * local_normal_sigma_like") in normal_pairs
+    assert normal_report.valid_for_casimir_input is False
+
+    for pairing_name in ("spm", "dwave"):
+        report = module.run_q0_bdg_response_alignment(pairing_name, nk=2)
+        pairs = {
+            (row.finite_q_quantity, row.transformed_local_quantity)
+            for row in report.transformed_comparison_rows
+        }
+        assert ("finite_q_raw_bubble_q0", "local_K_para") in pairs
+        assert ("finite_q_raw_bubble_q0", "-local_K_para") in pairs
+        assert ("finite_q_total_q0", "local_K_total") in pairs
+        assert ("finite_q_total_q0", "omega * local_superconducting_response") in pairs
+        assert ("finite_q_direct_q0", "local_K_total - local_K_para") in pairs
+        assert ("finite_q_minus_schur_q0", "local_K_total") in pairs
+        assert ("finite_q_amplitude_phase_schur_q0", "local_K_total") in pairs
+        assert report.valid_for_casimir_input is False
+        assert "transformed comparison table" in report.format_text()
+
+
+def test_spm_q0_alignment_keeps_raw_bubble_local_k_para_as_best_transformed_match():
+    module = _load_validation_script("q0_bdg_response_alignment")
+    report = module.run_q0_bdg_response_alignment("spm", nk=2)
+    assert report.best_transformed_match["finite_q_raw_bubble_q0"] == "local_K_para"
+    raw_rows = [
+        row
+        for row in report.transformed_comparison_rows
+        if row.finite_q_quantity == "finite_q_raw_bubble_q0"
+    ]
+    best_row = min(raw_rows, key=lambda row: row.relative_norm_difference)
+    assert best_row.transformed_local_quantity == "local_K_para"
+    assert report.valid_for_casimir_input is False
+
+
 def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():
     module = _load_validation_script("finite_q_ward_scan")
     report = module.run_finite_q_ward_scan(nk=2, q_values=(0.005,), q_directions=((1.0, 0.0),))
@@ -126,6 +170,8 @@ def test_new_diagnostic_code_does_not_do_response_fitting_or_repair():
         "poly" + "fit",
         "response" + "_repair",
         "residual" + "_projection",
+        "fitted" + "_ward",
+        "ward" + "_correction",
     )
     for path in NEW_DIAGNOSTIC_FILES[:4]:
         text = path.read_text(encoding="utf-8").lower()
