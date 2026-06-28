@@ -12,13 +12,16 @@ from typing import Any, Literal
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
+SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(SCRIPT_DIR))
 
 from lno327.bdg_finite_q_response import bdg_finite_q_response_imag_axis  # noqa: E402
 from lno327.bdg_response import bdg_superconducting_response_imag_axis, bdg_total_kernel_imag_axis  # noqa: E402
 from lno327.conductivity import KuboConfig, k_weights, kubo_conductivity_imag_axis, uniform_bz_mesh  # noqa: E402
 from lno327.pairing import PairingAmplitudes  # noqa: E402
 from lno327.ward_response import normal_physical_density_current_response_components_imag_axis  # noqa: E402
+from q0_local_intraband_decomposition import _local_k_para_decomposition  # noqa: E402
 
 AlignmentPairingName = Literal["normal", "onsite_s", "spm", "dwave"]
 
@@ -128,7 +131,7 @@ class Q0BdGAlignmentReport:
         lines.append("说明:")
         lines.extend(f"- {note}" for note in self.pass_fail_notes)
         lines.extend(f"- {note}" for note in self.convention_notes if note not in self.pass_fail_notes)
-        lines.append("本报告只用于 convention 诊断；finite-q 输出不是 formal Casimir input。")
+        lines.append("本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入。")
         lines.append("valid_for_casimir_input: False")
         return "\n".join(lines)
 
@@ -198,8 +201,13 @@ def _local_q0_matrices(
         return {}
     kernels = bdg_total_kernel_imag_axis(points, config, pairing_name, amp, weights)
     response = bdg_superconducting_response_imag_axis(points, config, pairing_name, amp, weights)
+    decomposed_total, interband, intraband = _local_k_para_decomposition(pairing_name, points, weights, config, amp)
     return {
         "local_K_para": kernels.paramagnetic,
+        "local_K_para_total": kernels.paramagnetic,
+        "local_K_para_interband": interband,
+        "local_K_para_intraband": intraband,
+        "local_K_para_decomposed_total": decomposed_total,
         "local_K_total": kernels.total,
         "local_superconducting_response": response.sigma_like_response,
     }
@@ -230,11 +238,14 @@ def _transformed_local_comparators(
         return {}
 
     local_k_para = local["local_K_para"]
+    local_k_para_interband = local.get("local_K_para_interband")
+    local_k_para_intraband = local.get("local_K_para_intraband")
     local_k_total = local["local_K_total"]
     local_response = local["local_superconducting_response"]
-    return {
+    comparators = {
         "finite_q_raw_bubble_q0": [
             ("local_K_para", local_k_para),
+            ("local_K_para_total", local_k_para),
             ("-local_K_para", -local_k_para),
         ],
         "finite_q_direct_q0": [
@@ -262,6 +273,12 @@ def _transformed_local_comparators(
             ("-omega * local_superconducting_response", -omega_eV * local_response),
         ],
     }
+    if local_k_para_interband is not None and local_k_para_intraband is not None:
+        comparators["finite_q_raw_bubble_q0"].append(("local_K_para_interband", local_k_para_interband))
+        comparators["local_K_para_total - finite_q_raw_bubble_q0"] = [
+            ("local_K_para_intraband", local_k_para_intraband),
+        ]
+    return comparators
 
 
 def _transformed_comparison_rows(
@@ -316,6 +333,23 @@ def _row_passes(
     )
 
 
+def _row_is_negligible_match(
+    rows: tuple[TransformedComparisonRow, ...],
+    finite_q_quantity: str,
+    transformed_local_quantity: str,
+    *,
+    absolute_tolerance: float = 1e-10,
+) -> bool:
+    return any(
+        row.finite_q_quantity == finite_q_quantity
+        and row.transformed_local_quantity == transformed_local_quantity
+        and row.absolute_norm_difference <= absolute_tolerance
+        and row.finite_q_matrix_norm <= absolute_tolerance
+        and row.transformed_local_matrix_norm <= absolute_tolerance
+        for row in rows
+    )
+
+
 def _convention_aware_pass_status(
     pairing_name: AlignmentPairingName,
     rows: tuple[TransformedComparisonRow, ...],
@@ -362,11 +396,45 @@ def _convention_aware_pass_status(
         return bool(passed), tuple(notes)
 
     if pairing_name == "dwave":
+        raw_interband_ok = _row_passes(rows, "finite_q_raw_bubble_q0", "local_K_para_interband")
+        raw_total_ok = _row_passes(rows, "finite_q_raw_bubble_q0", "local_K_para_total") or _row_passes(
+            rows,
+            "finite_q_raw_bubble_q0",
+            "local_K_para",
+        )
+        missing_intraband_ok = _row_passes(
+            rows,
+            "local_K_para_total - finite_q_raw_bubble_q0",
+            "local_K_para_intraband",
+        ) or (
+            raw_total_ok
+            and _row_is_negligible_match(
+                rows,
+                "local_K_para_total - finite_q_raw_bubble_q0",
+                "local_K_para_intraband",
+            )
+        )
+        if raw_interband_ok and missing_intraband_ok:
+            notes.append(
+                "dwave 使用 intraband-aware q=0 raw-bubble 判据：finite_q_raw_bubble_q0 "
+                "对齐 local_K_para_interband，local_K_para_total - finite_q_raw_bubble_q0 "
+                "对齐 local_K_para_intraband。"
+            )
+            if not raw_total_ok:
+                notes.append(
+                    "dwave raw-vs-total mismatch 保持可见，但由 local intraband / -f'(E) 贡献解释；"
+                    "这不是 Ward closure proof，也不是 Casimir 输入。"
+                )
+            else:
+                notes.append(
+                    "dwave local_K_para_intraband 在该网格上可忽略，raw bubble 同时对齐 local total 与 interband。"
+                )
+            return True, tuple(notes)
         return (
             False,
             (
-                "dwave 保持保守 q=0 判据：raw-bubble 顶角/组装问题需由专门 raw-bubble audit 判定；"
-                "本 alignment 报告不因 transformed total/contact 局部对齐而升级为通过。",
+                "dwave intraband-aware q=0 raw-bubble 判据未通过；若 raw-vs-total 失败，"
+                "需继续检查 interband/intraband 分解、实虚部、符号、Nambu prefactor、band-pair 或 pairing-state 约定。",
             ),
         )
     if pairing_name == "normal":
@@ -454,6 +522,10 @@ def run_q0_bdg_response_alignment(
     amp = pairing_params or PairingAmplitudes()
     finite_q = _finite_q_q0_matrices(pairing_name, points, mesh_weights, kubo, amp)
     local = _local_q0_matrices(pairing_name, points, mesh_weights, kubo, amp)
+    if pairing_name in {"spm", "dwave"} and "local_K_para" in local:
+        finite_q["local_K_para_total - finite_q_raw_bubble_q0"] = (
+            local["local_K_para"] - _current_block(finite_q["finite_q_raw_bubble_q0"])
+        )
 
     matrix_norms = {name: float(np.linalg.norm(value)) for name, value in {**finite_q, **local}.items()}
     difference_norms: dict[str, float] = {}

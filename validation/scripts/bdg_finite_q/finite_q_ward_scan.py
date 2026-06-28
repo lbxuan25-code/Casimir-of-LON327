@@ -50,7 +50,7 @@ class FiniteQWardScanReport:
     mesh_size: int
     delta0_eV: float
     rows: tuple[FiniteQWardScanRow, ...]
-    q0_alignment_prerequisite: dict[str, bool]
+    q0_alignment_prerequisite: dict[str, str]
     q_scaling_estimates: dict[str, float | None]
     passed: bool
     notes: tuple[str, ...]
@@ -115,6 +115,16 @@ def _scaling_slope(q_values: list[float], residuals: list[float]) -> float | Non
     return float((np.log(r_last) - np.log(r_first)) / (np.log(q_last) - np.log(q_first)))
 
 
+def _q0_alignment_status(pairing_name: str, passed: bool, notes: tuple[str, ...]) -> str:
+    if pairing_name == "dwave" and passed and any("intraband-aware" in note for note in notes):
+        return "intraband_aware_pass"
+    if pairing_name == "spm" and passed:
+        return "convention_aware_pass"
+    if passed:
+        return "pass"
+    return "diagnostic_only_not_passed"
+
+
 def run_finite_q_ward_scan(
     pairing_names: tuple[WardScanPairingName, ...] = ("onsite_s", "spm", "dwave"),
     *,
@@ -140,8 +150,9 @@ def run_finite_q_ward_scan(
     )
     rows: list[FiniteQWardScanRow] = []
     scaling_inputs: dict[str, tuple[list[float], list[float]]] = {}
-    q0_alignment = {
-        pairing_name: run_q0_bdg_response_alignment(
+    q0_alignment = {}
+    for pairing_name in pairing_names:
+        alignment_report = run_q0_bdg_response_alignment(
             pairing_name,
             omega_eV=float(kubo.omega_eV),
             nk=nk,
@@ -149,9 +160,12 @@ def run_finite_q_ward_scan(
             weights=mesh_weights if weights is not None else None,
             config=kubo,
             pairing_params=amp,
-        ).passed
-        for pairing_name in pairing_names
-    }
+        )
+        q0_alignment[pairing_name] = _q0_alignment_status(
+            pairing_name,
+            alignment_report.passed,
+            alignment_report.pass_fail_notes,
+        )
     for pairing_name in pairing_names:
         ansatz = build_pairing_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
         for q_value in q_values:
@@ -216,6 +230,7 @@ def run_finite_q_ward_scan(
     finite = all(np.isfinite(row.max_ward_residual_norm) for row in rows)
     notes = (
         "本扫描在同一入口先记录 q=0 response definition alignment 前置结果。",
+        "dwave 若显示 intraband_aware_pass，表示 q=0 raw bubble 对齐 local interband，raw-vs-total 差异由 intraband/-f'(E) local 项解释。",
         "本扫描只记录 Ward 残差，不解释为 Casimir 各向异性。",
         "finite-q 输出保持 valid_for_casimir_input=False。",
         "残差比例为各响应 max residual 相对 bare_total 的比例。",

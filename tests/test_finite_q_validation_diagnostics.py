@@ -75,7 +75,10 @@ def test_q0_alignment_reports_transformed_comparison_rows():
             for row in report.transformed_comparison_rows
         }
         assert ("finite_q_raw_bubble_q0", "local_K_para") in pairs
+        assert ("finite_q_raw_bubble_q0", "local_K_para_total") in pairs
+        assert ("finite_q_raw_bubble_q0", "local_K_para_interband") in pairs
         assert ("finite_q_raw_bubble_q0", "-local_K_para") in pairs
+        assert ("local_K_para_total - finite_q_raw_bubble_q0", "local_K_para_intraband") in pairs
         assert ("finite_q_total_q0", "local_K_total") in pairs
         assert ("finite_q_total_q0", "omega * local_superconducting_response") in pairs
         assert ("finite_q_direct_q0", "local_K_total - local_K_para") in pairs
@@ -113,12 +116,24 @@ def test_spm_q0_alignment_passes_convention_aware_rule_without_promoting_to_casi
     assert any("convention-aware" in note for note in report.pass_fail_notes)
 
 
-def test_dwave_q0_alignment_keeps_conservative_diagnostic_status():
+def test_dwave_q0_alignment_uses_intraband_aware_raw_bubble_status():
     module = _load_validation_script("q0_bdg_response_alignment")
-    report = module.run_q0_bdg_response_alignment("dwave", nk=2)
-    assert report.passed is False
+    report = module.run_q0_bdg_response_alignment("dwave", nk=3)
+    assert report.passed is True
     assert report.valid_for_casimir_input is False
-    assert any("保守" in note for note in report.pass_fail_notes)
+    rows = {
+        (row.finite_q_quantity, row.transformed_local_quantity): row
+        for row in report.transformed_comparison_rows
+    }
+    assert rows[("finite_q_raw_bubble_q0", "local_K_para_interband")].passes_tolerance
+    assert rows[
+        ("local_K_para_total - finite_q_raw_bubble_q0", "local_K_para_intraband")
+    ].passes_tolerance
+    assert not rows[("finite_q_raw_bubble_q0", "local_K_para_total")].passes_tolerance
+    assert not rows[("finite_q_raw_bubble_q0", "local_K_para")].passes_tolerance
+    assert any("intraband-aware" in note for note in report.pass_fail_notes)
+    assert any("raw-vs-total mismatch 保持可见" in note for note in report.pass_fail_notes)
+    assert "valid_for_casimir_input: False" in report.format_text()
 
 
 def test_dwave_raw_bubble_vertex_audit_reports_roundoff_vertex_match_and_dwave_raw_mismatch():
@@ -254,6 +269,9 @@ def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():
         "minus_schur",
         "amplitude_phase_schur",
     }
+    assert report.q0_alignment_prerequisite["spm"] == "convention_aware_pass"
+    assert report.q0_alignment_prerequisite["dwave"] == "intraband_aware_pass"
+    assert report.q0_alignment_prerequisite["onsite_s"] == "diagnostic_only_not_passed"
     for row in report.rows:
         assert row.valid_for_casimir_input is False
         assert np.isfinite(row.left_ward_residual_norm)
