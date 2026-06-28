@@ -12,13 +12,16 @@ from typing import Any, Literal
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
+SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(SCRIPT_DIR))
 
 from lno327.bdg_finite_q_response import bdg_finite_q_response_imag_axis  # noqa: E402
 from lno327.bdg_response import bdg_current_vertex, bdg_total_kernel_imag_axis  # noqa: E402
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
 from lno327.finite_q_primitives import bdg_finite_q_vector_vertex  # noqa: E402
 from lno327.pairing import PairingAmplitudes  # noqa: E402
+from q0_local_intraband_decomposition import _local_k_para_decomposition  # noqa: E402
 
 AuditPairingName = Literal["spm", "dwave"]
 
@@ -28,8 +31,15 @@ class RawBubbleAuditRow:
     pairing_name: AuditPairingName
     finite_q_raw_bubble_norm: float
     local_k_para_norm: float
+    local_k_para_interband_norm: float
+    local_k_para_intraband_norm: float
     raw_vs_local_abs: float
     raw_vs_local_rel: float
+    raw_vs_interband_abs: float
+    raw_vs_interband_rel: float
+    missing_vs_intraband_abs: float
+    missing_vs_intraband_rel: float
+    intraband_explanation_supported: bool
     finite_q_vs_local_vertex_max_abs: float
     finite_q_vs_local_vertex_max_rel: float
     vertex_abs_tolerance: float
@@ -43,8 +53,15 @@ class RawBubbleAuditRow:
             "pairing_name": self.pairing_name,
             "finite_q_raw_bubble_norm": self.finite_q_raw_bubble_norm,
             "local_k_para_norm": self.local_k_para_norm,
+            "local_k_para_interband_norm": self.local_k_para_interband_norm,
+            "local_k_para_intraband_norm": self.local_k_para_intraband_norm,
             "raw_vs_local_abs": self.raw_vs_local_abs,
             "raw_vs_local_rel": self.raw_vs_local_rel,
+            "raw_vs_interband_abs": self.raw_vs_interband_abs,
+            "raw_vs_interband_rel": self.raw_vs_interband_rel,
+            "missing_vs_intraband_abs": self.missing_vs_intraband_abs,
+            "missing_vs_intraband_rel": self.missing_vs_intraband_rel,
+            "intraband_explanation_supported": self.intraband_explanation_supported,
             "finite_q_vs_local_vertex_max_abs": self.finite_q_vs_local_vertex_max_abs,
             "finite_q_vs_local_vertex_max_rel": self.finite_q_vs_local_vertex_max_rel,
             "vertex_abs_tolerance": self.vertex_abs_tolerance,
@@ -64,6 +81,7 @@ class DWaveRawBubbleVertexAuditReport:
     delta0_eV: float
     rows: tuple[RawBubbleAuditRow, ...]
     dwave_specific_mismatch: bool
+    raw_vs_total_mismatch_explained_by_intraband: bool
     interpretation: str
     notes: tuple[str, ...]
     valid_for_casimir_input: bool = False
@@ -77,6 +95,7 @@ class DWaveRawBubbleVertexAuditReport:
             "delta0_eV": self.delta0_eV,
             "rows": [row.to_dict() for row in self.rows],
             "dwave_specific_mismatch": self.dwave_specific_mismatch,
+            "raw_vs_total_mismatch_explained_by_intraband": self.raw_vs_total_mismatch_explained_by_intraband,
             "interpretation": self.interpretation,
             "notes": list(self.notes),
             "valid_for_casimir_input": False,
@@ -91,18 +110,22 @@ class DWaveRawBubbleVertexAuditReport:
             f"网格点数: {self.mesh_size}",
             f"delta0_eV: {self.delta0_eV:.12g}",
             f"dwave_specific_mismatch: {self.dwave_specific_mismatch}",
+            f"raw_vs_total_mismatch_explained_by_intraband: {self.raw_vs_total_mismatch_explained_by_intraband}",
             f"interpretation: {self.interpretation}",
             (
-                "pairing | raw_norm | local_K_para_norm | raw_abs | raw_rel | "
-                "vertex_abs_max | vertex_rel_max | vertex_status | evidence"
+                "pairing | raw_norm | local_K_para_total_norm | interband_norm | intraband_norm | "
+                "raw_vs_total_rel | raw_vs_interband_rel | missing_vs_intraband_rel | "
+                "vertex_abs_max | vertex_rel_max | vertex_status | intraband_supported | evidence"
             ),
         ]
         for row in self.rows:
             lines.append(
                 f"{row.pairing_name} | {row.finite_q_raw_bubble_norm:.6e} | "
-                f"{row.local_k_para_norm:.6e} | {row.raw_vs_local_abs:.6e} | "
-                f"{row.raw_vs_local_rel:.6e} | {row.finite_q_vs_local_vertex_max_abs:.6e} | "
-                f"{row.finite_q_vs_local_vertex_max_rel:.6e} | {row.vertex_status} | {row.evidence}"
+                f"{row.local_k_para_norm:.6e} | {row.local_k_para_interband_norm:.6e} | "
+                f"{row.local_k_para_intraband_norm:.6e} | {row.raw_vs_local_rel:.6e} | "
+                f"{row.raw_vs_interband_rel:.6e} | {row.missing_vs_intraband_rel:.6e} | "
+                f"{row.finite_q_vs_local_vertex_max_abs:.6e} | {row.finite_q_vs_local_vertex_max_rel:.6e} | "
+                f"{row.vertex_status} | {row.intraband_explanation_supported} | {row.evidence}"
             )
         lines.append("说明:")
         lines.extend(f"- {note}" for note in self.notes)
@@ -171,25 +194,51 @@ def _audit_one_pairing(
     local = bdg_total_kernel_imag_axis(points, config, pairing_name, amp, weights)
     finite_q_raw = _current_block(response.bare_bubble)
     local_k_para = np.asarray(local.paramagnetic, dtype=complex)
+    _, interband, intraband = _local_k_para_decomposition(pairing_name, points, weights, config, amp)
+    missing = local_k_para - finite_q_raw
     raw_abs = float(np.linalg.norm(finite_q_raw - local_k_para))
     raw_rel = _relative_norm(raw_abs, finite_q_raw, local_k_para)
+    raw_vs_interband_abs = float(np.linalg.norm(finite_q_raw - interband))
+    raw_vs_interband_rel = _relative_norm(raw_vs_interband_abs, finite_q_raw, interband)
+    missing_vs_intraband_abs = float(np.linalg.norm(missing - intraband))
+    missing_vs_intraband_rel = _relative_norm(missing_vs_intraband_abs, missing, intraband)
     vertex_abs, vertex_rel, vertex_status = _vertex_difference_max(
         points,
         absolute_tolerance=vertex_abs_tolerance,
         relative_tolerance=vertex_rel_tolerance,
     )
+    negligible_intraband_case = bool(
+        raw_rel <= raw_relative_tolerance
+        and raw_vs_interband_rel <= raw_relative_tolerance
+        and float(np.linalg.norm(intraband)) <= 1e-10
+        and raw_abs <= 1e-10
+    )
+    missing_intraband_case = bool(
+        raw_vs_interband_rel <= raw_relative_tolerance
+        and missing_vs_intraband_rel <= raw_relative_tolerance
+    )
+    intraband_supported = bool(missing_intraband_case or negligible_intraband_case)
     if raw_rel <= raw_relative_tolerance:
         evidence = "raw_bubble_matches_local_K_para"
+    elif vertex_status == "vertex_operator_q0_match" and intraband_supported:
+        evidence = "raw_vs_total_mismatch_explained_by_intraband"
     elif vertex_status == "vertex_operator_level_mismatch":
         evidence = vertex_status
     else:
-        evidence = "bubble_assembly_or_pairing_state_convention_mismatch"
+        evidence = "not_unexplained_bubble_assembly_mismatch_requires_intraband_check"
     return RawBubbleAuditRow(
         pairing_name=pairing_name,
         finite_q_raw_bubble_norm=float(np.linalg.norm(finite_q_raw)),
         local_k_para_norm=float(np.linalg.norm(local_k_para)),
+        local_k_para_interband_norm=float(np.linalg.norm(interband)),
+        local_k_para_intraband_norm=float(np.linalg.norm(intraband)),
         raw_vs_local_abs=raw_abs,
         raw_vs_local_rel=raw_rel,
+        raw_vs_interband_abs=raw_vs_interband_abs,
+        raw_vs_interband_rel=raw_vs_interband_rel,
+        missing_vs_intraband_abs=missing_vs_intraband_abs,
+        missing_vs_intraband_rel=missing_vs_intraband_rel,
+        intraband_explanation_supported=intraband_supported,
         finite_q_vs_local_vertex_max_abs=vertex_abs,
         finite_q_vs_local_vertex_max_rel=vertex_rel,
         vertex_abs_tolerance=vertex_abs_tolerance,
@@ -230,19 +279,26 @@ def run_dwave_raw_bubble_vertex_audit(
     row_by_pairing = {row.pairing_name: row for row in rows}
     spm_ok = row_by_pairing["spm"].raw_vs_local_rel <= tolerance
     dwave_ok = row_by_pairing["dwave"].raw_vs_local_rel <= tolerance
-    dwave_specific_mismatch = bool(spm_ok and not dwave_ok)
-    if dwave_specific_mismatch:
-        interpretation = "dwave_specific_raw_bubble_mismatch"
+    dwave_explained_by_intraband = bool(
+        not dwave_ok
+        and row_by_pairing["dwave"].vertex_status == "vertex_operator_q0_match"
+        and row_by_pairing["dwave"].intraband_explanation_supported
+    )
+    dwave_specific_mismatch = bool(spm_ok and not dwave_ok and not dwave_explained_by_intraband)
+    if dwave_explained_by_intraband:
+        interpretation = "raw_vs_total_mismatch_explained_by_intraband"
+    elif dwave_specific_mismatch:
+        interpretation = "dwave_specific_raw_bubble_mismatch_requires_intraband_or_convention_review"
     elif dwave_ok:
         interpretation = "no_dwave_raw_bubble_mismatch_on_this_grid"
     else:
         interpretation = "shared_or_inconclusive_raw_bubble_mismatch"
     notes = (
-        "该脚本只读比较 q=0 finite-q raw bubble、local K_para 与 q=0 current vertex；不改变响应公式。",
+        "该脚本只读比较 q=0 finite-q raw bubble、local total K_para、local interband K_para、local intraband K_para 与 q=0 current vertex；不改变响应公式。",
         "q=0 current vertex 用绝对或相对容差判定；roundoff 级绝对差不会被标为 vertex operator mismatch。",
         "spm 作为同一有限 q 后端的控制样本，用来判断问题是否具有 d-wave 特异性。",
-        "若 q=0 vertex 层面对齐但 raw bubble 不对齐，优先怀疑 bubble 组装、配对态约定或动量依赖配对电流贡献。",
-        "本 audit 是 diagnostic-only，不作为 Casimir 输入或 production 通过条件。",
+        "若 d-wave raw bubble 对齐 local interband 且 local total - raw 对齐 intraband，则 raw-vs-total mismatch 由 local intraband / -f'(E) 贡献解释。",
+        "本 audit 是 diagnostic-only convention/definition audit；不是 Ward closure proof，也不作为 Casimir 输入。",
     )
     return DWaveRawBubbleVertexAuditReport(
         omega_eV=float(config.omega_eV),
@@ -252,6 +308,7 @@ def run_dwave_raw_bubble_vertex_audit(
         delta0_eV=float(amp.delta0_eV),
         rows=rows,
         dwave_specific_mismatch=dwave_specific_mismatch,
+        raw_vs_total_mismatch_explained_by_intraband=dwave_explained_by_intraband,
         interpretation=interpretation,
         notes=notes,
         valid_for_casimir_input=False,

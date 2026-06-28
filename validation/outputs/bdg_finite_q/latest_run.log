@@ -1,0 +1,259 @@
+q=0 BdG 响应定义对齐报告
+配对名称: normal
+omega_eV: 0.01
+q_model: [0, 0]
+nk: 3
+网格点数: 9
+delta0_eV: 0
+通过: False
+最佳 local 匹配:
+- finite_q_raw_bubble_q0: None
+- finite_q_direct_q0: None
+- finite_q_total_q0: None
+- finite_q_minus_schur_q0: None
+- finite_q_amplitude_phase_schur_q0: None
+最佳 transformed 匹配:
+- finite_q_raw_bubble_q0: omega * local_normal_sigma_like
+- finite_q_direct_q0: -omega * local_normal_sigma_like
+- finite_q_total_q0: -omega * local_normal_sigma_like
+- finite_q_minus_schur_q0: -omega * local_normal_sigma_like
+- finite_q_amplitude_phase_schur_q0: -omega * local_normal_sigma_like
+transformed comparison table（按 relative norm 升序）:
+finite_q_quantity | transformed_local_quantity | abs_diff | rel_diff | finite_q_norm | local_norm | pass
+finite_q_direct_q0 | -omega * local_normal_sigma_like | 1.723267e-01 | 1.353210e-01 | 1.101139e+00 | 1.273466e+00 | False
+finite_q_total_q0 | -omega * local_normal_sigma_like | 2.086465e-01 | 1.638415e-01 | 1.064819e+00 | 1.273466e+00 | False
+finite_q_minus_schur_q0 | -omega * local_normal_sigma_like | 2.086465e-01 | 1.638415e-01 | 1.064819e+00 | 1.273466e+00 | False
+finite_q_amplitude_phase_schur_q0 | -omega * local_normal_sigma_like | 2.086465e-01 | 1.638415e-01 | 1.064819e+00 | 1.273466e+00 | False
+finite_q_direct_q0 | local_normal_density_current_total_current_block | 3.455179e-01 | 2.388389e-01 | 1.101139e+00 | 1.446657e+00 | False
+finite_q_total_q0 | local_normal_density_current_total_current_block | 3.818377e-01 | 2.639449e-01 | 1.064819e+00 | 1.446657e+00 | False
+finite_q_minus_schur_q0 | local_normal_density_current_total_current_block | 3.818377e-01 | 2.639449e-01 | 1.064819e+00 | 1.446657e+00 | False
+finite_q_amplitude_phase_schur_q0 | local_normal_density_current_total_current_block | 3.818377e-01 | 2.639449e-01 | 1.064819e+00 | 1.446657e+00 | False
+finite_q_raw_bubble_q0 | omega * local_normal_sigma_like | 1.237146e+00 | 9.714796e-01 | 3.631977e-02 | 1.273466e+00 | False
+finite_q_raw_bubble_q0 | local_normal_density_current_total_current_block | 1.482977e+00 | 1.025106e+00 | 3.631977e-02 | 1.446657e+00 | False
+finite_q_raw_bubble_q0 | -omega * local_normal_sigma_like | 1.309785e+00 | 1.028520e+00 | 3.631977e-02 | 1.273466e+00 | False
+finite_q_total_q0 | omega * local_normal_sigma_like | 2.338285e+00 | 1.836159e+00 | 1.064819e+00 | 1.273466e+00 | False
+finite_q_minus_schur_q0 | omega * local_normal_sigma_like | 2.338285e+00 | 1.836159e+00 | 1.064819e+00 | 1.273466e+00 | False
+finite_q_amplitude_phase_schur_q0 | omega * local_normal_sigma_like | 2.338285e+00 | 1.836159e+00 | 1.064819e+00 | 1.273466e+00 | False
+finite_q_direct_q0 | omega * local_normal_sigma_like | 2.374605e+00 | 1.864679e+00 | 1.101139e+00 | 1.273466e+00 | False
+finite-q matrix norms:
+- finite_q_raw_bubble_q0: 3.631977e-02
+- finite_q_direct_q0: 1.101139e+00
+- finite_q_total_q0: 1.064819e+00
+- finite_q_minus_schur_q0: 1.064819e+00
+- finite_q_amplitude_phase_schur_q0: 1.064819e+00
+说明:
+- q=0 对齐是有限 q Ward 诊断的前置检查，不是最终物理结论。
+- 有限 q 矩阵为 3x3 density-current 对象；与 2x2 local 对象比较时只使用 current-current 子块。
+- transformed comparison table 显式比较符号、omega 因子和 direct/contact 组合约定。
+- 若没有明确 local 匹配，本报告保守标记为未通过。
+- normal q=0 alignment 属于独立 convention 问题；本报告保持保守未通过。
+- 未找到满足容差的清楚 q=0 local 匹配。
+本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入。
+valid_for_casimir_input: False
+q=0 BdG 响应定义对齐报告
+配对名称: spm
+omega_eV: 0.01
+q_model: [0, 0]
+nk: 3
+网格点数: 9
+delta0_eV: 0.04
+通过: True
+最佳 local 匹配:
+- finite_q_raw_bubble_q0: local_K_para
+- finite_q_direct_q0: None
+- finite_q_total_q0: None
+- finite_q_minus_schur_q0: None
+- finite_q_amplitude_phase_schur_q0: None
+- local_K_para_total - finite_q_raw_bubble_q0: None
+最佳 transformed 匹配:
+- finite_q_raw_bubble_q0: local_K_para
+- finite_q_direct_q0: -local_K_total - local_K_para
+- finite_q_total_q0: -local_K_total
+- finite_q_minus_schur_q0: -local_K_total
+- finite_q_amplitude_phase_schur_q0: -local_K_total
+- local_K_para_total - finite_q_raw_bubble_q0: local_K_para_intraband
+transformed comparison table（按 relative norm 升序）:
+finite_q_quantity | transformed_local_quantity | abs_diff | rel_diff | finite_q_norm | local_norm | pass
+finite_q_direct_q0 | -local_K_total - local_K_para | 1.111376e-16 | 1.006714e-16 | 1.103963e+00 | 1.103963e+00 | True
+finite_q_total_q0 | -local_K_total | 1.935767e-12 | 1.807648e-12 | 1.070876e+00 | 1.070876e+00 | True
+finite_q_minus_schur_q0 | -local_K_total | 1.935767e-12 | 1.807648e-12 | 1.070876e+00 | 1.070876e+00 | True
+finite_q_amplitude_phase_schur_q0 | -local_K_total | 1.935767e-12 | 1.807648e-12 | 1.070876e+00 | 1.070876e+00 | True
+finite_q_total_q0 | -omega * local_superconducting_response | 1.935845e-12 | 1.807722e-12 | 1.070876e+00 | 1.070876e+00 | True
+finite_q_minus_schur_q0 | -omega * local_superconducting_response | 1.935845e-12 | 1.807722e-12 | 1.070876e+00 | 1.070876e+00 | True
+finite_q_amplitude_phase_schur_q0 | -omega * local_superconducting_response | 1.935845e-12 | 1.807722e-12 | 1.070876e+00 | 1.070876e+00 | True
+finite_q_raw_bubble_q0 | local_K_para | 1.935863e-12 | 5.850744e-11 | 3.308746e-02 | 3.308746e-02 | True
+finite_q_raw_bubble_q0 | local_K_para_total | 1.935863e-12 | 5.850744e-11 | 3.308746e-02 | 3.308746e-02 | True
+finite_q_raw_bubble_q0 | local_K_para_interband | 1.935863e-12 | 5.850744e-11 | 3.308746e-02 | 3.308746e-02 | True
+finite_q_direct_q0 | local_K_para - local_K_total | 6.617493e-02 | 5.994305e-02 | 1.103963e+00 | 1.037788e+00 | False
+local_K_para_total - finite_q_raw_bubble_q0 | local_K_para_intraband | 1.935863e-12 | 1.000000e+00 | 1.935863e-12 | 3.601833e-20 | False
+finite_q_direct_q0 | local_K_total - local_K_para | 2.141752e+00 | 1.940057e+00 | 1.103963e+00 | 1.037788e+00 | False
+finite_q_raw_bubble_q0 | -local_K_para | 6.617493e-02 | 2.000000e+00 | 3.308746e-02 | 3.308746e-02 | False
+finite_q_total_q0 | local_K_total | 2.141752e+00 | 2.000000e+00 | 1.070876e+00 | 1.070876e+00 | False
+finite_q_total_q0 | omega * local_superconducting_response | 2.141752e+00 | 2.000000e+00 | 1.070876e+00 | 1.070876e+00 | False
+finite_q_minus_schur_q0 | local_K_total | 2.141752e+00 | 2.000000e+00 | 1.070876e+00 | 1.070876e+00 | False
+finite_q_minus_schur_q0 | omega * local_superconducting_response | 2.141752e+00 | 2.000000e+00 | 1.070876e+00 | 1.070876e+00 | False
+finite_q_amplitude_phase_schur_q0 | local_K_total | 2.141752e+00 | 2.000000e+00 | 1.070876e+00 | 1.070876e+00 | False
+finite_q_amplitude_phase_schur_q0 | omega * local_superconducting_response | 2.141752e+00 | 2.000000e+00 | 1.070876e+00 | 1.070876e+00 | False
+finite_q_direct_q0 | local_K_total + local_K_para | 2.207927e+00 | 2.000000e+00 | 1.103963e+00 | 1.103963e+00 | False
+finite-q matrix norms:
+- finite_q_raw_bubble_q0: 5.475152e+00
+- finite_q_direct_q0: 1.103963e+00
+- finite_q_total_q0: 5.578797e+00
+- finite_q_minus_schur_q0: 1.070876e+00
+- finite_q_amplitude_phase_schur_q0: 1.070876e+00
+- local_K_para_total - finite_q_raw_bubble_q0: 1.935863e-12
+说明:
+- q=0 对齐是有限 q Ward 诊断的前置检查，不是最终物理结论。
+- 有限 q 矩阵为 3x3 density-current 对象；与 2x2 local 对象比较时只使用 current-current 子块。
+- transformed comparison table 显式比较符号、omega 因子和 direct/contact 组合约定。
+- 若没有明确 local 匹配，本报告保守标记为未通过。
+- spm 使用 convention-aware q=0 判据：raw bubble 对齐 local_K_para，direct/contact 对齐 -local_K_total - local_K_para，total/Schur 对齐 -local_K_total 或 -omega * local_superconducting_response。
+本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入。
+valid_for_casimir_input: False
+q=0 BdG 响应定义对齐报告
+配对名称: dwave
+omega_eV: 0.01
+q_model: [0, 0]
+nk: 3
+网格点数: 9
+delta0_eV: 0.04
+通过: True
+最佳 local 匹配:
+- finite_q_raw_bubble_q0: local_K_para_interband
+- finite_q_direct_q0: None
+- finite_q_total_q0: None
+- finite_q_minus_schur_q0: None
+- finite_q_amplitude_phase_schur_q0: None
+- local_K_para_total - finite_q_raw_bubble_q0: local_K_para_intraband
+最佳 transformed 匹配:
+- finite_q_raw_bubble_q0: local_K_para_interband
+- finite_q_direct_q0: -local_K_total - local_K_para
+- finite_q_total_q0: local_K_total
+- finite_q_minus_schur_q0: local_K_total
+- finite_q_amplitude_phase_schur_q0: local_K_total
+- local_K_para_total - finite_q_raw_bubble_q0: local_K_para_intraband
+transformed comparison table（按 relative norm 升序）:
+finite_q_quantity | transformed_local_quantity | abs_diff | rel_diff | finite_q_norm | local_norm | pass
+finite_q_direct_q0 | -local_K_total - local_K_para | 5.060749e-18 | 4.559214e-18 | 1.110005e+00 | 1.110005e+00 | True
+local_K_para_total - finite_q_raw_bubble_q0 | local_K_para_intraband | 1.624025e-12 | 1.394746e-12 | 1.164388e+00 | 1.164388e+00 | True
+finite_q_raw_bubble_q0 | local_K_para_interband | 1.624037e-12 | 6.083252e-11 | 2.669686e-02 | 2.669686e-02 | True
+finite_q_direct_q0 | local_K_total - local_K_para | 1.621600e-01 | 1.274678e-01 | 1.110005e+00 | 1.272165e+00 | False
+finite_q_total_q0 | local_K_total | 1.002228e+00 | 9.251551e-01 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_total_q0 | omega * local_superconducting_response | 1.002228e+00 | 9.251551e-01 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_minus_schur_q0 | local_K_total | 1.002228e+00 | 9.251551e-01 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_minus_schur_q0 | omega * local_superconducting_response | 1.002228e+00 | 9.251551e-01 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_amplitude_phase_schur_q0 | local_K_total | 1.002228e+00 | 9.251551e-01 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_amplitude_phase_schur_q0 | omega * local_superconducting_response | 1.002228e+00 | 9.251551e-01 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_raw_bubble_q0 | local_K_para | 1.164388e+00 | 9.775861e-01 | 2.669686e-02 | 1.191085e+00 | False
+finite_q_raw_bubble_q0 | local_K_para_total | 1.164388e+00 | 9.775861e-01 | 2.669686e-02 | 1.191085e+00 | False
+finite_q_raw_bubble_q0 | -local_K_para | 1.217782e+00 | 1.022414e+00 | 2.669686e-02 | 1.191085e+00 | False
+finite_q_total_q0 | -local_K_total | 1.164388e+00 | 1.074845e+00 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_total_q0 | -omega * local_superconducting_response | 1.164388e+00 | 1.074845e+00 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_minus_schur_q0 | -local_K_total | 1.164388e+00 | 1.074845e+00 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_minus_schur_q0 | -omega * local_superconducting_response | 1.164388e+00 | 1.074845e+00 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_amplitude_phase_schur_q0 | -local_K_total | 1.164388e+00 | 1.074845e+00 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_amplitude_phase_schur_q0 | -omega * local_superconducting_response | 1.164388e+00 | 1.074845e+00 | 1.083308e+00 | 8.108001e-02 | False
+finite_q_direct_q0 | local_K_para - local_K_total | 2.382169e+00 | 1.872532e+00 | 1.110005e+00 | 1.272165e+00 | False
+finite_q_direct_q0 | local_K_total + local_K_para | 2.220009e+00 | 2.000000e+00 | 1.110005e+00 | 1.110005e+00 | False
+finite-q matrix norms:
+- finite_q_raw_bubble_q0: 2.697495e-02
+- finite_q_direct_q0: 1.110005e+00
+- finite_q_total_q0: 1.083315e+00
+- finite_q_minus_schur_q0: 1.083308e+00
+- finite_q_amplitude_phase_schur_q0: 1.083308e+00
+- local_K_para_total - finite_q_raw_bubble_q0: 1.164388e+00
+说明:
+- q=0 对齐是有限 q Ward 诊断的前置检查，不是最终物理结论。
+- 有限 q 矩阵为 3x3 density-current 对象；与 2x2 local 对象比较时只使用 current-current 子块。
+- transformed comparison table 显式比较符号、omega 因子和 direct/contact 组合约定。
+- 若没有明确 local 匹配，本报告保守标记为未通过。
+- dwave 使用 intraband-aware q=0 raw-bubble 判据：finite_q_raw_bubble_q0 对齐 local_K_para_interband，local_K_para_total - finite_q_raw_bubble_q0 对齐 local_K_para_intraband。
+- dwave raw-vs-total mismatch 保持可见，但由 local intraband / -f'(E) 贡献解释；这不是 Ward closure proof，也不是 Casimir 输入。
+本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入。
+valid_for_casimir_input: False
+d-wave raw-bubble / vertex audit
+omega_eV: 0.01
+q_model: [0, 0]
+nk: 3
+网格点数: 9
+delta0_eV: 0.04
+dwave_specific_mismatch: True
+interpretation: dwave_specific_raw_bubble_mismatch
+pairing | raw_norm | local_K_para_norm | raw_abs | raw_rel | vertex_abs_max | vertex_rel_max | vertex_status | evidence
+spm | 3.308746e-02 | 3.308746e-02 | 1.935863e-12 | 5.850744e-11 | 3.694106e-16 | 1.000000e+00 | vertex_operator_q0_match | raw_bubble_matches_local_K_para
+dwave | 2.669686e-02 | 1.191085e+00 | 1.164388e+00 | 9.775861e-01 | 3.694106e-16 | 1.000000e+00 | vertex_operator_q0_match | bubble_assembly_or_pairing_state_convention_mismatch
+说明:
+- 该脚本只读比较 q=0 finite-q raw bubble、local K_para 与 q=0 current vertex；不改变响应公式。
+- q=0 current vertex 用绝对或相对容差判定；roundoff 级绝对差不会被标为 vertex operator mismatch。
+- spm 作为同一有限 q 后端的控制样本，用来判断问题是否具有 d-wave 特异性。
+- 若 q=0 vertex 层面对齐但 raw bubble 不对齐，优先怀疑 bubble 组装、配对态约定或动量依赖配对电流贡献。
+- 本 audit 是 diagnostic-only，不作为 Casimir 输入或 production 通过条件。
+valid_for_casimir_input: False
+q=0 local K_para interband/intraband decomposition diagnostic
+omega_eV: 0.01
+q_model: [0, 0]
+nk: 3
+网格点数: 9
+delta0_eV: 0.04
+pairing | hypothesis_supported | total_norm | interband_norm | intraband_norm | finite_q_raw_norm | raw_vs_interband_rel | missing_vs_intraband_rel | raw_vs_total_rel | interpretation
+spm | True | 3.308746e-02 | 3.308746e-02 | 3.601833e-20 | 3.308746e-02 | 5.850744e-11 | 1.000000e+00 | 5.850744e-11 | q0_raw_bubble_matches_total_and_interband_intraband_is_negligible
+dwave | True | 1.191085e+00 | 2.669686e-02 | 1.164388e+00 | 2.669686e-02 | 6.083252e-11 | 1.394746e-12 | 9.775861e-01 | q0_raw_bubble_mismatch_consistent_with_missing_local_intraband_contribution
+说明:
+- 该诊断只拆分 local BdG K_para 的 interband 与 intraband/-f'(E) 项，不修改任何响应公式。
+- finite-q raw bubble 只作为 q=0 diagnostic 对照；本报告不是 Ward closure proof。
+- 若 d-wave raw bubble 对齐 interband 且 local_total - raw 对齐 intraband，则 q=0 mismatch 支持 intraband 解释。
+- 本报告不作为 Casimir 输入，也不改变任何 gating 状态。
+valid_for_casimir_input: False
+有限 q Ward 残差扫描报告
+配对: onsite_s, spm, dwave
+omega_eV: 0.01
+nk: 3
+网格点数: 9
+delta0_eV: 0.04
+q=0 对齐前置结果: {'onsite_s': 'diagnostic_only_not_passed', 'spm': 'convention_aware_pass', 'dwave': 'intraband_aware_pass'}
+通过: True
+- onsite_s bare_total q=(0.005, 0.0): max残差=5.495112e-02, inverse=inv
+- onsite_s minus_schur q=(0.005, 0.0): max残差=3.579361e-03, inverse=inv
+- onsite_s amplitude_phase_schur q=(0.005, 0.0): max残差=3.579361e-03, inverse=inv
+- onsite_s bare_total q=(0.01, 0.0): max残差=5.533271e-02, inverse=inv
+- onsite_s minus_schur q=(0.01, 0.0): max残差=7.161364e-03, inverse=inv
+- onsite_s amplitude_phase_schur q=(0.01, 0.0): max残差=7.161364e-03, inverse=inv
+- onsite_s bare_total q=(0.02, 0.0): max残差=5.683326e-02, inverse=inv
+- onsite_s minus_schur q=(0.02, 0.0): max残差=1.434250e-02, inverse=inv
+- onsite_s amplitude_phase_schur q=(0.02, 0.0): max残差=1.434250e-02, inverse=inv
+- spm bare_total q=(0.005, 0.0): max残差=5.487879e-02, inverse=inv
+- spm minus_schur q=(0.005, 0.0): max残差=3.588227e-03, inverse=inv
+- spm amplitude_phase_schur q=(0.005, 0.0): max残差=3.588227e-03, inverse=inv
+- spm bare_total q=(0.01, 0.0): max残差=5.526181e-02, inverse=inv
+- spm minus_schur q=(0.01, 0.0): max残差=7.179464e-03, inverse=inv
+- spm amplitude_phase_schur q=(0.01, 0.0): max残差=7.179464e-03, inverse=inv
+- spm bare_total q=(0.02, 0.0): max残差=5.676784e-02, inverse=inv
+- spm minus_schur q=(0.02, 0.0): max残差=1.438142e-02, inverse=inv
+- spm amplitude_phase_schur q=(0.02, 0.0): max残差=1.438142e-02, inverse=inv
+- dwave bare_total q=(0.005, 0.0): max残差=3.134801e-04, inverse=inv
+- dwave minus_schur q=(0.005, 0.0): max残差=3.164141e-04, inverse=inv
+- dwave amplitude_phase_schur q=(0.005, 0.0): max残差=6.440731e-04, inverse=inv
+- dwave bare_total q=(0.01, 0.0): max残差=5.471372e-04, inverse=inv
+- dwave minus_schur q=(0.01, 0.0): max残差=5.508067e-04, inverse=inv
+- dwave amplitude_phase_schur q=(0.01, 0.0): max残差=1.276626e-03, inverse=inv
+- dwave bare_total q=(0.02, 0.0): max残差=5.394221e-04, inverse=inv
+- dwave minus_schur q=(0.02, 0.0): max残差=5.371457e-04, inverse=inv
+- dwave amplitude_phase_schur q=(0.02, 0.0): max残差=1.908096e-03, inverse=inv
+valid_for_casimir_input: False
+dwave 表示与 tangent 诊断报告
+最大重构误差: 1.387778780781e-17
+最大 q=0 tangent 误差: 0.000000000000e+00
+最大 separable tangent 误差: 0.000000000000e+00
+通过: True
+valid_for_casimir_input: False
+Goldstone counterterm 与 eta2 归一化诊断报告
+omega_eV: 0
+q_model: [0, 0]
+nk: 3
+网格点数: 9
+delta0_eV: 0.04
+- onsite_s: |K_eta2_eta2|=0.000000e+00, 通过=True, inverse=pinv_diagnostic
+- spm: |K_eta2_eta2|=0.000000e+00, 通过=True, inverse=pinv_diagnostic
+- dwave: |K_eta2_eta2|=0.000000e+00, 通过=True, inverse=pinv_diagnostic
+总体通过: True
+valid_for_casimir_input: False

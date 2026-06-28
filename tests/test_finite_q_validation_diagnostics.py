@@ -143,18 +143,27 @@ def test_dwave_raw_bubble_vertex_audit_reports_roundoff_vertex_match_and_dwave_r
     assert report.q_model == (0.0, 0.0)
     assert report.mesh_size == 9
     assert {row.pairing_name for row in report.rows} == {"spm", "dwave"}
-    assert report.interpretation
+    assert report.dwave_specific_mismatch is False
+    assert report.raw_vs_total_mismatch_explained_by_intraband is True
+    assert report.interpretation == "raw_vs_total_mismatch_explained_by_intraband"
     row_by_pairing = {row.pairing_name: row for row in report.rows}
     assert row_by_pairing["spm"].evidence == "raw_bubble_matches_local_K_para"
     assert row_by_pairing["dwave"].raw_vs_local_rel > 1e-6
+    assert row_by_pairing["dwave"].raw_vs_interband_rel < 1e-6
+    assert row_by_pairing["dwave"].missing_vs_intraband_rel < 1e-6
+    assert row_by_pairing["dwave"].intraband_explanation_supported is True
     assert row_by_pairing["dwave"].vertex_status == "vertex_operator_q0_match"
-    assert row_by_pairing["dwave"].evidence == "bubble_assembly_or_pairing_state_convention_mismatch"
+    assert row_by_pairing["dwave"].evidence == "raw_vs_total_mismatch_explained_by_intraband"
     for row in report.rows:
         assert row.valid_for_casimir_input is False
         assert np.isfinite(row.finite_q_raw_bubble_norm)
         assert np.isfinite(row.local_k_para_norm)
+        assert np.isfinite(row.local_k_para_interband_norm)
+        assert np.isfinite(row.local_k_para_intraband_norm)
         assert np.isfinite(row.raw_vs_local_abs)
         assert np.isfinite(row.raw_vs_local_rel)
+        assert np.isfinite(row.raw_vs_interband_rel)
+        assert np.isfinite(row.missing_vs_intraband_rel)
         assert np.isfinite(row.finite_q_vs_local_vertex_max_abs)
         assert np.isfinite(row.finite_q_vs_local_vertex_max_rel)
         assert row.vertex_abs_tolerance == 1e-12
@@ -166,6 +175,8 @@ def test_dwave_raw_bubble_vertex_audit_reports_roundoff_vertex_match_and_dwave_r
     text = report.format_text()
     assert "valid_for_casimir_input: False" in text
     assert "d-wave raw-bubble / vertex audit" in text
+    assert "raw_vs_total_mismatch_explained_by_intraband" in text
+    assert "dwave_specific_raw_bubble_mismatch" not in text
     assert "vertex_operator_level_mismatch" not in text
 
 
@@ -201,6 +212,15 @@ def test_raw_bubble_failure_with_matched_vertex_points_to_bubble_assembly_not_ve
 
     monkeypatch.setattr(module, "bdg_finite_q_response_imag_axis", lambda *_args, **_kwargs: FakeResponse())
     monkeypatch.setattr(module, "bdg_total_kernel_imag_axis", lambda *_args, **_kwargs: FakeLocal())
+    monkeypatch.setattr(
+        module,
+        "_local_k_para_decomposition",
+        lambda *_args, **_kwargs: (
+            np.eye(2, dtype=complex),
+            np.zeros((2, 2), dtype=complex),
+            np.eye(2, dtype=complex),
+        ),
+    )
     monkeypatch.setattr(module, "bdg_finite_q_vector_vertex", lambda *_args: np.zeros((8, 8), dtype=complex))
     monkeypatch.setattr(module, "bdg_current_vertex", lambda *_args: 1e-16 * np.eye(8, dtype=complex))
 
@@ -217,7 +237,8 @@ def test_raw_bubble_failure_with_matched_vertex_points_to_bubble_assembly_not_ve
     )
     assert row.raw_vs_local_rel > 1e-6
     assert row.vertex_status == "vertex_operator_q0_match"
-    assert row.evidence == "bubble_assembly_or_pairing_state_convention_mismatch"
+    assert row.intraband_explanation_supported is True
+    assert row.evidence == "raw_vs_total_mismatch_explained_by_intraband"
     assert row.valid_for_casimir_input is False
 
 
