@@ -1,0 +1,823 @@
+{
+  "audit_name": "normal_finite_q_ward_audit",
+  "scope": "diagnostic_only_normal_state_finite_q_ward_residuals",
+  "omega_eV": 0.01,
+  "temperature_K": 10.0,
+  "eta_eV": 1e-08,
+  "nk": 3,
+  "mesh_size": 9,
+  "q_values": [
+    0.005,
+    0.01,
+    0.02
+  ],
+  "component_labels": [
+    "density",
+    "current_x",
+    "current_y"
+  ],
+  "response_level_residuals_explain": "bubble/direct/total are normal-state response-level residuals from physical_ward_residuals",
+  "operator_level_residuals_explain": "Peierls vertex identity is checked before response assembly and is distinct from response-level residuals",
+  "q_reports": [
+    {
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "response_level_residuals": [
+        {
+          "response_name": "bubble",
+          "residual_kind": "response_level",
+          "residual_component_labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 1.0001795398839608e-14,
+              "imag": 1.0889726620444407e-15
+            },
+            {
+              "component": "current_x",
+              "real": 0.004608124907852213,
+              "imag": -3.703634621210483e-17
+            },
+            {
+              "component": "current_y",
+              "real": 1.949829186997931e-16,
+              "imag": 1.2403272853234171e-17
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 1.0001812746074368e-14,
+              "imag": 1.0889726620444407e-15
+            },
+            {
+              "component": "current_x",
+              "real": -0.004608124907852213,
+              "imag": 3.70016517425853e-17
+            },
+            {
+              "component": "current_y",
+              "real": -1.9470102613494688e-16,
+              "imag": -1.2437967322753707e-17
+            }
+          ],
+          "left_ward_residual_norm": 0.004608124907852213,
+          "right_ward_residual_norm": 0.004608124907852213,
+          "max_ward_residual_norm": 0.004608124907852213,
+          "valid_for_casimir_input": false
+        },
+        {
+          "response_name": "direct",
+          "residual_kind": "response_level",
+          "residual_component_labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 0.0,
+              "imag": 0.0
+            },
+            {
+              "component": "current_x",
+              "real": -0.0052430793391567325,
+              "imag": -2.83613175220428e-20
+            },
+            {
+              "component": "current_y",
+              "real": 3.833738881908744e-18,
+              "imag": -7.233001594700803e-22
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 0.0,
+              "imag": 0.0
+            },
+            {
+              "component": "current_x",
+              "real": 0.0052430793391567325,
+              "imag": 2.83613175220428e-20
+            },
+            {
+              "component": "current_y",
+              "real": -3.833738881908744e-18,
+              "imag": 7.233001594700803e-22
+            }
+          ],
+          "left_ward_residual_norm": 0.0052430793391567325,
+          "right_ward_residual_norm": 0.0052430793391567325,
+          "max_ward_residual_norm": 0.0052430793391567325,
+          "valid_for_casimir_input": false
+        },
+        {
+          "response_name": "total",
+          "residual_kind": "response_level",
+          "residual_component_labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 1.0001795398839608e-14,
+              "imag": 1.0889726620444407e-15
+            },
+            {
+              "component": "current_x",
+              "real": -0.0006349544313045191,
+              "imag": -3.706470752962687e-17
+            },
+            {
+              "component": "current_y",
+              "real": 1.9881665758170186e-16,
+              "imag": 1.2402549553074702e-17
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 1.0001812746074368e-14,
+              "imag": 1.0889726620444407e-15
+            },
+            {
+              "component": "current_x",
+              "real": 0.0006349544313045191,
+              "imag": 3.703001306010734e-17
+            },
+            {
+              "component": "current_y",
+              "real": -1.9853476501685564e-16,
+              "imag": -1.2437244022594237e-17
+            }
+          ],
+          "left_ward_residual_norm": 0.0006349544313045191,
+          "right_ward_residual_norm": 0.0006349544313045191,
+          "max_ward_residual_norm": 0.0006349544313045191,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "operator_level_peierls_ward": {
+        "residual_kind": "operator_level",
+        "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+        "max_absolute_error_norm": 3.7256356683936733e-16,
+        "max_relative_error_norm": 0.9999595849064987,
+        "per_k_residuals": [
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              -2.0943951023931957,
+              -2.0943951023931957
+            ],
+            "absolute_error_norm": 3.4245312602130873e-16,
+            "relative_error_norm": 5.584660206463068e-14,
+            "lhs_norm": 0.006132031553594017,
+            "rhs_norm": 0.006132031553593742
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              -2.0943951023931957,
+              0.0
+            ],
+            "absolute_error_norm": 1.3823372337243848e-16,
+            "relative_error_norm": 3.273684503785836e-14,
+            "lhs_norm": 0.004222573165269356,
+            "rhs_norm": 0.004222573165269249
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              -2.0943951023931957,
+              2.094395102393195
+            ],
+            "absolute_error_norm": 1.7981034836005486e-16,
+            "relative_error_norm": 2.9323128361051444e-14,
+            "lhs_norm": 0.006132031553594016,
+            "rhs_norm": 0.00613203155359401
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              0.0,
+              -2.0943951023931957
+            ],
+            "absolute_error_norm": 1.9946051856501953e-16,
+            "relative_error_norm": 0.9999241949122599,
+            "lhs_norm": 2.8845483550913965e-19,
+            "rhs_norm": 1.9947563983339912e-16
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              0.0,
+              0.0
+            ],
+            "absolute_error_norm": 4.385287861113198e-19,
+            "relative_error_norm": 0.8945218578784937,
+            "lhs_norm": 2.0267331988975267e-19,
+            "rhs_norm": 4.902382007202856e-19
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              0.0,
+              2.094395102393195
+            ],
+            "absolute_error_norm": 1.2542676721599217e-16,
+            "relative_error_norm": 0.9999595849064987,
+            "lhs_norm": 2.0562145026814696e-19,
+            "rhs_norm": 1.254318365553946e-16
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              2.094395102393195,
+              -2.0943951023931957
+            ],
+            "absolute_error_norm": 3.7256356683936733e-16,
+            "relative_error_norm": 6.075695527382346e-14,
+            "lhs_norm": 0.006132031553594022,
+            "rhs_norm": 0.006132031553593712
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              2.094395102393195,
+              0.0
+            ],
+            "absolute_error_norm": 2.291785968566114e-16,
+            "relative_error_norm": 5.427463015717707e-14,
+            "lhs_norm": 0.00422257316526936,
+            "rhs_norm": 0.004222573165269293
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              2.094395102393195,
+              2.094395102393195
+            ],
+            "absolute_error_norm": 3.241200240696812e-16,
+            "relative_error_norm": 5.2856874795389413e-14,
+            "lhs_norm": 0.006132031553594022,
+            "rhs_norm": 0.006132031553593734
+          }
+        ]
+      }
+    },
+    {
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "response_level_residuals": [
+        {
+          "response_name": "bubble",
+          "residual_kind": "response_level",
+          "residual_component_labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 5.210450126913458e-15,
+              "imag": -7.112366251504909e-16
+            },
+            {
+              "component": "current_x",
+              "real": 0.009090736000095384,
+              "imag": -4.808653475407709e-17
+            },
+            {
+              "component": "current_y",
+              "real": -2.223204259577116e-15,
+              "imag": 1.0408340855860852e-19
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 5.210588904791536e-15,
+              "imag": -7.112366251504909e-16
+            },
+            {
+              "component": "current_x",
+              "real": -0.009090736000095384,
+              "imag": 4.794775687599895e-17
+            },
+            {
+              "component": "current_y",
+              "real": 2.222844304455851e-15,
+              "imag": -1.387778780781447e-19
+            }
+          ],
+          "left_ward_residual_norm": 0.009090736000095384,
+          "right_ward_residual_norm": 0.009090736000095384,
+          "max_ward_residual_norm": 0.009090736000095384,
+          "valid_for_casimir_input": false
+        },
+        {
+          "response_name": "direct",
+          "residual_kind": "response_level",
+          "residual_component_labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 0.0,
+              "imag": 0.0
+            },
+            {
+              "component": "current_x",
+              "real": -0.010485949313995189,
+              "imag": -3.787086403650583e-20
+            },
+            {
+              "component": "current_y",
+              "real": 7.667477763817487e-18,
+              "imag": -1.4467290972934166e-21
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 0.0,
+              "imag": 0.0
+            },
+            {
+              "component": "current_x",
+              "real": 0.010485949313995189,
+              "imag": 3.787086403650583e-20
+            },
+            {
+              "component": "current_y",
+              "real": -7.667477763817487e-18,
+              "imag": 1.4467290972934166e-21
+            }
+          ],
+          "left_ward_residual_norm": 0.010485949313995189,
+          "right_ward_residual_norm": 0.010485949313995189,
+          "max_ward_residual_norm": 0.010485949313995189,
+          "valid_for_casimir_input": false
+        },
+        {
+          "response_name": "total",
+          "residual_kind": "response_level",
+          "residual_component_labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 5.210450126913458e-15,
+              "imag": -7.112366251504909e-16
+            },
+            {
+              "component": "current_x",
+              "real": -0.0013952133138998048,
+              "imag": -4.8124405618113603e-17
+            },
+            {
+              "component": "current_y",
+              "real": -2.215536781813299e-15,
+              "imag": 1.0263667946131578e-19
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 5.210588904791536e-15,
+              "imag": -7.112366251504909e-16
+            },
+            {
+              "component": "current_x",
+              "real": 0.0013952133138998048,
+              "imag": 4.798562774003546e-17
+            },
+            {
+              "component": "current_y",
+              "real": 2.2151768266920333e-15,
+              "imag": -1.3733114898085195e-19
+            }
+          ],
+          "left_ward_residual_norm": 0.0013952133138998048,
+          "right_ward_residual_norm": 0.0013952133138998048,
+          "max_ward_residual_norm": 0.0013952133138998048,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "operator_level_peierls_ward": {
+        "residual_kind": "operator_level",
+        "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+        "max_absolute_error_norm": 6.46670038980991e-16,
+        "max_relative_error_norm": 1.6097835917829413,
+        "per_k_residuals": [
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              -2.0943951023931957,
+              -2.0943951023931957
+            ],
+            "absolute_error_norm": 3.2588860381318545e-16,
+            "relative_error_norm": 2.6572667195042558e-14,
+            "lhs_norm": 0.012264053187479496,
+            "rhs_norm": 0.012264053187479192
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              -2.0943951023931957,
+              0.0
+            ],
+            "absolute_error_norm": 1.426994063010358e-16,
+            "relative_error_norm": 1.689721066864083e-14,
+            "lhs_norm": 0.008445145716616384,
+            "rhs_norm": 0.008445145716616326
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              -2.0943951023931957,
+              2.094395102393195
+            ],
+            "absolute_error_norm": 6.465874943788081e-16,
+            "relative_error_norm": 5.272216978306548e-14,
+            "lhs_norm": 0.012264053187479494,
+            "rhs_norm": 0.012264053187478903
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              0.0,
+              -2.0943951023931957
+            ],
+            "absolute_error_norm": 2.0061051219551308e-16,
+            "relative_error_norm": 1.0002704914942357,
+            "lhs_norm": 7.017594354982999e-19,
+            "rhs_norm": 2.0055626343213898e-16
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              0.0,
+              0.0
+            ],
+            "absolute_error_norm": 1.2649886740774212e-18,
+            "relative_error_norm": 1.6097835917829413,
+            "lhs_norm": 5.420837387304279e-19,
+            "rhs_norm": 7.858128760502292e-19
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              0.0,
+              2.094395102393195
+            ],
+            "absolute_error_norm": 3.183296548604468e-17,
+            "relative_error_norm": 1.0033259520040272,
+            "lhs_norm": 2.3306059933587285e-19,
+            "rhs_norm": 3.172744153827779e-17
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              2.094395102393195,
+              -2.0943951023931957
+            ],
+            "absolute_error_norm": 6.46670038980991e-16,
+            "relative_error_norm": 5.2728900396584607e-14,
+            "lhs_norm": 0.012264053187479506,
+            "rhs_norm": 0.012264053187478903
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              2.094395102393195,
+              0.0
+            ],
+            "absolute_error_norm": 3.697636822354599e-16,
+            "relative_error_norm": 4.3784168401966085e-14,
+            "lhs_norm": 0.008445145716616392,
+            "rhs_norm": 0.008445145716616054
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              2.094395102393195,
+              2.094395102393195
+            ],
+            "absolute_error_norm": 3.163777943015611e-16,
+            "relative_error_norm": 2.5797164238048352e-14,
+            "lhs_norm": 0.012264053187479506,
+            "rhs_norm": 0.012264053187479192
+          }
+        ]
+      }
+    },
+    {
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "response_level_residuals": [
+        {
+          "response_name": "bubble",
+          "residual_kind": "response_level",
+          "residual_component_labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": -1.548483563595937e-15,
+              "imag": 5.100087019371813e-15
+            },
+            {
+              "component": "current_x",
+              "real": 0.01725522879534895,
+              "imag": 1.804112415015881e-18
+            },
+            {
+              "component": "current_y",
+              "real": 3.93495999673199e-16,
+              "imag": 8.951173136040325e-17
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": -1.5479284520836244e-15,
+              "imag": 5.10702591327572e-15
+            },
+            {
+              "component": "current_x",
+              "real": -0.017255228795348944,
+              "imag": -2.0816681711721704e-18
+            },
+            {
+              "component": "current_y",
+              "real": -3.9337456902988064e-16,
+              "imag": -8.99280649946377e-17
+            }
+          ],
+          "left_ward_residual_norm": 0.01725522879534895,
+          "right_ward_residual_norm": 0.017255228795348944,
+          "max_ward_residual_norm": 0.01725522879534895,
+          "valid_for_casimir_input": false
+        },
+        {
+          "response_name": "direct",
+          "residual_kind": "response_level",
+          "residual_component_labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 0.0,
+              "imag": 0.0
+            },
+            {
+              "component": "current_x",
+              "real": -0.02097022383974721,
+              "imag": 1.0601115804239404e-19
+            },
+            {
+              "component": "current_y",
+              "real": 1.536964999715451e-17,
+              "imag": -2.8944884085351333e-21
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 0.0,
+              "imag": 0.0
+            },
+            {
+              "component": "current_x",
+              "real": 0.02097022383974721,
+              "imag": -1.0601115804239404e-19
+            },
+            {
+              "component": "current_y",
+              "real": -1.536964999715451e-17,
+              "imag": 2.8944884085351333e-21
+            }
+          ],
+          "left_ward_residual_norm": 0.02097022383974721,
+          "right_ward_residual_norm": 0.02097022383974721,
+          "max_ward_residual_norm": 0.02097022383974721,
+          "valid_for_casimir_input": false
+        },
+        {
+          "response_name": "total",
+          "residual_kind": "response_level",
+          "residual_component_labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": -1.548483563595937e-15,
+              "imag": 5.100087019371813e-15
+            },
+            {
+              "component": "current_x",
+              "real": -0.0037149950443982616,
+              "imag": 1.910123573058273e-18
+            },
+            {
+              "component": "current_y",
+              "real": 4.0886564967035354e-16,
+              "imag": 8.950883687199471e-17
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": -1.5479284520836244e-15,
+              "imag": 5.10702591327572e-15
+            },
+            {
+              "component": "current_x",
+              "real": 0.003714995044398265,
+              "imag": -2.1876793292145625e-18
+            },
+            {
+              "component": "current_y",
+              "real": -4.0874421902703517e-16,
+              "imag": -8.992517050622916e-17
+            }
+          ],
+          "left_ward_residual_norm": 0.0037149950443982616,
+          "right_ward_residual_norm": 0.003714995044398265,
+          "max_ward_residual_norm": 0.003714995044398265,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "operator_level_peierls_ward": {
+        "residual_kind": "operator_level",
+        "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+        "max_absolute_error_norm": 1.0120749656805114e-15,
+        "max_relative_error_norm": 1.1756630207317011,
+        "per_k_residuals": [
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              -2.0943951023931957,
+              -2.0943951023931957
+            ],
+            "absolute_error_norm": 4.544489355123151e-16,
+            "relative_error_norm": 1.852774115356899e-14,
+            "lhs_norm": 0.024528027013416193,
+            "rhs_norm": 0.024528027013415762
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              -2.0943951023931957,
+              0.0
+            ],
+            "absolute_error_norm": 3.18683704028171e-16,
+            "relative_error_norm": 1.8867868445073406e-14,
+            "lhs_norm": 0.01689028651836863,
+            "rhs_norm": 0.016890286518368353
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              -2.0943951023931957,
+              2.094395102393195
+            ],
+            "absolute_error_norm": 1.0120749656805114e-15,
+            "relative_error_norm": 4.126198022886119e-14,
+            "lhs_norm": 0.02452802701341619,
+            "rhs_norm": 0.024528027013415207
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              0.0,
+              -2.0943951023931957
+            ],
+            "absolute_error_norm": 9.200769874392939e-17,
+            "relative_error_norm": 1.0049499311985264,
+            "lhs_norm": 2.615235881331772e-18,
+            "rhs_norm": 9.15545102174383e-17
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              0.0,
+              0.0
+            ],
+            "absolute_error_norm": 1.465161949552052e-18,
+            "relative_error_norm": 1.1756630207317011,
+            "lhs_norm": 5.908255262090379e-19,
+            "rhs_norm": 1.246243118746879e-18
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              0.0,
+              2.094395102393195
+            ],
+            "absolute_error_norm": 1.5891389611688923e-16,
+            "relative_error_norm": 0.9998203317066274,
+            "lhs_norm": 1.1538193420365586e-18,
+            "rhs_norm": 1.589424530361707e-16
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              2.094395102393195,
+              -2.0943951023931957
+            ],
+            "absolute_error_norm": 1.0080114788297492e-15,
+            "relative_error_norm": 4.109631313918691e-14,
+            "lhs_norm": 0.024528027013416217,
+            "rhs_norm": 0.024528027013415263
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              2.094395102393195,
+              0.0
+            ],
+            "absolute_error_norm": 5.066987477807201e-16,
+            "relative_error_norm": 2.99994169565854e-14,
+            "lhs_norm": 0.016890286518368648,
+            "rhs_norm": 0.016890286518368176
+          },
+          {
+            "residual_kind": "operator_level",
+            "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
+            "k_model": [
+              2.094395102393195,
+              2.094395102393195
+            ],
+            "absolute_error_norm": 7.04744223586271e-16,
+            "relative_error_norm": 2.87322018685324e-14,
+            "lhs_norm": 0.024528027013416207,
+            "rhs_norm": 0.02452802701341553
+          }
+        ]
+      }
+    }
+  ],
+  "ward_identity_closed": false,
+  "valid_for_casimir_input": false
+}
