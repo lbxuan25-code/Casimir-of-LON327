@@ -5,18 +5,18 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from lno327.bdg_finite_q_response import bdg_finite_q_response_imag_axis, collective_goldstone_counterterm
+from lno327.finite_q_engine import bdg_finite_q_response_imag_axis, collective_goldstone_counterterm
 from lno327.bdg_response import bdg_total_kernel_imag_axis
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
-from lno327.finite_q_diagnostics import run_finite_q_diagnostic
+from validation.lib.finite_q_diagnostics import run_finite_q_diagnostic
 from lno327.finite_q_engine import (
     FiniteQEngineOptions,
     apply_amplitude_phase_schur,
     finite_q_bdg_response_from_ansatz,
 )
 from lno327.pairing import PairingAmplitudes
-from lno327.pairing_ansatz import build_pairing_ansatz
-from lno327.pairing_bonds import pairing_from_bonds
+from lno327.pairing import build_pairing_ansatz
+from lno327.pairing import pairing_from_bonds
 from lno327.ward_validation import validate_physical_ward_identity
 from lno327.ward_response import normal_physical_density_current_response_imag_axis
 
@@ -99,8 +99,12 @@ def test_finite_q_wrapper_matches_generic_ansatz_engine():
         np.testing.assert_allclose(getattr(wrapper, field), getattr(engine, field), rtol=1e-12, atol=1e-12)
 
 
-def test_generic_finite_q_engine_has_no_pairing_name_branching():
+def test_generic_finite_q_core_has_no_pairing_name_branching():
     text = (ROOT / "src" / "lno327" / "finite_q_engine.py").read_text(encoding="utf-8")
+    core = text.split("def finite_q_bdg_response_from_ansatz(", maxsplit=1)[1].split(
+        "def bdg_finite_q_response_imag_axis(",
+        maxsplit=1,
+    )[0]
     forbidden = [
         'pairing == "dwave"',
         "pairing == 'dwave'",
@@ -111,20 +115,16 @@ def test_generic_finite_q_engine_has_no_pairing_name_branching():
         'ansatz.name == "spm"',
         "ansatz.name == 'spm'",
     ]
-    assert not any(item in text for item in forbidden)
+    assert not any(item in core for item in forbidden)
 
 
 def test_generic_finite_q_engine_does_not_import_legacy_facade():
     text = (ROOT / "src" / "lno327" / "finite_q_engine.py").read_text(encoding="utf-8")
-    assert "from .bdg_finite_q_response import" not in text
+    assert "from .finite_q_engine import" not in text
 
 
-def test_legacy_finite_q_wrapper_has_no_unreachable_engine_body():
-    text = (ROOT / "src" / "lno327" / "bdg_finite_q_response.py").read_text(encoding="utf-8")
-    after_return = text.split("return finite_q_bdg_response_from_ansatz(", maxsplit=1)[1]
-    assert "for weight, (kx_value, ky_value) in zip" not in after_return
-    assert "collective_inv = np.linalg" not in after_return
-    assert "amplitude_phase_schur = bare_total - em_collective_left" not in after_return
+def test_legacy_finite_q_wrapper_module_was_removed_after_merge():
+    assert not (ROOT / "src" / "lno327" / "bdg_finite_q_response.py").exists()
 
 
 def test_pairing_ansatz_shapes_and_counterterms():

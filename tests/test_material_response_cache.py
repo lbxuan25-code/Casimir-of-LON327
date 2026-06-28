@@ -7,7 +7,7 @@ import sys
 
 import numpy as np
 
-from lno327.conductivity_units import SheetConductivityUnitConvention
+from lno327.response_conventions import SheetConductivityUnitConvention
 from lno327.material_reflection_grid import default_stage5_11_points, grid_point_to_si_and_model_q
 from lno327.material_response_cache import (
     atomic_write_json,

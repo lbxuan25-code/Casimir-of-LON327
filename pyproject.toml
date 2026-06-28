@@ -17,7 +17,7 @@ plot = ["matplotlib>=3.6"]
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 markers = [
     "unit: fast tests for stable package behavior and local numerical identities",

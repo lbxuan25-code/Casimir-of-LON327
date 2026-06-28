@@ -24,13 +24,13 @@
 |---|---|---|
 | `H0(k)` / tight-binding representation | `model.py`, `tb_fourier.py` | normal-state model 与 Fourier / hopping 表示 |
 | normal response / Kubo baseline | `conductivity.py`, `response_interface.py`, `nonlocal_response.py` | normal-state response 与接口层 |
-| pairing ansatz `Delta(k)` | `pairing.py`, `pairing_ansatz.py`, `pairing_bonds.py` | 模型输入层与 pairing form factor |
+| pairing ansatz `Delta(k)` | `pairing.py` | 模型输入层与 pairing form factor |
 | BdG local response | `bdg_response.py`, `bdg_nonlocal_response.py` | BdG Hamiltonian 和 local / nonlocal response 诊断 |
 | finite-q shared primitives | `finite_q_primitives.py` | 通用低层数值工具 |
 | generic finite-q engine | `finite_q_engine.py` | 消费 ansatz，不根据 pairing 名称分支 |
-| legacy finite-q wrapper | `bdg_finite_q_response.py` | 兼容旧 public API |
+| legacy finite-q wrapper | `finite_q_engine.py` | 兼容旧 public API |
 | Ward diagnostic | `ward_response.py`, `ward_validation.py` | 只报告 residual，不修 response |
-| unit conversion | `conductivity_units.py`, `conductivity_conventions.py`, `response_units.py` | response 到 sheet / dimensionless convention |
+| unit conversion | `response_conventions.py` | response 到 sheet / dimensionless convention |
 | reflection input | `reflection_input.py`, `lifshitz_readiness.py` | 下游 input adapter 与 readiness check |
 | Casimir scaffold / benchmark | `casimir.py`, `casimir_grid.py`, `casimir_integrand.py`, `casimir_toy_integration.py` | local / prototype Casimir 计算组件 |
 | material-grid prototypes | `material_reflection_grid.py`, `material_energy_prototype.py`, `material_grid_convergence.py`, `material_production_grid.py` | material response/reflection/grid planning 候选路径；finite-q material Casimir candidate path 已移除 |

@@ -11,11 +11,12 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327 import normal_state_hamiltonian
-from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis
+from validation.lib.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis
 
 
 def interpolate_path(points: list[tuple[str, tuple[float, float]]], samples_per_segment: int):

@@ -11,7 +11,7 @@ import numpy as np
 from .bdg_response import bdg_superconducting_response_imag_axis
 from .conductivity import ConductivityTensor, KuboConfig, kubo_conductivity_imag_axis
 from .pairing import PairingAmplitudes
-from .response_units import SheetConductivityConvention, model_response_to_sheet_conductivity
+from .response_conventions import SheetConductivityConvention, model_response_to_sheet_conductivity
 
 ResponseKind = Literal["normal", "spm", "dwave"]
 
@@ -75,7 +75,7 @@ def local_response_imag_axis(
     base_notes = (
         "local q=0 response only",
         "n=0 Matsubara treatment unresolved",
-        "SI sheet conductivity conversion is provided by response_units",
+        "SI sheet conductivity conversion is provided by response_conventions",
         "finite momentum response is not part of the current code path",
     )
 

@@ -20,11 +20,12 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327.conductivity import uniform_bz_mesh  # noqa: E402
-from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
+from validation.lib.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
 from lno327.tb_fourier import normal_state_hopping_terms, peierls_vector_vertex_sign_audit_residual  # noqa: E402
 
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "peierls_vertex_ward_identity"

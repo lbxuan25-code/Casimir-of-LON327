@@ -10,13 +10,13 @@ import sys
 import numpy as np
 import pytest
 
-from lno327.conductivity_conventions import (
+from lno327.response_conventions import (
     bilayer_sheet_conductivity_convention_metadata,
     spatial_response_to_bilayer_sheet_conductivity_model,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-HELPER = ROOT / "src" / "lno327" / "conductivity_conventions.py"
+HELPER = ROOT / "src" / "lno327" / "response_conventions.py"
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_1b_bilayer_sheet_conductivity_convention.py"
 
 

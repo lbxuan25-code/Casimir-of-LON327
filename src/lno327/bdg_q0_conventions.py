@@ -12,7 +12,7 @@ from typing import Literal
 
 import numpy as np
 
-from .bdg_finite_q_response import bdg_finite_q_response_imag_axis
+from .finite_q_engine import bdg_finite_q_response_imag_axis
 from .bdg_response import (
     bdg_current_vertex,
     bdg_eigensystem,

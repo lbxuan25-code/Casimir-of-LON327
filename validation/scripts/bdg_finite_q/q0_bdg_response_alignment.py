@@ -15,7 +15,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.bdg_finite_q_response import bdg_finite_q_response_imag_axis  # noqa: E402
+from lno327.finite_q_engine import bdg_finite_q_response_imag_axis  # noqa: E402
 from lno327.bdg_q0_conventions import (  # noqa: E402
     BdGQ0Comparison,
     BdGQ0ConventionResult,

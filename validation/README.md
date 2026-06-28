@@ -11,7 +11,7 @@
 
 报告按“检验对象”阅读，不按历史 stage 编号阅读。已删除的历史 workflow 脚本由 Git history 归档；历史检验不变量由当前测试和当前 validation workflow 保留，而不是通过继续保留旧 runnable script 实现。
 
-BdG finite-q blocker 的项目级 validation workflow 位于 `validation/scripts/bdg_finite_q/`。core finite-q 计算仍位于 `src/lno327/finite_q_engine.py`，基础可复用 helper 可保留在 `src/lno327/finite_q_diagnostics.py`。对应轻量输出和复现命令位于 `validation/outputs/bdg_finite_q/`。
+BdG finite-q blocker 的项目级 validation workflow 位于 `validation/scripts/bdg_finite_q/`。core finite-q 计算仍位于 `src/lno327/finite_q_engine.py`，基础可复用 helper 可保留在 `validation/lib/finite_q_diagnostics.py`。对应轻量输出和复现命令位于 `validation/outputs/bdg_finite_q/`。
 
 ## Artifact 策略
 

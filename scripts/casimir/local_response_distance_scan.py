@@ -14,6 +14,7 @@ from time import perf_counter
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
@@ -26,7 +27,7 @@ from local_response_integral import (  # noqa: E402
     compute_local_response_casimir_integral,
 )
 from local_response_config import BENCHMARK_NOTE_PARTS, TORQUE_TOLERANCE  # noqa: E402
-from lno327.plotting import (  # noqa: E402
+from validation.lib.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,
     style_publication_axis,

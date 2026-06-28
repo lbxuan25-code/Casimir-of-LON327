@@ -17,7 +17,7 @@ from .bdg_response import (
     bdg_superconducting_response_imag_axis,
     bdg_total_kernel_imag_axis,
 )
-from .bdg_finite_q_response import (
+from .finite_q_engine import (
     BdGFiniteQResponseComponents,
     BdGPhaseCorrectionError,
     bdg_finite_q_contact_vertex,
@@ -78,7 +78,7 @@ from .response_interface import (
     matrix_symmetry_diagnostics,
     validate_local_response_symmetry,
 )
-from .response_units import (
+from .response_conventions import (
     ResponseUnitConvention,
     SheetConductivityConvention,
     SheetConductivityConversion,

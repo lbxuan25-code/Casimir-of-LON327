@@ -21,7 +21,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV  # noqa: E402
-from lno327.conductivity_conventions import (  # noqa: E402
+from lno327.response_conventions import (  # noqa: E402
     spatial_response_to_bilayer_sheet_conductivity_model,
 )
 from lno327.ward_response import physical_ward_residuals  # noqa: E402

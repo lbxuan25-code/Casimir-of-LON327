@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import importlib.util
-import subprocess
-import sys
 
 import numpy as np
 
@@ -71,19 +69,25 @@ def test_public_package_shape_has_single_lno327_entrypoint():
     assert ApiPairingAmplitudes is PairingAmplitudes
     assert callable(local_response_imag_axis)
     assert importlib.util.find_spec("lno_327") is None
+    assert not (ROOT / "lno327").exists()
 
 
-def test_repository_root_python_smoke_imports_public_api():
-    code = (
-        "import lno327; "
-        "from lno327.api import KuboConfig, PairingAmplitudes, local_response_imag_axis; "
-        "print('lno327 import smoke ok')"
+def test_deleted_internal_modules_are_not_imported_by_active_python_code():
+    deleted_module_names = (
+        "bdg_finite_q_response",
+        "conductivity_units",
+        "conductivity_conventions",
+        "response_units",
+        "pairing_ansatz",
+        "pairing_bonds",
+        "finite_q_diagnostics",
+        "plotting",
     )
-    completed = subprocess.run(
-        [sys.executable, "-c", code],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    assert completed.stdout.strip() == "lno327 import smoke ok"
+    active_roots = (ROOT / "src", ROOT / "tests", ROOT / "validation" / "scripts", ROOT / "scripts")
+    for root in active_roots:
+        for path in root.rglob("*.py"):
+            text = path.read_text(encoding="utf-8")
+            for module_name in deleted_module_names:
+                assert f"lno327.{module_name}" not in text
+                assert f"from .{module_name}" not in text
+                assert f"import .{module_name}" not in text

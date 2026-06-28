@@ -23,11 +23,12 @@ from typing import Any
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
+from validation.lib.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
 from lno327.ward_response import normal_density_current_response_imag_axis  # noqa: E402
 
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "response_level_ward_conventions"

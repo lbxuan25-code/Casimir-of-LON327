@@ -25,7 +25,7 @@ from .conductivity import (
 from .gap_analysis import gap_statistics_by_band, gap_statistics_on_fermi_surface
 from .model import NormalStateParameters, normal_state_hamiltonian
 from .pairing import PairingAmplitudes, PairingKind, bdg_hamiltonian, pairing_matrix
-from .pairing_ansatz import PairingAnsatz, build_pairing_ansatz
+from .pairing import PairingAnsatz, build_pairing_ansatz
 from .response_interface import (
     LocalSheetResponse,
     ResponseKind,
@@ -33,7 +33,7 @@ from .response_interface import (
     local_response_imag_axis,
     validate_local_response_symmetry,
 )
-from .response_units import (
+from .response_conventions import (
     ResponseUnitConvention,
     SheetConductivityConvention,
     model_response_to_sheet_conductivity,

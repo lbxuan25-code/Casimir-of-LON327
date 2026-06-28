@@ -10,7 +10,7 @@ import sys
 import numpy as np
 import pytest
 
-from lno327.conductivity_units import e2_over_hbar_siemens, four_pi_alpha
+from lno327.response_conventions import e2_over_hbar_siemens, four_pi_alpha
 from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE
 
 ROOT = Path(__file__).resolve().parents[1]

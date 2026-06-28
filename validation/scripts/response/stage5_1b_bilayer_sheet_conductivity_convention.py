@@ -14,7 +14,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.conductivity_conventions import (  # noqa: E402
+from lno327.response_conventions import (  # noqa: E402
     bilayer_sheet_conductivity_convention_metadata,
     spatial_response_to_bilayer_sheet_conductivity_model,
 )

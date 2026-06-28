@@ -15,6 +15,7 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
@@ -22,7 +23,7 @@ from lno327.bdg_nonlocal_response import bdg_current_current_kernel_imag_axis  #
 from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, k_weights, uniform_bz_mesh  # noqa: E402
 from lno327.nonlocal_response import c4_covariance_error, normal_current_current_kernel_imag_axis  # noqa: E402
 from lno327.pairing import PairingAmplitudes  # noqa: E402
-from lno327.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
+from validation.lib.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
 
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "bdg_finite_q_kernel_contract"
 DEFAULT_OUTPUT_PREFIX = OUTPUT_ROOT / "data" / "bdg_finite_q_kernel_contract"

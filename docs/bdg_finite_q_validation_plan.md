@@ -2,7 +2,7 @@
 
 本文档记录当前 superconducting BdG finite-q Ward closure blocker 的数值验证顺序。目标是定位定义、表示和 Goldstone 归一化问题，而不是通过拟合或修补响应来让 Ward 残差变小。
 
-core finite-q 计算位于 `src/lno327/finite_q_engine.py`。可复用的基础诊断 helper 保留在 `src/lno327/finite_q_diagnostics.py`。项目级 validation workflow 位于 `validation/scripts/bdg_finite_q/`，轻量 summary 与复现命令位于 `validation/outputs/bdg_finite_q/`。
+core finite-q 计算位于 `src/lno327/finite_q_engine.py`。可复用的基础诊断 helper 保留在 `validation/lib/finite_q_diagnostics.py`。项目级 validation workflow 位于 `validation/scripts/bdg_finite_q/`，轻量 summary 与复现命令位于 `validation/outputs/bdg_finite_q/`。
 
 ## 验证顺序
 

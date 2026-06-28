@@ -21,8 +21,8 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from lno327.casimir_integrand import casimir_integrand_single_point  # noqa: E402
 from lno327.conductivity import KuboConfig  # noqa: E402
-from lno327.conductivity_conventions import spatial_response_to_bilayer_sheet_conductivity_model  # noqa: E402
-from lno327.conductivity_units import SheetConductivityUnitConvention, model_to_dimensionless_sheet_conductivity  # noqa: E402
+from lno327.response_conventions import spatial_response_to_bilayer_sheet_conductivity_model  # noqa: E402
+from lno327.response_conventions import SheetConductivityUnitConvention, model_to_dimensionless_sheet_conductivity  # noqa: E402
 from lno327.material_response_cache import (  # noqa: E402
     cache_path_for_point,
     load_reusable_point_cache,

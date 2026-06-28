@@ -11,6 +11,7 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
@@ -29,7 +30,7 @@ from lno327 import (  # noqa: E402
     uniform_bz_mesh,
 )
 from lno327.casimir import matsubara_frequency  # noqa: E402
-from lno327.plotting import (  # noqa: E402
+from validation.lib.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,
     style_publication_axis,

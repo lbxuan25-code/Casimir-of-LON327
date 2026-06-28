@@ -10,7 +10,7 @@ import sys
 import numpy as np
 import pytest
 
-from lno327.conductivity_units import (
+from lno327.response_conventions import (
     SheetConductivityUnitConvention,
     conductivity_unit_conversion_metadata,
     e2_over_hbar_siemens,
@@ -23,7 +23,7 @@ from lno327.conductivity_units import (
 from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE
 
 ROOT = Path(__file__).resolve().parents[1]
-HELPER = ROOT / "src" / "lno327" / "conductivity_units.py"
+HELPER = ROOT / "src" / "lno327" / "response_conventions.py"
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_4a_conductivity_unit_conversion.py"
 
 

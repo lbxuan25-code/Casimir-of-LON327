@@ -304,7 +304,7 @@ def selected_convention() -> dict[str, str]:
         "status": "AMBIGUOUS",
         "formula": "CONVENTION_NOT_UNIQUELY_DETERMINED_FROM_CODE",
         "reason": (
-            "Existing local Kubo code computes sigma(i xi) directly, and response_units "
+            "Existing local Kubo code computes sigma(i xi) directly, and response_conventions "
             "documents model-response-to-sheet normalization, but the finite-q physical "
             "Pi_ij to sigma_ij Euclidean E/A sign is not uniquely fixed by code alone."
         ),
