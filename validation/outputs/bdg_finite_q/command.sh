@@ -8,7 +8,7 @@ python validation/scripts/bdg_finite_q/q0_bdg_response_alignment.py --pairings n
 python validation/scripts/bdg_finite_q/finite_q_ward_scan.py --pairings onsite_s spm dwave --nk 3 --q-values 0.005 0.01 0.02 --q0-status-json validation/outputs/bdg_finite_q/q0_status.json --json-output validation/outputs/bdg_finite_q/ward_scan_status.json
 
 # normal-state finite-q response/operator Ward residual audit
-python validation/scripts/bdg_finite_q/normal_finite_q_ward_audit.py --nk 3 --q-values 0.005 0.01 0.02 --json-output validation/outputs/bdg_finite_q/normal_finite_q_ward_audit.json
+python validation/scripts/bdg_finite_q/normal_finite_q_ward_audit.py --nk-values 3 --q-values 0.001 0.002 0.005 0.01 0.02 --directions x y diagonal --json-output validation/outputs/bdg_finite_q/normal_finite_q_ward_audit.json
 
 # dwave pairing reconstruction and endpoint-gauge tangent diagnostic
 python validation/scripts/bdg_finite_q/dwave_pairing_tangent_diagnostics.py

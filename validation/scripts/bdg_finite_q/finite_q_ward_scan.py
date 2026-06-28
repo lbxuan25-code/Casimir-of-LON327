@@ -59,6 +59,7 @@ class FiniteQWardScanReport:
     q0_alignment_prerequisite: dict[str, str]
     q0_precondition_status: dict[str, str]
     q_scaling_estimates: dict[str, float | None]
+    schur_residual_differences: tuple[dict[str, Any], ...]
     diagnostic_run_completed: bool
     ward_identity_closed: bool
     notes: tuple[str, ...]
@@ -82,6 +83,7 @@ class FiniteQWardScanReport:
             "q0_alignment_prerequisite": self.q0_alignment_prerequisite,
             "q0_precondition_status": self.q0_precondition_status,
             "q_scaling_estimates": self.q_scaling_estimates,
+            "schur_residual_differences": list(self.schur_residual_differences),
             "diagnostic_run_completed": self.diagnostic_run_completed,
             "ward_identity_closed": self.ward_identity_closed,
             "notes": list(self.notes),
@@ -129,6 +131,64 @@ def _complex_vector_components(vector: np.ndarray) -> tuple[dict[str, float | st
     )
 
 
+def _complex_vector_difference(left: np.ndarray, right: np.ndarray) -> tuple[dict[str, float | str], ...]:
+    return _complex_vector_components(np.asarray(left, dtype=complex) - np.asarray(right, dtype=complex))
+
+
+def _residual_vectors_for_report(ward_report: Any) -> dict[str, Any]:
+    return {
+        "left_ward_residual_vector": _complex_vector_components(ward_report.left_residual),
+        "right_ward_residual_vector": _complex_vector_components(ward_report.right_residual),
+        "left_ward_residual_norm": float(ward_report.left_norm),
+        "right_ward_residual_norm": float(ward_report.right_norm),
+    }
+
+
+def _schur_difference_report(
+    pairing_name: str,
+    q: np.ndarray,
+    ward_reports: dict[str, Any],
+) -> dict[str, Any]:
+    response_names = ("bare_total", "minus_schur", "amplitude_phase_schur")
+    if pairing_name in {"onsite_s", "spm"}:
+        difference_pairs = (("bare_total", "minus_schur"),)
+        diagnostic_role = "schur_correction_residual_delta"
+    else:
+        difference_pairs = (
+            ("bare_total", "minus_schur"),
+            ("bare_total", "amplitude_phase_schur"),
+            ("minus_schur", "amplitude_phase_schur"),
+        )
+        diagnostic_role = "dwave_control_residual_delta"
+    return {
+        "pairing_name": pairing_name,
+        "q_model": [float(q[0]), float(q[1])],
+        "q_norm": float(np.linalg.norm(q)),
+        "diagnostic_role": diagnostic_role,
+        "residual_component_labels": list(WARD_COMPONENT_LABELS),
+        "response_residual_vectors": {
+            response_name: _residual_vectors_for_report(ward_reports[response_name])
+            for response_name in response_names
+        },
+        "differences": [
+            {
+                "formula": f"{left_name} - {right_name}",
+                "left_ward_residual_vector_difference": _complex_vector_difference(
+                    ward_reports[left_name].left_residual,
+                    ward_reports[right_name].left_residual,
+                ),
+                "right_ward_residual_vector_difference": _complex_vector_difference(
+                    ward_reports[left_name].right_residual,
+                    ward_reports[right_name].right_residual,
+                ),
+                "valid_for_casimir_input": False,
+            }
+            for left_name, right_name in difference_pairs
+        ],
+        "valid_for_casimir_input": False,
+    }
+
+
 def _scaling_slope(q_values: list[float], residuals: list[float]) -> float | None:
     positive = [(q, r) for q, r in zip(q_values, residuals, strict=True) if q > 0.0 and r > 0.0]
     if len(positive) < 3:
@@ -173,6 +233,7 @@ def run_finite_q_ward_scan(
         include_phase_phase_direct=True,
     )
     rows: list[FiniteQWardScanRow] = []
+    schur_residual_differences: list[dict[str, Any]] = []
     scaling_inputs: dict[str, tuple[list[float], list[float]]] = {}
     if q0_status is None:
         q0_reports = run_q0_bdg_response_alignment_many(
@@ -221,8 +282,10 @@ def run_finite_q_ward_scan(
                     tolerance=tolerance,
                 )
                 bare_max = float(max(bare_report.left_norm, bare_report.right_norm))
+                ward_reports: dict[str, Any] = {}
                 for response_name, matrix in matrices.items():
                     ward = validate_physical_ward_identity(matrix, kubo.omega_eV, q, tolerance=tolerance)
+                    ward_reports[response_name] = ward
                     max_norm = float(max(ward.left_norm, ward.right_norm))
                     key = f"{pairing_name}:{response_name}"
                     scaling_q, scaling_residual = scaling_inputs.setdefault(key, ([], []))
@@ -250,6 +313,7 @@ def run_finite_q_ward_scan(
                             valid_for_casimir_input=False,
                         )
                     )
+                schur_residual_differences.append(_schur_difference_report(pairing_name, q, ward_reports))
     slopes = {
         key: _scaling_slope(value[0], value[1])
         for key, value in scaling_inputs.items()
@@ -267,6 +331,7 @@ def run_finite_q_ward_scan(
         "残差比例为各响应 max residual 相对 bare_total 的比例。",
         "新增 bare_bubble/direct/plus_schur 行为 staged diagnostic-only 输出，不改变 ward_identity_closed 判据。",
         "left/right Ward residual vector 分量顺序为 density,current_x,current_y，并分别记录 real/imag。",
+        "schur_residual_differences 只比较 residual vectors，不改变 Schur correction、Ward 判据或 Casimir gating。",
     )
     return FiniteQWardScanReport(
         pairing_names=tuple(pairing_names),
@@ -278,6 +343,7 @@ def run_finite_q_ward_scan(
         q0_alignment_prerequisite=q0_alignment,
         q0_precondition_status=q0_alignment,
         q_scaling_estimates=slopes,
+        schur_residual_differences=tuple(schur_residual_differences),
         diagnostic_run_completed=bool(diagnostic_completed),
         ward_identity_closed=ward_identity_closed,
         notes=notes,
