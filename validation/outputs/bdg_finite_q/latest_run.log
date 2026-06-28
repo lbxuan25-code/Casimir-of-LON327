@@ -114,28 +114,28 @@ diagnostic_passed: True
 transformed comparison table（按 relative norm 升序）:
 finite_q_quantity | transformed_local_quantity | label | abs_diff | rel_diff | finite_q_norm | local_norm | pass
 local_K_para_total | interband + intraband | decomposition_identity | 0.000000e+00 | 0.000000e+00 | 3.308746e-02 | 3.308746e-02 | True
-finite_q_direct_q0 | -local_K_total - local_K_para_total | direct_vs_contact_convention | 5.060749e-18 | 4.584164e-18 | 1.103963e+00 | 1.103963e+00 | True
+finite_q_direct_q0 | -local_K_total - local_K_para_total | direct_vs_contact_convention | 1.111376e-16 | 1.006714e-16 | 1.103963e+00 | 1.103963e+00 | True
 finite_q_total_q0 | -local_K_total | total_vs_minus_local_total | 1.935767e-12 | 1.807648e-12 | 1.070876e+00 | 1.070876e+00 | True
 finite_q_minus_schur_q0 | -local_K_total | minus_schur_vs_minus_local_total | 1.935767e-12 | 1.807648e-12 | 1.070876e+00 | 1.070876e+00 | True
 finite_q_amplitude_phase_schur_q0 | -local_K_total | amplitude_phase_schur_vs_minus_local_total | 1.935767e-12 | 1.807648e-12 | 1.070876e+00 | 1.070876e+00 | True
-finite_q_raw_bubble_q0 | local_K_para_total | raw_vs_total | 1.935843e-12 | 5.850684e-11 | 3.308746e-02 | 3.308746e-02 | True
-finite_q_raw_bubble_q0 | local_K_para_interband | raw_vs_interband | 1.935843e-12 | 5.850684e-11 | 3.308746e-02 | 3.308746e-02 | True
-local_K_para_total - finite_q_raw_bubble_q0 | local_K_para_intraband | total_minus_raw_vs_intraband | 1.935843e-12 | 1.000000e+00 | 1.935843e-12 | 3.601833e-20 | False
+finite_q_raw_bubble_q0 | local_K_para_total | raw_vs_total | 1.935863e-12 | 5.850744e-11 | 3.308746e-02 | 3.308746e-02 | True
+finite_q_raw_bubble_q0 | local_K_para_interband | raw_vs_interband | 1.935863e-12 | 5.850744e-11 | 3.308746e-02 | 3.308746e-02 | True
+local_K_para_total - finite_q_raw_bubble_q0 | local_K_para_intraband | total_minus_raw_vs_intraband | 1.935863e-12 | 1.000000e+00 | 1.935863e-12 | 3.601833e-20 | False
 finite-q matrix norms:
 - finite_q_raw_bubble_q0: 3.308746e-02
 - finite_q_direct_q0: 1.103963e+00
 - finite_q_total_q0: 1.070876e+00
 - finite_q_minus_schur_q0: 1.070876e+00
 - finite_q_amplitude_phase_schur_q0: 1.070876e+00
-- local_K_para_total - finite_q_raw_bubble_q0: 1.935843e-12
+- local_K_para_total - finite_q_raw_bubble_q0: 1.935863e-12
 intraband-aware explanation:
 - current_vertex_status: vertex_operator_q0_match
 - interpretation: spm finite_q_raw_bubble_q0 aligns with local_K_para_total and local_K_para_interband; local_K_para_intraband is negligible.
 - decomposition_identity: rel=0.000000e+00, pass=True
-- raw_vs_total: rel=5.850684e-11, pass=True
-- raw_vs_interband: rel=5.850684e-11, pass=True
+- raw_vs_total: rel=5.850744e-11, pass=True
+- raw_vs_interband: rel=5.850744e-11, pass=True
 - total_minus_raw_vs_intraband: rel=1.000000e+00, pass=False
-- direct_vs_contact_convention: rel=4.584164e-18, pass=True
+- direct_vs_contact_convention: rel=1.006714e-16, pass=True
 - total_vs_minus_local_total: rel=1.807648e-12, pass=True
 - minus_schur_vs_minus_local_total: rel=1.807648e-12, pass=True
 - amplitude_phase_schur_vs_minus_local_total: rel=1.807648e-12, pass=True
@@ -173,9 +173,9 @@ diagnostic_passed: True
 - finite_q_amplitude_phase_schur_q0: -local_K_total
 transformed comparison table（按 relative norm 升序）:
 finite_q_quantity | transformed_local_quantity | label | abs_diff | rel_diff | finite_q_norm | local_norm | pass
-finite_q_direct_q0 | -local_K_total - local_K_para_total | direct_vs_contact_convention | 1.114620e-16 | 1.004158e-16 | 1.110005e+00 | 1.110005e+00 | True
-local_K_para_total | interband + intraband | decomposition_identity | 4.764855e-16 | 4.000433e-16 | 1.191085e+00 | 1.191085e+00 | True
-local_K_para_total - finite_q_raw_bubble_q0 | local_K_para_intraband | total_minus_raw_vs_intraband | 1.623633e-12 | 1.394409e-12 | 1.164388e+00 | 1.164388e+00 | True
+finite_q_direct_q0 | -local_K_total - local_K_para_total | direct_vs_contact_convention | 5.060749e-18 | 4.559214e-18 | 1.110005e+00 | 1.110005e+00 | True
+local_K_para_total | interband + intraband | decomposition_identity | 1.335417e-16 | 1.121177e-16 | 1.191085e+00 | 1.191085e+00 | True
+local_K_para_total - finite_q_raw_bubble_q0 | local_K_para_intraband | total_minus_raw_vs_intraband | 1.624025e-12 | 1.394746e-12 | 1.164388e+00 | 1.164388e+00 | True
 finite_q_raw_bubble_q0 | local_K_para_interband | raw_vs_interband | 1.624037e-12 | 6.083252e-11 | 2.669686e-02 | 2.669686e-02 | True
 finite_q_raw_bubble_q0 | local_K_para_total | raw_vs_total | 1.164388e+00 | 9.775861e-01 | 2.669686e-02 | 1.191085e+00 | False
 finite_q_total_q0 | -local_K_total | total_vs_minus_local_total | 1.164388e+00 | 1.074845e+00 | 1.083308e+00 | 8.108001e-02 | False
@@ -191,11 +191,11 @@ finite-q matrix norms:
 intraband-aware explanation:
 - current_vertex_status: vertex_operator_q0_match
 - interpretation: dwave finite_q_raw_bubble_q0 aligns with local_K_para_interband; raw-vs-total mismatch is explained by local_K_para_intraband / -f'(E).
-- decomposition_identity: rel=4.000433e-16, pass=True
+- decomposition_identity: rel=1.121177e-16, pass=True
 - raw_vs_total: rel=9.775861e-01, pass=False
 - raw_vs_interband: rel=6.083252e-11, pass=True
-- total_minus_raw_vs_intraband: rel=1.394409e-12, pass=True
-- direct_vs_contact_convention: rel=1.004158e-16, pass=True
+- total_minus_raw_vs_intraband: rel=1.394746e-12, pass=True
+- direct_vs_contact_convention: rel=4.559214e-18, pass=True
 - total_vs_minus_local_total: rel=1.074845e+00, pass=False
 - minus_schur_vs_minus_local_total: rel=1.074845e+00, pass=False
 - amplitude_phase_schur_vs_minus_local_total: rel=1.074845e+00, pass=False
