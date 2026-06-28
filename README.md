@@ -9,6 +9,8 @@
 ## 当前状态
 
 - local `q=0` response baseline 已形成；
+- finite-q BdG 的 q=0 定义对齐已澄清：`spm` 为 convention-aware pass，`dwave` 为 intraband-aware pass；
+- `dwave` 旧 raw-vs-total mismatch 由 local intraband / `-f'(E)` 贡献解释，不再视为未解释的 q=0 raw-bubble/vertex mismatch；
 - validation 输出已归档为 summary / status / command；
 - finite-q BdG response 已完成架构解耦；
 - generic finite-q engine 与 `PairingAnsatz` 输入层已分离；

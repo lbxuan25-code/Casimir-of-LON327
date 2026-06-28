@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import json
 from pathlib import Path
 import sys
 from typing import Any, Literal
@@ -21,7 +22,7 @@ from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_f
 from lno327.pairing import PairingAmplitudes  # noqa: E402
 from lno327.pairing_ansatz import build_pairing_ansatz  # noqa: E402
 from lno327.ward_validation import validate_physical_ward_identity  # noqa: E402
-from q0_bdg_response_alignment import run_q0_bdg_response_alignment  # noqa: E402
+from q0_bdg_response_alignment import run_q0_bdg_response_alignment_many  # noqa: E402
 
 WardScanPairingName = Literal["onsite_s", "spm", "dwave"]
 
@@ -51,8 +52,10 @@ class FiniteQWardScanReport:
     delta0_eV: float
     rows: tuple[FiniteQWardScanRow, ...]
     q0_alignment_prerequisite: dict[str, str]
+    q0_precondition_status: dict[str, str]
     q_scaling_estimates: dict[str, float | None]
-    passed: bool
+    diagnostic_run_completed: bool
+    ward_identity_closed: bool
     notes: tuple[str, ...]
     valid_for_casimir_input: bool = False
 
@@ -72,8 +75,10 @@ class FiniteQWardScanReport:
                 for row in self.rows
             ],
             "q0_alignment_prerequisite": self.q0_alignment_prerequisite,
+            "q0_precondition_status": self.q0_precondition_status,
             "q_scaling_estimates": self.q_scaling_estimates,
-            "passed": self.passed,
+            "diagnostic_run_completed": self.diagnostic_run_completed,
+            "ward_identity_closed": self.ward_identity_closed,
             "notes": list(self.notes),
             "valid_for_casimir_input": False,
         }
@@ -86,8 +91,9 @@ class FiniteQWardScanReport:
             f"nk: {self.nk if self.nk is not None else '外部网格'}",
             f"网格点数: {self.mesh_size}",
             f"delta0_eV: {self.delta0_eV:.12g}",
-            f"q=0 对齐前置结果: {self.q0_alignment_prerequisite}",
-            f"通过: {self.passed}",
+            f"q0_precondition_status: {self.q0_precondition_status}",
+            f"diagnostic_run_completed: {self.diagnostic_run_completed}",
+            f"ward_identity_closed: {self.ward_identity_closed}",
         ]
         for row in self.rows:
             lines.append(
@@ -115,14 +121,12 @@ def _scaling_slope(q_values: list[float], residuals: list[float]) -> float | Non
     return float((np.log(r_last) - np.log(r_first)) / (np.log(q_last) - np.log(q_first)))
 
 
-def _q0_alignment_status(pairing_name: str, passed: bool, notes: tuple[str, ...]) -> str:
-    if pairing_name == "dwave" and passed and any("intraband-aware" in note for note in notes):
-        return "intraband_aware_pass"
-    if pairing_name == "spm" and passed:
-        return "convention_aware_pass"
-    if passed:
-        return "pass"
-    return "diagnostic_only_not_passed"
+def _q0_status_from_json(path: Path) -> dict[str, str]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    status = payload.get("status_by_pairing")
+    if not isinstance(status, dict):
+        raise ValueError("q0 status JSON must contain a status_by_pairing object")
+    return {str(key): str(value) for key, value in status.items()}
 
 
 def run_finite_q_ward_scan(
@@ -137,6 +141,7 @@ def run_finite_q_ward_scan(
     config: KuboConfig | None = None,
     pairing_params: PairingAmplitudes | None = None,
     tolerance: float = 1e-8,
+    q0_status: dict[str, str] | None = None,
 ) -> FiniteQWardScanReport:
     points = uniform_bz_mesh(nk) if k_points is None else np.asarray(k_points, dtype=float)
     mesh_weights = k_weights(points) if weights is None else np.asarray(weights, dtype=float)
@@ -150,10 +155,9 @@ def run_finite_q_ward_scan(
     )
     rows: list[FiniteQWardScanRow] = []
     scaling_inputs: dict[str, tuple[list[float], list[float]]] = {}
-    q0_alignment = {}
-    for pairing_name in pairing_names:
-        alignment_report = run_q0_bdg_response_alignment(
-            pairing_name,
+    if q0_status is None:
+        q0_reports = run_q0_bdg_response_alignment_many(
+            tuple(pairing_names),
             omega_eV=float(kubo.omega_eV),
             nk=nk,
             k_points=points if k_points is not None else None,
@@ -161,11 +165,9 @@ def run_finite_q_ward_scan(
             config=kubo,
             pairing_params=amp,
         )
-        q0_alignment[pairing_name] = _q0_alignment_status(
-            pairing_name,
-            alignment_report.passed,
-            alignment_report.pass_fail_notes,
-        )
+        q0_alignment = {report.pairing_name: report.status for report in q0_reports}
+    else:
+        q0_alignment = {pairing_name: q0_status.get(pairing_name, "missing_q0_status") for pairing_name in pairing_names}
     for pairing_name in pairing_names:
         ansatz = build_pairing_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
         for q_value in q_values:
@@ -227,11 +229,12 @@ def run_finite_q_ward_scan(
         key: _scaling_slope(value[0], value[1])
         for key, value in scaling_inputs.items()
     }
-    finite = all(np.isfinite(row.max_ward_residual_norm) for row in rows)
+    diagnostic_completed = all(np.isfinite(row.max_ward_residual_norm) for row in rows)
+    ward_identity_closed = bool(rows and all(row.max_ward_residual_norm <= tolerance for row in rows))
     notes = (
         "本扫描在同一入口先记录 q=0 response definition alignment 前置结果。",
         "dwave 若显示 intraband_aware_pass，表示 q=0 raw bubble 对齐 local interband，raw-vs-total 差异由 intraband/-f'(E) local 项解释。",
-        "本扫描只记录 Ward 残差，不解释为 Casimir 各向异性。",
+        "diagnostic_run_completed 只表示扫描数值完成；ward_identity_closed 才表示 Ward identity 在给定 tolerance 下闭合。",
         "finite-q 输出保持 valid_for_casimir_input=False。",
         "残差比例为各响应 max residual 相对 bare_total 的比例。",
     )
@@ -243,11 +246,18 @@ def run_finite_q_ward_scan(
         delta0_eV=float(amp.delta0_eV),
         rows=tuple(rows),
         q0_alignment_prerequisite=q0_alignment,
+        q0_precondition_status=q0_alignment,
         q_scaling_estimates=slopes,
-        passed=bool(finite),
+        diagnostic_run_completed=bool(diagnostic_completed),
+        ward_identity_closed=ward_identity_closed,
         notes=notes,
         valid_for_casimir_input=False,
     )
+
+
+def _write_json(path: Path, report: FiniteQWardScanReport) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(report.to_dict(), indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -257,15 +267,21 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--q-values", nargs="+", type=float, default=[0.005, 0.01, 0.02])
     parser.add_argument("--nk", type=int, default=3)
     parser.add_argument("--delta0", type=float, default=0.04)
+    parser.add_argument("--q0-status-json", type=Path)
+    parser.add_argument("--json-output", type=Path)
     args = parser.parse_args(argv)
+    q0_status = _q0_status_from_json(args.q0_status_json) if args.q0_status_json is not None else None
     report = run_finite_q_ward_scan(
         tuple(args.pairings),
         omega_eV=args.omega,
         q_values=tuple(args.q_values),
         nk=args.nk,
         pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+        q0_status=q0_status,
     )
     print(report.format_text())
+    if args.json_output is not None:
+        _write_json(args.json_output, report)
     return 0
 
 

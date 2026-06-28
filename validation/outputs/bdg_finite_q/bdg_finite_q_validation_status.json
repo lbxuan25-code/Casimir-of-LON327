@@ -12,7 +12,17 @@
   "summary": {
     "finite_q_bdg_engine_available": true,
     "generic_engine_separated_from_pairing_ansatz": true,
-    "q0_definition_alignment_required": true,
+    "q0_definition_alignment_required": false,
+    "q0_precondition_status": {
+      "normal": "diagnostic_only_not_passed",
+      "onsite_s": "diagnostic_only_not_passed",
+      "spm": "convention_aware_pass",
+      "dwave": "intraband_aware_pass"
+    },
+    "finite_q_ward": {
+      "diagnostic_run_completed": true,
+      "ward_identity_closed": false
+    },
     "raw_finite_q_bdg_not_casimir_ready": true,
     "blocking_reason": "superconducting finite-q Ward closure is not validated"
   },

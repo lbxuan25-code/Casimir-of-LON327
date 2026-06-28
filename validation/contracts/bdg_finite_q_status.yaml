@@ -1,0 +1,17 @@
+bdg_finite_q:
+  q0_precondition_status:
+    normal: diagnostic_only_not_passed
+    onsite_s: diagnostic_only_not_passed
+    spm: convention_aware_pass
+    dwave: intraband_aware_pass
+  finite_q_ward:
+    diagnostic_run_completed: true
+    ward_identity_closed: false
+  valid_for_casimir_input: false
+  forbidden_stale_interpretations:
+    - dwave_specific_raw_bubble_mismatch
+    - unexplained_dwave_raw_bubble_mismatch
+    - vertex_operator_level_mismatch_for_roundoff_abs_difference
+    - casimir_ready
+    - formal_casimir_input
+    - ward_closed_without_explicit_ward_identity_closure

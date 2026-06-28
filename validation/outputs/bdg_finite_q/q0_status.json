@@ -1,0 +1,946 @@
+{
+  "status_by_pairing": {
+    "normal": "diagnostic_only_not_passed",
+    "onsite_s": "diagnostic_only_not_passed",
+    "spm": "convention_aware_pass",
+    "dwave": "intraband_aware_pass"
+  },
+  "valid_for_casimir_input": false,
+  "reports": [
+    {
+      "pairing_name": "normal",
+      "omega_eV": 0.01,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 3,
+      "mesh_size": 9,
+      "delta0_eV": 0.0,
+      "status": "diagnostic_only_not_passed",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0",
+        "local_normal_density_current_total",
+        "local_normal_sigma_like"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 0.03631977115034536,
+        "finite_q_direct_q0": 1.101138989893076,
+        "finite_q_total_q0": 1.0648192187427306,
+        "finite_q_minus_schur_q0": 1.0648192187427306,
+        "finite_q_amplitude_phase_schur_q0": 1.0648192187427306,
+        "local_normal_density_current_total": 1.4466568805834668,
+        "local_normal_sigma_like": 127.34657007795359
+      },
+      "pairwise_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_normal_density_current_total": 1.482976651733812,
+        "finite_q_raw_bubble_q0__vs__local_normal_sigma_like": 127.31025030680324,
+        "finite_q_direct_q0__vs__local_normal_density_current_total": 0.34551789069039085,
+        "finite_q_direct_q0__vs__local_normal_sigma_like": 128.44770906784666,
+        "finite_q_total_q0__vs__local_normal_density_current_total": 0.38183766184073614,
+        "finite_q_total_q0__vs__local_normal_sigma_like": 128.4113892966963,
+        "finite_q_minus_schur_q0__vs__local_normal_density_current_total": 0.38183766184073614,
+        "finite_q_minus_schur_q0__vs__local_normal_sigma_like": 128.4113892966963,
+        "finite_q_amplitude_phase_schur_q0__vs__local_normal_density_current_total": 0.38183766184073614,
+        "finite_q_amplitude_phase_schur_q0__vs__local_normal_sigma_like": 128.4113892966963
+      },
+      "relative_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_normal_density_current_total": 1.0251060024238068,
+        "finite_q_raw_bubble_q0__vs__local_normal_sigma_like": 0.9997147958431223,
+        "finite_q_direct_q0__vs__local_normal_density_current_total": 0.2388388672724083,
+        "finite_q_direct_q0__vs__local_normal_sigma_like": 1.0086467895383364,
+        "finite_q_total_q0__vs__local_normal_density_current_total": 0.2639448696962151,
+        "finite_q_total_q0__vs__local_normal_sigma_like": 1.0083615853814587,
+        "finite_q_minus_schur_q0__vs__local_normal_density_current_total": 0.2639448696962151,
+        "finite_q_minus_schur_q0__vs__local_normal_sigma_like": 1.0083615853814587,
+        "finite_q_amplitude_phase_schur_q0__vs__local_normal_density_current_total": 0.2639448696962151,
+        "finite_q_amplitude_phase_schur_q0__vs__local_normal_sigma_like": 1.0083615853814587
+      },
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": null,
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": null,
+        "finite_q_minus_schur_q0": null,
+        "finite_q_amplitude_phase_schur_q0": null
+      },
+      "transformed_comparison_rows": [
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 1.482976651733812,
+          "relative_norm_difference": 1.0251060024238068,
+          "finite_q_matrix_norm": 0.03631977115034536,
+          "transformed_local_matrix_norm": 1.4466568805834668,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "omega * local_normal_sigma_like",
+          "absolute_norm_difference": 1.2371459296291907,
+          "relative_norm_difference": 0.9714795843122336,
+          "finite_q_matrix_norm": 0.03631977115034536,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "-omega * local_normal_sigma_like",
+          "absolute_norm_difference": 1.3097854719298812,
+          "relative_norm_difference": 1.0285204156877665,
+          "finite_q_matrix_norm": 0.03631977115034536,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 0.34551789069039085,
+          "relative_norm_difference": 0.2388388672724083,
+          "finite_q_matrix_norm": 1.101138989893076,
+          "transformed_local_matrix_norm": 1.4466568805834668,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "omega * local_normal_sigma_like",
+          "absolute_norm_difference": 2.3746046906726117,
+          "relative_norm_difference": 1.8646789538336428,
+          "finite_q_matrix_norm": 1.101138989893076,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "-omega * local_normal_sigma_like",
+          "absolute_norm_difference": 0.17232671088645996,
+          "relative_norm_difference": 0.13532104616635718,
+          "finite_q_matrix_norm": 1.101138989893076,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 0.38183766184073614,
+          "relative_norm_difference": 0.2639448696962151,
+          "finite_q_matrix_norm": 1.0648192187427306,
+          "transformed_local_matrix_norm": 1.4466568805834668,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "omega * local_normal_sigma_like",
+          "absolute_norm_difference": 2.3382849195222666,
+          "relative_norm_difference": 1.8361585381458765,
+          "finite_q_matrix_norm": 1.0648192187427306,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "-omega * local_normal_sigma_like",
+          "absolute_norm_difference": 0.20864648203680525,
+          "relative_norm_difference": 0.1638414618541237,
+          "finite_q_matrix_norm": 1.0648192187427306,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 0.38183766184073614,
+          "relative_norm_difference": 0.2639448696962151,
+          "finite_q_matrix_norm": 1.0648192187427306,
+          "transformed_local_matrix_norm": 1.4466568805834668,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "omega * local_normal_sigma_like",
+          "absolute_norm_difference": 2.3382849195222666,
+          "relative_norm_difference": 1.8361585381458765,
+          "finite_q_matrix_norm": 1.0648192187427306,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "-omega * local_normal_sigma_like",
+          "absolute_norm_difference": 0.20864648203680525,
+          "relative_norm_difference": 0.1638414618541237,
+          "finite_q_matrix_norm": 1.0648192187427306,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 0.38183766184073614,
+          "relative_norm_difference": 0.2639448696962151,
+          "finite_q_matrix_norm": 1.0648192187427306,
+          "transformed_local_matrix_norm": 1.4466568805834668,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "omega * local_normal_sigma_like",
+          "absolute_norm_difference": 2.3382849195222666,
+          "relative_norm_difference": 1.8361585381458765,
+          "finite_q_matrix_norm": 1.0648192187427306,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "-omega * local_normal_sigma_like",
+          "absolute_norm_difference": 0.20864648203680525,
+          "relative_norm_difference": 0.1638414618541237,
+          "finite_q_matrix_norm": 1.0648192187427306,
+          "transformed_local_matrix_norm": 1.2734657007795358,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        }
+      ],
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": "omega * local_normal_sigma_like",
+        "finite_q_direct_q0": "-omega * local_normal_sigma_like",
+        "finite_q_total_q0": "-omega * local_normal_sigma_like",
+        "finite_q_minus_schur_q0": "-omega * local_normal_sigma_like",
+        "finite_q_amplitude_phase_schur_q0": "-omega * local_normal_sigma_like"
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "normal q=0 alignment remains diagnostic-only."
+      ],
+      "passed": false,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "normal q=0 alignment remains diagnostic-only."
+      ],
+      "q0_convention": null,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "onsite_s",
+      "omega_eV": 0.01,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 3,
+      "mesh_size": 9,
+      "delta0_eV": 0.04,
+      "status": "diagnostic_only_not_passed",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 5.482429569707168,
+        "finite_q_direct_q0": 1.1022788282851501,
+        "finite_q_total_q0": 5.585714048832677,
+        "finite_q_minus_schur_q0": 1.069686726851864,
+        "finite_q_amplitude_phase_schur_q0": 1.069686726851864
+      },
+      "pairwise_difference_norms": {},
+      "relative_difference_norms": {},
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": null,
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": null,
+        "finite_q_minus_schur_q0": null,
+        "finite_q_amplitude_phase_schur_q0": null
+      },
+      "transformed_comparison_rows": [],
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": null,
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": null,
+        "finite_q_minus_schur_q0": null,
+        "finite_q_amplitude_phase_schur_q0": null
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "onsite_s has no local public comparator in this q=0 alignment report."
+      ],
+      "passed": false,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "onsite_s has no local public comparator in this q=0 alignment report."
+      ],
+      "q0_convention": null,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "omega_eV": 0.01,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 3,
+      "mesh_size": 9,
+      "delta0_eV": 0.04,
+      "status": "convention_aware_pass",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0",
+        "local_K_para_total - finite_q_raw_bubble_q0",
+        "local_K_para",
+        "local_K_para_total",
+        "local_K_para_interband",
+        "local_K_para_intraband",
+        "local_K_total",
+        "local_superconducting_response"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 0.03308746349670496,
+        "finite_q_direct_q0": 1.1039633458971578,
+        "finite_q_total_q0": 1.070875882400453,
+        "finite_q_minus_schur_q0": 1.070875882400453,
+        "finite_q_amplitude_phase_schur_q0": 1.070875882400453,
+        "local_K_para_total - finite_q_raw_bubble_q0": 1.9358430436664337e-12,
+        "local_K_para": 0.03308746349476912,
+        "local_K_para_total": 0.03308746349476912,
+        "local_K_para_interband": 0.03308746349476912,
+        "local_K_para_intraband": 3.601833353585541e-20,
+        "local_K_total": 1.0708758824023887,
+        "local_superconducting_response": 107.08758824023887
+      },
+      "pairwise_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_K_para": 1.9358430436664337e-12,
+        "finite_q_raw_bubble_q0__vs__local_K_para_total": 1.9358430436664337e-12,
+        "finite_q_raw_bubble_q0__vs__local_K_para_interband": 1.9358430436664337e-12,
+        "finite_q_raw_bubble_q0__vs__local_K_para_intraband": 0.03308746349670496,
+        "finite_q_raw_bubble_q0__vs__local_K_total": 1.0377884189056839,
+        "finite_q_raw_bubble_q0__vs__local_superconducting_response": 107.05450077674217,
+        "finite_q_direct_q0__vs__local_K_para": 1.1370508093919272,
+        "finite_q_direct_q0__vs__local_K_para_total": 1.1370508093919272,
+        "finite_q_direct_q0__vs__local_K_para_interband": 1.1370508093919272,
+        "finite_q_direct_q0__vs__local_K_para_intraband": 1.1039633458971578,
+        "finite_q_direct_q0__vs__local_K_total": 2.174839228299547,
+        "finite_q_direct_q0__vs__local_superconducting_response": 108.19155158613603,
+        "finite_q_total_q0__vs__local_K_para": 1.1039633458952223,
+        "finite_q_total_q0__vs__local_K_para_total": 1.1039633458952223,
+        "finite_q_total_q0__vs__local_K_para_interband": 1.1039633458952223,
+        "finite_q_total_q0__vs__local_K_para_intraband": 1.070875882400453,
+        "finite_q_total_q0__vs__local_K_total": 2.1417517648028417,
+        "finite_q_total_q0__vs__local_superconducting_response": 108.15846412263932,
+        "finite_q_minus_schur_q0__vs__local_K_para": 1.1039633458952223,
+        "finite_q_minus_schur_q0__vs__local_K_para_total": 1.1039633458952223,
+        "finite_q_minus_schur_q0__vs__local_K_para_interband": 1.1039633458952223,
+        "finite_q_minus_schur_q0__vs__local_K_para_intraband": 1.070875882400453,
+        "finite_q_minus_schur_q0__vs__local_K_total": 2.1417517648028417,
+        "finite_q_minus_schur_q0__vs__local_superconducting_response": 108.15846412263932,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para": 1.1039633458952223,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_total": 1.1039633458952223,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_interband": 1.1039633458952223,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_intraband": 1.070875882400453,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_total": 2.1417517648028417,
+        "finite_q_amplitude_phase_schur_q0__vs__local_superconducting_response": 108.15846412263932,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para": 0.03308746349670496,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_total": 0.03308746349670496,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_interband": 0.03308746349670496,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_intraband": 1.935843079684767e-12,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_total": 1.0708758824043245,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_superconducting_response": 107.0875882402408
+      },
+      "relative_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_K_para": 5.850684335047974e-11,
+        "finite_q_raw_bubble_q0__vs__local_K_para_total": 5.850684335047974e-11,
+        "finite_q_raw_bubble_q0__vs__local_K_para_interband": 5.850684335047974e-11,
+        "finite_q_raw_bubble_q0__vs__local_K_para_intraband": 1.0,
+        "finite_q_raw_bubble_q0__vs__local_K_total": 0.9691024291045972,
+        "finite_q_raw_bubble_q0__vs__local_superconducting_response": 0.9996910242910461,
+        "finite_q_direct_q0__vs__local_K_para": 1.0299715236178246,
+        "finite_q_direct_q0__vs__local_K_para_total": 1.0299715236178246,
+        "finite_q_direct_q0__vs__local_K_para_interband": 1.0299715236178246,
+        "finite_q_direct_q0__vs__local_K_para_intraband": 1.0,
+        "finite_q_direct_q0__vs__local_K_total": 1.9700284763821758,
+        "finite_q_direct_q0__vs__local_superconducting_response": 1.0103089757089359,
+        "finite_q_total_q0__vs__local_K_para": 1.0308975708936512,
+        "finite_q_total_q0__vs__local_K_para_total": 1.0308975708936512,
+        "finite_q_total_q0__vs__local_K_para_interband": 1.0308975708936512,
+        "finite_q_total_q0__vs__local_K_para_intraband": 1.0,
+        "finite_q_total_q0__vs__local_K_total": 1.9999999999981923,
+        "finite_q_total_q0__vs__local_superconducting_response": 1.0099999999999818,
+        "finite_q_minus_schur_q0__vs__local_K_para": 1.0308975708936512,
+        "finite_q_minus_schur_q0__vs__local_K_para_total": 1.0308975708936512,
+        "finite_q_minus_schur_q0__vs__local_K_para_interband": 1.0308975708936512,
+        "finite_q_minus_schur_q0__vs__local_K_para_intraband": 1.0,
+        "finite_q_minus_schur_q0__vs__local_K_total": 1.9999999999981923,
+        "finite_q_minus_schur_q0__vs__local_superconducting_response": 1.0099999999999818,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para": 1.0308975708936512,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_total": 1.0308975708936512,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_interband": 1.0308975708936512,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_intraband": 1.0,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_total": 1.9999999999981923,
+        "finite_q_amplitude_phase_schur_q0__vs__local_superconducting_response": 1.0099999999999818,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para": 1.0000000000585068,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_total": 1.0000000000585068,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_interband": 1.0000000000585068,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_intraband": 1.0000000186060194,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_total": 1.0000000000018077,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_superconducting_response": 1.000000000000018
+      },
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": "local_K_para",
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": null,
+        "finite_q_minus_schur_q0": null,
+        "finite_q_amplitude_phase_schur_q0": null,
+        "local_K_para_total - finite_q_raw_bubble_q0": null
+      },
+      "transformed_comparison_rows": [
+        {
+          "finite_q_quantity": "local_K_para_total",
+          "transformed_local_quantity": "interband + intraband",
+          "absolute_norm_difference": 0.0,
+          "relative_norm_difference": 0.0,
+          "finite_q_matrix_norm": 0.03308746349476912,
+          "transformed_local_matrix_norm": 0.03308746349476912,
+          "passes_tolerance": true,
+          "label": "decomposition_identity"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_K_para_total",
+          "absolute_norm_difference": 1.9358430436664337e-12,
+          "relative_norm_difference": 5.850684335047974e-11,
+          "finite_q_matrix_norm": 0.03308746349670496,
+          "transformed_local_matrix_norm": 0.03308746349476912,
+          "passes_tolerance": true,
+          "label": "raw_vs_total"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_K_para_interband",
+          "absolute_norm_difference": 1.9358430436664337e-12,
+          "relative_norm_difference": 5.850684335047974e-11,
+          "finite_q_matrix_norm": 0.03308746349670496,
+          "transformed_local_matrix_norm": 0.03308746349476912,
+          "passes_tolerance": true,
+          "label": "raw_vs_interband"
+        },
+        {
+          "finite_q_quantity": "local_K_para_total - finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_K_para_intraband",
+          "absolute_norm_difference": 1.935843079684767e-12,
+          "relative_norm_difference": 1.0000000186060194,
+          "finite_q_matrix_norm": 1.9358430436664337e-12,
+          "transformed_local_matrix_norm": 3.601833353585541e-20,
+          "passes_tolerance": false,
+          "label": "total_minus_raw_vs_intraband"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "-local_K_total - local_K_para_total",
+          "absolute_norm_difference": 5.0607487670767794e-18,
+          "relative_norm_difference": 4.584163764027927e-18,
+          "finite_q_matrix_norm": 1.1039633458971578,
+          "transformed_local_matrix_norm": 1.1039633458971578,
+          "passes_tolerance": true,
+          "label": "direct_vs_contact_convention"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "-local_K_total",
+          "absolute_norm_difference": 1.9357669923201626e-12,
+          "relative_norm_difference": 1.8076483223970724e-12,
+          "finite_q_matrix_norm": 1.070875882400453,
+          "transformed_local_matrix_norm": 1.0708758824023887,
+          "passes_tolerance": true,
+          "label": "total_vs_minus_local_total"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "-local_K_total",
+          "absolute_norm_difference": 1.9357669923201626e-12,
+          "relative_norm_difference": 1.8076483223970724e-12,
+          "finite_q_matrix_norm": 1.070875882400453,
+          "transformed_local_matrix_norm": 1.0708758824023887,
+          "passes_tolerance": true,
+          "label": "minus_schur_vs_minus_local_total"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "-local_K_total",
+          "absolute_norm_difference": 1.9357669923201626e-12,
+          "relative_norm_difference": 1.8076483223970724e-12,
+          "finite_q_matrix_norm": 1.070875882400453,
+          "transformed_local_matrix_norm": 1.0708758824023887,
+          "passes_tolerance": true,
+          "label": "amplitude_phase_schur_vs_minus_local_total"
+        }
+      ],
+      "best_transformed_match": {
+        "local_K_para_total": "interband + intraband",
+        "finite_q_raw_bubble_q0": "local_K_para_total",
+        "local_K_para_total - finite_q_raw_bubble_q0": "local_K_para_intraband",
+        "finite_q_direct_q0": "-local_K_total - local_K_para_total",
+        "finite_q_total_q0": "-local_K_total",
+        "finite_q_minus_schur_q0": "-local_K_total",
+        "finite_q_amplitude_phase_schur_q0": "-local_K_total"
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "spm convention-aware q=0 pass: raw bubble aligns with local total/interband and intraband is negligible."
+      ],
+      "passed": true,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "spm convention-aware q=0 pass: raw bubble aligns with local total/interband and intraband is negligible."
+      ],
+      "q0_convention": {
+        "pairing_name": "spm",
+        "status": "convention_aware_pass",
+        "current_vertex_max_abs": 3.694105759476684e-16,
+        "current_vertex_max_rel": 1.0,
+        "current_vertex_status": "vertex_operator_q0_match",
+        "comparisons": [
+          {
+            "name": "decomposition_identity",
+            "left_name": "local_K_para_total",
+            "right_name": "interband + intraband",
+            "absolute_norm_difference": 0.0,
+            "relative_norm_difference": 0.0,
+            "left_norm": 0.03308746349476912,
+            "right_norm": 0.03308746349476912,
+            "passes_tolerance": true
+          },
+          {
+            "name": "raw_vs_total",
+            "left_name": "finite_q_raw_bubble_q0",
+            "right_name": "local_K_para_total",
+            "absolute_norm_difference": 1.9358430436664337e-12,
+            "relative_norm_difference": 5.850684335047974e-11,
+            "left_norm": 0.03308746349670496,
+            "right_norm": 0.03308746349476912,
+            "passes_tolerance": true
+          },
+          {
+            "name": "raw_vs_interband",
+            "left_name": "finite_q_raw_bubble_q0",
+            "right_name": "local_K_para_interband",
+            "absolute_norm_difference": 1.9358430436664337e-12,
+            "relative_norm_difference": 5.850684335047974e-11,
+            "left_norm": 0.03308746349670496,
+            "right_norm": 0.03308746349476912,
+            "passes_tolerance": true
+          },
+          {
+            "name": "total_minus_raw_vs_intraband",
+            "left_name": "local_K_para_total - finite_q_raw_bubble_q0",
+            "right_name": "local_K_para_intraband",
+            "absolute_norm_difference": 1.935843079684767e-12,
+            "relative_norm_difference": 1.0000000186060194,
+            "left_norm": 1.9358430436664337e-12,
+            "right_norm": 3.601833353585541e-20,
+            "passes_tolerance": false
+          },
+          {
+            "name": "direct_vs_contact_convention",
+            "left_name": "finite_q_direct_q0",
+            "right_name": "-local_K_total - local_K_para_total",
+            "absolute_norm_difference": 5.0607487670767794e-18,
+            "relative_norm_difference": 4.584163764027927e-18,
+            "left_norm": 1.1039633458971578,
+            "right_norm": 1.1039633458971578,
+            "passes_tolerance": true
+          },
+          {
+            "name": "total_vs_minus_local_total",
+            "left_name": "finite_q_total_q0",
+            "right_name": "-local_K_total",
+            "absolute_norm_difference": 1.9357669923201626e-12,
+            "relative_norm_difference": 1.8076483223970724e-12,
+            "left_norm": 1.070875882400453,
+            "right_norm": 1.0708758824023887,
+            "passes_tolerance": true
+          },
+          {
+            "name": "minus_schur_vs_minus_local_total",
+            "left_name": "finite_q_minus_schur_q0",
+            "right_name": "-local_K_total",
+            "absolute_norm_difference": 1.9357669923201626e-12,
+            "relative_norm_difference": 1.8076483223970724e-12,
+            "left_norm": 1.070875882400453,
+            "right_norm": 1.0708758824023887,
+            "passes_tolerance": true
+          },
+          {
+            "name": "amplitude_phase_schur_vs_minus_local_total",
+            "left_name": "finite_q_amplitude_phase_schur_q0",
+            "right_name": "-local_K_total",
+            "absolute_norm_difference": 1.9357669923201626e-12,
+            "relative_norm_difference": 1.8076483223970724e-12,
+            "left_norm": 1.070875882400453,
+            "right_norm": 1.0708758824023887,
+            "passes_tolerance": true
+          }
+        ],
+        "interpretation": "spm finite_q_raw_bubble_q0 aligns with local_K_para_total and local_K_para_interband; local_K_para_intraband is negligible.",
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "omega_eV": 0.01,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 3,
+      "mesh_size": 9,
+      "delta0_eV": 0.04,
+      "status": "intraband_aware_pass",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0",
+        "local_K_para_total - finite_q_raw_bubble_q0",
+        "local_K_para",
+        "local_K_para_total",
+        "local_K_para_interband",
+        "local_K_para_intraband",
+        "local_K_total",
+        "local_superconducting_response"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 0.02669686307984022,
+        "finite_q_direct_q0": 1.1100046890656412,
+        "finite_q_total_q0": 1.083307825985801,
+        "finite_q_minus_schur_q0": 1.083307825985801,
+        "finite_q_amplitude_phase_schur_q0": 1.083307825985801,
+        "local_K_para_total - finite_q_raw_bubble_q0": 1.1643878401058607,
+        "local_K_para": 1.191084703185701,
+        "local_K_para_total": 1.191084703185701,
+        "local_K_para_interband": 0.02669686307821618,
+        "local_K_para_intraband": 1.1643878401074843,
+        "local_K_total": 0.0810800141200597,
+        "local_superconducting_response": 8.10800141200597
+      },
+      "pairwise_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_K_para": 1.1643878401058607,
+        "finite_q_raw_bubble_q0__vs__local_K_para_total": 1.1643878401058607,
+        "finite_q_raw_bubble_q0__vs__local_K_para_interband": 1.6240374009888542e-12,
+        "finite_q_raw_bubble_q0__vs__local_K_para_intraband": 1.1376909770276442,
+        "finite_q_raw_bubble_q0__vs__local_K_total": 0.10777687719989992,
+        "finite_q_raw_bubble_q0__vs__local_superconducting_response": 8.13469827508581,
+        "finite_q_direct_q0__vs__local_K_para": 2.3010893922513422,
+        "finite_q_direct_q0__vs__local_K_para_total": 2.3010893922513422,
+        "finite_q_direct_q0__vs__local_K_para_interband": 1.1367015521438575,
+        "finite_q_direct_q0__vs__local_K_para_intraband": 2.274392529173126,
+        "finite_q_direct_q0__vs__local_K_total": 1.0289246749455816,
+        "finite_q_direct_q0__vs__local_superconducting_response": 6.997996722940328,
+        "finite_q_total_q0__vs__local_K_para": 2.274392529171502,
+        "finite_q_total_q0__vs__local_K_para_total": 2.274392529171502,
+        "finite_q_total_q0__vs__local_K_para_interband": 1.1100046890640172,
+        "finite_q_total_q0__vs__local_K_para_intraband": 2.2476956660932856,
+        "finite_q_total_q0__vs__local_K_total": 1.0022278118657413,
+        "finite_q_total_q0__vs__local_superconducting_response": 7.024693586020169,
+        "finite_q_minus_schur_q0__vs__local_K_para": 2.274392529171502,
+        "finite_q_minus_schur_q0__vs__local_K_para_total": 2.274392529171502,
+        "finite_q_minus_schur_q0__vs__local_K_para_interband": 1.1100046890640172,
+        "finite_q_minus_schur_q0__vs__local_K_para_intraband": 2.2476956660932856,
+        "finite_q_minus_schur_q0__vs__local_K_total": 1.0022278118657413,
+        "finite_q_minus_schur_q0__vs__local_superconducting_response": 7.024693586020169,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para": 2.274392529171502,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_total": 2.274392529171502,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_interband": 1.1100046890640172,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_intraband": 2.2476956660932856,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_total": 1.0022278118657413,
+        "finite_q_amplitude_phase_schur_q0__vs__local_superconducting_response": 7.024693586020169,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para": 0.026696863079840236,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_total": 0.026696863079840236,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_interband": 1.1376909770276447,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_intraband": 1.6236326131412472e-12,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_total": 1.2454678542259205,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_superconducting_response": 9.27238925211183
+      },
+      "relative_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_K_para": 0.9775860918972125,
+        "finite_q_raw_bubble_q0__vs__local_K_para_total": 0.9775860918972125,
+        "finite_q_raw_bubble_q0__vs__local_K_para_interband": 6.083251789290647e-11,
+        "finite_q_raw_bubble_q0__vs__local_K_para_intraband": 0.9770721900725314,
+        "finite_q_raw_bubble_q0__vs__local_K_total": 1.3292656441858617,
+        "finite_q_raw_bubble_q0__vs__local_superconducting_response": 1.0032926564418585,
+        "finite_q_direct_q0__vs__local_K_para": 1.9319275834009106,
+        "finite_q_direct_q0__vs__local_K_para_total": 1.9319275834009106,
+        "finite_q_direct_q0__vs__local_K_para_interband": 1.0240511263972125,
+        "finite_q_direct_q0__vs__local_K_para_intraband": 1.9532946418979928,
+        "finite_q_direct_q0__vs__local_K_total": 0.926955250803211,
+        "finite_q_direct_q0__vs__local_superconducting_response": 0.8630976201580334,
+        "finite_q_total_q0__vs__local_K_para": 1.909513675298123,
+        "finite_q_total_q0__vs__local_K_para_total": 1.909513675298123,
+        "finite_q_total_q0__vs__local_K_para_interband": 1.0246438384712324,
+        "finite_q_total_q0__vs__local_K_para_intraband": 1.930366831970524,
+        "finite_q_total_q0__vs__local_K_total": 0.9251551478027239,
+        "finite_q_total_q0__vs__local_superconducting_response": 0.8663902765998922,
+        "finite_q_minus_schur_q0__vs__local_K_para": 1.909513675298123,
+        "finite_q_minus_schur_q0__vs__local_K_para_total": 1.909513675298123,
+        "finite_q_minus_schur_q0__vs__local_K_para_interband": 1.0246438384712324,
+        "finite_q_minus_schur_q0__vs__local_K_para_intraband": 1.930366831970524,
+        "finite_q_minus_schur_q0__vs__local_K_total": 0.9251551478027239,
+        "finite_q_minus_schur_q0__vs__local_superconducting_response": 0.8663902765998922,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para": 1.909513675298123,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_total": 1.909513675298123,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_interband": 1.0246438384712324,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_para_intraband": 1.930366831970524,
+        "finite_q_amplitude_phase_schur_q0__vs__local_K_total": 0.9251551478027239,
+        "finite_q_amplitude_phase_schur_q0__vs__local_superconducting_response": 0.8663902765998922,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para": 0.022413908102787507,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_total": 0.022413908102787507,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_interband": 0.9770721900738942,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_para_intraband": 1.3944087676073378e-12,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_K_total": 1.069633168028179,
+        "local_K_para_total - finite_q_raw_bubble_q0__vs__local_superconducting_response": 1.1436097234001077
+      },
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": "local_K_para_interband",
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": null,
+        "finite_q_minus_schur_q0": null,
+        "finite_q_amplitude_phase_schur_q0": null,
+        "local_K_para_total - finite_q_raw_bubble_q0": "local_K_para_intraband"
+      },
+      "transformed_comparison_rows": [
+        {
+          "finite_q_quantity": "local_K_para_total",
+          "transformed_local_quantity": "interband + intraband",
+          "absolute_norm_difference": 4.764854786468534e-16,
+          "relative_norm_difference": 4.000433196500929e-16,
+          "finite_q_matrix_norm": 1.191084703185701,
+          "transformed_local_matrix_norm": 1.1910847031857006,
+          "passes_tolerance": true,
+          "label": "decomposition_identity"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_K_para_total",
+          "absolute_norm_difference": 1.1643878401058607,
+          "relative_norm_difference": 0.9775860918972125,
+          "finite_q_matrix_norm": 0.02669686307984022,
+          "transformed_local_matrix_norm": 1.191084703185701,
+          "passes_tolerance": false,
+          "label": "raw_vs_total"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_K_para_interband",
+          "absolute_norm_difference": 1.6240374009888542e-12,
+          "relative_norm_difference": 6.083251789290647e-11,
+          "finite_q_matrix_norm": 0.02669686307984022,
+          "transformed_local_matrix_norm": 0.02669686307821618,
+          "passes_tolerance": true,
+          "label": "raw_vs_interband"
+        },
+        {
+          "finite_q_quantity": "local_K_para_total - finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_K_para_intraband",
+          "absolute_norm_difference": 1.6236326131412472e-12,
+          "relative_norm_difference": 1.3944087676073378e-12,
+          "finite_q_matrix_norm": 1.1643878401058607,
+          "transformed_local_matrix_norm": 1.1643878401074843,
+          "passes_tolerance": true,
+          "label": "total_minus_raw_vs_intraband"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "-local_K_total - local_K_para_total",
+          "absolute_norm_difference": 1.1146203477003415e-16,
+          "relative_norm_difference": 1.0041582334562797e-16,
+          "finite_q_matrix_norm": 1.1100046890656412,
+          "transformed_local_matrix_norm": 1.1100046890656414,
+          "passes_tolerance": true,
+          "label": "direct_vs_contact_convention"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "-local_K_total",
+          "absolute_norm_difference": 1.1643878401058607,
+          "relative_norm_difference": 1.074844852197276,
+          "finite_q_matrix_norm": 1.083307825985801,
+          "transformed_local_matrix_norm": 0.0810800141200597,
+          "passes_tolerance": false,
+          "label": "total_vs_minus_local_total"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "-local_K_total",
+          "absolute_norm_difference": 1.1643878401058607,
+          "relative_norm_difference": 1.074844852197276,
+          "finite_q_matrix_norm": 1.083307825985801,
+          "transformed_local_matrix_norm": 0.0810800141200597,
+          "passes_tolerance": false,
+          "label": "minus_schur_vs_minus_local_total"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "-local_K_total",
+          "absolute_norm_difference": 1.1643878401058607,
+          "relative_norm_difference": 1.074844852197276,
+          "finite_q_matrix_norm": 1.083307825985801,
+          "transformed_local_matrix_norm": 0.0810800141200597,
+          "passes_tolerance": false,
+          "label": "amplitude_phase_schur_vs_minus_local_total"
+        }
+      ],
+      "best_transformed_match": {
+        "local_K_para_total": "interband + intraband",
+        "finite_q_raw_bubble_q0": "local_K_para_interband",
+        "local_K_para_total - finite_q_raw_bubble_q0": "local_K_para_intraband",
+        "finite_q_direct_q0": "-local_K_total - local_K_para_total",
+        "finite_q_total_q0": "-local_K_total",
+        "finite_q_minus_schur_q0": "-local_K_total",
+        "finite_q_amplitude_phase_schur_q0": "-local_K_total"
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "dwave intraband-aware q=0 pass: raw bubble aligns with local interband.",
+        "The old raw-vs-total mismatch remains visible and is explained by local intraband / -f'(E)."
+      ],
+      "passed": true,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "dwave intraband-aware q=0 pass: raw bubble aligns with local interband.",
+        "The old raw-vs-total mismatch remains visible and is explained by local intraband / -f'(E)."
+      ],
+      "q0_convention": {
+        "pairing_name": "dwave",
+        "status": "intraband_aware_pass",
+        "current_vertex_max_abs": 3.694105759476684e-16,
+        "current_vertex_max_rel": 1.0,
+        "current_vertex_status": "vertex_operator_q0_match",
+        "comparisons": [
+          {
+            "name": "decomposition_identity",
+            "left_name": "local_K_para_total",
+            "right_name": "interband + intraband",
+            "absolute_norm_difference": 4.764854786468534e-16,
+            "relative_norm_difference": 4.000433196500929e-16,
+            "left_norm": 1.191084703185701,
+            "right_norm": 1.1910847031857006,
+            "passes_tolerance": true
+          },
+          {
+            "name": "raw_vs_total",
+            "left_name": "finite_q_raw_bubble_q0",
+            "right_name": "local_K_para_total",
+            "absolute_norm_difference": 1.1643878401058607,
+            "relative_norm_difference": 0.9775860918972125,
+            "left_norm": 0.02669686307984022,
+            "right_norm": 1.191084703185701,
+            "passes_tolerance": false
+          },
+          {
+            "name": "raw_vs_interband",
+            "left_name": "finite_q_raw_bubble_q0",
+            "right_name": "local_K_para_interband",
+            "absolute_norm_difference": 1.6240374009888542e-12,
+            "relative_norm_difference": 6.083251789290647e-11,
+            "left_norm": 0.02669686307984022,
+            "right_norm": 0.02669686307821618,
+            "passes_tolerance": true
+          },
+          {
+            "name": "total_minus_raw_vs_intraband",
+            "left_name": "local_K_para_total - finite_q_raw_bubble_q0",
+            "right_name": "local_K_para_intraband",
+            "absolute_norm_difference": 1.6236326131412472e-12,
+            "relative_norm_difference": 1.3944087676073378e-12,
+            "left_norm": 1.1643878401058607,
+            "right_norm": 1.1643878401074843,
+            "passes_tolerance": true
+          },
+          {
+            "name": "direct_vs_contact_convention",
+            "left_name": "finite_q_direct_q0",
+            "right_name": "-local_K_total - local_K_para_total",
+            "absolute_norm_difference": 1.1146203477003415e-16,
+            "relative_norm_difference": 1.0041582334562797e-16,
+            "left_norm": 1.1100046890656412,
+            "right_norm": 1.1100046890656414,
+            "passes_tolerance": true
+          },
+          {
+            "name": "total_vs_minus_local_total",
+            "left_name": "finite_q_total_q0",
+            "right_name": "-local_K_total",
+            "absolute_norm_difference": 1.1643878401058607,
+            "relative_norm_difference": 1.074844852197276,
+            "left_norm": 1.083307825985801,
+            "right_norm": 0.0810800141200597,
+            "passes_tolerance": false
+          },
+          {
+            "name": "minus_schur_vs_minus_local_total",
+            "left_name": "finite_q_minus_schur_q0",
+            "right_name": "-local_K_total",
+            "absolute_norm_difference": 1.1643878401058607,
+            "relative_norm_difference": 1.074844852197276,
+            "left_norm": 1.083307825985801,
+            "right_norm": 0.0810800141200597,
+            "passes_tolerance": false
+          },
+          {
+            "name": "amplitude_phase_schur_vs_minus_local_total",
+            "left_name": "finite_q_amplitude_phase_schur_q0",
+            "right_name": "-local_K_total",
+            "absolute_norm_difference": 1.1643878401058607,
+            "relative_norm_difference": 1.074844852197276,
+            "left_norm": 1.083307825985801,
+            "right_norm": 0.0810800141200597,
+            "passes_tolerance": false
+          }
+        ],
+        "interpretation": "dwave finite_q_raw_bubble_q0 aligns with local_K_para_interband; raw-vs-total mismatch is explained by local_K_para_intraband / -f'(E).",
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    }
+  ]
+}

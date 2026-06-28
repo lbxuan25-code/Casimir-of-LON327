@@ -4,6 +4,10 @@
 
 `bdg_finite_q_validation_status.json` 是当前唯一 active BdG finite-q validation status marker。旧目录 `validation/outputs/response/bdg_finite_q/` 只保留迁移说明，不再保存 active status JSON。
 
+当前 q=0 precondition 状态由统一脚本 `validation/scripts/bdg_finite_q/q0_bdg_response_alignment.py` 生成：`spm: convention_aware_pass`，`dwave: intraband_aware_pass`，`normal/onsite_s: diagnostic_only_not_passed`。`dwave` raw-vs-total q=0 mismatch 仍在报告中可见，但由 local intraband / `-f'(E)` 贡献解释，不再作为未解释 raw-bubble/vertex mismatch。
+
+finite-q Ward scan 会单独报告 `diagnostic_run_completed` 与 `ward_identity_closed`。当前 finite-q Ward closure 仍未完成，所有 finite-q validation 输出都保持 `valid_for_casimir_input=False`。
+
 ## 可提交内容
 
 - 小型 markdown summary；
