@@ -12,6 +12,7 @@ SCRIPT_DIR = ROOT / "validation" / "scripts" / "bdg_finite_q"
 DIAGNOSTIC_SCRIPT_FILES = (
     SCRIPT_DIR / "q0_bdg_response_alignment.py",
     SCRIPT_DIR / "dwave_raw_bubble_vertex_audit.py",
+    SCRIPT_DIR / "q0_local_intraband_decomposition.py",
     SCRIPT_DIR / "finite_q_ward_scan.py",
     SCRIPT_DIR / "dwave_pairing_tangent_diagnostics.py",
     SCRIPT_DIR / "goldstone_counterterm_diagnostics.py",
@@ -203,6 +204,44 @@ def test_raw_bubble_failure_with_matched_vertex_points_to_bubble_assembly_not_ve
     assert row.vertex_status == "vertex_operator_q0_match"
     assert row.evidence == "bubble_assembly_or_pairing_state_convention_mismatch"
     assert row.valid_for_casimir_input is False
+
+
+def test_q0_local_intraband_decomposition_runs_and_tests_hypothesis_on_tiny_grid():
+    module = _load_validation_script("q0_local_intraband_decomposition")
+    report = module.run_q0_local_intraband_decomposition(nk=3)
+    assert report.valid_for_casimir_input is False
+    assert report.q_model == (0.0, 0.0)
+    assert report.mesh_size == 9
+    assert {row.pairing_name for row in report.rows} == {"spm", "dwave"}
+    row_by_pairing = {row.pairing_name: row for row in report.rows}
+    for row in report.rows:
+        assert row.valid_for_casimir_input is False
+        np.testing.assert_allclose(
+            row.local_k_para_total,
+            row.local_k_para_interband + row.local_k_para_intraband,
+            rtol=1e-9,
+            atol=1e-10,
+        )
+        assert row.decomposition_rel <= 1e-9
+        assert np.isfinite(row.total_norm)
+        assert np.isfinite(row.interband_norm)
+        assert np.isfinite(row.intraband_norm)
+        assert np.isfinite(row.finite_q_raw_norm)
+        assert np.isfinite(row.raw_vs_interband_rel)
+        assert np.isfinite(row.missing_vs_intraband_rel)
+        assert np.isfinite(row.raw_vs_total_rel)
+        assert row.interpretation
+    assert row_by_pairing["spm"].hypothesis_supported is True
+    assert row_by_pairing["dwave"].raw_vs_total_rel > 1e-6
+    assert row_by_pairing["dwave"].hypothesis_supported is True
+    assert row_by_pairing["dwave"].raw_vs_interband_rel < row_by_pairing["dwave"].raw_vs_total_rel
+    assert (
+        row_by_pairing["dwave"].interpretation
+        == "q0_raw_bubble_mismatch_consistent_with_missing_local_intraband_contribution"
+    )
+    text = report.format_text()
+    assert "valid_for_casimir_input: False" in text
+    assert "Ward closure proof" in text
 
 
 def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():

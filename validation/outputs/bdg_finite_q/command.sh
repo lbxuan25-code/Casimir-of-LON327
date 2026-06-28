@@ -6,6 +6,7 @@ python validation/scripts/bdg_finite_q/q0_bdg_response_alignment.py normal --nk 
 python validation/scripts/bdg_finite_q/q0_bdg_response_alignment.py spm --nk 3
 python validation/scripts/bdg_finite_q/q0_bdg_response_alignment.py dwave --nk 3
 python validation/scripts/bdg_finite_q/dwave_raw_bubble_vertex_audit.py --nk 3
+python validation/scripts/bdg_finite_q/q0_local_intraband_decomposition.py --nk 3
 
 # small-q Ward residual scan
 python validation/scripts/bdg_finite_q/finite_q_ward_scan.py --pairings onsite_s spm dwave --nk 3 --q-values 0.005 0.01 0.02
