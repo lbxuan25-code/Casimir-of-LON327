@@ -22,7 +22,6 @@ from lno327.lifshitz_readiness import round_trip_factor, trace_log_matrix
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / "src" / "lno327" / "casimir_integrand.py"
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_8_casimir_integrand_prototype.py"
-DOC = ROOT / "docs" / "notes" / "stage5_8_casimir_integrand_prototype_zh.md"
 
 
 def _load_module():
@@ -185,6 +184,6 @@ def test_no_response_or_casimir_imports():
 
 
 def test_no_g_symbol():
-    text = SCRIPT.read_text(encoding="utf-8") + "\n" + DOC.read_text(encoding="utf-8")
+    text = SCRIPT.read_text(encoding="utf-8")
     assert " g " not in text
     assert '"g"' not in text

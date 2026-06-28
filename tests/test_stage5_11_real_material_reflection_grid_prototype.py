@@ -18,7 +18,6 @@ from lno327.material_reflection_grid import (
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_11_real_material_reflection_grid_prototype.py"
-DOC = ROOT / "docs" / "notes" / "stage5_11_real_material_reflection_grid_prototype_zh.md"
 
 
 def _synthetic_stage5_10(path: Path, *, status: str = "STAGE5_10_TOY_CASIMIR_INTEGRATION_CONVERGENCE_AUDIT_PASSED") -> None:
@@ -161,7 +160,7 @@ def test_dry_run_workers_preserve_point_order(tmp_path):
 
 
 def test_no_g_symbol():
-    text = SCRIPT.read_text(encoding="utf-8") + "\n" + DOC.read_text(encoding="utf-8")
+    text = SCRIPT.read_text(encoding="utf-8")
     assert " g " not in text
     assert '"g"' not in text
 

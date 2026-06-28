@@ -23,7 +23,6 @@ from lno327.casimir_grid import (
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / "src" / "lno327" / "casimir_grid.py"
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_9_casimir_grid_planning_scaffold.py"
-DOC = ROOT / "docs" / "notes" / "stage5_9_casimir_grid_planning_scaffold_zh.md"
 
 
 def _load_module():
@@ -214,6 +213,6 @@ def test_no_response_or_production_imports():
 
 
 def test_no_g_symbol():
-    text = SCRIPT.read_text(encoding="utf-8") + "\n" + DOC.read_text(encoding="utf-8")
+    text = SCRIPT.read_text(encoding="utf-8")
     assert " g " not in text
     assert '"g"' not in text

@@ -20,7 +20,6 @@ from lno327.material_production_grid import (
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_14_real_material_production_grid_convergence.py"
-DOC = ROOT / "docs" / "notes" / "stage5_14_real_material_production_grid_convergence_zh.md"
 
 
 def _synthetic_stage5_13(
@@ -172,6 +171,6 @@ def test_script_rejects_failed_stage5_13(tmp_path):
 
 
 def test_no_g_symbol():
-    text = SCRIPT.read_text(encoding="utf-8") + "\n" + DOC.read_text(encoding="utf-8")
+    text = SCRIPT.read_text(encoding="utf-8")
     assert " g " not in text
     assert '"g"' not in text

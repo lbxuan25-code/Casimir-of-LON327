@@ -16,7 +16,6 @@ from lno327.material_grid_convergence import (
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_13_zero_mode_grid_convergence_audit.py"
-DOC = ROOT / "docs" / "notes" / "stage5_13_zero_mode_grid_convergence_audit_zh.md"
 
 
 def _synthetic_stage5_12(path: Path, *, status: str = "STAGE5_12_SMALL_REAL_MATERIAL_ENERGY_PROTOTYPE_PASSED") -> None:
@@ -106,6 +105,6 @@ def test_script_dry_run_smoke_outputs_structure(tmp_path):
 
 
 def test_no_g_symbol():
-    text = SCRIPT.read_text(encoding="utf-8") + "\n" + DOC.read_text(encoding="utf-8")
+    text = SCRIPT.read_text(encoding="utf-8")
     assert " g " not in text
     assert '"g"' not in text

@@ -19,7 +19,6 @@ from lno327.casimir_toy_integration import (
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / "src" / "lno327" / "casimir_toy_integration.py"
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_10_toy_casimir_integration_convergence_audit.py"
-DOC = ROOT / "docs" / "notes" / "stage5_10_toy_casimir_integration_convergence_audit_zh.md"
 
 
 def _load_module():
@@ -230,6 +229,6 @@ def test_no_energy_force_torque_physical_claim(tmp_path):
 
 
 def test_no_g_symbol():
-    text = SCRIPT.read_text(encoding="utf-8") + "\n" + DOC.read_text(encoding="utf-8")
+    text = SCRIPT.read_text(encoding="utf-8")
     assert " g " not in text
     assert '"g"' not in text

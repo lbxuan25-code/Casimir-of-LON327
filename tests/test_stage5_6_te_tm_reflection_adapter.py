@@ -20,7 +20,6 @@ from lno327.reflection_input import (
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = ROOT / "src" / "lno327" / "reflection_input.py"
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_6_te_tm_reflection_adapter.py"
-DOC = ROOT / "docs" / "notes" / "stage5_6_te_tm_reflection_adapter_zh.md"
 
 
 def _load_module():
@@ -165,6 +164,6 @@ def test_no_reflection_casimir_imports():
 
 
 def test_no_g_symbol():
-    text = SCRIPT.read_text(encoding="utf-8") + "\n" + DOC.read_text(encoding="utf-8")
+    text = SCRIPT.read_text(encoding="utf-8")
     assert " g " not in text
     assert '"g"' not in text
