@@ -93,8 +93,8 @@ def test_isotropic_scalar_no_mixing():
     reflection = tangential_electric_reflection_matrix_LT(sigma_lt, xi, kappa)
     y0 = vacuum_admittance_LT(xi, kappa)
     expected = np.diag([-0.2 / (2.0 * y0[0, 0] + 0.2), -0.2 / (2.0 * y0[1, 1] + 0.2)])
-    np.testing.assert_allclose(sigma_lt, sigma)
-    np.testing.assert_allclose(reflection, expected)
+    np.testing.assert_allclose(sigma_lt, sigma, rtol=1e-12, atol=1e-14)
+    np.testing.assert_allclose(reflection, expected, rtol=1e-12, atol=1e-14)
     assert abs(reflection[0, 1]) < 1e-14
 
 
