@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from lno327.bdg_finite_q_response import bdg_finite_q_response_imag_axis, collective_goldstone_counterterm
+from lno327.bdg_response import bdg_total_kernel_imag_axis
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
 from lno327.finite_q_diagnostics import run_finite_q_diagnostic
 from lno327.finite_q_engine import (
@@ -59,6 +60,7 @@ def test_bdg_finite_q_response_shapes_with_and_without_phase_correction():
         assert result.metadata["nambu_prefactor"] == 0.5
         assert result.metadata["collective_channels"] == ["global_phase_only"]
         assert result.metadata["valid_for_casimir_input"] is False
+        assert result.metadata["shared_eigenbasis_q0"] is False
 
 
 def test_finite_q_wrapper_matches_generic_ansatz_engine():
@@ -171,6 +173,64 @@ def test_raw_finite_q_response_is_not_casimir_ready():
     )
     assert result.metadata.get("valid_for_casimir_input") is False
     assert "casimir_gating_status" in result.metadata
+
+
+def test_q0_finite_q_engine_reuses_shared_bdg_eigenbasis_and_matches_local_raw_kernel():
+    _, _, _, config, amp = _inputs()
+    points = uniform_bz_mesh(2)
+    weights = k_weights(points)
+    q0 = np.array([0.0, 0.0])
+    for pairing_name in ("spm", "dwave"):
+        result = bdg_finite_q_response_imag_axis(
+            pairing_name,
+            config.omega_eV,
+            q0,
+            points,
+            weights,
+            config,
+            amp,
+            phase_vertex="bond_endpoint_gauge",
+            current_vertex="peierls",
+            collective_mode="amplitude_phase",
+            collective_counterterm="goldstone_gap_equation",
+            include_phase_phase_direct=True,
+        )
+        local = bdg_total_kernel_imag_axis(points, config, pairing_name, amp, weights)
+        assert result.metadata["shared_eigenbasis_q0"] is True
+        assert result.metadata["shared_eigenbasis_q0_tolerance"] == 1e-14
+        np.testing.assert_allclose(result.bare_bubble[1:, 1:], local.paramagnetic, rtol=1e-6, atol=1e-10)
+        np.testing.assert_allclose(result.direct[1:, 1:], -local.total - local.paramagnetic, rtol=1e-6, atol=1e-10)
+        np.testing.assert_allclose(result.bare_total[1:, 1:], -local.total, rtol=1e-6, atol=1e-10)
+        assert result.metadata["valid_for_casimir_input"] is False
+
+
+def test_near_zero_q_uses_shared_basis_but_ordinary_finite_q_does_not():
+    _, points, weights, config, amp = _inputs()
+    ansatz = build_pairing_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
+    tiny_q = finite_q_bdg_response_from_ansatz(
+        ansatz,
+        config.omega_eV,
+        np.array([5e-15, 0.0]),
+        points,
+        weights,
+        config,
+        amp,
+        FiniteQEngineOptions(),
+    )
+    ordinary_q = finite_q_bdg_response_from_ansatz(
+        ansatz,
+        config.omega_eV,
+        np.array([0.005, 0.0]),
+        points,
+        weights,
+        config,
+        amp,
+        FiniteQEngineOptions(),
+    )
+    assert tiny_q.metadata["shared_eigenbasis_q0"] is True
+    assert ordinary_q.metadata["shared_eigenbasis_q0"] is False
+    assert tiny_q.metadata["valid_for_casimir_input"] is False
+    assert ordinary_q.metadata["valid_for_casimir_input"] is False
 
 
 def test_finite_q_diagnostic_report_defaults_and_gating_for_all_ansatz_names():

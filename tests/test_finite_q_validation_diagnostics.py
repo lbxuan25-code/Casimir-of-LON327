@@ -120,14 +120,19 @@ def test_dwave_q0_alignment_keeps_conservative_diagnostic_status():
     assert any("保守" in note for note in report.pass_fail_notes)
 
 
-def test_dwave_raw_bubble_vertex_audit_runs_tiny_grid_and_is_not_casimir_ready():
+def test_dwave_raw_bubble_vertex_audit_reports_roundoff_vertex_match_and_dwave_raw_mismatch():
     module = _load_validation_script("dwave_raw_bubble_vertex_audit")
-    report = module.run_dwave_raw_bubble_vertex_audit(nk=2)
+    report = module.run_dwave_raw_bubble_vertex_audit(nk=3)
     assert report.valid_for_casimir_input is False
     assert report.q_model == (0.0, 0.0)
-    assert report.mesh_size == 4
+    assert report.mesh_size == 9
     assert {row.pairing_name for row in report.rows} == {"spm", "dwave"}
     assert report.interpretation
+    row_by_pairing = {row.pairing_name: row for row in report.rows}
+    assert row_by_pairing["spm"].evidence == "raw_bubble_matches_local_K_para"
+    assert row_by_pairing["dwave"].raw_vs_local_rel > 1e-6
+    assert row_by_pairing["dwave"].vertex_status == "vertex_operator_q0_match"
+    assert row_by_pairing["dwave"].evidence == "bubble_assembly_or_pairing_state_convention_mismatch"
     for row in report.rows:
         assert row.valid_for_casimir_input is False
         assert np.isfinite(row.finite_q_raw_bubble_norm)
@@ -136,10 +141,68 @@ def test_dwave_raw_bubble_vertex_audit_runs_tiny_grid_and_is_not_casimir_ready()
         assert np.isfinite(row.raw_vs_local_rel)
         assert np.isfinite(row.finite_q_vs_local_vertex_max_abs)
         assert np.isfinite(row.finite_q_vs_local_vertex_max_rel)
+        assert row.vertex_abs_tolerance == 1e-12
+        assert row.vertex_rel_tolerance == 1e-6
+        if row.finite_q_vs_local_vertex_max_abs <= row.vertex_abs_tolerance:
+            assert row.vertex_status == "vertex_operator_q0_match"
+            assert row.evidence != "vertex_operator_level_mismatch"
         assert row.evidence
     text = report.format_text()
     assert "valid_for_casimir_input: False" in text
     assert "d-wave raw-bubble / vertex audit" in text
+    assert "vertex_operator_level_mismatch" not in text
+
+
+def test_vertex_roundoff_abs_tolerance_prevents_false_operator_mismatch(monkeypatch):
+    module = _load_validation_script("dwave_raw_bubble_vertex_audit")
+
+    def finite_q_vertex(*_args):
+        return np.zeros((8, 8), dtype=complex)
+
+    def local_vertex(*_args):
+        return 1e-16 * np.eye(8, dtype=complex)
+
+    monkeypatch.setattr(module, "bdg_finite_q_vector_vertex", finite_q_vertex)
+    monkeypatch.setattr(module, "bdg_current_vertex", local_vertex)
+    max_abs, max_rel, status = module._vertex_difference_max(
+        np.array([[0.0, 0.0]]),
+        absolute_tolerance=1e-12,
+        relative_tolerance=1e-20,
+    )
+    assert max_abs <= 1e-12
+    assert max_rel > 1e-20
+    assert status == "vertex_operator_q0_match"
+
+
+def test_raw_bubble_failure_with_matched_vertex_points_to_bubble_assembly_not_vertex(monkeypatch):
+    module = _load_validation_script("dwave_raw_bubble_vertex_audit")
+
+    class FakeResponse:
+        bare_bubble = np.zeros((3, 3), dtype=complex)
+
+    class FakeLocal:
+        paramagnetic = np.eye(2, dtype=complex)
+
+    monkeypatch.setattr(module, "bdg_finite_q_response_imag_axis", lambda *_args, **_kwargs: FakeResponse())
+    monkeypatch.setattr(module, "bdg_total_kernel_imag_axis", lambda *_args, **_kwargs: FakeLocal())
+    monkeypatch.setattr(module, "bdg_finite_q_vector_vertex", lambda *_args: np.zeros((8, 8), dtype=complex))
+    monkeypatch.setattr(module, "bdg_current_vertex", lambda *_args: 1e-16 * np.eye(8, dtype=complex))
+
+    config = module.KuboConfig.from_kelvin(omega_eV=0.01, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+    row = module._audit_one_pairing(
+        "dwave",
+        np.array([[0.0, 0.0]]),
+        np.array([1.0]),
+        config,
+        module.PairingAmplitudes(delta0_eV=0.04),
+        raw_relative_tolerance=1e-6,
+        vertex_abs_tolerance=1e-12,
+        vertex_rel_tolerance=1e-20,
+    )
+    assert row.raw_vs_local_rel > 1e-6
+    assert row.vertex_status == "vertex_operator_q0_match"
+    assert row.evidence == "bubble_assembly_or_pairing_state_convention_mismatch"
+    assert row.valid_for_casimir_input is False
 
 
 def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():

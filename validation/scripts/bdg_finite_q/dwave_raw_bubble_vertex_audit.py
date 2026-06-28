@@ -32,6 +32,9 @@ class RawBubbleAuditRow:
     raw_vs_local_rel: float
     finite_q_vs_local_vertex_max_abs: float
     finite_q_vs_local_vertex_max_rel: float
+    vertex_abs_tolerance: float
+    vertex_rel_tolerance: float
+    vertex_status: str
     evidence: str
     valid_for_casimir_input: bool = False
 
@@ -44,6 +47,9 @@ class RawBubbleAuditRow:
             "raw_vs_local_rel": self.raw_vs_local_rel,
             "finite_q_vs_local_vertex_max_abs": self.finite_q_vs_local_vertex_max_abs,
             "finite_q_vs_local_vertex_max_rel": self.finite_q_vs_local_vertex_max_rel,
+            "vertex_abs_tolerance": self.vertex_abs_tolerance,
+            "vertex_rel_tolerance": self.vertex_rel_tolerance,
+            "vertex_status": self.vertex_status,
             "evidence": self.evidence,
             "valid_for_casimir_input": False,
         }
@@ -88,7 +94,7 @@ class DWaveRawBubbleVertexAuditReport:
             f"interpretation: {self.interpretation}",
             (
                 "pairing | raw_norm | local_K_para_norm | raw_abs | raw_rel | "
-                "vertex_abs_max | vertex_rel_max | evidence"
+                "vertex_abs_max | vertex_rel_max | vertex_status | evidence"
             ),
         ]
         for row in self.rows:
@@ -96,7 +102,7 @@ class DWaveRawBubbleVertexAuditReport:
                 f"{row.pairing_name} | {row.finite_q_raw_bubble_norm:.6e} | "
                 f"{row.local_k_para_norm:.6e} | {row.raw_vs_local_abs:.6e} | "
                 f"{row.raw_vs_local_rel:.6e} | {row.finite_q_vs_local_vertex_max_abs:.6e} | "
-                f"{row.finite_q_vs_local_vertex_max_rel:.6e} | {row.evidence}"
+                f"{row.finite_q_vs_local_vertex_max_rel:.6e} | {row.vertex_status} | {row.evidence}"
             )
         lines.append("说明:")
         lines.extend(f"- {note}" for note in self.notes)
@@ -114,7 +120,12 @@ def _relative_norm(diff: float, left: np.ndarray, right: np.ndarray) -> float:
     return float(diff / scale)
 
 
-def _vertex_difference_max(points: np.ndarray, tolerance: float) -> tuple[float, float, str]:
+def _vertex_difference_max(
+    points: np.ndarray,
+    *,
+    absolute_tolerance: float,
+    relative_tolerance: float,
+) -> tuple[float, float, str]:
     max_abs = 0.0
     max_rel = 0.0
     for kx, ky in points:
@@ -125,7 +136,11 @@ def _vertex_difference_max(points: np.ndarray, tolerance: float) -> tuple[float,
             rel = _relative_norm(diff, finite_q_vertex, local_vertex)
             max_abs = max(max_abs, diff)
             max_rel = max(max_rel, rel)
-    status = "vertex_operator_q0_match" if max_rel <= tolerance else "vertex_operator_level_mismatch"
+    status = (
+        "vertex_operator_q0_match"
+        if max_abs <= absolute_tolerance or max_rel <= relative_tolerance
+        else "vertex_operator_level_mismatch"
+    )
     return max_abs, max_rel, status
 
 
@@ -135,7 +150,9 @@ def _audit_one_pairing(
     weights: np.ndarray,
     config: KuboConfig,
     amp: PairingAmplitudes,
-    tolerance: float,
+    raw_relative_tolerance: float,
+    vertex_abs_tolerance: float,
+    vertex_rel_tolerance: float,
 ) -> RawBubbleAuditRow:
     response = bdg_finite_q_response_imag_axis(
         pairing_name,
@@ -156,8 +173,12 @@ def _audit_one_pairing(
     local_k_para = np.asarray(local.paramagnetic, dtype=complex)
     raw_abs = float(np.linalg.norm(finite_q_raw - local_k_para))
     raw_rel = _relative_norm(raw_abs, finite_q_raw, local_k_para)
-    vertex_abs, vertex_rel, vertex_status = _vertex_difference_max(points, tolerance)
-    if raw_rel <= tolerance:
+    vertex_abs, vertex_rel, vertex_status = _vertex_difference_max(
+        points,
+        absolute_tolerance=vertex_abs_tolerance,
+        relative_tolerance=vertex_rel_tolerance,
+    )
+    if raw_rel <= raw_relative_tolerance:
         evidence = "raw_bubble_matches_local_K_para"
     elif vertex_status == "vertex_operator_level_mismatch":
         evidence = vertex_status
@@ -171,6 +192,9 @@ def _audit_one_pairing(
         raw_vs_local_rel=raw_rel,
         finite_q_vs_local_vertex_max_abs=vertex_abs,
         finite_q_vs_local_vertex_max_rel=vertex_rel,
+        vertex_abs_tolerance=vertex_abs_tolerance,
+        vertex_rel_tolerance=vertex_rel_tolerance,
+        vertex_status=vertex_status,
         evidence=evidence,
         valid_for_casimir_input=False,
     )
@@ -182,13 +206,25 @@ def run_dwave_raw_bubble_vertex_audit(
     omega_eV: float = 0.01,
     delta0_eV: float = 0.04,
     tolerance: float = 1e-6,
+    vertex_abs_tolerance: float = 1e-12,
+    vertex_rel_tolerance: float | None = None,
 ) -> DWaveRawBubbleVertexAuditReport:
     points = uniform_bz_mesh(nk)
     weights = k_weights(points)
     config = KuboConfig.from_kelvin(omega_eV=omega_eV, temperature_K=10.0, eta_eV=1e-8, output_si=False)
     amp = PairingAmplitudes(delta0_eV=delta0_eV)
+    effective_vertex_rel_tolerance = tolerance if vertex_rel_tolerance is None else vertex_rel_tolerance
     rows = tuple(
-        _audit_one_pairing(pairing_name, points, weights, config, amp, tolerance)
+        _audit_one_pairing(
+            pairing_name,
+            points,
+            weights,
+            config,
+            amp,
+            tolerance,
+            vertex_abs_tolerance,
+            effective_vertex_rel_tolerance,
+        )
         for pairing_name in ("spm", "dwave")
     )
     row_by_pairing = {row.pairing_name: row for row in rows}
@@ -203,6 +239,7 @@ def run_dwave_raw_bubble_vertex_audit(
         interpretation = "shared_or_inconclusive_raw_bubble_mismatch"
     notes = (
         "该脚本只读比较 q=0 finite-q raw bubble、local K_para 与 q=0 current vertex；不改变响应公式。",
+        "q=0 current vertex 用绝对或相对容差判定；roundoff 级绝对差不会被标为 vertex operator mismatch。",
         "spm 作为同一有限 q 后端的控制样本，用来判断问题是否具有 d-wave 特异性。",
         "若 q=0 vertex 层面对齐但 raw bubble 不对齐，优先怀疑 bubble 组装、配对态约定或动量依赖配对电流贡献。",
         "本 audit 是 diagnostic-only，不作为 Casimir 输入或 production 通过条件。",
@@ -227,12 +264,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--nk", type=int, default=3)
     parser.add_argument("--delta0", type=float, default=0.04)
     parser.add_argument("--tolerance", type=float, default=1e-6)
+    parser.add_argument("--vertex-abs-tolerance", type=float, default=1e-12)
+    parser.add_argument("--vertex-rel-tolerance", type=float, default=None)
     args = parser.parse_args(argv)
     report = run_dwave_raw_bubble_vertex_audit(
         nk=args.nk,
         omega_eV=args.omega,
         delta0_eV=args.delta0,
         tolerance=args.tolerance,
+        vertex_abs_tolerance=args.vertex_abs_tolerance,
+        vertex_rel_tolerance=args.vertex_rel_tolerance,
     )
     print(report.format_text())
     return 0

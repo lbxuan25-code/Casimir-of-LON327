@@ -154,6 +154,8 @@ def finite_q_bdg_response_from_ansatz(
         collective_mode_disabled_reason = "delta0=0 normal limit"
 
     qx, qy = float(q[0]), float(q[1])
+    shared_eigenbasis_q0_tolerance = 1e-14
+    shared_eigenbasis_q0 = bool(np.linalg.norm(q) <= shared_eigenbasis_q0_tolerance)
     rho = density_vertex()
     bubble = np.zeros((3, 3), dtype=complex)
     direct = np.zeros((3, 3), dtype=complex)
@@ -170,14 +172,23 @@ def finite_q_bdg_response_from_ansatz(
     for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
         kx = float(kx_value)
         ky = float(ky_value)
-        kx_minus, ky_minus = kx - 0.5 * qx, ky - 0.5 * qy
-        kx_plus, ky_plus = kx + 0.5 * qx, ky + 0.5 * qy
-        delta_minus = ansatz.mean_pairing(kx_minus, ky_minus, amp)
-        delta_plus = ansatz.mean_pairing(kx_plus, ky_plus, amp)
-        energies_minus, states_minus = np.linalg.eigh(bdg_hamiltonian(kx_minus, ky_minus, delta_minus))
-        energies_plus, states_plus = np.linalg.eigh(bdg_hamiltonian(kx_plus, ky_plus, delta_plus))
-        occupations_minus = fermi_function(energies_minus, config.fermi_level_eV, config.temperature_eV)
-        occupations_plus = fermi_function(energies_plus, config.fermi_level_eV, config.temperature_eV)
+        if shared_eigenbasis_q0:
+            delta_mid = ansatz.mean_pairing(kx, ky, amp)
+            energies, states = np.linalg.eigh(bdg_hamiltonian(kx, ky, delta_mid))
+            occupations = fermi_function(energies, config.fermi_level_eV, config.temperature_eV)
+            energies_minus = energies_plus = energies
+            states_minus = states_plus = states
+            occupations_minus = occupations_plus = occupations
+        else:
+            kx_minus, ky_minus = kx - 0.5 * qx, ky - 0.5 * qy
+            kx_plus, ky_plus = kx + 0.5 * qx, ky + 0.5 * qy
+            delta_minus = ansatz.mean_pairing(kx_minus, ky_minus, amp)
+            delta_plus = ansatz.mean_pairing(kx_plus, ky_plus, amp)
+            energies_minus, states_minus = np.linalg.eigh(bdg_hamiltonian(kx_minus, ky_minus, delta_minus))
+            energies_plus, states_plus = np.linalg.eigh(bdg_hamiltonian(kx_plus, ky_plus, delta_plus))
+            occupations_minus = fermi_function(energies_minus, config.fermi_level_eV, config.temperature_eV)
+            occupations_plus = fermi_function(energies_plus, config.fermi_level_eV, config.temperature_eV)
+            delta_mid = ansatz.mean_pairing(kx, ky, amp)
 
         if opts.current_vertex == "peierls":
             vx = bdg_finite_q_vector_vertex(kx, ky, qx, qy, "x")
@@ -199,6 +210,8 @@ def finite_q_bdg_response_from_ansatz(
             occupations_plus,
             config.omega_eV,
             float(weight),
+            config=config,
+            static_limit=shared_eigenbasis_q0,
         )
         if collective_mode == "amplitude_phase":
             collective_vertices = ansatz.collective_vertices(kx, ky, qx, qy, amp)
@@ -214,6 +227,8 @@ def finite_q_bdg_response_from_ansatz(
                 occupations_plus,
                 config.omega_eV,
                 float(weight),
+                config=config,
+                static_limit=shared_eigenbasis_q0,
             )
             add_bubble(
                 collective_em_right,
@@ -227,6 +242,8 @@ def finite_q_bdg_response_from_ansatz(
                 occupations_plus,
                 config.omega_eV,
                 float(weight),
+                config=config,
+                static_limit=shared_eigenbasis_q0,
             )
             add_bubble(
                 collective_bubble,
@@ -240,9 +257,10 @@ def finite_q_bdg_response_from_ansatz(
                 occupations_plus,
                 config.omega_eV,
                 float(weight),
+                config=config,
+                static_limit=shared_eigenbasis_q0,
             )
 
-        delta_mid = ansatz.mean_pairing(kx, ky, amp)
         delta_theta = ansatz.phase_pairing_matrix(kx, ky, qx, qy, amp)
         theta = phase_vertex(delta_theta)
         tmp_left = np.zeros((3, 1), dtype=complex)
@@ -258,6 +276,8 @@ def finite_q_bdg_response_from_ansatz(
             occupations_plus,
             config.omega_eV,
             float(weight),
+            config=config,
+            static_limit=shared_eigenbasis_q0,
         )
         phase_left += tmp_left[:, 0]
         tmp_right = np.zeros((1, 3), dtype=complex)
@@ -273,6 +293,8 @@ def finite_q_bdg_response_from_ansatz(
             occupations_plus,
             config.omega_eV,
             float(weight),
+            config=config,
+            static_limit=shared_eigenbasis_q0,
         )
         phase_right += tmp_right[0, :]
         add_bubble(
@@ -287,6 +309,8 @@ def finite_q_bdg_response_from_ansatz(
             occupations_plus,
             config.omega_eV,
             float(weight),
+            config=config,
+            static_limit=shared_eigenbasis_q0,
         )
         theta_theta = phase_phase_direct_vertex(delta_theta)
         direct_value = float(weight) * thermal_expectation_bdg(kx, ky, delta_mid, theta_theta, config)
@@ -395,6 +419,8 @@ def finite_q_bdg_response_from_ansatz(
             "nambu_basis": "(c_k, c^dagger_-k)",
             "nambu_prefactor": 0.5,
             "finite_q_routing": "k_minus=k-q/2,k_plus=k+q/2",
+            "shared_eigenbasis_q0": shared_eigenbasis_q0,
+            "shared_eigenbasis_q0_tolerance": shared_eigenbasis_q0_tolerance,
             "current_observable_source_convention": "J=(rho,-Vx,-Vy), P=(rho,Vx,Vy)",
             "direct_contact_convention": "D_ij=-<M_ij> with BdG Nambu 1/2",
             "effective_action_convention": "S2=1/2(a,theta)[[K_munu,K_mutheta],[K_thetanu,K_thetatheta]](a,theta)^T",
