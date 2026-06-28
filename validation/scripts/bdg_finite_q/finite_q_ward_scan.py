@@ -25,6 +25,8 @@ from lno327.ward_validation import validate_physical_ward_identity  # noqa: E402
 from q0_bdg_response_alignment import run_q0_bdg_response_alignment_many  # noqa: E402
 
 WardScanPairingName = Literal["onsite_s", "spm", "dwave"]
+WARD_COMPONENT_LABELS = ("density", "current_x", "current_y")
+WARD_CLOSURE_RESPONSE_NAMES = ("bare_total", "minus_schur", "amplitude_phase_schur")
 
 
 @dataclass(frozen=True)
@@ -35,6 +37,9 @@ class FiniteQWardScanRow:
     q_norm: float
     left_ward_residual_norm: float
     right_ward_residual_norm: float
+    residual_component_labels: tuple[str, ...]
+    left_ward_residual_vector: tuple[dict[str, float | str], ...]
+    right_ward_residual_vector: tuple[dict[str, float | str], ...]
     max_ward_residual_norm: float
     residual_ratio_to_bare: float | None
     collective_matrix_condition_number: float | None
@@ -108,6 +113,20 @@ def _safe_ratio(value: float, reference: float) -> float | None:
     if reference <= 0.0:
         return None
     return float(value / reference)
+
+
+def _complex_vector_components(vector: np.ndarray) -> tuple[dict[str, float | str], ...]:
+    array = np.asarray(vector, dtype=complex)
+    if array.shape != (3,):
+        raise ValueError("Ward residual vector must have shape (3,)")
+    return tuple(
+        {
+            "component": label,
+            "real": float(np.real(value)),
+            "imag": float(np.imag(value)),
+        }
+        for label, value in zip(WARD_COMPONENT_LABELS, array, strict=True)
+    )
 
 
 def _scaling_slope(q_values: list[float], residuals: list[float]) -> float | None:
@@ -188,8 +207,11 @@ def run_finite_q_ward_scan(
                     options,
                 )
                 matrices = {
+                    "bare_bubble": response.bare_bubble,
+                    "direct": response.direct,
                     "bare_total": response.bare_total,
                     "minus_schur": response.minus_schur,
+                    "plus_schur": response.plus_schur,
                     "amplitude_phase_schur": response.amplitude_phase_schur,
                 }
                 bare_report = validate_physical_ward_identity(
@@ -215,6 +237,9 @@ def run_finite_q_ward_scan(
                             q_norm=float(np.linalg.norm(q)),
                             left_ward_residual_norm=float(ward.left_norm),
                             right_ward_residual_norm=float(ward.right_norm),
+                            residual_component_labels=WARD_COMPONENT_LABELS,
+                            left_ward_residual_vector=_complex_vector_components(ward.left_residual),
+                            right_ward_residual_vector=_complex_vector_components(ward.right_residual),
                             max_ward_residual_norm=max_norm,
                             residual_ratio_to_bare=_safe_ratio(max_norm, bare_max),
                             collective_matrix_condition_number=response.metadata.get(
@@ -230,13 +255,18 @@ def run_finite_q_ward_scan(
         for key, value in scaling_inputs.items()
     }
     diagnostic_completed = all(np.isfinite(row.max_ward_residual_norm) for row in rows)
-    ward_identity_closed = bool(rows and all(row.max_ward_residual_norm <= tolerance for row in rows))
+    closure_rows = [row for row in rows if row.response_name in WARD_CLOSURE_RESPONSE_NAMES]
+    ward_identity_closed = bool(
+        closure_rows and all(row.max_ward_residual_norm <= tolerance for row in closure_rows)
+    )
     notes = (
         "本扫描在同一入口先记录 q=0 response definition alignment 前置结果。",
         "dwave 若显示 intraband_aware_pass，表示 q=0 raw bubble 对齐 local interband，raw-vs-total 差异由 intraband/-f'(E) local 项解释。",
         "diagnostic_run_completed 只表示扫描数值完成；ward_identity_closed 才表示 Ward identity 在给定 tolerance 下闭合。",
         "finite-q 输出保持 valid_for_casimir_input=False。",
         "残差比例为各响应 max residual 相对 bare_total 的比例。",
+        "新增 bare_bubble/direct/plus_schur 行为 staged diagnostic-only 输出，不改变 ward_identity_closed 判据。",
+        "left/right Ward residual vector 分量顺序为 density,current_x,current_y，并分别记录 real/imag。",
     )
     return FiniteQWardScanReport(
         pairing_names=tuple(pairing_names),
