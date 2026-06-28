@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+import importlib.util
+import subprocess
+import sys
 
 import numpy as np
 
+import lno327
 from lno327.bdg_q0_conventions import evaluate_bdg_q0_convention
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
 from lno327.pairing import PairingAmplitudes
@@ -55,3 +59,31 @@ def test_bdg_finite_q_status_contract_records_expected_states_and_forbidden_stal
     assert "valid_for_casimir_input: false" in text
     assert "dwave_specific_raw_bubble_mismatch" in text
     assert "formal_casimir_input" in text
+
+
+def test_public_package_shape_has_single_lno327_entrypoint():
+    from lno327.api import KuboConfig as ApiKuboConfig
+    from lno327.api import PairingAmplitudes as ApiPairingAmplitudes
+    from lno327.api import local_response_imag_axis
+
+    assert lno327.__name__ == "lno327"
+    assert ApiKuboConfig is KuboConfig
+    assert ApiPairingAmplitudes is PairingAmplitudes
+    assert callable(local_response_imag_axis)
+    assert importlib.util.find_spec("lno_327") is None
+
+
+def test_repository_root_python_smoke_imports_public_api():
+    code = (
+        "import lno327; "
+        "from lno327.api import KuboConfig, PairingAmplitudes, local_response_imag_axis; "
+        "print('lno327 import smoke ok')"
+    )
+    completed = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.stdout.strip() == "lno327 import smoke ok"
