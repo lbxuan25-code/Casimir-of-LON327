@@ -74,6 +74,11 @@ def _component_vector(values: np.ndarray) -> list[dict[str, Any]]:
     ]
 
 
+def _vector_from_component_rows(rows: list[dict[str, Any]]) -> np.ndarray:
+    values = [complex(row["real"], row["imag"]) for row in rows]
+    return np.asarray(values, dtype=complex)
+
+
 def _complex_matrix_entries(matrix: np.ndarray) -> list[list[dict[str, float]]]:
     array = np.asarray(matrix, dtype=complex)
     return [[_complex_value(value) for value in row] for row in array]
@@ -452,7 +457,8 @@ def _ward_compatible_shifted_pair_quadrature_audit(
     return {
         "diagnostic_only": True,
         "valid_for_casimir_input": False,
-        "quadrature": "midpoint shifted pair",
+        "shifted_pair_response_is_raw_equivalent_diagnostic": True,
+        "quadrature": "midpoint shifted pair raw-equivalent diagnostic",
         "mesh_definition": "k_mid = k, k_plus = k_mid + q/2, k_minus = k_mid - q/2",
         "weights": "bubble, equal-time diagnostics, and contact use the same midpoint mesh weights",
         "no_longitudinal_projection_completion": True,
@@ -503,6 +509,85 @@ def _ward_compatible_shifted_pair_quadrature_audit(
             "matrix": _complex_matrix_entries(current_current_block_difference),
             "norm": float(np.linalg.norm(current_current_block_difference)),
         },
+    }
+
+
+def _finite_mesh_translation_error_audit(
+    equal_time_audit: dict[str, Any],
+    components: dict[str, np.ndarray],
+    config: KuboConfig,
+    q: np.ndarray,
+) -> dict[str, Any]:
+    shifted_grid = equal_time_audit["shifted_grid_equal_time_sum_rule"]
+    actual_equal_time = _vector_from_component_rows(
+        shifted_grid["actual_bubble_equal_time_term"]["components"]
+    )
+    shifted_equal_time_reference = _vector_from_component_rows(
+        shifted_grid["shifted_equal_time_reference"]["components"]
+    )
+    contact_contraction = _vector_from_component_rows(shifted_grid["contact_contraction"]["components"])
+    shifted_equal_time_plus_contact = shifted_equal_time_reference + contact_contraction
+    translation_error = actual_equal_time - shifted_equal_time_reference
+    total_left_residual, _ = physical_ward_residuals(components["total"], config.omega_eV, q)
+    translation_error_minus_total_residual = translation_error - total_left_residual
+    q_norm = float(np.linalg.norm(q))
+    total_residual_norm = float(np.linalg.norm(total_left_residual))
+    translation_error_norm = float(np.linalg.norm(translation_error))
+    return {
+        "diagnostic_only": True,
+        "valid_for_casimir_input": False,
+        "scope": "finite_k_mesh_translation_invariance_failure_at_equal_time_contact_level",
+        "density_component_note": (
+            "density has no current-vertex finite-difference reference in this diagnostic; "
+            "the shifted reference density component is stored as zero"
+        ),
+        "actual_equal_time": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "source": "normal_current_equal_time_sum_rule_audit.bubble_equal_time_term",
+            "components": _component_vector(actual_equal_time),
+        },
+        "shifted_equal_time_reference": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": "Tr[f(H(k)) * (V_j(k+q/2,q) - V_j(k-q/2,q))]",
+            "components": _component_vector(shifted_equal_time_reference),
+        },
+        "contact_contraction": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": "C_j(q) = q_i D_ij(q)",
+            "components": _component_vector(contact_contraction),
+        },
+        "shifted_equal_time_plus_contact": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": "shifted_equal_time_reference + contact_contraction",
+            "components": _component_vector(shifted_equal_time_plus_contact),
+        },
+        "translation_error": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": "actual_equal_time - shifted_equal_time_reference",
+            "components": _component_vector(translation_error),
+        },
+        "translation_error_minus_total_residual": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": "translation_error - left_ward_residual(total)",
+            "components": _component_vector(translation_error_minus_total_residual),
+        },
+        "actual_equal_time_norm": float(np.linalg.norm(actual_equal_time)),
+        "shifted_equal_time_reference_norm": float(np.linalg.norm(shifted_equal_time_reference)),
+        "contact_contraction_norm": float(np.linalg.norm(contact_contraction)),
+        "shifted_equal_time_plus_contact_norm": float(np.linalg.norm(shifted_equal_time_plus_contact)),
+        "translation_error_norm": translation_error_norm,
+        "translation_error_minus_total_residual_norm": float(
+            np.linalg.norm(translation_error_minus_total_residual)
+        ),
+        "total_ward_residual_norm": total_residual_norm,
+        "translation_error_over_q_norm": float(translation_error_norm / q_norm),
+        "total_ward_residual_over_q_norm": float(total_residual_norm / q_norm),
     }
 
 
@@ -779,6 +864,7 @@ def run_normal_finite_q_ward_audit(
         raise ValueError(f"unknown q direction(s): {unknown_directions}")
     nk_reports: list[dict[str, Any]] = []
     quadrature_summary_rows: list[dict[str, Any]] = []
+    translation_error_summary_rows: list[dict[str, Any]] = []
     for nk in nk_values:
         points = uniform_bz_mesh(int(nk))
         weights = k_weights(points)
@@ -807,6 +893,12 @@ def run_normal_finite_q_ward_audit(
                     config,
                     q,
                     components,
+                )
+                finite_mesh_translation_error_audit = _finite_mesh_translation_error_audit(
+                    equal_time_audit,
+                    components,
+                    config,
+                    q,
                 )
                 shifted_grid_summary = equal_time_audit["shifted_grid_equal_time_sum_rule"]
                 raw_total_residual_norm = shifted_pair_audit["raw_total_ward_residual"]["left_ward_residual_norm"]
@@ -851,6 +943,36 @@ def run_normal_finite_q_ward_audit(
                         ],
                     }
                 )
+                translation_error_summary_rows.append(
+                    {
+                        "diagnostic_only": True,
+                        "valid_for_casimir_input": False,
+                        "nk": int(nk),
+                        "q_direction": direction_name,
+                        "q_norm": q_norm,
+                        "total_ward_residual_norm": finite_mesh_translation_error_audit[
+                            "total_ward_residual_norm"
+                        ],
+                        "total_ward_residual_over_q_norm": finite_mesh_translation_error_audit[
+                            "total_ward_residual_over_q_norm"
+                        ],
+                        "shifted_equal_time_plus_contact_norm": finite_mesh_translation_error_audit[
+                            "shifted_equal_time_plus_contact_norm"
+                        ],
+                        "translation_error_norm": finite_mesh_translation_error_audit[
+                            "translation_error_norm"
+                        ],
+                        "translation_error_over_q_norm": finite_mesh_translation_error_audit[
+                            "translation_error_over_q_norm"
+                        ],
+                        "translation_error_minus_total_residual_norm": finite_mesh_translation_error_audit[
+                            "translation_error_minus_total_residual_norm"
+                        ],
+                        "second_order_contact_ward_max_absolute_error_norm": float(
+                            second_order_audit["max_absolute_error_norm"]
+                        ),
+                    }
+                )
                 q_reports.append(
                     {
                         "q_direction": direction_name,
@@ -861,6 +983,7 @@ def run_normal_finite_q_ward_audit(
                         "normal_current_equal_time_sum_rule_audit": equal_time_audit,
                         "ward_compatible_shifted_pair_quadrature_audit": shifted_pair_audit,
                         "shifted_grid_equal_time_consistency_summary": compact_quadrature_summary,
+                        "finite_mesh_translation_error_audit": finite_mesh_translation_error_audit,
                         "operator_level_peierls_ward": {
                             "residual_kind": "operator_level",
                             "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
@@ -899,6 +1022,11 @@ def run_normal_finite_q_ward_audit(
             "diagnostic_only": True,
             "valid_for_casimir_input": False,
             "rows": quadrature_summary_rows,
+        },
+        "finite_mesh_translation_error_summary": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "rows": translation_error_summary_rows,
         },
         "nk_reports": nk_reports,
         "ward_identity_closed": False,
