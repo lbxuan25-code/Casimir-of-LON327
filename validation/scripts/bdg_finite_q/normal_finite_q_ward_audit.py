@@ -183,6 +183,26 @@ def _longitudinal_current_scaling(
     return output
 
 
+def _ward_residual_payload(matrix: np.ndarray, omega_eV: float, q: np.ndarray) -> dict[str, Any]:
+    left, right = physical_ward_residuals(matrix, omega_eV, q)
+    left_norm = float(np.linalg.norm(left))
+    right_norm = float(np.linalg.norm(right))
+    q_norm = float(np.linalg.norm(q))
+    return {
+        "diagnostic_only": True,
+        "valid_for_casimir_input": False,
+        "left_ward_residual_vector": _component_vector(left),
+        "right_ward_residual_vector": _component_vector(right),
+        "left_ward_residual_norm": left_norm,
+        "right_ward_residual_norm": right_norm,
+        "max_ward_residual_norm": float(max(left_norm, right_norm)),
+        "left_ward_residual_over_q": _component_vector(left / q_norm),
+        "left_ward_residual_over_q2": _component_vector(left / (q_norm * q_norm)),
+        "left_ward_residual_over_q_norm": float(left_norm / q_norm),
+        "left_ward_residual_over_q2_norm": float(left_norm / (q_norm * q_norm)),
+    }
+
+
 def _operator_level_rows(points: np.ndarray, q: np.ndarray) -> list[dict[str, Any]]:
     qx, qy = float(q[0]), float(q[1])
     rows: list[dict[str, Any]] = []
@@ -319,6 +339,170 @@ def _operator_level_second_order_contact_ward(points: np.ndarray, q: np.ndarray)
         "max_error_k_model": max_error_k_model,
         "max_error_component": max_error_component,
         "per_k_residuals": rows,
+    }
+
+
+def _shifted_pair_response_components(
+    points: np.ndarray,
+    weights: np.ndarray,
+    config: KuboConfig,
+    q: np.ndarray,
+) -> dict[str, np.ndarray]:
+    qx, qy = float(q[0]), float(q[1])
+    peierls_terms = normal_state_hopping_terms()
+    rho = np.eye(4, dtype=complex)
+    bubble = np.zeros((3, 3), dtype=complex)
+    direct = np.zeros((3, 3), dtype=complex)
+
+    for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
+        kx = float(kx_value)
+        ky = float(ky_value)
+        h_minus = normal_state_hamiltonian(kx - 0.5 * qx, ky - 0.5 * qy)
+        h_plus = normal_state_hamiltonian(kx + 0.5 * qx, ky + 0.5 * qy)
+        energies_minus, states_minus = np.linalg.eigh(h_minus)
+        energies_plus, states_plus = np.linalg.eigh(h_plus)
+        occupations_minus = fermi_function(
+            energies_minus,
+            config.fermi_level_eV,
+            config.temperature_eV,
+        )
+        occupations_plus = fermi_function(
+            energies_plus,
+            config.fermi_level_eV,
+            config.temperature_eV,
+        )
+
+        vector_x = peierls_hamiltonian_vector_vertex(
+            kx,
+            ky,
+            qx,
+            qy,
+            "x",
+            hopping_terms=peierls_terms,
+        )
+        vector_y = peierls_hamiltonian_vector_vertex(
+            kx,
+            ky,
+            qx,
+            qy,
+            "y",
+            hopping_terms=peierls_terms,
+        )
+        observable_vertices = (rho, -vector_x, -vector_y)
+        source_vertices = (rho, vector_x, vector_y)
+        observable_matrices = tuple(
+            states_minus.conjugate().T @ vertex @ states_plus for vertex in observable_vertices
+        )
+        source_matrices = tuple(states_minus.conjugate().T @ vertex @ states_plus for vertex in source_vertices)
+        for m, energy_minus in enumerate(energies_minus):
+            for n, energy_plus in enumerate(energies_plus):
+                occupation_diff = float(occupations_minus[m] - occupations_plus[n])
+                if occupation_diff == 0.0:
+                    continue
+                denominator = 1j * config.omega_eV + float(energy_minus - energy_plus)
+                factor = occupation_diff / denominator
+                for mu, observable_matrix in enumerate(observable_matrices):
+                    for nu, source_matrix in enumerate(source_matrices):
+                        bubble[mu, nu] += (
+                            weight
+                            * factor
+                            * observable_matrix[m, n]
+                            * np.conjugate(source_matrix[m, n])
+                        )
+
+        h_midpoint = normal_state_hamiltonian(kx, ky)
+        energies_midpoint, states_midpoint = np.linalg.eigh(h_midpoint)
+        occupations_midpoint = fermi_function(
+            energies_midpoint,
+            config.fermi_level_eV,
+            config.temperature_eV,
+        )
+        for i, direction_i in enumerate(("x", "y")):
+            for j, direction_j in enumerate(("x", "y")):
+                contact_matrix = peierls_hamiltonian_contact_vertex(
+                    kx,
+                    ky,
+                    qx,
+                    qy,
+                    direction_i,
+                    direction_j,
+                    hopping_terms=peierls_terms,
+                )
+                band_contact = states_midpoint.conjugate().T @ contact_matrix @ states_midpoint
+                physical_direct_contact = -np.sum(occupations_midpoint * np.diag(band_contact))
+                direct[1 + i, 1 + j] += weight * physical_direct_contact
+    return {"bubble": bubble, "direct": direct, "total": bubble + direct}
+
+
+def _ward_compatible_shifted_pair_quadrature_audit(
+    points: np.ndarray,
+    weights: np.ndarray,
+    config: KuboConfig,
+    q: np.ndarray,
+    raw_components: dict[str, np.ndarray],
+) -> dict[str, Any]:
+    q_norm = float(np.linalg.norm(q))
+    shifted_pair_components = _shifted_pair_response_components(points, weights, config, q)
+    shifted_pair_total_left, _ = physical_ward_residuals(shifted_pair_components["total"], config.omega_eV, q)
+    raw_total_left, _ = physical_ward_residuals(raw_components["total"], config.omega_eV, q)
+    residual_difference = shifted_pair_total_left - raw_total_left
+    current_current_block_difference = (
+        raw_components["total"][1:3, 1:3] - shifted_pair_components["total"][1:3, 1:3]
+    )
+    return {
+        "diagnostic_only": True,
+        "valid_for_casimir_input": False,
+        "quadrature": "midpoint shifted pair",
+        "mesh_definition": "k_mid = k, k_plus = k_mid + q/2, k_minus = k_mid - q/2",
+        "weights": "bubble, equal-time diagnostics, and contact use the same midpoint mesh weights",
+        "no_longitudinal_projection_completion": True,
+        "shifted_pair_bubble_ward_residual": _ward_residual_payload(
+            shifted_pair_components["bubble"],
+            config.omega_eV,
+            q,
+        ),
+        "shifted_pair_direct_ward_residual": _ward_residual_payload(
+            shifted_pair_components["direct"],
+            config.omega_eV,
+            q,
+        ),
+        "shifted_pair_total_ward_residual": _ward_residual_payload(
+            shifted_pair_components["total"],
+            config.omega_eV,
+            q,
+        ),
+        "shifted_pair_total_residual_over_q": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "components": _component_vector(shifted_pair_total_left / q_norm),
+            "norm": float(np.linalg.norm(shifted_pair_total_left) / q_norm),
+        },
+        "shifted_pair_total_residual_over_q2": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "components": _component_vector(shifted_pair_total_left / (q_norm * q_norm)),
+            "norm": float(np.linalg.norm(shifted_pair_total_left) / (q_norm * q_norm)),
+        },
+        "raw_total_ward_residual": _ward_residual_payload(raw_components["total"], config.omega_eV, q),
+        "raw_total_residual_over_q": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "components": _component_vector(raw_total_left / q_norm),
+            "norm": float(np.linalg.norm(raw_total_left) / q_norm),
+        },
+        "shifted_pair_minus_raw_response_norm": float(
+            np.linalg.norm(shifted_pair_components["total"] - raw_components["total"])
+        ),
+        "shifted_pair_minus_raw_longitudinal_residual": _complex_value(
+            _longitudinal_current_component(residual_difference, q)
+        ),
+        "raw_vs_shifted_pair_current_current_block_difference": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": "raw total current-current block minus shifted-pair total current-current block",
+            "matrix": _complex_matrix_entries(current_current_block_difference),
+            "norm": float(np.linalg.norm(current_current_block_difference)),
+        },
     }
 
 
@@ -594,6 +778,7 @@ def run_normal_finite_q_ward_audit(
     if unknown_directions:
         raise ValueError(f"unknown q direction(s): {unknown_directions}")
     nk_reports: list[dict[str, Any]] = []
+    quadrature_summary_rows: list[dict[str, Any]] = []
     for nk in nk_values:
         points = uniform_bz_mesh(int(nk))
         weights = k_weights(points)
@@ -608,20 +793,74 @@ def run_normal_finite_q_ward_audit(
                     for response_name in RESPONSE_NAMES
                 ]
                 operator_rows = _operator_level_rows(points, q)
+                equal_time_audit = _normal_equal_time_sum_rule_audit(
+                    points,
+                    weights,
+                    config,
+                    q,
+                    components,
+                )
+                second_order_audit = _operator_level_second_order_contact_ward(points, q)
+                shifted_pair_audit = _ward_compatible_shifted_pair_quadrature_audit(
+                    points,
+                    weights,
+                    config,
+                    q,
+                    components,
+                )
+                shifted_grid_summary = equal_time_audit["shifted_grid_equal_time_sum_rule"]
+                raw_total_residual_norm = shifted_pair_audit["raw_total_ward_residual"]["left_ward_residual_norm"]
+                shifted_pair_total_residual_norm = shifted_pair_audit["shifted_pair_total_ward_residual"][
+                    "left_ward_residual_norm"
+                ]
+                q_norm = float(np.linalg.norm(q))
+                compact_quadrature_summary = {
+                    "diagnostic_only": True,
+                    "valid_for_casimir_input": False,
+                    "shifted_equal_time_plus_contact_norm": float(
+                        shifted_grid_summary["shifted_equal_time_plus_contact_norm"]
+                    ),
+                    "actual_minus_shifted_equal_time_norm": float(
+                        shifted_grid_summary["actual_minus_shifted_equal_time_norm"]
+                    ),
+                    "actual_minus_shifted_vs_total_residual_difference_norm": float(
+                        shifted_grid_summary["difference_from_total_ward_residual_norm"]
+                    ),
+                }
+                quadrature_summary_rows.append(
+                    {
+                        "diagnostic_only": True,
+                        "valid_for_casimir_input": False,
+                        "nk": int(nk),
+                        "q_direction": direction_name,
+                        "q_norm": q_norm,
+                        "raw_total_residual_norm": float(raw_total_residual_norm),
+                        "shifted_pair_total_residual_norm": float(shifted_pair_total_residual_norm),
+                        "raw_total_residual_over_q_abs": float(raw_total_residual_norm / q_norm),
+                        "shifted_pair_total_residual_over_q_abs": float(
+                            shifted_pair_total_residual_norm / q_norm
+                        ),
+                        "second_order_contact_ward_max_absolute_error_norm": float(
+                            second_order_audit["max_absolute_error_norm"]
+                        ),
+                        "shifted_equal_time_plus_contact_norm": compact_quadrature_summary[
+                            "shifted_equal_time_plus_contact_norm"
+                        ],
+                        "actual_minus_shifted_vs_total_residual_difference_norm": compact_quadrature_summary[
+                            "actual_minus_shifted_vs_total_residual_difference_norm"
+                        ],
+                    }
+                )
                 q_reports.append(
                     {
                         "q_direction": direction_name,
                         "q_model": [float(q[0]), float(q[1])],
-                        "q_norm": float(np.linalg.norm(q)),
+                        "q_norm": q_norm,
                         "response_level_residuals": response_rows,
                         "longitudinal_current_residual_scaling": _longitudinal_current_scaling(response_rows, q),
-                        "normal_current_equal_time_sum_rule_audit": _normal_equal_time_sum_rule_audit(
-                            points,
-                            weights,
-                            config,
-                            q,
-                            components,
-                        ),
+                        "normal_current_equal_time_sum_rule_audit": equal_time_audit,
+                        "ward_compatible_shifted_pair_quadrature_audit": shifted_pair_audit,
+                        "shifted_grid_equal_time_consistency_summary": compact_quadrature_summary,
                         "operator_level_peierls_ward": {
                             "residual_kind": "operator_level",
                             "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
@@ -629,10 +868,7 @@ def run_normal_finite_q_ward_audit(
                             "max_relative_error_norm": float(max(row["relative_error_norm"] for row in operator_rows)),
                             "per_k_residuals": operator_rows,
                         },
-                        "operator_level_second_order_contact_ward": _operator_level_second_order_contact_ward(
-                            points,
-                            q,
-                        ),
+                        "operator_level_second_order_contact_ward": second_order_audit,
                     }
                 )
         nk_reports.append(
@@ -659,6 +895,11 @@ def run_normal_finite_q_ward_audit(
         "operator_level_residuals_explain": (
             "Peierls vertex identity is checked before response assembly and is distinct from response-level residuals"
         ),
+        "ward_compatible_quadrature_summary": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "rows": quadrature_summary_rows,
+        },
         "nk_reports": nk_reports,
         "ward_identity_closed": False,
         "valid_for_casimir_input": False,
