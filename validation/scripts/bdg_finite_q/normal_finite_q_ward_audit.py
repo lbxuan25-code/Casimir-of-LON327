@@ -338,6 +338,7 @@ def _normal_equal_time_sum_rule_audit(
     intraband_finite_q_difference = np.zeros(3, dtype=complex)
     intraband_fprime_approximation = np.zeros(3, dtype=complex)
     direct_contact_contraction = np.zeros(3, dtype=complex)
+    shifted_equal_time_reference = np.zeros(3, dtype=complex)
 
     for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
         kx = float(kx_value)
@@ -424,6 +425,26 @@ def _normal_equal_time_sum_rule_audit(
             config.temperature_eV,
         )
         for source_index, source_direction in enumerate(("x", "y"), start=1):
+            shifted_vertex_reference = peierls_hamiltonian_vector_vertex(
+                kx + 0.5 * qx,
+                ky + 0.5 * qy,
+                qx,
+                qy,
+                source_direction,
+                hopping_terms=peierls_terms,
+            ) - peierls_hamiltonian_vector_vertex(
+                kx - 0.5 * qx,
+                ky - 0.5 * qy,
+                qx,
+                qy,
+                source_direction,
+                hopping_terms=peierls_terms,
+            )
+            band_shifted_reference = states_midpoint.conjugate().T @ shifted_vertex_reference @ states_midpoint
+            shifted_equal_time_reference[source_index] += weight * np.sum(
+                occupations_midpoint * np.diag(band_shifted_reference)
+            )
+        for source_index, source_direction in enumerate(("x", "y"), start=1):
             contraction_value = 0.0j
             for q_component, observable_direction in ((qx, "x"), (qy, "y")):
                 contact_matrix = peierls_hamiltonian_contact_vertex(
@@ -443,6 +464,9 @@ def _normal_equal_time_sum_rule_audit(
     total_left_residual, _ = physical_ward_residuals(components["total"], config.omega_eV, q)
     equal_time_plus_contact = bubble_equal_time + direct_contact_contraction
     difference_from_total = equal_time_plus_contact - total_left_residual
+    shifted_equal_time_plus_contact = shifted_equal_time_reference + direct_contact_contraction
+    actual_minus_shifted_equal_time = bubble_equal_time - shifted_equal_time_reference
+    actual_minus_shifted_vs_total = actual_minus_shifted_equal_time - total_left_residual
     return {
         "diagnostic_only": True,
         "valid_for_casimir_input": False,
@@ -499,6 +523,54 @@ def _normal_equal_time_sum_rule_audit(
             "definition": "equal_time_plus_contact - left_ward_residual(total)",
             "components": _component_vector(difference_from_total),
             "norm": float(np.linalg.norm(difference_from_total)),
+        },
+        "shifted_grid_equal_time_sum_rule": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "purpose": (
+                "Diagnose whether the remaining normal-state response residual is caused by finite-k-mesh "
+                "failure of the k -> k +/- q/2 variable shift rather than by the implemented contact vertex."
+            ),
+            "actual_bubble_equal_time_term": {
+                "diagnostic_only": True,
+                "valid_for_casimir_input": False,
+                "source": "same vector as bubble_equal_time_term.components",
+                "components": _component_vector(bubble_equal_time),
+            },
+            "shifted_equal_time_reference": {
+                "diagnostic_only": True,
+                "valid_for_casimir_input": False,
+                "definition": "Tr[f(H(k)) * (V_j(k+q/2,q) - V_j(k-q/2,q))]",
+                "density_component_note": "not_applicable; stored as zero because there is no density current-vertex finite-difference reference",
+                "components": _component_vector(shifted_equal_time_reference),
+            },
+            "contact_contraction": {
+                "diagnostic_only": True,
+                "valid_for_casimir_input": False,
+                "source": "same vector as direct_contact_contraction.components",
+                "components": _component_vector(direct_contact_contraction),
+            },
+            "shifted_equal_time_plus_contact": {
+                "diagnostic_only": True,
+                "valid_for_casimir_input": False,
+                "definition": "shifted_equal_time_reference + direct_contact_contraction",
+                "components": _component_vector(shifted_equal_time_plus_contact),
+            },
+            "actual_minus_shifted_equal_time": {
+                "diagnostic_only": True,
+                "valid_for_casimir_input": False,
+                "definition": "actual_bubble_equal_time_term - shifted_equal_time_reference",
+                "components": _component_vector(actual_minus_shifted_equal_time),
+            },
+            "actual_minus_shifted_vs_total_residual_difference": {
+                "diagnostic_only": True,
+                "valid_for_casimir_input": False,
+                "definition": "actual_minus_shifted_equal_time - left_ward_residual(total)",
+                "components": _component_vector(actual_minus_shifted_vs_total),
+            },
+            "shifted_equal_time_plus_contact_norm": float(np.linalg.norm(shifted_equal_time_plus_contact)),
+            "actual_minus_shifted_equal_time_norm": float(np.linalg.norm(actual_minus_shifted_equal_time)),
+            "difference_from_total_ward_residual_norm": float(np.linalg.norm(actual_minus_shifted_vs_total)),
         },
     }
 
