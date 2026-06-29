@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import json
 from pathlib import Path
 import sys
@@ -47,6 +47,26 @@ MAX_JSON_SIZE_MB = 50.0
 TARGET_JSON_SIZE_MB = 10.0
 DEFAULT_TEMPERATURE_K = 20.0
 KB_EV_PER_K_LOCAL = 8.617333262145e-5
+PROGRESS_GREEN = "\033[92m"
+PROGRESS_RESET = "\033[0m"
+
+
+def _render_dot_progress(completed: int, total: int, width: int = 30) -> str:
+    if total <= 0:
+        filled = width
+    else:
+        filled = min(width, max(0, int(round(width * completed / total))))
+    completed_dots = f"{PROGRESS_GREEN}{'●' * filled}{PROGRESS_RESET}"
+    remaining_dots = "○" * (width - filled)
+    return f"[{completed_dots}{remaining_dots}] {completed}/{total}"
+
+
+def _print_progress(completed: int, total: int, enabled: bool = True) -> None:
+    if not enabled:
+        return
+    print(f"\r{_render_dot_progress(completed, total)}", end="", flush=True)
+    if completed >= total:
+        print(flush=True)
 
 
 def _radical_inverse(index: int, base: int) -> float:
@@ -490,7 +510,7 @@ def _fs_window_eV(config: KuboConfig, q: np.ndarray, fs_window_factor: float) ->
     return max(thermal, vq_placeholder, config.eta_eV, 1e-5)
 
 
-def _adaptive_refined_mesh(
+def _adaptive_refined_quadrature(
     nk: int,
     twist_offset: tuple[float, float],
     config: KuboConfig,
@@ -499,38 +519,83 @@ def _adaptive_refined_mesh(
     fs_window_factor: float,
     cache: SpectralCache,
     profiler: RuntimeProfiler,
-) -> tuple[np.ndarray, dict[str, Any]]:
+) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
     start = time.perf_counter()
     base_points = uniform_bz_mesh_twisted(nk, twist_offset)
+    parent_cell_weight = 1.0 / float(base_points.shape[0])
     if refine_level <= 0:
+        weights = np.full(base_points.shape[0], parent_cell_weight, dtype=float)
+        weight_sum = float(np.sum(weights))
+        if abs(weight_sum - 1.0) >= 1e-12 or np.any(weights <= 0.0):
+            raise ValueError("non-adaptive quadrature weights failed sanity checks")
         profiler.adaptive_refinement_time_seconds += time.perf_counter() - start
-        return base_points, {
+        return base_points, weights, {
             "number_of_base_nodes": int(base_points.shape[0]),
             "number_of_refined_nodes": 0,
             "effective_total_nodes": int(base_points.shape[0]),
+            "number_of_unrefined_parent_cells": int(base_points.shape[0]),
+            "number_of_refined_parent_cells": 0,
+            "children_per_refined_cell": 0,
+            "parent_cell_weight": parent_cell_weight,
+            "refined_child_weight": 0.0,
+            "weight_sum": weight_sum,
+            "abs_weight_sum_minus_one": float(abs(weight_sum - 1.0)),
+            "adaptive_quadrature_rule": (
+                "unrefined parent cells use one representative node with the full parent cell weight"
+            ),
             "fs_window_eV": _fs_window_eV(config, q, fs_window_factor),
             "vf_estimate_note": "placeholder_vF_estimate_1_model_unit_used_for_diagnostic_only",
         }
     window = _fs_window_eV(config, q, fs_window_factor)
     cell_step = 2.0 * np.pi / nk
-    refined_points: list[tuple[float, float]] = []
+    quadrature_points: list[tuple[float, float]] = []
+    quadrature_weights: list[float] = []
+    refined_node_count = 0
+    refined_parent_count = 0
+    unrefined_parent_count = 0
     offsets_1d = (np.arange(2**refine_level) + 0.5) / (2**refine_level) - 0.5
+    children_per_refined_cell = int(len(offsets_1d) * len(offsets_1d))
+    refined_child_weight = parent_cell_weight / children_per_refined_cell
     for kx, ky in base_points:
         energies, _, _ = cache.eigensystem(float(kx), float(ky), config, profiler)
         if float(np.min(np.abs(energies - config.fermi_level_eV))) >= window:
+            quadrature_points.append((float(kx), float(ky)))
+            quadrature_weights.append(parent_cell_weight)
+            unrefined_parent_count += 1
             continue
+        refined_parent_count += 1
+        child_weight_sum = 0.0
         for dx in offsets_1d:
             for dy in offsets_1d:
-                refined_points.append((float(kx + dx * cell_step), float(ky + dy * cell_step)))
-    if refined_points:
-        points = np.vstack([base_points, np.asarray(refined_points, dtype=float)])
-    else:
-        points = base_points
+                quadrature_points.append((float(kx + dx * cell_step), float(ky + dy * cell_step)))
+                quadrature_weights.append(refined_child_weight)
+                child_weight_sum += refined_child_weight
+                refined_node_count += 1
+        if abs(child_weight_sum - parent_cell_weight) >= 1e-12:
+            raise ValueError("adaptive child weights do not sum to parent cell weight")
+    points = np.asarray(quadrature_points, dtype=float)
+    weights = np.asarray(quadrature_weights, dtype=float)
+    weight_sum = float(np.sum(weights))
+    if abs(weight_sum - 1.0) >= 1e-12:
+        raise ValueError(f"adaptive quadrature weights sum to {weight_sum}, not 1")
+    if np.any(weights <= 0.0):
+        raise ValueError("adaptive quadrature weights must be positive")
     profiler.adaptive_refinement_time_seconds += time.perf_counter() - start
-    return points, {
+    return points, weights, {
         "number_of_base_nodes": int(base_points.shape[0]),
-        "number_of_refined_nodes": int(len(refined_points)),
+        "number_of_refined_nodes": int(refined_node_count),
         "effective_total_nodes": int(points.shape[0]),
+        "number_of_unrefined_parent_cells": int(unrefined_parent_count),
+        "number_of_refined_parent_cells": int(refined_parent_count),
+        "children_per_refined_cell": int(children_per_refined_cell),
+        "parent_cell_weight": float(parent_cell_weight),
+        "refined_child_weight": float(refined_child_weight),
+        "weight_sum": weight_sum,
+        "abs_weight_sum_minus_one": float(abs(weight_sum - 1.0)),
+        "adaptive_quadrature_rule": (
+            "refined parent cells are replaced by subcell quadrature nodes; "
+            "parent and children are not double-counted"
+        ),
         "fs_window_eV": window,
         "vf_estimate_note": "placeholder_vF_estimate_1_model_unit_used_for_diagnostic_only",
     }
@@ -586,6 +651,13 @@ def _compact_summary_row(
         "number_of_base_nodes": int(node_counts["number_of_base_nodes"]),
         "number_of_refined_nodes": int(node_counts["number_of_refined_nodes"]),
         "effective_total_nodes": int(node_counts["effective_total_nodes"]),
+        "weight_sum": float(node_counts.get("weight_sum", 1.0)),
+        "abs_weight_sum_minus_one": float(node_counts.get("abs_weight_sum_minus_one", 0.0)),
+        "number_of_unrefined_parent_cells": int(node_counts.get("number_of_unrefined_parent_cells", 0)),
+        "number_of_refined_parent_cells": int(node_counts.get("number_of_refined_parent_cells", 0)),
+        "children_per_refined_cell": int(node_counts.get("children_per_refined_cell", 0)),
+        "parent_cell_weight": float(node_counts.get("parent_cell_weight", 0.0)),
+        "refined_child_weight": float(node_counts.get("refined_child_weight", 0.0)),
         "total_ward_residual_norm": residual_norm,
         "total_ward_residual_over_q_norm": float(residual_norm / q_norm),
         "translation_error_norm": translation_error_norm,
@@ -675,9 +747,17 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
                 "number_of_base_nodes": 0,
                 "number_of_refined_nodes": 0,
                 "effective_total_nodes": 0,
+                "number_of_unrefined_parent_cells": 0,
+                "number_of_refined_parent_cells": 0,
+                "children_per_refined_cell": 0,
+                "parent_cell_weight": 0.0,
+                "refined_child_weight": 0.0,
+                "weight_sum": 0.0,
+                "abs_weight_sum_minus_one": 0.0,
             }
+            adaptive_rule = ""
             for offset in offsets:
-                points, counts = _adaptive_refined_mesh(
+                points, weights, counts = _adaptive_refined_quadrature(
                     int(nk),
                     offset,
                     config,
@@ -687,12 +767,29 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
                     cache,
                     profiler,
                 )
-                weights = k_weights(points)
-                for key in total_counts:
+                for key in (
+                    "number_of_base_nodes",
+                    "number_of_refined_nodes",
+                    "effective_total_nodes",
+                    "number_of_unrefined_parent_cells",
+                    "number_of_refined_parent_cells",
+                ):
                     total_counts[key] += int(counts[key])
+                total_counts["children_per_refined_cell"] = int(counts["children_per_refined_cell"])
+                total_counts["parent_cell_weight"] = float(counts["parent_cell_weight"])
+                total_counts["refined_child_weight"] = float(counts["refined_child_weight"])
+                total_counts["weight_sum"] += float(counts["weight_sum"])
+                total_counts["abs_weight_sum_minus_one"] = max(
+                    float(total_counts["abs_weight_sum_minus_one"]),
+                    float(counts["abs_weight_sum_minus_one"]),
+                )
+                adaptive_rule = str(counts["adaptive_quadrature_rule"])
                 adaptive_evaluations.append(
                     _cached_normal_components_and_translation(points, weights, config, q, cache, profiler)
                 )
+            total_counts["weight_sum"] = float(total_counts["weight_sum"] / max(len(offsets), 1))
+            if abs(float(total_counts["weight_sum"]) - 1.0) >= 1e-12:
+                raise ValueError("twist-averaged adaptive quadrature weight sum sanity check failed")
             averaged_adaptive = _average_compact_evaluations(adaptive_evaluations)
             adaptive_row = _compact_summary_row(
                 nk=int(nk),
@@ -710,6 +807,7 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
             adaptive_row["eta_eV"] = float(eta_eV)
             adaptive_row["fs_window_factor"] = float(fs_window_factor)
             adaptive_row["fs_window_note"] = "E_window=max(fs_window_factor*kBT, placeholder_vF*|q|, eta_eff, E_min)"
+            adaptive_row["adaptive_quadrature_rule"] = adaptive_rule
             adaptive_rows.append(adaptive_row)
     return {
         "twist_rows": twist_rows,
@@ -1501,6 +1599,7 @@ def run_compact_summary_audit(
     temperature_K: float,
     eta_eV: float,
     workers: int,
+    progress_enabled: bool,
 ) -> dict[str, Any]:
     start_total = time.perf_counter()
     unknown_directions = sorted(set(q_directions) - set(DIRECTION_VECTORS))
@@ -1530,12 +1629,22 @@ def run_compact_summary_audit(
         for direction_name in q_directions
         for q_value in q_values
     ]
+    total_tasks = len(tasks)
+    progress_enabled = bool(progress_enabled and sys.stdout.isatty())
+    _print_progress(0, total_tasks, enabled=progress_enabled)
     if workers > 1:
+        results = []
         with ProcessPoolExecutor(max_workers=int(workers)) as executor:
-            results = list(executor.map(_compact_case_worker, tasks))
+            futures = [executor.submit(_compact_case_worker, task) for task in tasks]
+            for completed, future in enumerate(as_completed(futures), start=1):
+                results.append(future.result())
+                _print_progress(completed, total_tasks, enabled=progress_enabled)
         parallel_backend = "concurrent.futures.ProcessPoolExecutor"
     else:
-        results = [_compact_case_worker(task) for task in tasks]
+        results = []
+        for completed, task in enumerate(tasks, start=1):
+            results.append(_compact_case_worker(task))
+            _print_progress(completed, total_tasks, enabled=progress_enabled)
         parallel_backend = "sequential"
 
     twist_rows: list[dict[str, Any]] = []
@@ -2003,6 +2112,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--summary-only", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--twist-summary-only", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--adaptive-summary-only", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--no-progress", action="store_true")
     parser.add_argument("--temperature-K", type=float, default=DEFAULT_TEMPERATURE_K)
     parser.add_argument("--eta", type=float, default=1e-8)
     parser.add_argument("--json-output", type=Path)
@@ -2021,6 +2131,7 @@ def main(argv: list[str] | None = None) -> int:
             temperature_K=args.temperature_K,
             eta_eV=args.eta,
             workers=max(1, int(args.workers)),
+            progress_enabled=not bool(args.no_progress),
         )
     else:
         payload = run_normal_finite_q_ward_audit(
