@@ -43,7 +43,8 @@ DIRECTION_VECTORS = {
     "diagonal": (1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)),
 }
 SUPPORTED_TWIST_COUNTS = (1, 4, 8, 16, 32)
-SUPPORTED_ACTUAL_TWIST_COUNTS = (4, 8, 12, 16, 24)
+SUPPORTED_ACTUAL_TWIST_COUNTS = (4, 8, 12, 16, 24, 32, 48)
+SUPPORTED_NESTED_SYMMETRIC_TWIST_COUNTS = (24, 32, 48)
 MAX_JSON_SIZE_MB = 50.0
 TARGET_JSON_SIZE_MB = 10.0
 DEFAULT_TEMPERATURE_K = 30.0
@@ -104,6 +105,75 @@ def _symmetry_paired_offsets(seed_offsets: list[tuple[float, float]]) -> list[tu
     return offsets
 
 
+def _twist_key(offset: tuple[float, float]) -> tuple[float, float]:
+    return (round(_wrap_unit(offset[0]), 14), round(_wrap_unit(offset[1]), 14))
+
+
+def _full_twist_orbit(tau_x: float, tau_y: float) -> list[tuple[float, float]]:
+    candidates = (
+        (tau_x, tau_y),
+        (tau_y, tau_x),
+        (1.0 - tau_x, 1.0 - tau_y),
+        (1.0 - tau_y, 1.0 - tau_x),
+    )
+    offsets: list[tuple[float, float]] = []
+    seen: set[tuple[float, float]] = set()
+    for candidate in candidates:
+        key = _twist_key(candidate)
+        if key not in seen:
+            seen.add(key)
+            offsets.append(key)
+    return offsets
+
+
+def _has_offset(offsets: set[tuple[float, float]], offset: tuple[float, float]) -> bool:
+    return _twist_key(offset) in offsets
+
+
+def _validate_nested_symmetric_twists(offsets: list[tuple[float, float]], requested_count: int) -> None:
+    if len(offsets) != requested_count:
+        raise ValueError(f"nested_symmetric produced {len(offsets)} twists, expected {requested_count}")
+    keys = [_twist_key(offset) for offset in offsets]
+    if len(set(keys)) != requested_count:
+        raise ValueError("nested_symmetric twist set contains duplicate offsets")
+    for tau_x, tau_y in keys:
+        if not (0.0 <= tau_x < 1.0 and 0.0 <= tau_y < 1.0):
+            raise ValueError("nested_symmetric twist offsets must lie in [0, 1)")
+    key_set = set(keys)
+    for tau_x, tau_y in keys:
+        if not _has_offset(key_set, (1.0 - tau_x, 1.0 - tau_y)):
+            raise ValueError("nested_symmetric twist set failed inversion symmetry check")
+        if not _has_offset(key_set, (tau_y, tau_x)):
+            raise ValueError("nested_symmetric twist set failed x/y exchange symmetry check")
+        if not _has_offset(key_set, (1.0 - tau_y, 1.0 - tau_x)):
+            raise ValueError("nested_symmetric twist set failed combined inversion/exchange symmetry check")
+    weights = np.full(requested_count, 1.0 / requested_count, dtype=float)
+    if not np.allclose(weights, weights[0]):
+        raise ValueError("nested_symmetric twist weights must be equal")
+    if abs(float(np.sum(weights)) - 1.0) >= 1e-12:
+        raise ValueError("nested_symmetric twist weights must sum to 1")
+
+
+def nested_symmetric_twist_offsets(actual_twist_count: int) -> list[tuple[float, float]]:
+    if actual_twist_count not in SUPPORTED_NESTED_SYMMETRIC_TWIST_COUNTS:
+        raise ValueError(f"unsupported actual twist count for nested_symmetric: {actual_twist_count}")
+    offsets: list[tuple[float, float]] = []
+    seen: set[tuple[float, float]] = set()
+    seed_index = 1
+    while len(offsets) < actual_twist_count:
+        orbit = _full_twist_orbit(_radical_inverse(seed_index, 2), _radical_inverse(seed_index, 3))
+        new_orbit = [offset for offset in orbit if offset not in seen]
+        if len(new_orbit) == 4 and len(offsets) + 4 <= actual_twist_count:
+            for offset in new_orbit:
+                seen.add(offset)
+                offsets.append(offset)
+        seed_index += 1
+        if seed_index > 10000:
+            raise ValueError(f"could not construct nested_symmetric twist set of size {actual_twist_count}")
+    _validate_nested_symmetric_twists(offsets, actual_twist_count)
+    return offsets
+
+
 def twist_offsets(twist_count: int, twist_mode: str = "halton") -> list[tuple[float, float]]:
     if twist_count not in SUPPORTED_TWIST_COUNTS:
         raise ValueError(f"twist_count must be one of {SUPPORTED_TWIST_COUNTS}")
@@ -117,7 +187,7 @@ def twist_offsets(twist_count: int, twist_mode: str = "halton") -> list[tuple[fl
         return seed_offsets
     if twist_mode == "symmetry_paired":
         return _symmetry_paired_offsets(seed_offsets)
-    raise ValueError("twist_mode must be 'halton' or 'symmetry_paired'")
+    raise ValueError("twist_mode must be 'halton', 'symmetry_paired', or 'nested_symmetric'")
 
 
 def actual_twist_offsets(actual_twist_count: int, twist_mode: str = "symmetry_paired") -> list[tuple[float, float]]:
@@ -125,8 +195,10 @@ def actual_twist_offsets(actual_twist_count: int, twist_mode: str = "symmetry_pa
         raise ValueError(f"actual_twist_count must be one of {SUPPORTED_ACTUAL_TWIST_COUNTS}")
     if twist_mode == "halton":
         return [(_radical_inverse(index, 2), _radical_inverse(index, 3)) for index in range(1, actual_twist_count + 1)]
+    if twist_mode == "nested_symmetric":
+        return nested_symmetric_twist_offsets(actual_twist_count)
     if twist_mode != "symmetry_paired":
-        raise ValueError("twist_mode must be 'halton' or 'symmetry_paired'")
+        raise ValueError("twist_mode must be 'halton', 'symmetry_paired', or 'nested_symmetric'")
     offsets: list[tuple[float, float]] = []
     seen: set[tuple[float, float]] = set()
     seed_index = 1
@@ -721,6 +793,34 @@ def _compact_summary_row(
     }
 
 
+def _twist_metadata(twist_mode: str, use_actual_twist_counts: bool) -> dict[str, Any]:
+    if twist_mode == "nested_symmetric":
+        offset_rule = (
+            "q-independent nested symmetry-preserving equal-weight twist quadrature; "
+            "offsets are not fitted to Ward residuals"
+        )
+        nested_family = "halton_orbit_prefix_24_32_48"
+        point_group_note = "inversion and x/y exchange symmetry enforced by complete twist orbits"
+    elif use_actual_twist_counts and twist_mode == "symmetry_paired":
+        offset_rule = "actual_twist_count deterministic symmetry-paired orbits"
+        nested_family = "not_applicable"
+        point_group_note = "inversion and x/y exchange symmetry enforced by complete twist orbits"
+    else:
+        offset_rule = "legacy seed twist count expansion"
+        nested_family = "not_applicable"
+        point_group_note = "mode-specific deterministic twist rule"
+    return {
+        "twist_offset_rule": offset_rule,
+        "twist_nested_family": nested_family,
+        "twist_equal_weight": True,
+        "twist_q_independent": True,
+        "twist_residual_fitted": False,
+        "twist_symmetry_inversion": twist_mode in {"nested_symmetric", "symmetry_paired"},
+        "twist_symmetry_xy_exchange": twist_mode in {"nested_symmetric", "symmetry_paired"},
+        "twist_symmetry_point_group_note": point_group_note,
+    }
+
+
 def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
     (
         nk,
@@ -781,11 +881,7 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
         row["requested_twist_count"] = int(twist_count)
         row["requested_actual_twist_count"] = int(twist_count) if use_actual_twist_counts else int(len(offsets))
         row["actual_twist_count"] = int(len(offsets))
-        row["twist_offset_rule"] = (
-            "actual_twist_count deterministic symmetry-paired orbits"
-            if use_actual_twist_counts and twist_mode == "symmetry_paired"
-            else "legacy seed twist count expansion"
-        )
+        row.update(_twist_metadata(twist_mode, bool(use_actual_twist_counts)))
         row["adaptive_mode"] = "none"
         row["temperature_K"] = float(temperature_K)
         row["eta_eV"] = float(eta_eV)
@@ -871,11 +967,7 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
             adaptive_row["requested_twist_count"] = int(twist_count)
             adaptive_row["requested_actual_twist_count"] = int(twist_count) if use_actual_twist_counts else int(len(offsets))
             adaptive_row["actual_twist_count"] = int(len(offsets))
-            adaptive_row["twist_offset_rule"] = (
-                "actual_twist_count deterministic symmetry-paired orbits"
-                if use_actual_twist_counts and twist_mode == "symmetry_paired"
-                else "legacy seed twist count expansion"
-            )
+            adaptive_row.update(_twist_metadata(twist_mode, bool(use_actual_twist_counts)))
             adaptive_row["adaptive_mode"] = adaptive_mode
             adaptive_row["temperature_K"] = float(temperature_K)
             adaptive_row["eta_eV"] = float(eta_eV)
@@ -1687,16 +1779,27 @@ def run_compact_summary_audit(
         raise ValueError(f"unknown q direction(s): {unknown_directions}")
     use_actual_twist_counts = actual_twist_counts is not None
     requested_twist_counts = actual_twist_counts if actual_twist_counts is not None else twist_counts
+    if twist_mode == "nested_symmetric" and not use_actual_twist_counts:
+        raise ValueError("nested_symmetric requires --actual-twist-counts")
     if use_actual_twist_counts:
-        unknown_actual_twist_counts = sorted(set(requested_twist_counts) - set(SUPPORTED_ACTUAL_TWIST_COUNTS))
+        supported_actual_counts = (
+            SUPPORTED_NESTED_SYMMETRIC_TWIST_COUNTS
+            if twist_mode == "nested_symmetric"
+            else SUPPORTED_ACTUAL_TWIST_COUNTS
+        )
+        unknown_actual_twist_counts = sorted(set(requested_twist_counts) - set(supported_actual_counts))
         if unknown_actual_twist_counts:
+            if twist_mode == "nested_symmetric":
+                raise ValueError(
+                    f"unsupported actual twist count for nested_symmetric: {unknown_actual_twist_counts}"
+                )
             raise ValueError(f"unsupported actual twist count(s): {unknown_actual_twist_counts}")
     else:
         unknown_twist_counts = sorted(set(requested_twist_counts) - set(SUPPORTED_TWIST_COUNTS))
         if unknown_twist_counts:
             raise ValueError(f"unsupported twist count(s): {unknown_twist_counts}")
-    if twist_mode not in {"halton", "symmetry_paired"}:
-        raise ValueError("twist_mode must be 'halton' or 'symmetry_paired'")
+    if twist_mode not in {"halton", "symmetry_paired", "nested_symmetric"}:
+        raise ValueError("twist_mode must be 'halton', 'symmetry_paired', or 'nested_symmetric'")
     if adaptive_mode not in {"none", "q_covariant"}:
         raise ValueError("adaptive_mode must be 'none' or 'q_covariant'")
 
@@ -2199,7 +2302,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--nk-values", nargs="+", type=int)
     parser.add_argument("--twist-counts", nargs="+", type=int, default=[1])
     parser.add_argument("--actual-twist-counts", nargs="+", type=int)
-    parser.add_argument("--twist-mode", choices=("halton", "symmetry_paired"), default="symmetry_paired")
+    parser.add_argument("--twist-mode", choices=("halton", "symmetry_paired", "nested_symmetric"), default="symmetry_paired")
     parser.add_argument("--adaptive-mode", choices=("none", "q_covariant"), default="none")
     parser.add_argument("--adaptive-refine-levels", nargs="+", type=int, default=[0])
     parser.add_argument("--fs-window-factor", type=float, default=5.0)
