@@ -28,6 +28,8 @@ from normal_finite_q_ward_audit import (  # noqa: E402
     actual_twist_offsets,
     uniform_bz_mesh_twisted,
 )
+from lno327.finite_q_primitives import density_vertex, phase_vertex  # noqa: E402
+from lno327.pairing import bdg_hamiltonian  # noqa: E402
 
 WARD_COMPONENT_LABELS = ("density", "current_x", "current_y")
 MAX_JSON_SIZE_MB = 50.0
@@ -150,36 +152,56 @@ def _mixed_norms(response: Any, variant: str) -> tuple[float, float, float]:
     return _norm(left), _norm(right), _norm(kernel)
 
 
-def _order_parameter_gauge_vector(
+def _order_parameter_gauge_vector_candidates(
     pairing_name: str,
     collective_mode: str,
     delta0_eV: float,
-) -> tuple[np.ndarray, dict[str, Any]]:
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
     if collective_mode == "phase_only":
-        vector = np.asarray([2.0 + 0.0j], dtype=complex)
+        labels = ("theta",)
+        legacy = np.asarray([2.0 + 0.0j], dtype=complex)
+        analytic_left = np.asarray([2.0j], dtype=complex)
+        analytic_right = np.asarray([-2.0j], dtype=complex)
         metadata = {
-            "collective_basis_labels": ["theta"],
+            "collective_basis_labels": list(labels),
             "order_parameter_phase_normalization": "dimensionless theta; phase vertex is dH_BdG/dtheta = delta0 * dH_BdG/deta2",
-            "order_parameter_gauge_vector_rule": "global U(1) pair phase gives delta_theta = 2 * chi",
+            "order_parameter_gauge_vector_rule": "analytic BdG phase-vertex convention gives W_theta_left=+2j and W_theta_right=-2j",
             "phase_tangent_source": (
                 f"{pairing_name} PairingAnsatz.phase_pairing_matrix with bond_endpoint_gauge form factor"
             ),
             "amplitude_gauge_weight": None,
             "dwave_form_factor_tangent_used": pairing_name == "dwave",
         }
-        return vector, metadata
-    if collective_mode == "amplitude_phase":
-        vector = np.asarray([0.0 + 0.0j, 2.0 * float(delta0_eV) + 0.0j], dtype=complex)
+    elif collective_mode == "amplitude_phase":
+        labels = ("amplitude_eta1", "phase_eta2")
+        legacy = np.asarray([0.0 + 0.0j, 2.0 * float(delta0_eV) + 0.0j], dtype=complex)
+        analytic_left = np.asarray([0.0 + 0.0j, 2.0j * float(delta0_eV)], dtype=complex)
+        analytic_right = np.asarray([0.0 + 0.0j, -2.0j * float(delta0_eV)], dtype=complex)
         metadata = {
-            "collective_basis_labels": ["amplitude_eta1", "phase_eta2"],
+            "collective_basis_labels": list(labels),
             "order_parameter_phase_normalization": "energy-like eta2 coordinate with eta2 = delta0 * theta",
-            "order_parameter_gauge_vector_rule": "global U(1) pair phase gives delta_eta2 = delta0 * delta_theta = 2 * delta0 * chi",
+            "order_parameter_gauge_vector_rule": "analytic BdG eta2 convention gives W_eta2_left=+2j*delta0 and W_eta2_right=-2j*delta0",
             "phase_tangent_source": f"{pairing_name} PairingAnsatz.collective_vertices()[1] using bond_endpoint_gauge form factor",
             "amplitude_gauge_weight": 0.0,
             "dwave_form_factor_tangent_used": pairing_name == "dwave",
         }
-        return vector, metadata
-    raise ValueError(f"unsupported collective_mode for W_eta: {collective_mode}")
+    else:
+        raise ValueError(f"unsupported collective_mode for W_eta: {collective_mode}")
+    candidates = {
+        "real_same_sign_legacy": {
+            "convention_name": "real_same_sign_legacy",
+            "derived_from": "previous diagnostic convention retained only for comparison; not selected by residual size",
+            "left": legacy,
+            "right": legacy,
+        },
+        "imaginary_left_right_opposite": {
+            "convention_name": "imaginary_left_right_opposite",
+            "derived_from": "BdG phase vertex Gamma_theta=[[0,iDelta],[-iDelta^dagger,0]] and eta2=delta0*theta",
+            "left": analytic_left,
+            "right": analytic_right,
+        },
+    }
+    return candidates, metadata
 
 
 def _solve_kernel(kernel: np.ndarray, rhs: np.ndarray) -> np.ndarray:
@@ -193,6 +215,124 @@ def _schur_from_blocks(
     k_etaa: np.ndarray,
 ) -> np.ndarray:
     return np.asarray(bare, dtype=complex) - np.asarray(k_aeta, dtype=complex) @ _solve_kernel(k_etaeta, k_etaa)
+
+
+def _evaluate_extended_candidate(
+    *,
+    bare: np.ndarray,
+    reported: np.ndarray,
+    k_aeta: np.ndarray,
+    k_etaa: np.ndarray,
+    k_etaeta: np.ndarray,
+    wa_left: np.ndarray,
+    wa_right: np.ndarray,
+    weta_left: np.ndarray,
+    weta_right: np.ndarray,
+    labels: tuple[str, ...],
+    omega_eV: float,
+    q: np.ndarray,
+    convention_name: str,
+    derived_from: str,
+) -> dict[str, Any]:
+    schur = _schur_from_blocks(bare, k_aeta, k_etaeta, k_etaa)
+    schur_left, schur_right = _physical_ward_residuals(schur, omega_eV, q)
+    extended_left_em = wa_left @ bare + weta_left @ k_etaa
+    extended_left_collective = wa_left @ k_aeta + weta_left @ k_etaeta
+    extended_right_em = bare @ wa_right + k_aeta @ weta_right
+    extended_right_collective = k_etaa @ wa_right + k_etaeta @ weta_right
+    left_total = np.concatenate([extended_left_em.reshape(-1), extended_left_collective.reshape(-1)])
+    right_total = np.concatenate([extended_right_em.reshape(-1), extended_right_collective.reshape(-1)])
+    left_schur_from_extended = extended_left_em - extended_left_collective @ _solve_kernel(k_etaeta, k_etaa)
+    right_schur_from_extended = extended_right_em - k_aeta @ _solve_kernel(k_etaeta, extended_right_collective)
+    return {
+        "convention_name": convention_name,
+        "derived_from": derived_from,
+        "left_vector": _complex_vector(weta_left, labels),
+        "right_vector": _complex_vector(weta_right, labels),
+        "extended_left_em_equation_norm": _norm(extended_left_em),
+        "extended_left_collective_equation_norm": _norm(extended_left_collective),
+        "extended_left_total_residual_norm": _norm(left_total),
+        "extended_right_em_equation_norm": _norm(extended_right_em),
+        "extended_right_collective_equation_norm": _norm(extended_right_collective),
+        "extended_right_total_residual_norm": _norm(right_total),
+        "schur_from_blocks_left_residual_norm": _norm(schur_left),
+        "schur_from_blocks_right_residual_norm": _norm(schur_right),
+        "schur_from_blocks_left_residual_over_q_norm": float(_norm(schur_left) / float(np.linalg.norm(q))),
+        "schur_from_blocks_right_residual_over_q_norm": float(_norm(schur_right) / float(np.linalg.norm(q))),
+        "schur_from_blocks_response_norm": _norm(schur),
+        "schur_from_blocks_minus_reported_response_norm": _norm(schur - reported),
+        "extended_to_schur_left_consistency_norm": _norm(schur_left - left_schur_from_extended),
+        "extended_to_schur_right_consistency_norm": _norm(schur_right - right_schur_from_extended),
+    }
+
+
+def _offdiagonal_bdg_block(matrix: np.ndarray) -> np.ndarray:
+    value = np.zeros_like(np.asarray(matrix, dtype=complex))
+    value[:4, 4:] = matrix[:4, 4:]
+    value[4:, :4] = matrix[4:, :4]
+    return value
+
+
+def _operator_level_weta_audit_row(
+    pairing_name: str,
+    q_direction_name: str,
+    q: np.ndarray,
+    delta0_eV: float,
+) -> dict[str, Any]:
+    representative_k = np.asarray([0.37, -0.23], dtype=float)
+    kx, ky = float(representative_k[0]), float(representative_k[1])
+    qx, qy = float(q[0]), float(q[1])
+    amp = PairingAmplitudes(delta0_eV=float(delta0_eV))
+    ansatz = build_pairing_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
+    delta_theta = ansatz.phase_pairing_matrix(kx, ky, qx, qy, amp)
+    phi = ansatz.collective_form_factor(kx, ky, qx, qy, amp)
+    gamma_theta = phase_vertex(delta_theta)
+    gamma_eta2 = phase_vertex(phi)
+
+    theta_eps = 1e-6
+    h_theta_plus = bdg_hamiltonian(kx, ky, delta_theta * np.exp(1j * theta_eps))
+    h_theta_minus = bdg_hamiltonian(kx, ky, delta_theta * np.exp(-1j * theta_eps))
+    gamma_theta_fd = (h_theta_plus - h_theta_minus) / (2.0 * theta_eps)
+    eta_eps = 1e-6 * max(1.0, abs(float(delta0_eV)))
+    h_eta_plus = bdg_hamiltonian(kx, ky, delta_theta + 1j * eta_eps * phi)
+    h_eta_minus = bdg_hamiltonian(kx, ky, delta_theta - 1j * eta_eps * phi)
+    gamma_eta2_fd = (h_eta_plus - h_eta_minus) / (2.0 * eta_eps)
+
+    rho = density_vertex()
+    h_mid = bdg_hamiltonian(kx, ky, delta_theta)
+    left_pairing_anomalous = _offdiagonal_bdg_block(rho @ h_mid - h_mid @ rho)
+    right_pairing_anomalous = _offdiagonal_bdg_block(h_mid @ rho - rho @ h_mid)
+    theta_left_residual = left_pairing_anomalous + 2.0j * gamma_theta
+    theta_right_residual = right_pairing_anomalous - 2.0j * gamma_theta
+    eta2_left_residual = left_pairing_anomalous + (2.0j * float(delta0_eV)) * gamma_eta2
+    eta2_right_residual = right_pairing_anomalous - (2.0j * float(delta0_eV)) * gamma_eta2
+    legacy_left_residual = left_pairing_anomalous + 2.0 * gamma_theta
+    legacy_right_residual = right_pairing_anomalous + 2.0 * gamma_theta
+
+    theta_norm = max(_norm(gamma_theta), 1e-300)
+    eta2_norm = max(_norm(gamma_eta2), 1e-300)
+    return {
+        "diagnostic_only": True,
+        "valid_for_casimir_input": False,
+        "pairing_name": str(pairing_name),
+        "q_direction": str(q_direction_name),
+        "q_norm": float(np.linalg.norm(q)),
+        "representative_k": [float(kx), float(ky)],
+        "phase_vertex_finite_difference_error_norm": _norm(gamma_theta_fd - gamma_theta),
+        "phase_vertex_finite_difference_relative_error": float(_norm(gamma_theta_fd - gamma_theta) / theta_norm),
+        "eta2_vertex_finite_difference_error_norm": _norm(gamma_eta2_fd - gamma_eta2),
+        "eta2_vertex_finite_difference_relative_error": float(_norm(gamma_eta2_fd - gamma_eta2) / eta2_norm),
+        "left_anomalous_weta_operator_residual_norm": _norm(theta_left_residual),
+        "right_anomalous_weta_operator_residual_norm": _norm(theta_right_residual),
+        "left_anomalous_eta2_weta_operator_residual_norm": _norm(eta2_left_residual),
+        "right_anomalous_eta2_weta_operator_residual_norm": _norm(eta2_right_residual),
+        "legacy_real_weta_left_operator_residual_norm": _norm(legacy_left_residual),
+        "legacy_real_weta_right_operator_residual_norm": _norm(legacy_right_residual),
+        "operator_audit_interpretation": (
+            "representative-k operator check only; verifies phase/eta2 tangent convention and anomalous "
+            "block sign without fitting W_eta or modifying response"
+        ),
+    }
 
 
 def _empty_extended_ward_diagnostic(response: Any, variant: str, matrix: np.ndarray, omega_eV: float, q: np.ndarray) -> dict[str, Any]:
@@ -212,7 +352,11 @@ def _empty_extended_ward_diagnostic(response: Any, variant: str, matrix: np.ndar
         "order_parameter_gauge_vector_right": [],
         "order_parameter_phase_normalization": "not_applicable",
         "order_parameter_gauge_vector_rule": "not_applicable",
+        "order_parameter_gauge_vector_convention": "not_applicable",
         "order_parameter_gauge_vector_fitted": False,
+        "old_real_weta_kept_for_diagnostic": False,
+        "main_weta_convention": "not_applicable",
+        "legacy_real_weta_available_for_comparison": False,
         "phase_tangent_source": "not_applicable",
         "amplitude_gauge_weight": None,
         "extended_left_residual_norm": None,
@@ -241,6 +385,7 @@ def _empty_extended_ward_diagnostic(response: Any, variant: str, matrix: np.ndar
         "extended_to_schur_left_consistency_norm": None,
         "extended_to_schur_right_consistency_norm": None,
         "extended_to_schur_consistency_interpretation": "not_applicable_without_collective_block",
+        "weta_convention_comparison": [],
         "extended_ward_implemented": False,
         "order_parameter_tangent_available": False,
         "order_parameter_tangent_rule": "not_applicable_for_bare_em_block",
@@ -270,25 +415,31 @@ def _extended_ward_diagnostic(
     k_aeta, k_etaa, k_etaeta, labels, collective_mode = blocks
     q_norm = float(np.linalg.norm(q))
     wa_left, wa_right = _em_ward_vectors(omega_eV, q)
-    weta, weta_metadata = _order_parameter_gauge_vector(pairing_name, collective_mode, delta0_eV)
+    weta_candidates, weta_metadata = _order_parameter_gauge_vector_candidates(pairing_name, collective_mode, delta0_eV)
     bare = np.asarray(response.bare_total, dtype=complex)
     reported = np.asarray(matrix, dtype=complex)
 
     try:
-        schur = _schur_from_blocks(bare, k_aeta, k_etaeta, k_etaa)
-        schur_left, schur_right = _physical_ward_residuals(schur, omega_eV, q)
-        extended_left_em = wa_left @ bare + weta @ k_etaa
-        extended_left_collective = wa_left @ k_aeta + weta @ k_etaeta
-        extended_right_em = bare @ wa_right + k_aeta @ weta
-        extended_right_collective = k_etaa @ wa_right + k_etaeta @ weta
-
-        left_total = np.concatenate([extended_left_em.reshape(-1), extended_left_collective.reshape(-1)])
-        right_total = np.concatenate([extended_right_em.reshape(-1), extended_right_collective.reshape(-1)])
-        left_schur_from_extended = extended_left_em - extended_left_collective @ _solve_kernel(k_etaeta, k_etaa)
-        right_schur_from_extended = extended_right_em - k_aeta @ _solve_kernel(
-            k_etaeta,
-            extended_right_collective,
-        )
+        comparison = [
+            _evaluate_extended_candidate(
+                bare=bare,
+                reported=reported,
+                k_aeta=k_aeta,
+                k_etaa=k_etaa,
+                k_etaeta=k_etaeta,
+                wa_left=wa_left,
+                wa_right=wa_right,
+                weta_left=np.asarray(candidate["left"], dtype=complex),
+                weta_right=np.asarray(candidate["right"], dtype=complex),
+                labels=labels,
+                omega_eV=omega_eV,
+                q=q,
+                convention_name=str(candidate["convention_name"]),
+                derived_from=str(candidate["derived_from"]),
+            )
+            for candidate in weta_candidates.values()
+        ]
+        main = next(row for row in comparison if row["convention_name"] == "imaginary_left_right_opposite")
         implementation_error: str | None = None
         implemented = True
     except np.linalg.LinAlgError as exc:
@@ -303,9 +454,12 @@ def _extended_ward_diagnostic(
         return empty
 
     schur_reported_left, schur_reported_right = _physical_ward_residuals(reported, omega_eV, q)
-    collective_kernel_ward_norm = max(_norm(extended_left_collective), _norm(extended_right_collective))
-    left_total_norm = _norm(left_total)
-    right_total_norm = _norm(right_total)
+    collective_kernel_ward_norm = max(
+        float(main["extended_left_collective_equation_norm"]),
+        float(main["extended_right_collective_equation_norm"]),
+    )
+    left_total_norm = float(main["extended_left_total_residual_norm"])
+    right_total_norm = float(main["extended_right_total_residual_norm"])
     return {
         "extended_ward_formula": (
             "left: W_A^L K_AA + W_eta^L K_etaA, W_A^L K_Aeta + W_eta^L K_etaeta; "
@@ -314,18 +468,22 @@ def _extended_ward_diagnostic(
         "em_ward_left_convention": "iomega*K[0,:] + qx*K[1,:] + qy*K[2,:]",
         "em_ward_right_convention": "iomega*K[:,0] - qx*K[:,1] - qy*K[:,2]",
         "collective_basis_labels": list(labels),
-        "order_parameter_gauge_vector_left": _complex_vector(weta, labels),
-        "order_parameter_gauge_vector_right": _complex_vector(weta, labels),
+        "order_parameter_gauge_vector_left": main["left_vector"],
+        "order_parameter_gauge_vector_right": main["right_vector"],
         "order_parameter_phase_normalization": weta_metadata["order_parameter_phase_normalization"],
         "order_parameter_gauge_vector_rule": weta_metadata["order_parameter_gauge_vector_rule"],
+        "order_parameter_gauge_vector_convention": "analytic_imaginary_left_right_opposite",
         "order_parameter_gauge_vector_fitted": False,
+        "old_real_weta_kept_for_diagnostic": True,
+        "main_weta_convention": "imaginary_left_right_opposite",
+        "legacy_real_weta_available_for_comparison": True,
         "phase_tangent_source": weta_metadata["phase_tangent_source"],
         "amplitude_gauge_weight": weta_metadata["amplitude_gauge_weight"],
-        "extended_left_em_equation_norm": _norm(extended_left_em),
-        "extended_left_collective_equation_norm": _norm(extended_left_collective),
+        "extended_left_em_equation_norm": main["extended_left_em_equation_norm"],
+        "extended_left_collective_equation_norm": main["extended_left_collective_equation_norm"],
         "extended_left_total_residual_norm": left_total_norm,
-        "extended_right_em_equation_norm": _norm(extended_right_em),
-        "extended_right_collective_equation_norm": _norm(extended_right_collective),
+        "extended_right_em_equation_norm": main["extended_right_em_equation_norm"],
+        "extended_right_collective_equation_norm": main["extended_right_collective_equation_norm"],
         "extended_right_total_residual_norm": right_total_norm,
         "extended_left_residual_norm": left_total_norm,
         "extended_right_residual_norm": right_total_norm,
@@ -338,18 +496,20 @@ def _extended_ward_diagnostic(
         "schur_gauge_invariant_right_residual_norm": _norm(schur_reported_right),
         "schur_gauge_invariant_left_residual_over_q_norm": float(_norm(schur_reported_left) / q_norm),
         "schur_gauge_invariant_right_residual_over_q_norm": float(_norm(schur_reported_right) / q_norm),
-        "schur_from_blocks_left_residual_norm": _norm(schur_left),
-        "schur_from_blocks_right_residual_norm": _norm(schur_right),
-        "schur_from_blocks_left_residual_over_q_norm": float(_norm(schur_left) / q_norm),
-        "schur_from_blocks_right_residual_over_q_norm": float(_norm(schur_right) / q_norm),
-        "schur_from_blocks_response_norm": _norm(schur),
-        "schur_from_blocks_minus_reported_response_norm": _norm(schur - reported),
-        "extended_to_schur_left_consistency_norm": _norm(schur_left - left_schur_from_extended),
-        "extended_to_schur_right_consistency_norm": _norm(schur_right - right_schur_from_extended),
+        "schur_from_blocks_left_residual_norm": main["schur_from_blocks_left_residual_norm"],
+        "schur_from_blocks_right_residual_norm": main["schur_from_blocks_right_residual_norm"],
+        "schur_from_blocks_left_residual_over_q_norm": main["schur_from_blocks_left_residual_over_q_norm"],
+        "schur_from_blocks_right_residual_over_q_norm": main["schur_from_blocks_right_residual_over_q_norm"],
+        "schur_from_blocks_response_norm": main["schur_from_blocks_response_norm"],
+        "schur_from_blocks_minus_reported_response_norm": main["schur_from_blocks_minus_reported_response_norm"],
+        "extended_to_schur_left_consistency_norm": main["extended_to_schur_left_consistency_norm"],
+        "extended_to_schur_right_consistency_norm": main["extended_to_schur_right_consistency_norm"],
         "extended_to_schur_consistency_interpretation": (
-            "algebraic check only: W_A Pi_GI equals extended EM equation minus collective equation propagated "
-            "through solve(K_etaeta, .); no response projection or repair is applied"
+            "Schur algebra consistency only; it is insensitive to some common W_eta convention errors because "
+            "W_eta terms cancel algebraically between EM and collective equations. Physical W_eta is checked by "
+            "operator-level tangent audit and extended residuals."
         ),
+        "weta_convention_comparison": comparison,
         "extended_ward_implemented": implemented,
         "order_parameter_tangent_available": True,
         "order_parameter_tangent_rule": (
@@ -453,6 +613,7 @@ def _case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
         pairing_params,
         options,
     )
+    operator_audit_row = _operator_level_weta_audit_row(str(pairing_name), str(q_direction_name), q, float(delta0_eV))
     rows: list[dict[str, Any]] = []
     matrices_by_variant: dict[str, np.ndarray] = {}
     for variant in response_variants:
@@ -550,6 +711,7 @@ def _case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
         )
     return {
         "rows": rows,
+        "operator_audit_rows": [operator_audit_row],
         "comparison_rows": comparison_rows,
         "convergence_items": [
             {
@@ -615,6 +777,32 @@ def _convergence_rows(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return rows
 
 
+def _bdg_weta_convention_audit() -> dict[str, Any]:
+    return {
+        "diagnostic_only": True,
+        "valid_for_casimir_input": False,
+        "bdg_hamiltonian_convention": "H_BdG=[[h(k),Delta(k)],[Delta^dagger(k),-h^T(-k)]]",
+        "density_vertex_convention": "rho=tau_z=diag(+I4,-I4)",
+        "phase_vertex_convention": "Gamma_theta=[[0,i*Delta],[-i*Delta^dagger,0]]",
+        "eta2_phase_vertex_convention": "Gamma_eta2=[[0,i*Phi],[-i*Phi^dagger,0]]",
+        "eta2_phase_relation": "eta2 = delta0 * theta",
+        "em_observable_source_convention": "observable_vertices=(rho,-Vx,-Vy), source_vertices=(rho,Vx,Vy)",
+        "left_em_ward_vector": "W_A^L=(iomega,+qx,+qy)",
+        "right_em_ward_vector": "W_A^R=(iomega,-qx,-qy)",
+        "old_weta_convention": {
+            "phase_only": "left=+2, right=+2",
+            "amplitude_phase": "left=[0,+2*delta0], right=[0,+2*delta0]",
+        },
+        "analytic_weta_convention": {
+            "phase_only": "left=+2j, right=-2j",
+            "amplitude_phase": "left=[0,+2j*delta0], right=[0,-2j*delta0]",
+        },
+        "order_parameter_gauge_vector_convention": "analytic_imaginary_left_right_opposite",
+        "old_real_weta_kept_for_diagnostic": True,
+        "residual_fitted": False,
+    }
+
+
 def run_bdg_finite_q_ward_audit(
     *,
     pairings: tuple[str, ...],
@@ -672,11 +860,13 @@ def run_bdg_finite_q_ward_audit(
             _print_progress(completed, len(tasks), enabled=progress_enabled)
         backend = "sequential"
     rows: list[dict[str, Any]] = []
+    operator_audit_rows: list[dict[str, Any]] = []
     comparison_rows: list[dict[str, Any]] = []
     convergence_items: list[dict[str, Any]] = []
     worker_runtime = 0.0
     for result in results:
         rows.extend(result["rows"])
+        operator_audit_rows.extend(result["operator_audit_rows"])
         comparison_rows.extend(result["comparison_rows"])
         convergence_items.extend(result["convergence_items"])
         worker_runtime += float(result["runtime_seconds"])
@@ -701,6 +891,16 @@ def run_bdg_finite_q_ward_audit(
         "twist_mode": twist_mode,
         "adaptive_mode": "none",
         "component_labels": list(WARD_COMPONENT_LABELS),
+        "bdg_weta_convention_audit": _bdg_weta_convention_audit(),
+        "bdg_operator_level_weta_audit": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "summary": (
+                "representative-k phase/eta2 finite-difference and anomalous-block W_eta convention audit; "
+                "does not affect response assembly"
+            ),
+            "rows": operator_audit_rows,
+        },
         "bdg_extended_ward_summary": {
             "diagnostic_only": True,
             "valid_for_casimir_input": False,
