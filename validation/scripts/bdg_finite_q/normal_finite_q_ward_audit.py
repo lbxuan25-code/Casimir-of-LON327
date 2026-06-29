@@ -40,6 +40,40 @@ DIRECTION_VECTORS = {
     "y": (0.0, 1.0),
     "diagonal": (1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)),
 }
+SUPPORTED_TWIST_COUNTS = (1, 4, 8, 16, 32)
+
+
+def _radical_inverse(index: int, base: int) -> float:
+    value = 0.0
+    inverse_base = 1.0 / base
+    factor = inverse_base
+    while index > 0:
+        digit = index % base
+        value += digit * factor
+        index //= base
+        factor *= inverse_base
+    return value
+
+
+def twist_offsets(twist_count: int) -> list[tuple[float, float]]:
+    if twist_count not in SUPPORTED_TWIST_COUNTS:
+        raise ValueError(f"twist_count must be one of {SUPPORTED_TWIST_COUNTS}")
+    if twist_count == 1:
+        return [(0.0, 0.0)]
+    if twist_count == 4:
+        return [(0.25, 0.25), (0.25, 0.75), (0.75, 0.25), (0.75, 0.75)]
+    return [(_radical_inverse(index, 2), _radical_inverse(index, 3)) for index in range(1, twist_count + 1)]
+
+
+def uniform_bz_mesh_twisted(nk: int, twist_offset: tuple[float, float]) -> np.ndarray:
+    if nk <= 0:
+        raise ValueError("nk must be positive")
+    tau_x, tau_y = twist_offset
+    if not (0.0 <= tau_x < 1.0 and 0.0 <= tau_y < 1.0):
+        raise ValueError("twist offsets must lie in [0, 1)")
+    kx_values = -np.pi + 2.0 * np.pi * (np.arange(nk) + tau_x) / nk
+    ky_values = -np.pi + 2.0 * np.pi * (np.arange(nk) + tau_y) / nk
+    return np.array([(kx, ky) for kx in kx_values for ky in ky_values], dtype=float)
 
 
 def _complex_vector_components(vector: np.ndarray) -> list[dict[str, float | str]]:
@@ -591,6 +625,81 @@ def _finite_mesh_translation_error_audit(
     }
 
 
+def _twist_averaged_normal_response_components(
+    *,
+    nk: int,
+    twist_count: int,
+    config: KuboConfig,
+    q: np.ndarray,
+) -> dict[str, Any]:
+    offsets = twist_offsets(twist_count)
+    response_sums = {name: np.zeros((3, 3), dtype=complex) for name in RESPONSE_NAMES}
+    vector_sums = {
+        "actual_equal_time": np.zeros(3, dtype=complex),
+        "shifted_equal_time_reference": np.zeros(3, dtype=complex),
+        "contact_contraction": np.zeros(3, dtype=complex),
+        "shifted_equal_time_plus_contact": np.zeros(3, dtype=complex),
+        "translation_error": np.zeros(3, dtype=complex),
+        "translation_error_minus_total_residual": np.zeros(3, dtype=complex),
+    }
+    one_photon_max = 0.0
+    second_order_max = 0.0
+
+    for offset in offsets:
+        points = uniform_bz_mesh_twisted(nk, offset)
+        weights = k_weights(points)
+        components = normal_physical_density_current_response_components_imag_axis(points, config, q, weights)
+        equal_time_audit = _normal_equal_time_sum_rule_audit(points, weights, config, q, components)
+        translation_audit = _finite_mesh_translation_error_audit(equal_time_audit, components, config, q)
+        for name in RESPONSE_NAMES:
+            response_sums[name] += components[name]
+        vector_sums["actual_equal_time"] += _vector_from_component_rows(
+            translation_audit["actual_equal_time"]["components"]
+        )
+        vector_sums["shifted_equal_time_reference"] += _vector_from_component_rows(
+            translation_audit["shifted_equal_time_reference"]["components"]
+        )
+        vector_sums["contact_contraction"] += _vector_from_component_rows(
+            translation_audit["contact_contraction"]["components"]
+        )
+        vector_sums["shifted_equal_time_plus_contact"] += _vector_from_component_rows(
+            translation_audit["shifted_equal_time_plus_contact"]["components"]
+        )
+        vector_sums["translation_error"] += _vector_from_component_rows(
+            translation_audit["translation_error"]["components"]
+        )
+        vector_sums["translation_error_minus_total_residual"] += _vector_from_component_rows(
+            translation_audit["translation_error_minus_total_residual"]["components"]
+        )
+        operator_rows = _operator_level_rows(points, q)
+        one_photon_max = max(one_photon_max, max(row["absolute_error_norm"] for row in operator_rows))
+        second_order_audit = _operator_level_second_order_contact_ward(points, q)
+        second_order_max = max(second_order_max, float(second_order_audit["max_absolute_error_norm"]))
+
+    inverse_twist_count = 1.0 / twist_count
+    response_avg = {name: response_sums[name] * inverse_twist_count for name in RESPONSE_NAMES}
+    vector_avg = {name: vector_sums[name] * inverse_twist_count for name in vector_sums}
+    total_left_residual, _ = physical_ward_residuals(response_avg["total"], config.omega_eV, q)
+    vector_avg["translation_error_minus_total_residual"] = (
+        vector_avg["translation_error"] - total_left_residual
+    )
+    return {
+        "diagnostic_only": True,
+        "valid_for_casimir_input": False,
+        "twist_offsets": [[float(x), float(y)] for x, y in offsets],
+        "response_components": response_avg,
+        "actual_equal_time_avg": vector_avg["actual_equal_time"],
+        "shifted_equal_time_reference_avg": vector_avg["shifted_equal_time_reference"],
+        "contact_contraction_avg": vector_avg["contact_contraction"],
+        "shifted_equal_time_plus_contact_avg": vector_avg["shifted_equal_time_plus_contact"],
+        "translation_error_avg": vector_avg["translation_error"],
+        "translation_error_minus_total_residual_avg": vector_avg["translation_error_minus_total_residual"],
+        "total_ward_residual": total_left_residual,
+        "one_photon_peierls_ward_max_absolute_error_norm": float(one_photon_max),
+        "second_order_contact_ward_max_absolute_error_norm": float(second_order_max),
+    }
+
+
 def _normal_equal_time_sum_rule_audit(
     points: np.ndarray,
     weights: np.ndarray,
@@ -850,6 +959,8 @@ def run_normal_finite_q_ward_audit(
     q_values: tuple[float, ...] = (0.001, 0.002, 0.005, 0.01, 0.02),
     q_directions: tuple[str, ...] = ("x", "y", "diagonal"),
     nk_values: tuple[int, ...] = (3,),
+    twist_counts: tuple[int, ...] = (1,),
+    twist_summary_only: bool = False,
     temperature_K: float = 10.0,
     eta_eV: float = 1e-8,
 ) -> dict[str, Any]:
@@ -862,9 +973,14 @@ def run_normal_finite_q_ward_audit(
     unknown_directions = sorted(set(q_directions) - set(DIRECTION_VECTORS))
     if unknown_directions:
         raise ValueError(f"unknown q direction(s): {unknown_directions}")
+    unknown_twist_counts = sorted(set(twist_counts) - set(SUPPORTED_TWIST_COUNTS))
+    if unknown_twist_counts:
+        raise ValueError(f"unsupported twist count(s): {unknown_twist_counts}")
     nk_reports: list[dict[str, Any]] = []
     quadrature_summary_rows: list[dict[str, Any]] = []
     translation_error_summary_rows: list[dict[str, Any]] = []
+    twist_summary_rows: list[dict[str, Any]] = []
+    convergence_items: list[dict[str, Any]] = []
     for nk in nk_values:
         points = uniform_bz_mesh(int(nk))
         weights = k_weights(points)
@@ -900,6 +1016,7 @@ def run_normal_finite_q_ward_audit(
                     config,
                     q,
                 )
+                single_origin_total_left, _ = physical_ward_residuals(components["total"], config.omega_eV, q)
                 shifted_grid_summary = equal_time_audit["shifted_grid_equal_time_sum_rule"]
                 raw_total_residual_norm = shifted_pair_audit["raw_total_ward_residual"]["left_ward_residual_norm"]
                 shifted_pair_total_residual_norm = shifted_pair_audit["shifted_pair_total_ward_residual"][
@@ -973,6 +1090,99 @@ def run_normal_finite_q_ward_audit(
                         ),
                     }
                 )
+                for twist_count in twist_counts:
+                    twist_average = _twist_averaged_normal_response_components(
+                        nk=int(nk),
+                        twist_count=int(twist_count),
+                        config=config,
+                        q=q,
+                    )
+                    twist_response = twist_average["response_components"]
+                    twist_total_residual = np.asarray(twist_average["total_ward_residual"], dtype=complex)
+                    twist_translation_error = np.asarray(
+                        twist_average["translation_error_avg"],
+                        dtype=complex,
+                    )
+                    twist_shifted_plus_contact = np.asarray(
+                        twist_average["shifted_equal_time_plus_contact_avg"],
+                        dtype=complex,
+                    )
+                    twist_translation_minus_total = np.asarray(
+                        twist_average["translation_error_minus_total_residual_avg"],
+                        dtype=complex,
+                    )
+                    twist_summary_rows.append(
+                        {
+                            "diagnostic_only": True,
+                            "valid_for_casimir_input": False,
+                            "nk": int(nk),
+                            "twist_count": int(twist_count),
+                            "q_direction": direction_name,
+                            "q_norm": q_norm,
+                            "temperature_K": float(temperature_K),
+                            "eta_eV": float(eta_eV),
+                            "single_origin_total_residual_norm": float(
+                                finite_mesh_translation_error_audit["total_ward_residual_norm"]
+                            ),
+                            "single_origin_total_residual_over_q_norm": float(
+                                finite_mesh_translation_error_audit["total_ward_residual_over_q_norm"]
+                            ),
+                            "twist_averaged_total_residual_norm": float(np.linalg.norm(twist_total_residual)),
+                            "twist_averaged_total_residual_over_q_norm": float(
+                                np.linalg.norm(twist_total_residual) / q_norm
+                            ),
+                            "twist_averaged_total_residual_over_q2_norm": float(
+                                np.linalg.norm(twist_total_residual) / (q_norm * q_norm)
+                            ),
+                            "single_origin_translation_error_norm": float(
+                                finite_mesh_translation_error_audit["translation_error_norm"]
+                            ),
+                            "twist_averaged_translation_error_norm": float(
+                                np.linalg.norm(twist_translation_error)
+                            ),
+                            "twist_averaged_translation_error_over_q_norm": float(
+                                np.linalg.norm(twist_translation_error) / q_norm
+                            ),
+                            "twist_averaged_shifted_equal_time_plus_contact_norm": float(
+                                np.linalg.norm(twist_shifted_plus_contact)
+                            ),
+                            "twist_averaged_translation_error_minus_total_residual_norm": float(
+                                np.linalg.norm(twist_translation_minus_total)
+                            ),
+                            "twist_averaged_total_response_norm": float(np.linalg.norm(twist_response["total"])),
+                            "twist_averaged_bubble_response_norm": float(np.linalg.norm(twist_response["bubble"])),
+                            "twist_averaged_direct_response_norm": float(np.linalg.norm(twist_response["direct"])),
+                            "twist_avg_minus_single_origin_total_response_norm": float(
+                                np.linalg.norm(twist_response["total"] - components["total"])
+                            ),
+                            "twist_avg_minus_single_origin_current_current_block_norm": float(
+                                np.linalg.norm(twist_response["total"][1:3, 1:3] - components["total"][1:3, 1:3])
+                            ),
+                            "twist_avg_minus_single_origin_total_residual_norm": float(
+                                np.linalg.norm(twist_total_residual - single_origin_total_left)
+                            ),
+                            "one_photon_peierls_ward_max_absolute_error_norm": float(
+                                twist_average["one_photon_peierls_ward_max_absolute_error_norm"]
+                            ),
+                            "second_order_contact_ward_max_absolute_error_norm": float(
+                                twist_average["second_order_contact_ward_max_absolute_error_norm"]
+                            ),
+                        }
+                    )
+                    convergence_items.append(
+                        {
+                            "q_direction": direction_name,
+                            "q_norm": q_norm,
+                            "temperature_K": float(temperature_K),
+                            "eta_eV": float(eta_eV),
+                            "nk": int(nk),
+                            "twist_count": int(twist_count),
+                            "total_response": twist_response["total"],
+                            "current_current_block": twist_response["total"][1:3, 1:3],
+                            "ward_residual": twist_total_residual,
+                            "translation_error": twist_translation_error,
+                        }
+                    )
                 q_reports.append(
                     {
                         "q_direction": direction_name,
@@ -998,9 +1208,56 @@ def run_normal_finite_q_ward_audit(
             {
                 "nk": int(nk),
                 "mesh_size": int(points.shape[0]),
-                "q_reports": q_reports,
+                "q_reports": [] if twist_summary_only else q_reports,
             }
         )
+    convergence_summary_rows: list[dict[str, Any]] = []
+    grouped_items: dict[tuple[str, str, float, float], list[dict[str, Any]]] = {}
+    for item in convergence_items:
+        key = (
+            str(item["q_direction"]),
+            f"{float(item['q_norm']):.16g}",
+            float(item["temperature_K"]),
+            float(item["eta_eV"]),
+        )
+        grouped_items.setdefault(key, []).append(item)
+    for items in grouped_items.values():
+        ordered = sorted(items, key=lambda row: (int(row["nk"]), int(row["twist_count"])))
+        for level_a, level_b in zip(ordered, ordered[1:], strict=False):
+            response_b_norm = float(np.linalg.norm(level_b["total_response"]))
+            block_b_norm = float(np.linalg.norm(level_b["current_current_block"]))
+            convergence_summary_rows.append(
+                {
+                    "diagnostic_only": True,
+                    "valid_for_casimir_input": False,
+                    "level_a": {
+                        "nk": int(level_a["nk"]),
+                        "twist_count": int(level_a["twist_count"]),
+                    },
+                    "level_b": {
+                        "nk": int(level_b["nk"]),
+                        "twist_count": int(level_b["twist_count"]),
+                    },
+                    "q_direction": str(level_b["q_direction"]),
+                    "q_norm": float(level_b["q_norm"]),
+                    "temperature_K": float(level_b["temperature_K"]),
+                    "eta_eV": float(level_b["eta_eV"]),
+                    "response_relative_change_norm": float(
+                        np.linalg.norm(level_b["total_response"] - level_a["total_response"])
+                        / max(response_b_norm, 1e-300)
+                    ),
+                    "current_current_block_relative_change_norm": float(
+                        np.linalg.norm(level_b["current_current_block"] - level_a["current_current_block"])
+                        / max(block_b_norm, 1e-300)
+                    ),
+                    "ward_residual_change_norm": float(
+                        np.linalg.norm(level_b["ward_residual"] - level_a["ward_residual"])
+                    ),
+                    "translation_error_change_norm": float(
+                        np.linalg.norm(level_b["translation_error"] - level_a["translation_error"])
+                    ),
+                }
+            )
     return {
         "audit_name": "normal_finite_q_ward_audit",
         "scope": "diagnostic_only_normal_state_finite_q_ward_residuals",
@@ -1008,6 +1265,8 @@ def run_normal_finite_q_ward_audit(
         "temperature_K": float(temperature_K),
         "eta_eV": float(eta_eV),
         "nk_values": [int(value) for value in nk_values],
+        "twist_counts": [int(value) for value in twist_counts],
+        "twist_summary_only": bool(twist_summary_only),
         "q_values": [float(value) for value in q_values],
         "q_directions": list(q_directions),
         "component_labels": list(WARD_COMPONENT_LABELS),
@@ -1021,12 +1280,26 @@ def run_normal_finite_q_ward_audit(
         "ward_compatible_quadrature_summary": {
             "diagnostic_only": True,
             "valid_for_casimir_input": False,
+            "shifted_pair_response_is_raw_equivalent_diagnostic": True,
+            "deprecated_note": "Retained for backward compatibility; do not treat shifted-pair response as a Ward-compatible quadrature scheme.",
             "rows": quadrature_summary_rows,
         },
         "finite_mesh_translation_error_summary": {
             "diagnostic_only": True,
             "valid_for_casimir_input": False,
             "rows": translation_error_summary_rows,
+        },
+        "twist_averaged_quadrature_summary": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "twist_offset_rule": "twist_count=1 uses (0,0); twist_count=4 uses fixed 2x2 stratified offsets; 8/16/32 use deterministic Halton bases 2 and 3.",
+            "rows": twist_summary_rows,
+        },
+        "twist_averaged_convergence_summary": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "relative_change_definition": "norm(level_b - level_a) / max(norm(level_b), 1e-300)",
+            "rows": convergence_summary_rows,
         },
         "nk_reports": nk_reports,
         "ward_identity_closed": False,
@@ -1046,6 +1319,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--directions", nargs="+", choices=tuple(DIRECTION_VECTORS), default=["x", "y", "diagonal"])
     parser.add_argument("--nk", type=int, default=3, help="Backward-compatible single-nk shortcut.")
     parser.add_argument("--nk-values", nargs="+", type=int)
+    parser.add_argument("--twist-counts", nargs="+", type=int, default=[1])
+    parser.add_argument("--twist-summary-only", action="store_true")
     parser.add_argument("--temperature-K", type=float, default=10.0)
     parser.add_argument("--eta", type=float, default=1e-8)
     parser.add_argument("--json-output", type=Path)
@@ -1056,6 +1331,8 @@ def main(argv: list[str] | None = None) -> int:
         q_values=tuple(args.q_values),
         q_directions=tuple(args.directions),
         nk_values=nk_values,
+        twist_counts=tuple(args.twist_counts),
+        twist_summary_only=bool(args.twist_summary_only),
         temperature_K=args.temperature_K,
         eta_eV=args.eta,
     )
@@ -1064,7 +1341,8 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "normal finite-q Ward audit prepared: "
         f"nk_values={payload['nk_values']}, q_values={payload['q_values']}, "
-        f"directions={payload['q_directions']}, valid_for_casimir_input={payload['valid_for_casimir_input']}"
+        f"directions={payload['q_directions']}, twist_counts={payload['twist_counts']}, "
+        f"valid_for_casimir_input={payload['valid_for_casimir_input']}"
     )
     return 0
 
