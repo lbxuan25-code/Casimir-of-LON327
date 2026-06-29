@@ -14,8 +14,20 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.tb_fourier import peierls_vertex_ward_residual  # noqa: E402
+from lno327.conductivity import (  # noqa: E402
+    KuboConfig,
+    fermi_function,
+    k_weights,
+    negative_fermi_derivative,
+    uniform_bz_mesh,
+)
+from lno327.model import normal_state_hamiltonian  # noqa: E402
+from lno327.tb_fourier import (  # noqa: E402
+    normal_state_hopping_terms,
+    peierls_hamiltonian_contact_vertex,
+    peierls_hamiltonian_vector_vertex,
+    peierls_vertex_ward_residual,
+)
 from lno327.ward_response import (  # noqa: E402
     normal_physical_density_current_response_components_imag_axis,
     physical_ward_residuals,
@@ -50,6 +62,16 @@ def _complex_value(value: complex) -> dict[str, float]:
         "imag": float(np.imag(value)),
         "abs": float(abs(value)),
     }
+
+
+def _component_vector(values: np.ndarray) -> list[dict[str, Any]]:
+    return [
+        {
+            "component": label,
+            **_complex_value(value),
+        }
+        for label, value in zip(WARD_COMPONENT_LABELS, np.asarray(values, dtype=complex), strict=True)
+    ]
 
 
 def _ward_contraction_decomposition(matrix: np.ndarray, omega_eV: float, q: np.ndarray) -> dict[str, Any]:
@@ -177,6 +199,187 @@ def _operator_level_rows(points: np.ndarray, q: np.ndarray) -> list[dict[str, An
     return rows
 
 
+def _normal_equal_time_sum_rule_audit(
+    points: np.ndarray,
+    weights: np.ndarray,
+    config: KuboConfig,
+    q: np.ndarray,
+    components: dict[str, np.ndarray],
+) -> dict[str, Any]:
+    qx, qy = float(q[0]), float(q[1])
+    peierls_terms = normal_state_hopping_terms()
+    rho = np.eye(4, dtype=complex)
+    bubble_equal_time = np.zeros(3, dtype=complex)
+    interband_contribution = np.zeros(3, dtype=complex)
+    intraband_contribution = np.zeros(3, dtype=complex)
+    intraband_finite_q_difference = np.zeros(3, dtype=complex)
+    intraband_fprime_approximation = np.zeros(3, dtype=complex)
+    direct_contact_contraction = np.zeros(3, dtype=complex)
+
+    for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
+        kx = float(kx_value)
+        ky = float(ky_value)
+        h_minus = normal_state_hamiltonian(kx - 0.5 * qx, ky - 0.5 * qy)
+        h_plus = normal_state_hamiltonian(kx + 0.5 * qx, ky + 0.5 * qy)
+        energies_minus, states_minus = np.linalg.eigh(h_minus)
+        energies_plus, states_plus = np.linalg.eigh(h_plus)
+        occupations_minus = fermi_function(
+            energies_minus,
+            config.fermi_level_eV,
+            config.temperature_eV,
+        )
+        occupations_plus = fermi_function(
+            energies_plus,
+            config.fermi_level_eV,
+            config.temperature_eV,
+        )
+
+        vector_x = peierls_hamiltonian_vector_vertex(
+            kx,
+            ky,
+            qx,
+            qy,
+            "x",
+            hopping_terms=peierls_terms,
+        )
+        vector_y = peierls_hamiltonian_vector_vertex(
+            kx,
+            ky,
+            qx,
+            qy,
+            "y",
+            hopping_terms=peierls_terms,
+        )
+        source_vertices = (rho, vector_x, vector_y)
+        rho_band = states_minus.conjugate().T @ rho @ states_plus
+        source_matrices = tuple(states_minus.conjugate().T @ vertex @ states_plus for vertex in source_vertices)
+
+        for m, energy_minus in enumerate(energies_minus):
+            for n, energy_plus in enumerate(energies_plus):
+                occupation_diff = float(occupations_minus[m] - occupations_plus[n])
+                if occupation_diff == 0.0:
+                    continue
+                term = np.array(
+                    [
+                        occupation_diff * rho_band[m, n] * np.conjugate(source_matrix[m, n])
+                        for source_matrix in source_matrices
+                    ],
+                    dtype=complex,
+                )
+                weighted_term = weight * term
+                bubble_equal_time += weighted_term
+                if m == n:
+                    intraband_contribution += weighted_term
+                    intraband_finite_q_difference += weighted_term
+                else:
+                    interband_contribution += weighted_term
+
+        midpoint_energies = 0.5 * (energies_minus + energies_plus)
+        finite_difference_delta = energies_plus - energies_minus
+        fprime_occupation_diff = negative_fermi_derivative(
+            midpoint_energies,
+            config.fermi_level_eV,
+            config.temperature_eV,
+            config.eta_eV,
+        ) * finite_difference_delta
+        for band_index, occupation_diff_approx in enumerate(fprime_occupation_diff):
+            intraband_fprime_approximation += weight * np.array(
+                [
+                    float(occupation_diff_approx)
+                    * rho_band[band_index, band_index]
+                    * np.conjugate(source_matrix[band_index, band_index])
+                    for source_matrix in source_matrices
+                ],
+                dtype=complex,
+            )
+
+        h_midpoint = normal_state_hamiltonian(kx, ky)
+        energies_midpoint, states_midpoint = np.linalg.eigh(h_midpoint)
+        occupations_midpoint = fermi_function(
+            energies_midpoint,
+            config.fermi_level_eV,
+            config.temperature_eV,
+        )
+        for source_index, source_direction in enumerate(("x", "y"), start=1):
+            contraction_value = 0.0j
+            for q_component, observable_direction in ((qx, "x"), (qy, "y")):
+                contact_matrix = peierls_hamiltonian_contact_vertex(
+                    kx,
+                    ky,
+                    qx,
+                    qy,
+                    observable_direction,
+                    source_direction,
+                    hopping_terms=peierls_terms,
+                )
+                band_contact = states_midpoint.conjugate().T @ contact_matrix @ states_midpoint
+                physical_direct_contact = -np.sum(occupations_midpoint * np.diag(band_contact))
+                contraction_value += q_component * physical_direct_contact
+            direct_contact_contraction[source_index] += weight * contraction_value
+
+    total_left_residual, _ = physical_ward_residuals(components["total"], config.omega_eV, q)
+    equal_time_plus_contact = bubble_equal_time + direct_contact_contraction
+    difference_from_total = equal_time_plus_contact - total_left_residual
+    return {
+        "diagnostic_only": True,
+        "valid_for_casimir_input": False,
+        "side": "left_contraction",
+        "component_labels": list(WARD_COMPONENT_LABELS),
+        "bubble_equal_time_term": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": (
+                "Denominator-cancelled left bubble Ward term using the same finite-q band basis, "
+                "source vertices, k weights, and Fermi occupations as the normal bubble."
+            ),
+            "components": _component_vector(bubble_equal_time),
+            "interband_contribution": {
+                "diagnostic_only": True,
+                "valid_for_casimir_input": False,
+                "band_partition": "m != n in the finite-q sorted band labels",
+                "components": _component_vector(interband_contribution),
+            },
+            "intraband_contribution": {
+                "diagnostic_only": True,
+                "valid_for_casimir_input": False,
+                "band_partition": "m == n in the finite-q sorted band labels",
+                "components": _component_vector(intraband_contribution),
+                "finite_q_difference_form": {
+                    "diagnostic_only": True,
+                    "valid_for_casimir_input": False,
+                    "occupation_difference": "f(E_minus[m]) - f(E_plus[m])",
+                    "components": _component_vector(intraband_finite_q_difference),
+                },
+                "fprime_approximation_form": {
+                    "diagnostic_only": True,
+                    "valid_for_casimir_input": False,
+                    "occupation_difference": "(-df/dE at midpoint energy) * (E_plus[m] - E_minus[m])",
+                    "components": _component_vector(intraband_fprime_approximation),
+                },
+            },
+        },
+        "direct_contact_contraction": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": "qx * D[x,nu] + qy * D[y,nu] from the normal direct/contact response.",
+            "components": _component_vector(direct_contact_contraction),
+        },
+        "equal_time_plus_contact": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": "bubble_equal_time_term + direct_contact_contraction",
+            "components": _component_vector(equal_time_plus_contact),
+        },
+        "difference_from_total_ward_residual": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "definition": "equal_time_plus_contact - left_ward_residual(total)",
+            "components": _component_vector(difference_from_total),
+            "norm": float(np.linalg.norm(difference_from_total)),
+        },
+    }
+
+
 def run_normal_finite_q_ward_audit(
     *,
     omega_eV: float = 0.01,
@@ -217,6 +420,13 @@ def run_normal_finite_q_ward_audit(
                         "q_norm": float(np.linalg.norm(q)),
                         "response_level_residuals": response_rows,
                         "longitudinal_current_residual_scaling": _longitudinal_current_scaling(response_rows, q),
+                        "normal_current_equal_time_sum_rule_audit": _normal_equal_time_sum_rule_audit(
+                            points,
+                            weights,
+                            config,
+                            q,
+                            components,
+                        ),
                         "operator_level_peierls_ward": {
                             "residual_kind": "operator_level",
                             "identity": "q_x V_x(k,q) + q_y V_y(k,q) = H(k+q/2)-H(k-q/2)",
