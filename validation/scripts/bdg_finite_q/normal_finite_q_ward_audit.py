@@ -43,9 +43,10 @@ DIRECTION_VECTORS = {
     "diagonal": (1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)),
 }
 SUPPORTED_TWIST_COUNTS = (1, 4, 8, 16, 32)
+SUPPORTED_ACTUAL_TWIST_COUNTS = (4, 8, 12, 16, 24)
 MAX_JSON_SIZE_MB = 50.0
 TARGET_JSON_SIZE_MB = 10.0
-DEFAULT_TEMPERATURE_K = 20.0
+DEFAULT_TEMPERATURE_K = 30.0
 KB_EV_PER_K_LOCAL = 8.617333262145e-5
 PROGRESS_GREEN = "\033[92m"
 PROGRESS_RESET = "\033[0m"
@@ -117,6 +118,30 @@ def twist_offsets(twist_count: int, twist_mode: str = "halton") -> list[tuple[fl
     if twist_mode == "symmetry_paired":
         return _symmetry_paired_offsets(seed_offsets)
     raise ValueError("twist_mode must be 'halton' or 'symmetry_paired'")
+
+
+def actual_twist_offsets(actual_twist_count: int, twist_mode: str = "symmetry_paired") -> list[tuple[float, float]]:
+    if actual_twist_count not in SUPPORTED_ACTUAL_TWIST_COUNTS:
+        raise ValueError(f"actual_twist_count must be one of {SUPPORTED_ACTUAL_TWIST_COUNTS}")
+    if twist_mode == "halton":
+        return [(_radical_inverse(index, 2), _radical_inverse(index, 3)) for index in range(1, actual_twist_count + 1)]
+    if twist_mode != "symmetry_paired":
+        raise ValueError("twist_mode must be 'halton' or 'symmetry_paired'")
+    offsets: list[tuple[float, float]] = []
+    seen: set[tuple[float, float]] = set()
+    seed_index = 1
+    while len(offsets) < actual_twist_count:
+        orbit = _symmetry_paired_offsets([(_radical_inverse(seed_index, 2), _radical_inverse(seed_index, 3))])
+        new_orbit = [pair for pair in orbit if pair not in seen]
+        if len(offsets) + len(new_orbit) > actual_twist_count:
+            raise ValueError(
+                f"cannot construct exactly {actual_twist_count} symmetry-paired twists from whole deterministic orbits"
+            )
+        for pair in new_orbit:
+            seen.add(pair)
+            offsets.append(pair)
+        seed_index += 1
+    return offsets
 
 
 def uniform_bz_mesh_twisted(nk: int, twist_offset: tuple[float, float]) -> np.ndarray:
@@ -517,6 +542,7 @@ def _adaptive_refined_quadrature(
     q: np.ndarray,
     refine_level: int,
     fs_window_factor: float,
+    adaptive_mode: str,
     cache: SpectralCache,
     profiler: RuntimeProfiler,
 ) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
@@ -535,6 +561,7 @@ def _adaptive_refined_quadrature(
             "effective_total_nodes": int(base_points.shape[0]),
             "number_of_unrefined_parent_cells": int(base_points.shape[0]),
             "number_of_refined_parent_cells": 0,
+            "number_of_q_partner_refined_cells": 0,
             "children_per_refined_cell": 0,
             "parent_cell_weight": parent_cell_weight,
             "refined_child_weight": 0.0,
@@ -543,6 +570,8 @@ def _adaptive_refined_quadrature(
             "adaptive_quadrature_rule": (
                 "unrefined parent cells use one representative node with the full parent cell weight"
             ),
+            "adaptive_mode": adaptive_mode,
+            "q_covariant_partner_rule": "not_applied_for_refine_level_0",
             "fs_window_eV": _fs_window_eV(config, q, fs_window_factor),
             "vf_estimate_note": "placeholder_vF_estimate_1_model_unit_used_for_diagnostic_only",
         }
@@ -552,18 +581,33 @@ def _adaptive_refined_quadrature(
     quadrature_weights: list[float] = []
     refined_node_count = 0
     refined_parent_count = 0
+    q_partner_refined_count = 0
     unrefined_parent_count = 0
     offsets_1d = (np.arange(2**refine_level) + 0.5) / (2**refine_level) - 0.5
     children_per_refined_cell = int(len(offsets_1d) * len(offsets_1d))
     refined_child_weight = parent_cell_weight / children_per_refined_cell
     for kx, ky in base_points:
         energies, _, _ = cache.eigensystem(float(kx), float(ky), config, profiler)
-        if float(np.min(np.abs(energies - config.fermi_level_eV))) >= window:
+        center_trigger = float(np.min(np.abs(energies - config.fermi_level_eV))) < window
+        partner_trigger = False
+        if adaptive_mode == "q_covariant":
+            for partner_kx, partner_ky in (
+                (float(kx + 0.5 * q[0]), float(ky + 0.5 * q[1])),
+                (float(kx - 0.5 * q[0]), float(ky - 0.5 * q[1])),
+            ):
+                partner_energies, _, _ = cache.eigensystem(partner_kx, partner_ky, config, profiler)
+                if float(np.min(np.abs(partner_energies - config.fermi_level_eV))) < window:
+                    partner_trigger = True
+                    break
+        should_refine = center_trigger or partner_trigger
+        if not should_refine:
             quadrature_points.append((float(kx), float(ky)))
             quadrature_weights.append(parent_cell_weight)
             unrefined_parent_count += 1
             continue
         refined_parent_count += 1
+        if partner_trigger and not center_trigger:
+            q_partner_refined_count += 1
         child_weight_sum = 0.0
         for dx in offsets_1d:
             for dy in offsets_1d:
@@ -587,6 +631,7 @@ def _adaptive_refined_quadrature(
         "effective_total_nodes": int(points.shape[0]),
         "number_of_unrefined_parent_cells": int(unrefined_parent_count),
         "number_of_refined_parent_cells": int(refined_parent_count),
+        "number_of_q_partner_refined_cells": int(q_partner_refined_count),
         "children_per_refined_cell": int(children_per_refined_cell),
         "parent_cell_weight": float(parent_cell_weight),
         "refined_child_weight": float(refined_child_weight),
@@ -595,6 +640,10 @@ def _adaptive_refined_quadrature(
         "adaptive_quadrature_rule": (
             "refined parent cells are replaced by subcell quadrature nodes; "
             "parent and children are not double-counted"
+        ),
+        "adaptive_mode": adaptive_mode,
+        "q_covariant_partner_rule": (
+            "refine a parent cell if the midpoint k or either q-related point k+q/2, k-q/2 lies in the FS window"
         ),
         "fs_window_eV": window,
         "vf_estimate_note": "placeholder_vF_estimate_1_model_unit_used_for_diagnostic_only",
@@ -655,6 +704,7 @@ def _compact_summary_row(
         "abs_weight_sum_minus_one": float(node_counts.get("abs_weight_sum_minus_one", 0.0)),
         "number_of_unrefined_parent_cells": int(node_counts.get("number_of_unrefined_parent_cells", 0)),
         "number_of_refined_parent_cells": int(node_counts.get("number_of_refined_parent_cells", 0)),
+        "number_of_q_partner_refined_cells": int(node_counts.get("number_of_q_partner_refined_cells", 0)),
         "children_per_refined_cell": int(node_counts.get("children_per_refined_cell", 0)),
         "parent_cell_weight": float(node_counts.get("parent_cell_weight", 0.0)),
         "refined_child_weight": float(node_counts.get("refined_child_weight", 0.0)),
@@ -678,7 +728,9 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
         q_value,
         direction,
         twist_counts,
+        use_actual_twist_counts,
         twist_mode,
+        adaptive_mode,
         adaptive_refine_levels,
         fs_window_factor,
         omega_eV,
@@ -698,7 +750,11 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
     adaptive_rows: list[dict[str, Any]] = []
     convergence_items: list[dict[str, Any]] = []
     for twist_count in twist_counts:
-        offsets = twist_offsets(int(twist_count), twist_mode)
+        offsets = (
+            actual_twist_offsets(int(twist_count), twist_mode)
+            if use_actual_twist_counts
+            else twist_offsets(int(twist_count), twist_mode)
+        )
         evaluations = []
         total_base_nodes = 0
         for offset in offsets:
@@ -723,7 +779,14 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
             evaluation=averaged,
         )
         row["requested_twist_count"] = int(twist_count)
+        row["requested_actual_twist_count"] = int(twist_count) if use_actual_twist_counts else int(len(offsets))
         row["actual_twist_count"] = int(len(offsets))
+        row["twist_offset_rule"] = (
+            "actual_twist_count deterministic symmetry-paired orbits"
+            if use_actual_twist_counts and twist_mode == "symmetry_paired"
+            else "legacy seed twist count expansion"
+        )
+        row["adaptive_mode"] = "none"
         row["temperature_K"] = float(temperature_K)
         row["eta_eV"] = float(eta_eV)
         twist_rows.append(row)
@@ -739,9 +802,10 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
                 "current_current_block": averaged["response_components"]["total"][1:3, 1:3],
                 "ward_residual": averaged["total_ward_residual"],
                 "translation_error": averaged["translation_error"],
+                "effective_total_nodes": int(total_base_nodes),
             }
         )
-        for refine_level in adaptive_refine_levels:
+        for refine_level in (() if adaptive_mode == "none" else adaptive_refine_levels):
             adaptive_evaluations = []
             total_counts = {
                 "number_of_base_nodes": 0,
@@ -749,6 +813,7 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
                 "effective_total_nodes": 0,
                 "number_of_unrefined_parent_cells": 0,
                 "number_of_refined_parent_cells": 0,
+                "number_of_q_partner_refined_cells": 0,
                 "children_per_refined_cell": 0,
                 "parent_cell_weight": 0.0,
                 "refined_child_weight": 0.0,
@@ -764,6 +829,7 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
                     q,
                     int(refine_level),
                     float(fs_window_factor),
+                    adaptive_mode,
                     cache,
                     profiler,
                 )
@@ -773,6 +839,7 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
                     "effective_total_nodes",
                     "number_of_unrefined_parent_cells",
                     "number_of_refined_parent_cells",
+                    "number_of_q_partner_refined_cells",
                 ):
                     total_counts[key] += int(counts[key])
                 total_counts["children_per_refined_cell"] = int(counts["children_per_refined_cell"])
@@ -802,7 +869,14 @@ def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
                 evaluation=averaged_adaptive,
             )
             adaptive_row["requested_twist_count"] = int(twist_count)
+            adaptive_row["requested_actual_twist_count"] = int(twist_count) if use_actual_twist_counts else int(len(offsets))
             adaptive_row["actual_twist_count"] = int(len(offsets))
+            adaptive_row["twist_offset_rule"] = (
+                "actual_twist_count deterministic symmetry-paired orbits"
+                if use_actual_twist_counts and twist_mode == "symmetry_paired"
+                else "legacy seed twist count expansion"
+            )
+            adaptive_row["adaptive_mode"] = adaptive_mode
             adaptive_row["temperature_K"] = float(temperature_K)
             adaptive_row["eta_eV"] = float(eta_eV)
             adaptive_row["fs_window_factor"] = float(fs_window_factor)
@@ -1581,6 +1655,10 @@ def _convergence_summary_from_items(convergence_items: list[dict[str, Any]]) -> 
                     "translation_error_change_norm": float(
                         np.linalg.norm(level_b["translation_error"] - level_a["translation_error"])
                     ),
+                    "cost_ratio_effective_nodes": float(
+                        int(level_b.get("effective_total_nodes", 0))
+                        / max(int(level_a.get("effective_total_nodes", 0)), 1)
+                    ),
                 }
             )
     return convergence_summary_rows
@@ -1593,7 +1671,9 @@ def run_compact_summary_audit(
     q_directions: tuple[str, ...],
     nk_values: tuple[int, ...],
     twist_counts: tuple[int, ...],
+    actual_twist_counts: tuple[int, ...] | None,
     twist_mode: str,
+    adaptive_mode: str,
     adaptive_refine_levels: tuple[int, ...],
     fs_window_factor: float,
     temperature_K: float,
@@ -1605,11 +1685,20 @@ def run_compact_summary_audit(
     unknown_directions = sorted(set(q_directions) - set(DIRECTION_VECTORS))
     if unknown_directions:
         raise ValueError(f"unknown q direction(s): {unknown_directions}")
-    unknown_twist_counts = sorted(set(twist_counts) - set(SUPPORTED_TWIST_COUNTS))
-    if unknown_twist_counts:
-        raise ValueError(f"unsupported twist count(s): {unknown_twist_counts}")
+    use_actual_twist_counts = actual_twist_counts is not None
+    requested_twist_counts = actual_twist_counts if actual_twist_counts is not None else twist_counts
+    if use_actual_twist_counts:
+        unknown_actual_twist_counts = sorted(set(requested_twist_counts) - set(SUPPORTED_ACTUAL_TWIST_COUNTS))
+        if unknown_actual_twist_counts:
+            raise ValueError(f"unsupported actual twist count(s): {unknown_actual_twist_counts}")
+    else:
+        unknown_twist_counts = sorted(set(requested_twist_counts) - set(SUPPORTED_TWIST_COUNTS))
+        if unknown_twist_counts:
+            raise ValueError(f"unsupported twist count(s): {unknown_twist_counts}")
     if twist_mode not in {"halton", "symmetry_paired"}:
         raise ValueError("twist_mode must be 'halton' or 'symmetry_paired'")
+    if adaptive_mode not in {"none", "q_covariant"}:
+        raise ValueError("adaptive_mode must be 'none' or 'q_covariant'")
 
     tasks = [
         (
@@ -1617,8 +1706,10 @@ def run_compact_summary_audit(
             direction_name,
             float(q_value),
             DIRECTION_VECTORS[direction_name],
-            tuple(int(value) for value in twist_counts),
+            tuple(int(value) for value in requested_twist_counts),
+            bool(use_actual_twist_counts),
             twist_mode,
+            adaptive_mode,
             tuple(int(value) for value in adaptive_refine_levels),
             float(fs_window_factor),
             float(omega_eV),
@@ -1676,7 +1767,9 @@ def run_compact_summary_audit(
         "q_values": [float(value) for value in q_values],
         "q_directions": list(q_directions),
         "twist_counts": [int(value) for value in twist_counts],
+        "actual_twist_counts": [int(value) for value in actual_twist_counts] if actual_twist_counts is not None else None,
         "twist_mode": twist_mode,
+        "adaptive_mode": adaptive_mode,
         "adaptive_refine_levels": [int(value) for value in adaptive_refine_levels],
         "component_labels": list(WARD_COMPONENT_LABELS),
         "twist_averaged_quadrature_summary": {
@@ -2105,7 +2198,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--nk", type=int, default=3, help="Backward-compatible single-nk shortcut.")
     parser.add_argument("--nk-values", nargs="+", type=int)
     parser.add_argument("--twist-counts", nargs="+", type=int, default=[1])
+    parser.add_argument("--actual-twist-counts", nargs="+", type=int)
     parser.add_argument("--twist-mode", choices=("halton", "symmetry_paired"), default="symmetry_paired")
+    parser.add_argument("--adaptive-mode", choices=("none", "q_covariant"), default="none")
     parser.add_argument("--adaptive-refine-levels", nargs="+", type=int, default=[0])
     parser.add_argument("--fs-window-factor", type=float, default=5.0)
     parser.add_argument("--workers", type=int, default=1)
@@ -2125,7 +2220,9 @@ def main(argv: list[str] | None = None) -> int:
             q_directions=tuple(args.directions),
             nk_values=nk_values,
             twist_counts=tuple(args.twist_counts),
+            actual_twist_counts=tuple(args.actual_twist_counts) if args.actual_twist_counts is not None else None,
             twist_mode=args.twist_mode,
+            adaptive_mode=args.adaptive_mode,
             adaptive_refine_levels=tuple(args.adaptive_refine_levels),
             fs_window_factor=args.fs_window_factor,
             temperature_K=args.temperature_K,
