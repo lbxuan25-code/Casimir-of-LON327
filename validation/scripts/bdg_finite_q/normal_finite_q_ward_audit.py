@@ -74,6 +74,11 @@ def _component_vector(values: np.ndarray) -> list[dict[str, Any]]:
     ]
 
 
+def _complex_matrix_entries(matrix: np.ndarray) -> list[list[dict[str, float]]]:
+    array = np.asarray(matrix, dtype=complex)
+    return [[_complex_value(value) for value in row] for row in array]
+
+
 def _ward_contraction_decomposition(matrix: np.ndarray, omega_eV: float, q: np.ndarray) -> dict[str, Any]:
     response = np.asarray(matrix, dtype=complex)
     qx, qy = float(q[0]), float(q[1])
@@ -197,6 +202,124 @@ def _operator_level_rows(points: np.ndarray, q: np.ndarray) -> list[dict[str, An
             }
         )
     return rows
+
+
+def _operator_level_second_order_contact_ward(points: np.ndarray, q: np.ndarray) -> dict[str, Any]:
+    qx, qy = float(q[0]), float(q[1])
+    peierls_terms = normal_state_hopping_terms()
+    rows: list[dict[str, Any]] = []
+    max_absolute_error = -1.0
+    max_relative_error = -1.0
+    max_error_k_model: list[float] | None = None
+    max_error_component = ""
+
+    for kx_value, ky_value in points:
+        kx = float(kx_value)
+        ky = float(ky_value)
+        component_rows: list[dict[str, Any]] = []
+        for component_label, source_direction in (("current_x", "x"), ("current_y", "y")):
+            implemented_contact_contraction = np.zeros((4, 4), dtype=complex)
+            hessian_q0_reference = np.zeros((4, 4), dtype=complex)
+            for q_component, observable_direction in ((qx, "x"), (qy, "y")):
+                implemented_contact_contraction += q_component * peierls_hamiltonian_contact_vertex(
+                    kx,
+                    ky,
+                    qx,
+                    qy,
+                    observable_direction,
+                    source_direction,
+                    hopping_terms=peierls_terms,
+                )
+                hessian_q0_reference += q_component * peierls_hamiltonian_contact_vertex(
+                    kx,
+                    ky,
+                    0.0,
+                    0.0,
+                    observable_direction,
+                    source_direction,
+                    hopping_terms=peierls_terms,
+                )
+
+            finite_difference_current_vertex_reference = peierls_hamiltonian_vector_vertex(
+                kx + 0.5 * qx,
+                ky + 0.5 * qy,
+                qx,
+                qy,
+                source_direction,
+                hopping_terms=peierls_terms,
+            ) - peierls_hamiltonian_vector_vertex(
+                kx - 0.5 * qx,
+                ky - 0.5 * qy,
+                qx,
+                qy,
+                source_direction,
+                hopping_terms=peierls_terms,
+            )
+            residual_vs_finite_difference = (
+                implemented_contact_contraction - finite_difference_current_vertex_reference
+            )
+            residual_vs_hessian_q0 = implemented_contact_contraction - hessian_q0_reference
+            absolute_error = float(np.linalg.norm(residual_vs_finite_difference))
+            reference_norm = float(np.linalg.norm(finite_difference_current_vertex_reference))
+            relative_error = absolute_error / max(reference_norm, 1e-300)
+            if absolute_error > max_absolute_error:
+                max_absolute_error = absolute_error
+                max_error_k_model = [kx, ky]
+                max_error_component = component_label
+            max_relative_error = max(max_relative_error, relative_error)
+            component_rows.append(
+                {
+                    "component": component_label,
+                    "implemented_contact_contraction": _complex_matrix_entries(
+                        implemented_contact_contraction
+                    ),
+                    "finite_difference_current_vertex_reference": _complex_matrix_entries(
+                        finite_difference_current_vertex_reference
+                    ),
+                    "hessian_q0_reference": _complex_matrix_entries(hessian_q0_reference),
+                    "residual_vs_finite_difference_reference": {
+                        "matrix": _complex_matrix_entries(residual_vs_finite_difference),
+                        "norm": absolute_error,
+                        "reference_norm": reference_norm,
+                        "relative_error_norm": float(relative_error),
+                    },
+                    "residual_vs_hessian_q0_reference": {
+                        "matrix": _complex_matrix_entries(residual_vs_hessian_q0),
+                        "norm": float(np.linalg.norm(residual_vs_hessian_q0)),
+                        "reference_norm": float(np.linalg.norm(hessian_q0_reference)),
+                    },
+                }
+            )
+        rows.append(
+            {
+                "k_model": [kx, ky],
+                "components": component_rows,
+            }
+        )
+
+    return {
+        "diagnostic_only": True,
+        "valid_for_casimir_input": False,
+        "residual_kind": "operator_level",
+        "identity": (
+            "Hamiltonian Peierls convention check: "
+            "q_i M_ij(k,q) = V_j(k+q/2,q) - V_j(k-q/2,q). "
+            "The physical current is -V_j, so this block tracks the implemented "
+            "Hamiltonian contact/source-vertex convention without changing response formulas."
+        ),
+        "implemented_contact_contraction": "qx * M[x,j](k,q) + qy * M[y,j](k,q)",
+        "finite_difference_current_vertex_reference": "V_j(k+q/2,q) - V_j(k-q/2,q)",
+        "hessian_q0_reference": "qx * M[x,j](k,0) + qy * M[y,j](k,0)",
+        "residual_vs_finite_difference_reference": (
+            "implemented_contact_contraction - finite_difference_current_vertex_reference"
+        ),
+        "residual_vs_hessian_q0_reference": "implemented_contact_contraction - hessian_q0_reference",
+        "max_absolute_error_norm": float(max_absolute_error),
+        "max_relative_error_norm": float(max_relative_error),
+        "max_error_k_model": max_error_k_model,
+        "max_error_component": max_error_component,
+        "per_k_residuals": rows,
+    }
 
 
 def _normal_equal_time_sum_rule_audit(
@@ -434,6 +557,10 @@ def run_normal_finite_q_ward_audit(
                             "max_relative_error_norm": float(max(row["relative_error_norm"] for row in operator_rows)),
                             "per_k_residuals": operator_rows,
                         },
+                        "operator_level_second_order_contact_ward": _operator_level_second_order_contact_ward(
+                            points,
+                            q,
+                        ),
                     }
                 )
         nk_reports.append(
