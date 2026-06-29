@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ProcessPoolExecutor
 import json
 from pathlib import Path
 import sys
+import time
 from typing import Any
 
 import numpy as np
@@ -41,6 +43,10 @@ DIRECTION_VECTORS = {
     "diagonal": (1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)),
 }
 SUPPORTED_TWIST_COUNTS = (1, 4, 8, 16, 32)
+MAX_JSON_SIZE_MB = 50.0
+TARGET_JSON_SIZE_MB = 10.0
+DEFAULT_TEMPERATURE_K = 20.0
+KB_EV_PER_K_LOCAL = 8.617333262145e-5
 
 
 def _radical_inverse(index: int, base: int) -> float:
@@ -55,14 +61,42 @@ def _radical_inverse(index: int, base: int) -> float:
     return value
 
 
-def twist_offsets(twist_count: int) -> list[tuple[float, float]]:
+def _wrap_unit(value: float) -> float:
+    return float(value % 1.0)
+
+
+def _symmetry_paired_offsets(seed_offsets: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    offsets: list[tuple[float, float]] = []
+    seen: set[tuple[float, float]] = set()
+    for tau_x, tau_y in seed_offsets:
+        candidates = (
+            (tau_x, tau_y),
+            (1.0 - tau_x, 1.0 - tau_y),
+            (tau_y, tau_x),
+            (1.0 - tau_y, 1.0 - tau_x),
+        )
+        for candidate_x, candidate_y in candidates:
+            pair = (round(_wrap_unit(candidate_x), 15), round(_wrap_unit(candidate_y), 15))
+            if pair not in seen:
+                seen.add(pair)
+                offsets.append(pair)
+    return offsets
+
+
+def twist_offsets(twist_count: int, twist_mode: str = "halton") -> list[tuple[float, float]]:
     if twist_count not in SUPPORTED_TWIST_COUNTS:
         raise ValueError(f"twist_count must be one of {SUPPORTED_TWIST_COUNTS}")
     if twist_count == 1:
-        return [(0.0, 0.0)]
-    if twist_count == 4:
-        return [(0.25, 0.25), (0.25, 0.75), (0.75, 0.25), (0.75, 0.75)]
-    return [(_radical_inverse(index, 2), _radical_inverse(index, 3)) for index in range(1, twist_count + 1)]
+        seed_offsets = [(0.0, 0.0)]
+    elif twist_count == 4:
+        seed_offsets = [(0.25, 0.25), (0.25, 0.75), (0.75, 0.25), (0.75, 0.75)]
+    else:
+        seed_offsets = [(_radical_inverse(index, 2), _radical_inverse(index, 3)) for index in range(1, twist_count + 1)]
+    if twist_mode == "halton":
+        return seed_offsets
+    if twist_mode == "symmetry_paired":
+        return _symmetry_paired_offsets(seed_offsets)
+    raise ValueError("twist_mode must be 'halton' or 'symmetry_paired'")
 
 
 def uniform_bz_mesh_twisted(nk: int, twist_offset: tuple[float, float]) -> np.ndarray:
@@ -239,6 +273,456 @@ def _ward_residual_payload(matrix: np.ndarray, omega_eV: float, q: np.ndarray) -
         "left_ward_residual_over_q2": _component_vector(left / (q_norm * q_norm)),
         "left_ward_residual_over_q_norm": float(left_norm / q_norm),
         "left_ward_residual_over_q2_norm": float(left_norm / (q_norm * q_norm)),
+    }
+
+
+class RuntimeProfiler:
+    def __init__(self) -> None:
+        self.diagonalization_time_seconds = 0.0
+        self.vertex_time_seconds = 0.0
+        self.response_accumulation_time_seconds = 0.0
+        self.adaptive_refinement_time_seconds = 0.0
+        self.json_write_time_seconds = 0.0
+
+    def merge(self, other: "RuntimeProfiler") -> None:
+        self.diagonalization_time_seconds += other.diagonalization_time_seconds
+        self.vertex_time_seconds += other.vertex_time_seconds
+        self.response_accumulation_time_seconds += other.response_accumulation_time_seconds
+        self.adaptive_refinement_time_seconds += other.adaptive_refinement_time_seconds
+        self.json_write_time_seconds += other.json_write_time_seconds
+
+
+class SpectralCache:
+    def __init__(self) -> None:
+        self.eigensystem_cache: dict[tuple[float, float, float, float, float], tuple[np.ndarray, np.ndarray, np.ndarray]] = {}
+        self.vector_vertex_cache: dict[tuple[float, float, float, float, str], np.ndarray] = {}
+        self.contact_vertex_cache: dict[tuple[float, float, float, float, str, str], np.ndarray] = {}
+        self.cache_hits = 0
+        self.cache_misses = 0
+        self.hopping_terms = normal_state_hopping_terms()
+
+    @staticmethod
+    def _float_key(value: float) -> float:
+        return round(float(value), 14)
+
+    def eigensystem(self, kx: float, ky: float, config: KuboConfig, profiler: RuntimeProfiler) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        key = (
+            self._float_key(kx),
+            self._float_key(ky),
+            self._float_key(config.fermi_level_eV),
+            self._float_key(config.temperature_eV),
+            self._float_key(config.eta_eV),
+        )
+        if key in self.eigensystem_cache:
+            self.cache_hits += 1
+            return self.eigensystem_cache[key]
+        self.cache_misses += 1
+        start = time.perf_counter()
+        energies, states = np.linalg.eigh(normal_state_hamiltonian(kx, ky))
+        occupations = fermi_function(energies, config.fermi_level_eV, config.temperature_eV)
+        profiler.diagonalization_time_seconds += time.perf_counter() - start
+        self.eigensystem_cache[key] = (energies, states, occupations)
+        return energies, states, occupations
+
+    def vector_vertex(self, kx: float, ky: float, q: np.ndarray, direction: str, profiler: RuntimeProfiler) -> np.ndarray:
+        key = (
+            self._float_key(kx),
+            self._float_key(ky),
+            self._float_key(q[0]),
+            self._float_key(q[1]),
+            direction,
+        )
+        if key in self.vector_vertex_cache:
+            self.cache_hits += 1
+            return self.vector_vertex_cache[key]
+        self.cache_misses += 1
+        start = time.perf_counter()
+        vertex = peierls_hamiltonian_vector_vertex(
+            kx,
+            ky,
+            float(q[0]),
+            float(q[1]),
+            direction,
+            hopping_terms=self.hopping_terms,
+        )
+        profiler.vertex_time_seconds += time.perf_counter() - start
+        self.vector_vertex_cache[key] = vertex
+        return vertex
+
+    def contact_vertex(self, kx: float, ky: float, q: np.ndarray, direction_i: str, direction_j: str, profiler: RuntimeProfiler) -> np.ndarray:
+        key = (
+            self._float_key(kx),
+            self._float_key(ky),
+            self._float_key(q[0]),
+            self._float_key(q[1]),
+            direction_i,
+            direction_j,
+        )
+        if key in self.contact_vertex_cache:
+            self.cache_hits += 1
+            return self.contact_vertex_cache[key]
+        self.cache_misses += 1
+        start = time.perf_counter()
+        vertex = peierls_hamiltonian_contact_vertex(
+            kx,
+            ky,
+            float(q[0]),
+            float(q[1]),
+            direction_i,
+            direction_j,
+            hopping_terms=self.hopping_terms,
+        )
+        profiler.vertex_time_seconds += time.perf_counter() - start
+        self.contact_vertex_cache[key] = vertex
+        return vertex
+
+
+def _cached_normal_components_and_translation(
+    points: np.ndarray,
+    weights: np.ndarray,
+    config: KuboConfig,
+    q: np.ndarray,
+    cache: SpectralCache,
+    profiler: RuntimeProfiler,
+) -> dict[str, Any]:
+    qx, qy = float(q[0]), float(q[1])
+    rho = np.eye(4, dtype=complex)
+    bubble = np.zeros((3, 3), dtype=complex)
+    direct = np.zeros((3, 3), dtype=complex)
+    actual_equal_time = np.zeros(3, dtype=complex)
+    shifted_equal_time_reference = np.zeros(3, dtype=complex)
+    contact_contraction = np.zeros(3, dtype=complex)
+
+    for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
+        start = time.perf_counter()
+        kx = float(kx_value)
+        ky = float(ky_value)
+        energies_minus, states_minus, occupations_minus = cache.eigensystem(
+            kx - 0.5 * qx,
+            ky - 0.5 * qy,
+            config,
+            profiler,
+        )
+        energies_plus, states_plus, occupations_plus = cache.eigensystem(
+            kx + 0.5 * qx,
+            ky + 0.5 * qy,
+            config,
+            profiler,
+        )
+        energies_midpoint, states_midpoint, occupations_midpoint = cache.eigensystem(kx, ky, config, profiler)
+        vector_x = cache.vector_vertex(kx, ky, q, "x", profiler)
+        vector_y = cache.vector_vertex(kx, ky, q, "y", profiler)
+        observable_vertices = (rho, -vector_x, -vector_y)
+        source_vertices = (rho, vector_x, vector_y)
+        observable_matrices = tuple(
+            states_minus.conjugate().T @ vertex @ states_plus for vertex in observable_vertices
+        )
+        source_matrices = tuple(states_minus.conjugate().T @ vertex @ states_plus for vertex in source_vertices)
+        rho_band = states_minus.conjugate().T @ rho @ states_plus
+        for m, energy_minus in enumerate(energies_minus):
+            for n, energy_plus in enumerate(energies_plus):
+                occupation_diff = float(occupations_minus[m] - occupations_plus[n])
+                if occupation_diff == 0.0:
+                    continue
+                denominator = 1j * config.omega_eV + float(energy_minus - energy_plus)
+                factor = occupation_diff / denominator
+                for mu, observable_matrix in enumerate(observable_matrices):
+                    for nu, source_matrix in enumerate(source_matrices):
+                        bubble[mu, nu] += (
+                            weight
+                            * factor
+                            * observable_matrix[m, n]
+                            * np.conjugate(source_matrix[m, n])
+                        )
+                actual_equal_time += weight * np.array(
+                    [
+                        occupation_diff * rho_band[m, n] * np.conjugate(source_matrix[m, n])
+                        for source_matrix in source_matrices
+                    ],
+                    dtype=complex,
+                )
+        for source_index, source_direction in enumerate(("x", "y"), start=1):
+            shifted_vertex_reference = cache.vector_vertex(
+                kx + 0.5 * qx,
+                ky + 0.5 * qy,
+                q,
+                source_direction,
+                profiler,
+            ) - cache.vector_vertex(
+                kx - 0.5 * qx,
+                ky - 0.5 * qy,
+                q,
+                source_direction,
+                profiler,
+            )
+            band_shifted_reference = states_midpoint.conjugate().T @ shifted_vertex_reference @ states_midpoint
+            shifted_equal_time_reference[source_index] += weight * np.sum(
+                occupations_midpoint * np.diag(band_shifted_reference)
+            )
+        for i, direction_i in enumerate(("x", "y")):
+            for j, direction_j in enumerate(("x", "y")):
+                contact_matrix = cache.contact_vertex(kx, ky, q, direction_i, direction_j, profiler)
+                band_contact = states_midpoint.conjugate().T @ contact_matrix @ states_midpoint
+                physical_direct_contact = -np.sum(occupations_midpoint * np.diag(band_contact))
+                direct[1 + i, 1 + j] += weight * physical_direct_contact
+                contact_contraction[1 + j] += weight * (qx if direction_i == "x" else qy) * physical_direct_contact
+        profiler.response_accumulation_time_seconds += time.perf_counter() - start
+    total = bubble + direct
+    total_residual, _ = physical_ward_residuals(total, config.omega_eV, q)
+    shifted_equal_time_plus_contact = shifted_equal_time_reference + contact_contraction
+    translation_error = actual_equal_time - shifted_equal_time_reference
+    return {
+        "response_components": {"bubble": bubble, "direct": direct, "total": total},
+        "actual_equal_time": actual_equal_time,
+        "shifted_equal_time_reference": shifted_equal_time_reference,
+        "contact_contraction": contact_contraction,
+        "shifted_equal_time_plus_contact": shifted_equal_time_plus_contact,
+        "translation_error": translation_error,
+        "translation_error_minus_total_residual": translation_error - total_residual,
+        "total_ward_residual": total_residual,
+    }
+
+
+def _fs_window_eV(config: KuboConfig, q: np.ndarray, fs_window_factor: float) -> float:
+    thermal = fs_window_factor * config.temperature_eV
+    vf_placeholder = 1.0
+    vq_placeholder = vf_placeholder * float(np.linalg.norm(q))
+    return max(thermal, vq_placeholder, config.eta_eV, 1e-5)
+
+
+def _adaptive_refined_mesh(
+    nk: int,
+    twist_offset: tuple[float, float],
+    config: KuboConfig,
+    q: np.ndarray,
+    refine_level: int,
+    fs_window_factor: float,
+    cache: SpectralCache,
+    profiler: RuntimeProfiler,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    start = time.perf_counter()
+    base_points = uniform_bz_mesh_twisted(nk, twist_offset)
+    if refine_level <= 0:
+        profiler.adaptive_refinement_time_seconds += time.perf_counter() - start
+        return base_points, {
+            "number_of_base_nodes": int(base_points.shape[0]),
+            "number_of_refined_nodes": 0,
+            "effective_total_nodes": int(base_points.shape[0]),
+            "fs_window_eV": _fs_window_eV(config, q, fs_window_factor),
+            "vf_estimate_note": "placeholder_vF_estimate_1_model_unit_used_for_diagnostic_only",
+        }
+    window = _fs_window_eV(config, q, fs_window_factor)
+    cell_step = 2.0 * np.pi / nk
+    refined_points: list[tuple[float, float]] = []
+    offsets_1d = (np.arange(2**refine_level) + 0.5) / (2**refine_level) - 0.5
+    for kx, ky in base_points:
+        energies, _, _ = cache.eigensystem(float(kx), float(ky), config, profiler)
+        if float(np.min(np.abs(energies - config.fermi_level_eV))) >= window:
+            continue
+        for dx in offsets_1d:
+            for dy in offsets_1d:
+                refined_points.append((float(kx + dx * cell_step), float(ky + dy * cell_step)))
+    if refined_points:
+        points = np.vstack([base_points, np.asarray(refined_points, dtype=float)])
+    else:
+        points = base_points
+    profiler.adaptive_refinement_time_seconds += time.perf_counter() - start
+    return points, {
+        "number_of_base_nodes": int(base_points.shape[0]),
+        "number_of_refined_nodes": int(len(refined_points)),
+        "effective_total_nodes": int(points.shape[0]),
+        "fs_window_eV": window,
+        "vf_estimate_note": "placeholder_vF_estimate_1_model_unit_used_for_diagnostic_only",
+    }
+
+
+def _average_compact_evaluations(evaluations: list[dict[str, Any]]) -> dict[str, Any]:
+    inverse_count = 1.0 / len(evaluations)
+    response = {name: np.zeros((3, 3), dtype=complex) for name in RESPONSE_NAMES}
+    vectors = {
+        "actual_equal_time": np.zeros(3, dtype=complex),
+        "shifted_equal_time_reference": np.zeros(3, dtype=complex),
+        "contact_contraction": np.zeros(3, dtype=complex),
+        "shifted_equal_time_plus_contact": np.zeros(3, dtype=complex),
+        "translation_error": np.zeros(3, dtype=complex),
+        "translation_error_minus_total_residual": np.zeros(3, dtype=complex),
+        "total_ward_residual": np.zeros(3, dtype=complex),
+    }
+    for evaluation in evaluations:
+        for name in RESPONSE_NAMES:
+            response[name] += evaluation["response_components"][name]
+        for name in vectors:
+            vectors[name] += evaluation[name]
+    return {
+        "response_components": {name: response[name] * inverse_count for name in RESPONSE_NAMES},
+        **{name: vectors[name] * inverse_count for name in vectors},
+    }
+
+
+def _compact_summary_row(
+    *,
+    nk: int,
+    q_direction: str,
+    q: np.ndarray,
+    twist_count: int,
+    twist_mode: str,
+    adaptive_refine_level: int,
+    node_counts: dict[str, Any],
+    evaluation: dict[str, Any],
+) -> dict[str, Any]:
+    q_norm = float(np.linalg.norm(q))
+    response = evaluation["response_components"]
+    residual_norm = float(np.linalg.norm(evaluation["total_ward_residual"]))
+    translation_error_norm = float(np.linalg.norm(evaluation["translation_error"]))
+    return {
+        "diagnostic_only": True,
+        "valid_for_casimir_input": False,
+        "nk": int(nk),
+        "q_direction": q_direction,
+        "q_norm": q_norm,
+        "twist_count": int(twist_count),
+        "twist_mode": twist_mode,
+        "adaptive_refine_levels": int(adaptive_refine_level),
+        "number_of_base_nodes": int(node_counts["number_of_base_nodes"]),
+        "number_of_refined_nodes": int(node_counts["number_of_refined_nodes"]),
+        "effective_total_nodes": int(node_counts["effective_total_nodes"]),
+        "total_ward_residual_norm": residual_norm,
+        "total_ward_residual_over_q_norm": float(residual_norm / q_norm),
+        "translation_error_norm": translation_error_norm,
+        "translation_error_over_q_norm": float(translation_error_norm / q_norm),
+        "shifted_equal_time_plus_contact_norm": float(np.linalg.norm(evaluation["shifted_equal_time_plus_contact"])),
+        "translation_error_minus_total_residual_norm": float(
+            np.linalg.norm(evaluation["translation_error_minus_total_residual"])
+        ),
+        "total_response_norm": float(np.linalg.norm(response["total"])),
+        "current_current_block_norm": float(np.linalg.norm(response["total"][1:3, 1:3])),
+    }
+
+
+def _compact_case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
+    (
+        nk,
+        q_direction,
+        q_value,
+        direction,
+        twist_counts,
+        twist_mode,
+        adaptive_refine_levels,
+        fs_window_factor,
+        omega_eV,
+        temperature_K,
+        eta_eV,
+    ) = args
+    profiler = RuntimeProfiler()
+    cache = SpectralCache()
+    config = KuboConfig.from_kelvin(
+        omega_eV=omega_eV,
+        temperature_K=temperature_K,
+        eta_eV=eta_eV,
+        output_si=False,
+    )
+    q = float(q_value) * np.asarray(direction, dtype=float)
+    twist_rows: list[dict[str, Any]] = []
+    adaptive_rows: list[dict[str, Any]] = []
+    convergence_items: list[dict[str, Any]] = []
+    for twist_count in twist_counts:
+        offsets = twist_offsets(int(twist_count), twist_mode)
+        evaluations = []
+        total_base_nodes = 0
+        for offset in offsets:
+            points = uniform_bz_mesh_twisted(int(nk), offset)
+            weights = k_weights(points)
+            total_base_nodes += int(points.shape[0])
+            evaluations.append(_cached_normal_components_and_translation(points, weights, config, q, cache, profiler))
+        averaged = _average_compact_evaluations(evaluations)
+        node_counts = {
+            "number_of_base_nodes": total_base_nodes,
+            "number_of_refined_nodes": 0,
+            "effective_total_nodes": total_base_nodes,
+        }
+        row = _compact_summary_row(
+            nk=int(nk),
+            q_direction=str(q_direction),
+            q=q,
+            twist_count=len(offsets),
+            twist_mode=twist_mode,
+            adaptive_refine_level=0,
+            node_counts=node_counts,
+            evaluation=averaged,
+        )
+        row["requested_twist_count"] = int(twist_count)
+        row["actual_twist_count"] = int(len(offsets))
+        row["temperature_K"] = float(temperature_K)
+        row["eta_eV"] = float(eta_eV)
+        twist_rows.append(row)
+        convergence_items.append(
+            {
+                "q_direction": str(q_direction),
+                "q_norm": float(np.linalg.norm(q)),
+                "temperature_K": float(temperature_K),
+                "eta_eV": float(eta_eV),
+                "nk": int(nk),
+                "twist_count": int(len(offsets)),
+                "total_response": averaged["response_components"]["total"],
+                "current_current_block": averaged["response_components"]["total"][1:3, 1:3],
+                "ward_residual": averaged["total_ward_residual"],
+                "translation_error": averaged["translation_error"],
+            }
+        )
+        for refine_level in adaptive_refine_levels:
+            adaptive_evaluations = []
+            total_counts = {
+                "number_of_base_nodes": 0,
+                "number_of_refined_nodes": 0,
+                "effective_total_nodes": 0,
+            }
+            for offset in offsets:
+                points, counts = _adaptive_refined_mesh(
+                    int(nk),
+                    offset,
+                    config,
+                    q,
+                    int(refine_level),
+                    float(fs_window_factor),
+                    cache,
+                    profiler,
+                )
+                weights = k_weights(points)
+                for key in total_counts:
+                    total_counts[key] += int(counts[key])
+                adaptive_evaluations.append(
+                    _cached_normal_components_and_translation(points, weights, config, q, cache, profiler)
+                )
+            averaged_adaptive = _average_compact_evaluations(adaptive_evaluations)
+            adaptive_row = _compact_summary_row(
+                nk=int(nk),
+                q_direction=str(q_direction),
+                q=q,
+                twist_count=len(offsets),
+                twist_mode=twist_mode,
+                adaptive_refine_level=int(refine_level),
+                node_counts=total_counts,
+                evaluation=averaged_adaptive,
+            )
+            adaptive_row["requested_twist_count"] = int(twist_count)
+            adaptive_row["actual_twist_count"] = int(len(offsets))
+            adaptive_row["temperature_K"] = float(temperature_K)
+            adaptive_row["eta_eV"] = float(eta_eV)
+            adaptive_row["fs_window_factor"] = float(fs_window_factor)
+            adaptive_row["fs_window_note"] = "E_window=max(fs_window_factor*kBT, placeholder_vF*|q|, eta_eff, E_min)"
+            adaptive_rows.append(adaptive_row)
+    return {
+        "twist_rows": twist_rows,
+        "adaptive_rows": adaptive_rows,
+        "convergence_items": convergence_items,
+        "profile": {
+            "diagonalization_time_seconds": profiler.diagonalization_time_seconds,
+            "vertex_time_seconds": profiler.vertex_time_seconds,
+            "response_accumulation_time_seconds": profiler.response_accumulation_time_seconds,
+            "adaptive_refinement_time_seconds": profiler.adaptive_refinement_time_seconds,
+            "cache_hits": cache.cache_hits,
+            "cache_misses": cache.cache_misses,
+        },
     }
 
 
@@ -953,6 +1437,187 @@ def _normal_equal_time_sum_rule_audit(
     }
 
 
+def _convergence_summary_from_items(convergence_items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    convergence_summary_rows: list[dict[str, Any]] = []
+    grouped_items: dict[tuple[str, str, float, float], list[dict[str, Any]]] = {}
+    for item in convergence_items:
+        key = (
+            str(item["q_direction"]),
+            f"{float(item['q_norm']):.16g}",
+            float(item["temperature_K"]),
+            float(item["eta_eV"]),
+        )
+        grouped_items.setdefault(key, []).append(item)
+    for items in grouped_items.values():
+        ordered = sorted(items, key=lambda row: (int(row["nk"]), int(row["twist_count"])))
+        for level_a, level_b in zip(ordered, ordered[1:], strict=False):
+            response_b_norm = float(np.linalg.norm(level_b["total_response"]))
+            block_b_norm = float(np.linalg.norm(level_b["current_current_block"]))
+            convergence_summary_rows.append(
+                {
+                    "diagnostic_only": True,
+                    "valid_for_casimir_input": False,
+                    "level_a": {
+                        "nk": int(level_a["nk"]),
+                        "twist_count": int(level_a["twist_count"]),
+                    },
+                    "level_b": {
+                        "nk": int(level_b["nk"]),
+                        "twist_count": int(level_b["twist_count"]),
+                    },
+                    "q_direction": str(level_b["q_direction"]),
+                    "q_norm": float(level_b["q_norm"]),
+                    "temperature_K": float(level_b["temperature_K"]),
+                    "eta_eV": float(level_b["eta_eV"]),
+                    "response_relative_change_norm": float(
+                        np.linalg.norm(level_b["total_response"] - level_a["total_response"])
+                        / max(response_b_norm, 1e-300)
+                    ),
+                    "current_current_block_relative_change_norm": float(
+                        np.linalg.norm(level_b["current_current_block"] - level_a["current_current_block"])
+                        / max(block_b_norm, 1e-300)
+                    ),
+                    "ward_residual_change_norm": float(
+                        np.linalg.norm(level_b["ward_residual"] - level_a["ward_residual"])
+                    ),
+                    "translation_error_change_norm": float(
+                        np.linalg.norm(level_b["translation_error"] - level_a["translation_error"])
+                    ),
+                }
+            )
+    return convergence_summary_rows
+
+
+def run_compact_summary_audit(
+    *,
+    omega_eV: float,
+    q_values: tuple[float, ...],
+    q_directions: tuple[str, ...],
+    nk_values: tuple[int, ...],
+    twist_counts: tuple[int, ...],
+    twist_mode: str,
+    adaptive_refine_levels: tuple[int, ...],
+    fs_window_factor: float,
+    temperature_K: float,
+    eta_eV: float,
+    workers: int,
+) -> dict[str, Any]:
+    start_total = time.perf_counter()
+    unknown_directions = sorted(set(q_directions) - set(DIRECTION_VECTORS))
+    if unknown_directions:
+        raise ValueError(f"unknown q direction(s): {unknown_directions}")
+    unknown_twist_counts = sorted(set(twist_counts) - set(SUPPORTED_TWIST_COUNTS))
+    if unknown_twist_counts:
+        raise ValueError(f"unsupported twist count(s): {unknown_twist_counts}")
+    if twist_mode not in {"halton", "symmetry_paired"}:
+        raise ValueError("twist_mode must be 'halton' or 'symmetry_paired'")
+
+    tasks = [
+        (
+            int(nk),
+            direction_name,
+            float(q_value),
+            DIRECTION_VECTORS[direction_name],
+            tuple(int(value) for value in twist_counts),
+            twist_mode,
+            tuple(int(value) for value in adaptive_refine_levels),
+            float(fs_window_factor),
+            float(omega_eV),
+            float(temperature_K),
+            float(eta_eV),
+        )
+        for nk in nk_values
+        for direction_name in q_directions
+        for q_value in q_values
+    ]
+    if workers > 1:
+        with ProcessPoolExecutor(max_workers=int(workers)) as executor:
+            results = list(executor.map(_compact_case_worker, tasks))
+        parallel_backend = "concurrent.futures.ProcessPoolExecutor"
+    else:
+        results = [_compact_case_worker(task) for task in tasks]
+        parallel_backend = "sequential"
+
+    twist_rows: list[dict[str, Any]] = []
+    adaptive_rows: list[dict[str, Any]] = []
+    convergence_items: list[dict[str, Any]] = []
+    profile = {
+        "diagonalization_time_seconds": 0.0,
+        "vertex_time_seconds": 0.0,
+        "response_accumulation_time_seconds": 0.0,
+        "adaptive_refinement_time_seconds": 0.0,
+        "json_write_time_seconds": 0.0,
+        "cache_hits": 0,
+        "cache_misses": 0,
+    }
+    for result in results:
+        twist_rows.extend(result["twist_rows"])
+        adaptive_rows.extend(result["adaptive_rows"])
+        convergence_items.extend(result["convergence_items"])
+        for key in profile:
+            profile[key] += result["profile"].get(key, 0)
+
+    return {
+        "audit_name": "normal_finite_q_ward_audit",
+        "scope": "diagnostic_only_summary_normal_state_finite_q_ward_translation_error_convergence",
+        "omega_eV": float(omega_eV),
+        "temperature_K": float(temperature_K),
+        "eta_eV": float(eta_eV),
+        "nk_values": [int(value) for value in nk_values],
+        "q_values": [float(value) for value in q_values],
+        "q_directions": list(q_directions),
+        "twist_counts": [int(value) for value in twist_counts],
+        "twist_mode": twist_mode,
+        "adaptive_refine_levels": [int(value) for value in adaptive_refine_levels],
+        "component_labels": list(WARD_COMPONENT_LABELS),
+        "twist_averaged_quadrature_summary": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "rows": twist_rows,
+        },
+        "twist_averaged_convergence_summary": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "relative_change_definition": "norm(level_b - level_a) / max(norm(level_b), 1e-300)",
+            "rows": _convergence_summary_from_items(convergence_items),
+        },
+        "adaptive_quadrature_summary": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "fs_window_definition": "E_window=max(fs_window_factor*kBT, placeholder_vF*|q|, eta_eff, E_min)",
+            "rows": adaptive_rows,
+        },
+        "runtime_profile_summary": {
+            "diagnostic_only": True,
+            "valid_for_casimir_input": False,
+            "total_runtime_seconds": float(time.perf_counter() - start_total),
+            **{key: float(value) for key, value in profile.items() if key.endswith("_seconds")},
+            "cache_hits": int(profile["cache_hits"]),
+            "cache_misses": int(profile["cache_misses"]),
+            "workers": int(workers),
+            "parallel_backend": parallel_backend,
+        },
+        "output_format": {
+            "summary_only": True,
+            "twist_summary_only": True,
+            "adaptive_summary_only": True,
+            "removed_large_fields": [
+                "nk_reports",
+                "q_reports",
+                "per_k_residuals",
+                "4x4_matrix_entries",
+                "full_response_level_residuals",
+                "full_operator_level_per_k_matrices",
+                "full_band_basis_diagnostic_dump",
+            ],
+            "max_expected_file_size_mb": TARGET_JSON_SIZE_MB,
+            "github_safe_output": True,
+        },
+        "ward_identity_closed": False,
+        "valid_for_casimir_input": False,
+    }
+
+
 def run_normal_finite_q_ward_audit(
     *,
     omega_eV: float = 0.01,
@@ -1309,7 +1974,18 @@ def run_normal_finite_q_ward_audit(
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    start = time.perf_counter()
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    write_seconds = time.perf_counter() - start
+    if isinstance(payload.get("runtime_profile_summary"), dict):
+        payload["runtime_profile_summary"]["json_write_time_seconds"] = float(write_seconds)
+        path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    size_mb = path.stat().st_size / (1024.0 * 1024.0)
+    if size_mb > MAX_JSON_SIZE_MB:
+        raise RuntimeError(
+            f"normal audit JSON is {size_mb:.2f} MB, above {MAX_JSON_SIZE_MB:.1f} MB. "
+            "Use --summary-only/--twist-summary-only/--adaptive-summary-only and remove large per-k or matrix fields."
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1320,28 +1996,50 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--nk", type=int, default=3, help="Backward-compatible single-nk shortcut.")
     parser.add_argument("--nk-values", nargs="+", type=int)
     parser.add_argument("--twist-counts", nargs="+", type=int, default=[1])
-    parser.add_argument("--twist-summary-only", action="store_true")
-    parser.add_argument("--temperature-K", type=float, default=10.0)
+    parser.add_argument("--twist-mode", choices=("halton", "symmetry_paired"), default="symmetry_paired")
+    parser.add_argument("--adaptive-refine-levels", nargs="+", type=int, default=[0])
+    parser.add_argument("--fs-window-factor", type=float, default=5.0)
+    parser.add_argument("--workers", type=int, default=1)
+    parser.add_argument("--summary-only", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--twist-summary-only", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--adaptive-summary-only", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--temperature-K", type=float, default=DEFAULT_TEMPERATURE_K)
     parser.add_argument("--eta", type=float, default=1e-8)
     parser.add_argument("--json-output", type=Path)
     args = parser.parse_args(argv)
     nk_values = tuple(args.nk_values) if args.nk_values is not None else (int(args.nk),)
-    payload = run_normal_finite_q_ward_audit(
-        omega_eV=args.omega,
-        q_values=tuple(args.q_values),
-        q_directions=tuple(args.directions),
-        nk_values=nk_values,
-        twist_counts=tuple(args.twist_counts),
-        twist_summary_only=bool(args.twist_summary_only),
-        temperature_K=args.temperature_K,
-        eta_eV=args.eta,
-    )
+    if args.summary_only:
+        payload = run_compact_summary_audit(
+            omega_eV=args.omega,
+            q_values=tuple(args.q_values),
+            q_directions=tuple(args.directions),
+            nk_values=nk_values,
+            twist_counts=tuple(args.twist_counts),
+            twist_mode=args.twist_mode,
+            adaptive_refine_levels=tuple(args.adaptive_refine_levels),
+            fs_window_factor=args.fs_window_factor,
+            temperature_K=args.temperature_K,
+            eta_eV=args.eta,
+            workers=max(1, int(args.workers)),
+        )
+    else:
+        payload = run_normal_finite_q_ward_audit(
+            omega_eV=args.omega,
+            q_values=tuple(args.q_values),
+            q_directions=tuple(args.directions),
+            nk_values=nk_values,
+            twist_counts=tuple(args.twist_counts),
+            twist_summary_only=bool(args.twist_summary_only),
+            temperature_K=args.temperature_K,
+            eta_eV=args.eta,
+        )
     if args.json_output is not None:
         _write_json(args.json_output, payload)
     print(
         "normal finite-q Ward audit prepared: "
         f"nk_values={payload['nk_values']}, q_values={payload['q_values']}, "
         f"directions={payload['q_directions']}, twist_counts={payload['twist_counts']}, "
+        f"summary_only={payload.get('output_format', {}).get('summary_only', False)}, "
         f"valid_for_casimir_input={payload['valid_for_casimir_input']}"
     )
     return 0
