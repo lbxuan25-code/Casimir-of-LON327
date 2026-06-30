@@ -17,6 +17,7 @@ import sys
 import time
 import traceback
 from typing import Any
+import uuid
 
 import numpy as np
 
@@ -75,11 +76,22 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _unique_tmp_path(path: Path) -> Path:
+    return path.with_name(f"{path.name}.tmp.{os.getpid()}.{uuid.uuid4().hex}")
+
+
 def _atomic_write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(text, encoding="utf-8")
-    os.replace(tmp, path)
+    tmp = _unique_tmp_path(path)
+    try:
+        tmp.write_text(text, encoding="utf-8")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(tmp, path)
+    finally:
+        try:
+            tmp.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -617,15 +629,48 @@ def _run_config_with_hash(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def _read_json(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _ensure_run_config_hash_matches(
+    path: Path,
+    current: dict[str, Any],
+    *,
+    allow_mismatch: bool,
+) -> None:
+    existing = _read_json(path)
+    if existing.get("config_hash") != current.get("config_hash") and not allow_mismatch:
+        raise ValueError(
+            "Existing run_config hash differs from current config. Use a new output directory or disable --resume / "
+            "pass --allow-config-mismatch intentionally."
+        )
+
+
+def _create_run_config_if_missing(path: Path, current: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = _unique_tmp_path(path)
+    try:
+        tmp.write_text(json.dumps(current, indent=2, ensure_ascii=False, default=str), encoding="utf-8")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            os.link(tmp, path)
+        except FileExistsError:
+            pass
+    finally:
+        try:
+            tmp.unlink()
+        except FileNotFoundError:
+            pass
+
+
 def _check_or_write_run_config(paths: dict[str, Path], current: dict[str, Any], *, resume: bool, allow_mismatch: bool) -> None:
     path = paths["run_config"]
-    if resume and path.exists():
-        existing = json.loads(path.read_text(encoding="utf-8"))
-        if existing.get("config_hash") != current.get("config_hash") and not allow_mismatch:
-            raise ValueError(
-                "Existing run_config hash differs from current config. Use a new output directory or disable --resume / "
-                "pass --allow-config-mismatch intentionally."
-            )
+    if resume:
+        if not path.exists():
+            _create_run_config_if_missing(path, current)
+        _ensure_run_config_hash_matches(path, current, allow_mismatch=allow_mismatch)
+        return
     _atomic_write_json(path, current)
 
 
@@ -853,12 +898,13 @@ def _shard_glob(paths: dict[str, Path], prefix: str) -> list[Path]:
 
 def _records_to_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
+    tmp = _unique_tmp_path(path)
     with tmp.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
+    path.parent.mkdir(parents=True, exist_ok=True)
     os.replace(tmp, path)
 
 
@@ -968,10 +1014,11 @@ def _plot_outputs(aggregated: dict[str, list[dict[str, Any]]], paths: dict[str, 
 
     def save(name: str) -> None:
         path = paths["figures"] / name
-        tmp = path.with_name(path.name + ".tmp")
+        tmp = _unique_tmp_path(path)
         plt.tight_layout()
         plt.savefig(tmp, dpi=180, format="png")
         plt.close()
+        path.parent.mkdir(parents=True, exist_ok=True)
         os.replace(tmp, path)
         figures.append(_path_label(path))
 
