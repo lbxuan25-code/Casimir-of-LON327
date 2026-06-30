@@ -26,6 +26,22 @@ H0(k)
 - unit conversion、reflection input 和 `n=0` policy 是进入 formal Casimir input 的必要 gating；
 - 当前 Casimir 相关输出只能作为 benchmark / baseline / candidate，不是最终材料结论。
 
+## 临时 best-effort plumbing lane
+
+为了先跑通 finite-q response 到 unit conversion、reflection adapter 和 Casimir-grid plumbing 的下游接口，可以暂时启用 `docs/best_effort_finite_q_casimir_route.md` 中定义的 best-effort finite-q 路线。
+
+这条路线采用当前 Ward-refinement 诊断中最高一档的 adaptive Fermi-window quadrature 参数作为数值默认值，但必须保持：
+
+```text
+diagnostic_only=True
+best_effort_plumbing=True
+ward_identity_closed=False
+valid_for_casimir_input=False
+not_final_casimir_conclusion=True
+```
+
+它的目标是暴露下游接口、单位、reflection、grid/cache 和积分问题；它不改变正式 gating，也不允许输出正式 Casimir energy / force / torque 或材料结论。
+
 ## 下一步核心问题
 
 - 完成或明确 finite-q response 的 Ward / gauge closure；
