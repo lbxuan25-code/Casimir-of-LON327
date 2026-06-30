@@ -135,17 +135,35 @@ def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():
     report = module.run_finite_q_ward_scan(nk=2, q_values=(0.005,), q_directions=((1.0, 0.0),))
     assert report.valid_for_casimir_input is False
     assert {row.pairing_name for row in report.rows} == {"onsite_s", "spm", "dwave"}
-    assert {row.response_name for row in report.rows} == {
+    closure_response_names = set(module.WARD_CLOSURE_RESPONSE_NAMES)
+    diagnostic_response_names = {"bare_bubble", "direct", "plus_schur"}
+    expected_response_names = closure_response_names | diagnostic_response_names
+    actual_response_names = {row.response_name for row in report.rows}
+    assert closure_response_names == {
         "bare_total",
         "minus_schur",
         "amplitude_phase_schur",
     }
+    assert diagnostic_response_names <= actual_response_names
+    assert actual_response_names == expected_response_names
+    for pairing_name in {"onsite_s", "spm", "dwave"}:
+        names_for_pairing = {
+            row.response_name for row in report.rows if row.pairing_name == pairing_name
+        }
+        assert names_for_pairing == expected_response_names
     assert report.q0_alignment_prerequisite["spm"] == "convention_aware_pass"
     assert report.q0_alignment_prerequisite["dwave"] == "intraband_aware_pass"
     assert report.q0_alignment_prerequisite["onsite_s"] == "diagnostic_only_not_passed"
     assert report.q0_precondition_status["dwave"] == "intraband_aware_pass"
     assert report.diagnostic_run_completed is True
     assert report.ward_identity_closed is False
+    closure_rows = [
+        row for row in report.rows if row.response_name in closure_response_names
+    ]
+    assert closure_rows
+    assert report.ward_identity_closed is bool(
+        all(row.max_ward_residual_norm <= 1e-8 for row in closure_rows)
+    )
     for row in report.rows:
         assert row.valid_for_casimir_input is False
         assert np.isfinite(row.left_ward_residual_norm)
