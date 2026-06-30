@@ -75,6 +75,6 @@
 
 复现入口：`validation/outputs/reflection/reflection_input/command.sh`。
 
-## 历史来源说明
+## 复现入口说明
 
-旧 stage 输出已合并到对应 summary 和 status JSON。stage 名称不再作为阅读入口；需要追溯脚本时，请查看各 summary 的“历史来源 / 旧 stage 对照”或对应 `command.sh`。
+各主题的 `command.sh` 和 summary 文件给出当前可运行入口、输入边界和 status marker。脚本或 status 中保留的旧文件名只用于复现现有检验链条，不作为本文档的阅读组织方式。

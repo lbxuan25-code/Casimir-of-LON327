@@ -63,9 +63,9 @@
 
 运行 `validation/outputs/units/q_grid_mapping/command.sh`。
 
-## 历史来源 / 旧 stage 对照
+## Source / status 对照
 
-| 旧 stage 文件 | 现在对应的检验内容 | 当前状态 |
+| source 文件 | 对应检验内容 | 当前状态 |
 |---|---|---|
 | `casimir_q_grid_model_q_audit_summary.md` | physical-q 到 model-q unit/sampling audit | 诊断通过 |
 | `stage5_9_casimir_grid_planning_scaffold.json` | q-grid scaffold warning 与 planning | 诊断通过 |

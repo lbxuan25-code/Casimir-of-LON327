@@ -61,9 +61,9 @@
 
 运行 `validation/outputs/units/conductivity_conversion/command.sh`。
 
-## 历史来源 / 旧 stage 对照
+## Source / status 对照
 
-| 旧 stage 文件 | 现在对应的检验内容 | 当前状态 |
+| source 文件 | 对应检验内容 | 当前状态 |
 |---|---|---|
 | `stage5_1_response_to_conductivity_convention_audit.json` | response-to-conductivity convention 是否唯一 | 未完成 |
 | `stage5_1b_bilayer_sheet_conductivity_convention.json` | bilayer sheet model convention | candidate |

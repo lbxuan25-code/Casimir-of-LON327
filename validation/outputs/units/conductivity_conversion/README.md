@@ -22,6 +22,6 @@
 
 ## diagnostic-only
 
-当前状态为 diagnostic-only / candidate。旧 stage 名称只在 summary 的历史来源对照中保留。
+当前状态为 diagnostic-only / candidate。summary 中的 source/status 表只用于复现入口定位。
 
 摘要见 `conductivity_conversion_summary.md`，状态见 `conductivity_conversion_status.json`，复现入口见 `command.sh`。

@@ -1,17 +1,17 @@
 # Validation 指南
 
-`validation/` 保存验证逻辑、轻量结论和复现入口。这里不是 raw numerical artifacts 的长期仓库。
+`validation/` 保存当前可复现的数值检验、诊断结果、轻量 status 和复现入口。这里不是 raw numerical artifacts 的长期仓库。
 
 ## 目录组织
 
-- `scripts/`：可复现的 validation、diagnostic、convergence 和 smoke 脚本。
-- `outputs/`：按具体检验对象组织的 README、summary、status marker 和 command。
-- `cache/`：可再生成的响应张量或中间数组缓存。
-- `reports/`：跨主题总览、artifact policy 和维护说明。
+- `scripts/`：可复现的 validation、diagnostic、convergence 和 smoke 检验入口；
+- `outputs/`：按具体检验对象组织的 README、summary、status marker 和 command；
+- `cache/`：可再生成的响应张量或中间数组缓存；
+- `reports/`：跨主题 validation 总览和 artifact policy。
 
-报告按“检验对象”阅读，不按历史 stage 编号阅读。已删除的历史 workflow 脚本由 Git history 归档；历史检验不变量由当前测试和当前 validation workflow 保留，而不是通过继续保留旧 runnable script 实现。
+validation 报告按“具体检验对象”阅读：每个检验应说明检验目的、被检验对象、判据、结果、边界和复现方式。
 
-BdG finite-q blocker 的项目级 validation workflow 位于 `validation/scripts/bdg_finite_q/`。core finite-q 计算仍位于 `src/lno327/finite_q_engine.py`，基础可复用 helper 可保留在 `validation/lib/finite_q_diagnostics.py`。对应轻量输出和复现命令位于 `validation/outputs/bdg_finite_q/`。
+BdG finite-q validation 关注 raw finite-q response 是否满足 Ward / gauge closure，以及它是否可进入 formal conductivity / reflection / Casimir gating chain。对应复现入口位于 `validation/scripts/bdg_finite_q/`，轻量输出和复现命令位于 `validation/outputs/bdg_finite_q/`。
 
 ## Artifact 策略
 

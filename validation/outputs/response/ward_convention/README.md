@@ -24,4 +24,4 @@
 
 当前结果是 diagnostic-only；它不替代 BdG finite-q gate。
 
-核心摘要见 `ward_convention_summary.md`。复现入口见 `command.sh`。旧 stage 名称仅在 summary 附录中保留。
+核心摘要见 `ward_convention_summary.md`。复现入口见 `command.sh`。source/status 表仅用于定位可再生成的检验输出。

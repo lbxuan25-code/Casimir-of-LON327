@@ -2,21 +2,31 @@
 
 ## 项目定位
 
-本仓库围绕 LNO327 minimal model，建立 normal / BdG response、finite-q response、unit / reflection input 与 Casimir benchmark 的研究型计算框架。
+本仓库围绕 LNO327 minimal model，建立从 normal / BdG response 到 finite-q response、unit / reflection input 与 Casimir benchmark 的研究型计算框架。
 
-当前仓库不是最终材料结论仓库，也不输出最终 Casimir torque、force 或 energy 结论。
+local `q=0` response 是当前 baseline；finite-q response 与 Ward / gauge validation 是当前主线中的核心环节。仓库当前不输出最终 Casimir torque、force 或 energy 结论。
 
-## 当前状态
+## 计算主线
 
-- local `q=0` response baseline 已形成；
-- finite-q BdG 的 q=0 定义对齐已澄清：`spm` 为 convention-aware pass，`dwave` 为 intraband-aware pass；
-- `dwave` 旧 raw-vs-total mismatch 由 local intraband / `-f'(E)` 贡献解释，不再视为未解释的 q=0 raw-bubble/vertex mismatch；
-- validation 输出已归档为 summary / status / command；
-- finite-q BdG response 已完成架构解耦；
-- generic finite-q engine 与 `PairingAnsatz` 输入层已分离；
-- finite-q Ward / gauge closure 尚未完成；
-- raw finite-q BdG response 不能作为正式 Casimir input；
-- 当前没有最终 Casimir torque、force 或 energy 结论。
+```text
+H0(k)
+-> pairing ansatz
+-> BdG / normal response
+-> finite-q response
+-> Ward / gauge validation
+-> unit conversion
+-> reflection input
+-> Casimir benchmark
+```
+
+## 当前主线位置
+
+- normal / local response 已作为 baseline；
+- finite-q BdG response engine 是当前 response 主线；
+- `PairingAnsatz` 负责 pairing-dependent 输入，generic finite-q engine 负责通用 response 计算；
+- Ward / gauge closure 是 finite-q response 进入 formal conductivity 的关键条件；
+- unit conversion、reflection input 与 Matsubara `n=0` policy 是进入 formal Casimir input 的 gating chain；
+- 当前 Casimir 相关结果只能作为 benchmark / candidate / baseline，不能作为最终材料结论。
 
 ## 阅读入口
 
@@ -35,17 +45,11 @@
 pytest
 ```
 
-最小导入入口：
-
-```python
-from lno327.api import KuboConfig, PairingAmplitudes, local_response_imag_axis
-```
-
 ## 目录结构
 
 - `src/lno327/`：核心计算实现；
-- `scripts/`：运行入口；
-- `outputs/`：主计算产物；
-- `validation/`：数值检验证据；
+- `scripts/`：当前主计算入口；
+- `outputs/`：主计算产物和轻量结果说明；
+- `validation/`：数值检验、诊断结果和复现入口；
 - `docs/`：理论主线与工程设计；
 - `docs/references/`：参考文献和背景资料。

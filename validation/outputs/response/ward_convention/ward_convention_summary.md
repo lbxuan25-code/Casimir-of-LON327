@@ -68,11 +68,11 @@
 
 ## 复现入口
 
-运行 `validation/outputs/response/ward_convention/command.sh`。生成的旧脚本 JSON/MD/data/figures 是 ignored artifact。
+运行 `validation/outputs/response/ward_convention/command.sh`。生成的脚本 JSON/MD/data/figures 是本地 artifact。
 
-## 历史来源 / 旧 stage 对照
+## 复现来源
 
-| 旧 stage 文件 | 现在对应的检验内容 | 当前状态 |
+| source 文件 | 对应检验内容 | 当前状态 |
 |---|---|---|
 | `stage4_13_bubble_sign_fix_regression.json` | bubble sign 与 direct contact bookkeeping | 诊断通过 |
 | `stage4_17_right_ward_source_convention_audit.json` | right Ward source convention | 诊断通过 |

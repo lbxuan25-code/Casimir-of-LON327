@@ -48,8 +48,8 @@
 
 ## 复现入口
 
-运行 `validation/outputs/response/normal_finite_q_kernel/command.sh`。生成的 `data/` 和 `figures/` 是 ignored artifact。
+运行 `validation/outputs/response/normal_finite_q_kernel/command.sh`。生成的 `data/` 和 `figures/` 是本地 artifact。
 
-## 历史来源 / 旧 stage 对照
+## Source 说明
 
-本检验来自早期 finite-q kernel convergence diagnostic。旧 stage 名称不再作为阅读入口。
+本检验对应 finite-q kernel convergence diagnostic。阅读时以检验对象和当前判据为准。

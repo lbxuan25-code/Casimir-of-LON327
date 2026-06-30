@@ -18,7 +18,7 @@
 
 ## 不长期保留
 
-以下内容可再生成，应 ignore 或从 Git 删除：
+以下内容可再生成，应由 ignore 规则排除在长期 Git 内容之外：
 
 - `validation/cache/**/*.npz`、`.npy`、`.csv`、`.jsonl`；
 - `validation/outputs/**/data/*.npz` 和 `.npy`；
@@ -51,6 +51,6 @@
 - reflection input / adapter：`validation/outputs/reflection/`
 - 跨主题总览：`validation/reports/validation_summary.md`
 
-## cleanup snapshot
+## 维护边界
 
-从 2026-06-26 起，仓库策略从“保留 bulky validation outputs”改为“保留轻量证据”。已删除或忽略的类别包括 cache tensors、binary arrays、CSV data tables、repeated figures 和 scratch logs。删除的 artifact 可由 summary 中列出的脚本入口重新生成。
+validation 目录长期保存轻量证据、status、summary 和复现入口。cache tensors、binary arrays、CSV data tables、repeated figures 和 scratch logs 属于本地再生成 artifact；需要复查时按 summary 或 `command.sh` 中的入口重新生成。
