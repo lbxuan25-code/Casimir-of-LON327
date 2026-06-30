@@ -8,6 +8,22 @@
 
 finite-q Ward scan 会单独报告 `diagnostic_run_completed` 与 `ward_identity_closed`。当前 finite-q Ward closure 仍未完成，所有 finite-q validation 输出都保持 `valid_for_casimir_input=False`。
 
+## best-effort downstream plumbing
+
+允许新增一条明确标记的 best-effort finite-q downstream plumbing 输出，用于在 Ward residual 彻底降低前先跑通 unit conversion、reflection adapter 和 Casimir-grid 软件接口。
+
+这条路线的 contract 位于 `validation/contracts/best_effort_finite_q_casimir_plumbing.yaml`，说明文档位于 `docs/best_effort_finite_q_casimir_route.md`。所有这类输出仍必须保持：
+
+```text
+diagnostic_only=True
+best_effort_plumbing=True
+ward_identity_closed=False
+valid_for_casimir_input=False
+not_final_casimir_conclusion=True
+```
+
+best-effort plumbing 不能覆盖或替代 `bdg_finite_q_validation_status.json`，也不能被解释为 formal finite-q Casimir input。
+
 ## 可提交内容
 
 - 小型 markdown summary；
