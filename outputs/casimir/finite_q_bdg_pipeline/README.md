@@ -20,6 +20,15 @@
 
 Ward residual 作为每个计算点的 numerical quality metadata 记录，不作为本轮 pipeline 的阻断条件。
 
+## 任务结构与距离复用
+
+主流程已经拆成 heavy reflection layer 和 cheap energy layer：
+
+- `reflection_results.shard_*_of_*.jsonl`：单片 plate reflection cache。key 只包含 `pairing`、`plate_theta_deg`、`n`、`Q_index`、`phi_index`、`n0_policy` 和 `config_hash`；`distance_nm` 不在 heavy key 中。
+- `energy_point_results.shard_*_of_*.jsonl`：由缓存的左片 `theta=0` 和右片 `theta` 组合得到 roundtrip 后，对所有距离展开，只计算 `exp(-2*kappa*d)`、`log det` 和积分贡献。
+
+因此在相同 pairing、angle、Matsubara、Q、phi grid 下，增加距离只增加 cheap energy points，不增加 finite-q BdG response / reflection 任务。`--dry-run` 会分别报告 `num_plate_reflection_tasks`、`num_roundtrip_tasks` 和 `num_energy_points`，并标记 `distance_reuse_enabled=true`。
+
 ## Unit contract
 
 主流程调用 `spatial_response_to_bilayer_sheet_conductivity_model`、`model_response_to_sheet_conductivity` 和 `sheet_conductivity_to_reflection_dimensionless`。
@@ -46,14 +55,40 @@ F(d)/A = k_B T sum_n' int Q dQ dphi/(2pi)^2
 
 `logdet_real` 进入 energy，`logdet_imag` 作为数值误差 metadata。
 
+trace-log 单点 helper 来自 `src/lno327/lifshitz_integrand.py`，语义为 main pipeline 的外部 Matsubara/Q grid summation 组件；它本身不声称完成 full integral。
+
+## Quadrature contract
+
+默认 `--integration-strategy best_available_adaptive` 调用 `src/lno327/finite_q_quadrature.py`：
+
+- `finite_q_quadrature_points(q_model, options)` 返回 points、weights 和 metadata；
+- adaptive mesh 使用当前 plate crystal frame 中的 `q_crystal = R(-theta) q_lab`；
+- refined parent cell 被 Gauss subcell nodes 替代，parent 与 children 不 double-count；
+- 每个 reflection row 记录 `num_quadrature_points`、`num_cells_total`、`num_cells_refined` 和 `quadrature` metadata。
+
+如果选择 `--integration-strategy uniform`，summary/status 会写明 uniform midpoint mesh，并将 adaptive 参数记录为 `null` 或 disabled。
+
 ## n0 policy
 
-默认 `--n0-policy extrapolate`：`n=0` 不直接使用 `omega_eV=0` 做 `sigma=-K/omega`，而使用低频 reflection matrix 外推。也支持 `--n0-policy skip`；skip 时 summary/status 会记录 `complete_matsubara_sum=false` 语义，不应声称 full Matsubara production result。
+默认 `--n0-policy extrapolate`：`n=0` 不直接使用 `omega_eV=0` 做 `sigma=-K/omega`，而使用低频 reflection matrix 外推。每个 n=0 reflection row 记录：
+
+- `n0_extrapolation_method = linear_in_omega_eV`
+- `n0_extrapolation_omega_eV`
+- `n0_extrapolation_order`
+- `n0_reflection_norms`
+- `n0_reflection_norm_variation`
+- `n0_fit_residual_norm`
+- `n0_stability_status`
+
+也支持 `--n0-policy skip`；skip 时 summary/status 会记录 `complete_matsubara_sum=false`、`complete_except_n0=true`、`not_final_full_matsubara_result=true`，不应声称 full Matsubara production result。
 
 ## 输出文件
 
-- `point_results.jsonl`：每个 deterministic task 的结果，完成一个点立即 append；
-- `failed_points.jsonl`：失败点和 traceback；
+- `run_config.json`：标准化配置和 `config_hash`；
+- `reflection_results.shard_*_of_*.jsonl`：active heavy reflection shard 输出；
+- `energy_point_results.shard_*_of_*.jsonl`：active cheap energy shard 输出；
+- `failed_points.shard_*_of_*.jsonl`：active shard 失败点和 traceback；
+- `reflection_results.jsonl` / `point_results.jsonl` / `failed_points.jsonl`：finalize 或 plot-only 合并产物；
 - `summary.json` / `status.json`：pipeline contract、grid、质量 metadata 和输出清单；
 - `run_status.json`：长任务运行状态；
 - `logs/run.log` / `logs/errors.log`：运行日志；
@@ -86,7 +121,9 @@ tail -f outputs/casimir/finite_q_bdg_pipeline/logs/run.log
 
 ## 断点续跑
 
-默认命令带 `--resume`。重新运行同一 grid 时，脚本会读取 `point_results.jsonl`，跳过已完成的 deterministic task key。
+默认命令带 `--resume`。重新运行同一 grid 时，脚本会读取当前 shard 的 `reflection_results.shard_*_of_*.jsonl`，跳过已完成的 plate reflection task key。
+
+`run_config.json` 保存 `config_hash`。如果当前配置和已有输出目录中的 hash 不一致，`--resume` 默认报错，避免 coarse grid、temperature、eta、q grid 或 integration strategy 改变后误复用旧结果。只有明确确认时才使用 `--allow-config-mismatch`。
 
 ## plot-only
 
@@ -96,7 +133,7 @@ python scripts/casimir/finite_q_bdg_casimir_pipeline.py \
   --output-dir outputs/casimir/finite_q_bdg_pipeline
 ```
 
-该模式只读取已有 `point_results.jsonl` 并重建 `data/*.csv`、`figures/*.png`、`summary.json`。
+该模式读取所有 shard-specific reflection / energy / failed JSONL，合并为兼容文件，并重建 `data/*.csv`、`figures/*.png`、`summary.json`。
 
 ## 分片运行
 
@@ -109,6 +146,16 @@ python scripts/casimir/finite_q_bdg_casimir_pipeline.py \
 ```
 
 分片规则为 `task_index % task_shard_count == task_shard_index`。
+
+各 shard 写入独立 active JSONL，不会多个进程同时写同一个 `point_results.jsonl`。合并文件只在 finalize / plot-only 阶段生成。
+
+## 图像开关
+
+`--distance-scan`、`--angle-scan`、`--heatmap-scan`、`--pairing-comparison` 控制对应图像是否生成；CSV 网格和 summary 仍按已完成 energy rows 重建。
+
+## 运行边界
+
+Codex 不应启动本目录的正式服务器 full run；正式 `command.sh` 由用户手动执行和审查。
 
 ## 当前科学边界
 
