@@ -2,13 +2,58 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
+# Root outputs archive policy:
+# keep human-readable summaries, figures, and lightweight summary metrics;
+# ignore raw runtime artifacts, logs, caches, and complete large data dumps.
+outputs/**/logs/**
+outputs/**/*.log
+outputs/**/*.jsonl
+outputs/**/*.tmp
+outputs/**/*.active
+outputs/**/raw/**
+outputs/**/intermediate/**
+outputs/**/cache/**
+outputs/**/*.npz
+outputs/**/*.npy
+outputs/**/*.h5
+outputs/**/*.hdf5
+outputs/**/*.parquet
+outputs/**/*.feather
+outputs/**/*.pkl
+outputs/**/*.pickle
+outputs/**/*.npy.gz
+outputs/**/*.npz.gz
+outputs/**/*.csv.gz
 
-!outputs/**/.gitkeep
+outputs/**/*.json
+!outputs/**/summary*.json
+!outputs/**/status*.json
+!outputs/**/run_config.json
+!outputs/**/self_check.json
 !outputs/**/README.md
-outputs/**/data/*
-outputs/**/figures/*
+!outputs/**/command.sh
+!outputs/**/.gitkeep
+
+outputs/**/data/**
+!outputs/**/data/
+!outputs/**/data/**/
 !outputs/**/data/.gitkeep
-!outputs/**/figures/.gitkeep
+!outputs/**/data/*summary*.csv
+!outputs/**/data/*summary*.json
+!outputs/**/data/*aggregate*.csv
+!outputs/**/data/*aggregate*.json
+!outputs/**/data/*metrics*.csv
+!outputs/**/data/*metrics*.json
+!outputs/**/data/*metadata*.csv
+!outputs/**/data/*metadata*.json
+!outputs/**/data/*convergence*.csv
+!outputs/**/data/*convergence*.json
+
+!outputs/**/figures/
+!outputs/**/figures/**/
+!outputs/**/figures/**/*.png
+!outputs/**/figures/**/*.pdf
+!outputs/**/figures/**/*.svg
 
 # Validation generated artifacts
 validation/cache/**/*.npz

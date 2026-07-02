@@ -1,0 +1,64 @@
+{
+  "config_hash": "57eb13ed1a71d71a",
+  "run_config_hash": "57eb13ed1a71d71a",
+  "serialized_payload_sha256_prefix": "57eb13ed1a71d71a",
+  "payload": {
+    "pipeline_name": "finite_q_bdg_casimir_pipeline",
+    "pipeline_version": "finite_q_bdg_casimir_pipeline_v1",
+    "pairings": [
+      "normal",
+      "spm",
+      "dwave"
+    ],
+    "temperature_K": 30.0,
+    "delta0_eV": 0.04,
+    "eta_eV": 1e-10,
+    "q_max_nm_inv": 0.05,
+    "q_num": 10,
+    "phi_num": 8,
+    "n_max": 8,
+    "n0_policy": "extrapolate",
+    "integration_strategy": "best_available_adaptive",
+    "coarse_grid": 20,
+    "adaptive_level": 2,
+    "gauss_order": 3,
+    "fermi_window_eV": 0.12,
+    "q_specific_adaptive_grid": true,
+    "fermi_level_eV": 0.0,
+    "lattice_a_x_m": 3.754e-10,
+    "lattice_a_y_m": 3.754e-10,
+    "material_boundary_model": "bilayer_normalized_2D_sheet",
+    "response_contract": {
+      "phase_vertex": "bond_endpoint_gauge",
+      "current_vertex": "peierls",
+      "collective_mode": "amplitude_phase",
+      "collective_counterterm": "goldstone_gap_equation",
+      "include_phase_phase_direct": true,
+      "full_response_source": "amplitude_phase_schur"
+    },
+    "unit_contract": "bilayer_sheet_conductivity_convention_metadata",
+    "reflection_contract": "sigma_tilde_xy_to_te_tm_reflection_matrix",
+    "casimir_contract": "trace_log_point_external_grid_sum"
+  },
+  "created_at": "2026-06-30T16:46:29.185136+00:00",
+  "git_commit": "a91735a64b794a37a3f2410a644dc145b071d1af",
+  "distance_grid_nm_not_in_heavy_task_key": [
+    20.0,
+    30.0,
+    50.0,
+    80.0,
+    100.0,
+    150.0,
+    200.0
+  ],
+  "angle_grid_deg": [
+    0.0,
+    15.0,
+    30.0,
+    45.0,
+    60.0,
+    75.0,
+    90.0
+  ],
+  "valid_for_formal_casimir_claim": false
+}
