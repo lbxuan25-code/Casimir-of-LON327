@@ -1,0 +1,160 @@
+{
+  "pipeline_name": "finite_q_bdg_casimir_pipeline",
+  "pipeline_version": "finite_q_bdg_casimir_pipeline_v1",
+  "config_hash": "4a2ac3c62eed2e57",
+  "run_config_hash": "4a2ac3c62eed2e57",
+  "pipeline_complete": true,
+  "pipeline_status": "completed",
+  "response_contract": {
+    "phase_vertex": "bond_endpoint_gauge",
+    "current_vertex": "peierls",
+    "collective_mode": "amplitude_phase",
+    "collective_counterterm": "goldstone_gap_equation",
+    "include_phase_phase_direct": true,
+    "full_response_source": "amplitude_phase_schur",
+    "diagnostic_components_available": [
+      "bare_bubble",
+      "direct",
+      "bare_total",
+      "minus_schur",
+      "plus_schur"
+    ]
+  },
+  "unit_contract": {
+    "response_interpretation": "Pi_ij = delta<j_i>/delta A_j",
+    "electric_field_relation": "E_j(i xi) = - xi A_j(i xi)",
+    "model_formula": "sigma_model_ij(iOmega) = - Pi_ij(iOmega) / omega_eV",
+    "normalization": "bilayer-normalized 2D sheet conductivity",
+    "not_bulk_3d": true,
+    "not_single_layer": true,
+    "si_scaling_applied": false,
+    "sheet_conductivity_formula": "sigma_sheet_SI = (e^2 / hbar) * sigma_model",
+    "reflection_dimensionless_formula": "sigma_tilde = sigma_sheet_SI / sigma0",
+    "double_conversion_guarded_by": "SheetConductivityConversion.unit_stage"
+  },
+  "reflection_contract": {
+    "adapter": "sigma_tilde_xy_to_te_tm_reflection_matrix",
+    "formula": "R_TE_TM = [[R_TT, R_TL], [-R_LT, -R_LL]]"
+  },
+  "casimir_contract": {
+    "single_point_trace_log_for_main_pipeline": true,
+    "does_not_by_itself_perform_full_integral": true,
+    "used_by_main_pipeline_after_external_grid_sum": true,
+    "formula": "F/A = k_B T sum_n' int Q dQ dphi/(2pi)^2 log det[I-exp(-2*kappa*d) R1 R2]",
+    "round_trip_factor_formula": "exp(-2*kappa*d)",
+    "n0_weight": 0.5,
+    "n_ge_1_weight": 1.0,
+    "logdet_real_enters_energy": true,
+    "logdet_imag_metadata": true
+  },
+  "material_boundary_model": "bilayer_normalized_2D_sheet",
+  "not_bulk_3d": true,
+  "not_finite_thickness_slab": true,
+  "n0_policy": "extrapolate",
+  "valid_for_formal_casimir_claim": false,
+  "not_final_material_conclusion": true,
+  "ward_residual_recorded_not_gating": true,
+  "main_production_pipeline_v1": true,
+  "current_numerical_quality_metadata_retained": true,
+  "pairing_channels": [
+    "normal",
+    "spm",
+    "dwave"
+  ],
+  "distance_grid_nm": [
+    20.0,
+    30.0,
+    50.0,
+    80.0,
+    100.0,
+    150.0,
+    200.0
+  ],
+  "angle_grid_deg": [
+    0.0,
+    15.0,
+    30.0,
+    45.0,
+    60.0,
+    75.0,
+    90.0
+  ],
+  "matsubara_grid": {
+    "n_min": 0,
+    "n_max": 4
+  },
+  "Q_grid": {
+    "q_num": 6,
+    "q_max_nm_inv": 0.05
+  },
+  "phi_grid": {
+    "phi_num": 4
+  },
+  "integration_strategy": {
+    "integration_strategy": "best_available_adaptive",
+    "coarse_grid": 16,
+    "adaptive_level": 1,
+    "gauss_order": 2,
+    "fermi_window_eV": 0.12,
+    "eta_eV": 1e-10,
+    "q_specific_adaptive_grid": true,
+    "source_module": "src/lno327/finite_q_quadrature.py"
+  },
+  "distance_reuse_enabled": true,
+  "num_plate_reflection_rows": 2520,
+  "num_roundtrip_tasks": 2520,
+  "num_energy_points": 17640,
+  "num_completed_points": 17640,
+  "num_failed_points": 0,
+  "failed_fraction": 0.0,
+  "task_shard_index": 1,
+  "task_shard_count": 24,
+  "shard_specific_jsonl": true,
+  "max_ward_residual": 0.0049572194281799105,
+  "max_logdet_imag": 1.514381334457745e-17,
+  "n0_summary": {
+    "n0_policy": "extrapolate",
+    "num_n0_points": 504,
+    "num_n0_stable": 504,
+    "num_n0_monitor": 0,
+    "num_n0_unstable": 0,
+    "max_n0_reflection_norm_variation": 0.00027947156456042954,
+    "complete_matsubara_sum": true,
+    "n0_uses_reflection_extrapolation": true
+  },
+  "energy_per_area_outputs": [
+    "data/energy_vs_distance.csv",
+    "data/energy_vs_angle.csv",
+    "data/energy_distance_angle_grid.csv"
+  ],
+  "pressure_outputs": [
+    "data/pressure_vs_distance.csv"
+  ],
+  "torque_outputs": [
+    "data/torque_vs_angle.csv"
+  ],
+  "figure_files": [
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/casimir_energy_vs_distance.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/casimir_energy_vs_distance_loglog.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/casimir_pairing_comparison_vs_distance.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/casimir_energy_vs_angle.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/casimir_torque_vs_angle.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/casimir_anisotropic_energy_vs_angle.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/casimir_pressure_vs_distance.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/casimir_energy_distance_angle_heatmap.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/matsubara_contribution.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/q_integrand_contribution.png",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/ward_residual_over_casimir_grid.png"
+  ],
+  "data_files": [
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/energy_distance_angle_grid.csv",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/energy_vs_angle.csv",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/energy_vs_distance.csv",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/matsubara_contribution.csv",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/pairing_comparison.csv",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/pressure_vs_distance.csv",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/q_integrand_contribution.csv",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/torque_vs_angle.csv",
+    "outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/ward_residual_grid.csv"
+  ]
+}
