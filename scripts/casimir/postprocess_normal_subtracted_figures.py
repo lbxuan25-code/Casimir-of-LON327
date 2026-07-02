@@ -181,6 +181,7 @@ def _plot_figures(
     reference_distance_nm: float,
     *,
     plot_raw_excess_energy: bool,
+    plot_torque_amplitude: bool,
 ) -> list[Path]:
     import matplotlib
 
@@ -249,33 +250,46 @@ def _plot_figures(
     plt.close()
     outputs.append(path)
 
-    fig, axes = plt.subplots(2, 1, figsize=(6, 6), sharex=True)
+    plt.figure(figsize=(6, 4))
     for pairing in EXCESS_PAIRINGS:
         rows = sorted([row for row in anisotropy_rows if row["pairing"] == pairing], key=lambda row: float(row["distance_nm"]))
         distances = [float(row["distance_nm"]) for row in rows]
-        axes[0].plot(
+        plt.plot(
             distances,
             [float(row["excess_energy_anisotropy_amplitude_J_m2"]) for row in rows],
             marker="o",
             label=pairing,
         )
-        axes[1].plot(
-            distances,
-            [float(row["max_abs_excess_torque_per_area_J_m2_rad"]) for row in rows],
-            marker="o",
-            label=pairing,
-        )
-    axes[0].set_ylabel("A_E = max δΔE - min δΔE (J/m^2)")
-    axes[1].set_ylabel("A_tau = max |Δτ| (J/(m^2 rad))")
-    axes[1].set_xlabel("distance (nm)")
-    axes[0].set_title("Angular anisotropy amplitudes")
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=len(labels), frameon=False, bbox_to_anchor=(0.5, 0.995))
-    fig.tight_layout(rect=(0.0, 0.0, 1.0, 0.94))
+    plt.xlabel("distance (nm)")
+    plt.ylabel("A_E = max δΔE - min δΔE (J/m^2)")
+    plt.title("Angular excess energy amplitude vs distance")
+    plt.legend(frameon=False)
+    plt.tight_layout()
     path = figure_dir / "excess_anisotropy_amplitude_vs_distance.png"
-    fig.savefig(path, dpi=180)
-    plt.close(fig)
+    plt.savefig(path, dpi=180)
+    plt.close()
     outputs.append(path)
+    if plot_torque_amplitude:
+        extra_dir = figure_dir / "extra"
+        extra_dir.mkdir(parents=True, exist_ok=True)
+        plt.figure(figsize=(6, 4))
+        for pairing in EXCESS_PAIRINGS:
+            rows = sorted([row for row in anisotropy_rows if row["pairing"] == pairing], key=lambda row: float(row["distance_nm"]))
+            plt.plot(
+                [float(row["distance_nm"]) for row in rows],
+                [float(row["max_abs_excess_torque_per_area_J_m2_rad"]) for row in rows],
+                marker="o",
+                label=pairing,
+            )
+        plt.xlabel("distance (nm)")
+        plt.ylabel("A_tau = max |Δτ| (J/(m^2 rad))")
+        plt.title("Angular excess torque amplitude vs distance")
+        plt.legend(frameon=False)
+        plt.tight_layout()
+        path = extra_dir / "excess_torque_amplitude_vs_distance.png"
+        plt.savefig(path, dpi=180)
+        plt.close()
+        outputs.append(path)
     if plot_raw_excess_energy:
         extra_dir = figure_dir / "extra"
         extra_dir.mkdir(parents=True, exist_ok=True)
@@ -321,7 +335,9 @@ def _write_readme(figure_dir: Path, reference_distance_nm: float) -> Path:
                 "- plotted energy is δΔE = ΔE - <ΔE>_θ",
                 "- torque is Δτ = -∂θδΔE",
                 "- subtracting <ΔE>_θ leaves torque and max-min anisotropy amplitudes unchanged relative to raw ΔE",
-                "- therefore `excess_torque_vs_angle.png` and `excess_anisotropy_amplitude_vs_distance.png` can have the same numerical curves as raw-ΔE-derived plots; their labels document that the torque-producing angular part is used",
+                "- default distance summary only shows A_E(d), because it is the more direct and stable angular anisotropy measure",
+                "- torque is a finite-difference derivative and can amplify small smoke-grid residuals",
+                "- A_tau(d) is available only as an optional extra diagnostic with `--plot-torque-amplitude`",
                 "- theta derivatives use radians",
                 "- torque is computed by applying numpy.gradient(theta_rad) to δΔE after subtracting the angular mean",
                 "- endpoint values use raw finite-difference one-sided gradients and are not strict physical endpoint torque claims",
@@ -338,6 +354,10 @@ def _write_readme(figure_dir: Path, reference_distance_nm: float) -> Path:
                 "Optional extra raw ΔE figure is generated only with `--plot-raw-excess-energy`:",
                 "",
                 "- `extra/raw_excess_energy_vs_angle.png`",
+                "",
+                "Optional extra torque amplitude figure is generated only with `--plot-torque-amplitude`:",
+                "",
+                "- `extra/excess_torque_amplitude_vs_distance.png`",
             ]
         )
         + "\n",
@@ -351,6 +371,7 @@ def run(
     reference_distance_nm: float | None,
     write_derived_data: bool,
     plot_raw_excess_energy: bool,
+    plot_torque_amplitude: bool,
 ) -> dict[str, Any]:
     rows = _read_energy_rows(run_dir)
     distances, _angles = _common_grid(rows)
@@ -366,6 +387,7 @@ def run(
         anisotropy,
         reference,
         plot_raw_excess_energy=plot_raw_excess_energy,
+        plot_torque_amplitude=plot_torque_amplitude,
     )
     readme = _write_readme(figure_dir, reference)
 
@@ -413,6 +435,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reference-distance-nm", type=float)
     parser.add_argument("--write-derived-data", action="store_true")
     parser.add_argument("--plot-raw-excess-energy", action="store_true")
+    parser.add_argument("--plot-torque-amplitude", action="store_true")
     return parser.parse_args()
 
 
@@ -423,6 +446,7 @@ def main() -> int:
         args.reference_distance_nm,
         bool(args.write_derived_data),
         bool(args.plot_raw_excess_energy),
+        bool(args.plot_torque_amplitude),
     )
     for path in result["figures"]:
         print(path)
