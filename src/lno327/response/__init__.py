@@ -27,6 +27,13 @@ from lno327.response.finite_q import (
     thermal_expectation_bdg_from_model,
     vertex_band,
 )
+from lno327.response.finite_q_bdg import (
+    bdg_contact_vertex_from_spec,
+    bdg_eigensystem_from_model_pairing,
+    bdg_vector_vertex_from_spec,
+    finite_q_bdg_response_from_model_ansatz,
+    require_peierls_finite_q_support,
+)
 from lno327.response.nonlocal_normal import (
     c4_covariance_error,
     midpoint_velocity_vertex_from_model,
@@ -55,6 +62,11 @@ __all__ = [
     "add_bubble",
     "thermal_expectation_bdg_from_hamiltonian",
     "thermal_expectation_bdg_from_model",
+    "require_peierls_finite_q_support",
+    "bdg_eigensystem_from_model_pairing",
+    "bdg_vector_vertex_from_spec",
+    "bdg_contact_vertex_from_spec",
+    "finite_q_bdg_response_from_model_ansatz",
     "response_factor_imag_axis",
     "band_basis_bubble_imag_axis",
     "two_sided_response_factor_imag_axis",

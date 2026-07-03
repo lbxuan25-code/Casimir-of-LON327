@@ -4,6 +4,7 @@ from pathlib import Path
 def test_finite_q_engine_uses_model_and_generic_primitives():
     root = Path(__file__).resolve().parents[1]
     text = (root / "src/lno327/finite_q_engine.py").read_text()
+    core_text = (root / "src/lno327/response/finite_q_bdg.py").read_text()
     forbidden = (
         "from .bdg_response import",
         "from .conductivity import",
@@ -19,8 +20,9 @@ def test_finite_q_engine_uses_model_and_generic_primitives():
     for needle in forbidden:
         assert needle not in text, f"{needle!r} found in finite_q_engine.py"
 
-    assert "from .finite_q_primitives import ward_metadata" in text
-    assert "add_bubble" not in text.split("from .finite_q_primitives import", maxsplit=1)[1].split("\n", maxsplit=1)[0]
-    assert "spec.peierls_hamiltonian_vector_vertex" in text
-    assert "spec.peierls_hamiltonian_contact_vertex" in text
+    assert "finite_q_primitives" not in text
+    assert "add_bubble" not in text
+    assert "from lno327.response.finite_q_bdg import finite_q_bdg_response_from_model_ansatz" in text
+    assert "spec.peierls_hamiltonian_vector_vertex" in core_text
+    assert "spec.peierls_hamiltonian_contact_vertex" in core_text
     assert "finite_q_bdg_response_from_model_ansatz" in text

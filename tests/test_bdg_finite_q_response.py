@@ -13,12 +13,12 @@ from lno327.finite_q_engine import (
     FiniteQEngineOptions,
     apply_amplitude_phase_schur,
     finite_q_bdg_response_from_ansatz,
-    finite_q_bdg_response_from_model_ansatz,
 )
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz
 from lno327.models.lno327_four_orbital.pairing import pairing_from_bonds
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+from lno327.response.finite_q_bdg import finite_q_bdg_response_from_model_ansatz
 from lno327.ward_validation import validate_physical_ward_identity
 from lno327.ward_response import normal_physical_density_current_response_imag_axis
 
@@ -103,9 +103,9 @@ def test_finite_q_wrapper_matches_generic_ansatz_engine():
 
 
 def test_generic_finite_q_core_has_no_pairing_name_branching():
-    text = (ROOT / "src" / "lno327" / "finite_q_engine.py").read_text(encoding="utf-8")
+    text = (ROOT / "src" / "lno327" / "response" / "finite_q_bdg.py").read_text(encoding="utf-8")
     core = text.split("def finite_q_bdg_response_from_model_ansatz(", maxsplit=1)[1].split(
-        "def finite_q_bdg_response_from_ansatz(",
+        "return BdGFiniteQResponseComponents(",
         maxsplit=1,
     )[0]
     forbidden = [
