@@ -10,7 +10,7 @@ import numpy as np
 
 from .bdg_response import bdg_total_kernel_imag_axis
 from .conductivity import KuboConfig, bosonic_matsubara_energy_eV, k_weights as normalized_k_weights, uniform_bz_mesh
-from .pairing import PairingAmplitudes
+from .models.lno327_four_orbital.parameters import PairingAmplitudes
 from .response_interface import LocalSheetResponse, ResponseKind, local_response_imag_axis
 
 StaticResponsePolicy = Literal["skip", "extrapolate_from_lowest_matsubara", "use_static_kernel"]

@@ -1,98 +1,11 @@
-"""Normal-state bilayer two-orbital Hamiltonian."""
+"""Normal-state derivative vertices."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import numpy as np
 
-ORBITAL_BASIS = ("dz1", "dx1", "dz2", "dx2")
-
-
-@dataclass(frozen=True)
-class NormalStateParameters:
-    """Tight-binding coefficients in eV for basis dz1, dx1, dz2, dx2.
-
-    The adopted normal-state matrix is:
-    H(k) = [[H_parallel, H_perp], [H_perp, H_parallel]] - mu I.
-    """
-
-    chemical_potential: float = 0.05
-    tz_1: float = -0.217
-    tz_2: float = -0.073
-    tz_3: float = -0.021
-    tz_4: float = -0.005
-    tz_0: float = 0.431
-    tx_1: float = -0.922
-    tx_2: float = 0.301
-    tx_3: float = -0.108
-    tx_4: float = -0.025
-    tx_0: float = 0.881
-    tz_perp_0: float = -0.550
-    tz_perp_1: float = 0.041
-    tx_perp_0: float = 0.005
-    vxz_1: float = 0.429
-    vxz_2: float = 0.041
-    vxz_perp_1: float = -0.061
-
-
-def _cos_terms(kx: float, ky: float) -> tuple[float, float, float, float, float, float]:
-    cx = np.cos(kx)
-    cy = np.cos(ky)
-    c2x = np.cos(2.0 * kx)
-    c2y = np.cos(2.0 * ky)
-    c3x = np.cos(3.0 * kx)
-    c3y = np.cos(3.0 * ky)
-    return cx, cy, c2x, c2y, c3x, c3y
-
-
-def _sin_terms(kx: float, ky: float) -> tuple[float, float, float, float, float, float]:
-    sx = np.sin(kx)
-    sy = np.sin(ky)
-    s2x = np.sin(2.0 * kx)
-    s2y = np.sin(2.0 * ky)
-    s3x = np.sin(3.0 * kx)
-    s3y = np.sin(3.0 * ky)
-    return sx, sy, s2x, s2y, s3x, s3y
-
-
-def normal_state_hamiltonian(
-    kx: float,
-    ky: float,
-    params: NormalStateParameters | None = None,
-) -> np.ndarray:
-    """Return the 4x4 normal-state Hamiltonian H_t(k) in eV.
-
-    The returned matrix is spin independent and contains only the adopted
-    tight-binding normal-state model.
-    """
-
-    params = params or NormalStateParameters()
-    cx, cy, c2x, c2y, c3x, c3y = _cos_terms(kx, ky)
-
-    tz = (
-        params.tz_1 * (cx + cy)
-        + params.tz_2 * cx * cy
-        + params.tz_3 * (c2x + c2y)
-        + params.tz_4 * (c3x + c3y)
-        + params.tz_0
-    )
-    tx = (
-        params.tx_1 * (cx + cy)
-        + params.tx_2 * cx * cy
-        + params.tx_3 * (c2x + c2y)
-        + params.tx_4 * (c3x + c3y)
-        + params.tx_0
-    )
-    tz_perp = params.tz_perp_0 + params.tz_perp_1 * (cx + cy)
-    tx_perp = params.tx_perp_0
-    vxz = params.vxz_1 * (cx - cy) + params.vxz_2 * (c2x - c2y)
-    vxz_perp = params.vxz_perp_1 * (cx - cy)
-
-    h_parallel = np.array([[tz, vxz], [vxz, tx]], dtype=float)
-    h_perp = np.array([[tz_perp, vxz_perp], [vxz_perp, tx_perp]], dtype=float)
-    h = np.block([[h_parallel, h_perp], [h_perp, h_parallel]])
-    return h - params.chemical_potential * np.eye(4)
+from lno327.models.lno327_four_orbital.normal import _cos_terms, _sin_terms
+from lno327.models.lno327_four_orbital.parameters import NormalStateParameters
 
 
 def normal_state_velocity_operator(
@@ -101,12 +14,7 @@ def normal_state_velocity_operator(
     direction: str,
     params: NormalStateParameters | None = None,
 ) -> np.ndarray:
-    """Return the Kubo velocity vertex dH/dk_direction in eV.
-
-    The crystal momenta are dimensionless lattice momenta. Until a lattice
-    constant is fixed, this derivative is the natural current vertex for the
-    dimensionless Brillouin-zone formulation rather than a velocity in m/s.
-    """
+    """Return the Kubo velocity vertex dH/dk_direction in eV."""
 
     if direction not in {"x", "y"}:
         raise ValueError("direction must be 'x' or 'y'")
@@ -170,11 +78,7 @@ def normal_state_mass_operator(
     direction_b: str,
     params: NormalStateParameters | None = None,
 ) -> np.ndarray:
-    """Return d2H/dk_direction_a dk_direction_b in eV.
-
-    Crystal momenta are dimensionless lattice momenta, so this is the
-    natural inverse-mass vertex in the lattice-momentum convention.
-    """
+    """Return d2H/dk_direction_a dk_direction_b in eV."""
 
     if direction_a not in {"x", "y"} or direction_b not in {"x", "y"}:
         raise ValueError("directions must be 'x' or 'y'")

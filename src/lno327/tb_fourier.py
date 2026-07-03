@@ -14,7 +14,7 @@ import warnings
 
 import numpy as np
 
-from .model import NormalStateParameters
+from .models.lno327_four_orbital.parameters import NormalStateParameters
 
 HoppingTerm = tuple[tuple[int, int], np.ndarray]
 EPS = 1e-300

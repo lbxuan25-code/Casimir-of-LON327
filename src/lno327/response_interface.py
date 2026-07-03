@@ -10,7 +10,7 @@ import numpy as np
 
 from .bdg_response import bdg_superconducting_response_imag_axis
 from .conductivity import ConductivityTensor, KuboConfig, kubo_conductivity_imag_axis
-from .pairing import PairingAmplitudes
+from .models.lno327_four_orbital.parameters import PairingAmplitudes
 from .response_conventions import SheetConductivityConvention, model_response_to_sheet_conductivity
 
 ResponseKind = Literal["normal", "spm", "dwave"]

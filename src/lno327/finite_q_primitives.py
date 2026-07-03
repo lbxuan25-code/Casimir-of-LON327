@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 
 from .conductivity import KuboConfig, fermi_function
-from .pairing import bdg_hamiltonian
+from .models.lno327_four_orbital.bdg import bdg_hamiltonian
 from .tb_fourier import peierls_hamiltonian_contact_vertex, peierls_hamiltonian_vector_vertex
 from .ward_response import physical_ward_residuals
 

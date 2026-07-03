@@ -24,7 +24,7 @@ from lno327.bdg_q0_conventions import (  # noqa: E402
     relative_norm,
 )
 from lno327.conductivity import KuboConfig, k_weights, kubo_conductivity_imag_axis, uniform_bz_mesh  # noqa: E402
-from lno327.pairing import PairingAmplitudes  # noqa: E402
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
 from lno327.ward_response import normal_physical_density_current_response_components_imag_axis  # noqa: E402
 
 AlignmentPairingName = Literal["normal", "onsite_s", "spm", "dwave"]

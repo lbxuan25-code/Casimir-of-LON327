@@ -21,7 +21,8 @@ from .bdg_response import (
 )
 from .conductivity import KuboConfig
 from .finite_q_primitives import bdg_finite_q_vector_vertex
-from .pairing import PairingAmplitudes, pairing_matrix
+from .models.lno327_four_orbital.pairing import pairing_matrix
+from .models.lno327_four_orbital.parameters import PairingAmplitudes
 
 Q0PairingName = Literal["spm", "dwave"]
 

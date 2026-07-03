@@ -8,8 +8,13 @@ from dataclasses import dataclass
 import numpy as np
 
 from .conductivity import KuboConfig, fermi_function, negative_fermi_derivative
-from .model import normal_state_mass_operator, normal_state_velocity_operator
-from .pairing import PairingAmplitudes, PairingKind, bdg_hamiltonian, pairing_matrix
+from .models.lno327_four_orbital.bdg import bdg_hamiltonian
+from .models.lno327_four_orbital.pairing import pairing_matrix
+from .models.lno327_four_orbital.parameters import PairingAmplitudes, PairingKind
+from .models.lno327_four_orbital.vertices import (
+    normal_state_mass_operator,
+    normal_state_velocity_operator,
+)
 
 
 @dataclass(frozen=True)

@@ -31,7 +31,8 @@ from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_f
 from lno327.finite_q_quadrature import FiniteQQuadratureOptions, finite_q_quadrature_points  # noqa: E402
 from lno327.lifshitz_integrand import lifshitz_integrand_metadata, trace_log_point  # noqa: E402
 from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
-from lno327.pairing import PairingAmplitudes, build_pairing_ansatz  # noqa: E402
+from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
 from lno327.reflection_input import (  # noqa: E402
     sigma_tilde_xy_to_te_tm_reflection_matrix,
     vacuum_kappa,

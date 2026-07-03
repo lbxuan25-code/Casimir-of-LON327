@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327.conductivity import KuboConfig, fermi_function, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.model import normal_state_hamiltonian  # noqa: E402
+from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian  # noqa: E402
 from lno327.tb_fourier import normal_state_hopping_terms  # noqa: E402
 
 OUTPUT_DIR = ROOT / "validation" / "outputs" / "response" / "ward_identity"

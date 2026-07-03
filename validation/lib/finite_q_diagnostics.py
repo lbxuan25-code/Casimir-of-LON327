@@ -15,8 +15,8 @@ import numpy as np
 
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
 from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
-from lno327.pairing import PairingAmplitudes
-from lno327.pairing import PairingAnsatzName, build_pairing_ansatz
+from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes, PairingAnsatzName
 from lno327.ward_validation import WardValidationReport, validate_physical_ward_identity
 
 

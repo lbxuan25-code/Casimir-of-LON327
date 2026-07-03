@@ -15,7 +15,9 @@ import numpy as np
 from .bdg_response import bdg_current_vertex
 from .conductivity import KuboConfig, fermi_function
 from .constants import E2_OVER_HBAR
-from .pairing import PairingAmplitudes, PairingKind, bdg_hamiltonian, pairing_matrix
+from .models.lno327_four_orbital.bdg import bdg_hamiltonian
+from .models.lno327_four_orbital.pairing import pairing_matrix
+from .models.lno327_four_orbital.parameters import PairingAmplitudes, PairingKind
 
 
 @dataclass(frozen=True)

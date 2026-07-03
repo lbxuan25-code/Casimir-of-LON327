@@ -12,7 +12,11 @@ from collections.abc import Callable, Sequence
 import numpy as np
 
 from .conductivity import KuboConfig, fermi_function
-from .model import normal_state_hamiltonian, normal_state_mass_operator, normal_state_velocity_operator
+from .models.lno327_four_orbital.normal import normal_state_hamiltonian
+from .models.lno327_four_orbital.vertices import (
+    normal_state_mass_operator,
+    normal_state_velocity_operator,
+)
 from .tb_fourier import (
     HoppingTerm,
     normal_state_hopping_terms,

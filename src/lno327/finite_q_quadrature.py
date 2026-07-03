@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 
 from .conductivity import k_weights, uniform_bz_mesh
-from .model import normal_state_hamiltonian
+from .models.lno327_four_orbital.normal import normal_state_hamiltonian
 
 
 @dataclass(frozen=True)

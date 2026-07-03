@@ -15,9 +15,13 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
 from lno327.finite_q_primitives import phase_vertex  # noqa: E402
-from lno327.pairing import PairingAmplitudes, dwave_pairing_matrix  # noqa: E402
-from lno327.pairing import build_pairing_ansatz  # noqa: E402
-from lno327.pairing import bond_endpoint_gauge_form_factor, pairing_from_bonds  # noqa: E402
+from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
+from lno327.models.lno327_four_orbital.pairing import (  # noqa: E402
+    bond_endpoint_gauge_form_factor,
+    dwave_pairing_matrix,
+    pairing_from_bonds,
+)
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
 
 
 @dataclass(frozen=True)

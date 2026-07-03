@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, fermi_function, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.model import normal_state_hamiltonian  # noqa: E402
+from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian  # noqa: E402
 from lno327.tb_fourier import (  # noqa: E402
     normal_state_hamiltonian_from_hoppings,
     peierls_hamiltonian_contact_vertex,

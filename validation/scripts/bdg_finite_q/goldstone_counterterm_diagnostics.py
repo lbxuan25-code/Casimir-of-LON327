@@ -17,8 +17,8 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
 from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
-from lno327.pairing import PairingAmplitudes  # noqa: E402
-from lno327.pairing import build_pairing_ansatz  # noqa: E402
+from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
 
 GoldstonePairingName = Literal["onsite_s", "spm", "dwave"]
 

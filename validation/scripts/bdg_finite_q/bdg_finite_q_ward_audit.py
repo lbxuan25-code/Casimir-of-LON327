@@ -20,7 +20,8 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 from lno327.conductivity import KuboConfig, k_weights  # noqa: E402
 from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
-from lno327.pairing import PairingAmplitudes, build_pairing_ansatz  # noqa: E402
+from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
 from lno327.ward_response import normal_physical_density_current_response_components_imag_axis  # noqa: E402
 from normal_finite_q_ward_audit import (  # noqa: E402
     DIRECTION_VECTORS,
@@ -29,7 +30,7 @@ from normal_finite_q_ward_audit import (  # noqa: E402
     uniform_bz_mesh_twisted,
 )
 from lno327.finite_q_primitives import density_vertex, phase_vertex  # noqa: E402
-from lno327.pairing import bdg_hamiltonian  # noqa: E402
+from lno327.models.lno327_four_orbital.bdg import bdg_hamiltonian  # noqa: E402
 
 WARD_COMPONENT_LABELS = ("density", "current_x", "current_y")
 MAX_JSON_SIZE_MB = 50.0

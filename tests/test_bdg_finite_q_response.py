@@ -14,9 +14,9 @@ from lno327.finite_q_engine import (
     apply_amplitude_phase_schur,
     finite_q_bdg_response_from_ansatz,
 )
-from lno327.pairing import PairingAmplitudes
-from lno327.pairing import build_pairing_ansatz
-from lno327.pairing import pairing_from_bonds
+from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz
+from lno327.models.lno327_four_orbital.pairing import pairing_from_bonds
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
 from lno327.ward_validation import validate_physical_ward_identity
 from lno327.ward_response import normal_physical_density_current_response_imag_axis
 

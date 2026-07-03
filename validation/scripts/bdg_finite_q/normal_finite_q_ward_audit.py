@@ -23,7 +23,7 @@ from lno327.conductivity import (  # noqa: E402
     negative_fermi_derivative,
     uniform_bz_mesh,
 )
-from lno327.model import normal_state_hamiltonian  # noqa: E402
+from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian  # noqa: E402
 from lno327.tb_fourier import (  # noqa: E402
     normal_state_hopping_terms,
     peierls_hamiltonian_contact_vertex,

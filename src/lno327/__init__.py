@@ -52,19 +52,21 @@ from .gap_analysis import (
     gap_statistics_by_band,
     gap_statistics_on_fermi_surface,
 )
-from .model import (
+from .models.lno327_four_orbital.normal import normal_state_hamiltonian
+from .models.lno327_four_orbital.parameters import (
     NormalStateParameters,
     ORBITAL_BASIS,
-    normal_state_hamiltonian,
+    PairingAmplitudes,
+    PairingKind,
+)
+from .models.lno327_four_orbital.vertices import (
     normal_state_mass_operator,
     normal_state_mass_operators,
     normal_state_velocity_operator,
     normal_state_velocity_operators,
 )
-from .pairing import (
-    PairingAmplitudes,
-    PairingKind,
-    bdg_hamiltonian,
+from .models.lno327_four_orbital.bdg import bdg_hamiltonian
+from .models.lno327_four_orbital.pairing import (
     dwave_pairing_matrix,
     pairing_matrix,
     spm_pairing_matrix,

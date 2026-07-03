@@ -30,7 +30,7 @@ from lno327 import (  # noqa: E402
     uniform_bz_mesh,
 )
 from lno327.conductivity import conductivity_eigensystem  # noqa: E402
-from lno327.model import normal_state_mass_operator  # noqa: E402
+from lno327.models.lno327_four_orbital.vertices import normal_state_mass_operator  # noqa: E402
 from validation.lib.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,

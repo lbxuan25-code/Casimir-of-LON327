@@ -15,7 +15,8 @@ import numpy as np
 
 from .conductivity import KuboConfig, fermi_function
 from .constants import E2_OVER_HBAR
-from .model import normal_state_hamiltonian, normal_state_velocity_operator
+from .models.lno327_four_orbital.normal import normal_state_hamiltonian
+from .models.lno327_four_orbital.vertices import normal_state_velocity_operator
 
 HamiltonianBuilder = Callable[[float, float], np.ndarray]
 VelocityBuilder = Callable[[float, float, str], np.ndarray]

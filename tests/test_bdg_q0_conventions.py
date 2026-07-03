@@ -8,7 +8,7 @@ import numpy as np
 import lno327
 from lno327.bdg_q0_conventions import evaluate_bdg_q0_convention
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
-from lno327.pairing import PairingAmplitudes
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
 
 ROOT = Path(__file__).resolve().parents[1]
 

@@ -5,7 +5,7 @@ import inspect
 import numpy as np
 import pytest
 
-from lno327.model import normal_state_mass_operator
+from lno327.models.lno327_four_orbital.vertices import normal_state_mass_operator
 from lno327.tb_fourier import (
     normal_state_hamiltonian_from_hoppings,
     normal_state_hopping_terms,

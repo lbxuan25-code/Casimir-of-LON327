@@ -11,7 +11,7 @@ import numpy as np
 
 from .conductivity import ConductivityTensor, KuboConfig, k_weights, kubo_conductivity_imag_axis, negative_fermi_derivative
 from .constants import KB_EV_PER_K
-from .model import normal_state_hamiltonian
+from .models.lno327_four_orbital.normal import normal_state_hamiltonian
 from .response_conventions import require_sheet_conductivity_for_reflection
 
 RATIO_EPS = 1e-300
