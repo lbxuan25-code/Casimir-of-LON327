@@ -1,4 +1,5 @@
 import json
+import importlib.util
 from pathlib import Path
 
 import numpy as np
@@ -18,6 +19,16 @@ def _assert_plot_and_metadata(path: Path):
     metadata = json.loads(metadata_path.read_text())
     assert metadata["sanity_plot_only"] is True
     assert metadata["not_casimir_input"] is True
+    return metadata
+
+
+def _plot_model_sanity_module():
+    script_path = Path("scripts/models/plot_model_sanity.py")
+    spec = importlib.util.spec_from_file_location("plot_model_sanity", script_path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def test_shared_plotting_backend_writes_png_and_metadata(tmp_path):
@@ -69,3 +80,32 @@ def test_old_model_sanity_plotting_entrypoints_are_removed():
     assert not Path("scripts/normal_state/inspect_band_structure.py").exists()
     assert not Path("scripts/pairing/inspect_gap_structure.py").exists()
     assert not Path("scripts/pairing/inspect_pairing_structure.py").exists()
+
+
+def test_generate_plots_records_gap_and_path_metadata(tmp_path):
+    module = _plot_model_sanity_module()
+
+    module.generate_plots(
+        model_name="symmetry_bdg_2band",
+        nk=7,
+        channels=("spp",),
+        plots=("band", "gap"),
+        output_root=tmp_path,
+        path_points=5,
+        gap_projection_gauge="anchor",
+        gap_value_mode="abs",
+    )
+
+    band_metadata = json.loads(
+        (tmp_path / "symmetry_bdg_2band" / "band_structure" / "normal_bands.json").read_text()
+    )
+    assert band_metadata["k_path"] == "Gamma-X-M-Gamma"
+    assert band_metadata["path_points_per_segment"] == 5
+    assert band_metadata["path_num_points"] == 16
+
+    gap_metadata = json.loads(
+        (tmp_path / "symmetry_bdg_2band" / "gap_texture" / "spp_band_0_abs.json").read_text()
+    )
+    assert gap_metadata["gap_projection_gauge"] == "anchor"
+    assert gap_metadata["projected_gap_sanity_quantity"] is True
+    assert gap_metadata["gap_value_mode"] == "abs"

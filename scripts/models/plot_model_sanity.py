@@ -83,8 +83,16 @@ def _normal_band_grid(observables, spec, kx_grid: np.ndarray, ky_grid: np.ndarra
     return output
 
 
-def _band_projected_gap_grid(observables, spec, channel: str, kx_grid: np.ndarray, ky_grid: np.ndarray) -> np.ndarray:
-    first = observables.band_projected_gap(float(kx_grid[0, 0]), float(ky_grid[0, 0]), channel, spec)
+def _band_projected_gap_grid(
+    observables,
+    spec,
+    channel: str,
+    kx_grid: np.ndarray,
+    ky_grid: np.ndarray,
+    *,
+    gauge: str,
+) -> np.ndarray:
+    first = observables.band_projected_gap(float(kx_grid[0, 0]), float(ky_grid[0, 0]), channel, spec, gauge=gauge)
     output = np.empty((first.shape[0],) + kx_grid.shape, dtype=complex)
     output[:, 0, 0] = first
     for index in np.ndindex(kx_grid.shape):
@@ -95,6 +103,7 @@ def _band_projected_gap_grid(observables, spec, channel: str, kx_grid: np.ndarra
             float(ky_grid[index]),
             channel,
             spec,
+            gauge=gauge,
         )
     return output
 
@@ -111,6 +120,16 @@ def _bdg_min_gap_grid(observables, spec, channel: str, kx_grid: np.ndarray, ky_g
     return output
 
 
+def _gap_values_for_plot(projected_gap: np.ndarray, mode: str) -> np.ndarray:
+    if mode == "real":
+        return np.real(projected_gap)
+    if mode == "abs":
+        return np.abs(projected_gap)
+    if mode == "phase":
+        return np.angle(projected_gap)
+    raise ValueError("gap value mode must be 'real', 'abs', or 'phase'")
+
+
 def generate_plots(
     *,
     model_name: str,
@@ -118,6 +137,9 @@ def generate_plots(
     channels: tuple[str, ...],
     plots: tuple[str, ...],
     output_root: Path,
+    path_points: int = 80,
+    gap_projection_gauge: str = "anchor",
+    gap_value_mode: str = "real",
 ) -> None:
     spec = build_model_spec(model_name)
     observables = get_observables_module(model_name)
@@ -127,7 +149,7 @@ def generate_plots(
     metadata = _base_metadata(spec, model_name, nk, active_channels)
 
     if "band" in plots:
-        path, distance, label_positions, label_names = _high_symmetry_path()
+        path, distance, label_positions, label_names = _high_symmetry_path(points_per_segment=path_points)
         energies = observables.band_energies_on_path(spec, path)
         plot_band_structure(
             distance,
@@ -136,7 +158,13 @@ def generate_plots(
             label_names,
             output_dir / "band_structure" / "normal_bands.png",
             title=f"{model_name} normal bands",
-            metadata={**metadata, "plot": "band_structure"},
+            metadata={
+                **metadata,
+                "plot": "band_structure",
+                "k_path": "Gamma-X-M-Gamma",
+                "path_points_per_segment": path_points,
+                "path_num_points": int(path.shape[0]),
+            },
         )
 
     needs_grid = any(item in plots for item in ("fermi", "gap", "bdg-gap"))
@@ -157,16 +185,31 @@ def generate_plots(
 
     if "gap" in plots:
         for channel in active_channels:
-            projected = _band_projected_gap_grid(observables, spec, channel, kx_grid, ky_grid)
+            projected = _band_projected_gap_grid(
+                observables,
+                spec,
+                channel,
+                kx_grid,
+                ky_grid,
+                gauge=gap_projection_gauge,
+            )
             for band_index in range(projected.shape[0]):
                 plot_gap_texture(
                     kx_grid,
                     ky_grid,
-                    np.real(projected[band_index]),
-                    output_dir / "gap_texture" / f"{channel}_band_{band_index}.png",
-                    title=f"{model_name} {channel} band {band_index} projected gap",
+                    _gap_values_for_plot(projected[band_index], gap_value_mode),
+                    output_dir / "gap_texture" / f"{channel}_band_{band_index}_{gap_value_mode}.png",
+                    title=f"{model_name} {channel} band {band_index} projected gap ({gap_value_mode})",
                     fermi_contours=band_grid,
-                    metadata={**metadata, "plot": "gap_texture", "channel": channel, "band_index": band_index},
+                    metadata={
+                        **metadata,
+                        "plot": "gap_texture",
+                        "channel": channel,
+                        "band_index": band_index,
+                        "gap_projection_gauge": gap_projection_gauge,
+                        "projected_gap_sanity_quantity": True,
+                        "gap_value_mode": gap_value_mode,
+                    },
                 )
 
     if "bdg-gap" in plots:
@@ -189,10 +232,15 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--channels", default="all")
     parser.add_argument("--plots", default="band,fermi,gap,bdg-gap")
     parser.add_argument("--output-root", type=Path, default=Path("outputs/models"))
+    parser.add_argument("--path-points", type=int, default=80)
+    parser.add_argument("--gap-projection-gauge", choices=("anchor", "raw"), default="anchor")
+    parser.add_argument("--gap-value-mode", choices=("real", "abs", "phase"), default="real")
     args = parser.parse_args(argv)
 
     if args.nk <= 1:
         raise ValueError("--nk must be greater than 1")
+    if args.path_points <= 1:
+        raise ValueError("--path-points must be greater than 1")
     plots = _parse_csv(args.plots)
     allowed_plots = {"band", "fermi", "gap", "bdg-gap"}
     unknown_plots = set(plots) - allowed_plots
@@ -205,6 +253,9 @@ def main(argv: list[str] | None = None) -> None:
         channels=_parse_csv(args.channels),
         plots=plots,
         output_root=args.output_root,
+        path_points=args.path_points,
+        gap_projection_gauge=args.gap_projection_gauge,
+        gap_value_mode=args.gap_value_mode,
     )
 
 

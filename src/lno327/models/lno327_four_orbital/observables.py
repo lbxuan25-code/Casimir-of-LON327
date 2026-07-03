@@ -7,6 +7,7 @@ from collections.abc import Sequence
 import numpy as np
 
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+from lno327.models.projection import band_project_pairing
 
 
 def _spec_or_default(spec: LNO327FourOrbitalSpec | None) -> LNO327FourOrbitalSpec:
@@ -56,18 +57,14 @@ def band_projected_gap(
     ky: float,
     channel: str,
     spec: LNO327FourOrbitalSpec | None = None,
+    *,
+    gauge: str = "anchor",
 ) -> np.ndarray:
     model = _spec_or_default(spec)
     delta = model.pairing_matrix(kx, ky, channel)
     _, states_k = np.linalg.eigh(model.normal_hamiltonian(kx, ky))
     _, states_minus_k = np.linalg.eigh(model.normal_hamiltonian(-kx, -ky))
-    return np.asarray(
-        [
-            states_k[:, band].conjugate().T @ delta @ states_minus_k[:, band].conjugate()
-            for band in range(states_k.shape[1])
-        ],
-        dtype=complex,
-    )
+    return band_project_pairing(delta, states_k, states_minus_k, gauge=gauge)
 
 
 def band_energies_on_path(
