@@ -18,6 +18,15 @@ from lno327.response.local_normal import (
     kubo_conductivity_imag_axis_from_model,
     kubo_conductivity_real_axis_from_model,
 )
+from lno327.response.finite_q import (
+    BdGFiniteQResponseComponents,
+    add_bubble,
+    fermi_derivative,
+    kubo_factor,
+    thermal_expectation_bdg_from_hamiltonian,
+    thermal_expectation_bdg_from_model,
+    vertex_band,
+)
 from lno327.response.nonlocal_normal import (
     c4_covariance_error,
     midpoint_velocity_vertex_from_model,
@@ -36,9 +45,16 @@ __all__ = [
     "BandBasisEigensystem",
     "KernelComponents",
     "KuboConfig",
+    "BdGFiniteQResponseComponents",
     "fermi_function",
     "negative_fermi_derivative",
     "occupation_difference",
+    "fermi_derivative",
+    "kubo_factor",
+    "vertex_band",
+    "add_bubble",
+    "thermal_expectation_bdg_from_hamiltonian",
+    "thermal_expectation_bdg_from_model",
     "response_factor_imag_axis",
     "band_basis_bubble_imag_axis",
     "two_sided_response_factor_imag_axis",
