@@ -77,3 +77,74 @@ def band_basis_bubble_imag_axis(
                     kernel[alpha, beta] += factor * vertex_alpha[m, n] * vertex_beta[n, m]
 
     return prefactor * kernel
+
+
+def two_sided_response_factor_imag_axis(
+    energy_left: float,
+    energy_right: float,
+    occupation_left: float,
+    occupation_right: float,
+    omega_eV: float,
+    eta_eV: float,
+) -> float:
+    delta_energy = energy_left - energy_right
+    delta_occupation = occupation_left - occupation_right
+    denominator = delta_energy**2 + omega_eV**2
+    if denominator <= eta_eV**2:
+        return 0.0
+    return float(-delta_occupation * delta_energy / denominator)
+
+
+def two_sided_band_basis_bubble_imag_axis(
+    energies_left: np.ndarray,
+    energies_right: np.ndarray,
+    occupations_left: np.ndarray,
+    occupations_right: np.ndarray,
+    vertices_left_right: tuple[np.ndarray, ...],
+    omega_eV: float,
+    eta_eV: float,
+    *,
+    prefactor: float = 1.0,
+) -> np.ndarray:
+    left_energies = np.asarray(energies_left, dtype=float)
+    right_energies = np.asarray(energies_right, dtype=float)
+    left_occupations = np.asarray(occupations_left, dtype=float)
+    right_occupations = np.asarray(occupations_right, dtype=float)
+    if left_energies.ndim != 1:
+        raise ValueError("energies_left must be a one-dimensional array")
+    if right_energies.ndim != 1:
+        raise ValueError("energies_right must be a one-dimensional array")
+    if left_occupations.shape != left_energies.shape:
+        raise ValueError("occupations_left must have the same shape as energies_left")
+    if right_occupations.shape != right_energies.shape:
+        raise ValueError("occupations_right must have the same shape as energies_right")
+    if len(vertices_left_right) == 0:
+        raise ValueError("vertices_left_right must not be empty")
+
+    n_left = left_energies.shape[0]
+    n_right = right_energies.shape[0]
+    vertex_matrices = tuple(np.asarray(vertex) for vertex in vertices_left_right)
+    for vertex in vertex_matrices:
+        if vertex.shape != (n_left, n_right):
+            raise ValueError("each vertex must have shape (n_left, n_right)")
+
+    kernel = np.zeros((len(vertex_matrices), len(vertex_matrices)), dtype=complex)
+    for m, energy_left in enumerate(left_energies):
+        for n, energy_right in enumerate(right_energies):
+            factor = two_sided_response_factor_imag_axis(
+                float(energy_left),
+                float(energy_right),
+                float(left_occupations[m]),
+                float(right_occupations[n]),
+                omega_eV,
+                eta_eV,
+            )
+            if factor == 0.0:
+                continue
+            for alpha, vertex_alpha in enumerate(vertex_matrices):
+                for beta, vertex_beta in enumerate(vertex_matrices):
+                    kernel[alpha, beta] += (
+                        factor * vertex_alpha[m, n] * np.conjugate(vertex_beta[m, n])
+                    )
+
+    return prefactor * kernel

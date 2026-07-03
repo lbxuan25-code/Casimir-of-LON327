@@ -12,6 +12,7 @@ from lno327.constants import E2_OVER_HBAR
 from lno327.electrodynamics.conductivity import ConductivityTensor
 from lno327.response.config import KuboConfig
 from lno327.response.occupations import fermi_function, negative_fermi_derivative
+from lno327.response.validation import validate_k_points_and_weights
 
 
 @dataclass(frozen=True)
@@ -22,30 +23,6 @@ class NormalConductivityEigensystem:
     negative_fermi_derivative: np.ndarray
     velocity_x_band: np.ndarray
     velocity_y_band: np.ndarray
-
-
-def validate_k_points_and_weights(
-    k_points: Sequence[tuple[float, float]] | np.ndarray,
-    config: KuboConfig,
-    k_weights: Sequence[float] | np.ndarray | None = None,
-) -> tuple[np.ndarray, np.ndarray]:
-    points = np.asarray(k_points, dtype=float)
-    if points.ndim != 2 or points.shape[1] != 2:
-        raise ValueError("k_points must have shape (n, 2)")
-    if points.shape[0] == 0:
-        raise ValueError("k_points must not be empty")
-    if config.omega_eV < 0.0:
-        raise ValueError("omega_eV must be non-negative")
-    if config.eta_eV <= 0.0:
-        raise ValueError("eta_eV must be positive")
-
-    if k_weights is None:
-        weights = np.full(points.shape[0], 1.0 / points.shape[0])
-    else:
-        weights = np.asarray(k_weights, dtype=float)
-        if weights.shape != (points.shape[0],):
-            raise ValueError("k_weights must have shape (n,)")
-    return points, weights
 
 
 def normal_conductivity_eigensystem_from_model(

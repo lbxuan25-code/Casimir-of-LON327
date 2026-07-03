@@ -12,8 +12,8 @@ from lno327.bdg.spectrum import bdg_eigensystem_from_model, transform_operator_t
 from lno327.response.bubble import band_basis_bubble_imag_axis
 from lno327.response.config import KuboConfig
 from lno327.response.containers import KernelComponents
-from lno327.response.local_normal import validate_k_points_and_weights
 from lno327.response.occupations import fermi_function, negative_fermi_derivative
+from lno327.response.validation import validate_k_points_and_weights
 
 
 @dataclass(frozen=True)
