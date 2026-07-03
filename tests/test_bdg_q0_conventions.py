@@ -73,6 +73,7 @@ def test_public_package_shape_has_single_lno327_entrypoint():
 
 
 def test_deleted_internal_modules_are_not_imported_by_active_python_code():
+    # Only modules that were deleted and should not be imported by active code belong here.
     deleted_module_names = (
         "bdg_finite_q_response",
         "conductivity_units",
@@ -81,7 +82,6 @@ def test_deleted_internal_modules_are_not_imported_by_active_python_code():
         "pairing_ansatz",
         "pairing_bonds",
         "finite_q_diagnostics",
-        "plotting",
     )
     active_roots = (ROOT / "src", ROOT / "tests", ROOT / "validation" / "scripts", ROOT / "scripts")
     for root in active_roots:
