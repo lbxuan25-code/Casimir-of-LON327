@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from lno327.plotting import (
     plot_band_structure,
@@ -85,7 +86,7 @@ def test_generate_plots_records_fermi_gap_and_path_metadata(tmp_path):
     module.generate_plots(
         model_name="symmetry_bdg_2band",
         nk=21,
-        channels=("spp",),
+        channels=("spm",),
         plots=("band", "fermi", "fermi-gap"),
         output_root=tmp_path,
         path_points=5,
@@ -96,9 +97,11 @@ def test_generate_plots_records_fermi_gap_and_path_metadata(tmp_path):
     model_dir = tmp_path / "symmetry_bdg_2band"
     assert (model_dir / "band_structure" / "normal_bands.png").exists()
     assert (model_dir / "fermi_surface" / "normal_fermi_surface.png").exists()
-    assert (model_dir / "fermi_gap" / "spp_real.png").exists()
-    assert (model_dir / "fermi_gap" / "spp_summary.csv").exists()
-    assert (model_dir / "fermi_gap" / "spp_summary.json").exists()
+    assert (model_dir / "fermi_gap" / "spm_real.png").exists()
+    assert (model_dir / "fermi_gap" / "spm_real_summary.csv").exists()
+    assert (model_dir / "fermi_gap" / "spm_real_summary.json").exists()
+    assert not (model_dir / "fermi_gap" / "spm_summary.csv").exists()
+    assert not (model_dir / "fermi_gap" / "spm_summary.json").exists()
     assert not (model_dir / "gap_texture").exists()
     assert not (model_dir / "bdg_min_gap").exists()
 
@@ -107,12 +110,19 @@ def test_generate_plots_records_fermi_gap_and_path_metadata(tmp_path):
     assert band_metadata["path_points_per_segment"] == 5
     assert band_metadata["path_num_points"] == 16
 
-    fermi_gap_metadata = json.loads((model_dir / "fermi_gap" / "spp_real.json").read_text())
+    fermi_gap_metadata = json.loads((model_dir / "fermi_gap" / "spm_real.json").read_text())
     assert fermi_gap_metadata["plot"] == "fermi_gap"
     assert fermi_gap_metadata["domain"] == "fermi_surface"
     assert fermi_gap_metadata["projected_gap_sanity_quantity"] is True
     assert fermi_gap_metadata["gap_projection_gauge"] == "anchor"
     assert fermi_gap_metadata["gap_value_mode"] == "real"
+
+    summary_metadata = json.loads((model_dir / "fermi_gap" / "spm_real_summary.json").read_text())
+    assert summary_metadata["plot"] == "fermi_gap_summary"
+    assert summary_metadata["gap_value_mode"] == "real"
+    assert summary_metadata["gap_projection_gauge"] == "anchor"
+    assert summary_metadata["projected_gap_sanity_quantity"] is True
+    assert "summary" in summary_metadata
 
 
 def test_generate_plots_rejects_removed_plot_names(tmp_path):
@@ -123,7 +133,7 @@ def test_generate_plots_rejects_removed_plot_names(tmp_path):
             module.generate_plots(
                 model_name="symmetry_bdg_2band",
                 nk=7,
-                channels=("spp",),
+                channels=("spm",),
                 plots=(plot_name,),
                 output_root=tmp_path,
             )
@@ -131,3 +141,17 @@ def test_generate_plots_rejects_removed_plot_names(tmp_path):
             assert "full-BZ gap texture and BdG min-gap plots are no longer main model sanity outputs" in str(exc)
         else:
             raise AssertionError(f"{plot_name} should have been rejected")
+
+
+def test_generate_plots_rejects_removed_control_channel(tmp_path):
+    module = _plot_model_sanity_module()
+    removed_channel = "s" + "pp"
+
+    with pytest.raises(ValueError, match="unknown channels"):
+        module.generate_plots(
+            model_name="symmetry_bdg_2band",
+            nk=21,
+            channels=(removed_channel,),
+            plots=("fermi-gap",),
+            output_root=tmp_path,
+        )

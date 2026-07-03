@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from lno327.models.symmetry_bdg_2band.observables import (
     band_energies_on_path,
@@ -17,7 +18,7 @@ def test_symmetry_bdg_2band_spec_metadata_and_channels():
     assert metadata.name == "symmetry_bdg_2band"
     assert metadata.basis == ("a", "b")
     assert metadata.description == "Symmetry-focused two-band BdG model"
-    assert tuple(channel.name for channel in spec.channels()) == ("normal", "spp", "spm", "dwave")
+    assert tuple(channel.name for channel in spec.channels()) == ("normal", "spm", "dwave")
 
 
 def test_symmetry_bdg_2band_spec_shapes_and_hermiticity():
@@ -27,7 +28,7 @@ def test_symmetry_bdg_2band_spec_shapes_and_hermiticity():
     h = spec.normal_hamiltonian(kx, ky)
     assert h.shape == (2, 2)
     np.testing.assert_allclose(h, h.conjugate().T)
-    for channel in ("normal", "spp", "spm", "dwave"):
+    for channel in ("normal", "spm", "dwave"):
         delta = spec.pairing_matrix(kx, ky, channel)
         bdg = spec.bdg_hamiltonian(kx, ky, channel)
         assert delta.shape == (2, 2)
@@ -44,6 +45,15 @@ def test_symmetry_bdg_2band_observables_return_expected_shapes():
 
     assert normal_band_energies(kx, ky, spec).shape == (2,)
     assert band_energies_on_path(spec, k_path).shape == (3, 2)
-    assert bdg_energies(kx, ky, "spp", spec).shape == (4,)
-    assert min_positive_bdg_energy(kx, ky, "spp", spec) >= 0.0
+    assert bdg_energies(kx, ky, "spm", spec).shape == (4,)
+    assert min_positive_bdg_energy(kx, ky, "spm", spec) >= 0.0
     assert gap_value(kx, ky, "dwave", spec).shape == (2, 2)
+
+
+def test_symmetry_bdg_2band_spec_does_not_include_removed_control_channel():
+    spec = SymmetryBdG2BandSpec()
+    removed_channel = "s" + "pp"
+
+    assert removed_channel not in tuple(channel.name for channel in spec.channels())
+    with pytest.raises(ValueError, match="channel must be 'normal', 'spm', or 'dwave'"):
+        spec.pairing_matrix(0.37, -0.22, removed_channel)  # type: ignore[arg-type]

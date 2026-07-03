@@ -23,10 +23,8 @@ def pairing_matrix(
     params = params or TwoBandParameters()
     if channel == "normal":
         return np.zeros((2, 2), dtype=complex)
-    if channel == "spp":
-        return params.delta_s * TAU0
     if channel == "spm":
         return params.delta_s * TAUX
     if channel == "dwave":
         return params.delta_d * d_wave_form_factor(kx, ky) * TAU0
-    raise ValueError("channel must be 'normal', 'spp', 'spm', or 'dwave'")
+    raise ValueError("channel must be 'normal', 'spm', or 'dwave'")

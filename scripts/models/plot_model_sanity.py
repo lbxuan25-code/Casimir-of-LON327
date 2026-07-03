@@ -156,6 +156,19 @@ def _write_summary_csv(path: Path, rows: list[dict]) -> None:
         writer.writerows(rows)
 
 
+def _active_channels(model_name: str, requested_channels: tuple[str, ...], all_channels: tuple[str, ...]) -> tuple[str, ...]:
+    available = tuple(channel for channel in all_channels if channel != "normal")
+    if requested_channels == ("all",):
+        return available
+    unknown = sorted(set(requested_channels) - set(available))
+    if unknown:
+        raise ValueError(
+            f"unknown channels for {model_name}: {unknown}; "
+            f"available non-normal channels: {list(available)}"
+        )
+    return requested_channels
+
+
 def generate_plots(
     *,
     model_name: str,
@@ -175,7 +188,7 @@ def generate_plots(
     spec = build_model_spec(model_name)
     observables = get_observables_module(model_name)
     all_channels = tuple(channel.name for channel in spec.channels())
-    active_channels = tuple(channel for channel in all_channels if channel != "normal") if channels == ("all",) else channels
+    active_channels = _active_channels(model_name, channels, all_channels)
     output_dir = output_root / model_name
     metadata = _base_metadata(spec, model_name, nk, active_channels)
 
@@ -244,9 +257,9 @@ def generate_plots(
                 title=f"{model_name} {channel} projected gap on Fermi pockets ({gap_value_mode})",
                 metadata=fermi_gap_metadata,
             )
-            _write_summary_csv(output_dir / "fermi_gap" / f"{channel}_summary.csv", summary)
+            _write_summary_csv(output_dir / "fermi_gap" / f"{channel}_{gap_value_mode}_summary.csv", summary)
             write_metadata_json(
-                output_dir / "fermi_gap" / f"{channel}_summary.json",
+                output_dir / "fermi_gap" / f"{channel}_{gap_value_mode}_summary.json",
                 {
                     **fermi_gap_metadata,
                     "plot": "fermi_gap_summary",

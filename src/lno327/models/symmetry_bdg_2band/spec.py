@@ -29,7 +29,6 @@ class SymmetryBdG2BandSpec:
     def channels(self) -> tuple[ModelChannel, ...]:
         return (
             ModelChannel("normal"),
-            ModelChannel("spp"),
             ModelChannel("spm"),
             ModelChannel("dwave"),
         )

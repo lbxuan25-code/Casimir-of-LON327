@@ -7,7 +7,7 @@ from typing import Literal
 
 BASIS = ("a", "b")
 
-PairingChannel = Literal["normal", "spp", "spm", "dwave"]
+PairingChannel = Literal["normal", "spm", "dwave"]
 
 
 @dataclass(frozen=True)
