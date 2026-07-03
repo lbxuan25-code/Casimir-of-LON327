@@ -8,24 +8,27 @@ import warnings
 
 import numpy as np
 
-from .bdg_response import bdg_current_vertex, bdg_diamagnetic_vertex
-from .finite_q_primitives import (
-    BdGFiniteQResponseComponents,
-    add_bubble,
-    bdg_finite_q_contact_vertex,
-    bdg_finite_q_vector_vertex,
+from lno327.bdg.finite_q import (
+    bdg_finite_q_vertex_from_normal_blocks,
     density_vertex,
     phase_phase_direct_vertex,
     phase_vertex,
-    thermal_expectation_bdg,
-    validate_finite_q_inputs,
-    ward_metadata,
 )
-from .conductivity import KuboConfig, fermi_function
-from .models.lno327_four_orbital.bdg import bdg_hamiltonian
+from lno327.bdg.hamiltonian import bdg_hamiltonian_from_model_pairing
+from lno327.bdg.nambu import charge_current_vertex_from_model, diamagnetic_vertex_from_model
+from lno327.bdg.spectrum import diagonalize_hermitian
+from lno327.response.config import KuboConfig
+from lno327.response.finite_q import (
+    BdGFiniteQResponseComponents,
+    add_bubble,
+    thermal_expectation_bdg_from_hamiltonian,
+)
+from lno327.response.occupations import fermi_function
+from lno327.response.validation import validate_finite_q_inputs
+from .finite_q_primitives import ward_metadata
 from .models.lno327_four_orbital.collective import PairingAnsatz, build_pairing_ansatz
-from .models.lno327_four_orbital.pairing import pairing_matrix
 from .models.lno327_four_orbital.parameters import PairingAmplitudes, PhaseVertexName
+from .models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
 from .ward_response import normal_physical_density_current_response_components_imag_axis
 
 PhaseDirectConvention = Literal["plus", "minus"]
@@ -113,6 +116,59 @@ def _normal_limit_components(
     )
 
 
+def _require_peierls_finite_q_support(spec) -> None:
+    required = (
+        "hopping_terms",
+        "peierls_hamiltonian_vector_vertex",
+        "peierls_hamiltonian_contact_vertex",
+    )
+    if not all(hasattr(spec, name) for name in required):
+        raise ValueError("spec must support Peierls finite-q vertices when current_vertex='peierls'")
+
+
+def _bdg_eigensystem_from_model_pairing(spec, kx: float, ky: float, pairing: np.ndarray):
+    return diagonalize_hermitian(bdg_hamiltonian_from_model_pairing(spec, kx, ky, pairing))
+
+
+def _bdg_vector_vertex_from_spec(
+    spec,
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction: str,
+    current_vertex: str,
+) -> np.ndarray:
+    if current_vertex == "peierls":
+        _require_peierls_finite_q_support(spec)
+        particle = spec.peierls_hamiltonian_vector_vertex(kx, ky, qx, qy, direction)
+        hole_normal = spec.peierls_hamiltonian_vector_vertex(-kx, -ky, -qx, -qy, direction)
+        return bdg_finite_q_vertex_from_normal_blocks(particle, hole_normal)
+    if current_vertex == "q0_velocity":
+        return charge_current_vertex_from_model(spec, kx, ky, direction)
+    raise ValueError("current_vertex must be 'peierls' or 'q0_velocity'")
+
+
+def _bdg_contact_vertex_from_spec(
+    spec,
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction_i: str,
+    direction_j: str,
+    current_vertex: str,
+) -> np.ndarray:
+    if current_vertex == "peierls":
+        _require_peierls_finite_q_support(spec)
+        particle = spec.peierls_hamiltonian_contact_vertex(kx, ky, qx, qy, direction_i, direction_j)
+        hole_normal = spec.peierls_hamiltonian_contact_vertex(-kx, -ky, -qx, -qy, direction_i, direction_j)
+        return bdg_finite_q_vertex_from_normal_blocks(particle, hole_normal)
+    if current_vertex == "q0_velocity":
+        return diamagnetic_vertex_from_model(spec, kx, ky, direction_i, direction_j)
+    raise ValueError("current_vertex must be 'peierls' or 'q0_velocity'")
+
+
 def pairing_form_factor_matrix(
     pairing: PairingName,
     kx: float,
@@ -124,9 +180,8 @@ def pairing_form_factor_matrix(
     delta0 = float(pairing_params.delta0_eV)
     if delta0 == 0.0:
         raise ValueError("pairing form factor is undefined for delta0=0")
-    if pairing == "onsite_s":
-        return np.eye(4, dtype=complex)
-    return pairing_matrix(pairing, kx, ky, pairing_params) / delta0
+    ansatz = build_pairing_ansatz(pairing, phase_vertex="bond_endpoint_gauge")
+    return ansatz.mean_pairing(kx, ky, pairing_params) / delta0
 
 
 def collective_form_factor(
@@ -224,7 +279,8 @@ def apply_amplitude_phase_schur(
     )
 
 
-def finite_q_bdg_response_from_ansatz(
+def finite_q_bdg_response_from_model_ansatz(
+    spec,
     ansatz: PairingAnsatz,
     omega_eV: float,
     q_model: np.ndarray,
@@ -234,7 +290,7 @@ def finite_q_bdg_response_from_ansatz(
     pairing_params: PairingAmplitudes | None = None,
     options: FiniteQEngineOptions | None = None,
 ) -> BdGFiniteQResponseComponents:
-    """Return finite-q BdG response components from a pairing ansatz.
+    """Return finite-q BdG response components from a model spec and pairing ansatz.
 
     The engine is intentionally generic: model-specific pairing and collective
     structure enters only through ``ansatz``.
@@ -252,6 +308,8 @@ def finite_q_bdg_response_from_ansatz(
     if opts.collective_counterterm not in {"none", "goldstone_gap_equation"}:
         raise ValueError("collective_counterterm must be 'none' or 'goldstone_gap_equation'")
     q, points, weights = validate_finite_q_inputs(q_model, k_points, k_weights, config)
+    if opts.current_vertex == "peierls":
+        _require_peierls_finite_q_support(spec)
     amp = pairing_params or PairingAmplitudes()
     delta0 = float(amp.delta0_eV)
     collective_mode = opts.collective_mode
@@ -263,7 +321,8 @@ def finite_q_bdg_response_from_ansatz(
     qx, qy = float(q[0]), float(q[1])
     shared_eigenbasis_q0_tolerance = 1e-14
     shared_eigenbasis_q0 = bool(np.linalg.norm(q) <= shared_eigenbasis_q0_tolerance)
-    rho = density_vertex()
+    orbital_dim = np.asarray(spec.normal_hamiltonian(float(points[0, 0]), float(points[0, 1]))).shape[0]
+    rho = density_vertex(int(orbital_dim))
     bubble = np.zeros((3, 3), dtype=complex)
     direct = np.zeros((3, 3), dtype=complex)
     phase_left = np.zeros(3, dtype=complex)
@@ -281,28 +340,26 @@ def finite_q_bdg_response_from_ansatz(
         ky = float(ky_value)
         if shared_eigenbasis_q0:
             delta_mid = ansatz.mean_pairing(kx, ky, amp)
-            energies, states = np.linalg.eigh(bdg_hamiltonian(kx, ky, delta_mid))
-            occupations = fermi_function(energies, config.fermi_level_eV, config.temperature_eV)
-            energies_minus = energies_plus = energies
-            states_minus = states_plus = states
+            bands = _bdg_eigensystem_from_model_pairing(spec, kx, ky, delta_mid)
+            occupations = fermi_function(bands.energies, config.fermi_level_eV, config.temperature_eV)
+            energies_minus = energies_plus = bands.energies
+            states_minus = states_plus = bands.states
             occupations_minus = occupations_plus = occupations
         else:
             kx_minus, ky_minus = kx - 0.5 * qx, ky - 0.5 * qy
             kx_plus, ky_plus = kx + 0.5 * qx, ky + 0.5 * qy
             delta_minus = ansatz.mean_pairing(kx_minus, ky_minus, amp)
             delta_plus = ansatz.mean_pairing(kx_plus, ky_plus, amp)
-            energies_minus, states_minus = np.linalg.eigh(bdg_hamiltonian(kx_minus, ky_minus, delta_minus))
-            energies_plus, states_plus = np.linalg.eigh(bdg_hamiltonian(kx_plus, ky_plus, delta_plus))
+            bands_minus = _bdg_eigensystem_from_model_pairing(spec, kx_minus, ky_minus, delta_minus)
+            bands_plus = _bdg_eigensystem_from_model_pairing(spec, kx_plus, ky_plus, delta_plus)
+            energies_minus, states_minus = bands_minus.energies, bands_minus.states
+            energies_plus, states_plus = bands_plus.energies, bands_plus.states
             occupations_minus = fermi_function(energies_minus, config.fermi_level_eV, config.temperature_eV)
             occupations_plus = fermi_function(energies_plus, config.fermi_level_eV, config.temperature_eV)
             delta_mid = ansatz.mean_pairing(kx, ky, amp)
 
-        if opts.current_vertex == "peierls":
-            vx = bdg_finite_q_vector_vertex(kx, ky, qx, qy, "x")
-            vy = bdg_finite_q_vector_vertex(kx, ky, qx, qy, "y")
-        else:
-            vx = bdg_current_vertex(kx, ky, "x")
-            vy = bdg_current_vertex(kx, ky, "y")
+        vx = _bdg_vector_vertex_from_spec(spec, kx, ky, qx, qy, "x", opts.current_vertex)
+        vy = _bdg_vector_vertex_from_spec(spec, kx, ky, qx, qy, "y", opts.current_vertex)
         observable_vertices = (rho, -vx, -vy)
         source_vertices = (rho, vx, vy)
         add_bubble(
@@ -420,17 +477,28 @@ def finite_q_bdg_response_from_ansatz(
             static_limit=shared_eigenbasis_q0,
         )
         theta_theta = phase_phase_direct_vertex(delta_theta)
-        direct_value = float(weight) * thermal_expectation_bdg(kx, ky, delta_mid, theta_theta, config)
+        h_mid = bdg_hamiltonian_from_model_pairing(spec, kx, ky, delta_mid)
+        direct_value = float(weight) * thermal_expectation_bdg_from_hamiltonian(h_mid, theta_theta, config)
         phase_phase_direct_plus += direct_value
         phase_phase_direct_minus -= direct_value
 
         for i, direction_i in enumerate(directions):
             for j, direction_j in enumerate(directions):
-                if opts.current_vertex == "peierls":
-                    vertex = bdg_finite_q_contact_vertex(kx, ky, qx, qy, direction_i, direction_j)
-                else:
-                    vertex = bdg_diamagnetic_vertex(kx, ky, direction_i, direction_j)
-                direct[1 + i, 1 + j] += -float(weight) * thermal_expectation_bdg(kx, ky, delta_mid, vertex, config)
+                vertex = _bdg_contact_vertex_from_spec(
+                    spec,
+                    kx,
+                    ky,
+                    qx,
+                    qy,
+                    direction_i,
+                    direction_j,
+                    opts.current_vertex,
+                )
+                direct[1 + i, 1 + j] += -float(weight) * thermal_expectation_bdg_from_hamiltonian(
+                    h_mid,
+                    vertex,
+                    config,
+                )
 
     bare_total = bubble + direct
     phase_phase_bubble = complex(phase_phase_bubble_matrix[0, 0])
@@ -594,6 +662,31 @@ def finite_q_bdg_response_from_ansatz(
             "casimir_gating_status": "diagnostic_finite_q_response_not_unit_converted_or_ward_validated",
             "warning": warning_message,
         },
+    )
+
+
+def finite_q_bdg_response_from_ansatz(
+    ansatz: PairingAnsatz,
+    omega_eV: float,
+    q_model: np.ndarray,
+    k_points: np.ndarray,
+    k_weights: np.ndarray,
+    config: KuboConfig,
+    pairing_params: PairingAmplitudes | None = None,
+    options: FiniteQEngineOptions | None = None,
+) -> BdGFiniteQResponseComponents:
+    """Return finite-q BdG response components for the LNO327 four-orbital ansatz."""
+
+    return finite_q_bdg_response_from_model_ansatz(
+        LNO327FourOrbitalSpec(pairing_amplitudes=pairing_params),
+        ansatz,
+        omega_eV,
+        q_model,
+        k_points,
+        k_weights,
+        config,
+        pairing_params,
+        options,
     )
 
 

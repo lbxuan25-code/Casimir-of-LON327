@@ -1,0 +1,142 @@
+import numpy as np
+import pytest
+
+from lno327.bdg_response import bdg_current_vertex, bdg_diamagnetic_vertex
+from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
+from lno327.finite_q_engine import (
+    FiniteQEngineOptions,
+    _bdg_contact_vertex_from_spec,
+    _bdg_vector_vertex_from_spec,
+    finite_q_bdg_response_from_ansatz,
+    finite_q_bdg_response_from_model_ansatz,
+)
+from lno327.finite_q_primitives import (
+    bdg_finite_q_contact_vertex as old_contact_vertex,
+    bdg_finite_q_vector_vertex as old_vector_vertex,
+)
+from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
+from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+
+
+@pytest.mark.parametrize("q", [(0.0, 0.0), (0.17, -0.09)])
+@pytest.mark.parametrize("direction", ("x", "y"))
+def test_bdg_vector_vertex_from_spec_matches_legacy_peierls(q, direction):
+    qx, qy = q
+
+    actual = _bdg_vector_vertex_from_spec(
+        LNO327FourOrbitalSpec(),
+        0.21,
+        -0.34,
+        qx,
+        qy,
+        direction,
+        "peierls",
+    )
+
+    np.testing.assert_allclose(actual, old_vector_vertex(0.21, -0.34, qx, qy, direction))
+
+
+@pytest.mark.parametrize("directions", (("x", "x"), ("y", "y"), ("x", "y")))
+def test_bdg_contact_vertex_from_spec_matches_legacy_peierls(directions):
+    direction_i, direction_j = directions
+    qx, qy = 0.17, -0.09
+
+    actual = _bdg_contact_vertex_from_spec(
+        LNO327FourOrbitalSpec(),
+        0.21,
+        -0.34,
+        qx,
+        qy,
+        direction_i,
+        direction_j,
+        "peierls",
+    )
+
+    np.testing.assert_allclose(actual, old_contact_vertex(0.21, -0.34, qx, qy, direction_i, direction_j))
+
+
+@pytest.mark.parametrize("direction", ("x", "y"))
+def test_bdg_vector_vertex_from_spec_matches_legacy_q0_velocity(direction):
+    actual = _bdg_vector_vertex_from_spec(
+        LNO327FourOrbitalSpec(),
+        0.21,
+        -0.34,
+        0.17,
+        -0.09,
+        direction,
+        "q0_velocity",
+    )
+
+    np.testing.assert_allclose(actual, bdg_current_vertex(0.21, -0.34, direction))
+
+
+@pytest.mark.parametrize("directions", (("x", "x"), ("y", "y"), ("x", "y")))
+def test_bdg_contact_vertex_from_spec_matches_legacy_q0_velocity(directions):
+    direction_i, direction_j = directions
+
+    actual = _bdg_contact_vertex_from_spec(
+        LNO327FourOrbitalSpec(),
+        0.21,
+        -0.34,
+        0.17,
+        -0.09,
+        direction_i,
+        direction_j,
+        "q0_velocity",
+    )
+
+    np.testing.assert_allclose(actual, bdg_diamagnetic_vertex(0.21, -0.34, direction_i, direction_j))
+
+
+def test_public_ansatz_adapter_matches_model_driven_core():
+    points = uniform_bz_mesh(2)
+    weights = k_weights(points)
+    config = KuboConfig.from_kelvin(omega_eV=0.01, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+    q = np.array([0.01, 0.0])
+    amp = PairingAmplitudes(delta0_eV=0.04)
+    ansatz = build_pairing_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
+    options = FiniteQEngineOptions()
+
+    public = finite_q_bdg_response_from_ansatz(ansatz, config.omega_eV, q, points, weights, config, amp, options)
+    core = finite_q_bdg_response_from_model_ansatz(
+        LNO327FourOrbitalSpec(pairing_amplitudes=amp),
+        ansatz,
+        config.omega_eV,
+        q,
+        points,
+        weights,
+        config,
+        amp,
+        options,
+    )
+
+    for field in (
+        "bare_bubble",
+        "direct",
+        "bare_total",
+        "phase_coupling_left",
+        "phase_coupling_right",
+        "phase_phase_bubble",
+        "phase_phase_direct",
+        "phase_phase_total",
+        "minus_schur",
+        "plus_schur",
+        "collective_bubble",
+        "collective_counterterm",
+        "collective_total",
+        "em_collective_left",
+        "collective_em_right",
+        "amplitude_phase_schur",
+        "gauge_restored",
+    ):
+        np.testing.assert_allclose(getattr(public, field), getattr(core, field))
+
+
+def test_peierls_current_requires_spec_support():
+    class DummySpec:
+        def normal_hamiltonian(self, _kx, _ky):
+            return np.eye(2, dtype=complex)
+
+    with pytest.raises(ValueError, match="spec must support Peierls finite-q vertices"):
+        _bdg_vector_vertex_from_spec(DummySpec(), 0.0, 0.0, 0.1, 0.0, "x", "peierls")

@@ -18,14 +18,16 @@ from .bdg_response import (
     bdg_total_kernel_imag_axis,
 )
 from .finite_q_engine import (
-    BdGFiniteQResponseComponents,
     BdGPhaseCorrectionError,
-    bdg_finite_q_contact_vertex,
     bdg_finite_q_response_imag_axis,
-    bdg_finite_q_vector_vertex,
     collective_form_factor,
     collective_goldstone_counterterm,
     pairing_form_factor_matrix,
+)
+from .finite_q_primitives import (
+    BdGFiniteQResponseComponents,
+    bdg_finite_q_contact_vertex,
+    bdg_finite_q_vector_vertex,
 )
 from .casimir import CasimirSetup, casimir_energy_integrand, casimir_torque_integrand
 from .conductivity import (

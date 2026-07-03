@@ -1,6 +1,7 @@
 """Model-independent BdG response core helpers."""
 
 from lno327.bdg.kinematics import MomentumTransfer, shifted_momenta
+from lno327.bdg.hamiltonian import bdg_hamiltonian_from_blocks, bdg_hamiltonian_from_model_pairing
 from lno327.bdg.finite_q import (
     bdg_block_diagonal_vertex,
     bdg_finite_q_vertex_from_normal_blocks,
@@ -19,6 +20,8 @@ from lno327.bdg.spectrum import (
 __all__ = [
     "MomentumTransfer",
     "shifted_momenta",
+    "bdg_hamiltonian_from_blocks",
+    "bdg_hamiltonian_from_model_pairing",
     "bdg_block_diagonal_vertex",
     "bdg_finite_q_vertex_from_normal_blocks",
     "phase_vertex",
