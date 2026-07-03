@@ -42,3 +42,39 @@ class BdGModelSpec(Protocol):
 
     def mass_operator(self, kx: float, ky: float, i: str, j: str) -> np.ndarray:
         ...
+
+
+class PeierlsFiniteQModelSpec(Protocol):
+    def hopping_terms(self):
+        ...
+
+    def normal_hamiltonian_from_hoppings(
+        self,
+        kx: float,
+        ky: float,
+        hopping_terms=None,
+    ) -> np.ndarray:
+        ...
+
+    def peierls_hamiltonian_vector_vertex(
+        self,
+        kx: float,
+        ky: float,
+        qx: float,
+        qy: float,
+        direction: str,
+        hopping_terms=None,
+    ) -> np.ndarray:
+        ...
+
+    def peierls_hamiltonian_contact_vertex(
+        self,
+        kx: float,
+        ky: float,
+        qx: float,
+        qy: float,
+        direction_i: str,
+        direction_j: str,
+        hopping_terms=None,
+    ) -> np.ndarray:
+        ...

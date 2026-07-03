@@ -12,6 +12,14 @@ from lno327.models.lno327_four_orbital.parameters import (
     PairingKind,
     PhaseVertexName,
 )
+from lno327.models.lno327_four_orbital.peierls import (
+    normal_state_hamiltonian_from_hoppings,
+    normal_state_hopping_terms,
+    peierls_hamiltonian_contact_vertex,
+    peierls_hamiltonian_vector_vertex,
+    peierls_vertex_ward_residual,
+    validate_hopping_hermiticity,
+)
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
 from lno327.models.lno327_four_orbital.vertices import (
     normal_state_mass_operator,
@@ -33,10 +41,16 @@ __all__ = [
     "build_pairing_ansatz",
     "dwave_pairing_matrix",
     "normal_state_hamiltonian",
+    "normal_state_hamiltonian_from_hoppings",
+    "normal_state_hopping_terms",
     "normal_state_mass_operator",
     "normal_state_mass_operators",
     "normal_state_velocity_operator",
     "normal_state_velocity_operators",
     "pairing_matrix",
+    "peierls_hamiltonian_contact_vertex",
+    "peierls_hamiltonian_vector_vertex",
+    "peierls_vertex_ward_residual",
     "spm_pairing_matrix",
+    "validate_hopping_hermiticity",
 ]

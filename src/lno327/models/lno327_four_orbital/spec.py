@@ -9,6 +9,15 @@ from lno327.models.lno327_four_orbital.bdg import bdg_hamiltonian as assemble_bd
 from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian
 from lno327.models.lno327_four_orbital.pairing import pairing_matrix as channel_pairing_matrix
 from lno327.models.lno327_four_orbital.parameters import ORBITAL_BASIS, NormalStateParameters, PairingAmplitudes
+from lno327.models.lno327_four_orbital.peierls import (
+    normal_state_hamiltonian_from_hoppings as peierls_normal_state_hamiltonian_from_hoppings,
+)
+from lno327.models.lno327_four_orbital.peierls import (
+    normal_state_hopping_terms,
+    peierls_hamiltonian_contact_vertex as model_peierls_hamiltonian_contact_vertex,
+    peierls_hamiltonian_vector_vertex as model_peierls_hamiltonian_vector_vertex,
+    peierls_vertex_ward_residual as model_peierls_vertex_ward_residual,
+)
 from lno327.models.lno327_four_orbital.vertices import normal_state_mass_operator, normal_state_velocity_operator
 
 
@@ -20,6 +29,7 @@ class LNO327FourOrbitalSpec:
     ) -> None:
         self.normal_params = normal_params or NormalStateParameters()
         self.pairing_amplitudes = pairing_amplitudes or PairingAmplitudes()
+        self._hopping_terms = tuple(normal_state_hopping_terms(self.normal_params))
 
     def metadata(self) -> ModelMetadata:
         return ModelMetadata(
@@ -58,3 +68,80 @@ class LNO327FourOrbitalSpec:
 
     def mass_operator(self, kx: float, ky: float, i: str, j: str) -> np.ndarray:
         return normal_state_mass_operator(kx, ky, i, j, self.normal_params)
+
+    def hopping_terms(self):
+        return self._hopping_terms
+
+    def normal_hamiltonian_from_hoppings(
+        self,
+        kx: float,
+        ky: float,
+        hopping_terms=None,
+    ) -> np.ndarray:
+        terms = self._hopping_terms if hopping_terms is None else hopping_terms
+        return peierls_normal_state_hamiltonian_from_hoppings(
+            kx,
+            ky,
+            self.normal_params,
+            terms,
+        )
+
+    def peierls_hamiltonian_vector_vertex(
+        self,
+        kx: float,
+        ky: float,
+        qx: float,
+        qy: float,
+        direction: str,
+        hopping_terms=None,
+    ) -> np.ndarray:
+        terms = self._hopping_terms if hopping_terms is None else hopping_terms
+        return model_peierls_hamiltonian_vector_vertex(
+            kx,
+            ky,
+            qx,
+            qy,
+            direction,
+            self.normal_params,
+            terms,
+        )
+
+    def peierls_hamiltonian_contact_vertex(
+        self,
+        kx: float,
+        ky: float,
+        qx: float,
+        qy: float,
+        direction_i: str,
+        direction_j: str,
+        hopping_terms=None,
+    ) -> np.ndarray:
+        terms = self._hopping_terms if hopping_terms is None else hopping_terms
+        return model_peierls_hamiltonian_contact_vertex(
+            kx,
+            ky,
+            qx,
+            qy,
+            direction_i,
+            direction_j,
+            self.normal_params,
+            terms,
+        )
+
+    def peierls_vertex_ward_residual(
+        self,
+        kx: float,
+        ky: float,
+        qx: float,
+        qy: float,
+        hopping_terms=None,
+    ) -> tuple[float, float, float, float]:
+        terms = self._hopping_terms if hopping_terms is None else hopping_terms
+        return model_peierls_vertex_ward_residual(
+            kx,
+            ky,
+            qx,
+            qy,
+            self.normal_params,
+            terms,
+        )
