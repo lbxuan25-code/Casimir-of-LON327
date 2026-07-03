@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 from pathlib import Path
 import sys
 
@@ -15,9 +16,14 @@ sys.path.insert(0, str(ROOT / "src"))
 from lno327.models.registry import available_models, build_model_spec, get_observables_module  # noqa: E402
 from lno327.plotting import (  # noqa: E402
     plot_band_structure,
-    plot_bdg_min_gap,
     plot_fermi_surface,
-    plot_gap_texture,
+    plot_fermi_surface_gap,
+    write_metadata_json,
+)
+
+OLD_PLOT_MESSAGE = (
+    "full-BZ gap texture and BdG min-gap plots are no longer main model sanity outputs; "
+    "use fermi-gap for Fermi-pocket order parameter visualization."
 )
 
 
@@ -108,18 +114,6 @@ def _band_projected_gap_grid(
     return output
 
 
-def _bdg_min_gap_grid(observables, spec, channel: str, kx_grid: np.ndarray, ky_grid: np.ndarray) -> np.ndarray:
-    output = np.empty(kx_grid.shape, dtype=float)
-    for index in np.ndindex(kx_grid.shape):
-        output[index] = observables.min_positive_bdg_energy(
-            float(kx_grid[index]),
-            float(ky_grid[index]),
-            channel,
-            spec,
-        )
-    return output
-
-
 def _gap_values_for_plot(projected_gap: np.ndarray, mode: str) -> np.ndarray:
     if mode == "real":
         return np.real(projected_gap)
@@ -128,6 +122,38 @@ def _gap_values_for_plot(projected_gap: np.ndarray, mode: str) -> np.ndarray:
     if mode == "phase":
         return np.angle(projected_gap)
     raise ValueError("gap value mode must be 'real', 'abs', or 'phase'")
+
+
+def _validate_plots(plots: tuple[str, ...]) -> None:
+    removed = {"gap", "bdg-gap"} & set(plots)
+    if removed:
+        raise ValueError(OLD_PLOT_MESSAGE)
+    allowed_plots = {"band", "fermi", "fermi-gap"}
+    unknown_plots = set(plots) - allowed_plots
+    if unknown_plots:
+        raise ValueError(f"unknown plot names: {sorted(unknown_plots)}")
+
+
+def _write_summary_csv(path: Path, rows: list[dict]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = (
+        "band_index",
+        "pocket_index",
+        "num_points",
+        "gap_min",
+        "gap_max",
+        "gap_mean",
+        "gap_abs_min",
+        "gap_abs_max",
+        "has_sign_change",
+        "positive_fraction",
+        "negative_fraction",
+        "near_zero_fraction",
+    )
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def generate_plots(
@@ -141,6 +167,11 @@ def generate_plots(
     gap_projection_gauge: str = "anchor",
     gap_value_mode: str = "real",
 ) -> None:
+    if nk <= 1:
+        raise ValueError("nk must be greater than 1")
+    if path_points <= 1:
+        raise ValueError("path_points must be greater than 1")
+    _validate_plots(plots)
     spec = build_model_spec(model_name)
     observables = get_observables_module(model_name)
     all_channels = tuple(channel.name for channel in spec.channels())
@@ -167,7 +198,7 @@ def generate_plots(
             },
         )
 
-    needs_grid = any(item in plots for item in ("fermi", "gap", "bdg-gap"))
+    needs_grid = any(item in plots for item in ("fermi", "fermi-gap"))
     if not needs_grid:
         return
     kx_grid, ky_grid = _grid(nk)
@@ -183,7 +214,7 @@ def generate_plots(
             metadata={**metadata, "plot": "fermi_surface"},
         )
 
-    if "gap" in plots:
+    if "fermi-gap" in plots:
         for channel in active_channels:
             projected = _band_projected_gap_grid(
                 observables,
@@ -193,35 +224,34 @@ def generate_plots(
                 ky_grid,
                 gauge=gap_projection_gauge,
             )
-            for band_index in range(projected.shape[0]):
-                plot_gap_texture(
-                    kx_grid,
-                    ky_grid,
-                    _gap_values_for_plot(projected[band_index], gap_value_mode),
-                    output_dir / "gap_texture" / f"{channel}_band_{band_index}_{gap_value_mode}.png",
-                    title=f"{model_name} {channel} band {band_index} projected gap ({gap_value_mode})",
-                    fermi_contours=band_grid,
-                    metadata={
-                        **metadata,
-                        "plot": "gap_texture",
-                        "channel": channel,
-                        "band_index": band_index,
-                        "gap_projection_gauge": gap_projection_gauge,
-                        "projected_gap_sanity_quantity": True,
-                        "gap_value_mode": gap_value_mode,
-                    },
-                )
-
-    if "bdg-gap" in plots:
-        for channel in active_channels:
-            min_gap = _bdg_min_gap_grid(observables, spec, channel, kx_grid, ky_grid)
-            plot_bdg_min_gap(
+            values = _gap_values_for_plot(projected, gap_value_mode)
+            fermi_gap_metadata = {
+                **metadata,
+                "plot": "fermi_gap",
+                "domain": "fermi_surface",
+                "fermi_level": 0.0,
+                "channel": channel,
+                "gap_projection_gauge": gap_projection_gauge,
+                "gap_value_mode": gap_value_mode,
+                "projected_gap_sanity_quantity": True,
+            }
+            summary = plot_fermi_surface_gap(
                 kx_grid,
                 ky_grid,
-                min_gap,
-                output_dir / "bdg_min_gap" / f"{channel}.png",
-                title=f"{model_name} {channel} minimum BdG gap",
-                metadata={**metadata, "plot": "bdg_min_gap", "channel": channel},
+                band_grid,
+                values,
+                output_dir / "fermi_gap" / f"{channel}_{gap_value_mode}.png",
+                title=f"{model_name} {channel} projected gap on Fermi pockets ({gap_value_mode})",
+                metadata=fermi_gap_metadata,
+            )
+            _write_summary_csv(output_dir / "fermi_gap" / f"{channel}_summary.csv", summary)
+            write_metadata_json(
+                output_dir / "fermi_gap" / f"{channel}_summary.json",
+                {
+                    **fermi_gap_metadata,
+                    "plot": "fermi_gap_summary",
+                    "summary": summary,
+                },
             )
 
 
@@ -230,8 +260,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--model", default="symmetry_bdg_2band", choices=available_models())
     parser.add_argument("--nk", type=int, default=151)
     parser.add_argument("--channels", default="all")
-    parser.add_argument("--plots", default="band,fermi,gap,bdg-gap")
-    parser.add_argument("--output-root", type=Path, default=Path("outputs/models"))
+    parser.add_argument("--plots", default="band,fermi,fermi-gap")
+    parser.add_argument("--output-root", type=Path, default=Path("outputs/models/sanity"))
     parser.add_argument("--path-points", type=int, default=80)
     parser.add_argument("--gap-projection-gauge", choices=("anchor", "raw"), default="anchor")
     parser.add_argument("--gap-value-mode", choices=("real", "abs", "phase"), default="real")
@@ -242,10 +272,7 @@ def main(argv: list[str] | None = None) -> None:
     if args.path_points <= 1:
         raise ValueError("--path-points must be greater than 1")
     plots = _parse_csv(args.plots)
-    allowed_plots = {"band", "fermi", "gap", "bdg-gap"}
-    unknown_plots = set(plots) - allowed_plots
-    if unknown_plots:
-        raise ValueError(f"unknown plot names: {sorted(unknown_plots)}")
+    _validate_plots(plots)
 
     generate_plots(
         model_name=args.model,
