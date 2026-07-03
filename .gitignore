@@ -3,7 +3,7 @@ __pycache__/
 .pytest_cache/
 
 # Root outputs archive policy:
-# keep human-readable summaries, figures, and lightweight summary metrics;
+# keep human-readable summaries, figures, and plotting data;
 # ignore raw runtime artifacts, logs, caches, and complete large data dumps.
 outputs/**/logs/**
 outputs/**/*.log
@@ -34,20 +34,8 @@ outputs/**/*.json
 !outputs/**/command.sh
 !outputs/**/.gitkeep
 
-outputs/**/data/**
 !outputs/**/data/
 !outputs/**/data/**/
-!outputs/**/data/.gitkeep
-!outputs/**/data/*summary*.csv
-!outputs/**/data/*summary*.json
-!outputs/**/data/*aggregate*.csv
-!outputs/**/data/*aggregate*.json
-!outputs/**/data/*metrics*.csv
-!outputs/**/data/*metrics*.json
-!outputs/**/data/*metadata*.csv
-!outputs/**/data/*metadata*.json
-!outputs/**/data/*convergence*.csv
-!outputs/**/data/*convergence*.json
 
 !outputs/**/figures/
 !outputs/**/figures/**/
@@ -102,7 +90,6 @@ outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/*.active
 outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/raw/**
 outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/intermediate/**
 outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/cache/**
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/normal_subtracted/**
 
 !outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/
 !outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/README.md
@@ -114,6 +101,3 @@ outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/normal_subtracted
 !outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/*.csv
 !outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/
 !outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/*.png
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/normal_subtracted/
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/normal_subtracted/*.png
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/normal_subtracted/README.md
