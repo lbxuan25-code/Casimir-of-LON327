@@ -51,7 +51,7 @@ from .response.static_policy import (
     local_response_matsubara_index,
     matsubara_response_series,
 )
-from .ward_validation import WardValidationReport, validate_physical_ward_identity
+from .collective.validation import WardValidationReport, validate_physical_ward_identity
 
 
 def kubo_conductivity_imag_axis(k_points, config, k_weights=None):

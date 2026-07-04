@@ -4,7 +4,7 @@ import numpy as np
 
 from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, fermi_function, k_weights, uniform_bz_mesh
 from lno327.tb_fourier import normal_state_hopping_terms, peierls_hamiltonian_vector_vertex
-from lno327.ward_response import (
+from lno327.response.normal_density_current import (
     _finite_q_band_bubble_imag_axis,
     normal_density_current_response_imag_axis,
     normal_physical_density_current_response_imag_axis,

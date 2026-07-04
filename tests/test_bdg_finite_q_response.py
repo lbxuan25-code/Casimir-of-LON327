@@ -19,8 +19,8 @@ from lno327.models.lno327_four_orbital.pairing import pairing_from_bonds
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
 from lno327.response.finite_q_bdg import finite_q_bdg_response_from_model_ansatz
-from lno327.ward_validation import validate_physical_ward_identity
-from lno327.ward_response import normal_physical_density_current_response_imag_axis
+from lno327.collective.validation import validate_physical_ward_identity
+from lno327.response.normal_density_current import normal_physical_density_current_response_imag_axis
 
 ROOT = Path(__file__).resolve().parents[1]
 

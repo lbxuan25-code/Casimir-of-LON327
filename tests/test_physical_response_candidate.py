@@ -5,7 +5,7 @@ import inspect
 import numpy as np
 
 from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, k_weights, uniform_bz_mesh
-from lno327.ward_response import (
+from lno327.response.normal_density_current import (
     normal_density_current_response_imag_axis,
     normal_physical_density_current_response_imag_axis,
 )

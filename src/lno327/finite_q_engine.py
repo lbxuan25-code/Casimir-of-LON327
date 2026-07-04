@@ -20,7 +20,7 @@ from lno327.response.validation import validate_finite_q_inputs
 from .models.lno327_four_orbital.collective import PairingAnsatz, build_pairing_ansatz
 from .models.lno327_four_orbital.parameters import PairingAmplitudes, PhaseVertexName
 from .models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
-from .ward_response import normal_physical_density_current_response_components_imag_axis
+from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis
 
 PhaseDirectConvention = Literal["plus", "minus"]
 CollectiveMode = Literal["none", "phase_only", "amplitude_phase"]
