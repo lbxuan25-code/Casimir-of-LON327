@@ -11,10 +11,10 @@ import numpy as np
 from lno327.electrodynamics.conductivity import ConductivityTensor
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+from lno327.electrodynamics.conventions import SheetConductivityConvention, model_response_to_sheet_conductivity
 from lno327.response.config import KuboConfig
 from lno327.response.local_bdg import bdg_local_superconducting_response_imag_axis
 from lno327.response.local_normal import kubo_conductivity_imag_axis_from_model
-from lno327.response_conventions import SheetConductivityConvention, model_response_to_sheet_conductivity
 
 ResponseKind = Literal["normal", "spm", "dwave"]
 

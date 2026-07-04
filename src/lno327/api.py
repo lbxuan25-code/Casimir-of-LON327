@@ -38,7 +38,7 @@ from .response.local_normal import (
     kubo_conductivity_imag_axis_from_model,
     kubo_conductivity_real_axis_from_model,
 )
-from .response_conventions import (
+from .electrodynamics.conventions import (
     ResponseUnitConvention,
     SheetConductivityConvention,
     model_response_to_sheet_conductivity,
