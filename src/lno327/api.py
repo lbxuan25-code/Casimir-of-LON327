@@ -7,33 +7,36 @@ diagnostic helper from a specific submodule.
 
 from __future__ import annotations
 
-from .bdg_response import (
-    BdGKernelComponents,
-    BdGSuperconductingResponse,
-    bdg_superconducting_response_imag_axis,
-    bdg_total_kernel_imag_axis,
-)
 from .casimir import CasimirSetup, casimir_energy_integrand, casimir_torque_integrand
-from .conductivity import (
-    ConductivityTensor,
-    KuboConfig,
-    bosonic_matsubara_energy_eV,
-    kubo_conductivity_imag_axis,
-    kubo_conductivity_real_axis,
-    uniform_bz_mesh,
-)
+from .electrodynamics.conductivity import ConductivityTensor
 from .gap_analysis import gap_statistics_by_band, gap_statistics_on_fermi_surface
 from .models.lno327_four_orbital.bdg import bdg_hamiltonian
 from .models.lno327_four_orbital.collective import PairingAnsatz, build_pairing_ansatz
 from .models.lno327_four_orbital.normal import normal_state_hamiltonian
 from .models.lno327_four_orbital.pairing import pairing_matrix
 from .models.lno327_four_orbital.parameters import NormalStateParameters, PairingAmplitudes, PairingKind
-from .response_interface import (
+from .models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+from .numerics.grids import uniform_bz_mesh
+from .numerics.matsubara import bosonic_matsubara_energy_eV
+from .response.config import KuboConfig
+from .response.containers import KernelComponents as BdGKernelComponents
+from .response.local_bdg import (
+    BdGLocalSuperconductingResponse as BdGSuperconductingResponse,
+)
+from .response.local_bdg import (
+    bdg_local_superconducting_response_imag_axis,
+    bdg_local_total_kernel_imag_axis,
+)
+from .response.local_interface import (
     LocalSheetResponse,
     ResponseKind,
     compare_local_responses_imag_axis,
     local_response_imag_axis,
     validate_local_response_symmetry,
+)
+from .response.local_normal import (
+    kubo_conductivity_imag_axis_from_model,
+    kubo_conductivity_real_axis_from_model,
 )
 from .response_conventions import (
     ResponseUnitConvention,
@@ -42,7 +45,46 @@ from .response_conventions import (
     require_sheet_conductivity_for_reflection,
     sheet_conductivity_to_reflection_dimensionless,
 )
+from .response.static_policy import (
+    StaticResponsePolicy,
+    StaticResponseResult,
+    local_response_matsubara_index,
+    matsubara_response_series,
+)
 from .ward_validation import WardValidationReport, validate_physical_ward_identity
+
+
+def kubo_conductivity_imag_axis(k_points, config, k_weights=None):
+    spec = LNO327FourOrbitalSpec()
+    return kubo_conductivity_imag_axis_from_model(spec, k_points, config, k_weights)
+
+
+def kubo_conductivity_real_axis(k_points, config, k_weights=None):
+    spec = LNO327FourOrbitalSpec()
+    return kubo_conductivity_real_axis_from_model(spec, k_points, config, k_weights)
+
+
+def bdg_superconducting_response_imag_axis(
+    k_points,
+    config,
+    pairing,
+    pairing_params=None,
+    k_weights=None,
+):
+    spec = LNO327FourOrbitalSpec(pairing_amplitudes=pairing_params or PairingAmplitudes())
+    return bdg_local_superconducting_response_imag_axis(spec, pairing, k_points, config, k_weights)
+
+
+def bdg_total_kernel_imag_axis(
+    k_points,
+    config,
+    pairing,
+    pairing_params=None,
+    k_weights=None,
+):
+    spec = LNO327FourOrbitalSpec(pairing_amplitudes=pairing_params or PairingAmplitudes())
+    return bdg_local_total_kernel_imag_axis(spec, pairing, k_points, config, k_weights)
+
 
 __all__ = [
     "BdGKernelComponents",
@@ -58,6 +100,8 @@ __all__ = [
     "ResponseKind",
     "ResponseUnitConvention",
     "SheetConductivityConvention",
+    "StaticResponsePolicy",
+    "StaticResponseResult",
     "WardValidationReport",
     "bdg_hamiltonian",
     "bdg_superconducting_response_imag_axis",
@@ -72,6 +116,8 @@ __all__ = [
     "kubo_conductivity_imag_axis",
     "kubo_conductivity_real_axis",
     "local_response_imag_axis",
+    "local_response_matsubara_index",
+    "matsubara_response_series",
     "model_response_to_sheet_conductivity",
     "normal_state_hamiltonian",
     "pairing_matrix",

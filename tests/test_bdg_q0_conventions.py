@@ -9,6 +9,7 @@ import lno327
 from lno327.bdg_q0_conventions import evaluate_bdg_q0_convention
 from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
+from lno327.response.config import KuboConfig as ResponseKuboConfig
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -65,7 +66,7 @@ def test_public_package_shape_has_single_lno327_entrypoint():
     from lno327.api import local_response_imag_axis
 
     assert lno327.__name__ == "lno327"
-    assert ApiKuboConfig is KuboConfig
+    assert ApiKuboConfig is ResponseKuboConfig
     assert ApiPairingAmplitudes is PairingAmplitudes
     assert callable(local_response_imag_axis)
     assert importlib.util.find_spec("lno_327") is None
