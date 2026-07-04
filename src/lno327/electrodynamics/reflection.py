@@ -104,8 +104,8 @@ def te_tm_adapter_metadata() -> dict[str, Any]:
         "E_p_inc": "E_L_inc",
         "E_p_ref": "-E_L_ref",
         "no_lifshitz_trace_log": True,
-        "no_" + "casi" + "mir_energy": True,
-        "no_" + "casi" + "mir_torque": True,
+        "no_casimir_energy": True,
+        "no_casimir_torque": True,
     }
 
 
@@ -169,9 +169,9 @@ def _reflection_metadata(*, q_zero_basis_convention: str | None = None) -> dict[
         "formula_R_E_LT": "R_E_LT = - solve(2*Y0_LT + sigma_tilde_LT, sigma_tilde_LT)",
         "warning_no_TE_TM_adapter": True,
         "no_lifshitz_trace_log": True,
-        "no_" + "casi" + "mir_energy": True,
-        "no_" + "casi" + "mir_force": True,
-        "no_" + "casi" + "mir_torque": True,
+        "no_casimir_energy": True,
+        "no_casimir_force": True,
+        "no_casimir_torque": True,
         "q_zero_basis_convention": q_zero_basis_convention,
     }
 

@@ -25,24 +25,25 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV  # noqa: E402
 from lno327.constants import KB  # noqa: E402
+from lno327.electrodynamics.reflection import (  # noqa: E402
+    sigma_tilde_xy_to_te_tm_reflection_matrix,
+    vacuum_kappa,
+)
+from lno327.electrodynamics.conventions import (  # noqa: E402
+    bilayer_sheet_conductivity_convention_metadata,
+    model_response_to_sheet_conductivity,
+    sheet_conductivity_to_reflection_dimensionless,
+    spatial_response_to_bilayer_sheet_conductivity_model,
+)
 from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
 from lno327.finite_q_quadrature import FiniteQQuadratureOptions, finite_q_quadrature_points  # noqa: E402
 from lno327.lifshitz_integrand import lifshitz_integrand_metadata, trace_log_point  # noqa: E402
 from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
-from lno327.reflection_input import (  # noqa: E402
-    sigma_tilde_xy_to_te_tm_reflection_matrix,
-    vacuum_kappa,
-)
-from lno327.response_conventions import (  # noqa: E402
-    bilayer_sheet_conductivity_convention_metadata,
-    model_response_to_sheet_conductivity,
-    sheet_conductivity_to_reflection_dimensionless,
-    spatial_response_to_bilayer_sheet_conductivity_model,
-)
+from lno327.numerics.matsubara import bosonic_matsubara_energy_eV  # noqa: E402
+from lno327.response.config import KuboConfig  # noqa: E402
 
 try:  # pragma: no cover - exercised when tqdm is available on a server.
     from tqdm import tqdm

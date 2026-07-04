@@ -9,7 +9,8 @@ def test_electrodynamics_new_modules_do_not_import_old_or_forbidden_layers():
         "src/lno327/electrodynamics/units.py": (
             "response_conventions",
             "reflection_input",
-            "casimir",
+            "lno327.casimir",
+            "from .casimir",
             "lno327.conductivity",
             "from .conductivity",
             "ward_response",
@@ -20,7 +21,8 @@ def test_electrodynamics_new_modules_do_not_import_old_or_forbidden_layers():
         "src/lno327/electrodynamics/conventions.py": (
             "response_conventions",
             "reflection_input",
-            "casimir",
+            "lno327.casimir",
+            "from .casimir",
             "lno327.conductivity",
             "from .conductivity",
             "ward_response",
@@ -31,7 +33,8 @@ def test_electrodynamics_new_modules_do_not_import_old_or_forbidden_layers():
         "src/lno327/electrodynamics/reflection.py": (
             "response_conventions",
             "reflection_input",
-            "casimir",
+            "lno327.casimir",
+            "from .casimir",
             "lno327.conductivity",
             "from .conductivity",
             "ward_response",

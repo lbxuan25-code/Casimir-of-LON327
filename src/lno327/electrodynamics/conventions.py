@@ -30,31 +30,16 @@ class SheetConductivityConvention:
 ResponseUnitConvention = SheetConductivityConvention
 
 
+@dataclass(frozen=True)
 class SheetConductivityConversion:
     """Tagged result of a unit-conversion step."""
 
-    _readiness_attr = "valid_for_" + "casi" + "mir_input"
-    __slots__ = ("tensor", "unit_stage", "unit_label", "normalization_status", _readiness_attr, "notes")
-
-    def __init__(
-        self,
-        tensor: ConductivityTensor,
-        unit_stage: UnitStage,
-        unit_label: str,
-        normalization_status: str,
-        notes: tuple[str, ...],
-        **kwargs,
-    ) -> None:
-        readiness = kwargs.pop(self._readiness_attr)
-        if kwargs:
-            unexpected = next(iter(kwargs))
-            raise TypeError(f"unexpected keyword argument: {unexpected}")
-        object.__setattr__(self, "tensor", tensor)
-        object.__setattr__(self, "unit_stage", unit_stage)
-        object.__setattr__(self, "unit_label", unit_label)
-        object.__setattr__(self, "normalization_status", normalization_status)
-        object.__setattr__(self, self._readiness_attr, readiness)
-        object.__setattr__(self, "notes", notes)
+    tensor: ConductivityTensor
+    unit_stage: UnitStage
+    unit_label: str
+    normalization_status: str
+    valid_for_casimir_input: bool
+    notes: tuple[str, ...]
 
 
 def _as_matrix(matrix_or_tensor: np.ndarray | ConductivityTensor) -> np.ndarray:
@@ -98,7 +83,7 @@ def model_response_to_sheet_conductivity(
         unit_stage="sheet_conductivity",
         unit_label="sheet_conductivity_e2_over_hbar_scaled",
         normalization_status="e2_over_hbar_scaled",
-        **{SheetConductivityConversion._readiness_attr: True},
+        valid_for_casimir_input=True,
         notes=(
             "input stage: model_response",
             "kx and ky are dimensionless lattice momenta",
@@ -128,7 +113,7 @@ def sheet_conductivity_to_reflection_dimensionless(
         unit_stage="reflection_dimensionless_conductivity",
         unit_label="reflection_dimensionless_conductivity_vacuum_admittance_normalized",
         normalization_status="vacuum_admittance_normalized",
-        **{SheetConductivityConversion._readiness_attr: True},
+        valid_for_casimir_input=True,
         notes=("sigma_reflection = sigma_sheet_SI / sigma0",),
     )
 

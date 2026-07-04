@@ -132,5 +132,5 @@ def conductivity_unit_conversion_metadata(convention: SheetConductivityUnitConve
         "unit_cell_area_m2": convention.unit_cell_area_m2,
         "bulk_3d_conductivity": convention.bulk_3d_conductivity,
         "single_layer_conductivity": convention.single_layer_conductivity,
-        "reflection_" + "casi" + "mir_ready": False,
+        "reflection_casimir_ready": False,
     }
