@@ -90,6 +90,25 @@ def bdg_local_paramagnetic_kernel_imag_axis(
     return kernel_matrix
 
 
+def _weighted_bdg_local_eigensystems(
+    spec,
+    channel: str,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+):
+    points, weights = validate_k_points_and_weights(k_points, config, k_weights)
+    for weight, (kx, ky) in zip(weights, points, strict=True):
+        kx_float = float(kx)
+        ky_float = float(ky)
+        yield (
+            float(weight),
+            kx_float,
+            ky_float,
+            bdg_local_eigensystem_from_model(spec, kx_float, ky_float, channel, config),
+        )
+
+
 def bdg_local_diamagnetic_kernel(
     spec,
     channel: str,
@@ -127,8 +146,31 @@ def bdg_local_total_kernel_imag_axis(
     config: KuboConfig,
     k_weights: Sequence[float] | np.ndarray | None = None,
 ) -> KernelComponents:
-    para = bdg_local_paramagnetic_kernel_imag_axis(spec, channel, k_points, config, k_weights)
-    dia = bdg_local_diamagnetic_kernel(spec, channel, k_points, config, k_weights)
+    para = np.zeros((2, 2), dtype=complex)
+    dia = np.zeros((2, 2), dtype=complex)
+    directions = ("x", "y")
+
+    for weight, kx, ky, bands in _weighted_bdg_local_eigensystems(spec, channel, k_points, config, k_weights):
+        para += weight * band_basis_bubble_imag_axis(
+            bands.energies_eV,
+            bands.occupations,
+            bands.negative_fermi_derivative,
+            (bands.current_x_band, bands.current_y_band),
+            config.omega_eV,
+            config.eta_eV,
+            prefactor=0.5,
+        )
+        for alpha, direction_a in enumerate(directions):
+            for beta, direction_b in enumerate(directions):
+                vertex = diamagnetic_vertex_from_model(
+                    spec,
+                    kx,
+                    ky,
+                    direction_a,
+                    direction_b,
+                )
+                vertex_band = transform_operator_to_band_basis(bands.states, vertex)
+                dia[alpha, beta] += 0.5 * weight * np.sum(bands.occupations * np.diag(vertex_band))
     return KernelComponents(paramagnetic=para, diamagnetic=dia, total=dia - para)
 
 

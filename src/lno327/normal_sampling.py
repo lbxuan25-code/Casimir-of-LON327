@@ -9,10 +9,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from .conductivity import ConductivityTensor, KuboConfig, k_weights, kubo_conductivity_imag_axis, negative_fermi_derivative
 from .constants import KB_EV_PER_K
+from .electrodynamics.conductivity import ConductivityTensor
+from .electrodynamics.conventions import require_sheet_conductivity_for_reflection
 from .models.lno327_four_orbital.normal import normal_state_hamiltonian
-from .response_conventions import require_sheet_conductivity_for_reflection
+from .models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+from .response.config import KuboConfig
+from .response.local_normal import kubo_conductivity_imag_axis_from_model
+from .response.occupations import negative_fermi_derivative
 
 RATIO_EPS = 1e-300
 
@@ -94,7 +98,7 @@ def single_mesh_normal_response(
         eta_eV=eta_eV,
         output_si=False,
     )
-    return kubo_conductivity_imag_axis(mesh, config, weights).matrix()
+    return kubo_conductivity_imag_axis_from_model(LNO327FourOrbitalSpec(), mesh, config, weights).matrix()
 
 
 def _shift_grid_shifts(shift_grid: int) -> list[tuple[float, float]]:

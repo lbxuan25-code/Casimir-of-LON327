@@ -113,7 +113,7 @@ class PairingAnsatz:
     ) -> np.ndarray:
         """Return the current q=0 Goldstone gap-equation counterterm matrix."""
 
-        from lno327.conductivity import fermi_function
+        from lno327.response.occupations import fermi_function
 
         points = np.asarray(k_points, dtype=float)
         weights = np.asarray(k_weights, dtype=float)

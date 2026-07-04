@@ -101,3 +101,17 @@ def test_symmetry_bdg_2band_bdg_local_response_smoke_for_spm_and_dwave():
         assert np.all(np.isfinite(total.total))
         assert np.all(np.isfinite(response.sigma_like_response))
         np.testing.assert_allclose(total.total, dia - para)
+
+
+def test_bdg_local_total_kernel_shared_path_matches_separate_para_and_dia():
+    config = KuboConfig(omega_eV=0.08, temperature_eV=0.02, eta_eV=1e-4)
+    spec = LNO327FourOrbitalSpec()
+
+    for channel in ("spm", "dwave"):
+        para = bdg_local_paramagnetic_kernel_imag_axis(spec, channel, _k_points(), config, _k_weights())
+        dia = bdg_local_diamagnetic_kernel(spec, channel, _k_points(), config, _k_weights())
+        total = bdg_local_total_kernel_imag_axis(spec, channel, _k_points(), config, _k_weights())
+
+        np.testing.assert_allclose(total.paramagnetic, para)
+        np.testing.assert_allclose(total.diamagnetic, dia)
+        np.testing.assert_allclose(total.total, dia - para)

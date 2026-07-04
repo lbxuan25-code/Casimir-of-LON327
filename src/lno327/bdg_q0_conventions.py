@@ -12,17 +12,17 @@ from typing import Literal
 
 import numpy as np
 
+from .bdg.finite_q import bdg_finite_q_vertex_from_normal_blocks
+from .bdg.nambu import charge_current_vertex_from_model
 from .finite_q_engine import bdg_finite_q_response_imag_axis
-from .bdg_response import (
-    bdg_current_vertex,
-    bdg_eigensystem,
-    bdg_superconducting_response_imag_axis,
-    bdg_total_kernel_imag_axis,
-)
-from .conductivity import KuboConfig
-from .finite_q_primitives import bdg_finite_q_vector_vertex
-from .models.lno327_four_orbital.pairing import pairing_matrix
 from .models.lno327_four_orbital.parameters import PairingAmplitudes
+from .models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+from .response.config import KuboConfig
+from .response.local_bdg import (
+    bdg_local_eigensystem_from_model,
+    bdg_local_superconducting_response_imag_axis,
+    bdg_local_total_kernel_imag_axis,
+)
 
 Q0PairingName = Literal["spm", "dwave"]
 
@@ -123,12 +123,12 @@ def local_k_para_decomposition(
     config: KuboConfig,
     amp: PairingAmplitudes,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    spec = LNO327FourOrbitalSpec(pairing_amplitudes=amp)
     omega = float(config.omega_eV + config.eta_eV)
     interband = np.zeros((2, 2), dtype=complex)
     intraband = np.zeros((2, 2), dtype=complex)
     for weight, (kx, ky) in zip(weights, points, strict=True):
-        delta = pairing_matrix(pairing_name, float(kx), float(ky), amp)
-        bands = bdg_eigensystem(float(kx), float(ky), delta, config)
+        bands = bdg_local_eigensystem_from_model(spec, float(kx), float(ky), pairing_name, config)
         currents = (bands.current_x_band, bands.current_y_band)
         for m, energy_m in enumerate(bands.energies_eV):
             for n, energy_n in enumerate(bands.energies_eV):
@@ -155,6 +155,19 @@ def local_k_para_decomposition(
     interband *= 0.5
     intraband *= 0.5
     return interband + intraband, interband, intraband
+
+
+def _bdg_finite_q_vector_vertex_from_spec(
+    spec: LNO327FourOrbitalSpec,
+    kx: float,
+    ky: float,
+    qx: float,
+    qy: float,
+    direction: str,
+) -> np.ndarray:
+    particle = spec.peierls_hamiltonian_vector_vertex(kx, ky, qx, qy, direction)
+    hole_normal = spec.peierls_hamiltonian_vector_vertex(-kx, -ky, -qx, -qy, direction)
+    return bdg_finite_q_vertex_from_normal_blocks(particle, hole_normal)
 
 
 def _comparison(name: str, left_name: str, left: np.ndarray, right_name: str, right: np.ndarray, tolerance: float) -> BdGQ0Comparison:
@@ -185,12 +198,20 @@ def q0_current_vertex_status(
     absolute_tolerance: float = 1e-12,
     relative_tolerance: float = 1e-6,
 ) -> tuple[float, float, str]:
+    spec = LNO327FourOrbitalSpec()
     max_abs = 0.0
     max_rel = 0.0
     for kx, ky in points:
         for direction in ("x", "y"):
-            finite_q_vertex = bdg_finite_q_vector_vertex(float(kx), float(ky), 0.0, 0.0, direction)
-            local_vertex = bdg_current_vertex(float(kx), float(ky), direction)
+            finite_q_vertex = _bdg_finite_q_vector_vertex_from_spec(
+                spec,
+                float(kx),
+                float(ky),
+                0.0,
+                0.0,
+                direction,
+            )
+            local_vertex = charge_current_vertex_from_model(spec, float(kx), float(ky), direction)
             diff = float(np.linalg.norm(finite_q_vertex - local_vertex))
             rel = relative_norm(diff, finite_q_vertex, local_vertex)
             max_abs = max(max_abs, diff)
@@ -213,6 +234,7 @@ def evaluate_bdg_q0_convention(
     tolerance: float = 1e-6,
     absolute_tolerance: float = 1e-10,
 ) -> BdGQ0ConventionResult:
+    spec = LNO327FourOrbitalSpec(pairing_amplitudes=amp)
     response = bdg_finite_q_response_imag_axis(
         pairing_name,
         config.omega_eV,
@@ -227,8 +249,8 @@ def evaluate_bdg_q0_convention(
         collective_counterterm="goldstone_gap_equation",
         include_phase_phase_direct=True,
     )
-    local = bdg_total_kernel_imag_axis(points, config, pairing_name, amp, weights)
-    superconducting = bdg_superconducting_response_imag_axis(points, config, pairing_name, amp, weights)
+    local = bdg_local_total_kernel_imag_axis(spec, pairing_name, points, config, weights)
+    superconducting = bdg_local_superconducting_response_imag_axis(spec, pairing_name, points, config, weights)
     decomposed_total, interband, intraband = local_k_para_decomposition(pairing_name, points, weights, config, amp)
     finite_raw = current_block(response.bare_bubble)
     finite_direct = current_block(response.direct)

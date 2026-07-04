@@ -42,8 +42,11 @@ def shifted_bdg_eigensystem_from_model(
     kx_plus, ky_plus = plus_momentum
     kx_minus, ky_minus = minus_momentum
 
-    minus_bands = bdg_eigensystem_from_model(spec, kx_minus, ky_minus, channel)
-    plus_bands = bdg_eigensystem_from_model(spec, kx_plus, ky_plus, channel)
+    if qx == 0.0 and qy == 0.0:
+        minus_bands = plus_bands = bdg_eigensystem_from_model(spec, kx, ky, channel)
+    else:
+        minus_bands = bdg_eigensystem_from_model(spec, kx_minus, ky_minus, channel)
+        plus_bands = bdg_eigensystem_from_model(spec, kx_plus, ky_plus, channel)
     occupations_minus = fermi_function(
         minus_bands.energies,
         config.fermi_level_eV,

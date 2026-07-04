@@ -12,8 +12,9 @@ from typing import Any
 
 import numpy as np
 
-from .conductivity import k_weights, uniform_bz_mesh
 from .models.lno327_four_orbital.normal import normal_state_hamiltonian
+from .numerics.grids import uniform_bz_mesh
+from .numerics.weights import k_weights
 
 
 @dataclass(frozen=True)

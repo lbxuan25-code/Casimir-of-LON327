@@ -80,6 +80,24 @@ def test_four_orbital_shifted_bdg_eigensystem_matches_legacy():
     np.testing.assert_allclose(new.occupations_plus, old.occupations_plus)
 
 
+def test_q_zero_shifted_bdg_eigensystem_reuses_shared_eigenbasis():
+    config = KuboConfig(omega_eV=0.08, temperature_eV=0.02, eta_eV=1e-4)
+    bands = shifted_bdg_eigensystem_from_model(
+        LNO327FourOrbitalSpec(),
+        0.21,
+        -0.34,
+        0.0,
+        0.0,
+        "spm",
+        config,
+    )
+
+    np.testing.assert_allclose(bands.energies_minus_eV, bands.energies_plus_eV)
+    np.testing.assert_allclose(bands.states_minus, bands.states_plus)
+    np.testing.assert_allclose(bands.occupations_minus, bands.occupations_plus)
+    assert bands.states_minus is bands.states_plus
+
+
 @pytest.mark.parametrize("direction", ("x", "y"))
 def test_four_orbital_midpoint_bdg_current_vertex_matches_legacy(direction):
     old_config = OldKuboConfig(omega_eV=0.08, temperature_eV=0.02, eta_eV=1e-4)

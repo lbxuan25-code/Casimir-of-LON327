@@ -417,33 +417,10 @@ def normal_physical_density_current_response_components_imag_axis_from_model(
 
 
 def _normal_physical_components_legacy_compatible(k_points, config, q, k_weights, hamiltonian) -> dict[str, np.ndarray]:
-    points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
-    qx, qy = (float(q_vector[0]), float(q_vector[1]))
-    orbital_dim = np.asarray(hamiltonian(float(points[0, 0]), float(points[0, 1]))).shape[0]
-    rho = np.eye(orbital_dim, dtype=complex)
-    bubble = np.zeros((3, 3), dtype=complex)
-    direct = np.zeros((3, 3), dtype=complex)
-    for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
-        kx = float(kx_value)
-        ky = float(ky_value)
-        h_minus = hamiltonian(kx - 0.5 * qx, ky - 0.5 * qy)
-        h_plus = hamiltonian(kx + 0.5 * qx, ky + 0.5 * qy)
-        bands_minus = diagonalize_hermitian(h_minus)
-        bands_plus = diagonalize_hermitian(h_plus)
-        vector_x = np.zeros_like(rho)
-        vector_y = np.zeros_like(rho)
-        observable_vertices = (rho, -vector_x, -vector_y)
-        source_vertices = (rho, vector_x, vector_y)
-        bubble += weight * _finite_q_band_bubble_imag_axis(
-            bands_minus.energies,
-            bands_minus.states,
-            bands_plus.energies,
-            bands_plus.states,
-            observable_vertices,
-            source_vertices,
-            config,
-        )
-    return {"bubble": bubble, "direct": direct, "total": bubble + direct}
+    raise ValueError(
+        "explicit hamiltonian fallback is not supported for the physical density-current response; "
+        "use the default spec-driven path or a model spec with Peierls vertices"
+    )
 
 
 def normal_physical_density_current_response_components_imag_axis(

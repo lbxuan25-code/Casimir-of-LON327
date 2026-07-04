@@ -69,3 +69,16 @@ def test_normal_density_current_rejects_invalid_inputs():
         new_normal_density_current_response(points, config, np.array([0.0]), weights)
     with pytest.raises(ValueError, match="k_points must have shape"):
         new_normal_density_current_response(np.empty((0, 2)), config, q, np.empty((0,)))
+
+
+def test_physical_response_rejects_explicit_hamiltonian_fallback():
+    points, weights, config = _inputs()
+
+    def hamiltonian(kx, ky):
+        return np.eye(4) * (kx + ky)
+
+    with pytest.raises(ValueError, match="explicit hamiltonian fallback is not supported"):
+        new_physical_components(points, config, np.array([0.03, -0.02]), weights, hamiltonian=hamiltonian)
+
+    with pytest.raises(ValueError, match="explicit hamiltonian fallback is not supported"):
+        new_physical_response(points, config, np.array([0.03, -0.02]), weights, hamiltonian=hamiltonian)
