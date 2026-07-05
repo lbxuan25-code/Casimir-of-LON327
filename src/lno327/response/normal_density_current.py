@@ -3,18 +3,38 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
 from lno327.bdg.spectrum import diagonalize_hermitian
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
 from lno327.response.config import KuboConfig
+from lno327.response.finite_q import add_band_bubble
 from lno327.response.occupations import fermi_function
 
 HamiltonianBuilder = Callable[[float, float], np.ndarray]
 VelocityBuilder = Callable[[float, float, str], np.ndarray]
 MassBuilder = Callable[[float, float, str, str], np.ndarray]
+
+
+@dataclass(frozen=True)
+class NormalDensityCurrentWorkspaceEntry:
+    weight: float
+    kx: float
+    ky: float
+    qx: float
+    qy: float
+    shared_eigenbasis_q0: bool
+    energies_minus: np.ndarray
+    energies_plus: np.ndarray
+    states_minus: np.ndarray
+    states_plus: np.ndarray
+    occupations_minus: np.ndarray
+    occupations_plus: np.ndarray
+    observable_vertices_band: tuple[np.ndarray, ...]
+    source_vertices_band: tuple[np.ndarray, ...]
+    direct_contact_contribution: np.ndarray
 
 
 @dataclass(frozen=True)
@@ -29,6 +49,8 @@ class NormalDensityCurrentWorkspace:
     contact_sign_convention: str
     hopping_terms: object
     shared_eigenbasis_q0: bool
+    response_convention: str
+    entries: tuple[NormalDensityCurrentWorkspaceEntry, ...]
 
 
 def _validate_inputs(
@@ -107,6 +129,193 @@ def _normal_hamiltonian(spec, kx: float, ky: float, hopping_terms):
     if hopping_terms is None:
         return spec.normal_hamiltonian(kx, ky)
     return spec.normal_hamiltonian_from_hoppings(kx, ky, hopping_terms)
+
+
+def _normal_expectation_from_bands(energies: np.ndarray, states: np.ndarray, vertex: np.ndarray, config: KuboConfig) -> complex:
+    occupations = fermi_function(energies, config.fermi_level_eV, config.temperature_eV)
+    vertex_in_band = states.conjugate().T @ vertex @ states
+    return complex(np.sum(occupations * np.diag(vertex_in_band)))
+
+
+def _compatible_workspace_config(workspace_config: KuboConfig, eval_config: KuboConfig) -> None:
+    if float(workspace_config.temperature_eV) != float(eval_config.temperature_eV):
+        raise ValueError("workspace config temperature_eV changed; rebuild the workspace")
+    if float(workspace_config.fermi_level_eV) != float(eval_config.fermi_level_eV):
+        raise ValueError("workspace config fermi_level_eV changed; rebuild the workspace")
+    if bool(workspace_config.output_si) != bool(eval_config.output_si):
+        raise ValueError("workspace config output_si changed; rebuild the workspace")
+
+
+def _precompute_normal_density_current_workspace(
+    spec,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    q: Sequence[float] | np.ndarray,
+    k_weights: Sequence[float] | np.ndarray | None,
+    *,
+    vertex_scheme: str,
+    contact_scheme: str,
+    contact_sign_convention: str,
+    hopping_terms,
+    response_convention: str,
+) -> NormalDensityCurrentWorkspace:
+    points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
+    qx, qy = (float(q_vector[0]), float(q_vector[1]))
+    shared_eigenbasis_q0 = bool(qx == 0.0 and qy == 0.0)
+    if vertex_scheme not in {"midpoint", "peierls"}:
+        raise ValueError("vertex_scheme must be 'midpoint' or 'peierls'")
+    if contact_scheme not in {"none", "q0_mass_diagnostic", "finite_q_peierls"}:
+        raise ValueError("contact_scheme must be 'none', 'q0_mass_diagnostic', or 'finite_q_peierls'")
+    if contact_sign_convention not in {"plus", "minus"}:
+        raise ValueError("contact_sign_convention must be 'plus' or 'minus'")
+    if response_convention not in {"diagnostic", "physical"}:
+        raise ValueError("response_convention must be 'diagnostic' or 'physical'")
+    peierls_terms = (
+        _hopping_terms_from_spec(spec, hopping_terms)
+        if vertex_scheme == "peierls" or contact_scheme == "finite_q_peierls" or hopping_terms is not None
+        else None
+    )
+    sample_kx = float(points[0, 0])
+    sample_ky = float(points[0, 1])
+    orbital_dim = np.asarray(_normal_hamiltonian(spec, sample_kx, sample_ky, peierls_terms)).shape[0]
+    rho = np.eye(orbital_dim, dtype=complex)
+    directions = ("x", "y")
+    entries: list[NormalDensityCurrentWorkspaceEntry] = []
+    for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
+        kx = float(kx_value)
+        ky = float(ky_value)
+        if shared_eigenbasis_q0:
+            bands_minus = bands_plus = diagonalize_hermitian(_normal_hamiltonian(spec, kx, ky, peierls_terms))
+            bands_midpoint = bands_minus
+        else:
+            bands_minus = diagonalize_hermitian(
+                _normal_hamiltonian(spec, kx - 0.5 * qx, ky - 0.5 * qy, peierls_terms)
+            )
+            bands_plus = diagonalize_hermitian(
+                _normal_hamiltonian(spec, kx + 0.5 * qx, ky + 0.5 * qy, peierls_terms)
+            )
+            bands_midpoint = diagonalize_hermitian(_normal_hamiltonian(spec, kx, ky, peierls_terms))
+        occupations_minus = fermi_function(bands_minus.energies, config.fermi_level_eV, config.temperature_eV)
+        occupations_plus = fermi_function(bands_plus.energies, config.fermi_level_eV, config.temperature_eV)
+        if vertex_scheme == "midpoint":
+            vector_x = spec.velocity_operator(kx, ky, "x")
+            vector_y = spec.velocity_operator(kx, ky, "y")
+        else:
+            vector_x = spec.peierls_hamiltonian_vector_vertex(
+                kx,
+                ky,
+                qx,
+                qy,
+                "x",
+                hopping_terms=peierls_terms,
+            )
+            vector_y = spec.peierls_hamiltonian_vector_vertex(
+                kx,
+                ky,
+                qx,
+                qy,
+                "y",
+                hopping_terms=peierls_terms,
+            )
+        if response_convention == "physical":
+            observable_vertices = (rho, -vector_x, -vector_y)
+            source_vertices = (rho, vector_x, vector_y)
+        else:
+            observable_vertices = (rho, vector_x, vector_y)
+            source_vertices = observable_vertices
+        observable_vertices_band = tuple(
+            bands_minus.states.conjugate().T @ vertex @ bands_plus.states for vertex in observable_vertices
+        )
+        source_vertices_band = tuple(
+            bands_minus.states.conjugate().T @ vertex @ bands_plus.states for vertex in source_vertices
+        )
+        direct_contact_contribution = np.zeros((3, 3), dtype=complex)
+        if contact_scheme in {"q0_mass_diagnostic", "finite_q_peierls"}:
+            sign = 1.0 if contact_sign_convention == "plus" else -1.0
+            if response_convention == "physical":
+                sign = -1.0
+            for i, direction_i in enumerate(directions):
+                for j, direction_j in enumerate(directions):
+                    if contact_scheme == "q0_mass_diagnostic":
+                        contact_matrix = spec.mass_operator(kx, ky, direction_i, direction_j)
+                    else:
+                        contact_matrix = spec.peierls_hamiltonian_contact_vertex(
+                            kx,
+                            ky,
+                            qx,
+                            qy,
+                            direction_i,
+                            direction_j,
+                            hopping_terms=peierls_terms,
+                        )
+                    direct_contact_contribution[1 + i, 1 + j] += (
+                        sign
+                        * float(weight)
+                        * _normal_expectation_from_bands(
+                            bands_midpoint.energies,
+                            bands_midpoint.states,
+                            contact_matrix,
+                            config,
+                        )
+                    )
+        entries.append(
+            NormalDensityCurrentWorkspaceEntry(
+                weight=float(weight),
+                kx=kx,
+                ky=ky,
+                qx=qx,
+                qy=qy,
+                shared_eigenbasis_q0=shared_eigenbasis_q0,
+                energies_minus=bands_minus.energies,
+                energies_plus=bands_plus.energies,
+                states_minus=bands_minus.states,
+                states_plus=bands_plus.states,
+                occupations_minus=occupations_minus,
+                occupations_plus=occupations_plus,
+                observable_vertices_band=observable_vertices_band,
+                source_vertices_band=source_vertices_band,
+                direct_contact_contribution=direct_contact_contribution,
+            )
+        )
+    return NormalDensityCurrentWorkspace(
+        spec=spec,
+        k_points=points,
+        k_weights=weights,
+        q=q_vector,
+        config=config,
+        vertex_scheme=vertex_scheme,
+        contact_scheme=contact_scheme,
+        contact_sign_convention=contact_sign_convention,
+        hopping_terms=peierls_terms,
+        shared_eigenbasis_q0=shared_eigenbasis_q0,
+        response_convention=response_convention,
+        entries=tuple(entries),
+    )
+
+
+def _normal_density_current_response_from_workspace_entries(
+    workspace: NormalDensityCurrentWorkspace,
+    config: KuboConfig,
+) -> dict[str, np.ndarray]:
+    bubble = np.zeros((3, 3), dtype=complex)
+    direct = np.zeros((3, 3), dtype=complex)
+    for entry in workspace.entries:
+        add_band_bubble(
+            bubble,
+            entry.observable_vertices_band,
+            entry.source_vertices_band,
+            entry.energies_minus,
+            entry.occupations_minus,
+            entry.energies_plus,
+            entry.occupations_plus,
+            config.omega_eV,
+            entry.weight,
+            config=None,
+            static_limit=False,
+            prefactor=1.0,
+        )
+        direct += entry.direct_contact_contribution
+    return {"bubble": bubble, "direct": direct, "total": bubble + direct}
 
 
 def normal_density_current_response_imag_axis_from_model(
@@ -247,18 +456,17 @@ def precompute_normal_density_current_workspace_from_model(
     contact_sign_convention: str = "plus",
     hopping_terms=None,
 ) -> NormalDensityCurrentWorkspace:
-    points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
-    return NormalDensityCurrentWorkspace(
-        spec=spec,
-        k_points=points,
-        k_weights=weights,
-        q=q_vector,
-        config=config,
+    return _precompute_normal_density_current_workspace(
+        spec,
+        k_points,
+        config,
+        q,
+        k_weights,
         vertex_scheme=vertex_scheme,
         contact_scheme=contact_scheme,
         contact_sign_convention=contact_sign_convention,
         hopping_terms=hopping_terms,
-        shared_eigenbasis_q0=bool(q_vector[0] == 0.0 and q_vector[1] == 0.0),
+        response_convention="diagnostic",
     )
 
 
@@ -266,17 +474,9 @@ def normal_density_current_response_imag_axis_from_workspace(
     workspace: NormalDensityCurrentWorkspace,
     config: KuboConfig | None = None,
 ) -> np.ndarray:
-    return normal_density_current_response_imag_axis_from_model(
-        workspace.spec,
-        workspace.k_points,
-        config or workspace.config,
-        workspace.q,
-        workspace.k_weights,
-        vertex_scheme=workspace.vertex_scheme,
-        contact_scheme=workspace.contact_scheme,
-        contact_sign_convention=workspace.contact_sign_convention,
-        hopping_terms=workspace.hopping_terms,
-    )
+    eval_config = config or workspace.config
+    _compatible_workspace_config(workspace.config, eval_config)
+    return _normal_density_current_response_from_workspace_entries(workspace, eval_config)["total"]
 
 
 def _normal_density_current_response_imag_axis_legacy_compatible(
@@ -481,6 +681,47 @@ def normal_physical_density_current_response_components_imag_axis_from_model(
                 physical_direct_contact = -expect_mij
                 direct[1 + i, 1 + j] += weight * physical_direct_contact
     return {"bubble": bubble, "direct": direct, "total": bubble + direct}
+
+
+def precompute_normal_physical_density_current_workspace_from_model(
+    spec,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    q: Sequence[float] | np.ndarray,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+    *,
+    hopping_terms=None,
+) -> NormalDensityCurrentWorkspace:
+    return _precompute_normal_density_current_workspace(
+        spec,
+        k_points,
+        config,
+        q,
+        k_weights,
+        vertex_scheme="peierls",
+        contact_scheme="finite_q_peierls",
+        contact_sign_convention="plus",
+        hopping_terms=hopping_terms,
+        response_convention="physical",
+    )
+
+
+def normal_physical_density_current_response_components_imag_axis_from_workspace(
+    workspace: NormalDensityCurrentWorkspace,
+    config: KuboConfig | None = None,
+) -> dict[str, np.ndarray]:
+    if workspace.response_convention != "physical":
+        raise ValueError("workspace was not precomputed for the physical density-current convention")
+    eval_config = config or workspace.config
+    _compatible_workspace_config(workspace.config, eval_config)
+    return _normal_density_current_response_from_workspace_entries(workspace, eval_config)
+
+
+def normal_physical_density_current_response_imag_axis_from_workspace(
+    workspace: NormalDensityCurrentWorkspace,
+    config: KuboConfig | None = None,
+) -> np.ndarray:
+    return normal_physical_density_current_response_components_imag_axis_from_workspace(workspace, config)["total"]
 
 
 def _normal_physical_components_legacy_compatible(k_points, config, q, k_weights, hamiltonian) -> dict[str, np.ndarray]:

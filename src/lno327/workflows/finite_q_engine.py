@@ -16,6 +16,11 @@ from lno327.collective.schur import (
 from lno327.response.config import KuboConfig
 from lno327.response.finite_q import BdGFiniteQResponseComponents
 from lno327.response.finite_q_bdg import finite_q_bdg_response_from_model_ansatz
+from lno327.response.finite_q_bdg import (
+    FiniteQBdGWorkspace,
+    finite_q_bdg_response_from_workspace,
+    precompute_finite_q_bdg_workspace_from_model_ansatz,
+)
 from lno327.response.validation import validate_finite_q_inputs
 from lno327.models.lno327_four_orbital.collective import PairingAnsatz, build_pairing_ansatz
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes, PhaseVertexName
@@ -160,6 +165,40 @@ def finite_q_bdg_response_from_ansatz(
         amp,
         options,
     )
+
+
+def precompute_finite_q_engine_workspace(
+    ansatz: PairingAnsatz,
+    q_model: np.ndarray,
+    k_points: np.ndarray,
+    k_weights: np.ndarray,
+    config: KuboConfig,
+    pairing_params: PairingAmplitudes | None = None,
+    options: FiniteQEngineOptions | None = None,
+) -> FiniteQBdGWorkspace:
+    """Precompute omega-independent finite-q BdG workflow data."""
+
+    amp = pairing_params or PairingAmplitudes()
+    return precompute_finite_q_bdg_workspace_from_model_ansatz(
+        LNO327FourOrbitalSpec(pairing_amplitudes=amp),
+        ansatz,
+        q_model,
+        k_points,
+        k_weights,
+        config,
+        amp,
+        options,
+    )
+
+
+def bdg_finite_q_response_imag_axis_from_workspace(
+    workspace: FiniteQBdGWorkspace,
+    omega_eV: float | None = None,
+    config: KuboConfig | None = None,
+) -> BdGFiniteQResponseComponents:
+    """Evaluate a precomputed finite-q BdG workspace at one Matsubara energy."""
+
+    return finite_q_bdg_response_from_workspace(workspace, omega_eV=omega_eV, config=config)
 
 
 def bdg_finite_q_response_imag_axis(

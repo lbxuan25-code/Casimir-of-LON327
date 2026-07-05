@@ -16,7 +16,11 @@ import numpy as np
 from lno327.numerics.grids import uniform_bz_mesh
 from lno327.numerics.weights import k_weights
 from lno327.response.config import KuboConfig
-from lno327.workflows.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
+from lno327.workflows.finite_q_engine import (
+    FiniteQEngineOptions,
+    bdg_finite_q_response_imag_axis_from_workspace,
+    precompute_finite_q_engine_workspace,
+)
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes, PairingAnsatzName
 from lno327.collective.validation import WardValidationReport, validate_physical_ward_identity
@@ -117,9 +121,8 @@ def run_finite_q_diagnostic(
         collective_counterterm=DIAGNOSTIC_COLLECTIVE_COUNTERTERM,
         include_phase_phase_direct=DIAGNOSTIC_INCLUDE_PHASE_PHASE_DIRECT,
     )
-    response = finite_q_bdg_response_from_ansatz(
+    workspace = precompute_finite_q_engine_workspace(
         ansatz,
-        float(kubo.omega_eV),
         q,
         points,
         mesh_weights,
@@ -127,6 +130,7 @@ def run_finite_q_diagnostic(
         amp,
         options,
     )
+    response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=kubo)
     ward_bare = validate_physical_ward_identity(response.bare_total, kubo.omega_eV, q, tolerance=tolerance)
     ward_minus = validate_physical_ward_identity(response.minus_schur, kubo.omega_eV, q, tolerance=tolerance)
     ward_amp_phase = validate_physical_ward_identity(

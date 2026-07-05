@@ -123,6 +123,47 @@ def add_bubble(
                     accumulator[mu, nu] += factor * left[m, n] * np.conjugate(right[m, n])
 
 
+def add_band_bubble(
+    accumulator: np.ndarray,
+    left_band_vertices: tuple[np.ndarray, ...],
+    right_band_vertices: tuple[np.ndarray, ...],
+    energies_minus: np.ndarray,
+    occupations_minus: np.ndarray,
+    energies_plus: np.ndarray,
+    occupations_plus: np.ndarray,
+    omega_eV: float,
+    weight: float,
+    config: KuboConfig | None = None,
+    static_limit: bool = False,
+    prefactor: float = 0.5,
+) -> None:
+    """Accumulate a bubble from already band-transformed vertices."""
+
+    for m, energy_minus in enumerate(energies_minus):
+        for n, energy_plus in enumerate(energies_plus):
+            occupation_diff = float(occupations_minus[m] - occupations_plus[n])
+            if occupation_diff == 0.0 and not static_limit:
+                continue
+            if config is None:
+                raw_factor = occupation_diff / (1j * omega_eV + float(energy_minus - energy_plus))
+            else:
+                raw_factor = kubo_factor(
+                    float(energy_minus),
+                    float(energy_plus),
+                    float(occupations_minus[m]),
+                    float(occupations_plus[n]),
+                    omega_eV,
+                    static_limit=static_limit,
+                    fermi_level_eV=config.fermi_level_eV,
+                    temperature_eV=config.temperature_eV,
+                    eta_eV=config.eta_eV,
+                )
+            factor = float(prefactor) * float(weight) * raw_factor
+            for mu, left in enumerate(left_band_vertices):
+                for nu, right in enumerate(right_band_vertices):
+                    accumulator[mu, nu] += factor * left[m, n] * np.conjugate(right[m, n])
+
+
 def thermal_expectation_bdg_from_hamiltonian(
     hamiltonian: np.ndarray,
     vertex: np.ndarray,

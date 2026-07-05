@@ -34,6 +34,9 @@ from lno327.response.nonlocal_normal import (
 from lno327.response.normal_density_current import (
     NormalDensityCurrentWorkspace,
     normal_density_current_response_imag_axis_from_workspace,
+    normal_physical_density_current_response_components_imag_axis_from_workspace,
+    normal_physical_density_current_response_imag_axis_from_workspace,
+    precompute_normal_physical_density_current_workspace_from_model,
     precompute_normal_density_current_workspace_from_model,
 )
 
@@ -54,10 +57,13 @@ __all__ = [
     "kubo_conductivity_real_axis_from_workspace",
     "normal_current_current_kernel_imag_axis_from_workspace",
     "normal_density_current_response_imag_axis_from_workspace",
+    "normal_physical_density_current_response_components_imag_axis_from_workspace",
+    "normal_physical_density_current_response_imag_axis_from_workspace",
     "precompute_bdg_local_workspace_from_model",
     "precompute_bdg_nonlocal_workspace_from_model",
     "precompute_finite_q_bdg_workspace_from_model_ansatz",
     "precompute_normal_local_workspace_from_model",
     "precompute_normal_density_current_workspace_from_model",
     "precompute_normal_nonlocal_workspace_from_model",
+    "precompute_normal_physical_density_current_workspace_from_model",
 ]
