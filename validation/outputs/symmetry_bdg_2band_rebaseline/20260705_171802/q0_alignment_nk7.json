@@ -1,0 +1,360 @@
+{
+  "model_name": "symmetry_bdg_2band",
+  "model_metadata": {
+    "model_name": "symmetry_bdg_2band",
+    "pairing_names": [
+      "normal",
+      "spm",
+      "dwave"
+    ],
+    "default_pairings": [
+      "spm",
+      "dwave"
+    ],
+    "default_delta0_eV": 0.1,
+    "primary_validation_model": true,
+    "valid_for_casimir_input": false,
+    "spec_metadata": {
+      "name": "symmetry_bdg_2band",
+      "basis": [
+        "a",
+        "b"
+      ],
+      "description": "Symmetry-focused two-band BdG model"
+    }
+  },
+  "primary_validation_model": true,
+  "pairings": [
+    "normal",
+    "spm",
+    "dwave"
+  ],
+  "status_by_pairing": {
+    "normal": "diagnostic_only_not_passed",
+    "spm": "diagnostic_only_not_passed",
+    "dwave": "diagnostic_only_not_passed"
+  },
+  "valid_for_casimir_input": false,
+  "reports": [
+    {
+      "model_name": "symmetry_bdg_2band",
+      "model_metadata": {
+        "model_name": "symmetry_bdg_2band",
+        "pairing_names": [
+          "normal",
+          "spm",
+          "dwave"
+        ],
+        "default_pairings": [
+          "spm",
+          "dwave"
+        ],
+        "default_delta0_eV": 0.1,
+        "primary_validation_model": true,
+        "valid_for_casimir_input": false,
+        "spec_metadata": {
+          "name": "symmetry_bdg_2band",
+          "basis": [
+            "a",
+            "b"
+          ],
+          "description": "Symmetry-focused two-band BdG model"
+        }
+      },
+      "primary_validation_model": true,
+      "pairing_name": "normal",
+      "omega_eV": 0.01,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 7,
+      "mesh_size": 49,
+      "delta0_eV": 0.0,
+      "status": "diagnostic_only_not_passed",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0",
+        "local_normal_density_current_total"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 0.013623150695359285,
+        "finite_q_direct_q0": 0.9651581963230571,
+        "finite_q_total_q0": 0.9515350456276978,
+        "finite_q_minus_schur_q0": 0.9515350456276978,
+        "finite_q_amplitude_phase_schur_q0": 0.9515350456276978,
+        "local_normal_density_current_total": 0.951535045627698
+      },
+      "pairwise_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_normal_density_current_total": 0.9651581963230573,
+        "finite_q_direct_q0__vs__local_normal_density_current_total": 0.01362315069535902,
+        "finite_q_total_q0__vs__local_normal_density_current_total": 3.521130993263e-16,
+        "finite_q_minus_schur_q0__vs__local_normal_density_current_total": 3.521130993263e-16,
+        "finite_q_amplitude_phase_schur_q0__vs__local_normal_density_current_total": 3.521130993263e-16
+      },
+      "relative_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_normal_density_current_total": 1.0143170246413495,
+        "finite_q_direct_q0__vs__local_normal_density_current_total": 0.014114940687711974,
+        "finite_q_total_q0__vs__local_normal_density_current_total": 3.7004743119474068e-16,
+        "finite_q_minus_schur_q0__vs__local_normal_density_current_total": 3.7004743119474068e-16,
+        "finite_q_amplitude_phase_schur_q0__vs__local_normal_density_current_total": 3.7004743119474068e-16
+      },
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": null,
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": "local_normal_density_current_total",
+        "finite_q_minus_schur_q0": "local_normal_density_current_total",
+        "finite_q_amplitude_phase_schur_q0": "local_normal_density_current_total"
+      },
+      "transformed_comparison_rows": [
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 0.9651581963230573,
+          "relative_norm_difference": 1.0143170246413495,
+          "finite_q_matrix_norm": 0.013623150695359285,
+          "transformed_local_matrix_norm": 0.951535045627698,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 0.01362315069535902,
+          "relative_norm_difference": 0.014114940687711974,
+          "finite_q_matrix_norm": 0.9651581963230571,
+          "transformed_local_matrix_norm": 0.951535045627698,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 3.521130993263e-16,
+          "relative_norm_difference": 3.7004743119474068e-16,
+          "finite_q_matrix_norm": 0.9515350456276978,
+          "transformed_local_matrix_norm": 0.951535045627698,
+          "passes_tolerance": true,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 3.521130993263e-16,
+          "relative_norm_difference": 3.7004743119474068e-16,
+          "finite_q_matrix_norm": 0.9515350456276978,
+          "transformed_local_matrix_norm": 0.951535045627698,
+          "passes_tolerance": true,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 3.521130993263e-16,
+          "relative_norm_difference": 3.7004743119474068e-16,
+          "finite_q_matrix_norm": 0.9515350456276978,
+          "transformed_local_matrix_norm": 0.951535045627698,
+          "passes_tolerance": true,
+          "label": "normal_q0_convention_probe"
+        }
+      ],
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": "local_normal_density_current_total_current_block",
+        "finite_q_direct_q0": "local_normal_density_current_total_current_block",
+        "finite_q_total_q0": "local_normal_density_current_total_current_block",
+        "finite_q_minus_schur_q0": "local_normal_density_current_total_current_block",
+        "finite_q_amplitude_phase_schur_q0": "local_normal_density_current_total_current_block"
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "normal q=0 alignment remains diagnostic-only."
+      ],
+      "passed": false,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "normal q=0 alignment remains diagnostic-only."
+      ],
+      "q0_convention": null,
+      "valid_for_casimir_input": false
+    },
+    {
+      "model_name": "symmetry_bdg_2band",
+      "model_metadata": {
+        "model_name": "symmetry_bdg_2band",
+        "pairing_names": [
+          "normal",
+          "spm",
+          "dwave"
+        ],
+        "default_pairings": [
+          "spm",
+          "dwave"
+        ],
+        "default_delta0_eV": 0.1,
+        "primary_validation_model": true,
+        "valid_for_casimir_input": false,
+        "spec_metadata": {
+          "name": "symmetry_bdg_2band",
+          "basis": [
+            "a",
+            "b"
+          ],
+          "description": "Symmetry-focused two-band BdG model"
+        }
+      },
+      "primary_validation_model": true,
+      "pairing_name": "spm",
+      "omega_eV": 0.01,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 7,
+      "mesh_size": 49,
+      "delta0_eV": 0.1,
+      "status": "diagnostic_only_not_passed",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 0.05582473091400821,
+        "finite_q_direct_q0": 0.9623356692721285,
+        "finite_q_total_q0": 0.9510357135443313,
+        "finite_q_minus_schur_q0": 0.9494828709772299,
+        "finite_q_amplitude_phase_schur_q0": 0.9494828709772299
+      },
+      "pairwise_difference_norms": {},
+      "relative_difference_norms": {},
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": null,
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": null,
+        "finite_q_minus_schur_q0": null,
+        "finite_q_amplitude_phase_schur_q0": null
+      },
+      "transformed_comparison_rows": [],
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": null,
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": null,
+        "finite_q_minus_schur_q0": null,
+        "finite_q_amplitude_phase_schur_q0": null
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "onsite_s has no local public comparator in this q=0 alignment report."
+      ],
+      "passed": false,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "onsite_s has no local public comparator in this q=0 alignment report."
+      ],
+      "q0_convention": null,
+      "valid_for_casimir_input": false
+    },
+    {
+      "model_name": "symmetry_bdg_2band",
+      "model_metadata": {
+        "model_name": "symmetry_bdg_2band",
+        "pairing_names": [
+          "normal",
+          "spm",
+          "dwave"
+        ],
+        "default_pairings": [
+          "spm",
+          "dwave"
+        ],
+        "default_delta0_eV": 0.1,
+        "primary_validation_model": true,
+        "valid_for_casimir_input": false,
+        "spec_metadata": {
+          "name": "symmetry_bdg_2band",
+          "basis": [
+            "a",
+            "b"
+          ],
+          "description": "Symmetry-focused two-band BdG model"
+        }
+      },
+      "primary_validation_model": true,
+      "pairing_name": "dwave",
+      "omega_eV": 0.01,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 7,
+      "mesh_size": 49,
+      "delta0_eV": 0.1,
+      "status": "diagnostic_only_not_passed",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 0.03296552174190939,
+        "finite_q_direct_q0": 0.9660894338853201,
+        "finite_q_total_q0": 0.9532381026971675,
+        "finite_q_minus_schur_q0": 0.9527611443131478,
+        "finite_q_amplitude_phase_schur_q0": 0.9527611443131478
+      },
+      "pairwise_difference_norms": {},
+      "relative_difference_norms": {},
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": null,
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": null,
+        "finite_q_minus_schur_q0": null,
+        "finite_q_amplitude_phase_schur_q0": null
+      },
+      "transformed_comparison_rows": [],
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": null,
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": null,
+        "finite_q_minus_schur_q0": null,
+        "finite_q_amplitude_phase_schur_q0": null
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "onsite_s has no local public comparator in this q=0 alignment report."
+      ],
+      "passed": false,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "onsite_s has no local public comparator in this q=0 alignment report."
+      ],
+      "q0_convention": null,
+      "valid_for_casimir_input": false
+    }
+  ]
+}

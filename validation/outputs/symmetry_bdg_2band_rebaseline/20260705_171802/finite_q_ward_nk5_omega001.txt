@@ -1,0 +1,48 @@
+有限 q Ward 残差扫描报告
+model_name: symmetry_bdg_2band
+配对: spm, dwave
+omega_eV: 0.01
+nk: 5
+网格点数: 25
+delta0_eV: 0.1
+q0_precondition_status: {'spm': 'diagnostic_only_not_passed', 'dwave': 'diagnostic_only_not_passed'}
+diagnostic_run_completed: True
+ward_identity_closed: False
+workspace_evaluation: True
+- spm bare_bubble q=(0.005, 0.0): max残差=1.001027e-03, inverse=inv
+- spm direct q=(0.005, 0.0): max残差=3.301045e-03, inverse=inv
+- spm bare_total q=(0.005, 0.0): max残差=3.402614e-03, inverse=inv
+- spm minus_schur q=(0.005, 0.0): max残差=2.841136e-03, inverse=inv
+- spm plus_schur q=(0.005, 0.0): max残差=4.244653e-03, inverse=inv
+- spm amplitude_phase_schur q=(0.005, 0.0): max残差=2.882702e-03, inverse=inv
+- spm bare_bubble q=(0.01, 0.0): max残差=1.004590e-03, inverse=inv
+- spm direct q=(0.01, 0.0): max残差=6.602048e-03, inverse=inv
+- spm bare_total q=(0.01, 0.0): max残差=6.580935e-03, inverse=inv
+- spm minus_schur q=(0.01, 0.0): max残差=5.436374e-03, inverse=inv
+- spm plus_schur q=(0.01, 0.0): max残差=7.995226e-03, inverse=inv
+- spm amplitude_phase_schur q=(0.01, 0.0): max残差=5.733117e-03, inverse=inv
+- spm bare_bubble q=(0.02, 0.0): max残差=1.019039e-03, inverse=inv
+- spm direct q=(0.02, 0.0): max残差=1.320377e-02, inverse=inv
+- spm bare_total q=(0.02, 0.0): max残差=1.304536e-02, inverse=inv
+- spm minus_schur q=(0.02, 0.0): max残差=9.584926e-03, inverse=inv
+- spm plus_schur q=(0.02, 0.0): max残差=1.688404e-02, inverse=inv
+- spm amplitude_phase_schur q=(0.02, 0.0): max残差=1.122079e-02, inverse=inv
+- dwave bare_bubble q=(0.005, 0.0): max残差=7.191517e-04, inverse=inv
+- dwave direct q=(0.005, 0.0): max残差=3.299108e-03, inverse=inv
+- dwave bare_total q=(0.005, 0.0): max残差=3.326675e-03, inverse=inv
+- dwave minus_schur q=(0.005, 0.0): max残差=3.196317e-03, inverse=inv
+- dwave plus_schur q=(0.005, 0.0): max残差=3.600533e-03, inverse=inv
+- dwave amplitude_phase_schur q=(0.005, 0.0): max残差=3.196596e-03, inverse=inv
+- dwave bare_bubble q=(0.01, 0.0): max残差=7.244304e-04, inverse=inv
+- dwave direct q=(0.01, 0.0): max残差=6.598174e-03, inverse=inv
+- dwave bare_total q=(0.01, 0.0): max残差=6.536243e-03, inverse=inv
+- dwave minus_schur q=(0.01, 0.0): max残差=6.390954e-03, inverse=inv
+- dwave plus_schur q=(0.01, 0.0): max残差=6.759952e-03, inverse=inv
+- dwave amplitude_phase_schur q=(0.01, 0.0): max残差=6.393004e-03, inverse=inv
+- dwave bare_bubble q=(0.02, 0.0): max残差=7.451956e-04, inverse=inv
+- dwave direct q=(0.02, 0.0): max残差=1.319602e-02, inverse=inv
+- dwave bare_total q=(0.02, 0.0): max残差=1.301288e-02, inverse=inv
+- dwave minus_schur q=(0.02, 0.0): max残差=1.277233e-02, inverse=inv
+- dwave plus_schur q=(0.02, 0.0): max残差=1.329672e-02, inverse=inv
+- dwave amplitude_phase_schur q=(0.02, 0.0): max残差=1.278459e-02, inverse=inv
+valid_for_casimir_input: False

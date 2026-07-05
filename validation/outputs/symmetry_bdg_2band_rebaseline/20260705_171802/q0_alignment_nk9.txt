@@ -1,0 +1,121 @@
+q=0 BdG 响应定义对齐报告
+model_name: symmetry_bdg_2band
+配对名称: normal
+status: diagnostic_only_not_passed
+omega_eV: 0.01
+q_model: [0, 0]
+nk: 9
+网格点数: 81
+delta0_eV: 0
+diagnostic_passed: False
+最佳 local 匹配:
+- finite_q_raw_bubble_q0: None
+- finite_q_direct_q0: None
+- finite_q_total_q0: local_normal_density_current_total
+- finite_q_minus_schur_q0: local_normal_density_current_total
+- finite_q_amplitude_phase_schur_q0: local_normal_density_current_total
+最佳 transformed 匹配:
+- finite_q_raw_bubble_q0: local_normal_density_current_total_current_block
+- finite_q_direct_q0: local_normal_density_current_total_current_block
+- finite_q_total_q0: local_normal_density_current_total_current_block
+- finite_q_minus_schur_q0: local_normal_density_current_total_current_block
+- finite_q_amplitude_phase_schur_q0: local_normal_density_current_total_current_block
+transformed comparison table（按 relative norm 升序）:
+finite_q_quantity | transformed_local_quantity | label | abs_diff | rel_diff | finite_q_norm | local_norm | pass
+finite_q_total_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 1.114763e-16 | 1.130012e-16 | 9.865053e-01 | 9.865053e-01 | True
+finite_q_minus_schur_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 1.114763e-16 | 1.130012e-16 | 9.865053e-01 | 9.865053e-01 | True
+finite_q_amplitude_phase_schur_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 1.114763e-16 | 1.130012e-16 | 9.865053e-01 | 9.865053e-01 | True
+finite_q_direct_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 1.194126e-02 | 1.195984e-02 | 9.984466e-01 | 9.865053e-01 | False
+finite_q_raw_bubble_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 9.984466e-01 | 1.012105e+00 | 1.194126e-02 | 9.865053e-01 | False
+finite-q matrix norms:
+- finite_q_raw_bubble_q0: 1.194126e-02
+- finite_q_direct_q0: 9.984466e-01
+- finite_q_total_q0: 9.865053e-01
+- finite_q_minus_schur_q0: 9.865053e-01
+- finite_q_amplitude_phase_schur_q0: 9.865053e-01
+说明:
+- q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。
+- spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。
+- model_name=symmetry_bdg_2band; primary_validation_model=True.
+- finite-q 输出保持 valid_for_casimir_input=False。
+- normal q=0 alignment remains diagnostic-only.
+本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入，也不是 Ward closure proof。
+valid_for_casimir_input: False
+
+q=0 BdG 响应定义对齐报告
+model_name: symmetry_bdg_2band
+配对名称: spm
+status: diagnostic_only_not_passed
+omega_eV: 0.01
+q_model: [0, 0]
+nk: 9
+网格点数: 81
+delta0_eV: 0.1
+diagnostic_passed: False
+最佳 local 匹配:
+- finite_q_raw_bubble_q0: None
+- finite_q_direct_q0: None
+- finite_q_total_q0: None
+- finite_q_minus_schur_q0: None
+- finite_q_amplitude_phase_schur_q0: None
+最佳 transformed 匹配:
+- finite_q_raw_bubble_q0: None
+- finite_q_direct_q0: None
+- finite_q_total_q0: None
+- finite_q_minus_schur_q0: None
+- finite_q_amplitude_phase_schur_q0: None
+transformed comparison table（按 relative norm 升序）:
+- 无 transformed local comparator；仅报告 finite-q matrix norms。
+finite-q matrix norms:
+- finite_q_raw_bubble_q0: 3.322766e-01
+- finite_q_direct_q0: 9.772112e-01
+- finite_q_total_q0: 1.022190e+00
+- finite_q_minus_schur_q0: 9.667334e-01
+- finite_q_amplitude_phase_schur_q0: 9.667334e-01
+说明:
+- q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。
+- spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。
+- model_name=symmetry_bdg_2band; primary_validation_model=True.
+- finite-q 输出保持 valid_for_casimir_input=False。
+- onsite_s has no local public comparator in this q=0 alignment report.
+本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入，也不是 Ward closure proof。
+valid_for_casimir_input: False
+
+q=0 BdG 响应定义对齐报告
+model_name: symmetry_bdg_2band
+配对名称: dwave
+status: diagnostic_only_not_passed
+omega_eV: 0.01
+q_model: [0, 0]
+nk: 9
+网格点数: 81
+delta0_eV: 0.1
+diagnostic_passed: False
+最佳 local 匹配:
+- finite_q_raw_bubble_q0: None
+- finite_q_direct_q0: None
+- finite_q_total_q0: None
+- finite_q_minus_schur_q0: None
+- finite_q_amplitude_phase_schur_q0: None
+最佳 transformed 匹配:
+- finite_q_raw_bubble_q0: None
+- finite_q_direct_q0: None
+- finite_q_total_q0: None
+- finite_q_minus_schur_q0: None
+- finite_q_amplitude_phase_schur_q0: None
+transformed comparison table（按 relative norm 升序）:
+- 无 transformed local comparator；仅报告 finite-q matrix norms。
+finite-q matrix norms:
+- finite_q_raw_bubble_q0: 1.569349e-01
+- finite_q_direct_q0: 9.895497e-01
+- finite_q_total_q0: 9.901581e-01
+- finite_q_minus_schur_q0: 9.777140e-01
+- finite_q_amplitude_phase_schur_q0: 9.777140e-01
+说明:
+- q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。
+- spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。
+- model_name=symmetry_bdg_2band; primary_validation_model=True.
+- finite-q 输出保持 valid_for_casimir_input=False。
+- onsite_s has no local public comparator in this q=0 alignment report.
+本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入，也不是 Ward closure proof。
+valid_for_casimir_input: False
