@@ -1,0 +1,213 @@
+q=0 BdG 响应定义对齐报告
+model_name: symmetry_bdg_2band
+配对名称: normal
+status: convention_aware_pass
+comparator_family: normal_local
+q0_comparator_available: True
+status_reason: normal local density-current comparator is available; at least one finite/local current-block comparison passed tolerance
+omega_eV: 0.005
+q_model: [0, 0]
+nk: 9
+网格点数: 81
+delta0_eV: 0
+diagnostic_passed: True
+最佳 local 匹配:
+- finite_q_raw_bubble_q0: None
+- finite_q_direct_q0: None
+- finite_q_total_q0: local_normal_density_current_total
+- finite_q_minus_schur_q0: local_normal_density_current_total
+- finite_q_amplitude_phase_schur_q0: local_normal_density_current_total
+最佳 transformed 匹配:
+- finite_q_raw_bubble_q0: local_normal_density_current_total_current_block
+- finite_q_direct_q0: local_normal_density_current_total_current_block
+- finite_q_total_q0: local_normal_density_current_total_current_block
+- finite_q_minus_schur_q0: local_normal_density_current_total_current_block
+- finite_q_amplitude_phase_schur_q0: local_normal_density_current_total_current_block
+transformed comparison table（按 relative norm 升序）:
+finite_q_quantity | transformed_local_quantity | label | abs_diff | rel_diff | finite_q_norm | local_norm | pass
+finite_q_total_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 1.115029e-16 | 1.130283e-16 | 9.865039e-01 | 9.865039e-01 | True
+finite_q_minus_schur_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 1.115029e-16 | 1.130283e-16 | 9.865039e-01 | 9.865039e-01 | True
+finite_q_amplitude_phase_schur_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 1.115029e-16 | 1.130283e-16 | 9.865039e-01 | 9.865039e-01 | True
+finite_q_direct_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 1.194268e-02 | 1.196126e-02 | 9.984466e-01 | 9.865039e-01 | False
+finite_q_raw_bubble_q0 | local_normal_density_current_total_current_block | normal_q0_convention_probe | 9.984466e-01 | 1.012106e+00 | 1.194268e-02 | 9.865039e-01 | False
+finite-q matrix norms:
+- finite_q_raw_bubble_q0: 1.194268e-02
+- finite_q_direct_q0: 9.984466e-01
+- finite_q_total_q0: 9.865039e-01
+- finite_q_minus_schur_q0: 9.865039e-01
+- finite_q_amplitude_phase_schur_q0: 9.865039e-01
+说明:
+- q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。
+- spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。
+- model_name=symmetry_bdg_2band; primary_validation_model=True.
+- finite-q 输出保持 valid_for_casimir_input=False。
+- normal q=0 alignment remains diagnostic-only.
+- normal local density-current comparator is available; at least one finite/local current-block comparison passed tolerance
+本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入，也不是 Ward closure proof。
+valid_for_casimir_input: False
+
+q=0 BdG 响应定义对齐报告
+model_name: symmetry_bdg_2band
+配对名称: spm
+status: convention_aware_pass
+comparator_family: local_bdg
+q0_comparator_available: True
+status_reason: two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance
+omega_eV: 0.005
+q_model: [0, 0]
+nk: 9
+网格点数: 81
+delta0_eV: 0.1
+diagnostic_passed: True
+最佳 local 匹配:
+- finite_q_raw_bubble_q0: local_BdG_paramagnetic_kernel
+- finite_q_direct_q0: -local_BdG_diamagnetic_kernel
+- finite_q_total_q0: -local_BdG_total_kernel
+- finite_q_minus_schur_q0: -local_BdG_total_kernel
+- finite_q_amplitude_phase_schur_q0: -local_BdG_total_kernel
+最佳 transformed 匹配:
+- finite_q_raw_bubble_q0: local_BdG_paramagnetic_kernel
+- finite_q_direct_q0: -local_BdG_diamagnetic_kernel
+- finite_q_total_q0: -local_BdG_total_kernel
+- finite_q_minus_schur_q0: -local_BdG_total_kernel
+- finite_q_amplitude_phase_schur_q0: -local_BdG_total_kernel
+transformed comparison table（按 relative norm 升序）:
+finite_q_quantity | transformed_local_quantity | label | abs_diff | rel_diff | finite_q_norm | local_norm | pass
+finite_q_direct_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 6.656215e-18 | 6.811439e-18 | 9.772112e-01 | 9.772112e-01 | True
+finite_q_total_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.515767e-12 | 1.567929e-12 | 9.667322e-01 | 9.667322e-01 | True
+finite_q_minus_schur_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.515767e-12 | 1.567929e-12 | 9.667322e-01 | 9.667322e-01 | True
+finite_q_amplitude_phase_schur_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.515767e-12 | 1.567929e-12 | 9.667322e-01 | 9.667322e-01 | True
+finite_q_raw_bubble_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 1.515787e-12 | 1.446506e-10 | 1.047896e-02 | 1.047896e-02 | True
+finite_q_direct_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.047896e-02 | 1.072333e-02 | 9.772112e-01 | 9.667322e-01 | False
+finite_q_total_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.047896e-02 | 1.072333e-02 | 9.667322e-01 | 9.772112e-01 | False
+finite_q_minus_schur_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.047896e-02 | 1.072333e-02 | 9.667322e-01 | 9.772112e-01 | False
+finite_q_amplitude_phase_schur_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.047896e-02 | 1.072333e-02 | 9.667322e-01 | 9.772112e-01 | False
+finite_q_raw_bubble_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 9.562533e-01 | 9.891604e-01 | 1.047896e-02 | 9.667322e-01 | False
+finite_q_raw_bubble_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 9.562533e-01 | 9.891604e-01 | 1.047896e-02 | 9.667322e-01 | False
+finite_q_total_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.562533e-01 | 9.891604e-01 | 9.667322e-01 | 1.047896e-02 | False
+finite_q_minus_schur_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.562533e-01 | 9.891604e-01 | 9.667322e-01 | 1.047896e-02 | False
+finite_q_amplitude_phase_schur_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.562533e-01 | 9.891604e-01 | 9.667322e-01 | 1.047896e-02 | False
+finite_q_raw_bubble_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 9.667322e-01 | 9.892767e-01 | 1.047896e-02 | 9.772112e-01 | False
+finite_q_direct_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.667322e-01 | 9.892767e-01 | 9.772112e-01 | 1.047896e-02 | False
+finite_q_raw_bubble_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.933360e+02 | 9.999458e-01 | 1.047896e-02 | 1.933464e+02 | False
+finite_q_total_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.943132e+02 | 1.005000e+00 | 9.667322e-01 | 1.933464e+02 | False
+finite_q_minus_schur_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.943132e+02 | 1.005000e+00 | 9.667322e-01 | 1.933464e+02 | False
+finite_q_amplitude_phase_schur_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.943132e+02 | 1.005000e+00 | 9.667322e-01 | 1.933464e+02 | False
+finite_q_direct_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.943237e+02 | 1.005054e+00 | 9.772112e-01 | 1.933464e+02 | False
+finite_q_direct_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.876902e-01 | 1.010723e+00 | 9.772112e-01 | 1.047896e-02 | False
+finite_q_raw_bubble_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 9.876902e-01 | 1.010723e+00 | 1.047896e-02 | 9.772112e-01 | False
+finite_q_total_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.772112e-01 | 1.010840e+00 | 9.667322e-01 | 1.047896e-02 | False
+finite_q_minus_schur_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.772112e-01 | 1.010840e+00 | 9.667322e-01 | 1.047896e-02 | False
+finite_q_amplitude_phase_schur_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.772112e-01 | 1.010840e+00 | 9.667322e-01 | 1.047896e-02 | False
+finite_q_raw_bubble_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 9.772112e-01 | 1.010840e+00 | 1.047896e-02 | 9.667322e-01 | False
+finite_q_total_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.943943e+00 | 1.989277e+00 | 9.667322e-01 | 9.772112e-01 | False
+finite_q_minus_schur_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.943943e+00 | 1.989277e+00 | 9.667322e-01 | 9.772112e-01 | False
+finite_q_amplitude_phase_schur_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.943943e+00 | 1.989277e+00 | 9.667322e-01 | 9.772112e-01 | False
+finite_q_direct_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.943943e+00 | 1.989277e+00 | 9.772112e-01 | 9.667322e-01 | False
+finite_q_direct_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.943943e+00 | 1.989277e+00 | 9.772112e-01 | 9.667322e-01 | False
+finite_q_raw_bubble_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 2.095792e-02 | 2.000000e+00 | 1.047896e-02 | 1.047896e-02 | False
+finite_q_total_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.933464e+00 | 2.000000e+00 | 9.667322e-01 | 9.667322e-01 | False
+finite_q_total_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.933464e+00 | 2.000000e+00 | 9.667322e-01 | 9.667322e-01 | False
+finite_q_minus_schur_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.933464e+00 | 2.000000e+00 | 9.667322e-01 | 9.667322e-01 | False
+finite_q_minus_schur_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.933464e+00 | 2.000000e+00 | 9.667322e-01 | 9.667322e-01 | False
+finite_q_amplitude_phase_schur_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.933464e+00 | 2.000000e+00 | 9.667322e-01 | 9.667322e-01 | False
+finite_q_amplitude_phase_schur_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.933464e+00 | 2.000000e+00 | 9.667322e-01 | 9.667322e-01 | False
+finite_q_direct_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.954422e+00 | 2.000000e+00 | 9.772112e-01 | 9.772112e-01 | False
+finite-q matrix norms:
+- finite_q_raw_bubble_q0: 3.326611e-01
+- finite_q_direct_q0: 9.772112e-01
+- finite_q_total_q0: 1.022313e+00
+- finite_q_minus_schur_q0: 9.667322e-01
+- finite_q_amplitude_phase_schur_q0: 9.667322e-01
+说明:
+- q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。
+- spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。
+- model_name=symmetry_bdg_2band; primary_validation_model=True.
+- finite-q 输出保持 valid_for_casimir_input=False。
+- two-band superconducting local BdG comparator is reported without fitting or projection.
+- two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance
+本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入，也不是 Ward closure proof。
+valid_for_casimir_input: False
+
+q=0 BdG 响应定义对齐报告
+model_name: symmetry_bdg_2band
+配对名称: dwave
+status: convention_aware_pass
+comparator_family: local_bdg
+q0_comparator_available: True
+status_reason: two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance
+omega_eV: 0.005
+q_model: [0, 0]
+nk: 9
+网格点数: 81
+delta0_eV: 0.1
+diagnostic_passed: True
+最佳 local 匹配:
+- finite_q_raw_bubble_q0: local_BdG_paramagnetic_kernel
+- finite_q_direct_q0: -local_BdG_diamagnetic_kernel
+- finite_q_total_q0: -local_BdG_total_kernel
+- finite_q_minus_schur_q0: -local_BdG_total_kernel
+- finite_q_amplitude_phase_schur_q0: -local_BdG_total_kernel
+最佳 transformed 匹配:
+- finite_q_raw_bubble_q0: local_BdG_paramagnetic_kernel
+- finite_q_direct_q0: -local_BdG_diamagnetic_kernel
+- finite_q_total_q0: -local_BdG_total_kernel
+- finite_q_minus_schur_q0: -local_BdG_total_kernel
+- finite_q_amplitude_phase_schur_q0: -local_BdG_total_kernel
+transformed comparison table（按 relative norm 升序）:
+finite_q_quantity | transformed_local_quantity | label | abs_diff | rel_diff | finite_q_norm | local_norm | pass
+finite_q_direct_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 6.396857e-18 | 6.464411e-18 | 9.895497e-01 | 9.895497e-01 | True
+finite_q_total_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.829786e-12 | 1.871497e-12 | 9.777126e-01 | 9.777126e-01 | True
+finite_q_minus_schur_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.829786e-12 | 1.871497e-12 | 9.777126e-01 | 9.777126e-01 | True
+finite_q_amplitude_phase_schur_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.829786e-12 | 1.871497e-12 | 9.777126e-01 | 9.777126e-01 | True
+finite_q_raw_bubble_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 1.829696e-12 | 1.545722e-10 | 1.183716e-02 | 1.183716e-02 | True
+finite_q_direct_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.183716e-02 | 1.196217e-02 | 9.895497e-01 | 9.777126e-01 | False
+finite_q_total_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.183716e-02 | 1.196217e-02 | 9.777126e-01 | 9.895497e-01 | False
+finite_q_minus_schur_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.183716e-02 | 1.196217e-02 | 9.777126e-01 | 9.895497e-01 | False
+finite_q_amplitude_phase_schur_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.183716e-02 | 1.196217e-02 | 9.777126e-01 | 9.895497e-01 | False
+finite_q_raw_bubble_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 9.658754e-01 | 9.878930e-01 | 1.183716e-02 | 9.777126e-01 | False
+finite_q_raw_bubble_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 9.658754e-01 | 9.878930e-01 | 1.183716e-02 | 9.777126e-01 | False
+finite_q_total_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.658754e-01 | 9.878930e-01 | 9.777126e-01 | 1.183716e-02 | False
+finite_q_minus_schur_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.658754e-01 | 9.878930e-01 | 9.777126e-01 | 1.183716e-02 | False
+finite_q_amplitude_phase_schur_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.658754e-01 | 9.878930e-01 | 9.777126e-01 | 1.183716e-02 | False
+finite_q_raw_bubble_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 9.777126e-01 | 9.880378e-01 | 1.183716e-02 | 9.895497e-01 | False
+finite_q_direct_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.777126e-01 | 9.880378e-01 | 9.895497e-01 | 1.183716e-02 | False
+finite_q_raw_bubble_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.955307e+02 | 9.999395e-01 | 1.183716e-02 | 1.955425e+02 | False
+finite_q_total_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.965202e+02 | 1.005000e+00 | 9.777126e-01 | 1.955425e+02 | False
+finite_q_minus_schur_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.965202e+02 | 1.005000e+00 | 9.777126e-01 | 1.955425e+02 | False
+finite_q_amplitude_phase_schur_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.965202e+02 | 1.005000e+00 | 9.777126e-01 | 1.955425e+02 | False
+finite_q_direct_q0 | local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.965321e+02 | 1.005061e+00 | 9.895497e-01 | 1.955425e+02 | False
+finite_q_direct_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 1.001387e+00 | 1.011962e+00 | 9.895497e-01 | 1.183716e-02 | False
+finite_q_raw_bubble_q0 | -local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.001387e+00 | 1.011962e+00 | 1.183716e-02 | 9.895497e-01 | False
+finite_q_total_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.895497e-01 | 1.012107e+00 | 9.777126e-01 | 1.183716e-02 | False
+finite_q_minus_schur_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.895497e-01 | 1.012107e+00 | 9.777126e-01 | 1.183716e-02 | False
+finite_q_amplitude_phase_schur_q0 | local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 9.895497e-01 | 1.012107e+00 | 9.777126e-01 | 1.183716e-02 | False
+finite_q_raw_bubble_q0 | -local_BdG_total_kernel | two_band_local_bdg_convention_probe | 9.895497e-01 | 1.012107e+00 | 1.183716e-02 | 9.777126e-01 | False
+finite_q_total_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.967262e+00 | 1.988038e+00 | 9.777126e-01 | 9.895497e-01 | False
+finite_q_minus_schur_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.967262e+00 | 1.988038e+00 | 9.777126e-01 | 9.895497e-01 | False
+finite_q_amplitude_phase_schur_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.967262e+00 | 1.988038e+00 | 9.777126e-01 | 9.895497e-01 | False
+finite_q_direct_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.967262e+00 | 1.988038e+00 | 9.895497e-01 | 9.777126e-01 | False
+finite_q_direct_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.967262e+00 | 1.988038e+00 | 9.895497e-01 | 9.777126e-01 | False
+finite_q_raw_bubble_q0 | -local_BdG_paramagnetic_kernel | two_band_local_bdg_convention_probe | 2.367432e-02 | 2.000000e+00 | 1.183716e-02 | 1.183716e-02 | False
+finite_q_total_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.955425e+00 | 2.000000e+00 | 9.777126e-01 | 9.777126e-01 | False
+finite_q_total_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.955425e+00 | 2.000000e+00 | 9.777126e-01 | 9.777126e-01 | False
+finite_q_minus_schur_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.955425e+00 | 2.000000e+00 | 9.777126e-01 | 9.777126e-01 | False
+finite_q_minus_schur_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.955425e+00 | 2.000000e+00 | 9.777126e-01 | 9.777126e-01 | False
+finite_q_amplitude_phase_schur_q0 | local_BdG_total_kernel | two_band_local_bdg_convention_probe | 1.955425e+00 | 2.000000e+00 | 9.777126e-01 | 9.777126e-01 | False
+finite_q_amplitude_phase_schur_q0 | omega * local_BdG_sigma_like_response | two_band_local_bdg_convention_probe | 1.955425e+00 | 2.000000e+00 | 9.777126e-01 | 9.777126e-01 | False
+finite_q_direct_q0 | local_BdG_diamagnetic_kernel | two_band_local_bdg_convention_probe | 1.979099e+00 | 2.000000e+00 | 9.895497e-01 | 9.895497e-01 | False
+finite-q matrix norms:
+- finite_q_raw_bubble_q0: 1.571492e-01
+- finite_q_direct_q0: 9.895497e-01
+- finite_q_total_q0: 9.901907e-01
+- finite_q_minus_schur_q0: 9.777126e-01
+- finite_q_amplitude_phase_schur_q0: 9.777126e-01
+说明:
+- q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。
+- spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。
+- model_name=symmetry_bdg_2band; primary_validation_model=True.
+- finite-q 输出保持 valid_for_casimir_input=False。
+- two-band superconducting local BdG comparator is reported without fitting or projection.
+- two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance
+本报告只用于 convention 诊断；finite-q 输出不是 Casimir 输入，也不是 Ward closure proof。
+valid_for_casimir_input: False

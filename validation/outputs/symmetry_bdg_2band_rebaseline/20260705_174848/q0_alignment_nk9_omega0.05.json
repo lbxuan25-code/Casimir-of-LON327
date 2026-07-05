@@ -1,0 +1,1373 @@
+{
+  "model_name": "symmetry_bdg_2band",
+  "model_metadata": {
+    "model_name": "symmetry_bdg_2band",
+    "pairing_names": [
+      "normal",
+      "spm",
+      "dwave"
+    ],
+    "default_pairings": [
+      "spm",
+      "dwave"
+    ],
+    "default_delta0_eV": 0.1,
+    "primary_validation_model": true,
+    "valid_for_casimir_input": false,
+    "spec_metadata": {
+      "name": "symmetry_bdg_2band",
+      "basis": [
+        "a",
+        "b"
+      ],
+      "description": "Symmetry-focused two-band BdG model"
+    }
+  },
+  "primary_validation_model": true,
+  "pairings": [
+    "normal",
+    "spm",
+    "dwave"
+  ],
+  "status_by_pairing": {
+    "normal": "convention_aware_pass",
+    "spm": "convention_aware_pass",
+    "dwave": "convention_aware_pass"
+  },
+  "valid_for_casimir_input": false,
+  "reports": [
+    {
+      "model_name": "symmetry_bdg_2band",
+      "model_metadata": {
+        "model_name": "symmetry_bdg_2band",
+        "pairing_names": [
+          "normal",
+          "spm",
+          "dwave"
+        ],
+        "default_pairings": [
+          "spm",
+          "dwave"
+        ],
+        "default_delta0_eV": 0.1,
+        "primary_validation_model": true,
+        "valid_for_casimir_input": false,
+        "spec_metadata": {
+          "name": "symmetry_bdg_2band",
+          "basis": [
+            "a",
+            "b"
+          ],
+          "description": "Symmetry-focused two-band BdG model"
+        }
+      },
+      "primary_validation_model": true,
+      "pairing_name": "normal",
+      "omega_eV": 0.05,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 9,
+      "mesh_size": 81,
+      "delta0_eV": 0.0,
+      "status": "convention_aware_pass",
+      "comparator_family": "normal_local",
+      "q0_comparator_available": true,
+      "status_reason": "normal local density-current comparator is available; at least one finite/local current-block comparison passed tolerance",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0",
+        "local_normal_density_current_total"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 0.0118959975196042,
+        "finite_q_direct_q0": 0.9984465555204969,
+        "finite_q_total_q0": 0.9865505580008925,
+        "finite_q_minus_schur_q0": 0.9865505580008925,
+        "finite_q_amplitude_phase_schur_q0": 0.9865505580008925,
+        "local_normal_density_current_total": 0.9865505580008926
+      },
+      "pairwise_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_normal_density_current_total": 0.9984465555204969,
+        "finite_q_direct_q0__vs__local_normal_density_current_total": 0.01189599751960419,
+        "finite_q_total_q0__vs__local_normal_density_current_total": 1.114937878537614e-16,
+        "finite_q_minus_schur_q0__vs__local_normal_density_current_total": 1.114937878537614e-16,
+        "finite_q_amplitude_phase_schur_q0__vs__local_normal_density_current_total": 1.114937878537614e-16
+      },
+      "relative_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_normal_density_current_total": 1.0120581732209546,
+        "finite_q_direct_q0__vs__local_normal_density_current_total": 0.011914506043243072,
+        "finite_q_total_q0__vs__local_normal_density_current_total": 1.1301375986212814e-16,
+        "finite_q_minus_schur_q0__vs__local_normal_density_current_total": 1.1301375986212814e-16,
+        "finite_q_amplitude_phase_schur_q0__vs__local_normal_density_current_total": 1.1301375986212814e-16
+      },
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": null,
+        "finite_q_direct_q0": null,
+        "finite_q_total_q0": "local_normal_density_current_total",
+        "finite_q_minus_schur_q0": "local_normal_density_current_total",
+        "finite_q_amplitude_phase_schur_q0": "local_normal_density_current_total"
+      },
+      "transformed_comparison_rows": [
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 0.9984465555204969,
+          "relative_norm_difference": 1.0120581732209546,
+          "finite_q_matrix_norm": 0.0118959975196042,
+          "transformed_local_matrix_norm": 0.9865505580008926,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 0.01189599751960419,
+          "relative_norm_difference": 0.011914506043243072,
+          "finite_q_matrix_norm": 0.9984465555204969,
+          "transformed_local_matrix_norm": 0.9865505580008926,
+          "passes_tolerance": false,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 1.114937878537614e-16,
+          "relative_norm_difference": 1.1301375986212814e-16,
+          "finite_q_matrix_norm": 0.9865505580008925,
+          "transformed_local_matrix_norm": 0.9865505580008926,
+          "passes_tolerance": true,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 1.114937878537614e-16,
+          "relative_norm_difference": 1.1301375986212814e-16,
+          "finite_q_matrix_norm": 0.9865505580008925,
+          "transformed_local_matrix_norm": 0.9865505580008926,
+          "passes_tolerance": true,
+          "label": "normal_q0_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_normal_density_current_total_current_block",
+          "absolute_norm_difference": 1.114937878537614e-16,
+          "relative_norm_difference": 1.1301375986212814e-16,
+          "finite_q_matrix_norm": 0.9865505580008925,
+          "transformed_local_matrix_norm": 0.9865505580008926,
+          "passes_tolerance": true,
+          "label": "normal_q0_convention_probe"
+        }
+      ],
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": "local_normal_density_current_total_current_block",
+        "finite_q_direct_q0": "local_normal_density_current_total_current_block",
+        "finite_q_total_q0": "local_normal_density_current_total_current_block",
+        "finite_q_minus_schur_q0": "local_normal_density_current_total_current_block",
+        "finite_q_amplitude_phase_schur_q0": "local_normal_density_current_total_current_block"
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "normal q=0 alignment remains diagnostic-only.",
+        "normal local density-current comparator is available; at least one finite/local current-block comparison passed tolerance"
+      ],
+      "passed": true,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "normal q=0 alignment remains diagnostic-only.",
+        "normal local density-current comparator is available; at least one finite/local current-block comparison passed tolerance"
+      ],
+      "q0_convention": null,
+      "valid_for_casimir_input": false
+    },
+    {
+      "model_name": "symmetry_bdg_2band",
+      "model_metadata": {
+        "model_name": "symmetry_bdg_2band",
+        "pairing_names": [
+          "normal",
+          "spm",
+          "dwave"
+        ],
+        "default_pairings": [
+          "spm",
+          "dwave"
+        ],
+        "default_delta0_eV": 0.1,
+        "primary_validation_model": true,
+        "valid_for_casimir_input": false,
+        "spec_metadata": {
+          "name": "symmetry_bdg_2band",
+          "basis": [
+            "a",
+            "b"
+          ],
+          "description": "Symmetry-focused two-band BdG model"
+        }
+      },
+      "primary_validation_model": true,
+      "pairing_name": "spm",
+      "omega_eV": 0.05,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 9,
+      "mesh_size": 81,
+      "delta0_eV": 0.1,
+      "status": "convention_aware_pass",
+      "comparator_family": "local_bdg",
+      "q0_comparator_available": true,
+      "status_reason": "two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0",
+        "local_BdG_paramagnetic_kernel",
+        "local_BdG_diamagnetic_kernel",
+        "local_BdG_total_kernel",
+        "-local_BdG_paramagnetic_kernel",
+        "-local_BdG_diamagnetic_kernel",
+        "-local_BdG_total_kernel",
+        "local_BdG_sigma_like_response",
+        "omega * local_BdG_sigma_like_response"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 0.32050006117697627,
+        "finite_q_direct_q0": 0.977211207354452,
+        "finite_q_total_q0": 1.018457057372655,
+        "finite_q_minus_schur_q0": 0.9667696287438919,
+        "finite_q_amplitude_phase_schur_q0": 0.9667696287438919,
+        "local_BdG_paramagnetic_kernel": 0.010441578595511591,
+        "local_BdG_diamagnetic_kernel": 0.977211207354452,
+        "local_BdG_total_kernel": 0.9667696287589405,
+        "-local_BdG_paramagnetic_kernel": 0.010441578595511591,
+        "-local_BdG_diamagnetic_kernel": 0.977211207354452,
+        "-local_BdG_total_kernel": 0.9667696287589405,
+        "local_BdG_sigma_like_response": 19.33539257517881,
+        "omega * local_BdG_sigma_like_response": 0.9667696287589406
+      },
+      "pairwise_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_BdG_paramagnetic_kernel": 1.504845365279336e-11,
+        "finite_q_raw_bubble_q0__vs__local_BdG_diamagnetic_kernel": 0.9667696287438919,
+        "finite_q_raw_bubble_q0__vs__local_BdG_total_kernel": 0.9563280501483804,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_paramagnetic_kernel": 0.020883157206071635,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_diamagnetic_kernel": 0.987652785965012,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_total_kernel": 0.9772112073695005,
+        "finite_q_raw_bubble_q0__vs__local_BdG_sigma_like_response": 19.324950996568248,
+        "finite_q_raw_bubble_q0__vs__omega * local_BdG_sigma_like_response": 0.9563280501483805,
+        "finite_q_direct_q0__vs__local_BdG_paramagnetic_kernel": 0.9876527859499635,
+        "finite_q_direct_q0__vs__local_BdG_diamagnetic_kernel": 1.954422414708904,
+        "finite_q_direct_q0__vs__local_BdG_total_kernel": 1.9439808361133923,
+        "finite_q_direct_q0__vs__-local_BdG_paramagnetic_kernel": 0.9667696287589405,
+        "finite_q_direct_q0__vs__-local_BdG_diamagnetic_kernel": 6.6562149363011895e-18,
+        "finite_q_direct_q0__vs__-local_BdG_total_kernel": 0.010441578595511527,
+        "finite_q_direct_q0__vs__local_BdG_sigma_like_response": 20.312603782533262,
+        "finite_q_direct_q0__vs__omega * local_BdG_sigma_like_response": 1.9439808361133926,
+        "finite_q_total_q0__vs__local_BdG_paramagnetic_kernel": 0.9772112073394035,
+        "finite_q_total_q0__vs__local_BdG_diamagnetic_kernel": 1.9439808360983437,
+        "finite_q_total_q0__vs__local_BdG_total_kernel": 1.9335392575028323,
+        "finite_q_total_q0__vs__-local_BdG_paramagnetic_kernel": 0.9563280501483804,
+        "finite_q_total_q0__vs__-local_BdG_diamagnetic_kernel": 0.010441578610560078,
+        "finite_q_total_q0__vs__-local_BdG_total_kernel": 1.5048551170256074e-11,
+        "finite_q_total_q0__vs__local_BdG_sigma_like_response": 20.302162203922702,
+        "finite_q_total_q0__vs__omega * local_BdG_sigma_like_response": 1.9335392575028323,
+        "finite_q_minus_schur_q0__vs__local_BdG_paramagnetic_kernel": 0.9772112073394035,
+        "finite_q_minus_schur_q0__vs__local_BdG_diamagnetic_kernel": 1.9439808360983437,
+        "finite_q_minus_schur_q0__vs__local_BdG_total_kernel": 1.9335392575028323,
+        "finite_q_minus_schur_q0__vs__-local_BdG_paramagnetic_kernel": 0.9563280501483804,
+        "finite_q_minus_schur_q0__vs__-local_BdG_diamagnetic_kernel": 0.010441578610560078,
+        "finite_q_minus_schur_q0__vs__-local_BdG_total_kernel": 1.5048551170256074e-11,
+        "finite_q_minus_schur_q0__vs__local_BdG_sigma_like_response": 20.302162203922702,
+        "finite_q_minus_schur_q0__vs__omega * local_BdG_sigma_like_response": 1.9335392575028323,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_paramagnetic_kernel": 0.9772112073394035,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_diamagnetic_kernel": 1.9439808360983437,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_total_kernel": 1.9335392575028323,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_paramagnetic_kernel": 0.9563280501483804,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_diamagnetic_kernel": 0.010441578610560078,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_total_kernel": 1.5048551170256074e-11,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_sigma_like_response": 20.302162203922702,
+        "finite_q_amplitude_phase_schur_q0__vs__omega * local_BdG_sigma_like_response": 1.9335392575028323
+      },
+      "relative_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_BdG_paramagnetic_kernel": 1.441204842108278e-09,
+        "finite_q_raw_bubble_q0__vs__local_BdG_diamagnetic_kernel": 0.9893149213476297,
+        "finite_q_raw_bubble_q0__vs__local_BdG_total_kernel": 0.9891995173411021,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_paramagnetic_kernel": 1.9999999985587953,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_diamagnetic_kernel": 1.0106850786523702,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_total_kernel": 1.0108004826588979,
+        "finite_q_raw_bubble_q0__vs__local_BdG_sigma_like_response": 0.999459975867055,
+        "finite_q_raw_bubble_q0__vs__omega * local_BdG_sigma_like_response": 0.9891995173411021,
+        "finite_q_direct_q0__vs__local_BdG_paramagnetic_kernel": 1.0106850786369708,
+        "finite_q_direct_q0__vs__local_BdG_diamagnetic_kernel": 2.0,
+        "finite_q_direct_q0__vs__local_BdG_total_kernel": 1.989314921363029,
+        "finite_q_direct_q0__vs__-local_BdG_paramagnetic_kernel": 0.9893149213630291,
+        "finite_q_direct_q0__vs__-local_BdG_diamagnetic_kernel": 6.811439416788086e-18,
+        "finite_q_direct_q0__vs__-local_BdG_total_kernel": 0.010685078636970831,
+        "finite_q_direct_q0__vs__local_BdG_sigma_like_response": 1.0505400241321667,
+        "finite_q_direct_q0__vs__omega * local_BdG_sigma_like_response": 1.9893149213630292,
+        "finite_q_total_q0__vs__local_BdG_paramagnetic_kernel": 1.0108004826435002,
+        "finite_q_total_q0__vs__local_BdG_diamagnetic_kernel": 1.9893149213476296,
+        "finite_q_total_q0__vs__local_BdG_total_kernel": 1.999999999984434,
+        "finite_q_total_q0__vs__-local_BdG_paramagnetic_kernel": 0.9891995173564998,
+        "finite_q_total_q0__vs__-local_BdG_diamagnetic_kernel": 0.010685078652370316,
+        "finite_q_total_q0__vs__-local_BdG_total_kernel": 1.5565808774500053e-11,
+        "finite_q_total_q0__vs__local_BdG_sigma_like_response": 1.0499999999992218,
+        "finite_q_total_q0__vs__omega * local_BdG_sigma_like_response": 1.9999999999844338,
+        "finite_q_minus_schur_q0__vs__local_BdG_paramagnetic_kernel": 1.0108004826435002,
+        "finite_q_minus_schur_q0__vs__local_BdG_diamagnetic_kernel": 1.9893149213476296,
+        "finite_q_minus_schur_q0__vs__local_BdG_total_kernel": 1.999999999984434,
+        "finite_q_minus_schur_q0__vs__-local_BdG_paramagnetic_kernel": 0.9891995173564998,
+        "finite_q_minus_schur_q0__vs__-local_BdG_diamagnetic_kernel": 0.010685078652370316,
+        "finite_q_minus_schur_q0__vs__-local_BdG_total_kernel": 1.5565808774500053e-11,
+        "finite_q_minus_schur_q0__vs__local_BdG_sigma_like_response": 1.0499999999992218,
+        "finite_q_minus_schur_q0__vs__omega * local_BdG_sigma_like_response": 1.9999999999844338,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_paramagnetic_kernel": 1.0108004826435002,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_diamagnetic_kernel": 1.9893149213476296,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_total_kernel": 1.999999999984434,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_paramagnetic_kernel": 0.9891995173564998,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_diamagnetic_kernel": 0.010685078652370316,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_total_kernel": 1.5565808774500053e-11,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_sigma_like_response": 1.0499999999992218,
+        "finite_q_amplitude_phase_schur_q0__vs__omega * local_BdG_sigma_like_response": 1.9999999999844338
+      },
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": "local_BdG_paramagnetic_kernel",
+        "finite_q_direct_q0": "-local_BdG_diamagnetic_kernel",
+        "finite_q_total_q0": "-local_BdG_total_kernel",
+        "finite_q_minus_schur_q0": "-local_BdG_total_kernel",
+        "finite_q_amplitude_phase_schur_q0": "-local_BdG_total_kernel"
+      },
+      "transformed_comparison_rows": [
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 1.504845365279336e-11,
+          "relative_norm_difference": 1.441204842108278e-09,
+          "finite_q_matrix_norm": 0.010441578610560043,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 0.9667696287438919,
+          "relative_norm_difference": 0.9893149213476297,
+          "finite_q_matrix_norm": 0.010441578610560043,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 0.9563280501483804,
+          "relative_norm_difference": 0.9891995173411021,
+          "finite_q_matrix_norm": 0.010441578610560043,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.020883157206071635,
+          "relative_norm_difference": 1.9999999985587953,
+          "finite_q_matrix_norm": 0.010441578610560043,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 0.987652785965012,
+          "relative_norm_difference": 1.0106850786523702,
+          "finite_q_matrix_norm": 0.010441578610560043,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 0.9772112073695005,
+          "relative_norm_difference": 1.0108004826588979,
+          "finite_q_matrix_norm": 0.010441578610560043,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 19.324950996568248,
+          "relative_norm_difference": 0.999459975867055,
+          "finite_q_matrix_norm": 0.010441578610560043,
+          "transformed_local_matrix_norm": 19.33539257517881,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 0.9563280501483805,
+          "relative_norm_difference": 0.9891995173411021,
+          "finite_q_matrix_norm": 0.010441578610560043,
+          "transformed_local_matrix_norm": 0.9667696287589406,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9876527859499635,
+          "relative_norm_difference": 1.0106850786369708,
+          "finite_q_matrix_norm": 0.977211207354452,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 1.954422414708904,
+          "relative_norm_difference": 2.0,
+          "finite_q_matrix_norm": 0.977211207354452,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 1.9439808361133923,
+          "relative_norm_difference": 1.989314921363029,
+          "finite_q_matrix_norm": 0.977211207354452,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9667696287589405,
+          "relative_norm_difference": 0.9893149213630291,
+          "finite_q_matrix_norm": 0.977211207354452,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 6.6562149363011895e-18,
+          "relative_norm_difference": 6.811439416788086e-18,
+          "finite_q_matrix_norm": 0.977211207354452,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 0.010441578595511527,
+          "relative_norm_difference": 0.010685078636970831,
+          "finite_q_matrix_norm": 0.977211207354452,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 20.312603782533262,
+          "relative_norm_difference": 1.0505400241321667,
+          "finite_q_matrix_norm": 0.977211207354452,
+          "transformed_local_matrix_norm": 19.33539257517881,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 1.9439808361133926,
+          "relative_norm_difference": 1.9893149213630292,
+          "finite_q_matrix_norm": 0.977211207354452,
+          "transformed_local_matrix_norm": 0.9667696287589406,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9772112073394035,
+          "relative_norm_difference": 1.0108004826435002,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 1.9439808360983437,
+          "relative_norm_difference": 1.9893149213476296,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 1.9335392575028323,
+          "relative_norm_difference": 1.999999999984434,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9563280501483804,
+          "relative_norm_difference": 0.9891995173564998,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 0.010441578610560078,
+          "relative_norm_difference": 0.010685078652370316,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 1.5048551170256074e-11,
+          "relative_norm_difference": 1.5565808774500053e-11,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 20.302162203922702,
+          "relative_norm_difference": 1.0499999999992218,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 19.33539257517881,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 1.9335392575028323,
+          "relative_norm_difference": 1.9999999999844338,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.9667696287589406,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9772112073394035,
+          "relative_norm_difference": 1.0108004826435002,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 1.9439808360983437,
+          "relative_norm_difference": 1.9893149213476296,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 1.9335392575028323,
+          "relative_norm_difference": 1.999999999984434,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9563280501483804,
+          "relative_norm_difference": 0.9891995173564998,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 0.010441578610560078,
+          "relative_norm_difference": 0.010685078652370316,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 1.5048551170256074e-11,
+          "relative_norm_difference": 1.5565808774500053e-11,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 20.302162203922702,
+          "relative_norm_difference": 1.0499999999992218,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 19.33539257517881,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 1.9335392575028323,
+          "relative_norm_difference": 1.9999999999844338,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.9667696287589406,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9772112073394035,
+          "relative_norm_difference": 1.0108004826435002,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 1.9439808360983437,
+          "relative_norm_difference": 1.9893149213476296,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 1.9335392575028323,
+          "relative_norm_difference": 1.999999999984434,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9563280501483804,
+          "relative_norm_difference": 0.9891995173564998,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.010441578595511591,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 0.010441578610560078,
+          "relative_norm_difference": 0.010685078652370316,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.977211207354452,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 1.5048551170256074e-11,
+          "relative_norm_difference": 1.5565808774500053e-11,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.9667696287589405,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 20.302162203922702,
+          "relative_norm_difference": 1.0499999999992218,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 19.33539257517881,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 1.9335392575028323,
+          "relative_norm_difference": 1.9999999999844338,
+          "finite_q_matrix_norm": 0.9667696287438919,
+          "transformed_local_matrix_norm": 0.9667696287589406,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        }
+      ],
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": "local_BdG_paramagnetic_kernel",
+        "finite_q_direct_q0": "-local_BdG_diamagnetic_kernel",
+        "finite_q_total_q0": "-local_BdG_total_kernel",
+        "finite_q_minus_schur_q0": "-local_BdG_total_kernel",
+        "finite_q_amplitude_phase_schur_q0": "-local_BdG_total_kernel"
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "two-band superconducting local BdG comparator is reported without fitting or projection.",
+        "two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance"
+      ],
+      "passed": true,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "two-band superconducting local BdG comparator is reported without fitting or projection.",
+        "two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance"
+      ],
+      "q0_convention": null,
+      "valid_for_casimir_input": false
+    },
+    {
+      "model_name": "symmetry_bdg_2band",
+      "model_metadata": {
+        "model_name": "symmetry_bdg_2band",
+        "pairing_names": [
+          "normal",
+          "spm",
+          "dwave"
+        ],
+        "default_pairings": [
+          "spm",
+          "dwave"
+        ],
+        "default_delta0_eV": 0.1,
+        "primary_validation_model": true,
+        "valid_for_casimir_input": false,
+        "spec_metadata": {
+          "name": "symmetry_bdg_2band",
+          "basis": [
+            "a",
+            "b"
+          ],
+          "description": "Symmetry-focused two-band BdG model"
+        }
+      },
+      "primary_validation_model": true,
+      "pairing_name": "dwave",
+      "omega_eV": 0.05,
+      "q_model": [
+        0.0,
+        0.0
+      ],
+      "nk": 9,
+      "mesh_size": 81,
+      "delta0_eV": 0.1,
+      "status": "convention_aware_pass",
+      "comparator_family": "local_bdg",
+      "q0_comparator_available": true,
+      "status_reason": "two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance",
+      "compared_quantity_names": [
+        "finite_q_raw_bubble_q0",
+        "finite_q_direct_q0",
+        "finite_q_total_q0",
+        "finite_q_minus_schur_q0",
+        "finite_q_amplitude_phase_schur_q0",
+        "local_BdG_paramagnetic_kernel",
+        "local_BdG_diamagnetic_kernel",
+        "local_BdG_total_kernel",
+        "-local_BdG_paramagnetic_kernel",
+        "-local_BdG_diamagnetic_kernel",
+        "-local_BdG_total_kernel",
+        "local_BdG_sigma_like_response",
+        "omega * local_BdG_sigma_like_response"
+      ],
+      "matrix_norms": {
+        "finite_q_raw_bubble_q0": 0.1504354123085039,
+        "finite_q_direct_q0": 0.9895497496000123,
+        "finite_q_total_q0": 0.9891925385779472,
+        "finite_q_minus_schur_q0": 0.9777576988006329,
+        "finite_q_amplitude_phase_schur_q0": 0.9777576988006329,
+        "local_BdG_paramagnetic_kernel": 0.011792050781222136,
+        "local_BdG_diamagnetic_kernel": 0.9895497496000123,
+        "local_BdG_total_kernel": 0.97775769881879,
+        "-local_BdG_paramagnetic_kernel": 0.011792050781222136,
+        "-local_BdG_diamagnetic_kernel": 0.9895497496000123,
+        "-local_BdG_total_kernel": 0.97775769881879,
+        "local_BdG_sigma_like_response": 19.555153976375802,
+        "omega * local_BdG_sigma_like_response": 0.9777576988187902
+      },
+      "pairwise_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_BdG_paramagnetic_kernel": 1.815716496285598e-11,
+        "finite_q_raw_bubble_q0__vs__local_BdG_diamagnetic_kernel": 0.9777576988006329,
+        "finite_q_raw_bubble_q0__vs__local_BdG_total_kernel": 0.9659656480194108,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_paramagnetic_kernel": 0.023584101580601435,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_diamagnetic_kernel": 1.0013418003993917,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_total_kernel": 0.9895497496181694,
+        "finite_q_raw_bubble_q0__vs__local_BdG_sigma_like_response": 19.543361925576423,
+        "finite_q_raw_bubble_q0__vs__omega * local_BdG_sigma_like_response": 0.9659656480194109,
+        "finite_q_direct_q0__vs__local_BdG_paramagnetic_kernel": 1.0013418003812344,
+        "finite_q_direct_q0__vs__local_BdG_diamagnetic_kernel": 1.9790994992000246,
+        "finite_q_direct_q0__vs__local_BdG_total_kernel": 1.9673074484188022,
+        "finite_q_direct_q0__vs__-local_BdG_paramagnetic_kernel": 0.97775769881879,
+        "finite_q_direct_q0__vs__-local_BdG_diamagnetic_kernel": 6.396856536445916e-18,
+        "finite_q_direct_q0__vs__-local_BdG_total_kernel": 0.011792050781222184,
+        "finite_q_direct_q0__vs__local_BdG_sigma_like_response": 20.544703725975815,
+        "finite_q_direct_q0__vs__omega * local_BdG_sigma_like_response": 1.9673074484188025,
+        "finite_q_total_q0__vs__local_BdG_paramagnetic_kernel": 0.9895497495818552,
+        "finite_q_total_q0__vs__local_BdG_diamagnetic_kernel": 1.9673074484006452,
+        "finite_q_total_q0__vs__local_BdG_total_kernel": 1.9555153976194228,
+        "finite_q_total_q0__vs__-local_BdG_paramagnetic_kernel": 0.9659656480194108,
+        "finite_q_total_q0__vs__-local_BdG_diamagnetic_kernel": 0.011792050799379363,
+        "finite_q_total_q0__vs__-local_BdG_total_kernel": 1.8157177229203784e-11,
+        "finite_q_total_q0__vs__local_BdG_sigma_like_response": 20.532911675176436,
+        "finite_q_total_q0__vs__omega * local_BdG_sigma_like_response": 1.955515397619423,
+        "finite_q_minus_schur_q0__vs__local_BdG_paramagnetic_kernel": 0.9895497495818552,
+        "finite_q_minus_schur_q0__vs__local_BdG_diamagnetic_kernel": 1.9673074484006452,
+        "finite_q_minus_schur_q0__vs__local_BdG_total_kernel": 1.9555153976194228,
+        "finite_q_minus_schur_q0__vs__-local_BdG_paramagnetic_kernel": 0.9659656480194108,
+        "finite_q_minus_schur_q0__vs__-local_BdG_diamagnetic_kernel": 0.011792050799379363,
+        "finite_q_minus_schur_q0__vs__-local_BdG_total_kernel": 1.8157177229203784e-11,
+        "finite_q_minus_schur_q0__vs__local_BdG_sigma_like_response": 20.532911675176436,
+        "finite_q_minus_schur_q0__vs__omega * local_BdG_sigma_like_response": 1.955515397619423,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_paramagnetic_kernel": 0.9895497495818552,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_diamagnetic_kernel": 1.9673074484006452,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_total_kernel": 1.9555153976194228,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_paramagnetic_kernel": 0.9659656480194108,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_diamagnetic_kernel": 0.011792050799379363,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_total_kernel": 1.8157177229203784e-11,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_sigma_like_response": 20.532911675176436,
+        "finite_q_amplitude_phase_schur_q0__vs__omega * local_BdG_sigma_like_response": 1.955515397619423
+      },
+      "relative_difference_norms": {
+        "finite_q_raw_bubble_q0__vs__local_BdG_paramagnetic_kernel": 1.5397800833602008e-09,
+        "finite_q_raw_bubble_q0__vs__local_BdG_diamagnetic_kernel": 0.9880834179341201,
+        "finite_q_raw_bubble_q0__vs__local_BdG_total_kernel": 0.9879397003842312,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_paramagnetic_kernel": 1.9999999984602197,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_diamagnetic_kernel": 1.0119165820658798,
+        "finite_q_raw_bubble_q0__vs__-local_BdG_total_kernel": 1.012060299615769,
+        "finite_q_raw_bubble_q0__vs__local_BdG_sigma_like_response": 0.9993969850192116,
+        "finite_q_raw_bubble_q0__vs__omega * local_BdG_sigma_like_response": 0.9879397003842312,
+        "finite_q_direct_q0__vs__local_BdG_paramagnetic_kernel": 1.0119165820475309,
+        "finite_q_direct_q0__vs__local_BdG_diamagnetic_kernel": 2.0,
+        "finite_q_direct_q0__vs__local_BdG_total_kernel": 1.988083417952469,
+        "finite_q_direct_q0__vs__-local_BdG_paramagnetic_kernel": 0.988083417952469,
+        "finite_q_direct_q0__vs__-local_BdG_diamagnetic_kernel": 6.4644112527253946e-18,
+        "finite_q_direct_q0__vs__-local_BdG_total_kernel": 0.01191658204753088,
+        "finite_q_direct_q0__vs__local_BdG_sigma_like_response": 1.05060301497986,
+        "finite_q_direct_q0__vs__omega * local_BdG_sigma_like_response": 1.9880834179524691,
+        "finite_q_total_q0__vs__local_BdG_paramagnetic_kernel": 1.0120602995974228,
+        "finite_q_total_q0__vs__local_BdG_diamagnetic_kernel": 1.9880834179341202,
+        "finite_q_total_q0__vs__local_BdG_total_kernel": 1.9999999999814297,
+        "finite_q_total_q0__vs__-local_BdG_paramagnetic_kernel": 0.9879397004025774,
+        "finite_q_total_q0__vs__-local_BdG_diamagnetic_kernel": 0.01191658206587981,
+        "finite_q_total_q0__vs__-local_BdG_total_kernel": 1.8570221693103633e-11,
+        "finite_q_total_q0__vs__local_BdG_sigma_like_response": 1.0499999999990715,
+        "finite_q_total_q0__vs__omega * local_BdG_sigma_like_response": 1.9999999999814297,
+        "finite_q_minus_schur_q0__vs__local_BdG_paramagnetic_kernel": 1.0120602995974228,
+        "finite_q_minus_schur_q0__vs__local_BdG_diamagnetic_kernel": 1.9880834179341202,
+        "finite_q_minus_schur_q0__vs__local_BdG_total_kernel": 1.9999999999814297,
+        "finite_q_minus_schur_q0__vs__-local_BdG_paramagnetic_kernel": 0.9879397004025774,
+        "finite_q_minus_schur_q0__vs__-local_BdG_diamagnetic_kernel": 0.01191658206587981,
+        "finite_q_minus_schur_q0__vs__-local_BdG_total_kernel": 1.8570221693103633e-11,
+        "finite_q_minus_schur_q0__vs__local_BdG_sigma_like_response": 1.0499999999990715,
+        "finite_q_minus_schur_q0__vs__omega * local_BdG_sigma_like_response": 1.9999999999814297,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_paramagnetic_kernel": 1.0120602995974228,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_diamagnetic_kernel": 1.9880834179341202,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_total_kernel": 1.9999999999814297,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_paramagnetic_kernel": 0.9879397004025774,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_diamagnetic_kernel": 0.01191658206587981,
+        "finite_q_amplitude_phase_schur_q0__vs__-local_BdG_total_kernel": 1.8570221693103633e-11,
+        "finite_q_amplitude_phase_schur_q0__vs__local_BdG_sigma_like_response": 1.0499999999990715,
+        "finite_q_amplitude_phase_schur_q0__vs__omega * local_BdG_sigma_like_response": 1.9999999999814297
+      },
+      "best_matching_local_quantity": {
+        "finite_q_raw_bubble_q0": "local_BdG_paramagnetic_kernel",
+        "finite_q_direct_q0": "-local_BdG_diamagnetic_kernel",
+        "finite_q_total_q0": "-local_BdG_total_kernel",
+        "finite_q_minus_schur_q0": "-local_BdG_total_kernel",
+        "finite_q_amplitude_phase_schur_q0": "-local_BdG_total_kernel"
+      },
+      "transformed_comparison_rows": [
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 1.815716496285598e-11,
+          "relative_norm_difference": 1.5397800833602008e-09,
+          "finite_q_matrix_norm": 0.0117920507993793,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 0.9777576988006329,
+          "relative_norm_difference": 0.9880834179341201,
+          "finite_q_matrix_norm": 0.0117920507993793,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 0.9659656480194108,
+          "relative_norm_difference": 0.9879397003842312,
+          "finite_q_matrix_norm": 0.0117920507993793,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.023584101580601435,
+          "relative_norm_difference": 1.9999999984602197,
+          "finite_q_matrix_norm": 0.0117920507993793,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 1.0013418003993917,
+          "relative_norm_difference": 1.0119165820658798,
+          "finite_q_matrix_norm": 0.0117920507993793,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 0.9895497496181694,
+          "relative_norm_difference": 1.012060299615769,
+          "finite_q_matrix_norm": 0.0117920507993793,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 19.543361925576423,
+          "relative_norm_difference": 0.9993969850192116,
+          "finite_q_matrix_norm": 0.0117920507993793,
+          "transformed_local_matrix_norm": 19.555153976375802,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_raw_bubble_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 0.9659656480194109,
+          "relative_norm_difference": 0.9879397003842312,
+          "finite_q_matrix_norm": 0.0117920507993793,
+          "transformed_local_matrix_norm": 0.9777576988187902,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 1.0013418003812344,
+          "relative_norm_difference": 1.0119165820475309,
+          "finite_q_matrix_norm": 0.9895497496000123,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 1.9790994992000246,
+          "relative_norm_difference": 2.0,
+          "finite_q_matrix_norm": 0.9895497496000123,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 1.9673074484188022,
+          "relative_norm_difference": 1.988083417952469,
+          "finite_q_matrix_norm": 0.9895497496000123,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.97775769881879,
+          "relative_norm_difference": 0.988083417952469,
+          "finite_q_matrix_norm": 0.9895497496000123,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 6.396856536445916e-18,
+          "relative_norm_difference": 6.4644112527253946e-18,
+          "finite_q_matrix_norm": 0.9895497496000123,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 0.011792050781222184,
+          "relative_norm_difference": 0.01191658204753088,
+          "finite_q_matrix_norm": 0.9895497496000123,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 20.544703725975815,
+          "relative_norm_difference": 1.05060301497986,
+          "finite_q_matrix_norm": 0.9895497496000123,
+          "transformed_local_matrix_norm": 19.555153976375802,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_direct_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 1.9673074484188025,
+          "relative_norm_difference": 1.9880834179524691,
+          "finite_q_matrix_norm": 0.9895497496000123,
+          "transformed_local_matrix_norm": 0.9777576988187902,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9895497495818552,
+          "relative_norm_difference": 1.0120602995974228,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 1.9673074484006452,
+          "relative_norm_difference": 1.9880834179341202,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 1.9555153976194228,
+          "relative_norm_difference": 1.9999999999814297,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9659656480194108,
+          "relative_norm_difference": 0.9879397004025774,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 0.011792050799379363,
+          "relative_norm_difference": 0.01191658206587981,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 1.8157177229203784e-11,
+          "relative_norm_difference": 1.8570221693103633e-11,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 20.532911675176436,
+          "relative_norm_difference": 1.0499999999990715,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 19.555153976375802,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_total_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 1.955515397619423,
+          "relative_norm_difference": 1.9999999999814297,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.9777576988187902,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9895497495818552,
+          "relative_norm_difference": 1.0120602995974228,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 1.9673074484006452,
+          "relative_norm_difference": 1.9880834179341202,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 1.9555153976194228,
+          "relative_norm_difference": 1.9999999999814297,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9659656480194108,
+          "relative_norm_difference": 0.9879397004025774,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 0.011792050799379363,
+          "relative_norm_difference": 0.01191658206587981,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 1.8157177229203784e-11,
+          "relative_norm_difference": 1.8570221693103633e-11,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 20.532911675176436,
+          "relative_norm_difference": 1.0499999999990715,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 19.555153976375802,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_minus_schur_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 1.955515397619423,
+          "relative_norm_difference": 1.9999999999814297,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.9777576988187902,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9895497495818552,
+          "relative_norm_difference": 1.0120602995974228,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 1.9673074484006452,
+          "relative_norm_difference": 1.9880834179341202,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_BdG_total_kernel",
+          "absolute_norm_difference": 1.9555153976194228,
+          "relative_norm_difference": 1.9999999999814297,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "-local_BdG_paramagnetic_kernel",
+          "absolute_norm_difference": 0.9659656480194108,
+          "relative_norm_difference": 0.9879397004025774,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.011792050781222136,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "-local_BdG_diamagnetic_kernel",
+          "absolute_norm_difference": 0.011792050799379363,
+          "relative_norm_difference": 0.01191658206587981,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.9895497496000123,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "-local_BdG_total_kernel",
+          "absolute_norm_difference": 1.8157177229203784e-11,
+          "relative_norm_difference": 1.8570221693103633e-11,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.97775769881879,
+          "passes_tolerance": true,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "local_BdG_sigma_like_response",
+          "absolute_norm_difference": 20.532911675176436,
+          "relative_norm_difference": 1.0499999999990715,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 19.555153976375802,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        },
+        {
+          "finite_q_quantity": "finite_q_amplitude_phase_schur_q0",
+          "transformed_local_quantity": "omega * local_BdG_sigma_like_response",
+          "absolute_norm_difference": 1.955515397619423,
+          "relative_norm_difference": 1.9999999999814297,
+          "finite_q_matrix_norm": 0.9777576988006329,
+          "transformed_local_matrix_norm": 0.9777576988187902,
+          "passes_tolerance": false,
+          "label": "two_band_local_bdg_convention_probe"
+        }
+      ],
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": "local_BdG_paramagnetic_kernel",
+        "finite_q_direct_q0": "-local_BdG_diamagnetic_kernel",
+        "finite_q_total_q0": "-local_BdG_total_kernel",
+        "finite_q_minus_schur_q0": "-local_BdG_total_kernel",
+        "finite_q_amplitude_phase_schur_q0": "-local_BdG_total_kernel"
+      },
+      "convention_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "two-band superconducting local BdG comparator is reported without fitting or projection.",
+        "two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance"
+      ],
+      "passed": true,
+      "pass_fail_notes": [
+        "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "model_name=symmetry_bdg_2band; primary_validation_model=True.",
+        "finite-q 输出保持 valid_for_casimir_input=False。",
+        "two-band superconducting local BdG comparator is reported without fitting or projection.",
+        "two-band local BdG comparator is available; finite-q/local sign conventions are reported directly; at least one finite/local current-block comparison passed tolerance"
+      ],
+      "q0_convention": null,
+      "valid_for_casimir_input": false
+    }
+  ]
+}
