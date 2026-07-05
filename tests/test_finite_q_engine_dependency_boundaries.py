@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_finite_q_engine_is_public_lno327_adapter_only():
-    text = (ROOT / "src/lno327/finite_q_engine.py").read_text(encoding="utf-8")
+    text = (ROOT / "src/lno327/workflows/finite_q_engine.py").read_text(encoding="utf-8")
     forbidden = (
         "from ." + "finite_q_primitives import",
         "from ." + "bdg_response import",

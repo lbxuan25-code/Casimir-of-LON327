@@ -10,7 +10,7 @@ from .bdg.finite_q import bdg_finite_q_vertex_from_normal_blocks
 from .bdg.hamiltonian import bdg_hamiltonian_from_model_pairing
 from .bdg.nambu import charge_current_vertex_from_model, diamagnetic_vertex_from_model
 from .bdg.spectrum import diagonalize_hermitian, transform_operator_to_band_basis
-from .finite_q_engine import (
+from .workflows.finite_q_engine import (
     BdGPhaseCorrectionError,
     bdg_finite_q_response_imag_axis,
     collective_form_factor,
@@ -35,7 +35,7 @@ from .electrodynamics.conventions import (
     sheet_conductivity_to_dimensionless,
     sheet_conductivity_to_reflection_dimensionless,
 )
-from .gap_analysis import (
+from .analysis.gap import (
     FermiSurfacePoints,
     GapStatistics,
     band_gap_projection,

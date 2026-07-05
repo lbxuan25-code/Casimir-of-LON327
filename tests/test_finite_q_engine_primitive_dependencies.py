@@ -3,7 +3,7 @@ from pathlib import Path
 
 def test_finite_q_engine_uses_model_and_generic_primitives():
     root = Path(__file__).resolve().parents[1]
-    text = (root / "src/lno327/finite_q_engine.py").read_text()
+    text = (root / "src/lno327/workflows/finite_q_engine.py").read_text()
     core_text = (root / "src/lno327/response/finite_q_bdg.py").read_text()
     forbidden = (
         "from ." + "bdg_response import",

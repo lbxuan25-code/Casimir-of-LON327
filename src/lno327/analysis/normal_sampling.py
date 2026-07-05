@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from .constants import KB_EV_PER_K
-from .electrodynamics.conductivity import ConductivityTensor
-from .electrodynamics.conventions import require_sheet_conductivity_for_reflection
-from .models.lno327_four_orbital.normal import normal_state_hamiltonian
-from .models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
-from .response.config import KuboConfig
-from .response.local_normal import kubo_conductivity_imag_axis_from_model
-from .response.occupations import negative_fermi_derivative
+from lno327.constants import KB_EV_PER_K
+from lno327.electrodynamics.conductivity import ConductivityTensor
+from lno327.electrodynamics.conventions import require_sheet_conductivity_for_reflection
+from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian
+from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+from lno327.response.config import KuboConfig
+from lno327.response.local_normal import kubo_conductivity_imag_axis_from_model
+from lno327.response.occupations import negative_fermi_derivative
 
 RATIO_EPS = 1e-300
 

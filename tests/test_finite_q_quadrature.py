@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from lno327.finite_q_quadrature import FiniteQQuadratureOptions, finite_q_quadrature_points
+from lno327.workflows.finite_q_quadrature import FiniteQQuadratureOptions, finite_q_quadrature_points
 
 
 def test_uniform_quadrature_metadata_and_weights() -> None:
@@ -102,7 +102,7 @@ def test_adaptive_metadata_records_stage4_15_semantics() -> None:
 def test_main_pipeline_and_quadrature_do_not_import_validation_scripts() -> None:
     for relative in (
         "scripts/casimir/finite_q_bdg_casimir_pipeline.py",
-        "src/lno327/finite_q_quadrature.py",
+        "src/lno327/workflows/finite_q_quadrature.py",
     ):
         text = Path(relative).read_text(encoding="utf-8")
         assert "validation/scripts" not in text

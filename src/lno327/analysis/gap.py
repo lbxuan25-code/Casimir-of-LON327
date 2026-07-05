@@ -6,10 +6,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .models.lno327_four_orbital.normal import normal_state_hamiltonian
-from .models.lno327_four_orbital.pairing import pairing_matrix
-from .models.lno327_four_orbital.parameters import PairingAmplitudes, PairingKind
-from .numerics.grids import uniform_bz_mesh
+from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian
+from lno327.models.lno327_four_orbital.pairing import pairing_matrix
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes, PairingKind
+from lno327.numerics.grids import uniform_bz_mesh
 
 
 @dataclass(frozen=True)

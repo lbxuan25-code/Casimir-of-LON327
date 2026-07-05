@@ -5,13 +5,13 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from lno327.finite_q_engine import bdg_finite_q_response_imag_axis, collective_goldstone_counterterm
+from lno327.workflows.finite_q_engine import bdg_finite_q_response_imag_axis, collective_goldstone_counterterm
 from lno327 import bdg_total_kernel_imag_axis
 from lno327.response.config import KuboConfig
 from lno327.numerics.weights import k_weights
 from lno327.numerics.grids import uniform_bz_mesh
 from validation.lib.finite_q_diagnostics import run_finite_q_diagnostic
-from lno327.finite_q_engine import (
+from lno327.workflows.finite_q_engine import (
     FiniteQEngineOptions,
     apply_amplitude_phase_schur,
     finite_q_bdg_response_from_ansatz,
@@ -124,8 +124,8 @@ def test_generic_finite_q_core_has_no_pairing_name_branching():
 
 
 def test_generic_finite_q_engine_does_not_import_legacy_facade():
-    text = (ROOT / "src" / "lno327" / "finite_q_engine.py").read_text(encoding="utf-8")
-    assert "from .finite_q_engine import" not in text
+    text = (ROOT / "src" / "lno327" / "workflows" / "finite_q_engine.py").read_text(encoding="utf-8")
+    assert "from .workflows.finite_q_engine import" not in text
 
 
 def test_legacy_finite_q_wrapper_module_was_removed_after_merge():

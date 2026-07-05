@@ -15,8 +15,8 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.finite_q_engine import bdg_finite_q_response_imag_axis  # noqa: E402
-from lno327.bdg_q0_conventions import (  # noqa: E402
+from lno327.workflows.finite_q_engine import bdg_finite_q_response_imag_axis  # noqa: E402
+from lno327.diagnostics.bdg_q0_conventions import (  # noqa: E402
     BdGQ0Comparison,
     BdGQ0ConventionResult,
     current_block,
@@ -352,7 +352,7 @@ def run_q0_bdg_response_alignment(
 
     common_notes = (
         "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
-        "spm/dwave q=0 约定由 lno327.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
         "finite-q 输出保持 valid_for_casimir_input=False。",
     )
     return Q0BdGAlignmentReport(

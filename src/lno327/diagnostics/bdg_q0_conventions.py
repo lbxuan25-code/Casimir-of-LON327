@@ -12,17 +12,17 @@ from typing import Literal
 
 import numpy as np
 
-from .bdg.finite_q import bdg_finite_q_vertex_from_normal_blocks
-from .bdg.nambu import charge_current_vertex_from_model
-from .finite_q_engine import bdg_finite_q_response_imag_axis
-from .models.lno327_four_orbital.parameters import PairingAmplitudes
-from .models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
-from .response.config import KuboConfig
-from .response.local_bdg import (
+from lno327.bdg.finite_q import bdg_finite_q_vertex_from_normal_blocks
+from lno327.bdg.nambu import charge_current_vertex_from_model
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
+from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+from lno327.response.config import KuboConfig
+from lno327.response.local_bdg import (
     bdg_local_eigensystem_from_model,
     bdg_local_superconducting_response_imag_axis,
     bdg_local_total_kernel_imag_axis,
 )
+from lno327.workflows.finite_q_engine import bdg_finite_q_response_imag_axis
 
 Q0PairingName = Literal["spm", "dwave"]
 

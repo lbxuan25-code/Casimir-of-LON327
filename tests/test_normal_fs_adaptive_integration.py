@@ -11,7 +11,7 @@ from benchmark_normal_fs_adaptive_integration import (  # noqa: E402
     benchmark_normal_fs_adaptive_integration,
     fs_adaptive_mesh,
 )
-from lno327.normal_sampling import normal_sheet_tensor_from_sampling  # noqa: E402
+from lno327.analysis.normal_sampling import normal_sheet_tensor_from_sampling  # noqa: E402
 
 
 def _small_data():

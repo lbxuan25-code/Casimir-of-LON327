@@ -1,6 +1,6 @@
 import numpy as np
 
-from lno327.finite_q_engine import FiniteQEngineOptions
+from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec

@@ -16,7 +16,7 @@ import numpy as np
 from lno327.numerics.grids import uniform_bz_mesh
 from lno327.numerics.weights import k_weights
 from lno327.response.config import KuboConfig
-from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
+from lno327.workflows.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes, PairingAnsatzName
 from lno327.collective.validation import WardValidationReport, validate_physical_ward_identity

@@ -24,7 +24,7 @@ finite-q BdG 主流程采用两层结果结构：
 
 `--plot-only` 会合并 shard-specific JSONL，重建兼容用的 `reflection_results.jsonl`、`point_results.jsonl`、`failed_points.jsonl`、`data/*.csv` 和 `figures/*.png`。
 
-`best_available_adaptive` 不再是 metadata 占位符；主流程调用 `src/lno327/finite_q_quadrature.py` 中的 q-specific adaptive quadrature。若使用 `--integration-strategy uniform`，summary 会明确记录 uniform mesh，并关闭 adaptive metadata。
+`best_available_adaptive` 不再是 metadata 占位符；主流程调用 `src/lno327/workflows/finite_q_quadrature.py` 中的 q-specific adaptive quadrature。若使用 `--integration-strategy uniform`，summary 会明确记录 uniform mesh，并关闭 adaptive metadata。
 
 断点续跑使用 `run_config.json` 中的 `config_hash`。修改温度、gap、eta、q grid、Matsubara grid、integration strategy 或 contract 后，`--resume` 默认拒绝复用旧输出；只有显式传入 `--allow-config-mismatch` 才允许继续。
 

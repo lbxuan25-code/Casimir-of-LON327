@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from .casimir import CasimirSetup, casimir_energy_integrand, casimir_torque_integrand
 from .electrodynamics.conductivity import ConductivityTensor
-from .gap_analysis import gap_statistics_by_band, gap_statistics_on_fermi_surface
+from .analysis.gap import gap_statistics_by_band, gap_statistics_on_fermi_surface
 from .models.lno327_four_orbital.bdg import bdg_hamiltonian
 from .models.lno327_four_orbital.collective import PairingAnsatz, build_pairing_ansatz
 from .models.lno327_four_orbital.normal import normal_state_hamiltonian

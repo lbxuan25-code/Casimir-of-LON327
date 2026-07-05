@@ -46,7 +46,7 @@ def test_new_ward_response_modules_do_not_import_old_or_forbidden_layers():
 
 
 def test_active_entrypoints_do_not_import_old_ward_modules():
-    finite_q_engine = (ROOT / "src/lno327/finite_q_engine.py").read_text(encoding="utf-8")
+    finite_q_engine = (ROOT / "src/lno327/workflows/finite_q_engine.py").read_text(encoding="utf-8")
     api = (ROOT / "src/lno327/api.py").read_text(encoding="utf-8")
 
     assert "from ." + "ward_response" not in finite_q_engine

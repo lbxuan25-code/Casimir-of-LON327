@@ -36,8 +36,8 @@ from lno327.electrodynamics.conventions import (  # noqa: E402
     sheet_conductivity_to_reflection_dimensionless,
     spatial_response_to_bilayer_sheet_conductivity_model,
 )
-from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
-from lno327.finite_q_quadrature import FiniteQQuadratureOptions, finite_q_quadrature_points  # noqa: E402
+from lno327.workflows.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
+from lno327.workflows.finite_q_quadrature import FiniteQQuadratureOptions, finite_q_quadrature_points  # noqa: E402
 from lno327.casimir.lifshitz_integrand import lifshitz_integrand_metadata, trace_log_point  # noqa: E402
 from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
@@ -1265,7 +1265,7 @@ def _summary_payload(
             "fermi_window_eV": None if args.integration_strategy == "uniform" else float(args.fermi_window_eV),
             "eta_eV": float(args.eta_eV),
             "q_specific_adaptive_grid": False if args.integration_strategy == "uniform" else bool(args.q_specific_adaptive_grid),
-            "source_module": "src/lno327/finite_q_quadrature.py",
+            "source_module": "src/lno327/workflows/finite_q_quadrature.py",
         },
         "distance_reuse_enabled": True,
         "num_plate_reflection_rows": int(len(reflection_rows)),

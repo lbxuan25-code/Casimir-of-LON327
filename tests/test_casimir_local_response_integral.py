@@ -2,7 +2,7 @@ from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
 import numpy as np
-from lno327.normal_sampling import normal_sheet_tensor_from_sampling
+from lno327.analysis.normal_sampling import normal_sheet_tensor_from_sampling
 
 SCRIPT_PATH = (
     Path(__file__).resolve().parents[1]

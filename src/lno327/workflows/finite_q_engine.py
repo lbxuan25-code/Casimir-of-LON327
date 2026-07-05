@@ -17,9 +17,9 @@ from lno327.response.config import KuboConfig
 from lno327.response.finite_q import BdGFiniteQResponseComponents
 from lno327.response.finite_q_bdg import finite_q_bdg_response_from_model_ansatz
 from lno327.response.validation import validate_finite_q_inputs
-from .models.lno327_four_orbital.collective import PairingAnsatz, build_pairing_ansatz
-from .models.lno327_four_orbital.parameters import PairingAmplitudes, PhaseVertexName
-from .models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
+from lno327.models.lno327_four_orbital.collective import PairingAnsatz, build_pairing_ansatz
+from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes, PhaseVertexName
+from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
 from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis
 
 PhaseDirectConvention = Literal["plus", "minus"]

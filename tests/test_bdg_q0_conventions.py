@@ -6,7 +6,7 @@ import importlib.util
 import numpy as np
 
 import lno327
-from lno327.bdg_q0_conventions import evaluate_bdg_q0_convention
+from lno327.diagnostics.bdg_q0_conventions import evaluate_bdg_q0_convention
 from lno327.response.config import KuboConfig
 from lno327.numerics.weights import k_weights
 from lno327.numerics.grids import uniform_bz_mesh

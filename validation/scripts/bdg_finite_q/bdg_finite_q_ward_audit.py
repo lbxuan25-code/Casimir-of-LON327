@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from lno327 import KuboConfig, k_weights  # noqa: E402
-from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
+from lno327.workflows.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
 from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis  # noqa: E402

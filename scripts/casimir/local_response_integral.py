@@ -43,7 +43,7 @@ from lno327 import (  # noqa: E402
 )
 from lno327.casimir import matsubara_frequency  # noqa: E402
 from lno327.constants import KB  # noqa: E402
-from lno327.normal_sampling import normal_sheet_tensor_from_sampling  # noqa: E402
+from lno327.analysis.normal_sampling import normal_sheet_tensor_from_sampling  # noqa: E402
 from validation.lib.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,
