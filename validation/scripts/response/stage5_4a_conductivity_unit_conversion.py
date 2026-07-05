@@ -26,7 +26,7 @@ from lno327.electrodynamics.units import (  # noqa: E402
     vacuum_impedance_ohm,
     z0_e2_over_hbar,
 )
-from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
+from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
 
 OUTPUT_DIR = ROOT / "validation" / "outputs" / "response" / "conductivity"
 JSON_OUTPUT = OUTPUT_DIR / "stage5_4a_conductivity_unit_conversion.json"

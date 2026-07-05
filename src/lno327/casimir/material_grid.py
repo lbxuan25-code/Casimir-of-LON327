@@ -7,7 +7,7 @@ from typing import Any
 
 import numpy as np
 
-from .casimir_grid import matsubara_xi_grid, xi_si_to_omega_eV
+from .grid import matsubara_xi_grid, xi_si_to_omega_eV
 
 
 @dataclass(frozen=True)

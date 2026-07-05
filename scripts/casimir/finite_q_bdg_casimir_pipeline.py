@@ -38,8 +38,8 @@ from lno327.electrodynamics.conventions import (  # noqa: E402
 )
 from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
 from lno327.finite_q_quadrature import FiniteQQuadratureOptions, finite_q_quadrature_points  # noqa: E402
-from lno327.lifshitz_integrand import lifshitz_integrand_metadata, trace_log_point  # noqa: E402
-from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
+from lno327.casimir.lifshitz_integrand import lifshitz_integrand_metadata, trace_log_point  # noqa: E402
+from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
 from lno327.numerics.matsubara import bosonic_matsubara_energy_eV  # noqa: E402

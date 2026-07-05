@@ -13,9 +13,9 @@ from typing import Any
 
 import numpy as np
 
-from .casimir_grid import kappa_si, polar_measure_weights
-from .casimir_integrand import casimir_integrand_single_point
-from .constants import KB
+from ..constants import KB
+from .grid import kappa_si, polar_measure_weights
+from .integrand import casimir_integrand_single_point
 
 PASSED_STAGE5_11_STATUS = "STAGE5_11_REAL_MATERIAL_REFLECTION_GRID_PROTOTYPE_PASSED"
 

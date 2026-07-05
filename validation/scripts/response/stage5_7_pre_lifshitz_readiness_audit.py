@@ -14,7 +14,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.lifshitz_readiness import (  # noqa: E402
+from lno327.casimir.readiness import (  # noqa: E402
     lab_q_to_crystal_q,
     pre_lifshitz_readiness_metadata,
     round_trip_factor,

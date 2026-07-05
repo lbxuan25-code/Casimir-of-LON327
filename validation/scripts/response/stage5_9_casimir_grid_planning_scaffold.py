@@ -14,7 +14,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.casimir_grid import (  # noqa: E402
+from lno327.casimir.grid import (  # noqa: E402
     casimir_grid_scaffold_metadata,
     kappa_si,
     material_response_grid_requirements,

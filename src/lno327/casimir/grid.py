@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-from .constants import C0, EV_TO_J, HBAR, KB
+from ..constants import C0, EV_TO_J, HBAR, KB
 
 
 def matsubara_xi_grid(temperature_K: float, n_max: int) -> np.ndarray:

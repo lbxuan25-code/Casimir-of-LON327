@@ -14,7 +14,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.material_energy_prototype import (  # noqa: E402
+from lno327.casimir.material_energy import (  # noqa: E402
     REQUIRED_WARNINGS,
     integrate_small_real_material_energy_prototype,
     load_stage5_11_reflection_grid,

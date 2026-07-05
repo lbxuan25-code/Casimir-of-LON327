@@ -14,7 +14,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.casimir_toy_integration import (  # noqa: E402
+from lno327.casimir.toy import (  # noqa: E402
     convergence_scan_toy,
     integrate_toy_free_energy_density,
     toy_integration_metadata,

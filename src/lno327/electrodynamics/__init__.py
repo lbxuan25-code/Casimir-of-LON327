@@ -19,6 +19,11 @@ from lno327.electrodynamics.conventions import (
     sheet_conductivity_to_reflection_dimensionless,
     spatial_response_to_bilayer_sheet_conductivity_model,
 )
+from lno327.electrodynamics.materials import (
+    LEGACY_PLACEHOLDER_IN_PLANE_385_PM,
+    LNO327_THIN_FILM_SLAO_IN_PLANE,
+    InPlaneLatticeConvention,
+)
 from lno327.electrodynamics.reflection import (
     model_q_to_si_wavevector,
     omega_eV_to_xi_si,
@@ -65,6 +70,9 @@ __all__ = [
     "sheet_conductivity_to_dimensionless",
     "spatial_response_to_bilayer_sheet_conductivity_model",
     "bilayer_sheet_conductivity_convention_metadata",
+    "InPlaneLatticeConvention",
+    "LNO327_THIN_FILM_SLAO_IN_PLANE",
+    "LEGACY_PLACEHOLDER_IN_PLANE_385_PM",
     "e2_over_hbar_siemens",
     "vacuum_impedance_ohm",
     "four_pi_alpha",

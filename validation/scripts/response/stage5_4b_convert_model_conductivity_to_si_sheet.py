@@ -21,7 +21,7 @@ from lno327.electrodynamics.units import (  # noqa: E402
     model_to_dimensionless_sheet_conductivity,
     model_to_si_sheet_conductivity,
 )
-from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
+from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
 
 OUTPUT_DIR = ROOT / "validation" / "outputs" / "response" / "conductivity"
 DEFAULT_INPUT = OUTPUT_DIR / "stage5_2_bilayer_sheet_conductivity_sanity_scan.json"

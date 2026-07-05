@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-from .lifshitz_readiness import round_trip_factor, trace_log_integrand, trace_log_matrix
+from .readiness import round_trip_factor, trace_log_integrand, trace_log_matrix
 
 
 def casimir_integrand_single_point(

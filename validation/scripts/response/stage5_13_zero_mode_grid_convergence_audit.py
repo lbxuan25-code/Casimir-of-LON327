@@ -19,12 +19,12 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from lno327.casimir_grid import kappa_si, matsubara_xi_grid, xi_si_to_omega_eV  # noqa: E402
-from lno327.casimir_integrand import casimir_integrand_single_point  # noqa: E402
+from lno327.casimir.grid import kappa_si, matsubara_xi_grid, xi_si_to_omega_eV  # noqa: E402
+from lno327.casimir.integrand import casimir_integrand_single_point  # noqa: E402
 from lno327 import KuboConfig  # noqa: E402
 from lno327.electrodynamics.conventions import spatial_response_to_bilayer_sheet_conductivity_model  # noqa: E402
 from lno327.electrodynamics.units import SheetConductivityUnitConvention, model_to_dimensionless_sheet_conductivity  # noqa: E402
-from lno327.material_grid_convergence import (  # noqa: E402
+from lno327.casimir.material_grid_convergence import (  # noqa: E402
     SmallQAuditPoint,
     ZeroModeAuditPoint,
     classify_threshold,
@@ -35,7 +35,7 @@ from lno327.material_grid_convergence import (  # noqa: E402
     q_nm_phi_to_si_model,
     stage5_13_metadata,
 )
-from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
+from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
 from lno327.electrodynamics.reflection import sigma_tilde_xy_to_te_tm_reflection_matrix  # noqa: E402
 from lno327.collective.ward import physical_ward_residuals  # noqa: E402
 

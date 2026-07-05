@@ -18,7 +18,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from lno327.electrodynamics.units import SheetConductivityUnitConvention  # noqa: E402
-from lno327.material_production_grid import (  # noqa: E402
+from lno327.casimir.material_production_grid import (  # noqa: E402
     N0_POLICY,
     Q0_POLICY,
     build_production_grid,
@@ -28,7 +28,7 @@ from lno327.material_production_grid import (  # noqa: E402
     summarize_energy_convergence,
     validate_stage5_13_input,
 )
-from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
+from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
 
 from stage5_11_real_material_reflection_grid_prototype import run_real_points  # noqa: E402
 

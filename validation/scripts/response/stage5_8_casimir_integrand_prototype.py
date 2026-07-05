@@ -14,7 +14,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.casimir_integrand import (  # noqa: E402
+from lno327.casimir.integrand import (  # noqa: E402
     casimir_integrand_prototype_metadata,
     casimir_integrand_single_point,
     rotate_2x2_te_tm_toy_matrix,
@@ -22,7 +22,7 @@ from lno327.casimir_integrand import (  # noqa: E402
     toy_isotropic_reflection,
     toy_zero_reflection,
 )
-from lno327.lifshitz_readiness import round_trip_factor, trace_log_matrix  # noqa: E402
+from lno327.casimir.readiness import round_trip_factor, trace_log_matrix  # noqa: E402
 
 OUTPUT_DIR = ROOT / "validation" / "outputs" / "response" / "casimir_integrand"
 DEFAULT_INPUT = ROOT / "validation" / "outputs" / "response" / "reflection_input" / "stage5_6_te_tm_reflection_adapter.json"

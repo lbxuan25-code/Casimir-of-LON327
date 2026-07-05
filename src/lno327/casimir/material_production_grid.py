@@ -7,9 +7,9 @@ from typing import Any, Callable
 
 import numpy as np
 
-from .casimir_grid import matsubara_prime_weights, polar_measure_weights
-from .constants import KB
-from .material_reflection_grid import MaterialReflectionGridPoint
+from ..constants import KB
+from .grid import matsubara_prime_weights, polar_measure_weights
+from .material_grid import MaterialReflectionGridPoint
 
 PASSED_STAGE5_13_STATUS = "STAGE5_13_ZERO_MODE_GRID_CONVERGENCE_AUDIT_PASSED"
 

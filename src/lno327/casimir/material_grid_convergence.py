@@ -7,8 +7,8 @@ from typing import Any
 
 import numpy as np
 
-from .casimir_grid import xi_si_to_omega_eV
-from .constants import EV_TO_J, HBAR
+from ..constants import EV_TO_J, HBAR
+from .grid import xi_si_to_omega_eV
 
 
 @dataclass(frozen=True)

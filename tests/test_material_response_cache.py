@@ -8,8 +8,8 @@ import sys
 import numpy as np
 
 from lno327.electrodynamics.units import SheetConductivityUnitConvention
-from lno327.material_reflection_grid import default_stage5_11_points, grid_point_to_si_and_model_q
-from lno327.material_response_cache import (
+from lno327.casimir.material_grid import default_stage5_11_points, grid_point_to_si_and_model_q
+from lno327.casimir.material_cache import (
     atomic_write_json,
     cache_filename_for_point_id,
     cache_path_for_point,
@@ -17,7 +17,7 @@ from lno327.material_response_cache import (
     load_reusable_point_cache,
     write_point_cache,
 )
-from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE
+from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_11_real_material_reflection_grid_prototype.py"
