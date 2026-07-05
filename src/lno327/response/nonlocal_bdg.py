@@ -29,6 +29,24 @@ class ShiftedBdGEigensystem:
     occupations_plus: np.ndarray
 
 
+@dataclass(frozen=True)
+class BdGNonlocalWorkspaceEntry:
+    weight: float
+    eigensystem: ShiftedBdGEigensystem
+    vertices: tuple[np.ndarray, np.ndarray]
+
+
+@dataclass(frozen=True)
+class BdGNonlocalWorkspace:
+    k_points: np.ndarray
+    k_weights: np.ndarray
+    q: np.ndarray
+    channel: str
+    config: KuboConfig
+    shared_eigenbasis_q0: bool
+    entries: tuple[BdGNonlocalWorkspaceEntry, ...]
+
+
 def shifted_bdg_eigensystem_from_model(
     spec,
     kx: float,
@@ -89,13 +107,26 @@ def bdg_current_current_kernel_imag_axis_from_model(
     channel: str,
     k_weights: Sequence[float] | np.ndarray | None = None,
 ) -> np.ndarray:
+    workspace = precompute_bdg_nonlocal_workspace_from_model(spec, k_points, config, q, channel, k_weights)
+    return bdg_current_current_kernel_imag_axis_from_workspace(workspace, config)
+
+
+def precompute_bdg_nonlocal_workspace_from_model(
+    spec,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    q: Sequence[float] | np.ndarray,
+    channel: str,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+) -> BdGNonlocalWorkspace:
     points, weights = validate_k_points_and_weights(k_points, config, k_weights)
     q_vector = np.asarray(q, dtype=float)
     if q_vector.shape != (2,):
         raise ValueError("q must have shape (2,)")
 
     qx, qy = (float(q_vector[0]), float(q_vector[1]))
-    response = np.zeros((2, 2), dtype=complex)
+    shared = bool(qx == 0.0 and qy == 0.0)
+    entries = []
     for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
         kx = float(kx_value)
         ky = float(ky_value)
@@ -118,18 +149,29 @@ def bdg_current_current_kernel_imag_axis_from_model(
                 bands.states_plus,
             ),
         )
+        entries.append(BdGNonlocalWorkspaceEntry(float(weight), bands, vertices))
+    return BdGNonlocalWorkspace(points, weights, q_vector, channel, config, shared, tuple(entries))
 
-        response += weight * two_sided_band_basis_bubble_imag_axis(
+
+def bdg_current_current_kernel_imag_axis_from_workspace(
+    workspace: BdGNonlocalWorkspace,
+    config: KuboConfig | None = None,
+) -> np.ndarray:
+    eval_config = config or workspace.config
+    response = np.zeros((2, 2), dtype=complex)
+    for entry in workspace.entries:
+        bands = entry.eigensystem
+        response += entry.weight * two_sided_band_basis_bubble_imag_axis(
             bands.energies_minus_eV,
             bands.energies_plus_eV,
             bands.occupations_minus,
             bands.occupations_plus,
-            vertices,
-            config.omega_eV,
-            config.eta_eV,
+            entry.vertices,
+            eval_config.omega_eV,
+            eval_config.eta_eV,
             prefactor=0.5,
         )
 
-    if config.output_si:
+    if eval_config.output_si:
         response *= E2_OVER_HBAR
     return response

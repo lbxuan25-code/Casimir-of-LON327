@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -14,6 +15,20 @@ from lno327.response.occupations import fermi_function
 HamiltonianBuilder = Callable[[float, float], np.ndarray]
 VelocityBuilder = Callable[[float, float, str], np.ndarray]
 MassBuilder = Callable[[float, float, str, str], np.ndarray]
+
+
+@dataclass(frozen=True)
+class NormalDensityCurrentWorkspace:
+    spec: object
+    k_points: np.ndarray
+    k_weights: np.ndarray
+    q: np.ndarray
+    config: KuboConfig
+    vertex_scheme: str
+    contact_scheme: str
+    contact_sign_convention: str
+    hopping_terms: object
+    shared_eigenbasis_q0: bool
 
 
 def _validate_inputs(
@@ -108,6 +123,7 @@ def normal_density_current_response_imag_axis_from_model(
 ) -> np.ndarray:
     points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
     qx, qy = (float(q_vector[0]), float(q_vector[1]))
+    shared_eigenbasis_q0 = bool(qx == 0.0 and qy == 0.0)
     if vertex_scheme not in {"midpoint", "peierls"}:
         raise ValueError("vertex_scheme must be 'midpoint' or 'peierls'")
     if contact_scheme not in {"none", "q0_mass_diagnostic", "finite_q_peierls"}:
@@ -128,10 +144,14 @@ def normal_density_current_response_imag_axis_from_model(
     for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
         kx = float(kx_value)
         ky = float(ky_value)
-        h_minus = _normal_hamiltonian(spec, kx - 0.5 * qx, ky - 0.5 * qy, peierls_terms)
-        h_plus = _normal_hamiltonian(spec, kx + 0.5 * qx, ky + 0.5 * qy, peierls_terms)
-        bands_minus = diagonalize_hermitian(h_minus)
-        bands_plus = diagonalize_hermitian(h_plus)
+        if shared_eigenbasis_q0:
+            h_midpoint = _normal_hamiltonian(spec, kx, ky, peierls_terms)
+            bands_minus = bands_plus = diagonalize_hermitian(h_midpoint)
+        else:
+            h_minus = _normal_hamiltonian(spec, kx - 0.5 * qx, ky - 0.5 * qy, peierls_terms)
+            h_plus = _normal_hamiltonian(spec, kx + 0.5 * qx, ky + 0.5 * qy, peierls_terms)
+            bands_minus = diagonalize_hermitian(h_minus)
+            bands_plus = diagonalize_hermitian(h_plus)
         occupations_minus = fermi_function(
             bands_minus.energies,
             config.fermi_level_eV,
@@ -183,8 +203,11 @@ def normal_density_current_response_imag_axis_from_model(
                             * np.conjugate(vertices[nu][m, n])
                         )
         if contact_scheme in {"q0_mass_diagnostic", "finite_q_peierls"}:
-            h_midpoint = _normal_hamiltonian(spec, kx, ky, peierls_terms)
-            bands_midpoint = diagonalize_hermitian(h_midpoint)
+            if shared_eigenbasis_q0:
+                bands_midpoint = bands_minus
+            else:
+                h_midpoint = _normal_hamiltonian(spec, kx, ky, peierls_terms)
+                bands_midpoint = diagonalize_hermitian(h_midpoint)
             occupations_midpoint = fermi_function(
                 bands_midpoint.energies,
                 config.fermi_level_eV,
@@ -210,6 +233,50 @@ def normal_density_current_response_imag_axis_from_model(
                     contact_value = np.sum(occupations_midpoint * np.diag(band_contact))
                     response[1 + i, 1 + j] += sign * weight * contact_value
     return response
+
+
+def precompute_normal_density_current_workspace_from_model(
+    spec,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    q: Sequence[float] | np.ndarray,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+    *,
+    vertex_scheme: str = "midpoint",
+    contact_scheme: str = "none",
+    contact_sign_convention: str = "plus",
+    hopping_terms=None,
+) -> NormalDensityCurrentWorkspace:
+    points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
+    return NormalDensityCurrentWorkspace(
+        spec=spec,
+        k_points=points,
+        k_weights=weights,
+        q=q_vector,
+        config=config,
+        vertex_scheme=vertex_scheme,
+        contact_scheme=contact_scheme,
+        contact_sign_convention=contact_sign_convention,
+        hopping_terms=hopping_terms,
+        shared_eigenbasis_q0=bool(q_vector[0] == 0.0 and q_vector[1] == 0.0),
+    )
+
+
+def normal_density_current_response_imag_axis_from_workspace(
+    workspace: NormalDensityCurrentWorkspace,
+    config: KuboConfig | None = None,
+) -> np.ndarray:
+    return normal_density_current_response_imag_axis_from_model(
+        workspace.spec,
+        workspace.k_points,
+        config or workspace.config,
+        workspace.q,
+        workspace.k_weights,
+        vertex_scheme=workspace.vertex_scheme,
+        contact_scheme=workspace.contact_scheme,
+        contact_sign_convention=workspace.contact_sign_convention,
+        hopping_terms=workspace.hopping_terms,
+    )
 
 
 def _normal_density_current_response_imag_axis_legacy_compatible(

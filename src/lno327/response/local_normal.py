@@ -25,6 +25,14 @@ class NormalConductivityEigensystem:
     velocity_y_band: np.ndarray
 
 
+@dataclass(frozen=True)
+class NormalLocalWorkspace:
+    k_points: np.ndarray
+    k_weights: np.ndarray
+    config: KuboConfig
+    eigensystems: tuple[NormalConductivityEigensystem, ...]
+
+
 def normal_conductivity_eigensystem_from_model(
     spec,
     kx: float,
@@ -44,18 +52,29 @@ def normal_conductivity_eigensystem_from_model(
     return NormalConductivityEigensystem(bands.energies, bands.states, occupations, minus_df, vx, vy)
 
 
-def kubo_conductivity_imag_axis_from_model(
+def precompute_normal_local_workspace_from_model(
     spec,
     k_points: Sequence[tuple[float, float]] | np.ndarray,
     config: KuboConfig,
     k_weights: Sequence[float] | np.ndarray | None = None,
-) -> ConductivityTensor:
+) -> NormalLocalWorkspace:
     points, weights = validate_k_points_and_weights(k_points, config, k_weights)
-    omega = config.omega_eV + config.eta_eV
+    eigensystems = tuple(
+        normal_conductivity_eigensystem_from_model(spec, float(kx), float(ky), config)
+        for kx, ky in points
+    )
+    return NormalLocalWorkspace(points, weights, config, eigensystems)
+
+
+def kubo_conductivity_imag_axis_from_workspace(
+    workspace: NormalLocalWorkspace,
+    config: KuboConfig | None = None,
+) -> ConductivityTensor:
+    eval_config = config or workspace.config
+    omega = eval_config.omega_eV + eval_config.eta_eV
     sigma = np.zeros((2, 2), dtype=complex)
 
-    for weight, (kx, ky) in zip(weights, points, strict=True):
-        bands = normal_conductivity_eigensystem_from_model(spec, float(kx), float(ky), config)
+    for weight, bands in zip(workspace.k_weights, workspace.eigensystems, strict=True):
         velocity_bands = [bands.velocity_x_band, bands.velocity_y_band]
 
         for m, energy_m in enumerate(bands.energies_eV):
@@ -67,7 +86,7 @@ def kubo_conductivity_imag_axis_from_model(
                     if np.isclose(occupation_diff, 0.0):
                         continue
                     delta = energy_m - energy_n
-                    if abs(delta) < config.eta_eV:
+                    if abs(delta) < eval_config.eta_eV:
                         continue
                     kernel = -occupation_diff * delta / (delta**2 + omega**2)
                 for alpha in range(2):
@@ -79,25 +98,32 @@ def kubo_conductivity_imag_axis_from_model(
                             * velocity_bands[beta][n, m]
                         )
 
-    if config.output_si:
+    if eval_config.output_si:
         sigma *= E2_OVER_HBAR
 
     return ConductivityTensor(sigma[0, 0], sigma[1, 1], sigma[0, 1], sigma[1, 0])
 
 
-def kubo_conductivity_real_axis_from_model(
+def kubo_conductivity_imag_axis_from_model(
     spec,
     k_points: Sequence[tuple[float, float]] | np.ndarray,
     config: KuboConfig,
     k_weights: Sequence[float] | np.ndarray | None = None,
 ) -> ConductivityTensor:
-    points, weights = validate_k_points_and_weights(k_points, config, k_weights)
-    z = config.omega_eV + 1j * config.eta_eV
-    drude_denominator = config.eta_eV - 1j * config.omega_eV
+    workspace = precompute_normal_local_workspace_from_model(spec, k_points, config, k_weights)
+    return kubo_conductivity_imag_axis_from_workspace(workspace, config)
+
+
+def kubo_conductivity_real_axis_from_workspace(
+    workspace: NormalLocalWorkspace,
+    config: KuboConfig | None = None,
+) -> ConductivityTensor:
+    eval_config = config or workspace.config
+    z = eval_config.omega_eV + 1j * eval_config.eta_eV
+    drude_denominator = eval_config.eta_eV - 1j * eval_config.omega_eV
     sigma = np.zeros((2, 2), dtype=complex)
 
-    for weight, (kx, ky) in zip(weights, points, strict=True):
-        bands = normal_conductivity_eigensystem_from_model(spec, float(kx), float(ky), config)
+    for weight, bands in zip(workspace.k_weights, workspace.eigensystems, strict=True):
         velocity_bands = [bands.velocity_x_band, bands.velocity_y_band]
 
         for m, energy_m in enumerate(bands.energies_eV):
@@ -109,7 +135,7 @@ def kubo_conductivity_real_axis_from_model(
                     if np.isclose(occupation_diff, 0.0):
                         continue
                     delta = energy_m - energy_n
-                    if abs(delta) < config.eta_eV:
+                    if abs(delta) < eval_config.eta_eV:
                         continue
                     kernel = -occupation_diff * delta / (delta**2 - z**2)
                 for alpha in range(2):
@@ -121,7 +147,17 @@ def kubo_conductivity_real_axis_from_model(
                             * velocity_bands[beta][n, m]
                         )
 
-    if config.output_si:
+    if eval_config.output_si:
         sigma *= E2_OVER_HBAR
 
     return ConductivityTensor(sigma[0, 0], sigma[1, 1], sigma[0, 1], sigma[1, 0])
+
+
+def kubo_conductivity_real_axis_from_model(
+    spec,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+) -> ConductivityTensor:
+    workspace = precompute_normal_local_workspace_from_model(spec, k_points, config, k_weights)
+    return kubo_conductivity_real_axis_from_workspace(workspace, config)

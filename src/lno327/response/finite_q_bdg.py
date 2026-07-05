@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import warnings
 
+from dataclasses import dataclass
+
 import numpy as np
 
 from lno327.bdg.finite_q import (
@@ -33,6 +35,20 @@ class _DefaultFiniteQOptions:
     phase_phase_direct_convention = "plus"
     collective_mode = "amplitude_phase"
     collective_counterterm = "goldstone_gap_equation"
+
+
+@dataclass(frozen=True)
+class FiniteQBdGWorkspace:
+    spec: object
+    ansatz: object
+    q_model: np.ndarray
+    k_points: np.ndarray
+    k_weights: np.ndarray
+    config: object
+    pairing_params: object
+    options: object
+    shared_eigenbasis_q0: bool
+    metadata: dict[str, object]
 
 
 def require_peierls_finite_q_support(spec) -> None:
@@ -475,4 +491,60 @@ def finite_q_bdg_response_from_model_ansatz(
             "casimir_gating_status": "diagnostic_finite_q_response_not_unit_converted_or_ward_validated",
             "warning": warning_message,
         },
+    )
+
+
+def precompute_finite_q_bdg_workspace_from_model_ansatz(
+    spec,
+    ansatz,
+    q_model: np.ndarray,
+    k_points: np.ndarray,
+    k_weights: np.ndarray,
+    config,
+    pairing_params=None,
+    options=None,
+) -> FiniteQBdGWorkspace:
+    opts = options or _DefaultFiniteQOptions()
+    q, points, weights = validate_finite_q_inputs(q_model, k_points, k_weights, config)
+    if opts.current_vertex == "peierls":
+        require_peierls_finite_q_support(spec)
+    amp = _pairing_params_from_inputs(spec, pairing_params)
+    shared_tolerance = 1e-14
+    shared = bool(np.linalg.norm(q) <= shared_tolerance)
+    return FiniteQBdGWorkspace(
+        spec=spec,
+        ansatz=ansatz,
+        q_model=q,
+        k_points=points,
+        k_weights=weights,
+        config=config,
+        pairing_params=amp,
+        options=opts,
+        shared_eigenbasis_q0=shared,
+        metadata={
+            "workspace_kind": "finite_q_bdg",
+            "shared_eigenbasis_q0": shared,
+            "shared_eigenbasis_q0_tolerance": shared_tolerance,
+            "valid_for_casimir_input": False,
+        },
+    )
+
+
+def finite_q_bdg_response_from_workspace(
+    workspace: FiniteQBdGWorkspace,
+    omega_eV: float | None = None,
+    config=None,
+) -> BdGFiniteQResponseComponents:
+    eval_config = config or workspace.config
+    eval_omega = eval_config.omega_eV if omega_eV is None else omega_eV
+    return finite_q_bdg_response_from_model_ansatz(
+        workspace.spec,
+        workspace.ansatz,
+        eval_omega,
+        workspace.q_model,
+        workspace.k_points,
+        workspace.k_weights,
+        eval_config,
+        workspace.pairing_params,
+        workspace.options,
     )

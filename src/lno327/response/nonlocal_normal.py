@@ -28,6 +28,23 @@ class ShiftedNormalEigensystem:
     occupations_plus: np.ndarray
 
 
+@dataclass(frozen=True)
+class NormalNonlocalWorkspaceEntry:
+    weight: float
+    eigensystem: ShiftedNormalEigensystem
+    vertices: tuple[np.ndarray, np.ndarray]
+
+
+@dataclass(frozen=True)
+class NormalNonlocalWorkspace:
+    k_points: np.ndarray
+    k_weights: np.ndarray
+    q: np.ndarray
+    config: KuboConfig
+    shared_eigenbasis_q0: bool
+    entries: tuple[NormalNonlocalWorkspaceEntry, ...]
+
+
 def shifted_normal_eigensystem_from_model(
     spec,
     kx: float,
@@ -62,6 +79,10 @@ def shifted_normal_eigensystem_from_model(
     )
 
 
+def _q_is_zero(q_vector: np.ndarray) -> bool:
+    return bool(np.all(q_vector == 0.0))
+
+
 def midpoint_velocity_vertex_from_model(
     spec,
     kx: float,
@@ -87,13 +108,28 @@ def normal_current_current_kernel_imag_axis_from_model(
     q_vector = np.asarray(q, dtype=float)
     if q_vector.shape != (2,):
         raise ValueError("q must have shape (2,)")
+    workspace = precompute_normal_nonlocal_workspace_from_model(spec, points, config, q_vector, weights)
+    return normal_current_current_kernel_imag_axis_from_workspace(workspace, config)
 
+
+def precompute_normal_nonlocal_workspace_from_model(
+    spec,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    q: Sequence[float] | np.ndarray,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+) -> NormalNonlocalWorkspace:
+    points, weights = validate_k_points_and_weights(k_points, config, k_weights)
+    q_vector = np.asarray(q, dtype=float)
+    if q_vector.shape != (2,):
+        raise ValueError("q must have shape (2,)")
     qx, qy = (float(q_vector[0]), float(q_vector[1]))
-    response = np.zeros((2, 2), dtype=complex)
+    shared = _q_is_zero(q_vector)
+    entries = []
     for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
         kx = float(kx_value)
         ky = float(ky_value)
-        if np.all(q_vector == 0.0):
+        if shared:
             bands = diagonalize_hermitian(spec.normal_hamiltonian(kx, ky))
             occupations = fermi_function(
                 bands.energies,
@@ -104,46 +140,57 @@ def normal_current_current_kernel_imag_axis_from_model(
                 bands.states.conjugate().T @ spec.velocity_operator(kx, ky, "x") @ bands.states,
                 bands.states.conjugate().T @ spec.velocity_operator(kx, ky, "y") @ bands.states,
             )
-            minus_energies = bands.energies
-            plus_energies = bands.energies
-            minus_occupations = occupations
-            plus_occupations = occupations
+            shifted = ShiftedNormalEigensystem(
+                bands.energies,
+                bands.states,
+                occupations,
+                bands.energies,
+                bands.states,
+                occupations,
+            )
         else:
-            bands = shifted_normal_eigensystem_from_model(spec, kx, ky, qx, qy, config)
+            shifted = shifted_normal_eigensystem_from_model(spec, kx, ky, qx, qy, config)
             vertices = (
                 midpoint_velocity_vertex_from_model(
                     spec,
                     kx,
                     ky,
                     "x",
-                    bands.states_minus,
-                    bands.states_plus,
+                    shifted.states_minus,
+                    shifted.states_plus,
                 ),
                 midpoint_velocity_vertex_from_model(
                     spec,
                     kx,
                     ky,
                     "y",
-                    bands.states_minus,
-                    bands.states_plus,
+                    shifted.states_minus,
+                    shifted.states_plus,
                 ),
             )
-            minus_energies = bands.energies_minus_eV
-            plus_energies = bands.energies_plus_eV
-            minus_occupations = bands.occupations_minus
-            plus_occupations = bands.occupations_plus
+        entries.append(NormalNonlocalWorkspaceEntry(float(weight), shifted, vertices))
+    return NormalNonlocalWorkspace(points, weights, q_vector, config, shared, tuple(entries))
 
-        response += weight * two_sided_band_basis_bubble_imag_axis(
-            minus_energies,
-            plus_energies,
-            minus_occupations,
-            plus_occupations,
-            vertices,
-            config.omega_eV,
-            config.eta_eV,
+
+def normal_current_current_kernel_imag_axis_from_workspace(
+    workspace: NormalNonlocalWorkspace,
+    config: KuboConfig | None = None,
+) -> np.ndarray:
+    eval_config = config or workspace.config
+    response = np.zeros((2, 2), dtype=complex)
+    for entry in workspace.entries:
+        bands = entry.eigensystem
+        response += entry.weight * two_sided_band_basis_bubble_imag_axis(
+            bands.energies_minus_eV,
+            bands.energies_plus_eV,
+            bands.occupations_minus,
+            bands.occupations_plus,
+            entry.vertices,
+            eval_config.omega_eV,
+            eval_config.eta_eV,
         )
 
-    if config.output_si:
+    if eval_config.output_si:
         response *= E2_OVER_HBAR
     return response
 
