@@ -187,7 +187,50 @@ def test_default_finite_q_ward_scan_uses_two_band_workspace_model():
     assert report.primary_validation_model is True
     assert report.workspace_evaluation is True
     assert set(report.pairing_names) == {"spm", "dwave"}
+    assert report.q0_precondition_status["spm"] == "convention_aware_pass"
+    assert report.q0_precondition_status["dwave"] == "convention_aware_pass"
     assert report.valid_for_casimir_input is False
+
+
+def test_two_band_q0_superconducting_reports_local_bdg_comparator_without_bad_copy():
+    module = _load_validation_script("q0_bdg_response_alignment")
+    for pairing_name in ("spm", "dwave"):
+        report = module.run_q0_bdg_response_alignment(pairing_name, nk=2)
+        assert report.model_name == "symmetry_bdg_2band"
+        assert report.comparator_family == "local_bdg"
+        assert report.q0_comparator_available is True
+        assert report.status_reason
+        assert report.transformed_comparison_rows
+        text = report.format_text()
+        assert "onsite_s has no local public comparator" not in text
+        pairs = {
+            (row.finite_q_quantity, row.transformed_local_quantity)
+            for row in report.transformed_comparison_rows
+        }
+        assert ("finite_q_raw_bubble_q0", "local_BdG_paramagnetic_kernel") in pairs
+        assert ("finite_q_direct_q0", "local_BdG_diamagnetic_kernel") in pairs
+        assert ("finite_q_total_q0", "-local_BdG_total_kernel") in pairs
+
+
+def test_current_bdg_finite_q_output_contract_files_are_model_aware():
+    status_path = ROOT / "validation" / "outputs" / "bdg_finite_q" / "bdg_finite_q_validation_status.json"
+    readme_path = ROOT / "validation" / "outputs" / "bdg_finite_q" / "README.md"
+    command_path = ROOT / "validation" / "outputs" / "bdg_finite_q" / "command.sh"
+
+    assert status_path.exists()
+    assert readme_path.exists()
+    assert command_path.exists()
+    status = __import__("json").loads(status_path.read_text(encoding="utf-8"))
+    command = command_path.read_text(encoding="utf-8")
+
+    assert status["primary_validation_model"] == "symmetry_bdg_2band"
+    assert status["secondary_transfer_model"] == "lno327_four_orbital"
+    assert status["valid_for_casimir_input"] is False
+    assert status["ward_identity_closed"] is False
+    assert status["workspace_evaluation"] is True
+    assert "--model symmetry_bdg_2band" in command
+    assert "q0_bdg_response_alignment.py" in command
+    assert "finite_q_ward_scan.py" in command
 
 
 def test_dwave_reconstruction_and_tangent_diagnostic_reports_structured_errors():

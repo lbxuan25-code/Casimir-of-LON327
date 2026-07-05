@@ -1,0 +1,21 @@
+{
+  "status": "DIAGNOSTIC_ONLY_NOT_WARD_CLOSED",
+  "diagnostic_only": true,
+  "primary_validation_model": "symmetry_bdg_2band",
+  "secondary_transfer_model": "lno327_four_orbital",
+  "q0_precondition_status": {
+    "normal": "convention_aware_pass",
+    "spm": "convention_aware_pass",
+    "dwave": "convention_aware_pass"
+  },
+  "diagnostic_run_completed": true,
+  "ward_identity_closed": false,
+  "workspace_evaluation": true,
+  "valid_for_casimir_input": false,
+  "notes": [
+    "Lightweight validation status contract only.",
+    "Primary rebaseline model is symmetry_bdg_2band.",
+    "Finite-q Ward scan remains diagnostic-only and is not Casimir-ready.",
+    "No raw arrays, plots, or caches are stored here."
+  ]
+}

@@ -26,6 +26,13 @@ from lno327.diagnostics.bdg_q0_conventions import (  # noqa: E402
 )
 from lno327 import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
 from lno327.response.finite_q_bdg import precompute_finite_q_bdg_workspace_from_model_ansatz  # noqa: E402
+from lno327.response.local_bdg import (  # noqa: E402
+    bdg_local_diamagnetic_kernel_from_workspace,
+    bdg_local_paramagnetic_kernel_imag_axis_from_workspace,
+    bdg_local_superconducting_response_imag_axis_from_workspace,
+    bdg_local_total_kernel_imag_axis_from_workspace,
+    precompute_bdg_local_workspace_from_model,
+)
 from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis_from_model  # noqa: E402
 from validation.lib.finite_q_validation_models import (  # noqa: E402
     available_finite_q_validation_models,
@@ -71,6 +78,9 @@ class Q0BdGAlignmentReport:
     mesh_size: int
     delta0_eV: float
     status: str
+    comparator_family: str
+    q0_comparator_available: bool
+    status_reason: str
     compared_quantity_names: tuple[str, ...]
     finite_q_matrices: dict[str, np.ndarray]
     local_matrices: dict[str, np.ndarray]
@@ -98,6 +108,9 @@ class Q0BdGAlignmentReport:
             "mesh_size": self.mesh_size,
             "delta0_eV": self.delta0_eV,
             "status": self.status,
+            "comparator_family": self.comparator_family,
+            "q0_comparator_available": self.q0_comparator_available,
+            "status_reason": self.status_reason,
             "compared_quantity_names": list(self.compared_quantity_names),
             "matrix_norms": self.matrix_norms,
             "pairwise_difference_norms": self.pairwise_difference_norms,
@@ -118,6 +131,9 @@ class Q0BdGAlignmentReport:
             f"model_name: {self.model_name}",
             f"配对名称: {self.pairing_name}",
             f"status: {self.status}",
+            f"comparator_family: {self.comparator_family}",
+            f"q0_comparator_available: {self.q0_comparator_available}",
+            f"status_reason: {self.status_reason}",
             f"omega_eV: {self.omega_eV:.12g}",
             f"q_model: [{self.q_model[0]:.12g}, {self.q_model[1]:.12g}]",
             f"nk: {self.nk if self.nk is not None else '外部网格'}",
@@ -226,38 +242,61 @@ def _normal_local_matrices(points: np.ndarray, weights: np.ndarray, config: Kubo
     }
 
 
-def _generic_rows(
+def _local_bdg_matrices(
+    pairing_name: AlignmentPairingName,
+    points: np.ndarray,
+    weights: np.ndarray,
+    config: KuboConfig,
+    model,
+) -> dict[str, np.ndarray]:
+    workspace = precompute_bdg_local_workspace_from_model(model.spec, pairing_name, points, config, weights)
+    components = bdg_local_total_kernel_imag_axis_from_workspace(workspace, config)
+    superconducting = bdg_local_superconducting_response_imag_axis_from_workspace(workspace, config)
+    return {
+        "local_BdG_paramagnetic_kernel": bdg_local_paramagnetic_kernel_imag_axis_from_workspace(workspace, config),
+        "local_BdG_diamagnetic_kernel": bdg_local_diamagnetic_kernel_from_workspace(workspace, config),
+        "local_BdG_total_kernel": components.total,
+        "-local_BdG_paramagnetic_kernel": -components.paramagnetic,
+        "-local_BdG_diamagnetic_kernel": -components.diamagnetic,
+        "-local_BdG_total_kernel": -components.total,
+        "local_BdG_sigma_like_response": superconducting.sigma_like_response,
+        "omega * local_BdG_sigma_like_response": float(config.omega_eV) * superconducting.sigma_like_response,
+    }
+
+
+def _comparison_rows_against_local(
     finite_q: dict[str, np.ndarray],
     local: dict[str, np.ndarray],
-    omega_eV: float,
     tolerance: float,
+    label: str,
 ) -> tuple[TransformedComparisonRow, ...]:
     if not local:
         return ()
-    density_total = local["local_normal_density_current_total"]
-    comparators = [
-        ("local_normal_density_current_total_current_block", density_total),
-    ]
     rows: list[TransformedComparisonRow] = []
     for finite_name, finite_matrix in finite_q.items():
         finite_block = current_block(finite_matrix)
         finite_norm = float(np.linalg.norm(finite_block))
-        for comparator_name, comparator_matrix in comparators:
+        for comparator_name, comparator_matrix in local.items():
             local_block = current_block(comparator_matrix)
             if finite_block.shape != local_block.shape:
                 continue
+            row_comparator_name = (
+                f"{comparator_name}_current_block"
+                if comparator_name.startswith("local_normal_density_current_")
+                else comparator_name
+            )
             diff = float(np.linalg.norm(finite_block - local_block))
             rel = relative_norm(diff, finite_block, local_block)
             rows.append(
                 TransformedComparisonRow(
                     finite_name,
-                    comparator_name,
+                    row_comparator_name,
                     diff,
                     rel,
                     finite_norm,
                     float(np.linalg.norm(local_block)),
                     bool(rel <= tolerance),
-                    "normal_q0_convention_probe",
+                    label,
                 )
             )
     return tuple(rows)
@@ -319,6 +358,9 @@ def run_q0_bdg_response_alignment(
     amp = pairing_params or model.build_pairing_params()
 
     q0_convention: BdGQ0ConventionResult | None = None
+    comparator_family = "unavailable"
+    q0_comparator_available = False
+    status_reason = "no q0 comparator was selected"
     if model.name == "lno327_four_orbital" and pairing_name in {"spm", "dwave"}:
         q0_convention = evaluate_bdg_q0_convention(pairing_name, points, mesh_weights, kubo, amp, tolerance=tolerance)
         finite_q = {
@@ -334,6 +376,9 @@ def run_q0_bdg_response_alignment(
         transformed_rows = tuple(_comparison_to_row(comparison) for comparison in q0_convention.comparisons)
         status = q0_convention.status
         passed = status in {"convention_aware_pass", "intraband_aware_pass"}
+        comparator_family = "local_bdg"
+        q0_comparator_available = True
+        status_reason = q0_convention.interpretation
         if status == "convention_aware_pass":
             notes = (
                 "spm convention-aware q=0 pass: raw bubble aligns with local total/interband and intraband is negligible.",
@@ -347,13 +392,50 @@ def run_q0_bdg_response_alignment(
             notes = (q0_convention.interpretation,)
     else:
         finite_q = _finite_q_q0_matrices(pairing_name, points, mesh_weights, kubo, amp, model)
-        local = _normal_local_matrices(points, mesh_weights, kubo, model) if pairing_name == "normal" else {}
-        transformed_rows = _generic_rows(finite_q, local, float(kubo.omega_eV), tolerance)
-        status = "diagnostic_only_not_passed"
-        passed = False
+        if pairing_name == "normal":
+            local = _normal_local_matrices(points, mesh_weights, kubo, model)
+            comparator_family = "normal_local"
+            q0_comparator_available = True
+            transformed_rows = _comparison_rows_against_local(
+                finite_q,
+                local,
+                tolerance,
+                "normal_q0_convention_probe",
+            )
+            status_reason = "normal local density-current comparator is available"
+        elif model.name == "symmetry_bdg_2band" and pairing_name in {"spm", "dwave"}:
+            local = _local_bdg_matrices(pairing_name, points, mesh_weights, kubo, model)
+            comparator_family = "local_bdg"
+            q0_comparator_available = True
+            transformed_rows = _comparison_rows_against_local(
+                finite_q,
+                local,
+                tolerance,
+                "two_band_local_bdg_convention_probe",
+            )
+            status_reason = (
+                "two-band local BdG comparator is available; finite-q/local sign conventions are reported directly"
+            )
+        else:
+            local = {}
+            transformed_rows = ()
+            status_reason = "no local public comparator is available for this pairing/model"
+        passed_pairs = [row for row in transformed_rows if row.passes_tolerance]
+        if q0_comparator_available and passed_pairs:
+            status = "convention_aware_pass"
+            passed = True
+            status_reason += "; at least one finite/local current-block comparison passed tolerance"
+        else:
+            status = "diagnostic_only_not_passed"
+            passed = False
         notes = (
             "normal q=0 alignment remains diagnostic-only." if pairing_name == "normal"
-            else "onsite_s has no local public comparator in this q=0 alignment report.",
+            else (
+                "two-band superconducting local BdG comparator is reported without fitting or projection."
+                if q0_comparator_available
+                else "No local public comparator is available in this q=0 alignment report."
+            ),
+            status_reason,
         )
 
     matrix_norms = {name: float(np.linalg.norm(value)) for name, value in {**finite_q, **local}.items()}
@@ -379,6 +461,9 @@ def run_q0_bdg_response_alignment(
         mesh_size=int(points.shape[0]),
         delta0_eV=0.0 if pairing_name == "normal" else float(amp.delta0_eV),
         status=status,
+        comparator_family=comparator_family,
+        q0_comparator_available=q0_comparator_available,
+        status_reason=status_reason,
         compared_quantity_names=tuple([*finite_q.keys(), *local.keys()]),
         finite_q_matrices=finite_q,
         local_matrices=local,

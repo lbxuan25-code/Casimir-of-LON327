@@ -351,6 +351,11 @@ def run_finite_q_ward_scan(
         "finite-q 输出保持 valid_for_casimir_input=False。",
         f"model_name={model.name}; primary_validation_model={model.primary_validation_model}.",
         "finite-q response 使用预计算 workspace evaluate。",
+        (
+            "q0_precondition_not_established; finite-q Ward result is diagnostic-only."
+            if any(status == "diagnostic_only_not_passed" for status in q0_alignment.values())
+            else "q0_precondition_status contains no diagnostic_only_not_passed entries."
+        ),
         "残差比例为各响应 max residual 相对 bare_total 的比例。",
         "新增 bare_bubble/direct/plus_schur 行为 staged diagnostic-only 输出，不改变 ward_identity_closed 判据。",
         "left/right Ward residual vector 分量顺序为 density,current_x,current_y，并分别记录 real/imag。",
