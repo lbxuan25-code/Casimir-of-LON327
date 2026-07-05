@@ -25,7 +25,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV  # noqa: E402
+from lno327 import KuboConfig, bosonic_matsubara_energy_eV  # noqa: E402
 
 from stage4_15_fermi_window_adaptive_quadrature import build_adaptive_cells, quadrature_points_for_cells  # noqa: E402
 from stage4_16_full_response_adaptive_ward_diagnostic import integrate_physical_components_on_points  # noqa: E402

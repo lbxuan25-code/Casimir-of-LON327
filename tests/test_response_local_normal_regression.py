@@ -1,10 +1,10 @@
 import numpy as np
 
-from lno327.conductivity import (
-    KuboConfig as OldKuboConfig,
-    kubo_conductivity_imag_axis as old_imag,
-    kubo_conductivity_real_axis as old_real,
+from lno327 import (
+    kubo_conductivity_imag_axis as facade_imag,
+    kubo_conductivity_real_axis as facade_real,
 )
+from lno327.response.config import KuboConfig
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
 from lno327.models.symmetry_bdg_2band.spec import SymmetryBdG2BandSpec
 from lno327.response.config import KuboConfig
@@ -23,10 +23,10 @@ def _k_weights() -> np.ndarray:
 
 
 def test_four_orbital_imag_axis_matches_legacy_with_si_output():
-    old_config = OldKuboConfig(omega_eV=0.08, temperature_eV=0.02, eta_eV=1e-4, output_si=True)
+    config = KuboConfig(omega_eV=0.08, temperature_eV=0.02, eta_eV=1e-4, output_si=True)
     new_config = KuboConfig(omega_eV=0.08, temperature_eV=0.02, eta_eV=1e-4, output_si=True)
 
-    old = old_imag(_k_points(), old_config, _k_weights()).matrix()
+    old = facade_imag(_k_points(), config, _k_weights()).matrix()
     new = kubo_conductivity_imag_axis_from_model(
         LNO327FourOrbitalSpec(),
         _k_points(),
@@ -38,10 +38,10 @@ def test_four_orbital_imag_axis_matches_legacy_with_si_output():
 
 
 def test_four_orbital_real_axis_matches_legacy_without_si_output():
-    old_config = OldKuboConfig(omega_eV=0.08, temperature_eV=0.02, eta_eV=1e-4, output_si=False)
+    config = KuboConfig(omega_eV=0.08, temperature_eV=0.02, eta_eV=1e-4, output_si=False)
     new_config = KuboConfig(omega_eV=0.08, temperature_eV=0.02, eta_eV=1e-4, output_si=False)
 
-    old = old_real(_k_points(), old_config, _k_weights()).matrix()
+    old = facade_real(_k_points(), config, _k_weights()).matrix()
     new = kubo_conductivity_real_axis_from_model(
         LNO327FourOrbitalSpec(),
         _k_points(),

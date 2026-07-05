@@ -1,11 +1,8 @@
 import numpy as np
 import pytest
 
-from lno327.bdg_response import bdg_current_vertex, bdg_diamagnetic_vertex
-from lno327.finite_q_primitives import (
-    bdg_finite_q_contact_vertex as old_contact_vertex,
-    bdg_finite_q_vector_vertex as old_vector_vertex,
-)
+from lno327.bdg.finite_q import bdg_finite_q_vertex_from_normal_blocks
+from lno327.bdg.nambu import charge_current_vertex_from_model, diamagnetic_vertex_from_model
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
 from lno327.models.symmetry_bdg_2band.spec import SymmetryBdG2BandSpec
 from lno327.response.finite_q_bdg import bdg_contact_vertex_from_spec, bdg_vector_vertex_from_spec
@@ -13,19 +10,25 @@ from lno327.response.finite_q_bdg import bdg_contact_vertex_from_spec, bdg_vecto
 
 @pytest.mark.parametrize("q", [(0.0, 0.0), (0.17, -0.09)])
 @pytest.mark.parametrize("direction", ("x", "y"))
-def test_four_orbital_peierls_vector_vertex_matches_legacy(q, direction):
+def test_four_orbital_peierls_vector_vertex_matches_model_peierls_blocks(q, direction):
     qx, qy = q
-    actual = bdg_vector_vertex_from_spec(LNO327FourOrbitalSpec(), 0.21, -0.34, qx, qy, direction, "peierls")
-    np.testing.assert_allclose(actual, old_vector_vertex(0.21, -0.34, qx, qy, direction))
+    spec = LNO327FourOrbitalSpec()
+    actual = bdg_vector_vertex_from_spec(spec, 0.21, -0.34, qx, qy, direction, "peierls")
+    expected = bdg_finite_q_vertex_from_normal_blocks(
+        spec.peierls_hamiltonian_vector_vertex(0.21, -0.34, qx, qy, direction),
+        spec.peierls_hamiltonian_vector_vertex(-0.21, 0.34, -qx, -qy, direction),
+    )
+    np.testing.assert_allclose(actual, expected)
 
 
 @pytest.mark.parametrize("q", [(0.0, 0.0), (0.17, -0.09)])
 @pytest.mark.parametrize("directions", (("x", "x"), ("y", "y"), ("x", "y")))
-def test_four_orbital_peierls_contact_vertex_matches_legacy(q, directions):
+def test_four_orbital_peierls_contact_vertex_matches_model_peierls_blocks(q, directions):
     qx, qy = q
     direction_i, direction_j = directions
+    spec = LNO327FourOrbitalSpec()
     actual = bdg_contact_vertex_from_spec(
-        LNO327FourOrbitalSpec(),
+        spec,
         0.21,
         -0.34,
         qx,
@@ -34,20 +37,26 @@ def test_four_orbital_peierls_contact_vertex_matches_legacy(q, directions):
         direction_j,
         "peierls",
     )
-    np.testing.assert_allclose(actual, old_contact_vertex(0.21, -0.34, qx, qy, direction_i, direction_j))
+    expected = bdg_finite_q_vertex_from_normal_blocks(
+        spec.peierls_hamiltonian_contact_vertex(0.21, -0.34, qx, qy, direction_i, direction_j),
+        spec.peierls_hamiltonian_contact_vertex(-0.21, 0.34, -qx, -qy, direction_i, direction_j),
+    )
+    np.testing.assert_allclose(actual, expected)
 
 
 @pytest.mark.parametrize("direction", ("x", "y"))
-def test_four_orbital_q0_velocity_vector_vertex_matches_legacy(direction):
-    actual = bdg_vector_vertex_from_spec(LNO327FourOrbitalSpec(), 0.21, -0.34, 0.17, -0.09, direction, "q0_velocity")
-    np.testing.assert_allclose(actual, bdg_current_vertex(0.21, -0.34, direction))
+def test_four_orbital_q0_velocity_vector_vertex_matches_model_current(direction):
+    spec = LNO327FourOrbitalSpec()
+    actual = bdg_vector_vertex_from_spec(spec, 0.21, -0.34, 0.17, -0.09, direction, "q0_velocity")
+    np.testing.assert_allclose(actual, charge_current_vertex_from_model(spec, 0.21, -0.34, direction))
 
 
 @pytest.mark.parametrize("directions", (("x", "x"), ("y", "y"), ("x", "y")))
-def test_four_orbital_q0_velocity_contact_vertex_matches_legacy(directions):
+def test_four_orbital_q0_velocity_contact_vertex_matches_model_diamagnetic_vertex(directions):
     direction_i, direction_j = directions
+    spec = LNO327FourOrbitalSpec()
     actual = bdg_contact_vertex_from_spec(
-        LNO327FourOrbitalSpec(),
+        spec,
         0.21,
         -0.34,
         0.17,
@@ -56,7 +65,7 @@ def test_four_orbital_q0_velocity_contact_vertex_matches_legacy(directions):
         direction_j,
         "q0_velocity",
     )
-    np.testing.assert_allclose(actual, bdg_diamagnetic_vertex(0.21, -0.34, direction_i, direction_j))
+    np.testing.assert_allclose(actual, diamagnetic_vertex_from_model(spec, 0.21, -0.34, direction_i, direction_j))
 
 
 def test_two_band_peierls_vertices_have_bdg_shape_and_are_finite():

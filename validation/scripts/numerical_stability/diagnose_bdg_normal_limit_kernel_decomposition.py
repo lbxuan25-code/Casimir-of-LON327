@@ -22,12 +22,12 @@ sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327 import KuboConfig, PairingAmplitudes, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.bdg_response import (  # noqa: E402
+from lno327 import (  # noqa: E402
     bdg_diamagnetic_kernel,
     bdg_paramagnetic_kernel_imag_axis,
     bdg_total_kernel_imag_axis,
 )
-from lno327.conductivity import conductivity_eigensystem  # noqa: E402
+from lno327 import conductivity_eigensystem  # noqa: E402
 from lno327.models.lno327_four_orbital.vertices import normal_state_mass_operator  # noqa: E402
 from validation.lib.plotting import (  # noqa: E402
     configure_publication_matplotlib,

@@ -6,11 +6,9 @@ import numpy as np
 import pytest
 
 from lno327.models.lno327_four_orbital.vertices import normal_state_mass_operator
-from lno327.tb_fourier import (
+from lno327.models.lno327_four_orbital.peierls import (
     normal_state_hamiltonian_from_hoppings,
     normal_state_hopping_terms,
-    peierls_contact_vertex,
-    peierls_current_vertex,
     peierls_hamiltonian_contact_vertex,
     peierls_hamiltonian_vector_vertex,
 )
@@ -66,10 +64,8 @@ def test_hamiltonian_contact_vertex_q0_mass_limit():
             np.testing.assert_allclose(contact, mass, atol=1e-14, rtol=1e-12)
 
 
-def test_deprecated_vertex_aliases_warn():
+def test_hamiltonian_vertex_functions_return_four_by_four_matrices():
     kx, ky = 0.11, -0.09
     qx, qy = 0.01, 0.02
-    with pytest.warns(DeprecationWarning):
-        peierls_current_vertex(kx, ky, qx, qy, "x")
-    with pytest.warns(DeprecationWarning):
-        peierls_contact_vertex(kx, ky, qx, qy, "x", "x")
+    assert peierls_hamiltonian_vector_vertex(kx, ky, qx, qy, "x").shape == (4, 4)
+    assert peierls_hamiltonian_contact_vertex(kx, ky, qx, qy, "x", "x").shape == (4, 4)

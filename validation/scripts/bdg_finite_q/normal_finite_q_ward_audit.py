@@ -16,7 +16,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.conductivity import (  # noqa: E402
+from lno327 import (  # noqa: E402
     KuboConfig,
     fermi_function,
     k_weights,
@@ -24,16 +24,14 @@ from lno327.conductivity import (  # noqa: E402
     uniform_bz_mesh,
 )
 from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian  # noqa: E402
-from lno327.tb_fourier import (  # noqa: E402
+from lno327.models.lno327_four_orbital.peierls import (  # noqa: E402
     normal_state_hopping_terms,
     peierls_hamiltonian_contact_vertex,
     peierls_hamiltonian_vector_vertex,
     peierls_vertex_ward_residual,
 )
-from lno327.ward_response import (  # noqa: E402
-    normal_physical_density_current_response_components_imag_axis,
-    physical_ward_residuals,
-)
+from lno327.collective.ward import physical_ward_residuals  # noqa: E402
+from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis  # noqa: E402
 
 WARD_COMPONENT_LABELS = ("density", "current_x", "current_y")
 RESPONSE_NAMES = ("bubble", "direct", "total")

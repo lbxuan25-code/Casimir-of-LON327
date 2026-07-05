@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, fermi_function, k_weights, uniform_bz_mesh
-from lno327.tb_fourier import normal_state_hopping_terms, peierls_hamiltonian_vector_vertex
+from lno327.response.config import KuboConfig
+from lno327.response.occupations import fermi_function
+from lno327.numerics.matsubara import bosonic_matsubara_energy_eV
+from lno327.numerics.weights import k_weights
+from lno327.numerics.grids import uniform_bz_mesh
+from lno327.models.lno327_four_orbital.peierls import normal_state_hopping_terms, peierls_hamiltonian_vector_vertex
 from lno327.response.normal_density_current import (
     _finite_q_band_bubble_imag_axis,
     normal_density_current_response_imag_axis,

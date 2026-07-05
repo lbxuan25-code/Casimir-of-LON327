@@ -20,13 +20,11 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, fermi_function, k_weights, uniform_bz_mesh  # noqa: E402
+from lno327 import KuboConfig, bosonic_matsubara_energy_eV, fermi_function, k_weights, uniform_bz_mesh  # noqa: E402
 from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian  # noqa: E402
-from lno327.tb_fourier import peierls_hamiltonian_contact_vertex, peierls_hamiltonian_vector_vertex  # noqa: E402
-from lno327.ward_response import (  # noqa: E402
-    normal_physical_density_current_response_components_imag_axis,
-    physical_ward_residuals,
-)
+from lno327.models.lno327_four_orbital.peierls import peierls_hamiltonian_contact_vertex, peierls_hamiltonian_vector_vertex  # noqa: E402
+from lno327.collective.ward import physical_ward_residuals  # noqa: E402
+from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis  # noqa: E402
 
 OUTPUT_DIR = ROOT / "validation" / "outputs" / "response" / "ward_identity"
 JSON_OUTPUT = OUTPUT_DIR / "stage4_11_commutator_sign_quadrature_audit.json"

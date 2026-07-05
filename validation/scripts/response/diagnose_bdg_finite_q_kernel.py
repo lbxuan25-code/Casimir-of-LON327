@@ -19,9 +19,9 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from lno327.bdg_nonlocal_response import bdg_current_current_kernel_imag_axis  # noqa: E402
-from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.nonlocal_response import c4_covariance_error, normal_current_current_kernel_imag_axis  # noqa: E402
+from lno327.response.nonlocal_bdg import bdg_current_current_kernel_imag_axis  # noqa: E402
+from lno327 import KuboConfig, bosonic_matsubara_energy_eV, k_weights, uniform_bz_mesh  # noqa: E402
+from lno327.response.nonlocal_normal import c4_covariance_error, normal_current_current_kernel_imag_axis  # noqa: E402
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
 from validation.lib.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
 

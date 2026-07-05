@@ -20,10 +20,10 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from lno327.conductivity import uniform_bz_mesh  # noqa: E402
+from lno327 import uniform_bz_mesh  # noqa: E402
 from lno327.models.lno327_four_orbital.vertices import normal_state_mass_operator  # noqa: E402
 from validation.lib.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
-from lno327.tb_fourier import normal_state_hopping_terms, peierls_hamiltonian_contact_vertex  # noqa: E402
+from lno327.models.lno327_four_orbital.peierls import normal_state_hopping_terms, peierls_hamiltonian_contact_vertex  # noqa: E402
 
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "peierls_contact_vertex_audit"
 DEFAULT_OUTPUT_PREFIX = OUTPUT_ROOT / "data" / "peierls_contact_vertex_audit"

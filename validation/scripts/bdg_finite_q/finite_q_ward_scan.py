@@ -17,11 +17,11 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
+from lno327 import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
 from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
-from lno327.ward_validation import validate_physical_ward_identity  # noqa: E402
+from lno327.collective.validation import validate_physical_ward_identity  # noqa: E402
 from q0_bdg_response_alignment import run_q0_bdg_response_alignment_many  # noqa: E402
 
 WardScanPairingName = Literal["onsite_s", "spm", "dwave"]

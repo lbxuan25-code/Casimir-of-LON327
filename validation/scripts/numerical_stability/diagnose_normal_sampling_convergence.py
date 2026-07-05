@@ -28,7 +28,7 @@ from lno327 import (  # noqa: E402
     k_weights,
     kubo_conductivity_imag_axis,
 )
-from lno327.conductivity import ConductivityTensor, negative_fermi_derivative  # noqa: E402
+from lno327 import ConductivityTensor, negative_fermi_derivative  # noqa: E402
 from lno327.constants import KB_EV_PER_K  # noqa: E402
 from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian  # noqa: E402
 from validation.lib.plotting import (  # noqa: E402

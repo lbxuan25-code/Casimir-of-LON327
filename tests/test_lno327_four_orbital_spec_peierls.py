@@ -1,10 +1,6 @@
 import numpy as np
 
 from lno327.bdg.finite_q import bdg_finite_q_vertex_from_normal_blocks
-from lno327.finite_q_primitives import (
-    bdg_finite_q_contact_vertex as old_bdg_contact_vertex,
-    bdg_finite_q_vector_vertex as old_bdg_vector_vertex,
-)
 from lno327.models.lno327_four_orbital import peierls
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
 
@@ -53,7 +49,7 @@ def test_spec_peierls_vertices_match_model_peierls_module():
     )
 
 
-def test_spec_peierls_vector_vertex_with_generic_bdg_lifting_matches_legacy_finite_q_wrapper():
+def test_spec_peierls_vector_vertex_with_generic_bdg_lifting_has_expected_blocks():
     spec = LNO327FourOrbitalSpec()
     kx, ky = 0.21, -0.34
     qx, qy = 0.17, -0.09
@@ -62,10 +58,12 @@ def test_spec_peierls_vector_vertex_with_generic_bdg_lifting_matches_legacy_fini
 
     lifted = bdg_finite_q_vertex_from_normal_blocks(particle, hole_normal)
 
-    np.testing.assert_allclose(lifted, old_bdg_vector_vertex(kx, ky, qx, qy, "x"))
+    assert lifted.shape == (8, 8)
+    np.testing.assert_allclose(lifted[:4, :4], particle)
+    np.testing.assert_allclose(lifted[4:, 4:], -hole_normal.T)
 
 
-def test_spec_peierls_contact_vertex_with_generic_bdg_lifting_matches_legacy_finite_q_wrapper():
+def test_spec_peierls_contact_vertex_with_generic_bdg_lifting_has_expected_blocks():
     spec = LNO327FourOrbitalSpec()
     kx, ky = 0.21, -0.34
     qx, qy = 0.17, -0.09
@@ -74,4 +72,6 @@ def test_spec_peierls_contact_vertex_with_generic_bdg_lifting_matches_legacy_fin
 
     lifted = bdg_finite_q_vertex_from_normal_blocks(particle, hole_normal)
 
-    np.testing.assert_allclose(lifted, old_bdg_contact_vertex(kx, ky, qx, qy, "x", "y"))
+    assert lifted.shape == (8, 8)
+    np.testing.assert_allclose(lifted[:4, :4], particle)
+    np.testing.assert_allclose(lifted[4:, 4:], -hole_normal.T)

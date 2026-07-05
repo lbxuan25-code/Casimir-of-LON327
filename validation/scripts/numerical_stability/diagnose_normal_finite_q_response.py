@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327 import KuboConfig, bosonic_matsubara_energy_eV, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.nonlocal_response import (  # noqa: E402
+from lno327.response.nonlocal_normal import (  # noqa: E402
     c4_covariance_error,
     normal_current_current_kernel_imag_axis,
 )

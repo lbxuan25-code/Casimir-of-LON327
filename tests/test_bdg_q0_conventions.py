@@ -7,7 +7,9 @@ import numpy as np
 
 import lno327
 from lno327.bdg_q0_conventions import evaluate_bdg_q0_convention
-from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
+from lno327.response.config import KuboConfig
+from lno327.numerics.weights import k_weights
+from lno327.numerics.grids import uniform_bz_mesh
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
 from lno327.response.config import KuboConfig as ResponseKuboConfig
 

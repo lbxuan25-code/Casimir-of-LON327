@@ -1,7 +1,7 @@
 import numpy as np
 
 from lno327.collective.validation import validate_physical_ward_identity as new_validate
-from lno327.ward_validation import validate_physical_ward_identity as old_validate
+from lno327.collective.validation import validate_physical_ward_identity
 
 
 def _compare_reports(new, old):
@@ -24,7 +24,7 @@ def test_collective_validation_matches_old_reference_for_pass_and_fail_cases():
     )
     for matrix, tolerance in ((zero, 1e-12), (response, 1e-12)):
         new = new_validate(matrix, 0.01, q, tolerance=tolerance, notes=("diagnostic only",))
-        old = old_validate(matrix, 0.01, q, tolerance=tolerance, notes=("diagnostic only",))
+        old = validate_physical_ward_identity(matrix, 0.01, q, tolerance=tolerance, notes=("diagnostic only",))
         _compare_reports(new, old)
 
 

@@ -14,7 +14,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
 
-from lno327.finite_q_primitives import phase_vertex  # noqa: E402
+from lno327.bdg.finite_q import phase_vertex  # noqa: E402
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.pairing import (  # noqa: E402
     bond_endpoint_gauge_form_factor,

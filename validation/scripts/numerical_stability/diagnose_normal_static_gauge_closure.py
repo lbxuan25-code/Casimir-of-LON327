@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
 from lno327 import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.conductivity import conductivity_eigensystem  # noqa: E402
+from lno327 import conductivity_eigensystem  # noqa: E402
 from lno327.models.lno327_four_orbital.normal import normal_state_hamiltonian  # noqa: E402
 from lno327.models.lno327_four_orbital.vertices import normal_state_mass_operator  # noqa: E402
 from validation.lib.plotting import (  # noqa: E402

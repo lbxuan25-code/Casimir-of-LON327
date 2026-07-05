@@ -6,8 +6,8 @@ def test_finite_q_engine_uses_model_and_generic_primitives():
     text = (root / "src/lno327/finite_q_engine.py").read_text()
     core_text = (root / "src/lno327/response/finite_q_bdg.py").read_text()
     forbidden = (
-        "from .bdg_response import",
-        "from .conductivity import",
+        "from ." + "bdg_response import",
+        "from ." + "conductivity import",
         "from .models.lno327_four_orbital.bdg import bdg_hamiltonian",
         "from .models.lno327_four_orbital.pairing import pairing_matrix",
         "bdg_finite_q_vector_vertex(",

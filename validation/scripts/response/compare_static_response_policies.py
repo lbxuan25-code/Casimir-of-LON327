@@ -31,7 +31,7 @@ from lno327 import (  # noqa: E402
     model_response_to_sheet_conductivity,
 )
 from lno327.constants import SIGMA0  # noqa: E402
-from lno327.conductivity import ConductivityTensor  # noqa: E402
+from lno327 import ConductivityTensor  # noqa: E402
 from validation.lib.plotting import (  # noqa: E402
     configure_publication_matplotlib,
     save_publication_figure,

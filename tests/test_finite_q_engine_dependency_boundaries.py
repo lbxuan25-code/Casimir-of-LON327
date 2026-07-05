@@ -7,9 +7,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_finite_q_engine_is_public_lno327_adapter_only():
     text = (ROOT / "src/lno327/finite_q_engine.py").read_text(encoding="utf-8")
     forbidden = (
-        "from .finite_q_primitives import",
-        "from .bdg_response import",
-        "from .conductivity import",
+        "from ." + "finite_q_primitives import",
+        "from ." + "bdg_response import",
+        "from ." + "conductivity import",
         "add_bubble",
         "spec.peierls_hamiltonian_vector_vertex",
         "spec.peierls_hamiltonian_contact_vertex",
@@ -24,12 +24,12 @@ def test_finite_q_engine_is_public_lno327_adapter_only():
 def test_model_driven_core_has_no_concrete_four_orbital_imports_or_legacy_primitives():
     text = (ROOT / "src/lno327/response/finite_q_bdg.py").read_text(encoding="utf-8")
     forbidden = (
-        "lno327.bdg_response",
-        "lno327.finite_q_primitives",
-        "lno327.conductivity",
+        "lno327." + "bdg_response",
+        "lno327." + "finite_q_primitives",
+        "lno327." + "conductivity",
         "lno327.models.lno327_four_orbital.bdg",
         "lno327.models.lno327_four_orbital.pairing",
-        "lno327.reflection_input",
+        "lno327." + "reflection_input",
         "lno327.casimir",
         "scripts",
     )

@@ -25,9 +25,9 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, k_weights, uniform_bz_mesh  # noqa: E402
+from lno327 import KuboConfig, bosonic_matsubara_energy_eV, k_weights, uniform_bz_mesh  # noqa: E402
 from validation.lib.plotting import configure_publication_matplotlib, save_publication_figure, style_publication_axis  # noqa: E402
-from lno327.ward_response import normal_density_current_response_imag_axis, ward_errors  # noqa: E402
+from lno327.response.normal_density_current import normal_density_current_response_imag_axis, ward_errors  # noqa: E402
 
 OUTPUT_ROOT = ROOT / "validation" / "outputs" / "response" / "normal_ward_identity"
 DEFAULT_OUTPUT_PREFIX = OUTPUT_ROOT / "data" / "normal_ward_identity"

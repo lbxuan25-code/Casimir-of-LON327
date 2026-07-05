@@ -21,9 +21,9 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from lno327.casimir_grid import kappa_si, matsubara_xi_grid, xi_si_to_omega_eV  # noqa: E402
 from lno327.casimir_integrand import casimir_integrand_single_point  # noqa: E402
-from lno327.conductivity import KuboConfig  # noqa: E402
-from lno327.response_conventions import spatial_response_to_bilayer_sheet_conductivity_model  # noqa: E402
-from lno327.response_conventions import SheetConductivityUnitConvention, model_to_dimensionless_sheet_conductivity  # noqa: E402
+from lno327 import KuboConfig  # noqa: E402
+from lno327.electrodynamics.conventions import spatial_response_to_bilayer_sheet_conductivity_model  # noqa: E402
+from lno327.electrodynamics.units import SheetConductivityUnitConvention, model_to_dimensionless_sheet_conductivity  # noqa: E402
 from lno327.material_grid_convergence import (  # noqa: E402
     SmallQAuditPoint,
     ZeroModeAuditPoint,
@@ -36,8 +36,8 @@ from lno327.material_grid_convergence import (  # noqa: E402
     stage5_13_metadata,
 )
 from lno327.material_structure import LNO327_THIN_FILM_SLAO_IN_PLANE  # noqa: E402
-from lno327.reflection_input import sigma_tilde_xy_to_te_tm_reflection_matrix  # noqa: E402
-from lno327.ward_response import physical_ward_residuals  # noqa: E402
+from lno327.electrodynamics.reflection import sigma_tilde_xy_to_te_tm_reflection_matrix  # noqa: E402
+from lno327.collective.ward import physical_ward_residuals  # noqa: E402
 
 from stage4_15_fermi_window_adaptive_quadrature import build_adaptive_cells, quadrature_points_for_cells  # noqa: E402
 from stage4_16_full_response_adaptive_ward_diagnostic import integrate_physical_components_on_points  # noqa: E402

@@ -28,7 +28,7 @@ from lno327 import (  # noqa: E402
     model_response_to_sheet_conductivity,
     sheet_conductivity_to_reflection_dimensionless,
 )
-from lno327.conductivity import ConductivityTensor  # noqa: E402
+from lno327 import ConductivityTensor  # noqa: E402
 from lno327.normal_sampling import (  # noqa: E402
     fs_adaptive_mesh,
     multishift_normal_response,

@@ -24,9 +24,9 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 
-from lno327.conductivity import KuboConfig, bosonic_matsubara_energy_eV, fermi_function, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.tb_fourier import normal_state_hopping_terms  # noqa: E402
-from lno327.ward_response import physical_ward_residuals  # noqa: E402
+from lno327 import KuboConfig, bosonic_matsubara_energy_eV, fermi_function, k_weights, uniform_bz_mesh  # noqa: E402
+from lno327.models.lno327_four_orbital.peierls import normal_state_hopping_terms  # noqa: E402
+from lno327.collective.ward import physical_ward_residuals  # noqa: E402
 
 from stage4_15_fermi_window_adaptive_quadrature import (  # noqa: E402
     build_adaptive_cells,

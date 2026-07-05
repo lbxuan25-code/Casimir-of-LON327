@@ -18,18 +18,18 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(SCRIPT_DIR))
 
-from lno327.conductivity import KuboConfig, k_weights  # noqa: E402
+from lno327 import KuboConfig, k_weights  # noqa: E402
 from lno327.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
-from lno327.ward_response import normal_physical_density_current_response_components_imag_axis  # noqa: E402
+from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis  # noqa: E402
 from normal_finite_q_ward_audit import (  # noqa: E402
     DIRECTION_VECTORS,
     _print_progress,
     actual_twist_offsets,
     uniform_bz_mesh_twisted,
 )
-from lno327.finite_q_primitives import density_vertex, phase_vertex  # noqa: E402
+from lno327.bdg.finite_q import density_vertex, phase_vertex  # noqa: E402
 from lno327.models.lno327_four_orbital.bdg import bdg_hamiltonian  # noqa: E402
 
 WARD_COMPONENT_LABELS = ("density", "current_x", "current_y")

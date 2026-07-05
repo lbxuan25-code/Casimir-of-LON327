@@ -6,8 +6,10 @@ import numpy as np
 import pytest
 
 from lno327.finite_q_engine import bdg_finite_q_response_imag_axis, collective_goldstone_counterterm
-from lno327.bdg_response import bdg_total_kernel_imag_axis
-from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
+from lno327 import bdg_total_kernel_imag_axis
+from lno327.response.config import KuboConfig
+from lno327.numerics.weights import k_weights
+from lno327.numerics.grids import uniform_bz_mesh
 from validation.lib.finite_q_diagnostics import run_finite_q_diagnostic
 from lno327.finite_q_engine import (
     FiniteQEngineOptions,

@@ -1,26 +1,19 @@
-from lno327.conductivity import KuboConfig as OldKuboConfig
+import numpy as np
+
 from lno327.response.config import KuboConfig
 
 
-def test_kubo_config_fields_and_defaults_match_legacy():
-    old = OldKuboConfig(omega_eV=0.12, temperature_eV=0.03)
+def test_kubo_config_fields_and_defaults_are_stable():
     new = KuboConfig(omega_eV=0.12, temperature_eV=0.03)
 
-    assert new.omega_eV == old.omega_eV
-    assert new.temperature_eV == old.temperature_eV
-    assert new.fermi_level_eV == old.fermi_level_eV
-    assert new.eta_eV == old.eta_eV
-    assert new.output_si == old.output_si
+    assert new.omega_eV == 0.12
+    assert new.temperature_eV == 0.03
+    assert new.fermi_level_eV == 0.0
+    assert new.eta_eV == 1e-6
+    assert new.output_si is True
 
 
-def test_kubo_config_from_kelvin_matches_legacy():
-    old = OldKuboConfig.from_kelvin(
-        omega_eV=0.12,
-        temperature_K=20.0,
-        fermi_level_eV=0.01,
-        eta_eV=2e-5,
-        output_si=False,
-    )
+def test_kubo_config_from_kelvin_uses_boltzmann_ev_per_kelvin():
     new = KuboConfig.from_kelvin(
         omega_eV=0.12,
         temperature_K=20.0,
@@ -29,10 +22,8 @@ def test_kubo_config_from_kelvin_matches_legacy():
         output_si=False,
     )
 
-    assert new == KuboConfig(
-        omega_eV=old.omega_eV,
-        temperature_eV=old.temperature_eV,
-        fermi_level_eV=old.fermi_level_eV,
-        eta_eV=old.eta_eV,
-        output_si=old.output_si,
-    )
+    assert new.omega_eV == 0.12
+    np.testing.assert_allclose(new.temperature_eV, 20.0 * 8.617333262145e-5)
+    assert new.fermi_level_eV == 0.01
+    assert new.eta_eV == 2e-5
+    assert new.output_si is False

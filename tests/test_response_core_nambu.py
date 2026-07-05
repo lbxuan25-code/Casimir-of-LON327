@@ -8,7 +8,6 @@ from lno327.bdg.nambu import (
     diamagnetic_vertex_from_model,
     nambu_block,
 )
-from lno327.bdg_response import bdg_current_vertex, bdg_diamagnetic_vertex
 from lno327.models.lno327_four_orbital.spec import LNO327FourOrbitalSpec
 
 
@@ -46,21 +45,27 @@ def test_invalid_direction_raises_value_error():
         charge_current_vertex_from_model(spec, 0.1, 0.2, "z")
 
 
-def test_four_orbital_current_vertex_matches_legacy_bdg_response():
+def test_four_orbital_current_vertex_matches_model_velocity_blocks():
     spec = LNO327FourOrbitalSpec()
     kx, ky = 0.31, -0.27
 
-    old = bdg_current_vertex(kx, ky, "x")
     new = charge_current_vertex_from_model(spec, kx, ky, "x")
+    expected = charge_current_vertex_from_blocks(
+        spec.velocity_operator(kx, ky, "x"),
+        spec.velocity_operator(-kx, -ky, "x"),
+    )
 
-    np.testing.assert_allclose(new, old)
+    np.testing.assert_allclose(new, expected)
 
 
-def test_four_orbital_diamagnetic_vertex_matches_legacy_bdg_response():
+def test_four_orbital_diamagnetic_vertex_matches_model_mass_blocks():
     spec = LNO327FourOrbitalSpec()
     kx, ky = 0.31, -0.27
 
-    old = bdg_diamagnetic_vertex(kx, ky, "x", "y")
     new = diamagnetic_vertex_from_model(spec, kx, ky, "x", "y")
+    expected = diamagnetic_vertex_from_blocks(
+        spec.mass_operator(kx, ky, "x", "y"),
+        spec.mass_operator(-kx, -ky, "x", "y"),
+    )
 
-    np.testing.assert_allclose(new, old)
+    np.testing.assert_allclose(new, expected)

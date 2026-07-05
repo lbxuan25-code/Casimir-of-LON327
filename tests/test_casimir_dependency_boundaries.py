@@ -14,9 +14,9 @@ CASIMIR_PACKAGE_FILES = (
 
 def test_casimir_package_does_not_import_old_response_or_conductivity_modules():
     forbidden = (
-        "from lno327.conductivity",
-        "from .conductivity",
-        "import lno327.conductivity",
+        "from lno327." + "conductivity",
+        "from ." + "conductivity",
+        "import lno327." + "conductivity",
         "response_conventions",
         "reflection_input",
         "ward_response",
@@ -41,14 +41,14 @@ def test_reflection_uses_electrodynamics_conductivity_boundary():
 def test_public_api_does_not_fall_back_to_old_boundary_modules():
     source = (ROOT / "src" / "lno327" / "api.py").read_text()
     forbidden = (
-        "from .conductivity",
-        "from lno327.conductivity",
-        "from .response_conventions",
-        "from lno327.response_conventions",
-        "from .reflection_input",
-        "from lno327.reflection_input",
-        "from .ward_validation",
-        "from lno327.ward_validation",
+        "from ." + "conductivity",
+        "from lno327." + "conductivity",
+        "from ." + "response_conventions",
+        "from lno327." + "response_conventions",
+        "from ." + "reflection_input",
+        "from lno327." + "reflection_input",
+        "from ." + "ward_validation",
+        "from lno327." + "ward_validation",
     )
 
     for needle in forbidden:

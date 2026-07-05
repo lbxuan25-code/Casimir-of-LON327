@@ -1,15 +1,14 @@
 import numpy as np
 import pytest
 
-from lno327.bdg_response import bdg_current_vertex, bdg_diamagnetic_vertex
-from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
+from lno327.bdg.finite_q import bdg_finite_q_vertex_from_normal_blocks
+from lno327.bdg.nambu import charge_current_vertex_from_model, diamagnetic_vertex_from_model
+from lno327.response.config import KuboConfig
+from lno327.numerics.weights import k_weights
+from lno327.numerics.grids import uniform_bz_mesh
 from lno327.finite_q_engine import (
     FiniteQEngineOptions,
     finite_q_bdg_response_from_ansatz,
-)
-from lno327.finite_q_primitives import (
-    bdg_finite_q_contact_vertex as old_contact_vertex,
-    bdg_finite_q_vector_vertex as old_vector_vertex,
 )
 from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes
@@ -23,11 +22,12 @@ from lno327.response.finite_q_bdg import (
 
 @pytest.mark.parametrize("q", [(0.0, 0.0), (0.17, -0.09)])
 @pytest.mark.parametrize("direction", ("x", "y"))
-def test_bdg_vector_vertex_from_spec_matches_legacy_peierls(q, direction):
+def test_bdg_vector_vertex_from_spec_matches_model_peierls_blocks(q, direction):
     qx, qy = q
+    spec = LNO327FourOrbitalSpec()
 
     actual = bdg_vector_vertex_from_spec(
-        LNO327FourOrbitalSpec(),
+        spec,
         0.21,
         -0.34,
         qx,
@@ -35,17 +35,22 @@ def test_bdg_vector_vertex_from_spec_matches_legacy_peierls(q, direction):
         direction,
         "peierls",
     )
+    expected = bdg_finite_q_vertex_from_normal_blocks(
+        spec.peierls_hamiltonian_vector_vertex(0.21, -0.34, qx, qy, direction),
+        spec.peierls_hamiltonian_vector_vertex(-0.21, 0.34, -qx, -qy, direction),
+    )
 
-    np.testing.assert_allclose(actual, old_vector_vertex(0.21, -0.34, qx, qy, direction))
+    np.testing.assert_allclose(actual, expected)
 
 
 @pytest.mark.parametrize("directions", (("x", "x"), ("y", "y"), ("x", "y")))
-def test_bdg_contact_vertex_from_spec_matches_legacy_peierls(directions):
+def test_bdg_contact_vertex_from_spec_matches_model_peierls_blocks(directions):
     direction_i, direction_j = directions
     qx, qy = 0.17, -0.09
+    spec = LNO327FourOrbitalSpec()
 
     actual = bdg_contact_vertex_from_spec(
-        LNO327FourOrbitalSpec(),
+        spec,
         0.21,
         -0.34,
         qx,
@@ -54,14 +59,19 @@ def test_bdg_contact_vertex_from_spec_matches_legacy_peierls(directions):
         direction_j,
         "peierls",
     )
+    expected = bdg_finite_q_vertex_from_normal_blocks(
+        spec.peierls_hamiltonian_contact_vertex(0.21, -0.34, qx, qy, direction_i, direction_j),
+        spec.peierls_hamiltonian_contact_vertex(-0.21, 0.34, -qx, -qy, direction_i, direction_j),
+    )
 
-    np.testing.assert_allclose(actual, old_contact_vertex(0.21, -0.34, qx, qy, direction_i, direction_j))
+    np.testing.assert_allclose(actual, expected)
 
 
 @pytest.mark.parametrize("direction", ("x", "y"))
-def test_bdg_vector_vertex_from_spec_matches_legacy_q0_velocity(direction):
+def test_bdg_vector_vertex_from_spec_matches_model_q0_velocity(direction):
+    spec = LNO327FourOrbitalSpec()
     actual = bdg_vector_vertex_from_spec(
-        LNO327FourOrbitalSpec(),
+        spec,
         0.21,
         -0.34,
         0.17,
@@ -70,15 +80,16 @@ def test_bdg_vector_vertex_from_spec_matches_legacy_q0_velocity(direction):
         "q0_velocity",
     )
 
-    np.testing.assert_allclose(actual, bdg_current_vertex(0.21, -0.34, direction))
+    np.testing.assert_allclose(actual, charge_current_vertex_from_model(spec, 0.21, -0.34, direction))
 
 
 @pytest.mark.parametrize("directions", (("x", "x"), ("y", "y"), ("x", "y")))
-def test_bdg_contact_vertex_from_spec_matches_legacy_q0_velocity(directions):
+def test_bdg_contact_vertex_from_spec_matches_model_q0_velocity(directions):
     direction_i, direction_j = directions
+    spec = LNO327FourOrbitalSpec()
 
     actual = bdg_contact_vertex_from_spec(
-        LNO327FourOrbitalSpec(),
+        spec,
         0.21,
         -0.34,
         0.17,
@@ -88,7 +99,7 @@ def test_bdg_contact_vertex_from_spec_matches_legacy_q0_velocity(directions):
         "q0_velocity",
     )
 
-    np.testing.assert_allclose(actual, bdg_diamagnetic_vertex(0.21, -0.34, direction_i, direction_j))
+    np.testing.assert_allclose(actual, diamagnetic_vertex_from_model(spec, 0.21, -0.34, direction_i, direction_j))
 
 
 def test_public_ansatz_adapter_matches_model_driven_core():

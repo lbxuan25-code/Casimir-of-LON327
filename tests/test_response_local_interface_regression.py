@@ -12,7 +12,7 @@ from lno327.response.local_interface import (
     matrix_symmetry_diagnostics,
     validate_local_response_symmetry,
 )
-from lno327.response_interface import local_response_imag_axis as old_local_response
+from lno327.response.local_interface import local_response_imag_axis
 
 
 def _inputs():
@@ -46,7 +46,7 @@ def test_new_local_response_matches_old_reference_for_positive_omega(kind):
     }
 
     new = new_local_response(**kwargs)
-    old = old_local_response(**kwargs)
+    old = local_response_imag_axis(**kwargs)
 
     _assert_common_response_fields_match(new, old)
     assert new.source in {
@@ -58,7 +58,7 @@ def test_new_local_response_matches_old_reference_for_positive_omega(kind):
 def test_new_local_response_matches_old_reference_for_normal_zero_omega():
     points, weights, amp = _inputs()
     new = new_local_response("normal", 0.0, points, 20.0, pairing_params=amp, k_weights=weights)
-    old = old_local_response("normal", 0.0, points, 20.0, pairing_params=amp, k_weights=weights)
+    old = local_response_imag_axis("normal", 0.0, points, 20.0, pairing_params=amp, k_weights=weights)
 
     _assert_common_response_fields_match(new, old)
     assert new.source == "kubo_conductivity_imag_axis_from_model"
@@ -67,7 +67,7 @@ def test_new_local_response_matches_old_reference_for_normal_zero_omega():
 
 def test_new_local_response_rejects_bdg_zero_omega_like_old_reference():
     points, _, amp = _inputs()
-    for local_response in (new_local_response, old_local_response):
+    for local_response in (new_local_response, local_response_imag_axis):
         with pytest.raises(ValueError, match="n=0 is unresolved"):
             local_response("spm", 0.0, points, 20.0, pairing_params=amp)
 

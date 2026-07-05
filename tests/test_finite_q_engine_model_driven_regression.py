@@ -1,6 +1,8 @@
 import numpy as np
 
-from lno327.conductivity import KuboConfig, k_weights, uniform_bz_mesh
+from lno327.response.config import KuboConfig
+from lno327.numerics.weights import k_weights
+from lno327.numerics.grids import uniform_bz_mesh
 from lno327.finite_q_engine import (
     FiniteQEngineOptions,
     bdg_finite_q_response_imag_axis,
