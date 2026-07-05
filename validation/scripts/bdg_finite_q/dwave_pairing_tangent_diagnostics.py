@@ -13,15 +13,15 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT))
 
 from lno327.bdg.finite_q import phase_vertex  # noqa: E402
-from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
 from lno327.models.lno327_four_orbital.pairing import (  # noqa: E402
     bond_endpoint_gauge_form_factor,
     dwave_pairing_matrix,
     pairing_from_bonds,
 )
-from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
+from validation.lib.finite_q_validation_models import get_finite_q_validation_model  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -74,11 +74,12 @@ def run_dwave_pairing_tangent_diagnostics(
     *,
     k_points: tuple[tuple[float, float], ...] = ((0.0, 0.0), (0.2, -0.1), (1.1, 0.7), (np.pi / 2.0, np.pi / 3.0)),
     q_model: tuple[float, float] = (0.01, 0.0),
-    pairing_params: PairingAmplitudes | None = None,
+    pairing_params=None,
     tolerance: float = 1e-10,
 ) -> DWavePairingTangentReport:
-    amp = pairing_params or PairingAmplitudes()
-    ansatz = build_pairing_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
+    model = get_finite_q_validation_model("lno327_four_orbital")
+    amp = pairing_params or model.build_pairing_params()
+    ansatz = model.build_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
     reconstruction_errors: list[float] = []
     q0_tangent_errors: list[float] = []
     separable_tangent_errors: list[float] = []
@@ -138,13 +139,13 @@ def run_dwave_pairing_tangent_diagnostics(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="运行 dwave pairing 重构与 tangent 诊断。")
-    parser.add_argument("--delta0", type=float, default=0.04)
+    parser.add_argument("--delta0", type=float)
     parser.add_argument("--qx", type=float, default=0.01)
     parser.add_argument("--qy", type=float, default=0.0)
     args = parser.parse_args(argv)
     report = run_dwave_pairing_tangent_diagnostics(
         q_model=(args.qx, args.qy),
-        pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+        pairing_params=get_finite_q_validation_model("lno327_four_orbital").build_pairing_params(args.delta0),
     )
     print(report.format_text())
     return 0

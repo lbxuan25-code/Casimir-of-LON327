@@ -16,12 +16,12 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from lno327 import KuboConfig, k_weights  # noqa: E402
-from lno327.workflows.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
-from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
-from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
+from lno327.workflows.finite_q_engine import FiniteQEngineOptions, bdg_finite_q_response_imag_axis_from_workspace  # noqa: E402
+from lno327.response.finite_q_bdg import precompute_finite_q_bdg_workspace_from_model_ansatz  # noqa: E402
 from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis  # noqa: E402
 from normal_finite_q_ward_audit import (  # noqa: E402
     DIRECTION_VECTORS,
@@ -31,6 +31,7 @@ from normal_finite_q_ward_audit import (  # noqa: E402
 )
 from lno327.bdg.finite_q import density_vertex, phase_vertex  # noqa: E402
 from lno327.models.lno327_four_orbital.bdg import bdg_hamiltonian  # noqa: E402
+from validation.lib.finite_q_validation_models import get_finite_q_validation_model  # noqa: E402
 
 WARD_COMPONENT_LABELS = ("density", "current_x", "current_y")
 MAX_JSON_SIZE_MB = 50.0
@@ -283,8 +284,9 @@ def _operator_level_weta_audit_row(
     representative_k = np.asarray([0.37, -0.23], dtype=float)
     kx, ky = float(representative_k[0]), float(representative_k[1])
     qx, qy = float(q[0]), float(q[1])
-    amp = PairingAmplitudes(delta0_eV=float(delta0_eV))
-    ansatz = build_pairing_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
+    model = get_finite_q_validation_model("lno327_four_orbital")
+    amp = model.build_pairing_params(float(delta0_eV))
+    ansatz = model.build_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
     delta_theta = ansatz.phase_pairing_matrix(kx, ky, qx, qy, amp)
     phi = ansatz.collective_form_factor(kx, ky, qx, qy, amp)
     gamma_theta = phase_vertex(delta_theta)
@@ -596,17 +598,18 @@ def _case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
         eta_eV=float(eta_eV),
         output_si=False,
     )
-    ansatz = build_pairing_ansatz(str(pairing_name), phase_vertex="bond_endpoint_gauge")
-    pairing_params = PairingAmplitudes(delta0_eV=float(delta0_eV))
+    model = get_finite_q_validation_model("lno327_four_orbital")
+    ansatz = model.build_ansatz(str(pairing_name), phase_vertex="bond_endpoint_gauge")
+    pairing_params = model.build_pairing_params(float(delta0_eV))
     options = FiniteQEngineOptions(
         current_vertex="peierls",
         collective_mode="amplitude_phase",
         collective_counterterm="goldstone_gap_equation",
         include_phase_phase_direct=True,
     )
-    response = finite_q_bdg_response_from_ansatz(
+    workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(
+        model.spec,
         ansatz,
-        float(omega_eV),
         q,
         points,
         weights,
@@ -614,6 +617,7 @@ def _case_worker(args: tuple[Any, ...]) -> dict[str, Any]:
         pairing_params,
         options,
     )
+    response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=config)
     operator_audit_row = _operator_level_weta_audit_row(str(pairing_name), str(q_direction_name), q, float(delta0_eV))
     rows: list[dict[str, Any]] = []
     matrices_by_variant: dict[str, np.ndarray] = {}

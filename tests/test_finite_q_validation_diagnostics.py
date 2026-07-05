@@ -43,7 +43,10 @@ def _load_validation_script(name: str):
 def test_q0_alignment_diagnostics_run_for_all_cases_and_are_finite():
     module = _load_validation_script("q0_bdg_response_alignment")
     for pairing_name in ("normal", "onsite_s", "spm", "dwave"):
-        report = module.run_q0_bdg_response_alignment(pairing_name, nk=2)
+        if pairing_name == "normal":
+            report = module.run_q0_bdg_response_alignment(pairing_name, nk=2)
+        else:
+            report = module.run_q0_bdg_response_alignment(pairing_name, model_name="lno327_four_orbital", nk=2)
         assert report.q_model == (0.0, 0.0)
         assert report.mesh_size == 4
         assert report.valid_for_casimir_input is False
@@ -68,12 +71,11 @@ def test_q0_alignment_reports_transformed_comparison_rows():
         for row in normal_report.transformed_comparison_rows
     }
     assert ("finite_q_total_q0", "local_normal_density_current_total_current_block") in normal_pairs
-    assert ("finite_q_total_q0", "omega * local_normal_sigma_like") in normal_pairs
-    assert ("finite_q_total_q0", "-omega * local_normal_sigma_like") in normal_pairs
     assert normal_report.valid_for_casimir_input is False
+    assert normal_report.model_name == "symmetry_bdg_2band"
 
     for pairing_name in ("spm", "dwave"):
-        report = module.run_q0_bdg_response_alignment(pairing_name, nk=2)
+        report = module.run_q0_bdg_response_alignment(pairing_name, model_name="lno327_four_orbital", nk=2)
         pairs = {
             (row.finite_q_quantity, row.transformed_local_quantity)
             for row in report.transformed_comparison_rows
@@ -89,7 +91,7 @@ def test_q0_alignment_reports_transformed_comparison_rows():
 
 def test_spm_q0_alignment_passes_convention_aware_rule_without_promoting_to_casimir_input():
     module = _load_validation_script("q0_bdg_response_alignment")
-    report = module.run_q0_bdg_response_alignment("spm", nk=2)
+    report = module.run_q0_bdg_response_alignment("spm", model_name="lno327_four_orbital", nk=2)
     assert report.passed is True
     assert report.status == "convention_aware_pass"
     assert report.best_transformed_match["finite_q_raw_bubble_q0"] in {
@@ -112,7 +114,7 @@ def test_spm_q0_alignment_passes_convention_aware_rule_without_promoting_to_casi
 
 def test_dwave_q0_alignment_uses_intraband_aware_raw_bubble_status():
     module = _load_validation_script("q0_bdg_response_alignment")
-    report = module.run_q0_bdg_response_alignment("dwave", nk=3)
+    report = module.run_q0_bdg_response_alignment("dwave", model_name="lno327_four_orbital", nk=3)
     assert report.passed is True
     assert report.status == "intraband_aware_pass"
     assert report.valid_for_casimir_input is False
@@ -132,7 +134,12 @@ def test_dwave_q0_alignment_uses_intraband_aware_raw_bubble_status():
 
 def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():
     module = _load_validation_script("finite_q_ward_scan")
-    report = module.run_finite_q_ward_scan(nk=2, q_values=(0.005,), q_directions=((1.0, 0.0),))
+    report = module.run_finite_q_ward_scan(
+        model_name="lno327_four_orbital",
+        nk=2,
+        q_values=(0.005,),
+        q_directions=((1.0, 0.0),),
+    )
     assert report.valid_for_casimir_input is False
     assert {row.pairing_name for row in report.rows} == {"onsite_s", "spm", "dwave"}
     closure_response_names = set(module.WARD_CLOSURE_RESPONSE_NAMES)
@@ -170,6 +177,17 @@ def test_finite_q_ward_scan_runs_for_three_pairings_and_is_not_casimir_ready():
         assert np.isfinite(row.right_ward_residual_norm)
         assert np.isfinite(row.max_ward_residual_norm)
     assert "valid_for_casimir_input: False" in report.format_text()
+
+
+def test_default_finite_q_ward_scan_uses_two_band_workspace_model():
+    module = _load_validation_script("finite_q_ward_scan")
+    report = module.run_finite_q_ward_scan(nk=2, q_values=(0.005,), q_directions=((1.0, 0.0),))
+
+    assert report.model_name == "symmetry_bdg_2band"
+    assert report.primary_validation_model is True
+    assert report.workspace_evaluation is True
+    assert set(report.pairing_names) == {"spm", "dwave"}
+    assert report.valid_for_casimir_input is False
 
 
 def test_dwave_reconstruction_and_tangent_diagnostic_reports_structured_errors():

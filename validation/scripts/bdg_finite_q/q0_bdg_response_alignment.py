@@ -14,8 +14,9 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT))
 
-from lno327.workflows.finite_q_engine import bdg_finite_q_response_imag_axis  # noqa: E402
+from lno327.workflows.finite_q_engine import FiniteQEngineOptions, bdg_finite_q_response_imag_axis_from_workspace  # noqa: E402
 from lno327.diagnostics.bdg_q0_conventions import (  # noqa: E402
     BdGQ0Comparison,
     BdGQ0ConventionResult,
@@ -23,9 +24,13 @@ from lno327.diagnostics.bdg_q0_conventions import (  # noqa: E402
     evaluate_bdg_q0_convention,
     relative_norm,
 )
-from lno327 import KuboConfig, k_weights, kubo_conductivity_imag_axis, uniform_bz_mesh  # noqa: E402
-from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
-from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis  # noqa: E402
+from lno327 import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
+from lno327.response.finite_q_bdg import precompute_finite_q_bdg_workspace_from_model_ansatz  # noqa: E402
+from lno327.response.normal_density_current import normal_physical_density_current_response_components_imag_axis_from_model  # noqa: E402
+from validation.lib.finite_q_validation_models import (  # noqa: E402
+    available_finite_q_validation_models,
+    get_finite_q_validation_model,
+)
 
 AlignmentPairingName = Literal["normal", "onsite_s", "spm", "dwave"]
 
@@ -56,6 +61,9 @@ class TransformedComparisonRow:
 
 @dataclass(frozen=True)
 class Q0BdGAlignmentReport:
+    model_name: str
+    model_metadata: dict[str, Any]
+    primary_validation_model: bool
     pairing_name: str
     omega_eV: float
     q_model: tuple[float, float]
@@ -80,6 +88,9 @@ class Q0BdGAlignmentReport:
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "model_name": self.model_name,
+            "model_metadata": self.model_metadata,
+            "primary_validation_model": self.primary_validation_model,
             "pairing_name": self.pairing_name,
             "omega_eV": self.omega_eV,
             "q_model": list(self.q_model),
@@ -104,6 +115,7 @@ class Q0BdGAlignmentReport:
     def format_text(self, *, explain: bool = False) -> str:
         lines = [
             "q=0 BdG 响应定义对齐报告",
+            f"model_name: {self.model_name}",
             f"配对名称: {self.pairing_name}",
             f"status: {self.status}",
             f"omega_eV: {self.omega_eV:.12g}",
@@ -171,24 +183,27 @@ def _finite_q_q0_matrices(
     points: np.ndarray,
     weights: np.ndarray,
     config: KuboConfig,
-    amp: PairingAmplitudes,
+    amp,
+    model,
 ) -> dict[str, np.ndarray]:
-    engine_pairing = "onsite_s" if pairing_name == "normal" else pairing_name
-    engine_amp = PairingAmplitudes(delta0_eV=0.0) if pairing_name == "normal" else amp
-    response = bdg_finite_q_response_imag_axis(
-        engine_pairing,
-        config.omega_eV,
+    engine_amp = model.build_pairing_params(0.0) if pairing_name == "normal" else amp
+    ansatz = model.build_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
+    workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(
+        model.spec,
+        ansatz,
         np.array([0.0, 0.0]),
         points,
         weights,
         config,
         engine_amp,
-        phase_vertex="bond_endpoint_gauge",
-        current_vertex="peierls",
-        collective_mode="amplitude_phase",
-        collective_counterterm="goldstone_gap_equation",
-        include_phase_phase_direct=True,
+        FiniteQEngineOptions(
+            current_vertex="peierls",
+            collective_mode="amplitude_phase",
+            collective_counterterm="goldstone_gap_equation",
+            include_phase_phase_direct=True,
+        ),
     )
+    response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=config)
     return {
         "finite_q_raw_bubble_q0": response.bare_bubble,
         "finite_q_direct_q0": response.direct,
@@ -198,17 +213,16 @@ def _finite_q_q0_matrices(
     }
 
 
-def _normal_local_matrices(points: np.ndarray, weights: np.ndarray, config: KuboConfig) -> dict[str, np.ndarray]:
-    normal_components = normal_physical_density_current_response_components_imag_axis(
+def _normal_local_matrices(points: np.ndarray, weights: np.ndarray, config: KuboConfig, model) -> dict[str, np.ndarray]:
+    normal_components = normal_physical_density_current_response_components_imag_axis_from_model(
+        model.spec,
         points,
         config,
         np.array([0.0, 0.0]),
         weights,
     )
-    normal_sigma = kubo_conductivity_imag_axis(points, config, weights).matrix()
     return {
         "local_normal_density_current_total": normal_components["total"],
-        "local_normal_sigma_like": normal_sigma,
     }
 
 
@@ -221,11 +235,8 @@ def _generic_rows(
     if not local:
         return ()
     density_total = local["local_normal_density_current_total"]
-    sigma_like = local["local_normal_sigma_like"]
     comparators = [
         ("local_normal_density_current_total_current_block", density_total),
-        ("omega * local_normal_sigma_like", omega_eV * sigma_like),
-        ("-omega * local_normal_sigma_like", -omega_eV * sigma_like),
     ]
     rows: list[TransformedComparisonRow] = []
     for finite_name, finite_matrix in finite_q.items():
@@ -291,23 +302,24 @@ def _best_local_matches(
 def run_q0_bdg_response_alignment(
     pairing_name: AlignmentPairingName,
     *,
+    model_name: str = "symmetry_bdg_2band",
     omega_eV: float = 0.01,
     nk: int = 3,
     k_points: np.ndarray | None = None,
     weights: np.ndarray | None = None,
     config: KuboConfig | None = None,
-    pairing_params: PairingAmplitudes | None = None,
+    pairing_params=None,
     tolerance: float = 1e-6,
 ) -> Q0BdGAlignmentReport:
-    if pairing_name not in {"normal", "onsite_s", "spm", "dwave"}:
-        raise ValueError("pairing_name must be normal, onsite_s, spm, or dwave")
+    model = get_finite_q_validation_model(model_name)
+    model.require_pairing(pairing_name)
     points = uniform_bz_mesh(nk) if k_points is None else np.asarray(k_points, dtype=float)
     mesh_weights = k_weights(points) if weights is None else np.asarray(weights, dtype=float)
     kubo = config or KuboConfig.from_kelvin(omega_eV=omega_eV, temperature_K=10.0, eta_eV=1e-8, output_si=False)
-    amp = pairing_params or PairingAmplitudes()
+    amp = pairing_params or model.build_pairing_params()
 
     q0_convention: BdGQ0ConventionResult | None = None
-    if pairing_name in {"spm", "dwave"}:
+    if model.name == "lno327_four_orbital" and pairing_name in {"spm", "dwave"}:
         q0_convention = evaluate_bdg_q0_convention(pairing_name, points, mesh_weights, kubo, amp, tolerance=tolerance)
         finite_q = {
             name: value
@@ -334,8 +346,8 @@ def run_q0_bdg_response_alignment(
         else:
             notes = (q0_convention.interpretation,)
     else:
-        finite_q = _finite_q_q0_matrices(pairing_name, points, mesh_weights, kubo, amp)
-        local = _normal_local_matrices(points, mesh_weights, kubo) if pairing_name == "normal" else {}
+        finite_q = _finite_q_q0_matrices(pairing_name, points, mesh_weights, kubo, amp, model)
+        local = _normal_local_matrices(points, mesh_weights, kubo, model) if pairing_name == "normal" else {}
         transformed_rows = _generic_rows(finite_q, local, float(kubo.omega_eV), tolerance)
         status = "diagnostic_only_not_passed"
         passed = False
@@ -353,9 +365,13 @@ def run_q0_bdg_response_alignment(
     common_notes = (
         "q=0 对齐是 finite-q Ward 诊断的前置定义检查，不是最终物理结论。",
         "spm/dwave q=0 约定由 lno327.diagnostics.bdg_q0_conventions 统一计算，避免脚本重复实现。",
+        f"model_name={model.name}; primary_validation_model={model.primary_validation_model}.",
         "finite-q 输出保持 valid_for_casimir_input=False。",
     )
     return Q0BdGAlignmentReport(
+        model_name=model.name,
+        model_metadata=model.metadata(),
+        primary_validation_model=model.primary_validation_model,
         pairing_name=pairing_name,
         omega_eV=float(kubo.omega_eV),
         q_model=(0.0, 0.0),
@@ -389,6 +405,10 @@ def run_q0_bdg_response_alignment_many(
 
 def _write_json(path: Path, reports: tuple[Q0BdGAlignmentReport, ...]) -> None:
     payload = {
+        "model_name": reports[0].model_name if reports else None,
+        "model_metadata": reports[0].model_metadata if reports else None,
+        "primary_validation_model": reports[0].primary_validation_model if reports else None,
+        "pairings": [report.pairing_name for report in reports],
         "status_by_pairing": {report.pairing_name: report.status for report in reports},
         "valid_for_casimir_input": False,
         "reports": [report.to_dict() for report in reports],
@@ -399,20 +419,25 @@ def _write_json(path: Path, reports: tuple[Q0BdGAlignmentReport, ...]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="运行统一 q=0 BdG response definition alignment 诊断。")
-    parser.add_argument("pairing", nargs="?", choices=("normal", "onsite_s", "spm", "dwave"))
-    parser.add_argument("--pairings", nargs="+", choices=("normal", "onsite_s", "spm", "dwave"))
+    parser.add_argument("--model", choices=available_finite_q_validation_models(), default="symmetry_bdg_2band")
+    parser.add_argument("pairing", nargs="?")
+    parser.add_argument("--pairings", nargs="+")
     parser.add_argument("--explain", action="store_true")
     parser.add_argument("--json-output", type=Path)
     parser.add_argument("--omega", type=float, default=0.01)
     parser.add_argument("--nk", type=int, default=3)
-    parser.add_argument("--delta0", type=float, default=0.04)
+    parser.add_argument("--delta0", type=float)
     args = parser.parse_args(argv)
-    pairings = tuple(args.pairings or ([args.pairing] if args.pairing else ["normal", "onsite_s", "spm", "dwave"]))
+    model = get_finite_q_validation_model(args.model)
+    pairings = tuple(args.pairings or ([args.pairing] if args.pairing else model.pairing_names))
+    for pairing in pairings:
+        model.require_pairing(pairing)
     reports = run_q0_bdg_response_alignment_many(
         pairings,
+        model_name=model.name,
         omega_eV=args.omega,
         nk=args.nk,
-        pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+        pairing_params=model.build_pairing_params(args.delta0),
     )
     for index, report in enumerate(reports):
         if index:

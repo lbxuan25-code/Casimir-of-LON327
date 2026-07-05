@@ -239,9 +239,11 @@ def test_near_zero_q_uses_shared_basis_but_ordinary_finite_q_does_not():
 
 
 def test_finite_q_diagnostic_report_defaults_and_gating_for_all_ansatz_names():
-    for name in ("onsite_s", "spm", "dwave"):
+    for name in ("spm", "dwave"):
         report = run_finite_q_diagnostic(name, nk=2)
         assert report.pairing_name == name
+        assert report.model_name == "symmetry_bdg_2band"
+        assert report.primary_validation_model is True
         assert report.phase_vertex == "bond_endpoint_gauge"
         assert report.current_vertex == "peierls"
         assert report.collective_mode == "amplitude_phase"
@@ -251,6 +253,11 @@ def test_finite_q_diagnostic_report_defaults_and_gating_for_all_ansatz_names():
         assert np.isfinite(report.bare_ward_residual_norm)
         assert np.isfinite(report.minus_schur_ward_residual_norm)
         assert np.isfinite(report.amplitude_phase_schur_ward_residual_norm)
+    onsite = run_finite_q_diagnostic("onsite_s", model_name="lno327_four_orbital", nk=2)
+    assert onsite.pairing_name == "onsite_s"
+    assert onsite.model_name == "lno327_four_orbital"
+    assert onsite.primary_validation_model is False
+    assert onsite.valid_for_casimir_input is False
 
 
 def test_small_phase_phase_has_clear_warning_metadata():

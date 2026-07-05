@@ -14,11 +14,12 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT))
 
 from lno327 import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.workflows.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
-from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
-from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
+from lno327.workflows.finite_q_engine import FiniteQEngineOptions, bdg_finite_q_response_imag_axis_from_workspace  # noqa: E402
+from lno327.response.finite_q_bdg import precompute_finite_q_bdg_workspace_from_model_ansatz  # noqa: E402
+from validation.lib.finite_q_validation_models import available_finite_q_validation_models, get_finite_q_validation_model  # noqa: E402
 
 GoldstonePairingName = Literal["onsite_s", "spm", "dwave"]
 
@@ -91,18 +92,23 @@ class GoldstoneCountertermReport:
 
 
 def run_goldstone_counterterm_diagnostics(
-    pairing_names: tuple[GoldstonePairingName, ...] = ("onsite_s", "spm", "dwave"),
+    pairing_names: tuple[GoldstonePairingName, ...] | None = None,
     *,
+    model_name: str = "lno327_four_orbital",
     nk: int = 3,
     k_points: np.ndarray | None = None,
     weights: np.ndarray | None = None,
-    pairing_params: PairingAmplitudes | None = None,
+    pairing_params=None,
     tolerance: float = 1e-8,
 ) -> GoldstoneCountertermReport:
     points = uniform_bz_mesh(nk) if k_points is None else np.asarray(k_points, dtype=float)
     mesh_weights = k_weights(points) if weights is None else np.asarray(weights, dtype=float)
     config = KuboConfig.from_kelvin(omega_eV=0.0, temperature_K=10.0, eta_eV=1e-8, output_si=False)
-    amp = pairing_params or PairingAmplitudes()
+    model = get_finite_q_validation_model(model_name)
+    selected_pairings = tuple(model.default_pairings if pairing_names is None else pairing_names)
+    for pairing_name in selected_pairings:
+        model.require_pairing(pairing_name)
+    amp = pairing_params or model.build_pairing_params()
     options = FiniteQEngineOptions(
         current_vertex="peierls",
         collective_mode="amplitude_phase",
@@ -110,13 +116,13 @@ def run_goldstone_counterterm_diagnostics(
         include_phase_phase_direct=True,
     )
     rows: list[GoldstoneCountertermRow] = []
-    for pairing_name in pairing_names:
-        ansatz = build_pairing_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
+    for pairing_name in selected_pairings:
+        ansatz = model.build_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
-            response = finite_q_bdg_response_from_ansatz(
+            workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(
+                model.spec,
                 ansatz,
-                0.0,
                 np.array([0.0, 0.0]),
                 points,
                 mesh_weights,
@@ -124,6 +130,7 @@ def run_goldstone_counterterm_diagnostics(
                 amp,
                 options,
             )
+            response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=config)
         eta2_kernel = complex(response.collective_total[1, 1])
         eta2_abs = float(abs(eta2_kernel))
         normalization_status = str(response.metadata.get("eta2_phase_relation", "missing_eta2_metadata"))
@@ -167,14 +174,17 @@ def run_goldstone_counterterm_diagnostics(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="运行 Goldstone counterterm 与 eta2 归一化诊断。")
-    parser.add_argument("--pairings", nargs="+", choices=("onsite_s", "spm", "dwave"), default=["onsite_s", "spm", "dwave"])
+    parser.add_argument("--model", choices=available_finite_q_validation_models(), default="lno327_four_orbital")
+    parser.add_argument("--pairings", nargs="+")
     parser.add_argument("--nk", type=int, default=3)
-    parser.add_argument("--delta0", type=float, default=0.04)
+    parser.add_argument("--delta0", type=float)
     args = parser.parse_args(argv)
+    model = get_finite_q_validation_model(args.model)
     report = run_goldstone_counterterm_diagnostics(
-        tuple(args.pairings),
+        tuple(args.pairings) if args.pairings else None,
+        model_name=model.name,
         nk=args.nk,
-        pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+        pairing_params=model.build_pairing_params(args.delta0),
     )
     print(report.format_text())
     return 0

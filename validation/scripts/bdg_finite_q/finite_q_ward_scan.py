@@ -15,16 +15,20 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from lno327 import KuboConfig, k_weights, uniform_bz_mesh  # noqa: E402
-from lno327.workflows.finite_q_engine import FiniteQEngineOptions, finite_q_bdg_response_from_ansatz  # noqa: E402
-from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz  # noqa: E402
-from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes  # noqa: E402
+from lno327.workflows.finite_q_engine import FiniteQEngineOptions, bdg_finite_q_response_imag_axis_from_workspace  # noqa: E402
+from lno327.response.finite_q_bdg import precompute_finite_q_bdg_workspace_from_model_ansatz  # noqa: E402
 from lno327.collective.validation import validate_physical_ward_identity  # noqa: E402
+from validation.lib.finite_q_validation_models import (  # noqa: E402
+    available_finite_q_validation_models,
+    get_finite_q_validation_model,
+)
 from q0_bdg_response_alignment import run_q0_bdg_response_alignment_many  # noqa: E402
 
-WardScanPairingName = Literal["onsite_s", "spm", "dwave"]
+WardScanPairingName = str
 WARD_COMPONENT_LABELS = ("density", "current_x", "current_y")
 WARD_CLOSURE_RESPONSE_NAMES = ("bare_total", "minus_schur", "amplitude_phase_schur")
 
@@ -50,6 +54,9 @@ class FiniteQWardScanRow:
 
 @dataclass(frozen=True)
 class FiniteQWardScanReport:
+    model_name: str
+    model_metadata: dict[str, Any]
+    primary_validation_model: bool
     pairing_names: tuple[str, ...]
     omega_eV: float
     nk: int | None
@@ -62,11 +69,15 @@ class FiniteQWardScanReport:
     schur_residual_differences: tuple[dict[str, Any], ...]
     diagnostic_run_completed: bool
     ward_identity_closed: bool
+    workspace_evaluation: bool
     notes: tuple[str, ...]
     valid_for_casimir_input: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
+            "model_name": self.model_name,
+            "model_metadata": self.model_metadata,
+            "primary_validation_model": self.primary_validation_model,
             "pairing_names": list(self.pairing_names),
             "omega_eV": self.omega_eV,
             "nk": self.nk,
@@ -86,6 +97,7 @@ class FiniteQWardScanReport:
             "schur_residual_differences": list(self.schur_residual_differences),
             "diagnostic_run_completed": self.diagnostic_run_completed,
             "ward_identity_closed": self.ward_identity_closed,
+            "workspace_evaluation": self.workspace_evaluation,
             "notes": list(self.notes),
             "valid_for_casimir_input": False,
         }
@@ -93,6 +105,7 @@ class FiniteQWardScanReport:
     def format_text(self) -> str:
         lines = [
             "有限 q Ward 残差扫描报告",
+            f"model_name: {self.model_name}",
             f"配对: {', '.join(self.pairing_names)}",
             f"omega_eV: {self.omega_eV:.12g}",
             f"nk: {self.nk if self.nk is not None else '外部网格'}",
@@ -101,6 +114,7 @@ class FiniteQWardScanReport:
             f"q0_precondition_status: {self.q0_precondition_status}",
             f"diagnostic_run_completed: {self.diagnostic_run_completed}",
             f"ward_identity_closed: {self.ward_identity_closed}",
+            f"workspace_evaluation: {self.workspace_evaluation}",
         ]
         for row in self.rows:
             lines.append(
@@ -209,8 +223,9 @@ def _q0_status_from_json(path: Path) -> dict[str, str]:
 
 
 def run_finite_q_ward_scan(
-    pairing_names: tuple[WardScanPairingName, ...] = ("onsite_s", "spm", "dwave"),
+    pairing_names: tuple[WardScanPairingName, ...] | None = None,
     *,
+    model_name: str = "symmetry_bdg_2band",
     omega_eV: float = 0.01,
     q_values: tuple[float, ...] = (0.005, 0.01, 0.02),
     q_directions: tuple[tuple[float, float], ...] = ((1.0, 0.0),),
@@ -218,14 +233,18 @@ def run_finite_q_ward_scan(
     k_points: np.ndarray | None = None,
     weights: np.ndarray | None = None,
     config: KuboConfig | None = None,
-    pairing_params: PairingAmplitudes | None = None,
+    pairing_params=None,
     tolerance: float = 1e-8,
     q0_status: dict[str, str] | None = None,
 ) -> FiniteQWardScanReport:
+    model = get_finite_q_validation_model(model_name)
+    selected_pairings = tuple(model.default_pairings if pairing_names is None else pairing_names)
+    for pairing_name in selected_pairings:
+        model.require_pairing(pairing_name)
     points = uniform_bz_mesh(nk) if k_points is None else np.asarray(k_points, dtype=float)
     mesh_weights = k_weights(points) if weights is None else np.asarray(weights, dtype=float)
     kubo = config or KuboConfig.from_kelvin(omega_eV=omega_eV, temperature_K=10.0, eta_eV=1e-8, output_si=False)
-    amp = pairing_params or PairingAmplitudes()
+    amp = pairing_params or model.build_pairing_params()
     options = FiniteQEngineOptions(
         current_vertex="peierls",
         collective_mode="amplitude_phase",
@@ -237,7 +256,8 @@ def run_finite_q_ward_scan(
     scaling_inputs: dict[str, tuple[list[float], list[float]]] = {}
     if q0_status is None:
         q0_reports = run_q0_bdg_response_alignment_many(
-            tuple(pairing_names),
+            tuple(selected_pairings),
+            model_name=model.name,
             omega_eV=float(kubo.omega_eV),
             nk=nk,
             k_points=points if k_points is not None else None,
@@ -247,9 +267,9 @@ def run_finite_q_ward_scan(
         )
         q0_alignment = {report.pairing_name: report.status for report in q0_reports}
     else:
-        q0_alignment = {pairing_name: q0_status.get(pairing_name, "missing_q0_status") for pairing_name in pairing_names}
-    for pairing_name in pairing_names:
-        ansatz = build_pairing_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
+        q0_alignment = {pairing_name: q0_status.get(pairing_name, "missing_q0_status") for pairing_name in selected_pairings}
+    for pairing_name in selected_pairings:
+        ansatz = model.build_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
         for q_value in q_values:
             for direction in q_directions:
                 direction_array = np.asarray(direction, dtype=float)
@@ -257,9 +277,9 @@ def run_finite_q_ward_scan(
                 if norm <= 0.0:
                     raise ValueError("q direction must be nonzero")
                 q = float(q_value) * direction_array / norm
-                response = finite_q_bdg_response_from_ansatz(
+                workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(
+                    model.spec,
                     ansatz,
-                    float(kubo.omega_eV),
                     q,
                     points,
                     mesh_weights,
@@ -267,6 +287,7 @@ def run_finite_q_ward_scan(
                     amp,
                     options,
                 )
+                response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=kubo)
                 matrices = {
                     "bare_bubble": response.bare_bubble,
                     "direct": response.direct,
@@ -328,13 +349,18 @@ def run_finite_q_ward_scan(
         "dwave 若显示 intraband_aware_pass，表示 q=0 raw bubble 对齐 local interband，raw-vs-total 差异由 intraband/-f'(E) local 项解释。",
         "diagnostic_run_completed 只表示扫描数值完成；ward_identity_closed 才表示 Ward identity 在给定 tolerance 下闭合。",
         "finite-q 输出保持 valid_for_casimir_input=False。",
+        f"model_name={model.name}; primary_validation_model={model.primary_validation_model}.",
+        "finite-q response 使用预计算 workspace evaluate。",
         "残差比例为各响应 max residual 相对 bare_total 的比例。",
         "新增 bare_bubble/direct/plus_schur 行为 staged diagnostic-only 输出，不改变 ward_identity_closed 判据。",
         "left/right Ward residual vector 分量顺序为 density,current_x,current_y，并分别记录 real/imag。",
         "schur_residual_differences 只比较 residual vectors，不改变 Schur correction、Ward 判据或 Casimir gating。",
     )
     return FiniteQWardScanReport(
-        pairing_names=tuple(pairing_names),
+        model_name=model.name,
+        model_metadata=model.metadata(),
+        primary_validation_model=model.primary_validation_model,
+        pairing_names=tuple(selected_pairings),
         omega_eV=float(kubo.omega_eV),
         nk=nk if k_points is None else None,
         mesh_size=int(points.shape[0]),
@@ -346,6 +372,7 @@ def run_finite_q_ward_scan(
         schur_residual_differences=tuple(schur_residual_differences),
         diagnostic_run_completed=bool(diagnostic_completed),
         ward_identity_closed=ward_identity_closed,
+        workspace_evaluation=True,
         notes=notes,
         valid_for_casimir_input=False,
     )
@@ -358,21 +385,28 @@ def _write_json(path: Path, report: FiniteQWardScanReport) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="运行有限 q Ward 残差扫描诊断。")
-    parser.add_argument("--pairings", nargs="+", choices=("onsite_s", "spm", "dwave"), default=["onsite_s", "spm", "dwave"])
+    parser.add_argument("--model", choices=available_finite_q_validation_models(), default="symmetry_bdg_2band")
+    parser.add_argument("--pairings", nargs="+")
     parser.add_argument("--omega", type=float, default=0.01)
     parser.add_argument("--q-values", nargs="+", type=float, default=[0.005, 0.01, 0.02])
     parser.add_argument("--nk", type=int, default=3)
-    parser.add_argument("--delta0", type=float, default=0.04)
+    parser.add_argument("--delta0", type=float)
     parser.add_argument("--q0-status-json", type=Path)
     parser.add_argument("--json-output", type=Path)
     args = parser.parse_args(argv)
     q0_status = _q0_status_from_json(args.q0_status_json) if args.q0_status_json is not None else None
+    model = get_finite_q_validation_model(args.model)
+    pairings = tuple(args.pairings) if args.pairings else None
+    if pairings is not None:
+        for pairing in pairings:
+            model.require_pairing(pairing)
     report = run_finite_q_ward_scan(
-        tuple(args.pairings),
+        pairings,
+        model_name=model.name,
         omega_eV=args.omega,
         q_values=tuple(args.q_values),
         nk=args.nk,
-        pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+        pairing_params=model.build_pairing_params(args.delta0),
         q0_status=q0_status,
     )
     print(report.format_text())

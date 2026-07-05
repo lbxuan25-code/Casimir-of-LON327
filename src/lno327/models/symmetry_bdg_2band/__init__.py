@@ -1,6 +1,11 @@
 """Symmetry-focused two-band BdG model package."""
 
 from lno327.models.symmetry_bdg_2band.bdg import bdg_hamiltonian
+from lno327.models.symmetry_bdg_2band.collective import (
+    SymmetryTwoBandPairingAmplitudes,
+    SymmetryTwoBandPairingAnsatz,
+    build_pairing_ansatz,
+)
 from lno327.models.symmetry_bdg_2band.normal import normal_hamiltonian
 from lno327.models.symmetry_bdg_2band.pairing import d_wave_form_factor, pairing_matrix
 from lno327.models.symmetry_bdg_2band.parameters import BASIS, PairingChannel, TwoBandParameters
@@ -19,8 +24,11 @@ __all__ = [
     "BASIS",
     "PairingChannel",
     "SymmetryBdG2BandSpec",
+    "SymmetryTwoBandPairingAmplitudes",
+    "SymmetryTwoBandPairingAnsatz",
     "TwoBandParameters",
     "bdg_hamiltonian",
+    "build_pairing_ansatz",
     "d_wave_form_factor",
     "mass_operator",
     "normal_hamiltonian",

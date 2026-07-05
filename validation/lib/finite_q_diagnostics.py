@@ -19,11 +19,13 @@ from lno327.response.config import KuboConfig
 from lno327.workflows.finite_q_engine import (
     FiniteQEngineOptions,
     bdg_finite_q_response_imag_axis_from_workspace,
-    precompute_finite_q_engine_workspace,
 )
-from lno327.models.lno327_four_orbital.collective import build_pairing_ansatz
-from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes, PairingAnsatzName
+from lno327.response.finite_q_bdg import precompute_finite_q_bdg_workspace_from_model_ansatz
 from lno327.collective.validation import WardValidationReport, validate_physical_ward_identity
+from validation.lib.finite_q_validation_models import (
+    FiniteQValidationModel,
+    get_finite_q_validation_model,
+)
 
 
 DIAGNOSTIC_PHASE_VERTEX = "bond_endpoint_gauge"
@@ -35,6 +37,9 @@ DIAGNOSTIC_INCLUDE_PHASE_PHASE_DIRECT = True
 
 @dataclass(frozen=True)
 class FiniteQDiagnosticReport:
+    model_name: str
+    model_metadata: dict[str, Any]
+    primary_validation_model: bool
     pairing_name: str
     phase_vertex: str
     omega_eV: float
@@ -52,6 +57,7 @@ class FiniteQDiagnosticReport:
     inverse_method: str
     selected_response_name: str
     valid_for_casimir_input: bool
+    workspace_evaluation: bool
     ward_passed: dict[str, bool]
 
     def to_dict(self) -> dict[str, Any]:
@@ -62,6 +68,7 @@ class FiniteQDiagnosticReport:
     def format_text(self) -> str:
         lines = [
             "finite-q 诊断报告",
+            f"model_name: {self.model_name}",
             f"配对名称: {self.pairing_name}",
             f"相位顶点: {self.phase_vertex}",
             f"omega_eV: {self.omega_eV:.12g}",
@@ -82,6 +89,7 @@ class FiniteQDiagnosticReport:
             f"求逆方法: {self.inverse_method}",
             f"选中响应名称: {self.selected_response_name}",
             f"valid_for_casimir_input: {self.valid_for_casimir_input}",
+            f"workspace_evaluation: {self.workspace_evaluation}",
         ]
         return "\n".join(lines)
 
@@ -91,15 +99,17 @@ def _residual_norm(report: WardValidationReport) -> float:
 
 
 def run_finite_q_diagnostic(
-    pairing_name: PairingAnsatzName,
+    pairing_name: str,
     *,
+    model_name: str = "symmetry_bdg_2band",
+    model: FiniteQValidationModel | None = None,
     omega_eV: float = 0.01,
     q_model: np.ndarray | tuple[float, float] = (0.01, 0.0),
     nk: int = 3,
     k_points: np.ndarray | None = None,
     weights: np.ndarray | None = None,
     config: KuboConfig | None = None,
-    pairing_params: PairingAmplitudes | None = None,
+    pairing_params=None,
     tolerance: float = 1e-8,
 ) -> FiniteQDiagnosticReport:
     """Run the explicit diagnostic finite-q Ward workflow for one ansatz."""
@@ -112,16 +122,19 @@ def run_finite_q_diagnostic(
         eta_eV=1e-8,
         output_si=False,
     )
-    amp = pairing_params or PairingAmplitudes()
+    adapter = model or get_finite_q_validation_model(model_name)
+    adapter.require_pairing(pairing_name)
+    amp = pairing_params or adapter.build_pairing_params()
     q = np.asarray(q_model, dtype=float)
-    ansatz = build_pairing_ansatz(pairing_name, phase_vertex=DIAGNOSTIC_PHASE_VERTEX)
+    ansatz = adapter.build_ansatz(pairing_name, phase_vertex=DIAGNOSTIC_PHASE_VERTEX)
     options = FiniteQEngineOptions(
         current_vertex=DIAGNOSTIC_CURRENT_VERTEX,
         collective_mode=DIAGNOSTIC_COLLECTIVE_MODE,
         collective_counterterm=DIAGNOSTIC_COLLECTIVE_COUNTERTERM,
         include_phase_phase_direct=DIAGNOSTIC_INCLUDE_PHASE_PHASE_DIRECT,
     )
-    workspace = precompute_finite_q_engine_workspace(
+    workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(
+        adapter.spec,
         ansatz,
         q,
         points,
@@ -144,6 +157,9 @@ def run_finite_q_diagnostic(
         raise RuntimeError("finite-q diagnostic response must not be marked valid_for_casimir_input=True")
     inferred_nk = nk if k_points is None else None
     return FiniteQDiagnosticReport(
+        model_name=adapter.name,
+        model_metadata=adapter.metadata(),
+        primary_validation_model=adapter.primary_validation_model,
         pairing_name=ansatz.name,
         phase_vertex=ansatz.phase_vertex,
         omega_eV=float(kubo.omega_eV),
@@ -161,6 +177,7 @@ def run_finite_q_diagnostic(
         inverse_method=str(response.metadata.get("collective_inverse_method", "not_used")),
         selected_response_name=str(response.metadata.get("gauge_restored_selected", "bare_total")),
         valid_for_casimir_input=False,
+        workspace_evaluation=True,
         ward_passed={
             "bare_total": ward_bare.passed,
             "minus_schur": ward_minus.passed,
@@ -171,19 +188,21 @@ def run_finite_q_diagnostic(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="运行 finite-q Ward closure 诊断。")
-    parser.add_argument("pairing", choices=("onsite_s", "spm", "dwave"))
+    parser.add_argument("--model", choices=("symmetry_bdg_2band", "lno327_four_orbital"), default="symmetry_bdg_2band")
+    parser.add_argument("pairing")
     parser.add_argument("--omega", type=float, default=0.01)
     parser.add_argument("--qx", type=float, default=0.01)
     parser.add_argument("--qy", type=float, default=0.0)
     parser.add_argument("--nk", type=int, default=3)
-    parser.add_argument("--delta0", type=float, default=0.04)
+    parser.add_argument("--delta0", type=float)
     args = parser.parse_args(argv)
     report = run_finite_q_diagnostic(
         args.pairing,
+        model_name=args.model,
         omega_eV=args.omega,
         q_model=(args.qx, args.qy),
         nk=args.nk,
-        pairing_params=PairingAmplitudes(delta0_eV=args.delta0),
+        pairing_params=get_finite_q_validation_model(args.model).build_pairing_params(args.delta0),
     )
     print(report.format_text())
     return 0
