@@ -86,6 +86,65 @@ def _inverted(matrix: np.ndarray) -> tuple[np.ndarray, str, float | None]:
         return np.linalg.pinv(array), "pinv_diagnostic", None
 
 
+def _real_inner_product(left: np.ndarray, right: np.ndarray) -> float:
+    return float(np.real(np.vdot(np.asarray(left, dtype=complex), np.asarray(right, dtype=complex))))
+
+
+def _cosine(left: np.ndarray, right: np.ndarray) -> float | None:
+    left_norm = float(np.linalg.norm(left))
+    right_norm = float(np.linalg.norm(right))
+    if left_norm == 0.0 or right_norm == 0.0:
+        return None
+    return float(_real_inner_product(left, right) / (left_norm * right_norm))
+
+
+def _cancellation_fraction(left: np.ndarray, right: np.ndarray) -> float | None:
+    left_norm = float(np.linalg.norm(left))
+    right_norm = float(np.linalg.norm(right))
+    denominator = left_norm + right_norm
+    if denominator == 0.0:
+        return None
+    return float(1.0 - np.linalg.norm(np.asarray(left, dtype=complex) + np.asarray(right, dtype=complex)) / denominator)
+
+
+def _identity_decomposition_payload(
+    *,
+    labels: tuple[str, ...],
+    identity_name: str,
+    first_name: str,
+    first: np.ndarray,
+    second_name: str,
+    second: np.ndarray,
+) -> dict[str, Any]:
+    first_array = np.asarray(first, dtype=complex)
+    second_array = np.asarray(second, dtype=complex)
+    residual = first_array + second_array
+    return {
+        "identity": identity_name,
+        "algebraic_form": f"{first_name} + {second_name} = 0",
+        "labels": list(labels),
+        "terms": {
+            first_name: _vector_payload(first_array, labels),
+            second_name: _vector_payload(second_array, labels),
+        },
+        "residual": _vector_payload(residual, labels),
+        "cosine_between_terms": _cosine(first_array, second_array),
+        "cancellation_fraction": _cancellation_fraction(first_array, second_array),
+        "norm_ratio_second_to_first": (
+            None if float(np.linalg.norm(first_array)) == 0.0 else float(np.linalg.norm(second_array) / np.linalg.norm(first_array))
+        ),
+        "valid_for_casimir_input": False,
+    }
+
+
+def _ranked_payloads(payloads: dict[str, dict[str, Any]], *, value_key: str = "norm") -> list[dict[str, Any]]:
+    return sorted(
+        ({"name": name, value_key: float(payload.get(value_key, payload.get("residual", {}).get(value_key, 0.0)))} for name, payload in payloads.items()),
+        key=lambda item: item[value_key],
+        reverse=True,
+    )
+
+
 def schur_residual_reconstruction(
     *,
     aa_left_error: np.ndarray,
@@ -138,20 +197,27 @@ def evaluate_collective_ward_blocks(
         raise ValueError("schur_response must have shape (3, 3)")
 
     r_left, r_right = collective_generators(delta0_eV)
-    aa_left = left_em_contract(aa, omega_eV, q) + r_left @ etaa
-    aeta_left = left_em_contract(aeta, omega_eV, q) + r_left @ etaeta
-    aa_right = right_em_contract(aa, omega_eV, q) + aeta @ r_right
-    etaa_right = right_em_contract(etaa, omega_eV, q) + etaeta @ r_right
+    aa_left_w = left_em_contract(aa, omega_eV, q)
+    aa_left_generator = r_left @ etaa
+    aeta_left_w = left_em_contract(aeta, omega_eV, q)
+    aeta_left_generator = r_left @ etaeta
+    aa_right_w = right_em_contract(aa, omega_eV, q)
+    aa_right_generator = aeta @ r_right
+    etaa_right_w = right_em_contract(etaa, omega_eV, q)
+    etaa_right_generator = etaeta @ r_right
 
-    predicted_left, predicted_right, inverse_method, condition_number = schur_residual_reconstruction(
-        aa_left_error=aa_left,
-        aeta_left_error=aeta_left,
-        aa_right_error=aa_right,
-        etaa_right_error=etaa_right,
-        k_aeta=aeta,
-        k_etaa=etaa,
-        k_etaeta=etaeta,
-    )
+    aa_left = aa_left_w + aa_left_generator
+    aeta_left = aeta_left_w + aeta_left_generator
+    aa_right = aa_right_w + aa_right_generator
+    etaa_right = etaa_right_w + etaa_right_generator
+
+    inverse, inverse_method, condition_number = _inverted(etaeta)
+    left_from_aa_identity = aa_left
+    left_from_aeta_identity = -aeta_left @ inverse @ etaa
+    right_from_aa_identity = aa_right
+    right_from_etaa_identity = -aeta @ inverse @ etaa_right
+    predicted_left = left_from_aa_identity + left_from_aeta_identity
+    predicted_right = right_from_aa_identity + right_from_etaa_identity
     actual_left, actual_right = physical_ward_residuals(schur, omega_eV, q)
     left_difference = actual_left - predicted_left
     right_difference = actual_right - predicted_right
@@ -162,8 +228,53 @@ def evaluate_collective_ward_blocks(
         "aa_right": _vector_payload(aa_right, EM_LABELS),
         "etaa_right": _vector_payload(etaa_right, COLLECTIVE_LABELS),
     }
+    block_decomposition = {
+        "aa_left": _identity_decomposition_payload(
+            labels=EM_LABELS,
+            identity_name="W_L(K_AA_full) + R_L K_etaA = 0",
+            first_name="W_L(K_AA_full)",
+            first=aa_left_w,
+            second_name="R_L K_etaA",
+            second=aa_left_generator,
+        ),
+        "aeta_left": _identity_decomposition_payload(
+            labels=COLLECTIVE_LABELS,
+            identity_name="W_L(K_Aeta) + R_L K_etaeta = 0",
+            first_name="W_L(K_Aeta)",
+            first=aeta_left_w,
+            second_name="R_L K_etaeta",
+            second=aeta_left_generator,
+        ),
+        "aa_right": _identity_decomposition_payload(
+            labels=EM_LABELS,
+            identity_name="W_R(K_AA_full) + K_Aeta R_R = 0",
+            first_name="W_R(K_AA_full)",
+            first=aa_right_w,
+            second_name="K_Aeta R_R",
+            second=aa_right_generator,
+        ),
+        "etaa_right": _identity_decomposition_payload(
+            labels=COLLECTIVE_LABELS,
+            identity_name="W_R(K_etaA) + K_etaeta R_R = 0",
+            first_name="W_R(K_etaA)",
+            first=etaa_right_w,
+            second_name="K_etaeta R_R",
+            second=etaa_right_generator,
+        ),
+    }
+    schur_contributions = {
+        "left_from_aa_identity": _vector_payload(left_from_aa_identity, EM_LABELS),
+        "left_from_aeta_identity": _vector_payload(left_from_aeta_identity, EM_LABELS),
+        "right_from_aa_identity": _vector_payload(right_from_aa_identity, EM_LABELS),
+        "right_from_etaa_identity": _vector_payload(right_from_etaa_identity, EM_LABELS),
+    }
     ranked = sorted(
         ({"block": name, "norm": float(payload["norm"]), "max_abs": float(payload["max_abs"])} for name, payload in blocks.items()),
+        key=lambda item: item["norm"],
+        reverse=True,
+    )
+    ranked_schur_contributions = sorted(
+        ({"contribution": name, "norm": float(payload["norm"]), "max_abs": float(payload["max_abs"])} for name, payload in schur_contributions.items()),
         key=lambda item: item["norm"],
         reverse=True,
     )
@@ -197,8 +308,18 @@ def evaluate_collective_ward_blocks(
         },
         "k_etaeta_matrix": _complex_matrix_entries(etaeta),
         "block_residuals": blocks,
+        "block_decomposition": block_decomposition,
         "ranked_block_residuals": ranked,
         "dominant_block_residual": ranked[0] if ranked else None,
+        "schur_contribution_breakdown": {
+            "contributions": schur_contributions,
+            "ranked_contributions": ranked_schur_contributions,
+            "left_cancellation_fraction": _cancellation_fraction(left_from_aa_identity, left_from_aeta_identity),
+            "right_cancellation_fraction": _cancellation_fraction(right_from_aa_identity, right_from_etaa_identity),
+            "left_cosine_between_contributions": _cosine(left_from_aa_identity, left_from_aeta_identity),
+            "right_cosine_between_contributions": _cosine(right_from_aa_identity, right_from_etaa_identity),
+            "valid_for_casimir_input": False,
+        },
         "schur_reconstruction": {
             "inverse_method": inverse_method,
             "condition_number": condition_number,
