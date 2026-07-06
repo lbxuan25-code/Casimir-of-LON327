@@ -1,0 +1,904 @@
+{
+  "problem": "finite_q_ward",
+  "model_name": "symmetry_bdg_2band",
+  "primary_validation_model": true,
+  "valid_for_casimir_input": false,
+  "run_config": {
+    "output_dir": "/home/liubx25/Ni_Research/Projects/Casimir_Torque_of_LNO327/validation/outputs/finite_q_ward",
+    "nk": 9,
+    "omega": 0.01,
+    "delta0": 0.1,
+    "q_values": [
+      0.0025,
+      0.005,
+      0.01,
+      0.02
+    ],
+    "pairings": [
+      "spm",
+      "dwave"
+    ]
+  },
+  "q0_precondition_status": {
+    "spm": "convention_aware_pass",
+    "dwave": "convention_aware_pass"
+  },
+  "q0_comparator_summary": {
+    "spm": {
+      "status": "convention_aware_pass",
+      "passed": true,
+      "comparator_family": "local_bdg",
+      "q0_comparator_available": true,
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": "local_BdG_paramagnetic_kernel",
+        "finite_q_direct_q0": "-local_BdG_diamagnetic_kernel",
+        "finite_q_total_q0": "-local_BdG_total_kernel",
+        "finite_q_minus_schur_q0": "-local_BdG_total_kernel",
+        "finite_q_amplitude_phase_schur_q0": "-local_BdG_total_kernel"
+      },
+      "valid_for_casimir_input": false
+    },
+    "dwave": {
+      "status": "convention_aware_pass",
+      "passed": true,
+      "comparator_family": "local_bdg",
+      "q0_comparator_available": true,
+      "best_transformed_match": {
+        "finite_q_raw_bubble_q0": "local_BdG_paramagnetic_kernel",
+        "finite_q_direct_q0": "-local_BdG_diamagnetic_kernel",
+        "finite_q_total_q0": "-local_BdG_total_kernel",
+        "finite_q_minus_schur_q0": "-local_BdG_total_kernel",
+        "finite_q_amplitude_phase_schur_q0": "-local_BdG_total_kernel"
+      },
+      "valid_for_casimir_input": false
+    }
+  },
+  "finite_q_status": {
+    "diagnostic_run_completed": true,
+    "ward_identity_closed": false,
+    "workspace_evaluation": true
+  },
+  "pairing_summary": {
+    "spm": {
+      "q0_precondition_status": "convention_aware_pass",
+      "row_count": 24,
+      "max_ward_residual_norm": 0.029281505043496976,
+      "max_closure_residual_norm": 0.01374012824796429,
+      "ward_identity_closed": false,
+      "valid_for_casimir_input": false
+    },
+    "dwave": {
+      "q0_precondition_status": "convention_aware_pass",
+      "row_count": 24,
+      "max_ward_residual_norm": 0.01739203312520162,
+      "max_closure_residual_norm": 0.013904430677376702,
+      "ward_identity_closed": false,
+      "valid_for_casimir_input": false
+    }
+  },
+  "finite_q_rows": [
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_bubble",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.003320802921165334,
+      "right_ward_residual_norm": 0.003320802921165334,
+      "max_ward_residual_norm": 0.003320802921165334,
+      "residual_ratio_to_bare": 0.8895493485928726,
+      "collective_matrix_condition_number": 190.07762359715088,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "direct",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.0017274807786997123,
+      "right_ward_residual_norm": 0.0017274807786997123,
+      "max_ward_residual_norm": 0.0017274807786997123,
+      "residual_ratio_to_bare": 0.4627433298148831,
+      "collective_matrix_condition_number": 190.07762359715088,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_total",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.0037331295070007335,
+      "right_ward_residual_norm": 0.0037331295070007335,
+      "max_ward_residual_norm": 0.0037331295070007335,
+      "residual_ratio_to_bare": 1.0,
+      "collective_matrix_condition_number": 190.07762359715088,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "minus_schur",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 8.829855808354392e-05,
+      "right_ward_residual_norm": 8.829855808354449e-05,
+      "max_ward_residual_norm": 8.829855808354449e-05,
+      "residual_ratio_to_bare": 0.023652690836993014,
+      "collective_matrix_condition_number": 190.07762359715088,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "plus_schur",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.00749890894044468,
+      "right_ward_residual_norm": 0.00749890894044468,
+      "max_ward_residual_norm": 0.00749890894044468,
+      "residual_ratio_to_bare": 2.0087459935108023,
+      "collective_matrix_condition_number": 190.07762359715088,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "amplitude_phase_schur",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 9.78782803506378e-05,
+      "right_ward_residual_norm": 9.78782803506378e-05,
+      "max_ward_residual_norm": 9.78782803506378e-05,
+      "residual_ratio_to_bare": 0.02621882797451489,
+      "collective_matrix_condition_number": 190.07762359715088,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_bubble",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.003319919873765456,
+      "right_ward_residual_norm": 0.003319919873765456,
+      "max_ward_residual_norm": 0.003319919873765456,
+      "residual_ratio_to_bare": 0.6978774968610787,
+      "collective_matrix_condition_number": 161.95664756717494,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "direct",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.003454956159024804,
+      "right_ward_residual_norm": 0.003454956159024804,
+      "max_ward_residual_norm": 0.003454956159024804,
+      "residual_ratio_to_bare": 0.7262633580642067,
+      "collective_matrix_condition_number": 161.95664756717494,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_total",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0047571671084077494,
+      "right_ward_residual_norm": 0.0047571671084077494,
+      "max_ward_residual_norm": 0.0047571671084077494,
+      "residual_ratio_to_bare": 1.0,
+      "collective_matrix_condition_number": 161.95664756717494,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "minus_schur",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.00020886525184812645,
+      "right_ward_residual_norm": 0.00020886525184812645,
+      "max_ward_residual_norm": 0.00020886525184812645,
+      "residual_ratio_to_bare": 0.04390538467294558,
+      "collective_matrix_condition_number": 161.95664756717494,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "plus_schur",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.00967608622689033,
+      "right_ward_residual_norm": 0.00967608622689033,
+      "max_ward_residual_norm": 0.00967608622689033,
+      "residual_ratio_to_bare": 2.034001750703471,
+      "collective_matrix_condition_number": 161.95664756717494,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "amplitude_phase_schur",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.00023589738307938838,
+      "right_ward_residual_norm": 0.00023589738307938751,
+      "max_ward_residual_norm": 0.00023589738307938838,
+      "residual_ratio_to_bare": 0.049587785693394434,
+      "collective_matrix_condition_number": 161.95664756717494,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_bubble",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.003317291298929037,
+      "right_ward_residual_norm": 0.003317291298929037,
+      "max_ward_residual_norm": 0.003317291298929037,
+      "residual_ratio_to_bare": 0.4392512461018138,
+      "collective_matrix_condition_number": 101.90009875967483,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "direct",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.006909869131187589,
+      "right_ward_residual_norm": 0.006909869131187589,
+      "max_ward_residual_norm": 0.006909869131187589,
+      "residual_ratio_to_bare": 0.9149539044866178,
+      "collective_matrix_condition_number": 101.90009875967483,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_total",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.0075521500015508745,
+      "right_ward_residual_norm": 0.0075521500015508745,
+      "max_ward_residual_norm": 0.0075521500015508745,
+      "residual_ratio_to_bare": 1.0,
+      "collective_matrix_condition_number": 101.90009875967483,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "minus_schur",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.000678186883555692,
+      "right_ward_residual_norm": 0.000678186883555692,
+      "max_ward_residual_norm": 0.000678186883555692,
+      "residual_ratio_to_bare": 0.08980050494447578,
+      "collective_matrix_condition_number": 101.90009875967483,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "plus_schur",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.015761039248697248,
+      "right_ward_residual_norm": 0.015761039248697248,
+      "max_ward_residual_norm": 0.015761039248697248,
+      "residual_ratio_to_bare": 2.086960566919438,
+      "collective_matrix_condition_number": 101.90009875967483,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "amplitude_phase_schur",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.0006749803461714416,
+      "right_ward_residual_norm": 0.0006749803461714423,
+      "max_ward_residual_norm": 0.0006749803461714423,
+      "residual_ratio_to_bare": 0.08937591891485622,
+      "collective_matrix_condition_number": 101.90009875967483,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_bubble",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.0033311597506192796,
+      "right_ward_residual_norm": 0.0033311597506192796,
+      "max_ward_residual_norm": 0.0033311597506192796,
+      "residual_ratio_to_bare": 0.24244022257309117,
+      "collective_matrix_condition_number": 41.43893318640039,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "direct",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.013819392771797731,
+      "right_ward_residual_norm": 0.013819392771797731,
+      "max_ward_residual_norm": 0.013819392771797731,
+      "residual_ratio_to_bare": 1.005768834351687,
+      "collective_matrix_condition_number": 41.43893318640039,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_total",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.01374012824796429,
+      "right_ward_residual_norm": 0.01374012824796429,
+      "max_ward_residual_norm": 0.01374012824796429,
+      "residual_ratio_to_bare": 1.0,
+      "collective_matrix_condition_number": 41.43893318640039,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "minus_schur",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.0018087888076300071,
+      "right_ward_residual_norm": 0.0018087888076300071,
+      "max_ward_residual_norm": 0.0018087888076300071,
+      "residual_ratio_to_bare": 0.13164278928022333,
+      "collective_matrix_condition_number": 41.43893318640039,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "plus_schur",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.029281505043496976,
+      "right_ward_residual_norm": 0.029281505043496976,
+      "max_ward_residual_norm": 0.029281505043496976,
+      "residual_ratio_to_bare": 2.131094012738583,
+      "collective_matrix_condition_number": 41.43893318640039,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "amplitude_phase_schur",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.0017709885262371322,
+      "right_ward_residual_norm": 0.0017709885262371322,
+      "max_ward_residual_norm": 0.0017709885262371322,
+      "residual_ratio_to_bare": 0.1288917027757378,
+      "collective_matrix_condition_number": 41.43893318640039,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "bare_bubble",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.0015650299565349835,
+      "right_ward_residual_norm": 0.0015650299565349835,
+      "max_ward_residual_norm": 0.0015650299565349835,
+      "residual_ratio_to_bare": 0.6712932634450888,
+      "collective_matrix_condition_number": 190.56257910587507,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "direct",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.0017492924345689517,
+      "right_ward_residual_norm": 0.0017492924345689517,
+      "max_ward_residual_norm": 0.0017492924345689517,
+      "residual_ratio_to_bare": 0.7503295526185968,
+      "collective_matrix_condition_number": 190.56257910587507,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "bare_total",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.002331365502616877,
+      "right_ward_residual_norm": 0.0023313655026168775,
+      "max_ward_residual_norm": 0.0023313655026168775,
+      "residual_ratio_to_bare": 1.0,
+      "collective_matrix_condition_number": 190.56257910587507,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "minus_schur",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.0015109489659488754,
+      "right_ward_residual_norm": 0.0015109489659488754,
+      "max_ward_residual_norm": 0.0015109489659488754,
+      "residual_ratio_to_bare": 0.6480961326110759,
+      "collective_matrix_condition_number": 190.56257910587507,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "plus_schur",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.003713748374440454,
+      "right_ward_residual_norm": 0.003713748374440454,
+      "max_ward_residual_norm": 0.003713748374440454,
+      "residual_ratio_to_bare": 1.5929498700533655,
+      "collective_matrix_condition_number": 190.56257910587507,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "amplitude_phase_schur",
+      "q_model": [
+        0.0025,
+        0.0
+      ],
+      "q_norm": 0.0025,
+      "left_ward_residual_norm": 0.0015118451684304314,
+      "right_ward_residual_norm": 0.0015118451684304314,
+      "max_ward_residual_norm": 0.0015118451684304314,
+      "residual_ratio_to_bare": 0.6484805435841945,
+      "collective_matrix_condition_number": 190.56257910587507,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "bare_bubble",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0015654825889263736,
+      "right_ward_residual_norm": 0.0015654825889263736,
+      "max_ward_residual_norm": 0.0015654825889263736,
+      "residual_ratio_to_bare": 0.4126297334928834,
+      "collective_matrix_condition_number": 184.78946040178502,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "direct",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0034985794026018945,
+      "right_ward_residual_norm": 0.0034985794026018945,
+      "max_ward_residual_norm": 0.0034985794026018945,
+      "residual_ratio_to_bare": 0.9221551850598103,
+      "collective_matrix_condition_number": 184.78946040178502,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "bare_total",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0037939160992463317,
+      "right_ward_residual_norm": 0.0037939160992463317,
+      "max_ward_residual_norm": 0.0037939160992463317,
+      "residual_ratio_to_bare": 1.0,
+      "collective_matrix_condition_number": 184.78946040178502,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "minus_schur",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0029977650206373164,
+      "right_ward_residual_norm": 0.0029977650206373164,
+      "max_ward_residual_norm": 0.0029977650206373164,
+      "residual_ratio_to_bare": 0.7901505837814463,
+      "collective_matrix_condition_number": 184.78946040178502,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "plus_schur",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.005095778796855061,
+      "right_ward_residual_norm": 0.005095778796855061,
+      "max_ward_residual_norm": 0.005095778796855061,
+      "residual_ratio_to_bare": 1.3431448307112923,
+      "collective_matrix_condition_number": 184.78946040178502,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "amplitude_phase_schur",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0030045656327033566,
+      "right_ward_residual_norm": 0.0030045656327033566,
+      "max_ward_residual_norm": 0.0030045656327033566,
+      "residual_ratio_to_bare": 0.7919430883830613,
+      "collective_matrix_condition_number": 184.78946040178502,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "bare_bubble",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.0015673318816376023,
+      "right_ward_residual_norm": 0.0015673318816376023,
+      "max_ward_residual_norm": 0.0015673318816376023,
+      "residual_ratio_to_bare": 0.22117441178508382,
+      "collective_matrix_condition_number": 164.83232140517973,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "direct",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.006997115073052368,
+      "right_ward_residual_norm": 0.006997115073052368,
+      "max_ward_residual_norm": 0.006997115073052368,
+      "residual_ratio_to_bare": 0.9873995601097155,
+      "collective_matrix_condition_number": 164.83232140517973,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "bare_total",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.007086406917453841,
+      "right_ward_residual_norm": 0.007086406917453841,
+      "max_ward_residual_norm": 0.007086406917453841,
+      "residual_ratio_to_bare": 1.0,
+      "collective_matrix_condition_number": 164.83232140517973,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "minus_schur",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.005830403512356022,
+      "right_ward_residual_norm": 0.005830403512356022,
+      "max_ward_residual_norm": 0.005830403512356022,
+      "residual_ratio_to_bare": 0.8227587803341805,
+      "collective_matrix_condition_number": 164.83232140517973,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "plus_schur",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.008775028686431112,
+      "right_ward_residual_norm": 0.008775028686431112,
+      "max_ward_residual_norm": 0.008775028686431112,
+      "residual_ratio_to_bare": 1.2382902631258996,
+      "collective_matrix_condition_number": 164.83232140517973,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "amplitude_phase_schur",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "q_norm": 0.01,
+      "left_ward_residual_norm": 0.0058752113472814145,
+      "right_ward_residual_norm": 0.0058752113472814145,
+      "max_ward_residual_norm": 0.0058752113472814145,
+      "residual_ratio_to_bare": 0.8290818486320269,
+      "collective_matrix_condition_number": 164.83232140517973,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "bare_bubble",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.0015753816923048654,
+      "right_ward_residual_norm": 0.0015753816923048654,
+      "max_ward_residual_norm": 0.0015753816923048654,
+      "residual_ratio_to_bare": 0.11330069737181694,
+      "collective_matrix_condition_number": 115.22708370086569,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "direct",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.01399388029326652,
+      "right_ward_residual_norm": 0.01399388029326652,
+      "max_ward_residual_norm": 0.01399388029326652,
+      "residual_ratio_to_bare": 1.00643317356642,
+      "collective_matrix_condition_number": 115.22708370086569,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "bare_total",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.013904430677376702,
+      "right_ward_residual_norm": 0.013904430677376702,
+      "max_ward_residual_norm": 0.013904430677376702,
+      "residual_ratio_to_bare": 1.0,
+      "collective_matrix_condition_number": 115.22708370086569,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "minus_schur",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.010859199174627862,
+      "right_ward_residual_norm": 0.010859199174627862,
+      "max_ward_residual_norm": 0.010859199174627862,
+      "residual_ratio_to_bare": 0.7809884076948506,
+      "collective_matrix_condition_number": 115.22708370086569,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "plus_schur",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.01739203312520162,
+      "right_ward_residual_norm": 0.01739203312520162,
+      "max_ward_residual_norm": 0.01739203312520162,
+      "residual_ratio_to_bare": 1.250826698967218,
+      "collective_matrix_condition_number": 115.22708370086569,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "dwave",
+      "response_name": "amplitude_phase_schur",
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "left_ward_residual_norm": 0.011058627347831368,
+      "right_ward_residual_norm": 0.011058627347831368,
+      "max_ward_residual_norm": 0.011058627347831368,
+      "residual_ratio_to_bare": 0.7953311864702509,
+      "collective_matrix_condition_number": 115.22708370086569,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    }
+  ],
+  "diagnostic_interpretation": {
+    "main_observation": "The finite-q diagnostic completed, but ward_identity_closed is False.",
+    "suspected_blockers": [
+      "finite-q Ward residuals remain above tolerance for at least one closure response"
+    ],
+    "recommended_next_action": "Investigate the largest finite-q residual rows before changing any Casimir input gate."
+  }
+}

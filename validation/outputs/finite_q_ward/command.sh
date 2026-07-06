@@ -1,0 +1,1 @@
+python validation/scripts/bdg_finite_q/run_finite_q_ward_report.py --model symmetry_bdg_2band --output-dir validation/outputs/finite_q_ward --nk 9 --omega 0.01 --delta0 0.1 --q-values 0.0025 0.005 0.01 0.02 --pairings spm dwave

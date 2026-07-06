@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 import shlex
 import sys
@@ -15,11 +16,12 @@ DIAGNOSTIC_SCRIPT_FILES = (
     SCRIPT_DIR / "dwave_pairing_tangent_diagnostics.py",
     SCRIPT_DIR / "goldstone_counterterm_diagnostics.py",
     SCRIPT_DIR / "summarize_validation.py",
+    SCRIPT_DIR / "run_finite_q_ward_report.py",
 )
 NEW_DIAGNOSTIC_FILES = (
     *DIAGNOSTIC_SCRIPT_FILES,
-    ROOT / "validation" / "outputs" / "bdg_finite_q" / "README.md",
-    ROOT / "validation" / "outputs" / "bdg_finite_q" / "command.sh",
+    ROOT / "validation" / "outputs" / "finite_q_ward" / "report.md",
+    ROOT / "validation" / "outputs" / "finite_q_ward" / "command.sh",
 )
 MOVED_CORE_FILES = (
     ROOT / "src" / "lno327" / "q0_bdg_response_alignment.py",
@@ -212,25 +214,32 @@ def test_two_band_q0_superconducting_reports_local_bdg_comparator_without_bad_co
         assert ("finite_q_total_q0", "-local_BdG_total_kernel") in pairs
 
 
-def test_current_bdg_finite_q_output_contract_files_are_model_aware():
-    status_path = ROOT / "validation" / "outputs" / "bdg_finite_q" / "bdg_finite_q_validation_status.json"
-    readme_path = ROOT / "validation" / "outputs" / "bdg_finite_q" / "README.md"
-    command_path = ROOT / "validation" / "outputs" / "bdg_finite_q" / "command.sh"
+def test_current_finite_q_ward_output_report_is_model_aware():
+    output_dir = ROOT / "validation" / "outputs" / "finite_q_ward"
+    status_path = output_dir / "report.json"
+    markdown_path = output_dir / "report.md"
+    command_path = output_dir / "command.sh"
 
     assert status_path.exists()
-    assert readme_path.exists()
+    assert markdown_path.exists()
     assert command_path.exists()
-    status = __import__("json").loads(status_path.read_text(encoding="utf-8"))
+    status = json.loads(status_path.read_text(encoding="utf-8"))
+    markdown = markdown_path.read_text(encoding="utf-8")
     command = command_path.read_text(encoding="utf-8")
 
-    assert status["primary_validation_model"] == "symmetry_bdg_2band"
-    assert status["secondary_transfer_model"] == "lno327_four_orbital"
+    assert status["problem"] == "finite_q_ward"
+    assert status["model_name"] == "symmetry_bdg_2band"
+    assert status["primary_validation_model"] is True
     assert status["valid_for_casimir_input"] is False
-    assert status["ward_identity_closed"] is False
-    assert status["workspace_evaluation"] is True
+    assert status["finite_q_status"]["ward_identity_closed"] is False
+    assert status["finite_q_status"]["workspace_evaluation"] is True
+    assert set(status["pairing_summary"]) == {"spm", "dwave"}
+    assert "rows" not in status
+    assert status["finite_q_rows"]
+    assert "ward_identity_closed" in markdown
+    assert "valid_for_casimir_input" in markdown
     assert "--model symmetry_bdg_2band" in command
-    assert "q0_bdg_response_alignment.py" in command
-    assert "finite_q_ward_scan.py" in command
+    assert "run_finite_q_ward_report.py" in command
 
 
 def test_dwave_reconstruction_and_tangent_diagnostic_reports_structured_errors():
@@ -271,12 +280,12 @@ def test_validation_workflows_are_not_left_in_core_package():
     assert not any(path.exists() for path in MOVED_CORE_FILES)
 
 
-def test_bdg_finite_q_command_references_existing_current_scripts():
-    command_path = ROOT / "validation" / "outputs" / "bdg_finite_q" / "command.sh"
+def test_finite_q_ward_command_references_existing_current_script():
+    command_path = ROOT / "validation" / "outputs" / "finite_q_ward" / "command.sh"
     text = command_path.read_text(encoding="utf-8")
     assert "dwave_raw_bubble_vertex_audit.py" not in text
     assert "q0_local_intraband_decomposition.py" not in text
-    assert "q0_bdg_response_alignment.py" in text
+    assert "run_finite_q_ward_report.py" in text
     for line in command_path.read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):

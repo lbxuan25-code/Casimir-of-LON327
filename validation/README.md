@@ -11,7 +11,7 @@
 
 validation 报告按“具体检验对象”阅读：每个检验应说明检验目的、被检验对象、判据、结果、边界和复现方式。
 
-BdG finite-q validation 关注 raw finite-q response 是否满足 Ward / gauge closure，以及它是否可进入 formal conductivity / reflection / Casimir gating chain。对应复现入口位于 `validation/scripts/bdg_finite_q/`，轻量输出和复现命令位于 `validation/outputs/bdg_finite_q/`。
+BdG finite-q validation 关注 raw finite-q response 是否满足 Ward / gauge closure，以及它是否可进入 formal conductivity / reflection / Casimir gating chain。对应复现入口位于 `validation/scripts/bdg_finite_q/`，统一轻量报告和复现命令位于 `validation/outputs/finite_q_ward/`。
 
 ## Artifact 策略
 

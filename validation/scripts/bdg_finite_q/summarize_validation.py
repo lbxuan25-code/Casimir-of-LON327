@@ -16,15 +16,14 @@ def _read_json(path: Path) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="汇总 finite-q BdG validation 状态。")
-    parser.add_argument("--q0-status-json", type=Path, default=Path("validation/outputs/bdg_finite_q/q0_status.json"))
-    parser.add_argument("--ward-status-json", type=Path, default=Path("validation/outputs/bdg_finite_q/ward_scan_status.json"))
+    parser.add_argument("--report-json", type=Path, default=Path("validation/outputs/finite_q_ward/report.json"))
     args = parser.parse_args(argv)
-    q0 = _read_json(args.q0_status_json)
-    ward = _read_json(args.ward_status_json)
+    report = _read_json(args.report_json)
+    finite_q_status = report.get("finite_q_status", {})
     print("finite-q BdG validation summary")
-    print(f"q0_precondition_status: {q0.get('status_by_pairing', {})}")
-    print(f"diagnostic_run_completed: {ward.get('diagnostic_run_completed', False)}")
-    print(f"ward_identity_closed: {ward.get('ward_identity_closed', False)}")
+    print(f"q0_precondition_status: {report.get('q0_precondition_status', {})}")
+    print(f"diagnostic_run_completed: {finite_q_status.get('diagnostic_run_completed', False)}")
+    print(f"ward_identity_closed: {finite_q_status.get('ward_identity_closed', False)}")
     print("valid_for_casimir_input: False")
     return 0
 
