@@ -16,6 +16,7 @@ from lno327.collective.ward import (
 )
 from lno327.collective.validation import validate_physical_ward_identity
 from lno327.response.normal_density_current import (
+    normal_physical_bubble_ward_contribution_records_from_model,
     normal_physical_density_current_response_components_imag_axis_from_model,
 )
 from validation.lib.finite_q_validation_models import get_finite_q_validation_model
@@ -95,6 +96,15 @@ def _complex_component_payload(vector: np.ndarray) -> list[dict[str, float | str
         }
         for index, value in enumerate(array)
     ]
+
+
+def _complex_payload(value: complex) -> dict[str, float]:
+    scalar = complex(value)
+    return {
+        "real": float(np.real(scalar)),
+        "imag": float(np.imag(scalar)),
+        "abs": float(abs(scalar)),
+    }
 
 
 def _ward_residual_detail(matrix: np.ndarray, omega_eV: float, q_model: tuple[float, float]) -> dict[str, Any]:
@@ -774,6 +784,303 @@ def run_normal_bubble_convergence_audit(
         }
     except Exception as exc:
         return _unavailable(f"normal bubble convergence audit failed: {type(exc).__name__}: {exc}")
+
+
+def run_normal_bubble_per_k_outlier_audit(
+    *,
+    model_name: str = "symmetry_bdg_2band",
+    cases: tuple[dict[str, Any], ...] | None = None,
+    q_model: tuple[float, float] = (0.01, 0.0),
+    omega_eV: float = 0.01,
+    top_n: int = 12,
+    target_component: str = "left_current_x",
+) -> dict[str, Any]:
+    """Diagnostic-only per-k/band-pair audit for normal bubble Ward residual outliers."""
+    try:
+        model = get_finite_q_validation_model(model_name)
+        selected_cases = _default_bubble_outlier_cases() if cases is None else tuple(cases)
+        case_payloads = [
+            _normal_bubble_outlier_case(
+                model,
+                case,
+                q_model=q_model,
+                omega_eV=omega_eV,
+                top_n=top_n,
+                target_component=target_component,
+            )
+            for case in selected_cases
+        ]
+        cross_case = _bubble_outlier_cross_case_summary(case_payloads)
+        return {
+            "available": True,
+            "model_name": model.name,
+            "q_model": [float(q_model[0]), float(q_model[1])],
+            "omega_eV": float(omega_eV),
+            "target_component": target_component,
+            "top_n": int(top_n),
+            "valid_for_casimir_input": False,
+            "cases": case_payloads,
+            "cross_case_summary": cross_case,
+            "summary": {
+                "suspected_issue": cross_case["suspected_issue"],
+                "recommended_next_fix": cross_case["recommended_next_fix"],
+                "valid_for_casimir_input": False,
+            },
+        }
+    except Exception as exc:
+        return _unavailable(f"normal bubble per-k outlier audit failed: {type(exc).__name__}: {exc}")
+
+
+def _default_bubble_outlier_cases() -> tuple[dict[str, Any], ...]:
+    return (
+        {"case_name": "nk9_unshifted", "nk": 9, "shift": (0.0, 0.0)},
+        {"case_name": "nk11_unshifted", "nk": 11, "shift": (0.0, 0.0)},
+        {"case_name": "nk11_shift_y", "nk": 11, "shift": (0.0, 1.0 / (2.0 * 11.0))},
+        {"case_name": "nk8_unshifted", "nk": 8, "shift": (0.0, 0.0)},
+    )
+
+
+def _normal_bubble_outlier_case(
+    model: Any,
+    case: dict[str, Any],
+    *,
+    q_model: tuple[float, float],
+    omega_eV: float,
+    top_n: int,
+    target_component: str,
+) -> dict[str, Any]:
+    nk = int(case["nk"])
+    shift = tuple(float(value) for value in case.get("shift", (0.0, 0.0)))
+    mesh = uniform_bz_mesh(nk) + np.asarray(shift, dtype=float)
+    weights = k_weights(mesh)
+    config = KuboConfig.from_kelvin(omega_eV=omega_eV, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+    diagnostics = normal_physical_bubble_ward_contribution_records_from_model(
+        model.spec,
+        mesh,
+        config,
+        np.asarray(q_model, dtype=float),
+        weights,
+        target_component=target_component,
+    )
+    records = [dict(record) for record in diagnostics["records"]]
+    all_contributions = np.asarray(
+        [complex(record["contribution"]["real"], record["contribution"]["imag"]) for record in records],
+        dtype=complex,
+    )
+    target_total = complex(
+        diagnostics["total_residual_component"]["real"],
+        diagnostics["total_residual_component"]["imag"],
+    )
+    sum_all = complex(np.sum(all_contributions))
+    abs_values = np.asarray([abs(value) for value in all_contributions], dtype=float)
+    denominator_abs = np.asarray([float(record["denominator"]["abs"]) for record in records], dtype=float)
+    vertex_abs = np.asarray([float(record["vertices"]["vertex_product_abs"]) for record in records], dtype=float)
+    top_indices = list(np.argsort(abs_values)[::-1][: int(top_n)])
+    top_records = [
+        _bubble_top_contributor_payload(
+            records[index],
+            rank=rank,
+            target_component=target_component,
+            denominator_abs=denominator_abs,
+            vertex_abs=vertex_abs,
+        )
+        for rank, index in enumerate(top_indices, start=1)
+    ]
+    sum_top = complex(np.sum([all_contributions[index] for index in top_indices])) if top_indices else 0.0 + 0.0j
+    match_error_abs = float(abs(sum_all - target_total))
+    match_error_relative = float(match_error_abs / max(abs(target_total), _EPS))
+    sum_matches = bool(match_error_relative <= 1e-8 or match_error_abs <= 1e-12)
+    diagnosis = _bubble_case_diagnosis(
+        abs_values=abs_values,
+        top_records=top_records,
+        sum_matches=sum_matches,
+    )
+    return {
+        "case_name": str(case.get("case_name", f"nk{nk}_shifted")),
+        "nk": nk,
+        "mesh_size": int(mesh.shape[0]),
+        "shift": [float(shift[0]), float(shift[1])],
+        "total_residual_component": diagnostics["total_residual_component"],
+        "total_residual_max_norm": float(diagnostics["total_residual_max_norm"]),
+        "dominant_component": str(diagnostics["dominant_component"]),
+        "sum_of_reported_contributions": _complex_payload(sum_top),
+        "sum_all_contributions": _complex_payload(sum_all),
+        "sum_matches_total_component": sum_matches,
+        "match_error_abs": match_error_abs,
+        "match_error_relative": match_error_relative,
+        "concentration": _concentration_summary(abs_values),
+        "top_contributors": top_records,
+        "diagnosis": diagnosis,
+        "valid_for_casimir_input": False,
+    }
+
+
+def _bubble_top_contributor_payload(
+    record: dict[str, Any],
+    *,
+    rank: int,
+    target_component: str,
+    denominator_abs: np.ndarray,
+    vertex_abs: np.ndarray,
+) -> dict[str, Any]:
+    contribution_abs = float(record["contribution"]["abs"])
+    denominator_threshold = float(np.quantile(denominator_abs, 0.01)) if denominator_abs.size else 0.0
+    vertex_threshold = float(np.quantile(vertex_abs, 0.99)) if vertex_abs.size else float("inf")
+    vertex_median = float(np.median(vertex_abs)) if vertex_abs.size else 0.0
+    energy = record["energy"]
+    occupation = record["occupation"]
+    vertices = record["vertices"]
+    side, component = target_component.split("_", 1)
+    return {
+        "rank": int(rank),
+        "k_index": record["k_index"],
+        "k": record["k"],
+        "k_plus_q": record["k_plus_q"],
+        "band_pair": record["band_pair"],
+        "contribution": {
+            **record["contribution"],
+            "component": target_component,
+        },
+        "bubble_element_indices": {
+            "ward_side": side,
+            "component": component,
+            "matrix_row_or_col": component,
+        },
+        "energy": energy,
+        "occupation": occupation,
+        "denominator": record["denominator"],
+        "vertices": vertices,
+        "classification": {
+            "near_fermi": bool(
+                min(abs(float(energy["epsilon_m_k"])), abs(float(energy["epsilon_n_k_plus_q"]))) < 1e-3
+            ),
+            "small_denominator": bool(float(record["denominator"]["abs"]) <= max(denominator_threshold, 1e-3)),
+            "large_vertex_product": bool(
+                float(vertices["vertex_product_abs"]) >= vertex_threshold
+                or (
+                    vertex_median > 0.0
+                    and float(vertices["vertex_product_abs"]) >= 100.0 * vertex_median
+                )
+            ),
+            "occupation_jump": bool(float(occupation["abs_occupation_difference"]) > 0.5),
+        },
+        "valid_for_casimir_input": False,
+    }
+
+
+def _concentration_summary(abs_values: np.ndarray) -> dict[str, Any]:
+    total_abs = float(np.sum(abs_values))
+    sorted_abs = np.sort(abs_values)[::-1]
+
+    def fraction(count: int) -> float:
+        if total_abs <= 0.0:
+            return 0.0
+        return float(np.sum(sorted_abs[:count]) / total_abs)
+
+    normalized = abs_values / max(total_abs, _EPS)
+    effective = float(1.0 / max(np.sum(normalized**2), _EPS)) if abs_values.size else 0.0
+    return {
+        "top1_abs_fraction": fraction(1),
+        "top3_abs_fraction": fraction(3),
+        "top5_abs_fraction": fraction(5),
+        "top10_abs_fraction": fraction(10),
+        "effective_contributor_count": effective,
+    }
+
+
+def _bubble_case_diagnosis(
+    *,
+    abs_values: np.ndarray,
+    top_records: list[dict[str, Any]],
+    sum_matches: bool,
+) -> dict[str, Any]:
+    if not sum_matches:
+        issue = "per_k_sum_mismatch"
+        explanation = "per-k/band-pair contributions do not sum to the reported target residual"
+    else:
+        concentration = _concentration_summary(abs_values)
+        classifications = [
+            record["classification"]
+            for record in top_records
+        ]
+        if concentration["top1_abs_fraction"] >= 0.5:
+            issue = "single_k_outlier"
+            explanation = "one k/band-pair contribution dominates the target residual"
+        elif concentration["top5_abs_fraction"] >= 0.75:
+            issue = "few_k_outliers"
+            explanation = "a small set of k/band-pair contributions dominates the target residual"
+        elif any(item["small_denominator"] for item in classifications):
+            issue = "small_denominator_outlier"
+            explanation = "top contributors include small-denominator terms"
+        elif any(item["occupation_jump"] for item in classifications):
+            issue = "near_fermi_occupation_jump"
+            explanation = "top contributors include large occupation jumps near the Fermi surface"
+        elif any(item["large_vertex_product"] for item in classifications):
+            issue = "large_vertex_outlier"
+            explanation = "top contributors include unusually large vertex products"
+        elif concentration["effective_contributor_count"] > 20:
+            issue = "broad_mesh_aliasing"
+            explanation = "many contributions participate, consistent with broad mesh aliasing"
+        else:
+            issue = "outlier_unresolved"
+            explanation = "top contributor pattern is not yet decisive"
+    return {
+        "suspected_issue": issue,
+        "explanation": explanation,
+        "valid_for_casimir_input": False,
+    }
+
+
+def _bubble_outlier_cross_case_summary(cases: list[dict[str, Any]]) -> dict[str, Any]:
+    valid_cases = [case for case in cases if case.get("sum_matches_total_component")]
+    compared_cases = valid_cases or cases
+    largest = max(compared_cases, key=lambda case: float(case["total_residual_max_norm"])) if compared_cases else None
+    by_name = {case["case_name"]: case for case in cases}
+    ratio_shift = _case_residual_ratio(by_name.get("nk11_unshifted"), by_name.get("nk11_shift_y"))
+    ratio_nk9 = _case_residual_ratio(by_name.get("nk11_unshifted"), by_name.get("nk9_unshifted"))
+    shared = _shared_top_k_points(cases)
+    if ratio_shift is not None and ratio_shift > 10.0:
+        issue = "twist_sensitive_fermi_surface_sampling"
+        fix = "Prioritize shifted/twist mesh averaging diagnostics for the normal bubble before changing formulas."
+    elif largest is not None and largest.get("diagnosis", {}).get("suspected_issue") in {"single_k_outlier", "few_k_outliers"}:
+        issue = "mesh_origin_hits_outlier"
+        fix = "Inspect the top k/band-pair records in the largest unshifted case."
+    elif largest is not None and largest.get("diagnosis", {}).get("suspected_issue") == "broad_mesh_aliasing":
+        issue = "normal_bubble_broad_mesh_aliasing"
+        fix = "Audit broader mesh sampling around the aliased region before formula changes."
+    else:
+        issue = "outlier_unresolved"
+        fix = "Use per-k contribution records to choose a narrower normal bubble assembly audit."
+    return {
+        "largest_case": largest["case_name"] if largest is not None else None,
+        "largest_total_residual": float(largest["total_residual_max_norm"]) if largest is not None else None,
+        "nk11_unshifted_vs_shifted_ratio": ratio_shift,
+        "nk11_unshifted_vs_nk9_ratio": ratio_nk9,
+        "shared_outlier_k_points": shared,
+        "suspected_issue": issue,
+        "recommended_next_fix": fix,
+        "valid_for_casimir_input": False,
+    }
+
+
+def _case_residual_ratio(numerator_case: dict[str, Any] | None, denominator_case: dict[str, Any] | None) -> float | None:
+    if numerator_case is None or denominator_case is None:
+        return None
+    denominator = float(denominator_case["total_residual_max_norm"])
+    if denominator <= 0.0:
+        return None
+    return float(float(numerator_case["total_residual_max_norm"]) / denominator)
+
+
+def _shared_top_k_points(cases: list[dict[str, Any]]) -> list[Any]:
+    seen: dict[str, int] = {}
+    values: dict[str, Any] = {}
+    for case in cases:
+        for contributor in case.get("top_contributors", [])[:5]:
+            key = repr(contributor.get("k_index") or contributor.get("k"))
+            seen[key] = seen.get(key, 0) + 1
+            values[key] = contributor.get("k_index") or contributor.get("k")
+    return [values[key] for key, count in seen.items() if count > 1]
 
 
 def _normal_bubble_residual_row(

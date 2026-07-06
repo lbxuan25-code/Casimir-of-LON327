@@ -407,6 +407,139 @@ def test_normal_bubble_q_scaling_slope():
     assert triage._classify_q_residual_trend([0.005, 0.01, 0.02], [0.005, 0.01, 0.02]) == "linear"
 
 
+def _synthetic_per_k_records(contributions, *, total=None):
+    records = []
+    for index, value in enumerate(contributions):
+        records.append(
+            {
+                "k_index": [index, 0],
+                "k": [float(index), 0.0],
+                "k_plus_q": [float(index) + 0.01, 0.0],
+                "band_pair": [0, index % 2],
+                "contribution": {"real": float(value), "imag": 0.0, "abs": abs(float(value))},
+                "energy": {
+                    "epsilon_m_k": 0.0005 if index == 0 else 0.2,
+                    "epsilon_n_k_plus_q": 0.1,
+                    "energy_difference": -0.0995,
+                    "abs_energy_difference": 0.0995,
+                },
+                "occupation": {
+                    "f_m_k": 1.0,
+                    "f_n_k_plus_q": 0.0 if index == 0 else 0.8,
+                    "occupation_difference": 1.0 if index == 0 else 0.2,
+                    "abs_occupation_difference": 1.0 if index == 0 else 0.2,
+                },
+                "denominator": {"real": 0.0 if index == 0 else 0.1, "imag": 0.0001, "abs": 0.0001 if index == 0 else 0.1},
+                "vertices": {
+                    "density_vertex_abs": 1.0,
+                    "current_x_vertex_abs": 10.0 if index == 0 else 0.1,
+                    "current_y_vertex_abs": 0.1,
+                    "vertex_product_abs": 10.0 if index == 0 else 0.1,
+                },
+            }
+        )
+    total_value = float(sum(contributions) if total is None else total)
+    return {
+        "target_component": "left_current_x",
+        "q_model": [0.01, 0.0],
+        "omega_eV": 0.01,
+        "mesh_size": len(contributions),
+        "total_residual_component": {"real": total_value, "imag": 0.0, "abs": abs(total_value)},
+        "total_residual_max_norm": abs(total_value),
+        "dominant_component": "left_current_x",
+        "records": records,
+    }
+
+
+def test_normal_bubble_per_k_outlier_audit_reports_fields(monkeypatch):
+    monkeypatch.setattr(
+        triage,
+        "get_finite_q_validation_model",
+        lambda model_name: SimpleNamespace(name=model_name, spec=object()),
+    )
+    monkeypatch.setattr(triage, "uniform_bz_mesh", lambda nk: np.zeros((nk, 2), dtype=float))
+    monkeypatch.setattr(triage, "k_weights", lambda points: np.ones(points.shape[0]) / points.shape[0])
+    monkeypatch.setattr(
+        triage,
+        "normal_physical_bubble_ward_contribution_records_from_model",
+        lambda *args, **kwargs: _synthetic_per_k_records([10.0, 1.0, 0.5]),
+    )
+
+    payload = triage.run_normal_bubble_per_k_outlier_audit(
+        cases=({"case_name": "synthetic", "nk": 3, "shift": (0.0, 0.0)},),
+        top_n=2,
+    )
+    case = payload["cases"][0]
+
+    assert payload["available"] is True
+    assert payload["valid_for_casimir_input"] is False
+    assert case["top_contributors"]
+    assert "concentration" in case
+    assert "cross_case_summary" in payload
+    assert "summary" in payload
+    assert case["sum_matches_total_component"] is True
+
+
+def test_normal_bubble_per_k_outlier_audit_detects_sum_mismatch(monkeypatch):
+    monkeypatch.setattr(
+        triage,
+        "get_finite_q_validation_model",
+        lambda model_name: SimpleNamespace(name=model_name, spec=object()),
+    )
+    monkeypatch.setattr(triage, "uniform_bz_mesh", lambda nk: np.zeros((nk, 2), dtype=float))
+    monkeypatch.setattr(triage, "k_weights", lambda points: np.ones(points.shape[0]) / points.shape[0])
+    monkeypatch.setattr(
+        triage,
+        "normal_physical_bubble_ward_contribution_records_from_model",
+        lambda *args, **kwargs: _synthetic_per_k_records([1.0, 1.0], total=5.0),
+    )
+
+    payload = triage.run_normal_bubble_per_k_outlier_audit(
+        cases=({"case_name": "mismatch", "nk": 2, "shift": (0.0, 0.0)},),
+    )
+
+    assert payload["cases"][0]["sum_matches_total_component"] is False
+    assert payload["cases"][0]["diagnosis"]["suspected_issue"] == "per_k_sum_mismatch"
+
+
+def test_normal_bubble_per_k_outlier_classifiers():
+    single = triage._bubble_case_diagnosis(
+        abs_values=np.array([10.0, 1.0, 0.5]),
+        top_records=[],
+        sum_matches=True,
+    )
+    few = triage._bubble_case_diagnosis(
+        abs_values=np.array([2.0, 2.0, 2.0, 2.0, 2.0, 0.1, 0.1]),
+        top_records=[],
+        sum_matches=True,
+    )
+    broad = triage._bubble_case_diagnosis(
+        abs_values=np.ones(30),
+        top_records=[],
+        sum_matches=True,
+    )
+
+    assert single["suspected_issue"] == "single_k_outlier"
+    assert few["suspected_issue"] == "few_k_outliers"
+    assert broad["suspected_issue"] in {"broad_mesh_aliasing", "outlier_unresolved"}
+
+
+def test_normal_bubble_per_k_contributor_classification(monkeypatch):
+    record = _synthetic_per_k_records([10.0])["records"][0]
+    payload = triage._bubble_top_contributor_payload(
+        record,
+        rank=1,
+        target_component="left_current_x",
+        denominator_abs=np.array([0.0001, 0.1, 0.2]),
+        vertex_abs=np.array([0.1, 0.2, 10.0]),
+    )
+
+    assert payload["classification"]["small_denominator"] is True
+    assert payload["classification"]["occupation_jump"] is True
+    assert payload["classification"]["large_vertex_product"] is True
+    assert payload["classification"]["near_fermi"] is True
+
+
 def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path):
     module = _load_report_module()
     scan_report = SimpleNamespace(
@@ -588,6 +721,106 @@ def test_report_command_text_records_bubble_audit_provenance():
     assert "--bubble-audit-q-values 0.003 0.006" in command
     assert "--bubble-audit-omega-values 0.004 0.008" in command
     assert "--disable-bubble-audit-mesh-shifts" in command
+
+
+def test_report_bubble_outlier_cli_and_command_text():
+    module = _load_report_module()
+    args = module.parse_args(["--include-bubble-outlier-audit", "--bubble-outlier-top-n", "5"])
+
+    command = module._command_text(args)
+
+    assert args.include_bubble_outlier_audit is True
+    assert args.bubble_outlier_top_n == 5
+    assert "--include-bubble-outlier-audit" in command
+    assert "--bubble-outlier-top-n 5" in command
+
+
+def test_report_bubble_outlier_integration_default_and_enabled(monkeypatch, tmp_path):
+    module = _load_report_module()
+    scan_report = SimpleNamespace(
+        model_name="symmetry_bdg_2band",
+        primary_validation_model=True,
+        q0_precondition_status={"spm": "convention_aware_pass"},
+        diagnostic_run_completed=True,
+        ward_identity_closed=False,
+        workspace_evaluation=True,
+        pairing_names=("spm",),
+        rows=(),
+    )
+    q0_reports = (
+        SimpleNamespace(
+            pairing_name="spm",
+            status="convention_aware_pass",
+            passed=True,
+            comparator_family="local_bdg",
+            q0_comparator_available=True,
+            best_transformed_match={},
+        ),
+    )
+
+    class Model:
+        name = "symmetry_bdg_2band"
+        primary_validation_model = True
+
+        @staticmethod
+        def require_pairing(pairing):
+            return None
+
+        @staticmethod
+        def build_pairing_params(delta0):
+            return SimpleNamespace(delta0_eV=delta0)
+
+    def fake_run_ward_triage(**kwargs):
+        payload = {
+            "summary": {
+                "suspected_layer": "normal_ward_convention",
+                "recommended_next_fix": "separate convention checks",
+                "valid_for_casimir_input": False,
+            }
+        }
+        if kwargs["include_bubble_outlier_audit"]:
+            payload["normal_bubble_per_k_outlier_audit"] = {
+                "summary": {
+                    "suspected_issue": "twist_sensitive_fermi_surface_sampling",
+                    "recommended_next_fix": "inspect outliers",
+                    "valid_for_casimir_input": False,
+                }
+            }
+        return payload
+
+    monkeypatch.setattr(module, "get_finite_q_validation_model", lambda model_name: Model())
+    monkeypatch.setattr(module, "run_q0_bdg_response_alignment_many", lambda *args, **kwargs: q0_reports)
+    monkeypatch.setattr(module, "run_finite_q_ward_scan", lambda *args, **kwargs: scan_report)
+    monkeypatch.setattr(module, "_run_ward_triage", fake_run_ward_triage)
+
+    default_report = module.build_report(
+        model_name="symmetry_bdg_2band",
+        output_dir=tmp_path,
+        nk=2,
+        omega=0.01,
+        delta0=0.1,
+        q_values=(0.01,),
+        pairings=("spm",),
+    )
+    enabled_report = module.build_report(
+        model_name="symmetry_bdg_2band",
+        output_dir=tmp_path,
+        nk=2,
+        omega=0.01,
+        delta0=0.1,
+        q_values=(0.01,),
+        pairings=("spm",),
+        include_bubble_outlier_audit=True,
+        bubble_outlier_top_n=5,
+    )
+    markdown = module.format_markdown(enabled_report)
+
+    assert "normal_bubble_per_k_outlier_audit" not in default_report["ward_triage"]
+    assert "normal_bubble_per_k_outlier_audit" in enabled_report["ward_triage"]
+    assert enabled_report["ward_triage_run_config"]["normal_bubble_per_k_outlier_audit"]["enabled"] is True
+    assert enabled_report["ward_triage_run_config"]["normal_bubble_per_k_outlier_audit"]["top_n"] == 5
+    assert "normal bubble per-k outlier audit" in markdown
+    assert "recommended per-k outlier fix" in markdown
 
 
 def test_report_writer_still_targets_only_three_files(tmp_path):

@@ -25,6 +25,7 @@ from validation.lib.finite_q_validation_models import (  # noqa: E402
 from validation.lib.finite_q_ward_triage import (  # noqa: E402
     run_contact_cancellation_triage,
     run_normal_bubble_convergence_audit,
+    run_normal_bubble_per_k_outlier_audit,
     run_normal_contact_direct_audit,
     run_normal_finite_q_ward_triage,
     run_normal_ward_convention_audit,
@@ -131,6 +132,8 @@ def _run_ward_triage(
     bubble_audit_q_values: tuple[float, ...],
     bubble_audit_omega_values: tuple[float, ...],
     bubble_audit_mesh_shifts_enabled: bool = True,
+    include_bubble_outlier_audit: bool = False,
+    bubble_outlier_top_n: int = 12,
 ) -> dict[str, Any]:
     normal = run_normal_finite_q_ward_triage(
         model_name=model_name,
@@ -175,7 +178,7 @@ def _run_ward_triage(
         omega_values=bubble_audit_omega_values,
         mesh_shifts_enabled=bubble_audit_mesh_shifts_enabled,
     )
-    return {
+    payload = {
         "normal_finite_q": normal,
         "operator_identity": operator,
         "contact_cancellation": contact,
@@ -184,6 +187,14 @@ def _run_ward_triage(
         "normal_bubble_convergence_audit": normal_bubble_convergence,
         "summary": summarize_ward_triage(normal, operator, contact, normal_ward_convention),
     }
+    if include_bubble_outlier_audit:
+        payload["normal_bubble_per_k_outlier_audit"] = run_normal_bubble_per_k_outlier_audit(
+            model_name=model_name,
+            q_model=q_model,
+            omega_eV=omega,
+            top_n=bubble_outlier_top_n,
+        )
+    return payload
 
 
 def build_report(
@@ -201,6 +212,8 @@ def build_report(
     bubble_audit_q_values: tuple[float, ...] = (0.005, 0.01, 0.02),
     bubble_audit_omega_values: tuple[float, ...] = (0.005, 0.01, 0.02),
     bubble_audit_mesh_shifts_enabled: bool = True,
+    include_bubble_outlier_audit: bool = False,
+    bubble_outlier_top_n: int = 12,
 ) -> dict[str, Any]:
     model = get_finite_q_validation_model(model_name)
     for pairing in pairings:
@@ -264,6 +277,18 @@ def build_report(
                 "computed_in_current_run": True,
                 "valid_for_casimir_input": False,
             },
+            "normal_bubble_per_k_outlier_audit": {
+                "enabled": bool(include_bubble_outlier_audit),
+                "top_n": int(bubble_outlier_top_n),
+                "cases": [
+                    {"case_name": "nk9_unshifted", "nk": 9, "shift": [0.0, 0.0]},
+                    {"case_name": "nk11_unshifted", "nk": 11, "shift": [0.0, 0.0]},
+                    {"case_name": "nk11_shift_y", "nk": 11, "shift": [0.0, 1.0 / 22.0]},
+                    {"case_name": "nk8_unshifted", "nk": 8, "shift": [0.0, 0.0]},
+                ],
+                "computed_in_current_run": bool(include_bubble_outlier_audit),
+                "valid_for_casimir_input": False,
+            },
             "computed_in_current_run": True,
             "valid_for_casimir_input": False,
         }
@@ -278,6 +303,8 @@ def build_report(
             bubble_audit_q_values=bubble_audit_q_values,
             bubble_audit_omega_values=bubble_audit_omega_values,
             bubble_audit_mesh_shifts_enabled=bubble_audit_mesh_shifts_enabled,
+            include_bubble_outlier_audit=include_bubble_outlier_audit,
+            bubble_outlier_top_n=bubble_outlier_top_n,
         )
     else:
         report["ward_triage_run_config"] = {
@@ -319,6 +346,8 @@ def format_markdown(report: dict[str, Any]) -> str:
     normal_ward_summary = normal_ward_audit.get("summary", {}) if isinstance(normal_ward_audit, dict) else {}
     normal_bubble_audit = triage.get("normal_bubble_convergence_audit", {}) if isinstance(triage, dict) else {}
     normal_bubble_summary = normal_bubble_audit.get("summary", {}) if isinstance(normal_bubble_audit, dict) else {}
+    bubble_outlier_audit = triage.get("normal_bubble_per_k_outlier_audit", {}) if isinstance(triage, dict) else {}
+    bubble_outlier_summary = bubble_outlier_audit.get("summary", {}) if isinstance(bubble_outlier_audit, dict) else {}
     bubble_config = (
         triage_config.get("normal_bubble_convergence_audit", {})
         if isinstance(triage_config, dict)
@@ -363,6 +392,14 @@ def format_markdown(report: dict[str, Any]) -> str:
             f"- recommended Ward convention fix: {normal_ward_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
             f"- normal bubble convergence audit: {normal_bubble_summary.get('suspected_issue', normal_bubble_audit.get('reason', 'unavailable'))}",
             f"- recommended normal bubble fix: {normal_bubble_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
+            *(
+                [
+                    f"- normal bubble per-k outlier audit: {bubble_outlier_summary.get('suspected_issue', bubble_outlier_audit.get('reason', 'unavailable'))}",
+                    f"- recommended per-k outlier fix: {bubble_outlier_summary.get('recommended_next_fix', 'rerun report with --include-bubble-outlier-audit')}",
+                ]
+                if bubble_outlier_audit
+                else []
+            ),
             f"- normal bubble audit config: nk={bubble_config.get('nk_values', 'unavailable')}, q={bubble_config.get('q_values', 'unavailable')}, omega={bubble_config.get('omega_values', 'unavailable')}, mesh_shifts={bubble_config.get('mesh_shifts_enabled', 'unavailable')}",
             f"- suspected primary layer: {triage_summary.get('suspected_layer', 'unavailable')}",
             f"- recommended next fix: {triage_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
@@ -433,6 +470,8 @@ def _command_text(args: argparse.Namespace) -> str:
         )
         if args.disable_bubble_audit_mesh_shifts:
             parts.append("--disable-bubble-audit-mesh-shifts")
+        if args.include_bubble_outlier_audit:
+            parts.extend(["--include-bubble-outlier-audit", "--bubble-outlier-top-n", str(args.bubble_outlier_top_n)])
         parts.append("--include-triage")
     else:
         parts.append("--no-triage")
@@ -464,6 +503,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--bubble-audit-q-values", nargs="+", type=float, default=[0.005, 0.01, 0.02])
     parser.add_argument("--bubble-audit-omega-values", nargs="+", type=float, default=[0.005, 0.01, 0.02])
     parser.add_argument("--disable-bubble-audit-mesh-shifts", action="store_true", default=False)
+    parser.add_argument("--include-bubble-outlier-audit", action="store_true", default=False)
+    parser.add_argument("--bubble-outlier-top-n", type=int, default=12)
     return parser.parse_args(argv)
 
 
@@ -484,6 +525,8 @@ def main(argv: list[str] | None = None) -> int:
         bubble_audit_q_values=tuple(args.bubble_audit_q_values),
         bubble_audit_omega_values=tuple(args.bubble_audit_omega_values),
         bubble_audit_mesh_shifts_enabled=not bool(args.disable_bubble_audit_mesh_shifts),
+        include_bubble_outlier_audit=bool(args.include_bubble_outlier_audit),
+        bubble_outlier_top_n=int(args.bubble_outlier_top_n),
     )
     write_report(report, output_dir, _command_text(args))
     print(f"Wrote finite-q Ward report to {output_dir}")

@@ -31,6 +31,7 @@ from lno327.response.local_normal import (
 from lno327.response.normal_density_current import (
     normal_density_current_response_imag_axis,
     normal_density_current_response_imag_axis_from_model,
+    normal_physical_bubble_ward_contribution_records_from_model,
     normal_physical_density_current_response_components_imag_axis,
     normal_physical_density_current_response_components_imag_axis_from_model,
     normal_physical_density_current_response_imag_axis,
@@ -136,6 +137,7 @@ __all__ = [
     "normal_density_current_response_imag_axis",
     "normal_density_current_response_imag_axis_from_model",
     "normal_physical_density_current_response_imag_axis",
+    "normal_physical_bubble_ward_contribution_records_from_model",
     "normal_physical_density_current_response_components_imag_axis",
     "normal_physical_density_current_response_components_imag_axis_from_model",
     "bdg_local_paramagnetic_kernel_imag_axis",

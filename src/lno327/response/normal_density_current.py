@@ -683,6 +683,189 @@ def normal_physical_density_current_response_components_imag_axis_from_model(
     return {"bubble": bubble, "direct": direct, "total": bubble + direct}
 
 
+def normal_physical_bubble_ward_contribution_records_from_model(
+    spec,
+    k_points: Sequence[tuple[float, float]] | np.ndarray,
+    config: KuboConfig,
+    q: Sequence[float] | np.ndarray,
+    k_weights: Sequence[float] | np.ndarray | None = None,
+    *,
+    target_component: str = "left_current_x",
+    hopping_terms=None,
+) -> dict[str, object]:
+    """Diagnostic-only per-k/band-pair contributions to a bubble Ward component."""
+    points, weights, q_vector = _validate_inputs(k_points, config, q, k_weights)
+    qx, qy = (float(q_vector[0]), float(q_vector[1]))
+    peierls_terms = _hopping_terms_from_spec(spec, hopping_terms)
+    sample_kx = float(points[0, 0])
+    sample_ky = float(points[0, 1])
+    orbital_dim = np.asarray(_normal_hamiltonian(spec, sample_kx, sample_ky, peierls_terms)).shape[0]
+    rho = np.eye(orbital_dim, dtype=complex)
+    coefficients = _ward_component_coefficients(target_component, float(config.omega_eV), qx, qy)
+    grid_shape = _infer_rectangular_grid_shape(points)
+    records: list[dict[str, object]] = []
+    bubble = np.zeros((3, 3), dtype=complex)
+
+    for flat_index, (weight, (kx_value, ky_value)) in enumerate(zip(weights, points, strict=True)):
+        kx = float(kx_value)
+        ky = float(ky_value)
+        h_minus = _normal_hamiltonian(spec, kx - 0.5 * qx, ky - 0.5 * qy, peierls_terms)
+        h_plus = _normal_hamiltonian(spec, kx + 0.5 * qx, ky + 0.5 * qy, peierls_terms)
+        bands_minus = diagonalize_hermitian(h_minus)
+        bands_plus = diagonalize_hermitian(h_plus)
+        occupations_minus = fermi_function(bands_minus.energies, config.fermi_level_eV, config.temperature_eV)
+        occupations_plus = fermi_function(bands_plus.energies, config.fermi_level_eV, config.temperature_eV)
+        vector_x = spec.peierls_hamiltonian_vector_vertex(kx, ky, qx, qy, "x", hopping_terms=peierls_terms)
+        vector_y = spec.peierls_hamiltonian_vector_vertex(kx, ky, qx, qy, "y", hopping_terms=peierls_terms)
+        observable_vertices = (rho, -vector_x, -vector_y)
+        source_vertices = (rho, vector_x, vector_y)
+        observable_matrices = tuple(
+            bands_minus.states.conjugate().T @ vertex @ bands_plus.states for vertex in observable_vertices
+        )
+        source_matrices = tuple(
+            bands_minus.states.conjugate().T @ vertex @ bands_plus.states for vertex in source_vertices
+        )
+        k_index = _grid_index_from_flat(flat_index, grid_shape)
+        for m, energy_minus in enumerate(bands_minus.energies):
+            for n, energy_plus in enumerate(bands_plus.energies):
+                occupation_diff = float(occupations_minus[m] - occupations_plus[n])
+                if occupation_diff == 0.0:
+                    continue
+                denominator = 1j * config.omega_eV + float(energy_minus - energy_plus)
+                factor = float(weight) * occupation_diff / denominator
+                contribution_matrix = np.zeros((3, 3), dtype=complex)
+                for mu, observable_matrix in enumerate(observable_matrices):
+                    for nu, source_matrix in enumerate(source_matrices):
+                        contribution_matrix[mu, nu] = (
+                            factor
+                            * observable_matrix[m, n]
+                            * np.conjugate(source_matrix[m, n])
+                        )
+                bubble += contribution_matrix
+                target_contribution = sum(
+                    coefficient * contribution_matrix[mu, nu]
+                    for mu, nu, coefficient in coefficients
+                )
+                vertex_products = [
+                    observable_matrices[mu][m, n] * np.conjugate(source_matrices[nu][m, n])
+                    for mu, nu, _coefficient in coefficients
+                ]
+                records.append(
+                    {
+                        "flat_k_index": int(flat_index),
+                        "k_index": k_index,
+                        "k": [kx, ky],
+                        "k_plus_q": [kx + qx, ky + qy],
+                        "band_pair": [int(m), int(n)],
+                        "contribution": _complex_record(target_contribution),
+                        "energy": {
+                            "epsilon_m_k": float(energy_minus),
+                            "epsilon_n_k_plus_q": float(energy_plus),
+                            "energy_difference": float(energy_minus - energy_plus),
+                            "abs_energy_difference": float(abs(energy_minus - energy_plus)),
+                        },
+                        "occupation": {
+                            "f_m_k": float(occupations_minus[m]),
+                            "f_n_k_plus_q": float(occupations_plus[n]),
+                            "occupation_difference": occupation_diff,
+                            "abs_occupation_difference": float(abs(occupation_diff)),
+                        },
+                        "denominator": _complex_record(denominator),
+                        "vertices": {
+                            "density_vertex_abs": float(
+                                max(abs(observable_matrices[0][m, n]), abs(source_matrices[0][m, n]))
+                            ),
+                            "current_x_vertex_abs": float(
+                                max(abs(observable_matrices[1][m, n]), abs(source_matrices[1][m, n]))
+                            ),
+                            "current_y_vertex_abs": float(
+                                max(abs(observable_matrices[2][m, n]), abs(source_matrices[2][m, n]))
+                            ),
+                            "vertex_product_abs": float(max((abs(value) for value in vertex_products), default=0.0)),
+                        },
+                    }
+                )
+
+    left, right = _physical_ward_residuals_local(bubble, float(config.omega_eV), q_vector)
+    target_total = _target_residual_component(left, right, target_component)
+    return {
+        "target_component": target_component,
+        "q_model": [qx, qy],
+        "omega_eV": float(config.omega_eV),
+        "mesh_size": int(points.shape[0]),
+        "total_residual_component": _complex_record(target_total),
+        "total_residual_max_norm": float(max(np.linalg.norm(left), np.linalg.norm(right))),
+        "dominant_component": _dominant_ward_component_label(left, right),
+        "records": records,
+    }
+
+
+def _ward_component_coefficients(
+    target_component: str,
+    omega_eV: float,
+    qx: float,
+    qy: float,
+) -> tuple[tuple[int, int, complex], ...]:
+    labels = ("density", "current_x", "current_y")
+    if "_" not in target_component:
+        raise ValueError("target_component must start with left_ or right_")
+    side, component = target_component.split("_", 1)
+    if component not in labels:
+        raise ValueError("target_component component must be density, current_x, or current_y")
+    index = labels.index(component)
+    if side == "left":
+        return ((0, index, 1j * omega_eV), (1, index, qx), (2, index, qy))
+    if side == "right":
+        return ((index, 0, 1j * omega_eV), (index, 1, -qx), (index, 2, -qy))
+    raise ValueError("target_component must start with left_ or right_")
+
+
+def _target_residual_component(left: np.ndarray, right: np.ndarray, target_component: str) -> complex:
+    labels = ("density", "current_x", "current_y")
+    side, component = target_component.split("_", 1)
+    index = labels.index(component)
+    return complex(left[index] if side == "left" else right[index])
+
+
+def _physical_ward_residuals_local(response: np.ndarray, omega_eV: float, q: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    qx, qy = (float(q[0]), float(q[1]))
+    left = 1j * omega_eV * response[0, :] + qx * response[1, :] + qy * response[2, :]
+    right = 1j * omega_eV * response[:, 0] - response[:, 1] * qx - response[:, 2] * qy
+    return left, right
+
+
+def _dominant_ward_component_label(left: np.ndarray, right: np.ndarray) -> str:
+    labels = ("density", "current_x", "current_y")
+    vector = np.concatenate([np.asarray(left), np.asarray(right)])
+    index = int(np.argmax(np.abs(vector)))
+    side = "left" if index < 3 else "right"
+    return f"{side}_{labels[index % 3]}"
+
+
+def _complex_record(value: complex) -> dict[str, float]:
+    scalar = complex(value)
+    return {
+        "real": float(np.real(scalar)),
+        "imag": float(np.imag(scalar)),
+        "abs": float(abs(scalar)),
+    }
+
+
+def _infer_rectangular_grid_shape(points: np.ndarray) -> tuple[int, int] | None:
+    unique_x = np.unique(np.round(points[:, 0], decimals=14))
+    unique_y = np.unique(np.round(points[:, 1], decimals=14))
+    if unique_x.size * unique_y.size != points.shape[0]:
+        return None
+    return int(unique_x.size), int(unique_y.size)
+
+
+def _grid_index_from_flat(flat_index: int, grid_shape: tuple[int, int] | None) -> list[int] | None:
+    if grid_shape is None:
+        return None
+    _nx, ny = grid_shape
+    return [int(flat_index // ny), int(flat_index % ny)]
+
+
 def precompute_normal_physical_density_current_workspace_from_model(
     spec,
     k_points: Sequence[tuple[float, float]] | np.ndarray,
