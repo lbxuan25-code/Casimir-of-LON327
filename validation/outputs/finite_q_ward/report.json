@@ -1046,6 +1046,275 @@
       },
       "valid_for_casimir_input": false
     },
+    "normal_contact_direct_audit": {
+      "available": true,
+      "model_name": "symmetry_bdg_2band",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "omega_eV": 0.01,
+      "nk": 9,
+      "workspace_evaluation": true,
+      "valid_for_casimir_input": false,
+      "matrix_shape": [
+        3,
+        3
+      ],
+      "assumed_component_labels": [
+        "density",
+        "current_x",
+        "current_y"
+      ],
+      "label_to_index": {
+        "density": 0,
+        "current_x": 1,
+        "current_y": 2
+      },
+      "is_square": true,
+      "expected_shape_ok": true,
+      "hermiticity_norms": {
+        "bare_bubble": 3.9817235873415174e-19,
+        "direct": 6.170842688933806e-18,
+        "total": 6.141638753072649e-18
+      },
+      "direct_nonzero_pattern": {
+        "density_density_norm": 0.0,
+        "density_current_norm": 0.0,
+        "current_density_norm": 0.0,
+        "current_current_norm": 0.9984428055118363,
+        "current_x_current_x_norm": 0.7060024466777546,
+        "current_x_current_y_norm": 3.73038377708537e-18,
+        "current_y_current_x_norm": 3.73038377708537e-18,
+        "current_y_current_y_norm": 0.7060089101161336
+      },
+      "direct_block_interpretation": "current_current_only",
+      "residual_component_audit": {
+        "bare_bubble": {
+          "left_residual_vector": [
+            {
+              "component": "density",
+              "real": -2.6747588291202175e-22,
+              "imag": -1.8032537353656003e-22
+            },
+            {
+              "component": "current_x",
+              "real": 8.445039220875928e-05,
+              "imag": -2.543188967227696e-22
+            },
+            {
+              "component": "current_y",
+              "real": 9.586030682754527e-21,
+              "imag": 1.2313741470709392e-21
+            }
+          ],
+          "right_residual_vector": [
+            {
+              "component": "density",
+              "real": -2.6914867798632553e-22,
+              "imag": 1.5997673046775555e-21
+            },
+            {
+              "component": "current_x",
+              "real": -8.445039220875928e-05,
+              "imag": 2.559916917970734e-22
+            },
+            {
+              "component": "current_y",
+              "real": -7.803158677682234e-21,
+              "imag": 1.2514911795682288e-21
+            }
+          ],
+          "left_norm": 8.445039220875928e-05,
+          "right_norm": 8.445039220875928e-05,
+          "dominant_left_component": "current_x",
+          "dominant_right_component": "current_x",
+          "max_norm": 8.445039220875928e-05,
+          "vector_norm": 0.00011943089000935453,
+          "dominant_component": "left_current_x"
+        },
+        "direct": {
+          "left_residual_vector": [
+            {
+              "component": "density",
+              "real": 0.0,
+              "imag": 0.0
+            },
+            {
+              "component": "current_x",
+              "real": -0.007060024466777546,
+              "imag": 2.3890566454253416e-20
+            },
+            {
+              "component": "current_y",
+              "real": -3.469446951953614e-20,
+              "imag": -1.3706571314232787e-20
+            }
+          ],
+          "right_residual_vector": [
+            {
+              "component": "density",
+              "real": 0.0,
+              "imag": 0.0
+            },
+            {
+              "component": "current_x",
+              "real": 0.007060024466777546,
+              "imag": -2.3890566454253416e-20
+            },
+            {
+              "component": "current_y",
+              "real": 3.469446951953614e-20,
+              "imag": 1.3706571314232787e-20
+            }
+          ],
+          "left_norm": 0.007060024466777546,
+          "right_norm": 0.007060024466777546,
+          "dominant_left_component": "current_x",
+          "dominant_right_component": "current_x",
+          "max_norm": 0.007060024466777546,
+          "vector_norm": 0.009984382351602684,
+          "dominant_component": "left_current_x"
+        },
+        "total": {
+          "left_residual_vector": [
+            {
+              "component": "density",
+              "real": -2.6747588291202175e-22,
+              "imag": -1.8032537353656003e-22
+            },
+            {
+              "component": "current_x",
+              "real": -0.006975574074568787,
+              "imag": 2.3636247557530645e-20
+            },
+            {
+              "component": "current_y",
+              "real": -2.5108438836781613e-20,
+              "imag": -1.2475197167161847e-20
+            }
+          ],
+          "right_residual_vector": [
+            {
+              "component": "density",
+              "real": -2.6914867798632553e-22,
+              "imag": 1.5997673046775555e-21
+            },
+            {
+              "component": "current_x",
+              "real": 0.006975574074568787,
+              "imag": -2.363457476245634e-20
+            },
+            {
+              "component": "current_y",
+              "real": 2.6891310841853907e-20,
+              "imag": 1.4958062493801015e-20
+            }
+          ],
+          "left_norm": 0.006975574074568787,
+          "right_norm": 0.006975574074568787,
+          "dominant_left_component": "current_x",
+          "dominant_right_component": "current_x",
+          "max_norm": 0.006975574074568787,
+          "vector_norm": 0.00986495146159333,
+          "dominant_component": "left_current_x"
+        }
+      },
+      "direct_sign_candidates": {
+        "total_current": {
+          "max_norm": 0.006975574074568787,
+          "vector_norm": 0.00986495146159333,
+          "dominant_component": "left_current_x",
+          "improves_over_current_total": false,
+          "relative_to_current_total": 1.0
+        },
+        "total_without_direct": {
+          "max_norm": 8.445039220875928e-05,
+          "vector_norm": 0.00011943089000935453,
+          "dominant_component": "left_current_x",
+          "improves_over_current_total": true,
+          "relative_to_current_total": 0.01210658668462062
+        },
+        "total_flip_direct": {
+          "max_norm": 0.0071444748589863044,
+          "vector_norm": 0.010103813241612037,
+          "dominant_component": "left_current_x",
+          "improves_over_current_total": false,
+          "relative_to_current_total": 1.024213173369241
+        },
+        "total_double_direct": {
+          "max_norm": 0.01403559854134633,
+          "vector_norm": 0.01984933381319601,
+          "dominant_component": "left_current_x",
+          "improves_over_current_total": false,
+          "relative_to_current_total": 2.01210658668462
+        },
+        "total_half_direct": {
+          "max_norm": 0.0034455618411800134,
+          "vector_norm": 0.004872760285791988,
+          "dominant_component": "left_current_x",
+          "improves_over_current_total": true,
+          "relative_to_current_total": 0.49394670665768964
+        },
+        "total_current_block_only_direct": {
+          "max_norm": 0.006975574074568787,
+          "vector_norm": 0.00986495146159333,
+          "dominant_component": "left_current_x",
+          "improves_over_current_total": false,
+          "relative_to_current_total": 1.0
+        },
+        "total_xx_only_direct": {
+          "max_norm": 0.006975574074568787,
+          "vector_norm": 0.00986495146159333,
+          "dominant_component": "left_current_x",
+          "improves_over_current_total": false,
+          "relative_to_current_total": 1.0
+        },
+        "total_yy_only_direct": {
+          "max_norm": 8.445039220875928e-05,
+          "vector_norm": 0.00011943089000935453,
+          "dominant_component": "left_current_x",
+          "improves_over_current_total": true,
+          "relative_to_current_total": 0.01210658668462062
+        }
+      },
+      "q_scaling": {
+        "available": true,
+        "q_values": [
+          0.005,
+          0.01,
+          0.02
+        ],
+        "direct_residuals": [
+          0.0035300342960571597,
+          0.007060024466777546,
+          0.014119695935273423
+        ],
+        "total_residuals": [
+          0.003487808929629613,
+          0.006975574074568787,
+          0.013950797876067598
+        ],
+        "direct_scaling_slope": 0.9999774578101492,
+        "total_scaling_slope": 0.9999773610360537,
+        "valid_for_casimir_input": false
+      },
+      "q0_direct_convention": {
+        "available": false,
+        "reason": "local normal diamagnetic response-level comparator is not exposed by the current public API",
+        "q0_direct_norm": 0.9984465555204969,
+        "q0_local_diamagnetic_norm": null,
+        "best_q0_direct_match": "unavailable",
+        "q0_direct_match_relative_error": null,
+        "interpretation": "q=0 finite-q direct norm is recorded, but local diamagnetic sign relation was not compared",
+        "valid_for_casimir_input": false
+      },
+      "summary": {
+        "suspected_issue": "direct_component_placement_suspicious",
+        "recommended_next_fix": "Audit current-current component placement and density-current index ordering before changing formulas.",
+        "valid_for_casimir_input": false
+      }
+    },
     "summary": {
       "suspected_layer": "normal_contact_or_vertex",
       "recommended_next_fix": "Inspect normal finite-q contact/vertex assembly before collective-sector changes.",
