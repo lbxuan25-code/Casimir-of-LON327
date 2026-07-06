@@ -2783,6 +2783,7 @@
         "evaluated": true,
         "q0_precondition_status": "convention_aware_pass",
         "closure_response_name": "amplitude_phase_schur",
+        "max_closure_primary_residual_norm": 0.0017709885262371322,
         "max_closure_contact_aware_residual_norm": 0.015382406517454098,
         "max_closure_homogeneous_residual_norm": 0.0017709885262371322,
         "max_contact_rhs_norm": 0.013819392771797731,
@@ -2792,7 +2793,7 @@
           0.02,
           0.0
         ],
-        "blocking_reason": "closure_contact_aware_residual_above_tolerance",
+        "blocking_reason": "closure_primary_residual_above_tolerance",
         "missing": [],
         "missing_residual_vectors": [],
         "rows": [
@@ -2804,47 +2805,14 @@
             "response_name": "bare_bubble",
             "criterion_type": "homogeneous_bubble",
             "homogeneous_residual_norm": 0.003320802921165334,
+            "primary_residual_norm": 0.003320802921165334,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": null,
-            "contact_aware_residual_norm": 0.003320802921165334,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0033208029211653e-06,
             "passed": false,
-            "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
-              {
-                "component": "density",
-                "real": -7.598328466239703e-20,
-                "imag": -0.003320730703017361
-              },
-              {
-                "component": "current_x",
-                "real": 2.190066798155509e-05,
-                "imag": 3.3353690083772065e-19
-              },
-              {
-                "component": "current_y",
-                "real": -2.245453748797596e-20,
-                "imag": -7.238894327509387e-20
-              }
-            ],
-            "contact_aware_right_residual_vector": [
-              {
-                "component": "density",
-                "real": -7.60170936019836e-20,
-                "imag": -0.003320730703017361
-              },
-              {
-                "component": "current_x",
-                "real": -2.1900667981555022e-05,
-                "imag": -3.3340166507937436e-19
-              },
-              {
-                "component": "current_y",
-                "real": 3.963353663584782e-21,
-                "imag": 6.914658967003899e-20
-              }
-            ]
+            "valid_for_casimir_input": false
           },
           {
             "q_model": [
@@ -2854,14 +2822,17 @@
             "response_name": "bare_total",
             "criterion_type": "contact_aware_total",
             "homogeneous_residual_norm": 0.0037331295070007335,
+            "primary_residual_norm": 0.003320802921165334,
+            "primary_residual_kind": "contact_aware_minus_direct",
             "contact_rhs_norm": 0.0017274807786997123,
-            "contact_aware_residual_norm": 0.003320802921165334,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0037331295070007e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.003320802921165334,
+            "contact_aware_residual_norm": 0.003320802921165334,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -7.598328466239703e-20,
@@ -2878,7 +2849,7 @@
                 "imag": -7.238894327509387e-20
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -7.60170936019836e-20,
@@ -2902,16 +2873,19 @@
               0.0
             ],
             "response_name": "minus_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_intermediate",
             "homogeneous_residual_norm": 8.829855808354449e-05,
+            "primary_residual_norm": 8.829855808354449e-05,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.0017274807786997123,
-            "contact_aware_residual_norm": 0.0016703687660853893,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0017274807786997e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0016703687660853893,
+            "contact_aware_residual_norm": 0.0016703687660853893,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -4.632974538601228e-19,
@@ -2928,7 +2902,7 @@
                 "imag": 4.263474782278018e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -2.6231676183512667e-19,
@@ -2944,6 +2918,41 @@
                 "real": 6.688425466219579e-18,
                 "imag": -6.19947448356699e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.0017871320985197402,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": -4.632974538601228e-19,
+                "imag": 6.62057729277794e-05
+              },
+              {
+                "component": "current_x",
+                "real": -0.0017859053539285344,
+                "imag": 2.619912842443564e-19
+              },
+              {
+                "component": "current_y",
+                "real": -6.644847151107234e-18,
+                "imag": 5.9767854884343556e-21
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": -2.6231676183512667e-19,
+                "imag": 6.620577292777957e-05
+              },
+              {
+                "component": "current_x",
+                "real": 0.001785905353928535,
+                "imag": -1.0659140523443413e-18
+              },
+              {
+                "component": "current_y",
+                "real": 6.626625942387906e-18,
+                "imag": -7.912785189723328e-21
+              }
             ]
           },
           {
@@ -2952,16 +2961,19 @@
               0.0
             ],
             "response_name": "amplitude_phase_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_final",
             "homogeneous_residual_norm": 9.78782803506378e-05,
+            "primary_residual_norm": 9.78782803506378e-05,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.0017274807786997123,
-            "contact_aware_residual_norm": 0.0016590339470997746,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0017274807786997e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0016590339470997746,
+            "contact_aware_residual_norm": 0.0016590339470997746,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 2.075726254535651e-18,
@@ -2978,7 +2990,7 @@
                 "imag": 2.998275835764925e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 1.8294274130362844e-18,
@@ -2994,6 +3006,41 @@
                 "real": 6.4357383666363325e-18,
                 "imag": -3.680020120702093e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.0017986512612102623,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": 2.075726254535651e-18,
+                "imag": 6.855087655781436e-05
+              },
+              {
+                "component": "current_x",
+                "real": -0.0017973444680351128,
+                "imag": 5.779263343237809e-18
+              },
+              {
+                "component": "current_y",
+                "real": -6.5278868661297774e-18,
+                "imag": 4.711586541921263e-21
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": 1.8294274130362844e-18,
+                "imag": 6.855087655781436e-05
+              },
+              {
+                "component": "current_x",
+                "real": 0.0017973444680351128,
+                "imag": -4.794067977240343e-18
+              },
+              {
+                "component": "current_y",
+                "real": 6.3739388428046595e-18,
+                "imag": -5.393330826858431e-21
+              }
             ]
           },
           {
@@ -3004,47 +3051,14 @@
             "response_name": "bare_bubble",
             "criterion_type": "homogeneous_bubble",
             "homogeneous_residual_norm": 0.003319919873765456,
+            "primary_residual_norm": 0.003319919873765456,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": null,
-            "contact_aware_residual_norm": 0.003319919873765456,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0033199198737655e-06,
             "passed": false,
-            "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
-              {
-                "component": "density",
-                "real": 1.33101282365111e-19,
-                "imag": -0.0033195806097578878
-              },
-              {
-                "component": "current_x",
-                "real": 4.7460968619394677e-05,
-                "imag": -2.6164912670463295e-19
-              },
-              {
-                "component": "current_y",
-                "real": 1.1435747441509535e-19,
-                "imag": -2.103378772798078e-19
-              }
-            ],
-            "contact_aware_right_residual_vector": [
-              {
-                "component": "density",
-                "real": 1.3364343721809358e-19,
-                "imag": -0.0033195806097578878
-              },
-              {
-                "component": "current_x",
-                "real": -4.746096861939464e-05,
-                "imag": 2.605648169986678e-19
-              },
-              {
-                "component": "current_y",
-                "real": -1.1590415863180853e-19,
-                "imag": 2.149491858572877e-19
-              }
-            ]
+            "valid_for_casimir_input": false
           },
           {
             "q_model": [
@@ -3054,14 +3068,17 @@
             "response_name": "bare_total",
             "criterion_type": "contact_aware_total",
             "homogeneous_residual_norm": 0.0047571671084077494,
+            "primary_residual_norm": 0.003319919873765456,
+            "primary_residual_kind": "contact_aware_minus_direct",
             "contact_rhs_norm": 0.003454956159024804,
-            "contact_aware_residual_norm": 0.003319919873765456,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0047571671084078e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.003319919873765456,
+            "contact_aware_residual_norm": 0.003319919873765456,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 1.33101282365111e-19,
@@ -3078,7 +3095,7 @@
                 "imag": -2.103378772798078e-19
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 1.3364343721809358e-19,
@@ -3102,16 +3119,19 @@
               0.0
             ],
             "response_name": "minus_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_intermediate",
             "homogeneous_residual_norm": 0.00020886525184812645,
+            "primary_residual_norm": 0.00020886525184812645,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.003454956159024804,
-            "contact_aware_residual_norm": 0.0034833697859015206,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0034549561590248e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0034833697859015206,
+            "contact_aware_residual_norm": 0.0034833697859015206,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -4.384235735938081e-18,
@@ -3128,7 +3148,7 @@
                 "imag": 2.3304156704337382e-20
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -3.8379277507945e-18,
@@ -3144,6 +3164,41 @@
                 "real": -2.5832914615022275e-17,
                 "imag": -1.545917225706961e-20
               }
+            ],
+            "plus_direct_residual_norm": 0.003439015621234427,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": -4.384235735938081e-18,
+                "imag": 0.0002076802669152048
+              },
+              {
+                "component": "current_x",
+                "real": -0.0034327390448195215,
+                "imag": -2.3235897611497644e-18
+              },
+              {
+                "component": "current_y",
+                "real": 2.6004778313801183e-17,
+                "imag": 2.6730799532966965e-20
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": -3.8379277507945e-18,
+                "imag": 0.0002076802669152048
+              },
+              {
+                "component": "current_x",
+                "real": 0.0034327390448195215,
+                "imag": 1.2309737908626031e-18
+              },
+              {
+                "component": "current_y",
+                "real": -2.5878451106266667e-17,
+                "imag": -1.8885815085699193e-20
+              }
             ]
           },
           {
@@ -3152,16 +3207,19 @@
               0.0
             ],
             "response_name": "amplitude_phase_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_final",
             "homogeneous_residual_norm": 0.00023589738307938838,
+            "primary_residual_norm": 0.00023589738307938838,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.003454956159024804,
-            "contact_aware_residual_norm": 0.003424118254390059,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0034549561590248e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.003424118254390059,
+            "contact_aware_residual_norm": 0.003424118254390059,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -1.271871407353792e-18,
@@ -3178,7 +3236,7 @@
                 "imag": 2.5344378637045705e-20
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -1.6004150525101837e-18,
@@ -3194,6 +3252,41 @@
                 "real": -2.5337000286774787e-17,
                 "imag": -1.7564966091447702e-20
               }
+            ],
+            "plus_direct_residual_norm": 0.0035014501927354397,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": -1.271871407353792e-18,
+                "imag": 0.00023269236267455993
+              },
+              {
+                "component": "current_x",
+                "real": -0.0034937097355905197,
+                "imag": 5.722607285171558e-19
+              },
+              {
+                "component": "current_y",
+                "real": 2.54145633434239e-17,
+                "imag": 2.877102146567529e-20
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": -1.6004150525101837e-18,
+                "imag": 0.00023269236267455928
+              },
+              {
+                "component": "current_x",
+                "real": 0.0034937097355905184,
+                "imag": 8.482656179562765e-20
+              },
+              {
+                "component": "current_y",
+                "real": -2.538253677801918e-17,
+                "imag": -2.0991608920077285e-20
+              }
             ]
           },
           {
@@ -3204,47 +3297,14 @@
             "response_name": "bare_bubble",
             "criterion_type": "homogeneous_bubble",
             "homogeneous_residual_norm": 0.003317291298929037,
+            "primary_residual_norm": 0.003317291298929037,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": null,
-            "contact_aware_residual_norm": 0.003317291298929037,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.003317291298929e-06,
             "passed": false,
-            "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
-              {
-                "component": "density",
-                "real": -1.0847949378672783e-19,
-                "imag": -0.003314967259178191
-              },
-              {
-                "component": "current_x",
-                "real": 0.0001241516513258242,
-                "imag": 6.952221327900053e-20
-              },
-              {
-                "component": "current_y",
-                "real": -3.821386837468185e-19,
-                "imag": -2.5802084618357145e-19
-              }
-            ],
-            "contact_aware_right_residual_vector": [
-              {
-                "component": "density",
-                "real": -1.0876731955267177e-19,
-                "imag": -0.003314967259178191
-              },
-              {
-                "component": "current_x",
-                "real": -0.0001241516513258241,
-                "imag": -6.923438751305658e-20
-              },
-              {
-                "component": "current_y",
-                "real": 3.7268443643387417e-19,
-                "imag": 2.492748753521106e-19
-              }
-            ]
+            "valid_for_casimir_input": false
           },
           {
             "q_model": [
@@ -3254,14 +3314,17 @@
             "response_name": "bare_total",
             "criterion_type": "contact_aware_total",
             "homogeneous_residual_norm": 0.0075521500015508745,
+            "primary_residual_norm": 0.003317291298929037,
+            "primary_residual_kind": "contact_aware_minus_direct",
             "contact_rhs_norm": 0.006909869131187589,
-            "contact_aware_residual_norm": 0.003317291298929037,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0075521500015509e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.003317291298929037,
+            "contact_aware_residual_norm": 0.003317291298929037,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -1.0847949378672783e-19,
@@ -3278,7 +3341,7 @@
                 "imag": -2.580208461835714e-19
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -1.0876731955267177e-19,
@@ -3302,16 +3365,19 @@
               0.0
             ],
             "response_name": "minus_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_intermediate",
             "homogeneous_residual_norm": 0.000678186883555692,
+            "primary_residual_norm": 0.000678186883555692,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.006909869131187589,
-            "contact_aware_residual_norm": 0.00743645492042521,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0069098691311876e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.00743645492042521,
+            "contact_aware_residual_norm": 0.00743645492042521,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -9.67556299431146e-18,
@@ -3328,7 +3394,7 @@
                 "imag": 1.297451037991627e-20
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -8.925199800850518e-18,
@@ -3344,6 +3410,41 @@
                 "real": 2.4707143737368767e-17,
                 "imag": -2.152676021093696e-20
               }
+            ],
+            "plus_direct_residual_norm": 0.006411832494288657,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": -9.67556299431146e-18,
+                "imag": 0.0004431581499618289
+              },
+              {
+                "component": "current_x",
+                "real": -0.006396499573121092,
+                "imag": -5.475931746120625e-18
+              },
+              {
+                "component": "current_y",
+                "real": -2.463811531113662e-17,
+                "imag": -7.584946821100241e-21
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": -8.925199800850518e-18,
+                "imag": 0.0004431581499618289
+              },
+              {
+                "component": "current_x",
+                "real": 0.006396499573121092,
+                "imag": 4.725568552659684e-18
+              },
+              {
+                "component": "current_y",
+                "real": 2.4629081180949807e-17,
+                "imag": -9.673030099204512e-22
+              }
             ]
           },
           {
@@ -3352,16 +3453,19 @@
               0.0
             ],
             "response_name": "amplitude_phase_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_final",
             "homogeneous_residual_norm": 0.0006749803461714423,
+            "primary_residual_norm": 0.0006749803461714423,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.006909869131187589,
-            "contact_aware_residual_norm": 0.0072842460469868305,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0069098691311876e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0072842460469868305,
+            "contact_aware_residual_norm": 0.0072842460469868305,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -1.0456465280679981e-17,
@@ -3378,7 +3482,7 @@
                 "imag": 6.559621077705168e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -1.0573000603955321e-17,
@@ -3394,6 +3498,41 @@
                 "real": 2.3772008131044065e-17,
                 "imag": -3.472466700751462e-20
               }
+            ],
+            "plus_direct_residual_norm": 0.006583581037905621,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": -1.0456465280679981e-17,
+                "imag": 0.0005762030595392455
+              },
+              {
+                "component": "current_x",
+                "real": -0.0065583175675509985,
+                "imag": -6.424832495259463e-18
+              },
+              {
+                "component": "current_y",
+                "real": -2.3718245223150392e-17,
+                "imag": -1.399983612331134e-20
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": -1.0573000603955321e-17,
+                "imag": 0.0005762030595392472
+              },
+              {
+                "component": "current_x",
+                "real": 0.006558317567551,
+                "imag": 6.541367818534802e-18
+              },
+              {
+                "component": "current_y",
+                "real": 2.3693945574625106e-17,
+                "imag": -1.416520980649811e-20
+              }
             ]
           },
           {
@@ -3404,47 +3543,14 @@
             "response_name": "bare_bubble",
             "criterion_type": "homogeneous_bubble",
             "homogeneous_residual_norm": 0.0033311597506192796,
+            "primary_residual_norm": 0.0033311597506192796,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": null,
-            "contact_aware_residual_norm": 0.0033311597506192796,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0033311597506193e-06,
             "passed": false,
-            "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
-              {
-                "component": "density",
-                "real": -4.9972772021907885e-20,
-                "imag": -0.0032963193641203275
-              },
-              {
-                "component": "current_x",
-                "real": 0.00048052464439533226,
-                "imag": 4.636785394207007e-20
-              },
-              {
-                "component": "current_y",
-                "real": 7.828587273899359e-19,
-                "imag": 1.2872671394194961e-19
-              }
-            ],
-            "contact_aware_right_residual_vector": [
-              {
-                "component": "density",
-                "real": -6.488028719578756e-20,
-                "imag": -0.0032963193641203275
-              },
-              {
-                "component": "current_x",
-                "real": -0.00048052464439533226,
-                "imag": -3.8914096355130236e-20
-              },
-              {
-                "component": "current_y",
-                "real": -7.586998395351861e-19,
-                "imag": -1.550648726281908e-19
-              }
-            ]
+            "valid_for_casimir_input": false
           },
           {
             "q_model": [
@@ -3454,14 +3560,17 @@
             "response_name": "bare_total",
             "criterion_type": "contact_aware_total",
             "homogeneous_residual_norm": 0.01374012824796429,
+            "primary_residual_norm": 0.003331159750619279,
+            "primary_residual_kind": "contact_aware_minus_direct",
             "contact_rhs_norm": 0.013819392771797731,
-            "contact_aware_residual_norm": 0.003331159750619279,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0138193927717978e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.003331159750619279,
+            "contact_aware_residual_norm": 0.003331159750619279,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -4.9972772021907885e-20,
@@ -3478,7 +3587,7 @@
                 "imag": 1.287267139419496e-19
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -6.488028719578756e-20,
@@ -3502,16 +3611,19 @@
               0.0
             ],
             "response_name": "minus_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_intermediate",
             "homogeneous_residual_norm": 0.0018087888076300071,
+            "primary_residual_norm": 0.0018087888076300071,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.013819392771797731,
-            "contact_aware_residual_norm": 0.015538186416991583,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0138193927717978e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.015538186416991583,
+            "contact_aware_residual_norm": 0.015538186416991583,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 1.7057632339351294e-17,
@@ -3528,7 +3640,7 @@
                 "imag": 3.101725276287122e-20
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 1.4546805495859814e-17,
@@ -3544,6 +3656,41 @@
                 "real": -1.4169653113998437e-17,
                 "imag": -6.18713600212615e-20
               }
+            ],
+            "plus_direct_residual_norm": 0.012126806254511706,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": 1.7057632339351294e-17,
+                "imag": 0.0005973427234738371
+              },
+              {
+                "component": "current_x",
+                "real": -0.012112085353281534,
+                "imag": 8.304770635332334e-18
+              },
+              {
+                "component": "current_y",
+                "real": 1.4836389870102174e-17,
+                "imag": -1.010029101629632e-20
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": 1.4546805495859814e-17,
+                "imag": 0.0005973427234738371
+              },
+              {
+                "component": "current_x",
+                "real": 0.012112085353281534,
+                "imag": -7.049357213586592e-18
+              },
+              {
+                "component": "current_y",
+                "real": -1.4299757374696696e-17,
+                "imag": -2.0753816242093965e-20
+              }
             ]
           },
           {
@@ -3552,16 +3699,19 @@
               0.0
             ],
             "response_name": "amplitude_phase_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_final",
             "homogeneous_residual_norm": 0.0017709885262371322,
+            "primary_residual_norm": 0.0017709885262371322,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.013819392771797731,
-            "contact_aware_residual_norm": 0.015382406517454098,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0138193927717978e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.015382406517454098,
+            "contact_aware_residual_norm": 0.015382406517454098,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 2.0900696411416092e-17,
@@ -3578,7 +3728,7 @@
                 "imag": 1.1017447116838747e-20
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 2.217673840469788e-17,
@@ -3594,6 +3744,41 @@
                 "real": -1.463617369294277e-17,
                 "imag": -4.01145747129969e-20
               }
+            ],
+            "plus_direct_residual_norm": 0.012312822731378197,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": 2.0900696411416092e-17,
+                "imag": 0.0008781704065246683
+              },
+              {
+                "component": "current_x",
+                "real": -0.012281466539116895,
+                "imag": 9.106122531110075e-18
+              },
+              {
+                "component": "current_y",
+                "real": 1.4164500916115708e-17,
+                "imag": -3.010009666232879e-20
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": 2.217673840469788e-17,
+                "imag": 0.0008781704065246683
+              },
+              {
+                "component": "current_x",
+                "real": 0.012281466539116895,
+                "imag": -9.744143527750971e-18
+              },
+              {
+                "component": "current_y",
+                "real": -1.476627795364103e-17,
+                "imag": 1.0029690661706396e-21
+              }
             ]
           }
         ],
@@ -3603,6 +3788,7 @@
         "evaluated": true,
         "q0_precondition_status": "convention_aware_pass",
         "closure_response_name": "amplitude_phase_schur",
+        "max_closure_primary_residual_norm": 0.011058627347831368,
         "max_closure_contact_aware_residual_norm": 0.0032596479607990957,
         "max_closure_homogeneous_residual_norm": 0.011058627347831368,
         "max_contact_rhs_norm": 0.01399388029326652,
@@ -3612,7 +3798,7 @@
           0.02,
           0.0
         ],
-        "blocking_reason": "closure_contact_aware_residual_above_tolerance",
+        "blocking_reason": "closure_primary_residual_above_tolerance",
         "missing": [],
         "missing_residual_vectors": [],
         "rows": [
@@ -3624,47 +3810,14 @@
             "response_name": "bare_bubble",
             "criterion_type": "homogeneous_bubble",
             "homogeneous_residual_norm": 0.0015650299565349835,
+            "primary_residual_norm": 0.0015650299565349835,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": null,
-            "contact_aware_residual_norm": 0.0015650299565349835,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.001565029956535e-06,
             "passed": false,
-            "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
-              {
-                "component": "density",
-                "real": -6.94335715528415e-21,
-                "imag": -0.001564886718901105
-              },
-              {
-                "component": "current_x",
-                "real": 2.1173612323507903e-05,
-                "imag": 2.6624466573888882e-20
-              },
-              {
-                "component": "current_y",
-                "real": 8.738914742295978e-21,
-                "imag": 5.277137098877894e-21
-              }
-            ],
-            "contact_aware_right_residual_vector": [
-              {
-                "component": "density",
-                "real": -6.978296747378397e-21,
-                "imag": -0.001564886718901105
-              },
-              {
-                "component": "current_x",
-                "real": -2.1173612323507808e-05,
-                "imag": -2.6484708205511898e-20
-              },
-              {
-                "component": "current_y",
-                "real": -3.8037396885498566e-21,
-                "imag": -5.287797356457033e-21
-              }
-            ]
+            "valid_for_casimir_input": false
           },
           {
             "q_model": [
@@ -3674,14 +3827,17 @@
             "response_name": "bare_total",
             "criterion_type": "contact_aware_total",
             "homogeneous_residual_norm": 0.0023313655026168775,
+            "primary_residual_norm": 0.0015650299565349835,
+            "primary_residual_kind": "contact_aware_minus_direct",
             "contact_rhs_norm": 0.0017492924345689517,
-            "contact_aware_residual_norm": 0.0015650299565349835,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0023313655026167e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0015650299565349835,
+            "contact_aware_residual_norm": 0.0015650299565349835,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -6.94335715528415e-21,
@@ -3698,7 +3854,7 @@
                 "imag": 5.277137098877894e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -6.978296747378397e-21,
@@ -3722,16 +3878,19 @@
               0.0
             ],
             "response_name": "minus_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_intermediate",
             "homogeneous_residual_norm": 0.0015109489659488754,
+            "primary_residual_norm": 0.0015109489659488754,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.0017492924345689517,
-            "contact_aware_residual_norm": 0.00024105491054123262,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.001749292434569e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.00024105491054123262,
+            "contact_aware_residual_norm": 0.00024105491054123262,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 1.2541906403220916e-19,
@@ -3748,7 +3907,7 @@
                 "imag": 3.637337463516961e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 1.2110254557030785e-19,
@@ -3764,6 +3923,41 @@
                 "real": 2.761826078713345e-20,
                 "imag": -3.630491269109757e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.003260042044021557,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": 1.2541906403220916e-19,
+                "imag": 3.3505447528553636e-05
+              },
+              {
+                "component": "current_x",
+                "real": -0.0032598698614782406,
+                "imag": 2.7511593173666074e-20
+              },
+              {
+                "component": "current_y",
+                "real": -7.49413444267827e-21,
+                "imag": 5.350648169673302e-21
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": 1.2110254557030785e-19,
+                "imag": 3.350544752855363e-05
+              },
+              {
+                "component": "current_x",
+                "real": 0.0032598698614782406,
+                "imag": -1.0245519326060864e-20
+              },
+              {
+                "component": "current_y",
+                "real": 8.102621682394373e-21,
+                "imag": -5.343801975266098e-21
+              }
             ]
           },
           {
@@ -3772,16 +3966,19 @@
               0.0
             ],
             "response_name": "amplitude_phase_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_final",
             "homogeneous_residual_norm": 0.0015118451684304314,
+            "primary_residual_norm": 0.0015118451684304314,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.0017492924345689517,
-            "contact_aware_residual_norm": 0.0002400318137080559,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.001749292434569e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0002400318137080559,
+            "contact_aware_residual_norm": 0.0002400318137080559,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -5.432705663176367e-19,
@@ -3798,7 +3995,7 @@
                 "imag": 3.940280121792431e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -5.336326068454258e-19,
@@ -3814,6 +4011,41 @@
                 "real": 2.6647637288124762e-20,
                 "imag": -3.957732492099141e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.0032609483893955207,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": -5.432705663176367e-19,
+                "imag": 3.2656268277031226e-05
+              },
+              {
+                "component": "current_x",
+                "real": -0.0032607848696967817,
+                "imag": -3.8283464849510136e-19
+              },
+              {
+                "component": "current_y",
+                "real": -6.892861422710767e-21,
+                "imag": 5.653590827948772e-21
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": -5.336326068454258e-19,
+                "imag": 3.265626827703125e-05
+              },
+              {
+                "component": "current_x",
+                "real": 0.0032607848696967817,
+                "imag": 3.442828106062574e-19
+              },
+              {
+                "component": "current_y",
+                "real": 7.131998183385683e-21,
+                "imag": -5.671043198255482e-21
+              }
             ]
           },
           {
@@ -3824,47 +4056,14 @@
             "response_name": "bare_bubble",
             "criterion_type": "homogeneous_bubble",
             "homogeneous_residual_norm": 0.0015654825889263736,
+            "primary_residual_norm": 0.0015654825889263736,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": null,
-            "contact_aware_residual_norm": 0.0015654825889263736,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0015654825889263e-06,
             "passed": false,
-            "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
-              {
-                "component": "density",
-                "real": 1.4227423653036045e-20,
-                "imag": -0.0015649070773199158
-              },
-              {
-                "component": "current_x",
-                "real": 4.244497126469002e-05,
-                "imag": -3.1113980720053455e-20
-              },
-              {
-                "component": "current_y",
-                "real": -1.0823168337788215e-20,
-                "imag": -1.6207510636134632e-20
-              }
-            ],
-            "contact_aware_right_residual_vector": [
-              {
-                "component": "density",
-                "real": 1.4498447377442678e-20,
-                "imag": -0.0015649070773199158
-              },
-              {
-                "component": "current_x",
-                "real": -4.2444971264689975e-05,
-                "imag": 3.057193327124019e-20
-              },
-              {
-                "component": "current_y",
-                "real": 7.983202365591334e-21,
-                "imag": 1.621498821987967e-20
-              }
-            ]
+            "valid_for_casimir_input": false
           },
           {
             "q_model": [
@@ -3874,14 +4073,17 @@
             "response_name": "bare_total",
             "criterion_type": "contact_aware_total",
             "homogeneous_residual_norm": 0.0037939160992463317,
+            "primary_residual_norm": 0.0015654825889263736,
+            "primary_residual_kind": "contact_aware_minus_direct",
             "contact_rhs_norm": 0.0034985794026018945,
-            "contact_aware_residual_norm": 0.0015654825889263736,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0037939160992462e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0015654825889263736,
+            "contact_aware_residual_norm": 0.0015654825889263736,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 1.4227423653036045e-20,
@@ -3898,7 +4100,7 @@
                 "imag": -1.6207510636134632e-20
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 1.4498447377442678e-20,
@@ -3922,16 +4124,19 @@
               0.0
             ],
             "response_name": "minus_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_intermediate",
             "homogeneous_residual_norm": 0.0029977650206373164,
+            "primary_residual_norm": 0.0029977650206373164,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.0034985794026018945,
-            "contact_aware_residual_norm": 0.0005199358812453131,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0034985794026018e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0005199358812453131,
+            "contact_aware_residual_norm": 0.0005199358812453131,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -1.3676962262173141e-18,
@@ -3948,7 +4153,7 @@
                 "imag": -5.574845098117637e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -1.4867324207895714e-18,
@@ -3964,6 +4169,41 @@
                 "real": 1.6565411671219937e-19,
                 "imag": 5.541979075559895e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.006494841998842421,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": -1.3676962262173141e-18,
+                "imag": 0.0001292922802231134
+              },
+              {
+                "component": "current_x",
+                "real": -0.006493554965979892,
+                "imag": -1.6512952006524841e-21
+              },
+              {
+                "component": "current_y",
+                "real": -8.401287165869904e-20,
+                "imag": -2.148202269488052e-21
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": -1.4867324207895714e-18,
+                "imag": 0.00012929228022311352
+              },
+              {
+                "component": "current_x",
+                "real": 0.006493554965979893,
+                "imag": 2.397236843451668e-19
+              },
+              {
+                "component": "current_y",
+                "real": 8.759156029324305e-20,
+                "imag": 2.11533624693031e-21
+              }
             ]
           },
           {
@@ -3972,16 +4212,19 @@
               0.0
             ],
             "response_name": "amplitude_phase_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_final",
             "homogeneous_residual_norm": 0.0030045656327033566,
+            "primary_residual_norm": 0.0030045656327033566,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.0034985794026018945,
-            "contact_aware_residual_norm": 0.0005125746499497046,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0034985794026018e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0005125746499497046,
+            "contact_aware_residual_norm": 0.0005125746499497046,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -2.9195560606824585e-18,
@@ -3998,7 +4241,7 @@
                 "imag": -6.118771311655247e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -2.877274959720513e-18,
@@ -4014,6 +4257,41 @@
                 "real": 1.6204330442941674e-19,
                 "imag": 6.150992360433746e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.006501708404972777,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": -2.9195560606824585e-18,
+                "imag": 0.00012664082122914875
+              },
+              {
+                "component": "current_x",
+                "real": -0.006500474927702748,
+                "imag": -2.211168193271611e-19
+              },
+              {
+                "component": "current_y",
+                "real": -9.260303857613993e-20,
+                "imag": -2.6921284830256623e-21
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": -2.877274959720513e-18,
+                "imag": 0.00012664082122914875
+              },
+              {
+                "component": "current_x",
+                "real": 0.006500474927702748,
+                "imag": 1.3655461740327017e-19
+              },
+              {
+                "component": "current_y",
+                "real": 8.398074801046041e-20,
+                "imag": 2.724349531804161e-21
+              }
             ]
           },
           {
@@ -4024,47 +4302,14 @@
             "response_name": "bare_bubble",
             "criterion_type": "homogeneous_bubble",
             "homogeneous_residual_norm": 0.0015673318816376023,
+            "primary_residual_norm": 0.0015673318816376023,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": null,
-            "contact_aware_residual_norm": 0.0015673318816376023,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0015673318816375e-06,
             "passed": false,
-            "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
-              {
-                "component": "density",
-                "real": -1.5955811810922747e-20,
-                "imag": -0.0015649883882631673
-              },
-              {
-                "component": "current_x",
-                "real": 8.567713696851024e-05,
-                "imag": 1.6276361927749758e-20
-              },
-              {
-                "component": "current_y",
-                "real": 1.420997881139437e-20,
-                "imag": 3.3271893417232822e-21
-              }
-            ],
-            "contact_aware_right_residual_vector": [
-              {
-                "component": "density",
-                "real": -1.595581200491745e-20,
-                "imag": -0.0015649883882631673
-              },
-              {
-                "component": "current_x",
-                "real": -8.567713696851014e-05,
-                "imag": -1.6276361733755053e-20
-              },
-              {
-                "component": "current_y",
-                "real": -9.710706546103416e-21,
-                "imag": -3.3294223421441147e-21
-              }
-            ]
+            "valid_for_casimir_input": false
           },
           {
             "q_model": [
@@ -4074,14 +4319,17 @@
             "response_name": "bare_total",
             "criterion_type": "contact_aware_total",
             "homogeneous_residual_norm": 0.007086406917453841,
+            "primary_residual_norm": 0.0015673318816376023,
+            "primary_residual_kind": "contact_aware_minus_direct",
             "contact_rhs_norm": 0.006997115073052368,
-            "contact_aware_residual_norm": 0.0015673318816376023,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0070864069174539e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0015673318816376023,
+            "contact_aware_residual_norm": 0.0015673318816376023,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": -1.5955811810922747e-20,
@@ -4098,7 +4346,7 @@
                 "imag": 3.3271893417232822e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": -1.595581200491745e-20,
@@ -4122,16 +4370,19 @@
               0.0
             ],
             "response_name": "minus_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_intermediate",
             "homogeneous_residual_norm": 0.005830403512356022,
+            "primary_residual_norm": 0.005830403512356022,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.006997115073052368,
-            "contact_aware_residual_norm": 0.0012681042521788765,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0069971150730522e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0012681042521788765,
+            "contact_aware_residual_norm": 0.0012681042521788765,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 2.575764040075498e-18,
@@ -4148,7 +4399,7 @@
                 "imag": 3.550424236783676e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 2.222887352526118e-18,
@@ -4164,6 +4415,41 @@
                 "real": 1.4544584299049125e-19,
                 "imag": -3.637938299658774e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.012817892203106796,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": 2.575764040075498e-18,
+                "imag": 0.0004532078476028961
+              },
+              {
+                "component": "current_x",
+                "real": -0.012809877562933112,
+                "imag": 4.821790562766e-19
+              },
+              {
+                "component": "current_y",
+                "real": -3.6859961998656496e-20,
+                "imag": -1.700903296423282e-20
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": 2.222887352526118e-18,
+                "imag": 0.0004532078476028963
+              },
+              {
+                "component": "current_x",
+                "real": 0.012809877562933112,
+                "imag": -1.293023687272203e-19
+              },
+              {
+                "component": "current_y",
+                "real": 4.1362434431882817e-20,
+                "imag": 1.6921518901357722e-20
+              }
             ]
           },
           {
@@ -4172,16 +4458,19 @@
               0.0
             ],
             "response_name": "amplitude_phase_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_final",
             "homogeneous_residual_norm": 0.0058752113472814145,
+            "primary_residual_norm": 0.0058752113472814145,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.006997115073052368,
-            "contact_aware_residual_norm": 0.0012254692353443162,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0069971150730522e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0012254692353443162,
+            "contact_aware_residual_norm": 0.0012254692353443162,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 1.3441356722743007e-18,
@@ -4198,7 +4487,7 @@
                 "imag": 5.9426053613367304e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 1.6866318124874132e-18,
@@ -4214,6 +4503,41 @@
                 "real": 1.3177844723761199e-19,
                 "imag": -5.955508955671196e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.012862879949480464,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": 1.3441356722743007e-18,
+                "imag": 0.0004514707213410213
+              },
+              {
+                "component": "current_x",
+                "real": -0.012854954483875792,
+                "imag": -1.2280813011055356e-18
+              },
+              {
+                "component": "current_y",
+                "real": -2.8938537011695426e-20,
+                "imag": -1.4616851839679763e-20
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": 1.6866318124874132e-18,
+                "imag": 0.0004514707213410213
+              },
+              {
+                "component": "current_x",
+                "real": 0.012854954483875792,
+                "imag": 8.85585160892423e-19
+              },
+              {
+                "component": "current_y",
+                "real": 2.7695038679003576e-20,
+                "imag": 1.46039482453453e-20
+              }
             ]
           },
           {
@@ -4224,47 +4548,14 @@
             "response_name": "bare_bubble",
             "criterion_type": "homogeneous_bubble",
             "homogeneous_residual_norm": 0.0015753816923048654,
+            "primary_residual_norm": 0.0015753816923048654,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": null,
-            "contact_aware_residual_norm": 0.0015753816923048654,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0015753816923048e-06,
             "passed": false,
-            "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
-              {
-                "component": "density",
-                "real": 1.711480548540783e-20,
-                "imag": -0.001565311693847926
-              },
-              {
-                "component": "current_x",
-                "real": 0.00017783919014738861,
-                "imag": -8.109199525861088e-21
-              },
-              {
-                "component": "current_y",
-                "real": -5.081279410907203e-20,
-                "imag": -1.7948101521789503e-21
-              }
-            ],
-            "contact_aware_right_residual_vector": [
-              {
-                "component": "density",
-                "real": 1.7114739827946703e-20,
-                "imag": -0.001565311693847926
-              },
-              {
-                "component": "current_x",
-                "real": -0.00017783919014738864,
-                "imag": 8.109232354591652e-21
-              },
-              {
-                "component": "current_y",
-                "real": 4.888369744914679e-20,
-                "imag": 1.718725045480976e-21
-              }
-            ]
+            "valid_for_casimir_input": false
           },
           {
             "q_model": [
@@ -4274,14 +4565,17 @@
             "response_name": "bare_total",
             "criterion_type": "contact_aware_total",
             "homogeneous_residual_norm": 0.013904430677376702,
+            "primary_residual_norm": 0.0015753816923048656,
+            "primary_residual_kind": "contact_aware_minus_direct",
             "contact_rhs_norm": 0.01399388029326652,
-            "contact_aware_residual_norm": 0.0015753816923048656,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0139938802932665e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0015753816923048656,
+            "contact_aware_residual_norm": 0.0015753816923048656,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 1.711480548540783e-20,
@@ -4298,7 +4592,7 @@
                 "imag": -1.794810152178949e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 1.7114739827946703e-20,
@@ -4322,16 +4616,19 @@
               0.0
             ],
             "response_name": "minus_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_intermediate",
             "homogeneous_residual_norm": 0.010859199174627862,
+            "primary_residual_norm": 0.010859199174627862,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.01399388029326652,
-            "contact_aware_residual_norm": 0.0034247221878022896,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0139938802932665e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0034247221878022896,
+            "contact_aware_residual_norm": 0.0034247221878022896,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 4.1862468670790297e-19,
@@ -4348,7 +4645,7 @@
                 "imag": -3.4676989026292484e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 9.685774405735228e-19,
@@ -4364,6 +4661,41 @@
                 "real": 2.928668085394272e-20,
                 "imag": 3.3060304660744165e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.02481477508843064,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": 4.1862468670790297e-19,
+                "imag": 0.001213140291770424
+              },
+              {
+                "component": "current_x",
+                "real": -0.02478510345594468,
+                "imag": 2.019800503156695e-18
+              },
+              {
+                "component": "current_y",
+                "real": 2.8913259666534414e-19,
+                "imag": -4.458524268179674e-20
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": 9.685774405735228e-19,
+                "imag": 0.001213140291770424
+              },
+              {
+                "component": "current_x",
+                "real": 0.02478510345594468,
+                "imag": -2.294776880089505e-18
+              },
+              {
+                "component": "current_y",
+                "real": -2.3092184054257836e-19,
+                "imag": 4.4423574245241905e-20
+              }
             ]
           },
           {
@@ -4372,16 +4704,19 @@
               0.0
             ],
             "response_name": "amplitude_phase_schur",
-            "criterion_type": "contact_aware_collective_corrected",
+            "criterion_type": "collective_corrected_final",
             "homogeneous_residual_norm": 0.011058627347831368,
+            "primary_residual_norm": 0.011058627347831368,
+            "primary_residual_kind": "homogeneous",
             "contact_rhs_norm": 0.01399388029326652,
-            "contact_aware_residual_norm": 0.0032596479607990957,
             "absolute_tol": 1e-06,
             "relative_tol": 1e-06,
             "threshold": 1.0139938802932665e-06,
             "passed": false,
             "valid_for_casimir_input": false,
-            "contact_aware_left_residual_vector": [
+            "minus_direct_residual_norm": 0.0032596479607990957,
+            "contact_aware_residual_norm": 0.0032596479607990957,
+            "minus_direct_left_residual_vector": [
               {
                 "component": "density",
                 "real": 9.64692893423169e-19,
@@ -4398,7 +4733,7 @@
                 "imag": 7.280618454449782e-21
               }
             ],
-            "contact_aware_right_residual_vector": [
+            "minus_direct_right_residual_vector": [
               {
                 "component": "density",
                 "real": 8.431773200464844e-19,
@@ -4414,6 +4749,41 @@
                 "real": -2.1052859345050177e-20,
                 "imag": -7.496897963402664e-21
               }
+            ],
+            "plus_direct_residual_norm": 0.025012367823391134,
+            "plus_direct_left_residual_vector": [
+              {
+                "component": "density",
+                "real": 9.64692893423169e-19,
+                "imag": 0.0012581421068014551
+              },
+              {
+                "component": "current_x",
+                "real": -0.02498070500549785,
+                "imag": -1.2700657814062374e-19
+              },
+              {
+                "component": "current_y",
+                "real": 2.3402812633955116e-19,
+                "imag": -3.383692532471771e-20
+              }
+            ],
+            "plus_direct_right_residual_vector": [
+              {
+                "component": "density",
+                "real": 8.431773200464844e-19,
+                "imag": 0.0012581421068014556
+              },
+              {
+                "component": "current_x",
+                "real": 0.02498070500549785,
+                "imag": 1.8776436482896613e-19
+              },
+              {
+                "component": "current_y",
+                "real": -2.8126138074157126e-19,
+                "imag": 3.362064581576483e-20
+              }
             ]
           }
         ],
@@ -4427,24 +4797,24 @@
         "dwave"
       ],
       "largest_blocker": {
-        "pairing_name": "spm",
+        "pairing_name": "dwave",
         "q_model": [
           0.02,
           0.0
         ],
         "response_name": "amplitude_phase_schur",
-        "contact_aware_residual_norm": 0.015382406517454098
+        "primary_residual_norm": 0.011058627347831368
       },
-      "recommended_next_fix": "Inspect BdG collective closure for the largest contact-aware finite-q residual.",
+      "recommended_next_fix": "Inspect BdG collective closure for the largest primary finite-q Ward residual.",
       "valid_for_casimir_input": false
     }
   },
   "diagnostic_interpretation": {
-    "main_observation": "The contact-aware finite-q BdG Ward criterion is not closed for the requested pairings.",
+    "main_observation": "The finite-q BdG Ward primary closure criterion is not closed for the requested pairings.",
     "suspected_blockers": [
-      "contact-aware finite-q BdG Ward criterion failed for at least one requested pairing"
+      "finite-q BdG Ward primary closure criterion failed for at least one requested pairing"
     ],
-    "recommended_next_action": "Inspect BdG collective closure for the largest contact-aware finite-q residual."
+    "recommended_next_action": "Inspect BdG collective closure for the largest primary finite-q Ward residual."
   },
   "ward_triage_run_config": {
     "include_triage": true,
@@ -5943,7 +6313,7 @@
     },
     "summary": {
       "suspected_layer": "bdg_collective_closure",
-      "recommended_next_fix": "Inspect BdG collective closure for the largest contact-aware finite-q residual.",
+      "recommended_next_fix": "Inspect BdG collective closure for the largest primary finite-q Ward residual.",
       "valid_for_casimir_input": false
     },
     "diagnostic_summary": {

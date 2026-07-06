@@ -23,10 +23,10 @@
 - criterion_version: contact_aware_v1
 - closure_response_name: amplitude_phase_schur
 - full_bdg_ward_closed: False
-- spm max contact-aware closure residual: 0.015382406517454098
-- dwave max contact-aware closure residual: 0.0032596479607990957
-- largest blocker: pairing=spm, q=[0.02, 0.0], response=amplitude_phase_schur, residual=0.015382406517454098
-- recommended next fix: Inspect BdG collective closure for the largest contact-aware finite-q residual.
+- spm max primary closure residual: 0.0017709885262371322
+- dwave max primary closure residual: 0.011058627347831368
+- largest blocker: pairing=dwave, q=[0.02, 0.0], response=amplitude_phase_schur, primary_residual=0.011058627347831368
+- recommended next fix: Inspect BdG collective closure for the largest primary finite-q Ward residual.
 - valid_for_casimir_input: False
 
 ## Casimir gating
@@ -45,11 +45,11 @@
 - recommended normal bubble fix: Introduce shifted/twist mesh averaging or tighter normal bubble quadrature before changing formulas.
 - normal bubble audit config: nk=[7, 9, 11], q=[0.005, 0.01, 0.02], omega=[0.005, 0.01, 0.02], mesh_shifts=True
 - suspected primary layer: bdg_collective_closure
-- recommended next fix: Inspect BdG collective closure for the largest contact-aware finite-q residual.
+- recommended next fix: Inspect BdG collective closure for the largest primary finite-q Ward residual.
 - valid_for_casimir_input: False
 
 ## 下一步建议
-- Inspect BdG collective closure for the largest contact-aware finite-q residual.
+- Inspect BdG collective closure for the largest primary finite-q Ward residual.
 
 ## 主要观察
-- The contact-aware finite-q BdG Ward criterion is not closed for the requested pairings.
+- The finite-q BdG Ward primary closure criterion is not closed for the requested pairings.

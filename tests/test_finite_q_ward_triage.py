@@ -64,8 +64,8 @@ def _criterion_rows(pairings=("spm", "dwave"), q_values=(0.01,), closure_delta=1
                     _vector_row(pairing, "bare_bubble", q, [1e-8, 0.0, 0.0]),
                     _vector_row(pairing, "direct", q, direct),
                     _vector_row(pairing, "bare_total", q, direct + np.array([2e-8, 0.0, 0.0])),
-                    _vector_row(pairing, "minus_schur", q, direct + np.array([3e-8, 0.0, 0.0])),
-                    _vector_row(pairing, "amplitude_phase_schur", q, direct + np.array([closure_delta, 0.0, 0.0])),
+                    _vector_row(pairing, "minus_schur", q, [3e-8, 0.0, 0.0]),
+                    _vector_row(pairing, "amplitude_phase_schur", q, [closure_delta, 0.0, 0.0]),
                 ]
             )
     return rows
@@ -318,7 +318,7 @@ def test_contact_aware_helper_algebra_for_current_contact():
     np.testing.assert_allclose(right, rhs_right)
 
 
-def test_bdg_ward_criterion_contact_aware_vector_algebra():
+def test_bdg_ward_criterion_bare_total_uses_minus_direct_vector_algebra():
     rows = _criterion_rows(pairings=("spm",), q_values=(0.01,), closure_delta=1e-8)
 
     payload = triage.evaluate_finite_q_bdg_ward_criterion(
@@ -329,16 +329,43 @@ def test_bdg_ward_criterion_contact_aware_vector_algebra():
     )
 
     spm_rows = payload["by_pairing"]["spm"]["rows"]
-    closure = next(row for row in spm_rows if row["response_name"] == "amplitude_phase_schur")
+    bare_total = next(row for row in spm_rows if row["response_name"] == "bare_total")
     direct = np.array([0.0, 0.3, 0.0])
-    total = direct + np.array([1e-8, 0.0, 0.0])
+    total = direct + np.array([2e-8, 0.0, 0.0])
 
     assert payload["evaluated"] is True
-    assert closure["criterion_type"] == "contact_aware_collective_corrected"
-    assert closure["contact_rhs_norm"] == pytest.approx(np.linalg.norm(direct))
-    assert closure["contact_aware_residual_norm"] == pytest.approx(np.linalg.norm(total - direct))
+    assert bare_total["criterion_type"] == "contact_aware_total"
+    assert bare_total["primary_residual_kind"] == "contact_aware_minus_direct"
+    assert bare_total["contact_rhs_norm"] == pytest.approx(np.linalg.norm(direct))
+    assert bare_total["primary_residual_norm"] == pytest.approx(np.linalg.norm(total - direct))
+    assert bare_total["minus_direct_residual_norm"] == pytest.approx(np.linalg.norm(total - direct))
+    assert bare_total["passed"] is True
+    assert bare_total["valid_for_casimir_input"] is False
+
+
+def test_bdg_ward_criterion_final_response_uses_homogeneous_primary_residual():
+    payload = triage.evaluate_finite_q_bdg_ward_criterion(
+        finite_q_rows=_criterion_rows(pairings=("spm",), q_values=(0.01,), closure_delta=1e-8),
+        pairings=("spm",),
+        q_values=(0.01,),
+        q0_precondition_status={"spm": "convention_aware_pass"},
+        absolute_tol=1e-6,
+        relative_tol=1e-6,
+    )
+
+    closure = next(
+        row
+        for row in payload["by_pairing"]["spm"]["rows"]
+        if row["response_name"] == "amplitude_phase_schur"
+    )
+
+    assert payload["ward_identity_closed"] is True
+    assert closure["criterion_type"] == "collective_corrected_final"
+    assert closure["primary_residual_kind"] == "homogeneous"
+    assert closure["primary_residual_norm"] == pytest.approx(closure["homogeneous_residual_norm"])
+    assert closure["minus_direct_residual_norm"] == pytest.approx(0.3)
     assert closure["passed"] is True
-    assert closure["valid_for_casimir_input"] is False
+    assert payload["by_pairing"]["spm"]["max_closure_primary_residual_norm"] == pytest.approx(1e-8)
 
 
 def test_bdg_ward_criterion_refuses_norm_only_rows():
@@ -386,7 +413,7 @@ def test_bdg_ward_criterion_passes_when_all_pairings_close():
 def test_bdg_ward_criterion_reports_largest_blocker_on_failure():
     rows = _criterion_rows(closure_delta=1e-8)
     rows = [
-        _vector_row("dwave", "amplitude_phase_schur", 0.01, [0.0, 0.3 + 2e-3, 0.0])
+        _vector_row("dwave", "amplitude_phase_schur", 0.01, [2e-3, 0.0, 0.0])
         if row.pairing_name == "dwave" and row.response_name == "amplitude_phase_schur"
         else row
         for row in rows
@@ -406,7 +433,8 @@ def test_bdg_ward_criterion_reports_largest_blocker_on_failure():
     assert payload["by_pairing"]["dwave"]["closed"] is False
     assert blocker["pairing_name"] == "dwave"
     assert blocker["response_name"] == "amplitude_phase_schur"
-    assert blocker["contact_aware_residual_norm"] == pytest.approx(2e-3)
+    assert blocker["primary_residual_norm"] == pytest.approx(2e-3)
+    assert payload["by_pairing"]["dwave"]["blocking_reason"] == "closure_primary_residual_above_tolerance"
 
 
 def test_normal_ward_convention_audit_reports_fields(monkeypatch):
@@ -871,6 +899,9 @@ def test_report_builder_includes_formal_ward_criterion_and_status_linkage(monkey
     assert report["finite_q_rows"][0]["left_ward_residual_vector"]
     assert "## Ward criterion" in markdown
     assert "full_bdg_ward_closed: True" in markdown
+    assert "spm max primary closure residual" in markdown
+    assert "dwave max primary closure residual" in markdown
+    assert "max contact-aware closure residual" not in markdown
     assert "valid_for_casimir_input: False" in markdown
 
 

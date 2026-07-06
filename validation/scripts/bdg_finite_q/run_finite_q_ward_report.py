@@ -149,21 +149,21 @@ def _diagnostic_interpretation_from_criterion(scan_report: Any, ward_criterion: 
     if not ward_criterion.get("evaluated", False):
         blockers.append("finite-q Ward criterion is incomplete because required residual rows or vectors are missing")
     elif not ward_criterion.get("ward_identity_closed", False):
-        blockers.append("contact-aware finite-q BdG Ward criterion failed for at least one requested pairing")
+        blockers.append("finite-q BdG Ward primary closure criterion failed for at least one requested pairing")
     if any(status == "diagnostic_only_not_passed" for status in scan_report.q0_precondition_status.values()):
         blockers.append("at least one q=0 precondition is diagnostic-only")
     if not blockers:
         blockers.append("Casimir gating remains intentionally closed for this diagnostic report")
     return {
         "main_observation": (
-            "The contact-aware finite-q BdG Ward criterion is closed for the requested pairings."
+            "The finite-q BdG Ward primary closure criterion is closed for the requested pairings."
             if ward_criterion.get("ward_identity_closed", False)
-            else "The contact-aware finite-q BdG Ward criterion is not closed for the requested pairings."
+            else "The finite-q BdG Ward primary closure criterion is not closed for the requested pairings."
         ),
         "suspected_blockers": blockers,
         "recommended_next_action": ward_criterion.get("summary", {}).get(
             "recommended_next_fix",
-            "Inspect the largest finite-q contact-aware residual before changing any Casimir input gate.",
+            "Inspect the largest finite-q primary Ward residual before changing any Casimir input gate.",
         ),
     }
 
@@ -436,7 +436,7 @@ def format_markdown(report: dict[str, Any]) -> str:
         else (
             f"pairing={largest_blocker.get('pairing_name')}, q={largest_blocker.get('q_model')}, "
             f"response={largest_blocker.get('response_name')}, "
-            f"residual={largest_blocker.get('contact_aware_residual_norm')}"
+            f"primary_residual={largest_blocker.get('primary_residual_norm')}"
         )
     )
     lines = [
@@ -468,8 +468,8 @@ def format_markdown(report: dict[str, Any]) -> str:
             f"- criterion_version: {ward_criterion.get('criterion_version', 'unavailable')}",
             f"- closure_response_name: {ward_criterion.get('closure_response_name', 'unavailable')}",
             f"- full_bdg_ward_closed: {_format_bool(bool(ward_criterion.get('ward_identity_closed', False)))}",
-            f"- spm max contact-aware closure residual: {spm_criterion.get('max_closure_contact_aware_residual_norm')}",
-            f"- dwave max contact-aware closure residual: {dwave_criterion.get('max_closure_contact_aware_residual_norm')}",
+            f"- spm max primary closure residual: {spm_criterion.get('max_closure_primary_residual_norm')}",
+            f"- dwave max primary closure residual: {dwave_criterion.get('max_closure_primary_residual_norm')}",
             f"- largest blocker: {blocker_text}",
             f"- recommended next fix: {ward_summary.get('recommended_next_fix', 'inspect finite-q Ward criterion rows')}",
             f"- valid_for_casimir_input: {_format_bool(bool(ward_criterion.get('valid_for_casimir_input', False)))}",
