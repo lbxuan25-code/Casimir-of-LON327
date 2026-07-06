@@ -31,6 +31,8 @@
 - recommended normal contact fix: Audit current-current component placement and density-current index ordering before changing formulas.
 - normal Ward convention audit: homogeneous_total_includes_contact_rhs
 - recommended Ward convention fix: Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.
+- normal bubble convergence audit: bubble_residual_numerical_convergence_limited
+- recommended normal bubble fix: Introduce shifted/twist mesh averaging or tighter normal bubble quadrature before changing formulas.
 - suspected primary layer: normal_ward_convention
 - recommended next fix: Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.
 - valid_for_casimir_input: False

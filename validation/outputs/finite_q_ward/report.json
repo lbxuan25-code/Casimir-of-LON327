@@ -1679,6 +1679,602 @@
         "valid_for_casimir_input": false
       }
     },
+    "normal_bubble_convergence_audit": {
+      "available": true,
+      "model_name": "symmetry_bdg_2band",
+      "base_q_model": [
+        0.01,
+        0.0
+      ],
+      "base_omega_eV": 0.01,
+      "base_nk": 9,
+      "valid_for_casimir_input": false,
+      "base_point": {
+        "nk": 9,
+        "mesh_size": 81,
+        "q_model": [
+          0.01,
+          0.0
+        ],
+        "omega_eV": 0.01,
+        "bubble_residual_max_norm": 8.445039220875928e-05,
+        "left_norm": 8.445039220875928e-05,
+        "right_norm": 8.445039220875928e-05,
+        "dominant_component": "left_current_x",
+        "residual_vector": {
+          "left": [
+            {
+              "component": "density",
+              "real": -2.6747588291202175e-22,
+              "imag": -1.8032537353656003e-22
+            },
+            {
+              "component": "current_x",
+              "real": 8.445039220875928e-05,
+              "imag": -2.543188967227696e-22
+            },
+            {
+              "component": "current_y",
+              "real": 9.586030682754527e-21,
+              "imag": 1.2313741470709392e-21
+            }
+          ],
+          "right": [
+            {
+              "component": "density",
+              "real": -2.6914867798632553e-22,
+              "imag": 1.5997673046775555e-21
+            },
+            {
+              "component": "current_x",
+              "real": -8.445039220875928e-05,
+              "imag": 2.559916917970734e-22
+            },
+            {
+              "component": "current_y",
+              "real": -7.803158677682234e-21,
+              "imag": 1.2514911795682288e-21
+            }
+          ]
+        },
+        "valid_for_casimir_input": false,
+        "passed_1e_minus_8": false,
+        "passed_1e_minus_5": false
+      },
+      "nk_trend": {
+        "rows": [
+          {
+            "nk": 7,
+            "mesh_size": 49,
+            "q_model": [
+              0.01,
+              0.0
+            ],
+            "omega_eV": 0.01,
+            "bubble_residual_max_norm": 9.634417219225611e-05,
+            "left_norm": 9.634417219225611e-05,
+            "right_norm": 9.634417219225611e-05,
+            "dominant_component": "left_current_x",
+            "residual_vector": {
+              "left": [
+                {
+                  "component": "density",
+                  "real": 1.2999682932373552e-22,
+                  "imag": -1.5385559393486315e-22
+                },
+                {
+                  "component": "current_x",
+                  "real": 9.634417219225611e-05,
+                  "imag": 1.3829096286345618e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": 3.6861020979935036e-20,
+                  "imag": 1.7708282553535217e-22
+                }
+              ],
+              "right": [
+                {
+                  "component": "density",
+                  "real": 1.4382586744894431e-22,
+                  "imag": -1.5385559393486315e-22
+                },
+                {
+                  "component": "current_x",
+                  "real": -9.634417219225611e-05,
+                  "imag": -1.5212000098866497e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": -3.4695793008516226e-20,
+                  "imag": -1.6543612251060553e-22
+                }
+              ]
+            },
+            "valid_for_casimir_input": false
+          },
+          {
+            "nk": 9,
+            "mesh_size": 81,
+            "q_model": [
+              0.01,
+              0.0
+            ],
+            "omega_eV": 0.01,
+            "bubble_residual_max_norm": 8.445039220875928e-05,
+            "left_norm": 8.445039220875928e-05,
+            "right_norm": 8.445039220875928e-05,
+            "dominant_component": "left_current_x",
+            "residual_vector": {
+              "left": [
+                {
+                  "component": "density",
+                  "real": -2.6747588291202175e-22,
+                  "imag": -1.8032537353656003e-22
+                },
+                {
+                  "component": "current_x",
+                  "real": 8.445039220875928e-05,
+                  "imag": -2.543188967227696e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": 9.586030682754527e-21,
+                  "imag": 1.2313741470709392e-21
+                }
+              ],
+              "right": [
+                {
+                  "component": "density",
+                  "real": -2.6914867798632553e-22,
+                  "imag": 1.5997673046775555e-21
+                },
+                {
+                  "component": "current_x",
+                  "real": -8.445039220875928e-05,
+                  "imag": 2.559916917970734e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": -7.803158677682234e-21,
+                  "imag": 1.2514911795682288e-21
+                }
+              ]
+            },
+            "valid_for_casimir_input": false
+          },
+          {
+            "nk": 11,
+            "mesh_size": 121,
+            "q_model": [
+              0.01,
+              0.0
+            ],
+            "omega_eV": 0.01,
+            "bubble_residual_max_norm": 0.12849578249095261,
+            "left_norm": 0.12849578249095261,
+            "right_norm": 0.12849578249095261,
+            "dominant_component": "left_current_x",
+            "residual_vector": {
+              "left": [
+                {
+                  "component": "density",
+                  "real": 2.853272419652433e-16,
+                  "imag": 6.487865800153259e-16
+                },
+                {
+                  "component": "current_x",
+                  "real": 0.12849578249095261,
+                  "imag": -1.3433705822244825e-16
+                },
+                {
+                  "component": "current_y",
+                  "real": 2.203791146134406e-16,
+                  "imag": 8.659697028670619e-17
+                }
+              ],
+              "right": [
+                {
+                  "component": "density",
+                  "real": 2.8643746162976024e-16,
+                  "imag": 6.522560269672795e-16
+                },
+                {
+                  "component": "current_x",
+                  "real": -0.12849578249095261,
+                  "imag": 1.3322683855793133e-16
+                },
+                {
+                  "component": "current_y",
+                  "real": -2.225993301109106e-16,
+                  "imag": -8.881828772110104e-17
+                }
+              ]
+            },
+            "valid_for_casimir_input": false
+          }
+        ],
+        "trend": "nonmonotonic",
+        "ratio_last_to_first": 1333.7161923456827,
+        "best_nk": 9,
+        "best_residual": 8.445039220875928e-05,
+        "interpretation": "nk trend is diagnostic-only; nonmonotonic nk=11 behavior is not treated as a failure",
+        "valid_for_casimir_input": false
+      },
+      "q_trend": {
+        "rows": [
+          {
+            "nk": 9,
+            "mesh_size": 81,
+            "q_model": [
+              0.005,
+              0.0
+            ],
+            "omega_eV": 0.01,
+            "bubble_residual_max_norm": 4.222536642754695e-05,
+            "left_norm": 4.222536642754695e-05,
+            "right_norm": 4.222536642754695e-05,
+            "dominant_component": "left_current_x",
+            "residual_vector": {
+              "left": [
+                {
+                  "component": "density",
+                  "real": 9.44837154168791e-23,
+                  "imag": 7.072394237328387e-22
+                },
+                {
+                  "component": "current_x",
+                  "real": 4.222536642754695e-05,
+                  "imag": 1.8739284023313005e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": 4.37413107918041e-21,
+                  "imag": 2.7540482186585525e-21
+                }
+              ],
+              "right": [
+                {
+                  "component": "density",
+                  "real": 9.783009720318226e-23,
+                  "imag": -1.0749212060126595e-21
+                },
+                {
+                  "component": "current_x",
+                  "real": -4.222536642754695e-05,
+                  "imag": -1.9408560380573636e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": -8.47946154650559e-21,
+                  "imag": 2.489681294886605e-21
+                }
+              ]
+            },
+            "valid_for_casimir_input": false
+          },
+          {
+            "nk": 9,
+            "mesh_size": 81,
+            "q_model": [
+              0.01,
+              0.0
+            ],
+            "omega_eV": 0.01,
+            "bubble_residual_max_norm": 8.445039220875928e-05,
+            "left_norm": 8.445039220875928e-05,
+            "right_norm": 8.445039220875928e-05,
+            "dominant_component": "left_current_x",
+            "residual_vector": {
+              "left": [
+                {
+                  "component": "density",
+                  "real": -2.6747588291202175e-22,
+                  "imag": -1.8032537353656003e-22
+                },
+                {
+                  "component": "current_x",
+                  "real": 8.445039220875928e-05,
+                  "imag": -2.543188967227696e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": 9.586030682754527e-21,
+                  "imag": 1.2313741470709392e-21
+                }
+              ],
+              "right": [
+                {
+                  "component": "density",
+                  "real": -2.6914867798632553e-22,
+                  "imag": 1.5997673046775555e-21
+                },
+                {
+                  "component": "current_x",
+                  "real": -8.445039220875928e-05,
+                  "imag": 2.559916917970734e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": -7.803158677682234e-21,
+                  "imag": 1.2514911795682288e-21
+                }
+              ]
+            },
+            "valid_for_casimir_input": false
+          },
+          {
+            "nk": 9,
+            "mesh_size": 81,
+            "q_model": [
+              0.02,
+              0.0
+            ],
+            "omega_eV": 0.01,
+            "bubble_residual_max_norm": 0.00016889805920582433,
+            "left_norm": 0.00016889805920582433,
+            "right_norm": 0.00016889805920582433,
+            "dominant_component": "left_current_x",
+            "residual_vector": {
+              "left": [
+                {
+                  "component": "density",
+                  "real": -4.480865812533307e-22,
+                  "imag": 1.1183481881716934e-21
+                },
+                {
+                  "component": "current_x",
+                  "real": 0.00016889805920582433,
+                  "imag": -1.7065852407678482e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": -3.909930554305452e-20,
+                  "imag": -1.6396440276475117e-20
+                }
+              ],
+              "right": [
+                {
+                  "component": "density",
+                  "real": -4.413969519197642e-22,
+                  "imag": 1.0918784085699965e-21
+                },
+                {
+                  "component": "current_x",
+                  "real": -0.00016889805920582433,
+                  "imag": 1.6731370941000156e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": 4.127115095937375e-20,
+                  "imag": -1.5780753202939648e-20
+                }
+              ]
+            },
+            "valid_for_casimir_input": false
+          }
+        ],
+        "q_scaling_slope": 0.9999854512911075,
+        "trend": "linear",
+        "interpretation": "q trend tests whether the bubble-only residual scales away at smaller finite q",
+        "valid_for_casimir_input": false
+      },
+      "omega_trend": {
+        "rows": [
+          {
+            "nk": 9,
+            "mesh_size": 81,
+            "q_model": [
+              0.01,
+              0.0
+            ],
+            "omega_eV": 0.005,
+            "bubble_residual_max_norm": 8.445039220875929e-05,
+            "left_norm": 8.445039220875929e-05,
+            "right_norm": 8.445039220875929e-05,
+            "dominant_component": "left_current_x",
+            "residual_vector": {
+              "left": [
+                {
+                  "component": "density",
+                  "real": -2.9609063716170957e-22,
+                  "imag": -5.37667398159468e-22
+                },
+                {
+                  "component": "current_x",
+                  "real": 8.445039220875929e-05,
+                  "imag": -1.4556424021475472e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": 9.124662424296951e-21,
+                  "imag": 1.2582409733666614e-21
+                }
+              ],
+              "right": [
+                {
+                  "component": "density",
+                  "real": -2.6430072912810424e-22,
+                  "imag": 1.2449068218923067e-21
+                },
+                {
+                  "component": "current_x",
+                  "real": -8.445039220875929e-05,
+                  "imag": 1.2966928619795206e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": -8.232928636740284e-21,
+                  "imag": 1.251557354017233e-21
+                }
+              ]
+            },
+            "valid_for_casimir_input": false
+          },
+          {
+            "nk": 9,
+            "mesh_size": 81,
+            "q_model": [
+              0.01,
+              0.0
+            ],
+            "omega_eV": 0.01,
+            "bubble_residual_max_norm": 8.445039220875928e-05,
+            "left_norm": 8.445039220875928e-05,
+            "right_norm": 8.445039220875928e-05,
+            "dominant_component": "left_current_x",
+            "residual_vector": {
+              "left": [
+                {
+                  "component": "density",
+                  "real": -2.6747588291202175e-22,
+                  "imag": -1.8032537353656003e-22
+                },
+                {
+                  "component": "current_x",
+                  "real": 8.445039220875928e-05,
+                  "imag": -2.543188967227696e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": 9.586030682754527e-21,
+                  "imag": 1.2313741470709392e-21
+                }
+              ],
+              "right": [
+                {
+                  "component": "density",
+                  "real": -2.6914867798632553e-22,
+                  "imag": 1.5997673046775555e-21
+                },
+                {
+                  "component": "current_x",
+                  "real": -8.445039220875928e-05,
+                  "imag": 2.559916917970734e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": -7.803158677682234e-21,
+                  "imag": 1.2514911795682288e-21
+                }
+              ]
+            },
+            "valid_for_casimir_input": false
+          },
+          {
+            "nk": 9,
+            "mesh_size": 81,
+            "q_model": [
+              0.01,
+              0.0
+            ],
+            "omega_eV": 0.02,
+            "bubble_residual_max_norm": 8.445039220875928e-05,
+            "left_norm": 8.445039220875928e-05,
+            "right_norm": 8.445039220875926e-05,
+            "dominant_component": "left_current_x",
+            "residual_vector": {
+              "left": [
+                {
+                  "component": "density",
+                  "real": -2.6342327548291227e-22,
+                  "imag": 5.293955920339377e-22
+                },
+                {
+                  "component": "current_x",
+                  "real": 8.445039220875928e-05,
+                  "imag": -5.086302890433023e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": 1.162393901428917e-20,
+                  "imag": 1.2319035426629732e-21
+                }
+              ],
+              "right": [
+                {
+                  "component": "density",
+                  "real": -2.768103535917734e-22,
+                  "imag": 2.3127969926982654e-21
+                },
+                {
+                  "component": "current_x",
+                  "real": -8.445039220875926e-05,
+                  "imag": 5.354044452610246e-22
+                },
+                {
+                  "component": "current_y",
+                  "real": -9.140014896465935e-21,
+                  "imag": 1.25837332226467e-21
+                }
+              ]
+            },
+            "valid_for_casimir_input": false
+          }
+        ],
+        "trend": "flat",
+        "interpretation": "omega trend tests sensitivity of the bubble-only homogeneous Ward residual",
+        "valid_for_casimir_input": false
+      },
+      "mesh_shift_trend": {
+        "available": true,
+        "rows": [
+          {
+            "shift": [
+              0.0,
+              0.0
+            ],
+            "mesh_size": 81,
+            "bubble_residual_max_norm": 8.445039220875928e-05,
+            "dominant_component": "left_current_x",
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.05555555555555555,
+              0.0
+            ],
+            "mesh_size": 81,
+            "bubble_residual_max_norm": 6.548014877390509e-05,
+            "dominant_component": "left_current_x",
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.05555555555555555
+            ],
+            "mesh_size": 81,
+            "bubble_residual_max_norm": 6.58235804117784e-05,
+            "dominant_component": "left_current_x",
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.05555555555555555,
+              0.05555555555555555
+            ],
+            "mesh_size": 81,
+            "bubble_residual_max_norm": 7.523554775329985e-05,
+            "dominant_component": "left_current_x",
+            "valid_for_casimir_input": false
+          }
+        ],
+        "best_shift": [
+          0.05555555555555555,
+          0.0
+        ],
+        "best_residual": 6.548014877390509e-05,
+        "spread_ratio": 1.2897098401586733,
+        "interpretation": "diagnostic-only shifted mesh comparison; shifted points are not a production grid change",
+        "valid_for_casimir_input": false
+      },
+      "summary": {
+        "suspected_issue": "bubble_residual_numerical_convergence_limited",
+        "recommended_next_fix": "Introduce shifted/twist mesh averaging or tighter normal bubble quadrature before changing formulas.",
+        "valid_for_casimir_input": false
+      }
+    },
     "summary": {
       "suspected_layer": "normal_ward_convention",
       "recommended_next_fix": "Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.",
