@@ -70,7 +70,7 @@ def test_two_band_spm_endpoint_collective_vertices_match_symmetric_at_finite_q()
         np.testing.assert_allclose(endpoint_vertex, symmetric_vertex)
 
 
-def test_two_band_dwave_endpoint_collective_vertices_differ_from_symmetric_at_finite_q():
+def test_two_band_dwave_endpoint_collective_vertices_match_symmetric_at_finite_q():
     model = get_finite_q_validation_model("symmetry_bdg_2band")
     amp = model.build_pairing_params()
     endpoint = model.build_ansatz("dwave", "bond_endpoint_gauge")
@@ -79,11 +79,11 @@ def test_two_band_dwave_endpoint_collective_vertices_differ_from_symmetric_at_fi
     endpoint_vertices = endpoint.collective_vertices(0.37, -0.22, 0.13, -0.07, amp)
     symmetric_vertices = symmetric.collective_vertices(0.37, -0.22, 0.13, -0.07, amp)
 
-    assert np.linalg.norm(endpoint_vertices[0] - symmetric_vertices[0]) > 0.0
-    assert np.linalg.norm(endpoint_vertices[1] - symmetric_vertices[1]) > 0.0
+    for endpoint_vertex, symmetric_vertex in zip(endpoint_vertices, symmetric_vertices, strict=True):
+        np.testing.assert_allclose(endpoint_vertex, symmetric_vertex)
 
 
-def test_two_band_endpoint_collective_vertices_have_endpoint_block_structure():
+def test_two_band_endpoint_collective_vertices_have_endpoint_average_block_structure():
     model = get_finite_q_validation_model("symmetry_bdg_2band")
     amp = model.build_pairing_params()
     endpoint = model.build_ansatz("dwave", "bond_endpoint_gauge")
@@ -94,20 +94,23 @@ def test_two_band_endpoint_collective_vertices_have_endpoint_block_structure():
     delta0 = float(amp.delta0_eV)
     phi_minus = endpoint.mean_pairing(kx - 0.5 * qx, ky - 0.5 * qy, amp) / delta0
     phi_plus = endpoint.mean_pairing(kx + 0.5 * qx, ky + 0.5 * qy, amp) / delta0
+    phi_avg = 0.5 * (phi_minus + phi_plus)
 
     amplitude, phase = endpoint.collective_vertices(kx, ky, qx, qy, amp)
-    zero = np.zeros_like(phi_plus)
+    phase_pairing = endpoint.phase_pairing_matrix(kx, ky, qx, qy, amp)
+    zero = np.zeros_like(phi_avg)
 
     assert amplitude.shape == (4, 4)
     assert phase.shape == (4, 4)
     np.testing.assert_allclose(amplitude[:2, :2], zero)
-    np.testing.assert_allclose(amplitude[:2, 2:], phi_plus)
-    np.testing.assert_allclose(amplitude[2:, :2], phi_minus.conjugate().T)
+    np.testing.assert_allclose(amplitude[:2, 2:], phi_avg)
+    np.testing.assert_allclose(amplitude[2:, :2], phi_avg.conjugate().T)
     np.testing.assert_allclose(amplitude[2:, 2:], zero)
     np.testing.assert_allclose(phase[:2, :2], zero)
-    np.testing.assert_allclose(phase[:2, 2:], 1j * phi_plus)
-    np.testing.assert_allclose(phase[2:, :2], -1j * phi_minus.conjugate().T)
+    np.testing.assert_allclose(phase[:2, 2:], 1j * phi_avg)
+    np.testing.assert_allclose(phase[2:, :2], -1j * phi_avg.conjugate().T)
     np.testing.assert_allclose(phase[2:, 2:], zero)
+    np.testing.assert_allclose(phase_pairing / delta0, phi_avg)
 
 
 def test_validation_model_adapter_rejects_unsupported_pairing():
