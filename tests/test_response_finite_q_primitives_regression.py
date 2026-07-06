@@ -9,6 +9,7 @@ from lno327.models.lno327_four_orbital.pairing import pairing_matrix
 from lno327.response.config import KuboConfig
 from lno327.response.finite_q import (
     BdGFiniteQResponseComponents,
+    add_band_bubble,
     add_bubble,
     fermi_derivative,
     kubo_factor,
@@ -91,7 +92,7 @@ def test_kubo_factor_dynamic_and_static_cases():
         kubo_factor(0.01, 0.01, 0.4, 0.4, 0.0, static_limit=True, eta_eV=1e-4)
 
 
-def test_vertex_band_matches_direct_matrix_product():
+def test_vertex_band_returns_forward_vertex_in_minus_plus_storage():
     rng = np.random.default_rng(1234)
     states_minus = rng.normal(size=(3, 3)) + 1j * rng.normal(size=(3, 3))
     states_plus = rng.normal(size=(3, 3)) + 1j * rng.normal(size=(3, 3))
@@ -99,7 +100,7 @@ def test_vertex_band_matches_direct_matrix_product():
 
     np.testing.assert_allclose(
         vertex_band(states_minus, vertex, states_plus),
-        states_minus.conjugate().T @ vertex @ states_plus,
+        (states_plus.conjugate().T @ vertex @ states_minus).T,
     )
 
 
@@ -156,6 +157,128 @@ def test_add_bubble_static_degenerate_branch_is_finite():
 
     assert new_accumulator.shape == (2, 2)
     assert np.all(np.isfinite(new_accumulator))
+
+
+def _random_hermitian(rng, dim):
+    matrix = rng.normal(size=(dim, dim)) + 1j * rng.normal(size=(dim, dim))
+    return 0.5 * (matrix + matrix.conjugate().T)
+
+
+def _manual_forward_band_bubble(
+    left_band_minus_plus,
+    right_band_minus_plus,
+    energies_minus,
+    occupations_minus,
+    energies_plus,
+    occupations_plus,
+    omega_eV,
+    weight,
+):
+    value = 0.0 + 0.0j
+    for m, energy_minus in enumerate(energies_minus):
+        for n, energy_plus in enumerate(energies_plus):
+            raw_factor = float(occupations_minus[m] - occupations_plus[n]) / (
+                1j * float(omega_eV) + float(energy_minus - energy_plus)
+            )
+            value += (
+                0.5
+                * float(weight)
+                * raw_factor
+                * left_band_minus_plus[m, n]
+                * np.conjugate(right_band_minus_plus[m, n])
+            )
+    return value
+
+
+def _forward_bubble_fixture(seed):
+    rng = np.random.default_rng(seed)
+    dim = 4
+    omega = 0.13
+    weight = 0.37
+    h_minus = _random_hermitian(rng, dim)
+    h_plus = _random_hermitian(rng, dim)
+    energies_minus, states_minus = np.linalg.eigh(h_minus)
+    energies_plus, states_plus = np.linalg.eigh(h_plus)
+    occupations_minus = np.array([0.9, 0.7, 0.25, 0.1])
+    occupations_plus = np.array([0.85, 0.55, 0.2, 0.05])
+    left_vertex = rng.normal(size=(dim, dim)) + 1j * rng.normal(size=(dim, dim))
+    right_vertex = rng.normal(size=(dim, dim)) + 1j * rng.normal(size=(dim, dim))
+    left_band = (states_plus.conjugate().T @ left_vertex @ states_minus).T
+    right_band = (states_plus.conjugate().T @ right_vertex @ states_minus).T
+    return {
+        "energies_minus": energies_minus,
+        "states_minus": states_minus,
+        "occupations_minus": occupations_minus,
+        "energies_plus": energies_plus,
+        "states_plus": states_plus,
+        "occupations_plus": occupations_plus,
+        "left_vertex": left_vertex,
+        "right_vertex": right_vertex,
+        "left_band": left_band,
+        "right_band": right_band,
+        "omega": omega,
+        "weight": weight,
+    }
+
+
+def test_add_band_bubble_matches_forward_trace_convention():
+    fixture = _forward_bubble_fixture(20260707)
+    expected = _manual_forward_band_bubble(
+        fixture["left_band"],
+        fixture["right_band"],
+        fixture["energies_minus"],
+        fixture["occupations_minus"],
+        fixture["energies_plus"],
+        fixture["occupations_plus"],
+        fixture["omega"],
+        fixture["weight"],
+    )
+
+    got = np.zeros((1, 1), dtype=complex)
+    add_band_bubble(
+        got,
+        (fixture["left_band"],),
+        (fixture["right_band"],),
+        fixture["energies_minus"],
+        fixture["occupations_minus"],
+        fixture["energies_plus"],
+        fixture["occupations_plus"],
+        fixture["omega"],
+        fixture["weight"],
+    )
+
+    assert got[0, 0] == pytest.approx(expected)
+
+
+def test_add_bubble_matrix_vertices_match_forward_trace_convention():
+    fixture = _forward_bubble_fixture(20260708)
+    expected = _manual_forward_band_bubble(
+        fixture["left_band"],
+        fixture["right_band"],
+        fixture["energies_minus"],
+        fixture["occupations_minus"],
+        fixture["energies_plus"],
+        fixture["occupations_plus"],
+        fixture["omega"],
+        fixture["weight"],
+    )
+
+    got = np.zeros((1, 1), dtype=complex)
+    add_bubble(
+        got,
+        (fixture["left_vertex"],),
+        (fixture["right_vertex"],),
+        fixture["energies_minus"],
+        fixture["states_minus"],
+        fixture["occupations_minus"],
+        fixture["energies_plus"],
+        fixture["states_plus"],
+        fixture["occupations_plus"],
+        fixture["omega"],
+        fixture["weight"],
+    )
+
+    assert got[0, 0] == pytest.approx(expected)
 
 
 def test_thermal_expectation_from_hamiltonian_is_finite_and_complex():
