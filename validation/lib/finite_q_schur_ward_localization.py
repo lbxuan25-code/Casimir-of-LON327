@@ -148,7 +148,6 @@ def _classify_analytic_identity(
 def _analytic_identity_payload(
     *,
     k_aa: np.ndarray,
-    k_direct: np.ndarray,
     k_aeta: np.ndarray,
     k_etaa: np.ndarray,
     k_etaeta: np.ndarray,
@@ -162,39 +161,16 @@ def _analytic_identity_payload(
 
     full_hessian_left_aa = rectangular_ward_left(k_aa, omega_eV, q_model) + r_left @ k_etaa
     full_hessian_right_aa = rectangular_ward_right(k_aa, omega_eV, q_model) + k_aeta @ r_right
-    bubble_only_left_aa = rectangular_ward_left(k_aa, omega_eV, q_model) - rectangular_ward_left(
-        k_direct, omega_eV, q_model
-    ) + r_left @ k_etaa
-    bubble_only_right_aa = rectangular_ward_right(k_aa, omega_eV, q_model) - rectangular_ward_right(
-        k_direct, omega_eV, q_model
-    ) + k_aeta @ r_right
     left_aeta = rectangular_ward_left(k_aeta, omega_eV, q_model) + r_left @ k_etaeta
     right_etaa = rectangular_ward_right(k_etaa, omega_eV, q_model) + k_etaeta @ r_right
 
     norms = {
         "full_hessian_left_aa_norm": float(np.linalg.norm(full_hessian_left_aa)),
         "full_hessian_right_aa_norm": float(np.linalg.norm(full_hessian_right_aa)),
-        "bubble_only_left_aa_norm": float(np.linalg.norm(bubble_only_left_aa)),
-        "bubble_only_right_aa_norm": float(np.linalg.norm(bubble_only_right_aa)),
         "left_aeta_norm": float(np.linalg.norm(left_aeta)),
         "right_etaa_norm": float(np.linalg.norm(right_etaa)),
     }
-    max_full_hessian_norm = float(
-        max(
-            norms["full_hessian_left_aa_norm"],
-            norms["full_hessian_right_aa_norm"],
-            norms["left_aeta_norm"],
-            norms["right_etaa_norm"],
-        )
-    )
-    max_bubble_only_norm = float(
-        max(
-            norms["bubble_only_left_aa_norm"],
-            norms["bubble_only_right_aa_norm"],
-            norms["left_aeta_norm"],
-            norms["right_etaa_norm"],
-        )
-    )
+    max_full_hessian_norm = float(max(norms.values()))
     return {
         "analytic_R_left": _complex_vector_payload(r_left),
         "analytic_R_right": _complex_vector_payload(r_right),
@@ -206,12 +182,7 @@ def _analytic_identity_payload(
         **norms,
         "homogeneous_left_aa_norm": norms["full_hessian_left_aa_norm"],
         "homogeneous_right_aa_norm": norms["full_hessian_right_aa_norm"],
-        "contact_aware_left_aa_norm": norms["bubble_only_left_aa_norm"],
-        "contact_aware_right_aa_norm": norms["bubble_only_right_aa_norm"],
         "max_full_hessian_norm": max_full_hessian_norm,
-        "max_contact_aware_norm": max_bubble_only_norm,
-        "max_bubble_only_diagnostic_norm": max_bubble_only_norm,
-        "bubble_only_contact_rhs_diagnostic_only": True,
         "classification": _classify_analytic_identity(
             full_hessian_left_aa_norm=norms["full_hessian_left_aa_norm"],
             full_hessian_right_aa_norm=norms["full_hessian_right_aa_norm"],
@@ -276,7 +247,6 @@ def run_bdg_schur_ward_algebra_localization(
 
     analytic_identity = _analytic_identity_payload(
         k_aa=k_aa,
-        k_direct=k_direct,
         k_aeta=k_aeta,
         k_etaa=k_etaa,
         k_etaeta=k_etaeta,
