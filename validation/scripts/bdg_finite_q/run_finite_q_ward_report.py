@@ -22,8 +22,10 @@ from validation.lib.finite_q_validation_models import (  # noqa: E402
     available_finite_q_validation_models,
     get_finite_q_validation_model,
 )
-from validation.lib.finite_q_ward_triage import (  # noqa: E402
+from validation.lib.finite_q_ward_criterion import (  # noqa: E402
     evaluate_finite_q_bdg_ward_criterion,
+)
+from validation.lib.finite_q_ward_triage import (  # noqa: E402
     run_contact_cancellation_triage,
     run_normal_bubble_convergence_audit,
     run_normal_bubble_per_k_outlier_audit,
@@ -34,10 +36,10 @@ from validation.lib.finite_q_ward_triage import (  # noqa: E402
     summarize_ward_triage,
 )
 
-
 DEFAULT_OUTPUT_DIR = ROOT / "validation" / "outputs" / "finite_q_ward"
 DEFAULT_Q_VALUES = (0.0025, 0.005, 0.01, 0.02)
 DEFAULT_PAIRINGS = ("spm", "dwave")
+SUPPORTED_WARD_CRITERIA = ("contact_aware_v1", "full_hessian_v1")
 
 
 def _round_float(value: float | None) -> float | None:
@@ -103,27 +105,6 @@ def _pairing_summary(scan_report: Any) -> dict[str, Any]:
     return summary
 
 
-def _diagnostic_interpretation(scan_report: Any) -> dict[str, Any]:
-    blockers: list[str] = []
-    if not scan_report.ward_identity_closed:
-        blockers.append("finite-q Ward residuals remain above tolerance for at least one closure response")
-    if any(status == "diagnostic_only_not_passed" for status in scan_report.q0_precondition_status.values()):
-        blockers.append("at least one q=0 precondition is diagnostic-only")
-    if not blockers:
-        blockers.append("Casimir gating remains intentionally closed for this diagnostic report")
-    return {
-        "main_observation": (
-            "The finite-q diagnostic completed, but ward_identity_closed is False."
-            if not scan_report.ward_identity_closed
-            else "The finite-q diagnostic completed with closure at the configured tolerance."
-        ),
-        "suspected_blockers": blockers,
-        "recommended_next_action": (
-            "Investigate the largest finite-q residual rows before changing any Casimir input gate."
-        ),
-    }
-
-
 def _ward_criterion_summary(ward_criterion: dict[str, Any]) -> dict[str, Any]:
     if not ward_criterion.get("evaluated", False):
         suspected_layer = "ward_criterion_incomplete"
@@ -183,38 +164,16 @@ def _run_ward_triage(
     include_bubble_outlier_audit: bool = False,
     bubble_outlier_top_n: int = 12,
 ) -> dict[str, Any]:
-    normal = run_normal_finite_q_ward_triage(
-        model_name=model_name,
-        q_model=q_model,
-        omega_eV=omega,
-        nk=nk,
-    )
+    normal = run_normal_finite_q_ward_triage(model_name=model_name, q_model=q_model, omega_eV=omega, nk=nk)
     operator = run_operator_identity_triage(
-        model_name=model_name,
-        pairings=pairings,
-        q_model=q_model,
-        nk=nk,
-        delta0_eV=delta0,
+        model_name=model_name, pairings=pairings, q_model=q_model, nk=nk, delta0_eV=delta0
     )
     contact = run_contact_cancellation_triage(
-        model_name=model_name,
-        pairings=pairings,
-        q_model=q_model,
-        omega_eV=omega,
-        nk=nk,
-        delta0_eV=delta0,
+        model_name=model_name, pairings=pairings, q_model=q_model, omega_eV=omega, nk=nk, delta0_eV=delta0
     )
-    normal_contact = run_normal_contact_direct_audit(
-        model_name=model_name,
-        q_model=q_model,
-        omega_eV=omega,
-        nk=nk,
-    )
+    normal_contact = run_normal_contact_direct_audit(model_name=model_name, q_model=q_model, omega_eV=omega, nk=nk)
     normal_ward_convention = run_normal_ward_convention_audit(
-        model_name=model_name,
-        q_model=q_model,
-        omega_eV=omega,
-        nk=nk,
+        model_name=model_name, q_model=q_model, omega_eV=omega, nk=nk
     )
     normal_bubble_convergence = run_normal_bubble_convergence_audit(
         model_name=model_name,
@@ -237,10 +196,7 @@ def _run_ward_triage(
     }
     if include_bubble_outlier_audit:
         payload["normal_bubble_per_k_outlier_audit"] = run_normal_bubble_per_k_outlier_audit(
-            model_name=model_name,
-            q_model=q_model,
-            omega_eV=omega,
-            top_n=bubble_outlier_top_n,
+            model_name=model_name, q_model=q_model, omega_eV=omega, top_n=bubble_outlier_top_n
         )
     return payload
 
@@ -272,25 +228,15 @@ def build_report(
         model.require_pairing(pairing)
     pairing_params = model.build_pairing_params(delta0)
     q0_reports = run_q0_bdg_response_alignment_many(
-        pairings,
-        model_name=model.name,
-        omega_eV=omega,
-        nk=nk,
-        pairing_params=pairing_params,
+        pairings, model_name=model.name, omega_eV=omega, nk=nk, pairing_params=pairing_params
     )
     q0_status = {report.pairing_name: report.status for report in q0_reports}
     scan_report = run_finite_q_ward_scan(
-        pairings,
-        model_name=model.name,
-        omega_eV=omega,
-        q_values=q_values,
-        nk=nk,
-        pairing_params=pairing_params,
-        q0_status=q0_status,
+        pairings, model_name=model.name, omega_eV=omega, q_values=q_values, nk=nk, pairing_params=pairing_params, q0_status=q0_status
     )
     finite_q_rows = _compact_rows(scan_report)
-    if ward_criterion != "contact_aware_v1":
-        raise ValueError("only contact_aware_v1 Ward criterion is supported")
+    if ward_criterion not in SUPPORTED_WARD_CRITERIA:
+        raise ValueError("Ward criterion must be contact_aware_v1 or full_hessian_v1")
     ward_criterion_payload = evaluate_finite_q_bdg_ward_criterion(
         finite_q_rows=finite_q_rows,
         pairings=pairings,
@@ -300,6 +246,7 @@ def build_report(
         relative_tol=bdg_ward_relative_tol,
         q0_precondition_status=dict(scan_report.q0_precondition_status),
     )
+    ward_criterion_payload["requested_criterion"] = ward_criterion
     report = {
         "problem": "finite_q_ward",
         "model_name": scan_report.model_name,
@@ -378,11 +325,7 @@ def build_report(
         report["ward_triage"]["diagnostic_summary"] = report["ward_triage"].get("summary", {})
         report["ward_triage"]["summary"] = _ward_criterion_summary(ward_criterion_payload)
     else:
-        report["ward_triage_run_config"] = {
-            "include_triage": False,
-            "computed_in_current_run": False,
-            "valid_for_casimir_input": False,
-        }
+        report["ward_triage_run_config"] = {"include_triage": False, "computed_in_current_run": False, "valid_for_casimir_input": False}
         report["ward_triage"] = {
             "available": False,
             "reason": "triage disabled by CLI",
@@ -398,6 +341,19 @@ def build_report(
 
 def _format_bool(value: bool) -> str:
     return "True" if value else "False"
+
+
+def _contact_conclusion(contact_triage: dict[str, Any]) -> str:
+    if not contact_triage.get("available", False):
+        return str(contact_triage.get("reason", "unavailable"))
+    by_pairing = contact_triage.get("by_pairing", {})
+    if not isinstance(by_pairing, dict):
+        return "unavailable"
+    pieces = []
+    for pairing, payload in by_pairing.items():
+        if isinstance(payload, dict):
+            pieces.append(f"{pairing}: {payload.get('interpretation', payload.get('reason', 'unknown'))}")
+    return "; ".join(pieces) if pieces else "unavailable"
 
 
 def format_markdown(report: dict[str, Any]) -> str:
@@ -419,25 +375,16 @@ def format_markdown(report: dict[str, Any]) -> str:
     normal_bubble_summary = normal_bubble_audit.get("summary", {}) if isinstance(normal_bubble_audit, dict) else {}
     bubble_outlier_audit = triage.get("normal_bubble_per_k_outlier_audit", {}) if isinstance(triage, dict) else {}
     bubble_outlier_summary = bubble_outlier_audit.get("summary", {}) if isinstance(bubble_outlier_audit, dict) else {}
-    bubble_config = (
-        triage_config.get("normal_bubble_convergence_audit", {})
-        if isinstance(triage_config, dict)
-        else {}
-    )
+    bubble_config = triage_config.get("normal_bubble_convergence_audit", {}) if isinstance(triage_config, dict) else {}
     ward_criterion = report.get("ward_criterion", {})
     ward_summary = ward_criterion.get("summary", {}) if isinstance(ward_criterion, dict) else {}
     largest_blocker = ward_summary.get("largest_blocker") if isinstance(ward_summary, dict) else None
     by_pairing = ward_criterion.get("by_pairing", {}) if isinstance(ward_criterion, dict) else {}
     spm_criterion = by_pairing.get("spm", {}) if isinstance(by_pairing, dict) else {}
     dwave_criterion = by_pairing.get("dwave", {}) if isinstance(by_pairing, dict) else {}
-    blocker_text = (
-        "none"
-        if not largest_blocker
-        else (
-            f"pairing={largest_blocker.get('pairing_name')}, q={largest_blocker.get('q_model')}, "
-            f"response={largest_blocker.get('response_name')}, "
-            f"primary_residual={largest_blocker.get('primary_residual_norm')}"
-        )
+    blocker_text = "none" if not largest_blocker else (
+        f"pairing={largest_blocker.get('pairing_name')}, q={largest_blocker.get('q_model')}, "
+        f"response={largest_blocker.get('response_name')}, primary_residual={largest_blocker.get('primary_residual_norm')}"
     )
     lines = [
         "# finite-q Ward validation report",
@@ -452,76 +399,56 @@ def format_markdown(report: dict[str, Any]) -> str:
     lines.extend(f"- {pairing}: {status}" for pairing, status in q0_status.items())
     for pairing in ("spm", "dwave"):
         summary = pairing_summary.get(pairing, {})
-        lines.extend(
-            [
-                "",
-                f"## {pairing} 结论",
-                f"- q0_precondition_status: {summary.get('q0_precondition_status', 'not_requested')}",
-                f"- max_closure_residual_norm: {summary.get('max_closure_residual_norm')}",
-                f"- ward_identity_closed: {_format_bool(bool(summary.get('ward_identity_closed', False)))}",
-            ]
-        )
-    lines.extend(
-        [
+        lines.extend([
             "",
-            "## Ward criterion",
-            f"- criterion_version: {ward_criterion.get('criterion_version', 'unavailable')}",
-            f"- closure_response_name: {ward_criterion.get('closure_response_name', 'unavailable')}",
-            f"- full_bdg_ward_closed: {_format_bool(bool(ward_criterion.get('ward_identity_closed', False)))}",
-            f"- spm max primary closure residual: {spm_criterion.get('max_closure_primary_residual_norm')}",
-            f"- dwave max primary closure residual: {dwave_criterion.get('max_closure_primary_residual_norm')}",
-            f"- largest blocker: {blocker_text}",
-            f"- recommended next fix: {ward_summary.get('recommended_next_fix', 'inspect finite-q Ward criterion rows')}",
-            f"- valid_for_casimir_input: {_format_bool(bool(ward_criterion.get('valid_for_casimir_input', False)))}",
-            "",
-            "## Casimir gating",
-            "- valid_for_casimir_input: False",
-            "- This report is diagnostic-only and does not promote finite-q response data to Casimir input.",
-            "",
-            "## Ward triage",
-            f"- normal finite-q triage conclusion: {normal_triage.get('suspected_layer', normal_triage.get('reason', 'unavailable'))}",
-            f"- operator identity conclusion: {operator_triage.get('suspected_layer', operator_triage.get('reason', 'unavailable'))}",
-            f"- contact cancellation conclusion: {_contact_conclusion(contact_triage)}",
-            f"- normal contact/direct audit: {normal_contact_summary.get('suspected_issue', normal_contact_audit.get('reason', 'unavailable'))}",
-            f"- recommended normal contact fix: {normal_contact_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
-            f"- normal Ward convention audit: {normal_ward_summary.get('suspected_issue', normal_ward_audit.get('reason', 'unavailable'))}",
-            f"- recommended Ward convention fix: {normal_ward_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
-            f"- normal bubble convergence audit: {normal_bubble_summary.get('suspected_issue', normal_bubble_audit.get('reason', 'unavailable'))}",
-            f"- recommended normal bubble fix: {normal_bubble_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
-            *(
-                [
-                    f"- normal bubble per-k outlier audit: {bubble_outlier_summary.get('suspected_issue', bubble_outlier_audit.get('reason', 'unavailable'))}",
-                    f"- recommended per-k outlier fix: {bubble_outlier_summary.get('recommended_next_fix', 'rerun report with --include-bubble-outlier-audit')}",
-                ]
-                if bubble_outlier_audit
-                else []
-            ),
-            f"- normal bubble audit config: nk={bubble_config.get('nk_values', 'unavailable')}, q={bubble_config.get('q_values', 'unavailable')}, omega={bubble_config.get('omega_values', 'unavailable')}, mesh_shifts={bubble_config.get('mesh_shifts_enabled', 'unavailable')}",
-            f"- suspected primary layer: {triage_summary.get('suspected_layer', 'unavailable')}",
-            f"- recommended next fix: {triage_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
-            f"- valid_for_casimir_input: {_format_bool(bool(triage_summary.get('valid_for_casimir_input', False)))}",
-            "",
-            "## 下一步建议",
-            f"- {interpretation['recommended_next_action']}",
-            "",
-            "## 主要观察",
-            f"- {interpretation['main_observation']}",
-        ]
-    )
+            f"## {pairing} 结论",
+            f"- q0_precondition_status: {summary.get('q0_precondition_status', 'not_requested')}",
+            f"- max_closure_residual_norm: {summary.get('max_closure_residual_norm')}",
+            f"- ward_identity_closed: {_format_bool(bool(summary.get('ward_identity_closed', False)))}",
+        ])
+    lines.extend([
+        "",
+        "## Ward criterion",
+        f"- criterion_version: {ward_criterion.get('criterion_version', 'unavailable')}",
+        f"- criterion_formal_name: {ward_criterion.get('criterion_formal_name', 'unavailable')}",
+        f"- closure_response_name: {ward_criterion.get('closure_response_name', 'unavailable')}",
+        f"- full_bdg_ward_closed: {_format_bool(bool(ward_criterion.get('ward_identity_closed', False)))}",
+        f"- spm max primary closure residual: {spm_criterion.get('max_closure_primary_residual_norm')}",
+        f"- dwave max primary closure residual: {dwave_criterion.get('max_closure_primary_residual_norm')}",
+        f"- largest blocker: {blocker_text}",
+        f"- recommended next fix: {ward_summary.get('recommended_next_fix', 'inspect finite-q Ward criterion rows')}",
+        f"- valid_for_casimir_input: {_format_bool(bool(ward_criterion.get('valid_for_casimir_input', False)))}",
+        "",
+        "## Casimir gating",
+        "- valid_for_casimir_input: False",
+        "- This report is diagnostic-only and does not promote finite-q response data to Casimir input.",
+        "",
+        "## Ward triage",
+        f"- normal finite-q triage conclusion: {normal_triage.get('suspected_layer', normal_triage.get('reason', 'unavailable'))}",
+        f"- operator identity conclusion: {operator_triage.get('suspected_layer', operator_triage.get('reason', 'unavailable'))}",
+        f"- contact cancellation conclusion: {_contact_conclusion(contact_triage)}",
+        f"- normal contact/direct audit: {normal_contact_summary.get('suspected_issue', normal_contact_audit.get('reason', 'unavailable'))}",
+        f"- recommended normal contact fix: {normal_contact_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
+        f"- normal Ward convention audit: {normal_ward_summary.get('suspected_issue', normal_ward_audit.get('reason', 'unavailable'))}",
+        f"- recommended Ward convention fix: {normal_ward_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
+        f"- normal bubble convergence audit: {normal_bubble_summary.get('suspected_issue', normal_bubble_audit.get('reason', 'unavailable'))}",
+        f"- recommended normal bubble fix: {normal_bubble_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
+        *([
+            f"- normal bubble per-k outlier audit: {bubble_outlier_summary.get('suspected_issue', bubble_outlier_audit.get('reason', 'unavailable'))}",
+            f"- recommended per-k outlier fix: {bubble_outlier_summary.get('recommended_next_fix', 'rerun report with --include-bubble-outlier-audit')}",
+        ] if bubble_outlier_audit else []),
+        f"- normal bubble audit config: nk={bubble_config.get('nk_values', 'unavailable')}, q={bubble_config.get('q_values', 'unavailable')}, omega={bubble_config.get('omega_values', 'unavailable')}, mesh_shifts={bubble_config.get('mesh_shifts_enabled', 'unavailable')}",
+        f"- suspected primary layer: {triage_summary.get('suspected_layer', 'unavailable')}",
+        f"- recommended next fix: {triage_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
+        f"- valid_for_casimir_input: {_format_bool(bool(triage_summary.get('valid_for_casimir_input', False)))}",
+        "",
+        "## 下一步建议",
+        f"- {interpretation['recommended_next_action']}",
+        "",
+        "## 主要观察",
+        f"- {interpretation['main_observation']}",
+    ])
     return "\n".join(lines) + "\n"
-
-
-def _contact_conclusion(contact_triage: dict[str, Any]) -> str:
-    if not contact_triage.get("available", False):
-        return str(contact_triage.get("reason", "unavailable"))
-    by_pairing = contact_triage.get("by_pairing", {})
-    if not isinstance(by_pairing, dict):
-        return "unavailable"
-    pieces = []
-    for pairing, payload in by_pairing.items():
-        if isinstance(payload, dict):
-            pieces.append(f"{pairing}: {payload.get('interpretation', payload.get('reason', 'unknown'))}")
-    return "; ".join(pieces) if pieces else "unavailable"
 
 
 def _command_text(args: argparse.Namespace) -> str:
@@ -532,46 +459,27 @@ def _command_text(args: argparse.Namespace) -> str:
     except ValueError:
         output_dir_text = str(output_dir)
     parts = [
-        "python",
-        rel_script,
-        "--model",
-        args.model,
-        "--output-dir",
-        output_dir_text,
-        "--nk",
-        str(args.nk),
-        "--omega",
-        str(args.omega),
-        "--delta0",
-        str(args.delta0),
-        "--q-values",
-        *(str(value) for value in args.q_values),
-        "--pairings",
-        *args.pairings,
-        "--ward-criterion",
-        args.ward_criterion,
-        "--bdg-ward-closure-response",
-        args.bdg_ward_closure_response,
-        "--bdg-ward-absolute-tol",
-        str(args.bdg_ward_absolute_tol),
-        "--bdg-ward-relative-tol",
-        str(args.bdg_ward_relative_tol),
-        "--triage-qx",
-        str(args.triage_qx),
-        "--triage-qy",
-        str(args.triage_qy),
+        "python", rel_script,
+        "--model", args.model,
+        "--output-dir", output_dir_text,
+        "--nk", str(args.nk),
+        "--omega", str(args.omega),
+        "--delta0", str(args.delta0),
+        "--q-values", *(str(value) for value in args.q_values),
+        "--pairings", *args.pairings,
+        "--ward-criterion", args.ward_criterion,
+        "--bdg-ward-closure-response", args.bdg_ward_closure_response,
+        "--bdg-ward-absolute-tol", str(args.bdg_ward_absolute_tol),
+        "--bdg-ward-relative-tol", str(args.bdg_ward_relative_tol),
+        "--triage-qx", str(args.triage_qx),
+        "--triage-qy", str(args.triage_qy),
     ]
     if args.include_triage:
-        parts.extend(
-            [
-                "--bubble-audit-nk-values",
-                *(str(value) for value in args.bubble_audit_nk_values),
-                "--bubble-audit-q-values",
-                *(str(value) for value in args.bubble_audit_q_values),
-                "--bubble-audit-omega-values",
-                *(str(value) for value in args.bubble_audit_omega_values),
-            ]
-        )
+        parts.extend([
+            "--bubble-audit-nk-values", *(str(value) for value in args.bubble_audit_nk_values),
+            "--bubble-audit-q-values", *(str(value) for value in args.bubble_audit_q_values),
+            "--bubble-audit-omega-values", *(str(value) for value in args.bubble_audit_omega_values),
+        ])
         if args.disable_bubble_audit_mesh_shifts:
             parts.append("--disable-bubble-audit-mesh-shifts")
         if args.include_bubble_outlier_audit:
@@ -598,12 +506,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--delta0", type=float, default=0.1)
     parser.add_argument("--q-values", nargs="+", type=float, default=list(DEFAULT_Q_VALUES))
     parser.add_argument("--pairings", nargs="+", default=list(DEFAULT_PAIRINGS))
-    parser.add_argument("--ward-criterion", choices=["contact_aware_v1"], default="contact_aware_v1")
-    parser.add_argument(
-        "--bdg-ward-closure-response",
-        choices=["minus_schur", "amplitude_phase_schur"],
-        default="amplitude_phase_schur",
-    )
+    parser.add_argument("--ward-criterion", choices=list(SUPPORTED_WARD_CRITERIA), default="contact_aware_v1")
+    parser.add_argument("--bdg-ward-closure-response", choices=["minus_schur", "amplitude_phase_schur"], default="amplitude_phase_schur")
     parser.add_argument("--bdg-ward-absolute-tol", type=float, default=1e-6)
     parser.add_argument("--bdg-ward-relative-tol", type=float, default=1e-6)
     triage_group = parser.add_mutually_exclusive_group()
