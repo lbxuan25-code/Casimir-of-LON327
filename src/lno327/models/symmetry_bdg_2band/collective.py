@@ -150,12 +150,13 @@ class SymmetryTwoBandPairingAnsatz:
         qy: float,
         amp: SymmetryTwoBandPairingAmplitudes,
     ) -> tuple[np.ndarray, ...]:
-        if self.phase_vertex == "bond_endpoint_gauge":
-            phi_minus, phi_plus = self._endpoint_form_factors(kx, ky, qx, qy, amp)
-            return (
-                _amplitude_vertex_from_endpoints(phi_minus, phi_plus),
-                _eta2_phase_vertex_from_endpoints(phi_minus, phi_plus),
-            )
+        """Return amplitude/eta2 vertices using the Ward gauge source convention.
+
+        Finite-q charge Ward closure has anomalous source Delta(k-q/2)+Delta(k+q/2).
+        Therefore bond_endpoint_gauge uses the same endpoint-average form factor as
+        phase_pairing_matrix.  Endpoint-asymmetric helpers are retained only for
+        diagnostics and are not used as the eta2 Ward gauge channel.
+        """
         phi = self.collective_form_factor(kx, ky, qx, qy, amp)
         return (_amplitude_vertex(phi), _eta2_phase_vertex(phi))
 
@@ -203,6 +204,8 @@ class SymmetryTwoBandPairingAnsatz:
             "name": self.name,
             "channel_names": list(self.channel_names),
             "phase_vertex": self.phase_vertex,
+            "eta2_gauge_source": "endpoint_average_delta_minus_plus_delta_plus_over_2delta0",
+            "bond_endpoint_gauge_eta2_convention": "endpoint_average_not_endpoint_asymmetric",
             "model": "symmetry_bdg_2band",
             "bond_resolved_extra_modes": False,
             "validation_only": True,
