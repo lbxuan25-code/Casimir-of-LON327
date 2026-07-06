@@ -26,6 +26,7 @@ from validation.lib.finite_q_ward_triage import (  # noqa: E402
     run_contact_cancellation_triage,
     run_normal_contact_direct_audit,
     run_normal_finite_q_ward_triage,
+    run_normal_ward_convention_audit,
     run_operator_identity_triage,
     summarize_ward_triage,
 )
@@ -153,12 +154,19 @@ def _run_ward_triage(
         omega_eV=omega,
         nk=nk,
     )
+    normal_ward_convention = run_normal_ward_convention_audit(
+        model_name=model_name,
+        q_model=q_model,
+        omega_eV=omega,
+        nk=nk,
+    )
     return {
         "normal_finite_q": normal,
         "operator_identity": operator,
         "contact_cancellation": contact,
         "normal_contact_direct_audit": normal_contact,
-        "summary": summarize_ward_triage(normal, operator, contact),
+        "normal_ward_convention_audit": normal_ward_convention,
+        "summary": summarize_ward_triage(normal, operator, contact, normal_ward_convention),
     }
 
 
@@ -258,6 +266,8 @@ def format_markdown(report: dict[str, Any]) -> str:
     contact_triage = triage.get("contact_cancellation", {}) if isinstance(triage, dict) else {}
     normal_contact_audit = triage.get("normal_contact_direct_audit", {}) if isinstance(triage, dict) else {}
     normal_contact_summary = normal_contact_audit.get("summary", {}) if isinstance(normal_contact_audit, dict) else {}
+    normal_ward_audit = triage.get("normal_ward_convention_audit", {}) if isinstance(triage, dict) else {}
+    normal_ward_summary = normal_ward_audit.get("summary", {}) if isinstance(normal_ward_audit, dict) else {}
     lines = [
         "# finite-q Ward validation report",
         "",
@@ -293,6 +303,8 @@ def format_markdown(report: dict[str, Any]) -> str:
             f"- contact cancellation conclusion: {_contact_conclusion(contact_triage)}",
             f"- normal contact/direct audit: {normal_contact_summary.get('suspected_issue', normal_contact_audit.get('reason', 'unavailable'))}",
             f"- recommended normal contact fix: {normal_contact_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
+            f"- normal Ward convention audit: {normal_ward_summary.get('suspected_issue', normal_ward_audit.get('reason', 'unavailable'))}",
+            f"- recommended Ward convention fix: {normal_ward_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
             f"- suspected primary layer: {triage_summary.get('suspected_layer', 'unavailable')}",
             f"- recommended next fix: {triage_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
             f"- valid_for_casimir_input: {_format_bool(bool(triage_summary.get('valid_for_casimir_input', False)))}",

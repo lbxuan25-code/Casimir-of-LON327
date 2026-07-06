@@ -9,6 +9,11 @@ from typing import Any
 import numpy as np
 
 from lno327 import KuboConfig, k_weights, uniform_bz_mesh
+from lno327.collective.ward import (
+    contact_ward_rhs,
+    physical_ward_residuals,
+    physical_ward_residuals_contact_aware,
+)
 from lno327.collective.validation import validate_physical_ward_identity
 from lno327.response.normal_density_current import (
     normal_physical_density_current_response_components_imag_axis_from_model,
@@ -571,6 +576,156 @@ def run_normal_contact_direct_audit(
         return _unavailable(f"normal contact/direct audit failed: {type(exc).__name__}: {exc}")
 
 
+def run_normal_ward_convention_audit(
+    *,
+    model_name: str = "symmetry_bdg_2band",
+    q_model: tuple[float, float] = (0.01, 0.0),
+    omega_eV: float = 0.01,
+    nk: int = 9,
+) -> dict[str, Any]:
+    """Audit homogeneous versus contact-aware normal finite-q Ward conventions."""
+    try:
+        model = get_finite_q_validation_model(model_name)
+        points = uniform_bz_mesh(nk)
+        weights = k_weights(points)
+        config = KuboConfig.from_kelvin(omega_eV=omega_eV, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+        components = normal_physical_density_current_response_components_imag_axis_from_model(
+            model.spec,
+            points,
+            config,
+            np.asarray(q_model, dtype=float),
+            weights,
+        )
+        bubble = _find_component_matrix(components, ("bare_bubble", "bubble", "paramagnetic"))
+        direct = _find_component_matrix(components, ("direct", "contact", "diamagnetic"))
+        total = _find_component_matrix(components, ("total", "bare_total"))
+        if bubble is None or direct is None or total is None:
+            missing = [
+                name
+                for name, value in (("bubble", bubble), ("direct", direct), ("total", total))
+                if value is None
+            ]
+            return _unavailable(f"normal response components missing required matrices: {', '.join(missing)}")
+
+        homogeneous = {
+            "bubble": _ward_pair_summary(*physical_ward_residuals(bubble, omega_eV, q_model)),
+            "direct": _ward_pair_summary(*physical_ward_residuals(direct, omega_eV, q_model)),
+            "total": _ward_pair_summary(*physical_ward_residuals(total, omega_eV, q_model)),
+        }
+        contact_candidates = physical_ward_residuals_contact_aware(total, omega_eV, q_model, direct)
+        contact_aware = {
+            "total_minus_direct_residual": _ward_pair_summary(*contact_candidates["minus_contact"]),
+            "total_plus_direct_residual": _ward_pair_summary(*contact_candidates["plus_contact"]),
+            "bubble_reference": homogeneous["bubble"],
+        }
+        rhs_left, rhs_right = contact_ward_rhs(direct, q_model)
+        direct_left, direct_right = physical_ward_residuals(direct, omega_eV, q_model)
+        contact_rhs = {
+            **_ward_pair_summary(rhs_left, rhs_right),
+            "q_dot_contact_left": _complex_component_payload(rhs_left),
+            "q_dot_contact_right": _complex_component_payload(rhs_right),
+            "match_error_left": float(np.linalg.norm(direct_left - rhs_left)),
+            "match_error_right": float(np.linalg.norm(direct_right - rhs_right)),
+        }
+        consistency = _normal_ward_convention_consistency(
+            bubble=homogeneous["bubble"],
+            direct=homogeneous["direct"],
+            total=homogeneous["total"],
+            minus_direct=contact_aware["total_minus_direct_residual"],
+            rhs=contact_rhs,
+        )
+        summary = _normal_ward_convention_summary(homogeneous, contact_aware, contact_rhs, consistency)
+        return {
+            "available": True,
+            "model_name": model.name,
+            "q_model": [float(q_model[0]), float(q_model[1])],
+            "omega_eV": float(omega_eV),
+            "nk": int(nk),
+            "valid_for_casimir_input": False,
+            "homogeneous_residuals": homogeneous,
+            "contact_aware_candidates": contact_aware,
+            "contact_rhs": contact_rhs,
+            "consistency_checks": consistency,
+            "summary": summary,
+        }
+    except Exception as exc:
+        return _unavailable(f"normal Ward convention audit failed: {type(exc).__name__}: {exc}")
+
+
+def _ward_pair_summary(left: np.ndarray, right: np.ndarray) -> dict[str, Any]:
+    left_array = np.asarray(left, dtype=complex).reshape(-1)
+    right_array = np.asarray(right, dtype=complex).reshape(-1)
+    vector = np.concatenate([left_array, right_array])
+    left_norm = float(np.linalg.norm(left_array))
+    right_norm = float(np.linalg.norm(right_array))
+    return {
+        "left_residual_vector": _complex_component_payload(left_array),
+        "right_residual_vector": _complex_component_payload(right_array),
+        "left_norm": left_norm,
+        "right_norm": right_norm,
+        "max_norm": float(max(left_norm, right_norm)),
+        "vector_norm": float(np.linalg.norm(vector)),
+        "dominant_component": _dominant_component(vector),
+        "dominant_left_component": _dominant_component(left_array),
+        "dominant_right_component": _dominant_component(right_array),
+    }
+
+
+def _normal_ward_convention_consistency(
+    *,
+    bubble: dict[str, Any],
+    direct: dict[str, Any],
+    total: dict[str, Any],
+    minus_direct: dict[str, Any],
+    rhs: dict[str, Any],
+) -> dict[str, bool]:
+    total_matches_sum = bool(total["vector_norm"] <= bubble["vector_norm"] + direct["vector_norm"] + 1e-10)
+    minus_matches_bubble = bool(minus_direct["max_norm"] <= max(bubble["max_norm"], 1e-12) * 1.01 + 1e-12)
+    direct_matches_rhs = bool(max(rhs["match_error_left"], rhs["match_error_right"]) <= 1e-10)
+    current_x_explained = bool(
+        rhs["dominant_left_component"] in {"current_x", "left_current_x"}
+        or direct["dominant_left_component"] == "current_x"
+    )
+    return {
+        "total_residual_matches_bubble_plus_direct": total_matches_sum,
+        "total_minus_direct_matches_bubble": minus_matches_bubble,
+        "direct_residual_matches_q_dot_current_contact": direct_matches_rhs,
+        "current_x_contact_explains_left_current_x": current_x_explained,
+    }
+
+
+def _normal_ward_convention_summary(
+    homogeneous: dict[str, Any],
+    contact_aware: dict[str, Any],
+    contact_rhs_payload: dict[str, Any],
+    consistency: dict[str, bool],
+) -> dict[str, Any]:
+    bubble_norm = float(homogeneous["bubble"]["max_norm"])
+    total_norm = float(homogeneous["total"]["max_norm"])
+    minus_norm = float(contact_aware["total_minus_direct_residual"]["max_norm"])
+    if bubble_norm > 1e-3:
+        issue = "bubble_not_closed"
+        fix = "Inspect bubble-only density-current Ward residual before contact-aware total conventions."
+    elif not consistency["direct_residual_matches_q_dot_current_contact"]:
+        issue = "contact_rhs_not_consistent"
+        fix = "Audit current-contact q contraction against homogeneous direct residual components."
+    elif total_norm > max(10.0 * bubble_norm, 1e-8) and minus_norm <= max(2.0 * bubble_norm, 1e-8):
+        issue = "homogeneous_total_includes_contact_rhs"
+        fix = "Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas."
+    elif not consistency["current_x_contact_explains_left_current_x"]:
+        issue = "component_order_suspicious"
+        fix = "Audit density/current component order used by the Ward validator and normal response matrix."
+    else:
+        issue = "normal_ward_convention_unresolved"
+        fix = "Use contact-aware candidate residuals to choose the next convention audit."
+    return {
+        "suspected_issue": issue,
+        "recommended_next_fix": fix,
+        "contact_rhs_max_norm": contact_rhs_payload["max_norm"],
+        "valid_for_casimir_input": False,
+    }
+
+
 def _hermiticity_norm(matrix: np.ndarray) -> float:
     array = np.asarray(matrix, dtype=complex)
     if array.ndim != 2 or array.shape[0] != array.shape[1]:
@@ -781,9 +936,18 @@ def summarize_ward_triage(
     normal_finite_q: dict[str, Any],
     operator_identity: dict[str, Any],
     contact_cancellation: dict[str, Any],
+    normal_ward_convention: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Produce a compact diagnostic-only triage summary."""
-    if operator_identity.get("suspected_layer") in {"normal_peierls_vertex", "bdg_vertex_construction", "pairing_gauge_vertex"}:
+    normal_ward_issue = (
+        normal_ward_convention.get("summary", {}).get("suspected_issue")
+        if isinstance(normal_ward_convention, dict)
+        else None
+    )
+    if normal_ward_issue == "homogeneous_total_includes_contact_rhs":
+        suspected_layer = "normal_ward_convention"
+        recommended = "Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas."
+    elif operator_identity.get("suspected_layer") in {"normal_peierls_vertex", "bdg_vertex_construction", "pairing_gauge_vertex"}:
         suspected_layer = str(operator_identity["suspected_layer"])
         recommended = "Prioritize the operator-level identity indicated by suspected_layer before response assembly changes."
     elif normal_finite_q.get("suspected_layer") in {"normal_contact_or_vertex", "normal_response_assembly"}:

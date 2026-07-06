@@ -6,7 +6,9 @@ import sys
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 
+from lno327.collective.ward import contact_ward_rhs, physical_ward_residuals
 from validation.lib import finite_q_ward_triage as triage
 
 
@@ -257,6 +259,93 @@ def test_normal_contact_direct_audit_flags_sign_or_magnitude_candidate(monkeypat
     }
 
 
+def test_contact_aware_helper_algebra_for_current_contact():
+    contact = np.zeros((3, 3), dtype=complex)
+    contact[1, 1] = 0.706
+    q = np.array([0.01, 0.0])
+
+    left, right = physical_ward_residuals(contact, 0.01, q)
+    rhs_left, rhs_right = contact_ward_rhs(contact, q)
+
+    assert left[1] == pytest.approx(0.00706)
+    assert right[1] == pytest.approx(-0.00706)
+    np.testing.assert_allclose(left, rhs_left)
+    np.testing.assert_allclose(right, rhs_right)
+
+
+def test_normal_ward_convention_audit_reports_fields(monkeypatch):
+    bubble = np.zeros((3, 3), dtype=complex)
+    direct = np.zeros((3, 3), dtype=complex)
+    direct[1, 1] = 0.7
+
+    monkeypatch.setattr(
+        triage,
+        "get_finite_q_validation_model",
+        lambda model_name: SimpleNamespace(name=model_name, spec=object()),
+    )
+    monkeypatch.setattr(triage, "uniform_bz_mesh", lambda nk: np.zeros((nk, 2), dtype=float))
+    monkeypatch.setattr(triage, "k_weights", lambda points: np.ones(points.shape[0]) / points.shape[0])
+    monkeypatch.setattr(
+        triage.KuboConfig,
+        "from_kelvin",
+        staticmethod(lambda **kwargs: SimpleNamespace(omega_eV=kwargs["omega_eV"])),
+    )
+    monkeypatch.setattr(
+        triage,
+        "normal_physical_density_current_response_components_imag_axis_from_model",
+        lambda *args, **kwargs: {
+            "bubble": bubble,
+            "direct": direct,
+            "total": bubble + direct,
+        },
+    )
+
+    payload = triage.run_normal_ward_convention_audit(nk=2)
+
+    assert payload["available"] is True
+    assert payload["valid_for_casimir_input"] is False
+    assert "homogeneous_residuals" in payload
+    assert "contact_aware_candidates" in payload
+    assert "contact_rhs" in payload
+    assert "consistency_checks" in payload
+    assert "summary" in payload
+    assert payload["contact_rhs"]["match_error_left"] == pytest.approx(0.0)
+    assert payload["contact_rhs"]["match_error_right"] == pytest.approx(0.0)
+
+
+def test_normal_ward_convention_audit_detects_homogeneous_total_contact_rhs(monkeypatch):
+    bubble = np.zeros((3, 3), dtype=complex)
+    direct = np.zeros((3, 3), dtype=complex)
+    direct[1, 1] = 0.7
+
+    monkeypatch.setattr(
+        triage,
+        "get_finite_q_validation_model",
+        lambda model_name: SimpleNamespace(name=model_name, spec=object()),
+    )
+    monkeypatch.setattr(triage, "uniform_bz_mesh", lambda nk: np.zeros((nk, 2), dtype=float))
+    monkeypatch.setattr(triage, "k_weights", lambda points: np.ones(points.shape[0]) / points.shape[0])
+    monkeypatch.setattr(
+        triage.KuboConfig,
+        "from_kelvin",
+        staticmethod(lambda **kwargs: SimpleNamespace(omega_eV=kwargs["omega_eV"])),
+    )
+    monkeypatch.setattr(
+        triage,
+        "normal_physical_density_current_response_components_imag_axis_from_model",
+        lambda *args, **kwargs: {
+            "bubble": bubble,
+            "direct": direct,
+            "total": bubble + direct,
+        },
+    )
+
+    payload = triage.run_normal_ward_convention_audit(nk=2)
+
+    assert payload["summary"]["suspected_issue"] == "homogeneous_total_includes_contact_rhs"
+    assert payload["consistency_checks"]["total_minus_direct_matches_bubble"] is True
+
+
 def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path):
     module = _load_report_module()
     scan_report = SimpleNamespace(
@@ -318,9 +407,17 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
                 },
                 "valid_for_casimir_input": False,
             },
+            "normal_ward_convention_audit": {
+                "summary": {
+                    "suspected_issue": "homogeneous_total_includes_contact_rhs",
+                    "recommended_next_fix": "separate convention checks",
+                    "valid_for_casimir_input": False,
+                },
+                "valid_for_casimir_input": False,
+            },
             "summary": {
-                "suspected_layer": "response_assembly_or_collective",
-                "recommended_next_fix": "inspect response assembly",
+                "suspected_layer": "normal_ward_convention",
+                "recommended_next_fix": "separate convention checks",
                 "valid_for_casimir_input": False,
             },
         },
@@ -340,8 +437,11 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
     assert "ward_triage" in report
     assert report["ward_triage"]["summary"]["valid_for_casimir_input"] is False
     assert "normal_contact_direct_audit" in report["ward_triage"]
+    assert "normal_ward_convention_audit" in report["ward_triage"]
     assert "## Ward triage" in markdown
     assert "normal contact/direct audit" in markdown
+    assert "normal Ward convention audit" in markdown
+    assert "recommended Ward convention fix" in markdown
     assert "suspected primary layer" in markdown
 
 
