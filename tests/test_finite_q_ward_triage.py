@@ -385,6 +385,11 @@ def test_normal_bubble_convergence_audit_reports_fields(monkeypatch):
     assert "q_trend" in payload
     assert "omega_trend" in payload
     assert "summary" in payload
+    assert "run_config" in payload
+    assert payload["run_config"]["nk_values"] == [2, 3]
+    assert payload["run_config"]["q_values"] == [0.005, 0.01]
+    assert payload["run_config"]["omega_values"] == [0.005, 0.01]
+    assert payload["run_config"]["computed_in_current_run"] is True
     assert payload["base_point"]["valid_for_casimir_input"] is False
 
 
@@ -448,10 +453,11 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
     monkeypatch.setattr(module, "get_finite_q_validation_model", lambda model_name: Model())
     monkeypatch.setattr(module, "run_q0_bdg_response_alignment_many", lambda *args, **kwargs: q0_reports)
     monkeypatch.setattr(module, "run_finite_q_ward_scan", lambda *args, **kwargs: scan_report)
-    monkeypatch.setattr(
-        module,
-        "_run_ward_triage",
-        lambda **kwargs: {
+    captured_triage_kwargs = {}
+
+    def fake_run_ward_triage(**kwargs):
+        captured_triage_kwargs.update(kwargs)
+        return {
             "normal_finite_q": {"suspected_layer": "normal_closed", "valid_for_casimir_input": False},
             "operator_identity": {"suspected_layer": "response_assembly_or_collective", "valid_for_casimir_input": False},
             "contact_cancellation": {"by_pairing": {}, "valid_for_casimir_input": False},
@@ -484,7 +490,12 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
                 "recommended_next_fix": "separate convention checks",
                 "valid_for_casimir_input": False,
             },
-        },
+        }
+
+    monkeypatch.setattr(
+        module,
+        "_run_ward_triage",
+        fake_run_ward_triage,
     )
 
     report = module.build_report(
@@ -495,10 +506,22 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
         delta0=0.1,
         q_values=(0.01,),
         pairings=("spm", "dwave"),
+        bubble_audit_nk_values=(5, 7),
+        bubble_audit_q_values=(0.003, 0.006),
+        bubble_audit_omega_values=(0.004, 0.008),
+        bubble_audit_mesh_shifts_enabled=False,
     )
     markdown = module.format_markdown(report)
 
     assert "ward_triage" in report
+    assert captured_triage_kwargs["bubble_audit_nk_values"] == (5, 7)
+    assert captured_triage_kwargs["bubble_audit_q_values"] == (0.003, 0.006)
+    assert captured_triage_kwargs["bubble_audit_omega_values"] == (0.004, 0.008)
+    assert captured_triage_kwargs["bubble_audit_mesh_shifts_enabled"] is False
+    assert report["ward_triage_run_config"]["normal_bubble_convergence_audit"]["nk_values"] == [5, 7]
+    assert report["ward_triage_run_config"]["normal_bubble_convergence_audit"]["q_values"] == [0.003, 0.006]
+    assert report["ward_triage_run_config"]["normal_bubble_convergence_audit"]["omega_values"] == [0.004, 0.008]
+    assert report["ward_triage_run_config"]["normal_bubble_convergence_audit"]["computed_in_current_run"] is True
     assert report["ward_triage"]["summary"]["valid_for_casimir_input"] is False
     assert "normal_contact_direct_audit" in report["ward_triage"]
     assert "normal_ward_convention_audit" in report["ward_triage"]
@@ -509,7 +532,62 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
     assert "recommended Ward convention fix" in markdown
     assert "normal bubble convergence audit" in markdown
     assert "recommended normal bubble fix" in markdown
+    assert "normal bubble audit config" in markdown
     assert "suspected primary layer" in markdown
+
+
+def test_report_cli_bubble_audit_defaults_and_custom_values():
+    module = _load_report_module()
+
+    defaults = module.parse_args([])
+    assert defaults.bubble_audit_nk_values == [7, 9, 11]
+    assert defaults.bubble_audit_q_values == [0.005, 0.01, 0.02]
+    assert defaults.bubble_audit_omega_values == [0.005, 0.01, 0.02]
+    assert defaults.disable_bubble_audit_mesh_shifts is False
+
+    custom = module.parse_args(
+        [
+            "--bubble-audit-nk-values",
+            "5",
+            "7",
+            "--bubble-audit-q-values",
+            "0.003",
+            "0.006",
+            "--bubble-audit-omega-values",
+            "0.004",
+            "0.008",
+            "--disable-bubble-audit-mesh-shifts",
+        ]
+    )
+    assert custom.bubble_audit_nk_values == [5, 7]
+    assert custom.bubble_audit_q_values == [0.003, 0.006]
+    assert custom.bubble_audit_omega_values == [0.004, 0.008]
+    assert custom.disable_bubble_audit_mesh_shifts is True
+
+
+def test_report_command_text_records_bubble_audit_provenance():
+    module = _load_report_module()
+    args = module.parse_args(
+        [
+            "--bubble-audit-nk-values",
+            "5",
+            "7",
+            "--bubble-audit-q-values",
+            "0.003",
+            "0.006",
+            "--bubble-audit-omega-values",
+            "0.004",
+            "0.008",
+            "--disable-bubble-audit-mesh-shifts",
+        ]
+    )
+
+    command = module._command_text(args)
+
+    assert "--bubble-audit-nk-values 5 7" in command
+    assert "--bubble-audit-q-values 0.003 0.006" in command
+    assert "--bubble-audit-omega-values 0.004 0.008" in command
+    assert "--disable-bubble-audit-mesh-shifts" in command
 
 
 def test_report_writer_still_targets_only_three_files(tmp_path):

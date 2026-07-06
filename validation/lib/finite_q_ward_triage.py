@@ -700,6 +700,7 @@ def run_normal_bubble_convergence_audit(
     nk_values: tuple[int, ...] = (7, 9, 11),
     q_values: tuple[float, ...] = (0.005, 0.01, 0.02),
     omega_values: tuple[float, ...] = (0.005, 0.01, 0.02),
+    mesh_shifts_enabled: bool = True,
 ) -> dict[str, Any]:
     """Diagnostic-only convergence audit for the normal bubble homogeneous Ward residual."""
     try:
@@ -727,7 +728,28 @@ def run_normal_bubble_convergence_audit(
         nk_trend = _bubble_nk_trend(nk_rows)
         q_trend = _bubble_q_trend(list(q_values), q_rows)
         omega_trend = _bubble_omega_trend(omega_rows)
-        mesh_shift = _normal_bubble_mesh_shift_trend(model, base_nk, base_q_model, base_omega_eV)
+        mesh_shifts = _bubble_mesh_shifts(base_nk) if mesh_shifts_enabled else None
+        mesh_shift = (
+            _normal_bubble_mesh_shift_trend(model, base_nk, base_q_model, base_omega_eV, mesh_shifts)
+            if mesh_shifts_enabled
+            else {
+                "available": False,
+                "reason": "disabled_by_cli",
+                "valid_for_casimir_input": False,
+            }
+        )
+        run_config = {
+            "base_nk": int(base_nk),
+            "base_q_model": [float(base_q_model[0]), float(base_q_model[1])],
+            "base_omega_eV": float(base_omega_eV),
+            "nk_values": [int(value) for value in nk_values],
+            "q_values": [float(value) for value in q_values],
+            "omega_values": [float(value) for value in omega_values],
+            "mesh_shifts_enabled": bool(mesh_shifts_enabled),
+            "mesh_shifts": [[float(x), float(y)] for x, y in mesh_shifts] if mesh_shifts is not None else None,
+            "computed_in_current_run": True,
+            "valid_for_casimir_input": False,
+        }
         summary = _normal_bubble_convergence_summary(
             base_point=base_point,
             nk_trend=nk_trend,
@@ -742,6 +764,7 @@ def run_normal_bubble_convergence_audit(
             "base_omega_eV": float(base_omega_eV),
             "base_nk": int(base_nk),
             "valid_for_casimir_input": False,
+            "run_config": run_config,
             "base_point": base_point,
             "nk_trend": nk_trend,
             "q_trend": q_trend,
@@ -839,10 +862,10 @@ def _normal_bubble_mesh_shift_trend(
     nk: int,
     q_model: tuple[float, float],
     omega_eV: float,
+    shifts: tuple[tuple[float, float], ...],
 ) -> dict[str, Any]:
     try:
         base = uniform_bz_mesh(nk)
-        shifts = ((0.0, 0.0), (0.5 / nk, 0.0), (0.0, 0.5 / nk), (0.5 / nk, 0.5 / nk))
         rows = []
         for shift in shifts:
             shifted = base + np.asarray(shift, dtype=float)
@@ -870,6 +893,10 @@ def _normal_bubble_mesh_shift_trend(
         }
     except Exception as exc:
         return _unavailable(f"shifted mesh diagnostic unavailable: {type(exc).__name__}: {exc}")
+
+
+def _bubble_mesh_shifts(nk: int) -> tuple[tuple[float, float], ...]:
+    return ((0.0, 0.0), (0.5 / nk, 0.0), (0.0, 0.5 / nk), (0.5 / nk, 0.5 / nk))
 
 
 def _normal_bubble_convergence_summary(

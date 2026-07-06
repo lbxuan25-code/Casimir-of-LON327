@@ -127,6 +127,10 @@ def _run_ward_triage(
     omega: float,
     nk: int,
     delta0: float,
+    bubble_audit_nk_values: tuple[int, ...],
+    bubble_audit_q_values: tuple[float, ...],
+    bubble_audit_omega_values: tuple[float, ...],
+    bubble_audit_mesh_shifts_enabled: bool = True,
 ) -> dict[str, Any]:
     normal = run_normal_finite_q_ward_triage(
         model_name=model_name,
@@ -166,6 +170,10 @@ def _run_ward_triage(
         base_q_model=q_model,
         base_omega_eV=omega,
         base_nk=nk,
+        nk_values=bubble_audit_nk_values,
+        q_values=bubble_audit_q_values,
+        omega_values=bubble_audit_omega_values,
+        mesh_shifts_enabled=bubble_audit_mesh_shifts_enabled,
     )
     return {
         "normal_finite_q": normal,
@@ -189,6 +197,10 @@ def build_report(
     pairings: tuple[str, ...],
     include_triage: bool = True,
     triage_q: tuple[float, float] = (0.01, 0.0),
+    bubble_audit_nk_values: tuple[int, ...] = (7, 9, 11),
+    bubble_audit_q_values: tuple[float, ...] = (0.005, 0.01, 0.02),
+    bubble_audit_omega_values: tuple[float, ...] = (0.005, 0.01, 0.02),
+    bubble_audit_mesh_shifts_enabled: bool = True,
 ) -> dict[str, Any]:
     model = get_finite_q_validation_model(model_name)
     for pairing in pairings:
@@ -236,6 +248,25 @@ def build_report(
         "diagnostic_interpretation": _diagnostic_interpretation(scan_report),
     }
     if include_triage:
+        report["ward_triage_run_config"] = {
+            "include_triage": True,
+            "triage_q": [float(triage_q[0]), float(triage_q[1])],
+            "triage_nk": int(nk),
+            "triage_omega_eV": float(omega),
+            "normal_bubble_convergence_audit": {
+                "base_nk": int(nk),
+                "base_q_model": [float(triage_q[0]), float(triage_q[1])],
+                "base_omega_eV": float(omega),
+                "nk_values": [int(value) for value in bubble_audit_nk_values],
+                "q_values": [float(value) for value in bubble_audit_q_values],
+                "omega_values": [float(value) for value in bubble_audit_omega_values],
+                "mesh_shifts_enabled": bool(bubble_audit_mesh_shifts_enabled),
+                "computed_in_current_run": True,
+                "valid_for_casimir_input": False,
+            },
+            "computed_in_current_run": True,
+            "valid_for_casimir_input": False,
+        }
         report["ward_triage"] = _run_ward_triage(
             model_name=model.name,
             pairings=pairings,
@@ -243,8 +274,17 @@ def build_report(
             omega=omega,
             nk=nk,
             delta0=delta0,
+            bubble_audit_nk_values=bubble_audit_nk_values,
+            bubble_audit_q_values=bubble_audit_q_values,
+            bubble_audit_omega_values=bubble_audit_omega_values,
+            bubble_audit_mesh_shifts_enabled=bubble_audit_mesh_shifts_enabled,
         )
     else:
+        report["ward_triage_run_config"] = {
+            "include_triage": False,
+            "computed_in_current_run": False,
+            "valid_for_casimir_input": False,
+        }
         report["ward_triage"] = {
             "available": False,
             "reason": "triage disabled by CLI",
@@ -268,6 +308,7 @@ def format_markdown(report: dict[str, Any]) -> str:
     q0_status = report["q0_precondition_status"]
     interpretation = report["diagnostic_interpretation"]
     triage = report.get("ward_triage", {})
+    triage_config = report.get("ward_triage_run_config", {})
     triage_summary = triage.get("summary", {}) if isinstance(triage, dict) else {}
     normal_triage = triage.get("normal_finite_q", {}) if isinstance(triage, dict) else {}
     operator_triage = triage.get("operator_identity", {}) if isinstance(triage, dict) else {}
@@ -278,6 +319,11 @@ def format_markdown(report: dict[str, Any]) -> str:
     normal_ward_summary = normal_ward_audit.get("summary", {}) if isinstance(normal_ward_audit, dict) else {}
     normal_bubble_audit = triage.get("normal_bubble_convergence_audit", {}) if isinstance(triage, dict) else {}
     normal_bubble_summary = normal_bubble_audit.get("summary", {}) if isinstance(normal_bubble_audit, dict) else {}
+    bubble_config = (
+        triage_config.get("normal_bubble_convergence_audit", {})
+        if isinstance(triage_config, dict)
+        else {}
+    )
     lines = [
         "# finite-q Ward validation report",
         "",
@@ -317,6 +363,7 @@ def format_markdown(report: dict[str, Any]) -> str:
             f"- recommended Ward convention fix: {normal_ward_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
             f"- normal bubble convergence audit: {normal_bubble_summary.get('suspected_issue', normal_bubble_audit.get('reason', 'unavailable'))}",
             f"- recommended normal bubble fix: {normal_bubble_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
+            f"- normal bubble audit config: nk={bubble_config.get('nk_values', 'unavailable')}, q={bubble_config.get('q_values', 'unavailable')}, omega={bubble_config.get('omega_values', 'unavailable')}, mesh_shifts={bubble_config.get('mesh_shifts_enabled', 'unavailable')}",
             f"- suspected primary layer: {triage_summary.get('suspected_layer', 'unavailable')}",
             f"- recommended next fix: {triage_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
             f"- valid_for_casimir_input: {_format_bool(bool(triage_summary.get('valid_for_casimir_input', False)))}",
@@ -373,7 +420,22 @@ def _command_text(args: argparse.Namespace) -> str:
         "--triage-qy",
         str(args.triage_qy),
     ]
-    parts.append("--include-triage" if args.include_triage else "--no-triage")
+    if args.include_triage:
+        parts.extend(
+            [
+                "--bubble-audit-nk-values",
+                *(str(value) for value in args.bubble_audit_nk_values),
+                "--bubble-audit-q-values",
+                *(str(value) for value in args.bubble_audit_q_values),
+                "--bubble-audit-omega-values",
+                *(str(value) for value in args.bubble_audit_omega_values),
+            ]
+        )
+        if args.disable_bubble_audit_mesh_shifts:
+            parts.append("--disable-bubble-audit-mesh-shifts")
+        parts.append("--include-triage")
+    else:
+        parts.append("--no-triage")
     return " ".join(shlex.quote(part) for part in parts) + "\n"
 
 
@@ -398,6 +460,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     triage_group.add_argument("--no-triage", dest="include_triage", action="store_false")
     parser.add_argument("--triage-qx", type=float, default=0.01)
     parser.add_argument("--triage-qy", type=float, default=0.0)
+    parser.add_argument("--bubble-audit-nk-values", nargs="+", type=int, default=[7, 9, 11])
+    parser.add_argument("--bubble-audit-q-values", nargs="+", type=float, default=[0.005, 0.01, 0.02])
+    parser.add_argument("--bubble-audit-omega-values", nargs="+", type=float, default=[0.005, 0.01, 0.02])
+    parser.add_argument("--disable-bubble-audit-mesh-shifts", action="store_true", default=False)
     return parser.parse_args(argv)
 
 
@@ -414,6 +480,10 @@ def main(argv: list[str] | None = None) -> int:
         pairings=tuple(args.pairings),
         include_triage=bool(args.include_triage),
         triage_q=(float(args.triage_qx), float(args.triage_qy)),
+        bubble_audit_nk_values=tuple(args.bubble_audit_nk_values),
+        bubble_audit_q_values=tuple(args.bubble_audit_q_values),
+        bubble_audit_omega_values=tuple(args.bubble_audit_omega_values),
+        bubble_audit_mesh_shifts_enabled=not bool(args.disable_bubble_audit_mesh_shifts),
     )
     write_report(report, output_dir, _command_text(args))
     print(f"Wrote finite-q Ward report to {output_dir}")
