@@ -935,6 +935,46 @@
       "computed_in_current_run": true,
       "valid_for_casimir_input": false
     },
+    "normal_bubble_per_k_outlier_audit": {
+      "enabled": true,
+      "top_n": 12,
+      "cases": [
+        {
+          "case_name": "nk9_unshifted",
+          "nk": 9,
+          "shift": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "case_name": "nk11_unshifted",
+          "nk": 11,
+          "shift": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "case_name": "nk11_shift_y",
+          "nk": 11,
+          "shift": [
+            0.0,
+            0.045454545454545456
+          ]
+        },
+        {
+          "case_name": "nk8_unshifted",
+          "nk": 8,
+          "shift": [
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "computed_in_current_run": true,
+      "valid_for_casimir_input": false
+    },
     "computed_in_current_run": true,
     "valid_for_casimir_input": false
   },
@@ -2360,6 +2400,3104 @@
       "suspected_layer": "normal_ward_convention",
       "recommended_next_fix": "Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.",
       "valid_for_casimir_input": false
+    },
+    "normal_bubble_per_k_outlier_audit": {
+      "available": true,
+      "model_name": "symmetry_bdg_2band",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "omega_eV": 0.01,
+      "target_component": "left_current_x",
+      "top_n": 12,
+      "valid_for_casimir_input": false,
+      "cases": [
+        {
+          "case_name": "nk9_unshifted",
+          "nk": 9,
+          "mesh_size": 81,
+          "shift": [
+            0.0,
+            0.0
+          ],
+          "total_residual_component": {
+            "real": 8.445039220875929e-05,
+            "imag": -2.8587361969832634e-22,
+            "abs": 8.445039220875929e-05
+          },
+          "total_residual_max_norm": 8.445039220875929e-05,
+          "dominant_component": "left_current_x",
+          "sum_of_reported_contributions": {
+            "real": 5.049266996276579e-05,
+            "imag": -2.514629062161204e-22,
+            "abs": 5.049266996276579e-05
+          },
+          "sum_all_contributions": {
+            "real": 8.445039220875929e-05,
+            "imag": -2.663521572420749e-22,
+            "abs": 8.445039220875929e-05
+          },
+          "sum_matches_total_component": true,
+          "match_error_abs": 1.9521462456251425e-23,
+          "match_error_relative": 2.311589318376977e-19,
+          "concentration": {
+            "top1_abs_fraction": 0.053554629404322124,
+            "top3_abs_fraction": 0.16066388821296584,
+            "top5_abs_fraction": 0.2654450001810161,
+            "top10_abs_fraction": 0.5085109241265577,
+            "effective_contributor_count": 23.510281047477058
+          },
+          "top_contributors": [
+            {
+              "rank": 1,
+              "k_index": [
+                2,
+                2
+              ],
+              "k": [
+                -1.3962634015954636,
+                -1.3962634015954636
+              ],
+              "k_plus_q": [
+                -1.3862634015954636,
+                -1.3962634015954636
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 4.522709457789756e-06,
+                "imag": 1.6874484496081765e-21,
+                "abs": 4.522709457789756e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.7486006037609372,
+                "epsilon_n_k_plus_q": -0.07886649972502721,
+                "energy_difference": 0.8274671034859644,
+                "abs_energy_difference": 0.8274671034859644
+              },
+              "occupation": {
+                "f_m_k": 9.85967654375977e-305,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.8274671034859644,
+                "imag": 0.01,
+                "abs": 0.8275275266427405
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021041005287520953,
+                "current_x_vertex_abs": 0.17410739699697286,
+                "current_y_vertex_abs": 0.1741081239458343,
+                "vertex_product_abs": 0.03031351225623553
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 2,
+              "k_index": [
+                6,
+                6
+              ],
+              "k": [
+                1.3962634015954638,
+                1.3962634015954638
+              ],
+              "k_plus_q": [
+                1.4062634015954638,
+                1.3962634015954638
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 4.5227094577897335e-06,
+                "imag": 3.943997160652836e-21,
+                "abs": 4.5227094577897335e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.07886649972502649,
+                "epsilon_n_k_plus_q": 0.7486006037609378,
+                "energy_difference": -0.8274671034859643,
+                "abs_energy_difference": 0.8274671034859643
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 9.85967654375977e-305,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.8274671034859643,
+                "imag": 0.01,
+                "abs": 0.8275275266427404
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021041005287518733,
+                "current_x_vertex_abs": 0.17410739699697242,
+                "current_y_vertex_abs": 0.17410812394583386,
+                "vertex_product_abs": 0.030313512256235377
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 3,
+              "k_index": [
+                2,
+                6
+              ],
+              "k": [
+                -1.3962634015954636,
+                1.3962634015954638
+              ],
+              "k_plus_q": [
+                -1.3862634015954636,
+                1.3962634015954638
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 4.5227094577897335e-06,
+                "imag": -1.0654086289682996e-21,
+                "abs": 4.5227094577897335e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.7486006037609374,
+                "epsilon_n_k_plus_q": -0.07886649972502686,
+                "energy_difference": 0.8274671034859643,
+                "abs_energy_difference": 0.8274671034859643
+              },
+              "occupation": {
+                "f_m_k": 9.85967654375977e-305,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.8274671034859643,
+                "imag": 0.01,
+                "abs": 0.8275275266427404
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021041005287519843,
+                "current_x_vertex_abs": 0.17410739699697242,
+                "current_y_vertex_abs": 0.17410812394583397,
+                "vertex_product_abs": 0.030313512256235395
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 4,
+              "k_index": [
+                6,
+                2
+              ],
+              "k": [
+                1.3962634015954638,
+                -1.3962634015954636
+              ],
+              "k_plus_q": [
+                1.4062634015954638,
+                -1.3962634015954636
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 4.522709457789728e-06,
+                "imag": 3.904292491250291e-21,
+                "abs": 4.522709457789728e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.07886649972502686,
+                "epsilon_n_k_plus_q": 0.7486006037609374,
+                "energy_difference": -0.8274671034859643,
+                "abs_energy_difference": 0.8274671034859643
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 9.85967654375977e-305,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.8274671034859643,
+                "imag": 0.01,
+                "abs": 0.8275275266427404
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021041005287518733,
+                "current_x_vertex_abs": 0.1741073969969723,
+                "current_y_vertex_abs": 0.17410812394583375,
+                "vertex_product_abs": 0.030313512256235336
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 5,
+              "k_index": [
+                6,
+                2
+              ],
+              "k": [
+                1.3962634015954638,
+                -1.3962634015954636
+              ],
+              "k_plus_q": [
+                1.4062634015954638,
+                -1.3962634015954636
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 4.326096543982038e-06,
+                "imag": -4.096198393362593e-21,
+                "abs": 4.326096543982038e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.7320104067519853,
+                "epsilon_n_k_plus_q": -0.059484737930346976,
+                "energy_difference": 0.7914951446823322,
+                "abs_energy_difference": 0.7914951446823322
+              },
+              "occupation": {
+                "f_m_k": 9.85967654375977e-305,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.7914951446823322,
+                "imag": 0.01,
+                "abs": 0.791558313743028
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021041005287518733,
+                "current_x_vertex_abs": 0.16653853524307605,
+                "current_y_vertex_abs": 0.1665392276564055,
+                "vertex_product_abs": 0.027735199034410952
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 6,
+              "k_index": [
+                6,
+                6
+              ],
+              "k": [
+                1.3962634015954638,
+                1.3962634015954638
+              ],
+              "k_plus_q": [
+                1.4062634015954638,
+                1.3962634015954638
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 4.326096543982032e-06,
+                "imag": -4.063111168860472e-21,
+                "abs": 4.326096543982032e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.7320104067519857,
+                "epsilon_n_k_plus_q": -0.059484737930346504,
+                "energy_difference": 0.7914951446823322,
+                "abs_energy_difference": 0.7914951446823322
+              },
+              "occupation": {
+                "f_m_k": 9.85967654375977e-305,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.7914951446823322,
+                "imag": 0.01,
+                "abs": 0.791558313743028
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021041005287518733,
+                "current_x_vertex_abs": 0.16653853524307594,
+                "current_y_vertex_abs": 0.1665392276564055,
+                "vertex_product_abs": 0.027735199034410934
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 7,
+              "k_index": [
+                2,
+                2
+              ],
+              "k": [
+                -1.3962634015954636,
+                -1.3962634015954636
+              ],
+              "k_plus_q": [
+                -1.3862634015954636,
+                -1.3962634015954636
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 4.326096543982025e-06,
+                "imag": -1.7403880088115702e-21,
+                "abs": 4.326096543982025e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.059484737930347364,
+                "epsilon_n_k_plus_q": 0.732010406751985,
+                "energy_difference": -0.7914951446823324,
+                "abs_energy_difference": 0.7914951446823324
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 9.85967654375977e-305,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.7914951446823324,
+                "imag": 0.01,
+                "abs": 0.7915583137430282
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021041005287520953,
+                "current_x_vertex_abs": 0.16653853524307582,
+                "current_y_vertex_abs": 0.16653922765640528,
+                "vertex_product_abs": 0.02773519903441088
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 8,
+              "k_index": [
+                2,
+                6
+              ],
+              "k": [
+                -1.3962634015954636,
+                1.3962634015954638
+              ],
+              "k_plus_q": [
+                -1.3862634015954636,
+                1.3962634015954638
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 4.326096543982024e-06,
+                "imag": 1.1249656330721176e-21,
+                "abs": 4.326096543982024e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.05948473793034714,
+                "epsilon_n_k_plus_q": 0.7320104067519853,
+                "energy_difference": -0.7914951446823324,
+                "abs_energy_difference": 0.7914951446823324
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 9.85967654375977e-305,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.7914951446823324,
+                "imag": 0.01,
+                "abs": 0.7915583137430282
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021041005287519843,
+                "current_x_vertex_abs": 0.16653853524307582,
+                "current_y_vertex_abs": 0.1665392276564055,
+                "vertex_product_abs": 0.027735199034410914
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 9,
+              "k_index": [
+                7,
+                3
+              ],
+              "k": [
+                2.0943951023931957,
+                -0.6981317007977319
+              ],
+              "k_plus_q": [
+                2.1043951023931955,
+                -0.6981317007977319
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 3.774361488919684e-06,
+                "imag": 4.010171609657078e-21,
+                "abs": 3.774361488919684e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.3145251153971896,
+                "epsilon_n_k_plus_q": 0.4831143138265607,
+                "energy_difference": -0.7976394292237503,
+                "abs_energy_difference": 0.7976394292237503
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 3.3197242839988926e-244,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.7976394292237503,
+                "imag": 0.01,
+                "abs": 0.7977021117261694
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0019577667510655705,
+                "current_x_vertex_abs": 0.15615919538733097,
+                "current_y_vertex_abs": 0.11749930854785828,
+                "vertex_product_abs": 0.024385694304018612
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 10,
+              "k_index": [
+                1,
+                5
+              ],
+              "k": [
+                -2.0943951023931957,
+                0.6981317007977319
+              ],
+              "k_plus_q": [
+                -2.084395102393196,
+                0.6981317007977319
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 3.7743614889196816e-06,
+                "imag": -3.9903192749558055e-21,
+                "abs": 3.7743614889196816e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.4831143138265607,
+                "epsilon_n_k_plus_q": -0.3145251153971896,
+                "energy_difference": 0.7976394292237503,
+                "abs_energy_difference": 0.7976394292237503
+              },
+              "occupation": {
+                "f_m_k": 3.3197242839988926e-244,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.7976394292237503,
+                "imag": 0.01,
+                "abs": 0.7977021117261694
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0019577667510655705,
+                "current_x_vertex_abs": 0.15615919538733092,
+                "current_y_vertex_abs": 0.11749930854785817,
+                "vertex_product_abs": 0.024385694304018594
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 11,
+              "k_index": [
+                7,
+                5
+              ],
+              "k": [
+                2.0943951023931957,
+                0.6981317007977319
+              ],
+              "k_plus_q": [
+                2.1043951023931955,
+                0.6981317007977319
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 3.77436148891968e-06,
+                "imag": 5.327043144841498e-21,
+                "abs": 3.77436148891968e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.3145251153971896,
+                "epsilon_n_k_plus_q": 0.4831143138265606,
+                "energy_difference": -0.7976394292237502,
+                "abs_energy_difference": 0.7976394292237502
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 3.31972428399927e-244,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.7976394292237502,
+                "imag": 0.01,
+                "abs": 0.7977021117261693
+              },
+              "vertices": {
+                "density_vertex_abs": 0.001957766751065515,
+                "current_x_vertex_abs": 0.15615919538733086,
+                "current_y_vertex_abs": 0.11749930854785806,
+                "vertex_product_abs": 0.024385694304018577
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 12,
+              "k_index": [
+                1,
+                3
+              ],
+              "k": [
+                -2.0943951023931957,
+                -0.6981317007977319
+              ],
+              "k_plus_q": [
+                -2.084395102393196,
+                -0.6981317007977319
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 3.774361488919676e-06,
+                "imag": -5.293955920339377e-21,
+                "abs": 3.774361488919676e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.4831143138265606,
+                "epsilon_n_k_plus_q": -0.3145251153971896,
+                "energy_difference": 0.7976394292237502,
+                "abs_energy_difference": 0.7976394292237502
+              },
+              "occupation": {
+                "f_m_k": 3.31972428399927e-244,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.7976394292237502,
+                "imag": 0.01,
+                "abs": 0.7977021117261693
+              },
+              "vertices": {
+                "density_vertex_abs": 0.001957766751065515,
+                "current_x_vertex_abs": 0.1561591953873308,
+                "current_y_vertex_abs": 0.11749930854785806,
+                "vertex_product_abs": 0.02438569430401856
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            }
+          ],
+          "diagnosis": {
+            "suspected_issue": "near_fermi_occupation_jump",
+            "explanation": "top contributors include large occupation jumps near the Fermi surface",
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "case_name": "nk11_unshifted",
+          "nk": 11,
+          "mesh_size": 121,
+          "shift": [
+            0.0,
+            0.0
+          ],
+          "total_residual_component": {
+            "real": 0.1284957824909525,
+            "imag": -1.2656279159359307e-16,
+            "abs": 0.1284957824909525
+          },
+          "total_residual_max_norm": 0.1284957824909525,
+          "dominant_component": "left_current_x",
+          "sum_of_reported_contributions": {
+            "real": 0.12843766267449064,
+            "imag": -1.3292318634672284e-16,
+            "abs": 0.12843766267449064
+          },
+          "sum_all_contributions": {
+            "real": 0.1284957824909526,
+            "imag": -1.3292328940054558e-16,
+            "abs": 0.1284957824909526
+          },
+          "sum_matches_total_component": true,
+          "match_error_abs": 8.350930326703904e-17,
+          "match_error_relative": 6.498991768303291e-16,
+          "concentration": {
+            "top1_abs_fraction": 0.13329132763337145,
+            "top3_abs_fraction": 0.3998739829001133,
+            "top5_abs_fraction": 0.6426910889290921,
+            "top10_abs_fraction": 0.9854080574895558,
+            "effective_contributor_count": 8.385755925839932
+          },
+          "top_contributors": [
+            {
+              "rank": 1,
+              "k_index": [
+                3,
+                8
+              ],
+              "k": [
+                -1.1423973285781066,
+                1.7135959928671598
+              ],
+              "k_plus_q": [
+                -1.1323973285781066,
+                1.7135959928671598
+              ],
+              "band_pair": [
+                0,
+                0
+              ],
+              "contribution": {
+                "real": 0.017127373443508,
+                "imag": -1.708702623837155e-16,
+                "abs": 0.017127373443508,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.010620412820636832,
+                "epsilon_n_k_plus_q": -0.010104055478464324,
+                "energy_difference": 0.020724468299101156,
+                "abs_energy_difference": 0.020724468299101156
+              },
+              "occupation": {
+                "f_m_k": 4.441662808483488e-06,
+                "f_n_k_plus_q": 0.9999919132009842,
+                "occupation_difference": -0.9999874715381758,
+                "abs_occupation_difference": 0.9999874715381758
+              },
+              "denominator": {
+                "real": 0.020724468299101156,
+                "imag": 0.01,
+                "abs": 0.023010944923675967
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999979061483157,
+                "current_x_vertex_abs": 2.0724424905138834,
+                "current_y_vertex_abs": 1.7030998675178037,
+                "vertex_product_abs": 4.295017876487388
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": true,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 2,
+              "k_index": [
+                3,
+                2
+              ],
+              "k": [
+                -1.1423973285781066,
+                -1.7135959928671598
+              ],
+              "k_plus_q": [
+                -1.1323973285781066,
+                -1.7135959928671598
+              ],
+              "band_pair": [
+                0,
+                0
+              ],
+              "contribution": {
+                "real": 0.01712737344350796,
+                "imag": -1.5525775109992423e-16,
+                "abs": 0.01712737344350796,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.010620412820636915,
+                "epsilon_n_k_plus_q": -0.010104055478464297,
+                "energy_difference": 0.020724468299101212,
+                "abs_energy_difference": 0.020724468299101212
+              },
+              "occupation": {
+                "f_m_k": 4.441662808483054e-06,
+                "f_n_k_plus_q": 0.9999919132009842,
+                "occupation_difference": -0.9999874715381758,
+                "abs_occupation_difference": 0.9999874715381758
+              },
+              "denominator": {
+                "real": 0.020724468299101212,
+                "imag": 0.01,
+                "abs": 0.023010944923676016
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999979061483156,
+                "current_x_vertex_abs": 2.0724424905138834,
+                "current_y_vertex_abs": 1.7030998675178037,
+                "vertex_product_abs": 4.295017876487388
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": true,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 3,
+              "k_index": [
+                7,
+                2
+              ],
+              "k": [
+                1.1423973285781068,
+                -1.7135959928671598
+              ],
+              "k_plus_q": [
+                1.1523973285781068,
+                -1.7135959928671598
+              ],
+              "band_pair": [
+                0,
+                0
+              ],
+              "contribution": {
+                "real": 0.017127373443507902,
+                "imag": 1.2750217548429532e-16,
+                "abs": 0.017127373443507902,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.01010405547846388,
+                "epsilon_n_k_plus_q": 0.010620412820637415,
+                "energy_difference": -0.020724468299101295,
+                "abs_energy_difference": 0.020724468299101295
+              },
+              "occupation": {
+                "f_m_k": 0.9999919132009842,
+                "f_n_k_plus_q": 4.441662808480482e-06,
+                "occupation_difference": 0.9999874715381758,
+                "abs_occupation_difference": 0.9999874715381758
+              },
+              "denominator": {
+                "real": -0.020724468299101295,
+                "imag": 0.01,
+                "abs": 0.023010944923676092
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999979061483156,
+                "current_x_vertex_abs": 2.0724424905138834,
+                "current_y_vertex_abs": 1.7030998675178037,
+                "vertex_product_abs": 4.295017876487388
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": true,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 4,
+              "k_index": [
+                7,
+                8
+              ],
+              "k": [
+                1.1423973285781068,
+                1.7135959928671598
+              ],
+              "k_plus_q": [
+                1.1523973285781068,
+                1.7135959928671598
+              ],
+              "band_pair": [
+                0,
+                0
+              ],
+              "contribution": {
+                "real": 0.01712737344350787,
+                "imag": 1.0842021724855044e-16,
+                "abs": 0.01712737344350787,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.010104055478463853,
+                "epsilon_n_k_plus_q": 0.010620412820637498,
+                "energy_difference": -0.02072446829910135,
+                "abs_energy_difference": 0.02072446829910135
+              },
+              "occupation": {
+                "f_m_k": 0.9999919132009842,
+                "f_n_k_plus_q": 4.441662808480056e-06,
+                "occupation_difference": 0.9999874715381758,
+                "abs_occupation_difference": 0.9999874715381758
+              },
+              "denominator": {
+                "real": -0.02072446829910135,
+                "imag": 0.01,
+                "abs": 0.02301094492367614
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999979061483156,
+                "current_x_vertex_abs": 2.0724424905138834,
+                "current_y_vertex_abs": 1.7030998675178037,
+                "vertex_product_abs": 4.295017876487388
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": true,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 5,
+              "k_index": [
+                8,
+                7
+              ],
+              "k": [
+                1.7135959928671598,
+                1.1423973285781068
+              ],
+              "k_plus_q": [
+                1.7235959928671598,
+                1.1423973285781068
+              ],
+              "band_pair": [
+                0,
+                0
+              ],
+              "contribution": {
+                "real": 0.014073600597874372,
+                "imag": 1.6740081543176188e-16,
+                "abs": 0.014073600597874372,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.00827234053887349,
+                "epsilon_n_k_plus_q": 0.008758610692745417,
+                "energy_difference": -0.017030951231618907,
+                "abs_energy_difference": 0.017030951231618907
+              },
+              "occupation": {
+                "f_m_k": 0.9999322523184243,
+                "f_n_k_plus_q": 3.8533437599180584e-05,
+                "occupation_difference": 0.9998937188808251,
+                "abs_occupation_difference": 0.9998937188808251
+              },
+              "denominator": {
+                "real": -0.017030951231618907,
+                "imag": 0.01,
+                "abs": 0.019749767083532443
+              },
+              "vertices": {
+                "density_vertex_abs": 0.999997520728201,
+                "current_x_vertex_abs": 1.7030909007262274,
+                "current_y_vertex_abs": 2.0724502462469174,
+                "vertex_product_abs": 3.529571156590954
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": true,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 6,
+              "k_index": [
+                2,
+                7
+              ],
+              "k": [
+                -1.7135959928671598,
+                1.1423973285781068
+              ],
+              "k_plus_q": [
+                -1.7035959928671598,
+                1.1423973285781068
+              ],
+              "band_pair": [
+                0,
+                0
+              ],
+              "contribution": {
+                "real": 0.014073600597874356,
+                "imag": -1.5872719805187785e-16,
+                "abs": 0.014073600597874356,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.008758610692745417,
+                "epsilon_n_k_plus_q": -0.008272340538873518,
+                "energy_difference": 0.017030951231618935,
+                "abs_energy_difference": 0.017030951231618935
+              },
+              "occupation": {
+                "f_m_k": 3.8533437599180584e-05,
+                "f_n_k_plus_q": 0.9999322523184243,
+                "occupation_difference": -0.9998937188808251,
+                "abs_occupation_difference": 0.9998937188808251
+              },
+              "denominator": {
+                "real": 0.017030951231618935,
+                "imag": 0.01,
+                "abs": 0.019749767083532467
+              },
+              "vertices": {
+                "density_vertex_abs": 0.999997520728201,
+                "current_x_vertex_abs": 1.7030909007262274,
+                "current_y_vertex_abs": 2.072450246246918,
+                "vertex_product_abs": 3.529571156590955
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": true,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 7,
+              "k_index": [
+                2,
+                3
+              ],
+              "k": [
+                -1.7135959928671598,
+                -1.1423973285781066
+              ],
+              "k_plus_q": [
+                -1.7035959928671598,
+                -1.1423973285781066
+              ],
+              "band_pair": [
+                0,
+                0
+              ],
+              "contribution": {
+                "real": 0.014073600597874334,
+                "imag": -1.465841337200402e-16,
+                "abs": 0.014073600597874334,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.008758610692745,
+                "epsilon_n_k_plus_q": -0.008272340538873962,
+                "energy_difference": 0.017030951231618963,
+                "abs_energy_difference": 0.017030951231618963
+              },
+              "occupation": {
+                "f_m_k": 3.85334375991992e-05,
+                "f_n_k_plus_q": 0.9999322523184243,
+                "occupation_difference": -0.9998937188808251,
+                "abs_occupation_difference": 0.9998937188808251
+              },
+              "denominator": {
+                "real": 0.017030951231618963,
+                "imag": 0.01,
+                "abs": 0.01974976708353249
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999975207282008,
+                "current_x_vertex_abs": 1.703090900726227,
+                "current_y_vertex_abs": 2.072450246246917,
+                "vertex_product_abs": 3.5295711565909524
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": true,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 8,
+              "k_index": [
+                8,
+                3
+              ],
+              "k": [
+                1.7135959928671598,
+                -1.1423973285781066
+              ],
+              "k_plus_q": [
+                1.7235959928671598,
+                -1.1423973285781066
+              ],
+              "band_pair": [
+                0,
+                0
+              ],
+              "contribution": {
+                "real": 0.014073600597874256,
+                "imag": 9.8879238130678e-17,
+                "abs": 0.014073600597874256,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.00827234053887399,
+                "epsilon_n_k_plus_q": 0.008758610692745111,
+                "energy_difference": -0.0170309512316191,
+                "abs_energy_difference": 0.0170309512316191
+              },
+              "occupation": {
+                "f_m_k": 0.9999322523184243,
+                "f_n_k_plus_q": 3.8533437599194204e-05,
+                "occupation_difference": 0.9998937188808251,
+                "abs_occupation_difference": 0.9998937188808251
+              },
+              "denominator": {
+                "real": -0.0170309512316191,
+                "imag": 0.01,
+                "abs": 0.01974976708353261
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999975207282009,
+                "current_x_vertex_abs": 1.7030909007262274,
+                "current_y_vertex_abs": 2.072450246246917,
+                "vertex_product_abs": 3.5295711565909538
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": true,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 9,
+              "k_index": [
+                7,
+                7
+              ],
+              "k": [
+                1.1423973285781068,
+                1.1423973285781068
+              ],
+              "k_plus_q": [
+                1.1523973285781068,
+                1.1423973285781068
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.0009084416272407063,
+                "imag": 1.2305694657710475e-17,
+                "abs": 0.0009084416272407063,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.014913745643571757,
+                "epsilon_n_k_plus_q": -0.002043227057761693,
+                "energy_difference": -0.012870518585810065,
+                "abs_energy_difference": 0.012870518585810065
+              },
+              "occupation": {
+                "f_m_k": 0.9999999695348731,
+                "f_n_k_plus_q": 0.9145942067464378,
+                "occupation_difference": 0.08540576278843537,
+                "abs_occupation_difference": 0.08540576278843537
+              },
+              "denominator": {
+                "real": -0.012870518585810065,
+                "imag": 0.01,
+                "abs": 0.01629878058836557
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999990500762537,
+                "current_x_vertex_abs": 1.2870506359799192,
+                "current_y_vertex_abs": 1.28705757318136,
+                "vertex_product_abs": 1.656508268105841
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": false
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 10,
+              "k_index": [
+                7,
+                3
+              ],
+              "k": [
+                1.1423973285781068,
+                -1.1423973285781066
+              ],
+              "k_plus_q": [
+                1.1523973285781068,
+                -1.1423973285781066
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.0009084416272403578,
+                "imag": 1.1329912702473521e-17,
+                "abs": 0.0009084416272403578,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.014913745643572146,
+                "epsilon_n_k_plus_q": -0.0020432270577620537,
+                "energy_difference": -0.012870518585810092,
+                "abs_energy_difference": 0.012870518585810092
+              },
+              "occupation": {
+                "f_m_k": 0.9999999695348731,
+                "f_n_k_plus_q": 0.9145942067464704,
+                "occupation_difference": 0.08540576278840273,
+                "abs_occupation_difference": 0.08540576278840273
+              },
+              "denominator": {
+                "real": -0.012870518585810092,
+                "imag": 0.01,
+                "abs": 0.01629878058836559
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999990500762537,
+                "current_x_vertex_abs": 1.2870506359799192,
+                "current_y_vertex_abs": 1.2870575731813598,
+                "vertex_product_abs": 1.6565082681058405
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": false
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 11,
+              "k_index": [
+                3,
+                7
+              ],
+              "k": [
+                -1.1423973285781066,
+                1.1423973285781068
+              ],
+              "k_plus_q": [
+                -1.1323973285781066,
+                1.1423973285781068
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.0009084416272403575,
+                "imag": -1.1221492485224971e-17,
+                "abs": 0.0009084416272403575,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.0020432270577620537,
+                "epsilon_n_k_plus_q": -0.014913745643572146,
+                "energy_difference": 0.012870518585810092,
+                "abs_energy_difference": 0.012870518585810092
+              },
+              "occupation": {
+                "f_m_k": 0.9145942067464704,
+                "f_n_k_plus_q": 0.9999999695348731,
+                "occupation_difference": -0.08540576278840273,
+                "abs_occupation_difference": 0.08540576278840273
+              },
+              "denominator": {
+                "real": 0.012870518585810092,
+                "imag": 0.01,
+                "abs": 0.01629878058836559
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999990500762537,
+                "current_x_vertex_abs": 1.287050635979919,
+                "current_y_vertex_abs": 1.28705757318136,
+                "vertex_product_abs": 1.6565082681058405
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": false
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 12,
+              "k_index": [
+                3,
+                3
+              ],
+              "k": [
+                -1.1423973285781066,
+                -1.1423973285781066
+              ],
+              "k_plus_q": [
+                -1.1323973285781066,
+                -1.1423973285781066
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.0009084416272401759,
+                "imag": -1.610040226140974e-17,
+                "abs": 0.0009084416272401759,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.002043227057762248,
+                "epsilon_n_k_plus_q": -0.014913745643572202,
+                "energy_difference": 0.012870518585809954,
+                "abs_energy_difference": 0.012870518585809954
+              },
+              "occupation": {
+                "f_m_k": 0.9145942067464881,
+                "f_n_k_plus_q": 0.9999999695348731,
+                "occupation_difference": -0.08540576278838508,
+                "abs_occupation_difference": 0.08540576278838508
+              },
+              "denominator": {
+                "real": 0.012870518585809954,
+                "imag": 0.01,
+                "abs": 0.016298780588365484
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999990500762537,
+                "current_x_vertex_abs": 1.287050635979919,
+                "current_y_vertex_abs": 1.2870575731813598,
+                "vertex_product_abs": 1.6565082681058403
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": false
+              },
+              "valid_for_casimir_input": false
+            }
+          ],
+          "diagnosis": {
+            "suspected_issue": "near_fermi_occupation_jump",
+            "explanation": "top contributors include large occupation jumps near the Fermi surface",
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "case_name": "nk11_shift_y",
+          "nk": 11,
+          "mesh_size": 121,
+          "shift": [
+            0.0,
+            0.045454545454545456
+          ],
+          "total_residual_component": {
+            "real": 0.00032827133283746087,
+            "imag": -1.3584290891590843e-20,
+            "abs": 0.00032827133283746087
+          },
+          "total_residual_max_norm": 0.00032827133283746087,
+          "dominant_component": "left_current_x",
+          "sum_of_reported_contributions": {
+            "real": 0.00029030604357574983,
+            "imag": 8.238718901028156e-22,
+            "abs": 0.00029030604357574983
+          },
+          "sum_all_contributions": {
+            "real": 0.0003282713328374609,
+            "imag": -4.990027681415976e-21,
+            "abs": 0.0003282713328374609
+          },
+          "sum_matches_total_component": true,
+          "match_error_abs": 5.488713179955284e-20,
+          "match_error_relative": 1.672005024780201e-16,
+          "concentration": {
+            "top1_abs_fraction": 0.4009156945534733,
+            "top3_abs_fraction": 0.8114494935869538,
+            "top5_abs_fraction": 0.8303252422128792,
+            "top10_abs_fraction": 0.8713253537816478,
+            "effective_contributor_count": 3.098820129201242
+          },
+          "top_contributors": [
+            {
+              "rank": 1,
+              "k_index": [
+                8,
+                6
+              ],
+              "k": [
+                1.7135959928671598,
+                0.6166532097435988
+              ],
+              "k_plus_q": [
+                1.7235959928671598,
+                0.6166532097435988
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.00013160912940652505,
+                "imag": 1.0842021724855044e-18,
+                "abs": 0.00013160912940652505,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.013680478642198152,
+                "epsilon_n_k_plus_q": -0.00356379083554742,
+                "energy_difference": -0.010116687806650732,
+                "abs_energy_difference": 0.010116687806650732
+              },
+              "occupation": {
+                "f_m_k": 0.9999998725493184,
+                "f_n_k_plus_q": 0.9842588021941108,
+                "occupation_difference": 0.015741070355207665,
+                "abs_occupation_difference": 0.015741070355207665
+              },
+              "denominator": {
+                "real": -0.010116687806650732,
+                "imag": 0.01,
+                "abs": 0.014224885664821198
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999985935584553,
+                "current_x_vertex_abs": 1.0116673578120874,
+                "current_y_vertex_abs": 1.145169158152087,
+                "vertex_product_abs": 1.1585302564756144
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": false
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 2,
+              "k_index": [
+                2,
+                6
+              ],
+              "k": [
+                -1.7135959928671598,
+                0.6166532097435988
+              ],
+              "k_plus_q": [
+                -1.7035959928671598,
+                0.6166532097435988
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.00013160912940652505,
+                "imag": -1.0842021724855044e-18,
+                "abs": 0.00013160912940652505,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.00356379083554742,
+                "epsilon_n_k_plus_q": -0.013680478642198152,
+                "energy_difference": 0.010116687806650732,
+                "abs_energy_difference": 0.010116687806650732
+              },
+              "occupation": {
+                "f_m_k": 0.9842588021941108,
+                "f_n_k_plus_q": 0.9999998725493184,
+                "occupation_difference": -0.015741070355207665,
+                "abs_occupation_difference": 0.015741070355207665
+              },
+              "denominator": {
+                "real": 0.010116687806650732,
+                "imag": 0.01,
+                "abs": 0.014224885664821198
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999985935584553,
+                "current_x_vertex_abs": 1.0116673578120874,
+                "current_y_vertex_abs": 1.145169158152087,
+                "vertex_product_abs": 1.1585302564756144
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": false
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 3,
+              "k_index": [
+                2,
+                3
+              ],
+              "k": [
+                -1.7135959928671598,
+                -1.0969427831235612
+              ],
+              "k_plus_q": [
+                -1.7035959928671598,
+                -1.0969427831235612
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 3.1573479770219044e-06,
+                "imag": -3.3087224502121107e-23,
+                "abs": 3.1573479770219044e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.7140635125469434,
+                "epsilon_n_k_plus_q": -0.1013440239362583,
+                "energy_difference": 0.8154075364832017,
+                "abs_energy_difference": 0.8154075364832017
+              },
+              "occupation": {
+                "f_m_k": 9.85967654375977e-305,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.8154075364832017,
+                "imag": 0.01,
+                "abs": 0.8154688532087562
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021645446510885624,
+                "current_x_vertex_abs": 0.17649860215520174,
+                "current_y_vertex_abs": 0.1598200117130274,
+                "vertex_product_abs": 0.031151756562740187
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 4,
+              "k_index": [
+                8,
+                3
+              ],
+              "k": [
+                1.7135959928671598,
+                -1.0969427831235612
+              ],
+              "k_plus_q": [
+                1.7235959928671598,
+                -1.0969427831235612
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 3.1573479770219e-06,
+                "imag": -6.617444900424222e-24,
+                "abs": 3.1573479770219e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.10134402393625835,
+                "epsilon_n_k_plus_q": 0.7140635125469434,
+                "energy_difference": -0.8154075364832019,
+                "abs_energy_difference": 0.8154075364832019
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 9.85967654375977e-305,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.8154075364832019,
+                "imag": 0.01,
+                "abs": 0.8154688532087563
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021645446510885624,
+                "current_x_vertex_abs": 0.17649860215520163,
+                "current_y_vertex_abs": 0.1598200117130274,
+                "vertex_product_abs": 0.031151756562740145
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 5,
+              "k_index": [
+                2,
+                3
+              ],
+              "k": [
+                -1.7135959928671598,
+                -1.0969427831235612
+              ],
+              "k_plus_q": [
+                -1.7035959928671598,
+                -1.0969427831235612
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 3.039019182715431e-06,
+                "imag": -6.617444900424222e-24,
+                "abs": 3.039019182715431e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.0846862910836476,
+                "epsilon_n_k_plus_q": 0.7001619939763162,
+                "energy_difference": -0.7848482850599637,
+                "abs_energy_difference": 0.7848482850599637
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 9.85967654375977e-305,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.7848482850599637,
+                "imag": 0.01,
+                "abs": 0.7849119890545475
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021645446510885624,
+                "current_x_vertex_abs": 0.16988391573425754,
+                "current_y_vertex_abs": 0.15156761393665097,
+                "vertex_product_abs": 0.028860544825204316
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 6,
+              "k_index": [
+                8,
+                3
+              ],
+              "k": [
+                1.7135959928671598,
+                -1.0969427831235612
+              ],
+              "k_plus_q": [
+                1.7235959928671598,
+                -1.0969427831235612
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 3.039019182715427e-06,
+                "imag": 2.6469779601696886e-23,
+                "abs": 3.039019182715427e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.7001619939763162,
+                "epsilon_n_k_plus_q": -0.0846862910836476,
+                "energy_difference": 0.7848482850599637,
+                "abs_energy_difference": 0.7848482850599637
+              },
+              "occupation": {
+                "f_m_k": 9.85967654375977e-305,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.7848482850599637,
+                "imag": 0.01,
+                "abs": 0.7849119890545475
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0021645446510885624,
+                "current_x_vertex_abs": 0.16988391573425743,
+                "current_y_vertex_abs": 0.15156761393665108,
+                "vertex_product_abs": 0.02886054482520428
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 7,
+              "k_index": [
+                7,
+                2
+              ],
+              "k": [
+                1.1423973285781068,
+                -1.6681414474126144
+              ],
+              "k_plus_q": [
+                1.1523973285781068,
+                -1.6681414474126144
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 2.6670537550848713e-06,
+                "imag": 8.602678370551488e-23,
+                "abs": 2.6670537550848713e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.08763506626310003,
+                "epsilon_n_k_plus_q": 0.7327436376525074,
+                "energy_difference": -0.8203787039156074,
+                "abs_energy_difference": 0.8203787039156074
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 9.85967654375977e-305,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.8203787039156074,
+                "imag": 0.01,
+                "abs": 0.8204396491139686
+              },
+              "vertices": {
+                "density_vertex_abs": 0.001983359225677883,
+                "current_x_vertex_abs": 0.1627105670960689,
+                "current_y_vertex_abs": 0.17701718600994076,
+                "vertex_product_abs": 0.028802566721427777
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 8,
+              "k_index": [
+                3,
+                2
+              ],
+              "k": [
+                -1.1423973285781066,
+                -1.6681414474126144
+              ],
+              "k_plus_q": [
+                -1.1323973285781066,
+                -1.6681414474126144
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 2.6670537550848667e-06,
+                "imag": 8.536503921547246e-22,
+                "abs": 2.6670537550848667e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.732743637652507,
+                "epsilon_n_k_plus_q": -0.08763506626310043,
+                "energy_difference": 0.8203787039156075,
+                "abs_energy_difference": 0.8203787039156075
+              },
+              "occupation": {
+                "f_m_k": 9.85967654375977e-305,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.8203787039156075,
+                "imag": 0.01,
+                "abs": 0.8204396491139687
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0019833592256779387,
+                "current_x_vertex_abs": 0.1627105670960688,
+                "current_y_vertex_abs": 0.17701718600994076,
+                "vertex_product_abs": 0.028802566721427756
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 9,
+              "k_index": [
+                7,
+                2
+              ],
+              "k": [
+                1.1423973285781068,
+                -1.6681414474126144
+              ],
+              "k_plus_q": [
+                1.1523973285781068,
+                -1.6681414474126144
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 2.543017289139607e-06,
+                "imag": -4.632211430296955e-23,
+                "abs": 2.543017289139607e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.7149363803760993,
+                "epsilon_n_k_plus_q": -0.06728903361183516,
+                "energy_difference": 0.7822254139879344,
+                "abs_energy_difference": 0.7822254139879344
+              },
+              "occupation": {
+                "f_m_k": 9.85967654375977e-305,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.7822254139879344,
+                "imag": 0.01,
+                "abs": 0.7822893315702288
+              },
+              "vertices": {
+                "density_vertex_abs": 0.001983359225677883,
+                "current_x_vertex_abs": 0.15514339913926734,
+                "current_y_vertex_abs": 0.1707613345732204,
+                "vertex_product_abs": 0.026492493887247105
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 10,
+              "k_index": [
+                3,
+                2
+              ],
+              "k": [
+                -1.1423973285781066,
+                -1.6681414474126144
+              ],
+              "k_plus_q": [
+                -1.1323973285781066,
+                -1.6681414474126144
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 2.5430172891396063e-06,
+                "imag": -8.867376166568457e-22,
+                "abs": 2.5430172891396063e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.06728903361183558,
+                "epsilon_n_k_plus_q": 0.7149363803760991,
+                "energy_difference": -0.7822254139879347,
+                "abs_energy_difference": 0.7822254139879347
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 9.85967654375977e-305,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.7822254139879347,
+                "imag": 0.01,
+                "abs": 0.7822893315702291
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0019833592256779387,
+                "current_x_vertex_abs": 0.15514339913926734,
+                "current_y_vertex_abs": 0.1707613345732203,
+                "vertex_product_abs": 0.026492493887247087
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 11,
+              "k_index": [
+                1,
+                6
+              ],
+              "k": [
+                -2.284794657156213,
+                0.6166532097435988
+              ],
+              "k_plus_q": [
+                -2.2747946571562134,
+                0.6166532097435988
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 2.1374541773880597e-06,
+                "imag": -2.183756817139993e-22,
+                "abs": 2.1374541773880597e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.5275253589538025,
+                "epsilon_n_k_plus_q": -0.2408271399623113,
+                "energy_difference": 0.7683524989161138,
+                "abs_energy_difference": 0.7683524989161138
+              },
+              "occupation": {
+                "f_m_k": 1.3769569845804617e-266,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": 0.7683524989161138,
+                "imag": 0.01,
+                "abs": 0.7684175704593412
+              },
+              "vertices": {
+                "density_vertex_abs": 0.001834682158633305,
+                "current_x_vertex_abs": 0.14096826213027208,
+                "current_y_vertex_abs": 0.10943134563746837,
+                "vertex_product_abs": 0.0198720509280291
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 12,
+              "k_index": [
+                9,
+                6
+              ],
+              "k": [
+                2.2847946571562137,
+                0.6166532097435988
+              ],
+              "k_plus_q": [
+                2.2947946571562134,
+                0.6166532097435988
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 2.137454177388058e-06,
+                "imag": 1.0554824616176633e-21,
+                "abs": 2.137454177388058e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.24082713996231084,
+                "epsilon_n_k_plus_q": 0.5275253589538028,
+                "energy_difference": -0.7683524989161137,
+                "abs_energy_difference": 0.7683524989161137
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 1.3769569845799922e-266,
+                "occupation_difference": 1.0,
+                "abs_occupation_difference": 1.0
+              },
+              "denominator": {
+                "real": -0.7683524989161137,
+                "imag": 0.01,
+                "abs": 0.7684175704593411
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0018346821586332496,
+                "current_x_vertex_abs": 0.14096826213027203,
+                "current_y_vertex_abs": 0.10943134563746804,
+                "vertex_product_abs": 0.019872050928029086
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            }
+          ],
+          "diagnosis": {
+            "suspected_issue": "few_k_outliers",
+            "explanation": "a small set of k/band-pair contributions dominates the target residual",
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "case_name": "nk8_unshifted",
+          "nk": 8,
+          "mesh_size": 64,
+          "shift": [
+            0.0,
+            0.0
+          ],
+          "total_residual_component": {
+            "real": 0.09531992901363903,
+            "imag": -3.119727355647224e-16,
+            "abs": 0.09531992901363903
+          },
+          "total_residual_max_norm": 0.09531992901363903,
+          "dominant_component": "left_current_x",
+          "sum_of_reported_contributions": {
+            "real": 0.09527304693034812,
+            "imag": -3.0617748913493457e-16,
+            "abs": 0.09527304693034812
+          },
+          "sum_all_contributions": {
+            "real": 0.09531992901363903,
+            "imag": -3.061781371711678e-16,
+            "abs": 0.09531992901363903
+          },
+          "sum_matches_total_component": true,
+          "match_error_abs": 5.7945983935546315e-18,
+          "match_error_relative": 6.079104814194208e-17,
+          "concentration": {
+            "top1_abs_fraction": 0.12529190517351035,
+            "top3_abs_fraction": 0.3758757155205242,
+            "top5_abs_fraction": 0.6257147560821112,
+            "top10_abs_fraction": 0.999432161493483,
+            "effective_contributor_count": 8.010239073568227
+          },
+          "top_contributors": [
+            {
+              "rank": 1,
+              "k_index": [
+                3,
+                6
+              ],
+              "k": [
+                -0.39269908169872414,
+                1.9634954084936211
+              ],
+              "k_plus_q": [
+                -0.38269908169872413,
+                1.9634954084936211
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.0119428155071226,
+                "imag": 6.071532165918825e-18,
+                "abs": 0.0119428155071226,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.0018641953466007055,
+                "epsilon_n_k_plus_q": -0.006661947262128848,
+                "energy_difference": 0.008526142608729553,
+                "abs_energy_difference": 0.008526142608729553
+              },
+              "occupation": {
+                "f_m_k": 0.10309409257973663,
+                "f_n_k_plus_q": 0.9995611301854921,
+                "occupation_difference": -0.8964670376057554,
+                "abs_occupation_difference": 0.8964670376057554
+              },
+              "denominator": {
+                "real": 0.008526142608729553,
+                "imag": 0.01,
+                "abs": 0.013141351063889648
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999997460494634,
+                "current_x_vertex_abs": 0.8526140443511057,
+                "current_y_vertex_abs": 0.8512980478281649,
+                "vertex_product_abs": 0.8526138278293116
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 2,
+              "k_index": [
+                4,
+                6
+              ],
+              "k": [
+                0.39269908169872414,
+                1.9634954084936211
+              ],
+              "k_plus_q": [
+                0.40269908169872415,
+                1.9634954084936211
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.01194281550712246,
+                "imag": -1.1709383462843448e-16,
+                "abs": 0.01194281550712246,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.006661947262129042,
+                "epsilon_n_k_plus_q": 0.0018641953466006778,
+                "energy_difference": -0.00852614260872972,
+                "abs_energy_difference": 0.00852614260872972
+              },
+              "occupation": {
+                "f_m_k": 0.9995611301854921,
+                "f_n_k_plus_q": 0.10309409257973963,
+                "occupation_difference": 0.8964670376057524,
+                "abs_occupation_difference": 0.8964670376057524
+              },
+              "denominator": {
+                "real": -0.00852614260872972,
+                "imag": 0.01,
+                "abs": 0.013141351063889757
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999997460494634,
+                "current_x_vertex_abs": 0.8526140443511057,
+                "current_y_vertex_abs": 0.8512980478281649,
+                "vertex_product_abs": 0.8526138278293116
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 3,
+              "k_index": [
+                4,
+                1
+              ],
+              "k": [
+                0.39269908169872414,
+                -1.9634954084936207
+              ],
+              "k_plus_q": [
+                0.40269908169872415,
+                -1.9634954084936207
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.011942815507122083,
+                "imag": -6.071532165918825e-18,
+                "abs": 0.011942815507122083,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.006661947262129209,
+                "epsilon_n_k_plus_q": 0.0018641953466003447,
+                "energy_difference": -0.008526142608729553,
+                "abs_energy_difference": 0.008526142608729553
+              },
+              "occupation": {
+                "f_m_k": 0.9995611301854923,
+                "f_n_k_plus_q": 0.10309409257977535,
+                "occupation_difference": 0.896467037605717,
+                "abs_occupation_difference": 0.896467037605717
+              },
+              "denominator": {
+                "real": -0.008526142608729553,
+                "imag": 0.01,
+                "abs": 0.013141351063889648
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999997460494634,
+                "current_x_vertex_abs": 0.8526140443511054,
+                "current_y_vertex_abs": 0.8512980478281648,
+                "vertex_product_abs": 0.8526138278293114
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 4,
+              "k_index": [
+                3,
+                1
+              ],
+              "k": [
+                -0.39269908169872414,
+                -1.9634954084936207
+              ],
+              "k_plus_q": [
+                -0.38269908169872413,
+                -1.9634954084936207
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.011942815507121892,
+                "imag": -1.8648277366750676e-16,
+                "abs": 0.011942815507121892,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.001864195346600095,
+                "epsilon_n_k_plus_q": -0.006661947262129181,
+                "energy_difference": 0.008526142608729276,
+                "abs_energy_difference": 0.008526142608729276
+              },
+              "occupation": {
+                "f_m_k": 0.10309409257980216,
+                "f_n_k_plus_q": 0.9995611301854923,
+                "occupation_difference": -0.8964670376056901,
+                "abs_occupation_difference": 0.8964670376056901
+              },
+              "denominator": {
+                "real": 0.008526142608729276,
+                "imag": 0.01,
+                "abs": 0.01314135106388947
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999997460494634,
+                "current_x_vertex_abs": 0.8526140443511055,
+                "current_y_vertex_abs": 0.851298047828165,
+                "vertex_product_abs": 0.8526138278293115
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 5,
+              "k_index": [
+                6,
+                4
+              ],
+              "k": [
+                1.9634954084936211,
+                0.39269908169872414
+              ],
+              "k_plus_q": [
+                1.9734954084936212,
+                0.39269908169872414
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.01187182410404427,
+                "imag": 1.4137996329210978e-16,
+                "abs": 0.01187182410404427,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.006684934206095783,
+                "epsilon_n_k_plus_q": 0.0018279700766629658,
+                "energy_difference": -0.008512904282758749,
+                "abs_energy_difference": 0.008512904282758749
+              },
+              "occupation": {
+                "f_m_k": 0.9995726774431656,
+                "f_n_k_plus_q": 0.1070465000310333,
+                "occupation_difference": 0.8925261774121322,
+                "abs_occupation_difference": 0.8925261774121322
+              },
+              "denominator": {
+                "real": -0.008512904282758749,
+                "imag": 0.01,
+                "abs": 0.01313276586737966
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999985198983646,
+                "current_x_vertex_abs": 0.8512891682795403,
+                "current_y_vertex_abs": 0.8526156379949545,
+                "vertex_product_abs": 0.8512879082850501
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 6,
+              "k_index": [
+                6,
+                3
+              ],
+              "k": [
+                1.9634954084936211,
+                -0.39269908169872414
+              ],
+              "k_plus_q": [
+                1.9734954084936212,
+                -0.39269908169872414
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.01187182410404425,
+                "imag": 1.214306433183765e-16,
+                "abs": 0.01187182410404425,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.006684934206095811,
+                "epsilon_n_k_plus_q": 0.0018279700766629658,
+                "energy_difference": -0.008512904282758776,
+                "abs_energy_difference": 0.008512904282758776
+              },
+              "occupation": {
+                "f_m_k": 0.9995726774431656,
+                "f_n_k_plus_q": 0.1070465000310333,
+                "occupation_difference": 0.8925261774121322,
+                "abs_occupation_difference": 0.8925261774121322
+              },
+              "denominator": {
+                "real": -0.008512904282758776,
+                "imag": 0.01,
+                "abs": 0.013132765867379678
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999985198983645,
+                "current_x_vertex_abs": 0.8512891682795402,
+                "current_y_vertex_abs": 0.8526156379949544,
+                "vertex_product_abs": 0.85128790828505
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 7,
+              "k_index": [
+                1,
+                3
+              ],
+              "k": [
+                -1.9634954084936207,
+                -0.39269908169872414
+              ],
+              "k_plus_q": [
+                -1.9534954084936207,
+                -0.39269908169872414
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.011871824104043756,
+                "imag": -1.0495077029659683e-16,
+                "abs": 0.011871824104043756,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.0018279700766626328,
+                "epsilon_n_k_plus_q": -0.006684934206096171,
+                "energy_difference": 0.008512904282758804,
+                "abs_energy_difference": 0.008512904282758804
+              },
+              "occupation": {
+                "f_m_k": 0.10704650003107029,
+                "f_n_k_plus_q": 0.9995726774431658,
+                "occupation_difference": -0.8925261774120955,
+                "abs_occupation_difference": 0.8925261774120955
+              },
+              "denominator": {
+                "real": 0.008512904282758804,
+                "imag": 0.01,
+                "abs": 0.013132765867379697
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999985198983647,
+                "current_x_vertex_abs": 0.8512891682795405,
+                "current_y_vertex_abs": 0.8526156379949543,
+                "vertex_product_abs": 0.8512879082850504
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 8,
+              "k_index": [
+                1,
+                4
+              ],
+              "k": [
+                -1.9634954084936207,
+                0.39269908169872414
+              ],
+              "k_plus_q": [
+                -1.9534954084936207,
+                0.39269908169872414
+              ],
+              "band_pair": [
+                1,
+                1
+              ],
+              "contribution": {
+                "real": 0.011871824104043756,
+                "imag": -1.6046192152785466e-16,
+                "abs": 0.011871824104043756,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.001827970076662605,
+                "epsilon_n_k_plus_q": -0.006684934206096116,
+                "energy_difference": 0.008512904282758721,
+                "abs_energy_difference": 0.008512904282758721
+              },
+              "occupation": {
+                "f_m_k": 0.10704650003107334,
+                "f_n_k_plus_q": 0.9995726774431658,
+                "occupation_difference": -0.8925261774120925,
+                "abs_occupation_difference": 0.8925261774120925
+              },
+              "denominator": {
+                "real": 0.008512904282758721,
+                "imag": 0.01,
+                "abs": 0.013132765867379643
+              },
+              "vertices": {
+                "density_vertex_abs": 0.9999985198983645,
+                "current_x_vertex_abs": 0.8512891682795403,
+                "current_y_vertex_abs": 0.8526156379949543,
+                "vertex_product_abs": 0.8512879082850501
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 9,
+              "k_index": [
+                6,
+                4
+              ],
+              "k": [
+                1.9634954084936211,
+                0.39269908169872414
+              ],
+              "k_plus_q": [
+                1.9734954084936212,
+                0.39269908169872414
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 3.6221214207648286e-06,
+                "imag": 1.2771668657818747e-21,
+                "abs": 3.6221214207648286e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.8751585581997519,
+                "epsilon_n_k_plus_q": 0.0018279700766629658,
+                "energy_difference": -0.8769865282764149,
+                "abs_energy_difference": 0.8769865282764149
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 0.1070465000310333,
+                "occupation_difference": 0.8929534999689667,
+                "abs_occupation_difference": 0.8929534999689667
+              },
+              "denominator": {
+                "real": -0.8769865282764149,
+                "imag": 0.01,
+                "abs": 0.8770435398418479
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0017205234900812272,
+                "current_x_vertex_abs": 0.15088759223844034,
+                "current_y_vertex_abs": 0.06336020821029437,
+                "vertex_product_abs": 0.02276706549151384
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 10,
+              "k_index": [
+                6,
+                3
+              ],
+              "k": [
+                1.9634954084936211,
+                -0.39269908169872414
+              ],
+              "k_plus_q": [
+                1.9734954084936212,
+                -0.39269908169872414
+              ],
+              "band_pair": [
+                0,
+                1
+              ],
+              "contribution": {
+                "real": 3.6221214207648265e-06,
+                "imag": -5.955700410381799e-23,
+                "abs": 3.6221214207648265e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": -0.8751585581997519,
+                "epsilon_n_k_plus_q": 0.0018279700766629658,
+                "energy_difference": -0.8769865282764149,
+                "abs_energy_difference": 0.8769865282764149
+              },
+              "occupation": {
+                "f_m_k": 1.0,
+                "f_n_k_plus_q": 0.1070465000310333,
+                "occupation_difference": 0.8929534999689667,
+                "abs_occupation_difference": 0.8929534999689667
+              },
+              "denominator": {
+                "real": -0.8769865282764149,
+                "imag": 0.01,
+                "abs": 0.8770435398418479
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0017205234900812827,
+                "current_x_vertex_abs": 0.15088759223844028,
+                "current_y_vertex_abs": 0.06336020821029442,
+                "vertex_product_abs": 0.022767065491513826
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 11,
+              "k_index": [
+                1,
+                3
+              ],
+              "k": [
+                -1.9634954084936207,
+                -0.39269908169872414
+              ],
+              "k_plus_q": [
+                -1.9534954084936207,
+                -0.39269908169872414
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 3.6221214207646922e-06,
+                "imag": 2.6205081805679917e-21,
+                "abs": 3.6221214207646922e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.0018279700766626328,
+                "epsilon_n_k_plus_q": -0.8751585581997523,
+                "energy_difference": 0.8769865282764149,
+                "abs_energy_difference": 0.8769865282764149
+              },
+              "occupation": {
+                "f_m_k": 0.10704650003107029,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -0.8929534999689297,
+                "abs_occupation_difference": 0.8929534999689297
+              },
+              "denominator": {
+                "real": 0.8769865282764149,
+                "imag": 0.01,
+                "abs": 0.8770435398418479
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0017205234900813937,
+                "current_x_vertex_abs": 0.15088759223844062,
+                "current_y_vertex_abs": 0.06336020821029442,
+                "vertex_product_abs": 0.022767065491513926
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            },
+            {
+              "rank": 12,
+              "k_index": [
+                1,
+                4
+              ],
+              "k": [
+                -1.9634954084936207,
+                0.39269908169872414
+              ],
+              "k_plus_q": [
+                -1.9534954084936207,
+                0.39269908169872414
+              ],
+              "band_pair": [
+                1,
+                0
+              ],
+              "contribution": {
+                "real": 3.622121420764669e-06,
+                "imag": -2.63374307036884e-21,
+                "abs": 3.622121420764669e-06,
+                "component": "left_current_x"
+              },
+              "bubble_element_indices": {
+                "ward_side": "left",
+                "component": "current_x",
+                "matrix_row_or_col": "current_x"
+              },
+              "energy": {
+                "epsilon_m_k": 0.001827970076662605,
+                "epsilon_n_k_plus_q": -0.8751585581997523,
+                "energy_difference": 0.8769865282764149,
+                "abs_energy_difference": 0.8769865282764149
+              },
+              "occupation": {
+                "f_m_k": 0.10704650003107334,
+                "f_n_k_plus_q": 1.0,
+                "occupation_difference": -0.8929534999689267,
+                "abs_occupation_difference": 0.8929534999689267
+              },
+              "denominator": {
+                "real": 0.8769865282764149,
+                "imag": 0.01,
+                "abs": 0.8770435398418479
+              },
+              "vertices": {
+                "density_vertex_abs": 0.0017205234900811717,
+                "current_x_vertex_abs": 0.1508875922384404,
+                "current_y_vertex_abs": 0.0633602082102942,
+                "vertex_product_abs": 0.022767065491513857
+              },
+              "classification": {
+                "near_fermi": false,
+                "small_denominator": false,
+                "large_vertex_product": false,
+                "occupation_jump": true
+              },
+              "valid_for_casimir_input": false
+            }
+          ],
+          "diagnosis": {
+            "suspected_issue": "near_fermi_occupation_jump",
+            "explanation": "top contributors include large occupation jumps near the Fermi surface",
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        }
+      ],
+      "cross_case_summary": {
+        "largest_case": "nk11_unshifted",
+        "largest_total_residual": 0.1284957824909525,
+        "nk11_unshifted_vs_shifted_ratio": 391.43162876965397,
+        "nk11_unshifted_vs_nk9_ratio": 1521.5534129588657,
+        "shared_outlier_k_points": [
+          [
+            2,
+            6
+          ],
+          [
+            6,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "suspected_issue": "twist_sensitive_fermi_surface_sampling",
+        "recommended_next_fix": "Prioritize shifted/twist mesh averaging diagnostics for the normal bubble before changing formulas.",
+        "valid_for_casimir_input": false
+      },
+      "summary": {
+        "suspected_issue": "twist_sensitive_fermi_surface_sampling",
+        "recommended_next_fix": "Prioritize shifted/twist mesh averaging diagnostics for the normal bubble before changing formulas.",
+        "valid_for_casimir_input": false
+      }
     }
   }
 }
