@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 
 from lno327.collective.ward import contact_ward_rhs, physical_ward_residuals
+from validation.lib.finite_q_schur_ward_localization import run_bdg_schur_ward_algebra_localization
 from validation.lib import finite_q_ward_triage as triage
 
 
@@ -316,6 +317,75 @@ def test_contact_aware_helper_algebra_for_current_contact():
     assert right[1] == pytest.approx(-0.00706)
     np.testing.assert_allclose(left, rhs_left)
     np.testing.assert_allclose(right, rhs_right)
+
+
+def test_schur_ward_rectangular_contraction_reproduces_existing_validator_for_dwave():
+    payload = run_bdg_schur_ward_algebra_localization(pairing_name="dwave")
+    reproduction = payload["validator_reproduction"]
+
+    assert reproduction["matches_existing_validator"] is True
+    assert reproduction["left_difference_norm"] <= 1e-14
+    assert reproduction["right_difference_norm"] <= 1e-14
+    assert payload["valid_for_casimir_input"] is False
+
+
+def test_schur_ward_localization_returns_requested_fields_for_dwave():
+    payload = run_bdg_schur_ward_algebra_localization(pairing_name="dwave")
+
+    assert payload["pairing_name"] == "dwave"
+    assert payload["matrix_shapes"] == {
+        "K_AA": [3, 3],
+        "K_Aeta": [3, 2],
+        "K_etaA": [2, 3],
+        "K_etaeta": [2, 2],
+    }
+    assert len(payload["candidates"]) == 12
+    for candidate in payload["candidates"]:
+        assert set(candidate) >= {
+            "candidate_name",
+            "R",
+            "left_aa_norm",
+            "left_aeta_norm",
+            "right_aa_norm",
+            "right_etaa_norm",
+            "max_norm",
+            "classification",
+            "valid_for_casimir_input",
+        }
+        assert candidate["classification"] in {
+            "both_small",
+            "first_small_second_large",
+            "first_large_second_small",
+            "both_large",
+        }
+        assert candidate["valid_for_casimir_input"] is False
+
+
+def test_schur_ward_localization_returns_requested_fields_for_spm():
+    payload = run_bdg_schur_ward_algebra_localization(pairing_name="spm")
+
+    assert payload["pairing_name"] == "spm"
+    assert len(payload["candidates"]) == 12
+    assert payload["best_candidate"]["candidate_name"] in {candidate["candidate_name"] for candidate in payload["candidates"]}
+    assert payload["validator_reproduction"]["matches_existing_validator"] is True
+
+
+def test_schur_ward_localization_best_candidate_has_minimal_max_norm():
+    payload = run_bdg_schur_ward_algebra_localization(pairing_name="dwave")
+    best = payload["best_candidate"]
+
+    assert best["max_norm"] == min(candidate["max_norm"] for candidate in payload["candidates"])
+
+
+def test_schur_ward_localization_does_not_write_validation_outputs():
+    output_dir = ROOT / "validation" / "outputs" / "finite_q_ward"
+    before = sorted(path.relative_to(output_dir) for path in output_dir.rglob("*"))
+
+    run_bdg_schur_ward_algebra_localization(pairing_name="dwave")
+    run_bdg_schur_ward_algebra_localization(pairing_name="spm")
+
+    after = sorted(path.relative_to(output_dir) for path in output_dir.rglob("*"))
+    assert after == before
 
 
 def test_bdg_ward_criterion_bare_total_uses_minus_direct_vector_algebra():
