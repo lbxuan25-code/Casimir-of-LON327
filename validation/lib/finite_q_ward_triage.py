@@ -80,6 +80,40 @@ def _summary_payload(summary: _ResidualSummary) -> dict[str, Any]:
     }
 
 
+def _complex_component_payload(vector: np.ndarray) -> list[dict[str, float | str]]:
+    array = np.asarray(vector, dtype=complex).reshape(-1)
+    return [
+        {
+            "component": COMPONENT_LABELS[index] if index < len(COMPONENT_LABELS) else f"component_{index}",
+            "real": float(np.real(value)),
+            "imag": float(np.imag(value)),
+        }
+        for index, value in enumerate(array)
+    ]
+
+
+def _ward_residual_detail(matrix: np.ndarray, omega_eV: float, q_model: tuple[float, float]) -> dict[str, Any]:
+    ward = validate_physical_ward_identity(
+        np.asarray(matrix, dtype=complex),
+        float(omega_eV),
+        np.asarray(q_model, dtype=float),
+        tolerance=_TOLERANCE,
+    )
+    left = np.asarray(ward.left_residual, dtype=complex).reshape(-1)
+    right = np.asarray(ward.right_residual, dtype=complex).reshape(-1)
+    return {
+        "left_residual_vector": _complex_component_payload(left),
+        "right_residual_vector": _complex_component_payload(right),
+        "left_norm": float(ward.left_norm),
+        "right_norm": float(ward.right_norm),
+        "dominant_left_component": _dominant_component(left),
+        "dominant_right_component": _dominant_component(right),
+        "max_norm": float(max(ward.left_norm, ward.right_norm)),
+        "vector_norm": float(np.linalg.norm(np.concatenate([left, right]))),
+        "dominant_component": _dominant_component(np.concatenate([left, right])),
+    }
+
+
 def _find_component_matrix(components: dict[str, Any], names: tuple[str, ...]) -> np.ndarray | None:
     for name in names:
         if name in components:
@@ -190,6 +224,17 @@ def _operator_stats(errors: list[float], worst_k: list[float] | None) -> dict[st
         "worst_k": worst_k,
         "passed_by_tolerance": bool(max(errors) <= _TOLERANCE),
     }
+
+
+def _scaling_slope(q_values: list[float], residuals: list[float]) -> float | None:
+    positive = [(q, r) for q, r in zip(q_values, residuals, strict=True) if q > 0.0 and r > 0.0]
+    if len(positive) < 2:
+        return None
+    first_q, first_r = positive[0]
+    last_q, last_r = positive[-1]
+    if first_q == last_q:
+        return None
+    return float((np.log(last_r) - np.log(first_r)) / (np.log(last_q) - np.log(first_q)))
 
 
 def _normal_vertex_identity(model: Any, points: np.ndarray, q: np.ndarray) -> dict[str, Any]:
@@ -445,6 +490,284 @@ def run_contact_cancellation_triage(
         }
     except Exception as exc:
         return _unavailable(f"contact cancellation triage failed: {type(exc).__name__}: {exc}")
+
+
+def run_normal_contact_direct_audit(
+    *,
+    model_name: str = "symmetry_bdg_2band",
+    q_model: tuple[float, float] = (0.01, 0.0),
+    omega_eV: float = 0.01,
+    nk: int = 9,
+) -> dict[str, Any]:
+    """Audit normal finite-q direct/contact placement and diagnostic-only residual candidates."""
+    try:
+        model = get_finite_q_validation_model(model_name)
+        points = uniform_bz_mesh(nk)
+        weights = k_weights(points)
+        config = KuboConfig.from_kelvin(omega_eV=omega_eV, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+        components = normal_physical_density_current_response_components_imag_axis_from_model(
+            model.spec,
+            points,
+            config,
+            np.asarray(q_model, dtype=float),
+            weights,
+        )
+        bubble = _find_component_matrix(components, ("bare_bubble", "bubble", "paramagnetic"))
+        direct = _find_component_matrix(components, ("direct", "contact", "diamagnetic"))
+        total = _find_component_matrix(components, ("total", "bare_total"))
+        if bubble is None or direct is None or total is None:
+            missing = [
+                name
+                for name, value in (("bubble", bubble), ("direct", direct), ("total", total))
+                if value is None
+            ]
+            return _unavailable(f"normal response components missing required matrices: {', '.join(missing)}")
+
+        matrix_shape = list(total.shape)
+        expected_shape_ok = bool(total.shape == (3, 3) and bubble.shape == total.shape and direct.shape == total.shape)
+        direct_pattern = _direct_nonzero_pattern(direct)
+        direct_block = _direct_block_interpretation(direct, expected_shape_ok)
+        residual_audit = {
+            "bare_bubble": _ward_residual_detail(bubble, omega_eV, q_model),
+            "direct": _ward_residual_detail(direct, omega_eV, q_model),
+            "total": _ward_residual_detail(total, omega_eV, q_model),
+        }
+        candidates = _direct_candidate_audit(bubble, direct, total, omega_eV, q_model)
+        q_scaling = _normal_contact_q_scaling(model, omega_eV, nk)
+        q0_convention = _q0_direct_convention_audit(model, omega_eV, nk)
+        summary = _normal_contact_direct_summary(
+            direct_block=direct_block,
+            candidates=candidates,
+            q_scaling=q_scaling,
+            q0_convention=q0_convention,
+        )
+        return {
+            "available": True,
+            "model_name": model.name,
+            "q_model": [float(q_model[0]), float(q_model[1])],
+            "omega_eV": float(omega_eV),
+            "nk": int(nk),
+            "workspace_evaluation": True,
+            "valid_for_casimir_input": False,
+            "matrix_shape": matrix_shape,
+            "assumed_component_labels": list(COMPONENT_LABELS),
+            "label_to_index": {label: index for index, label in enumerate(COMPONENT_LABELS)},
+            "is_square": bool(total.ndim == 2 and total.shape[0] == total.shape[1]),
+            "expected_shape_ok": expected_shape_ok,
+            "hermiticity_norms": {
+                "bare_bubble": _hermiticity_norm(bubble),
+                "direct": _hermiticity_norm(direct),
+                "total": _hermiticity_norm(total),
+            },
+            "direct_nonzero_pattern": direct_pattern,
+            "direct_block_interpretation": direct_block,
+            "residual_component_audit": residual_audit,
+            "direct_sign_candidates": candidates,
+            "q_scaling": q_scaling,
+            "q0_direct_convention": q0_convention,
+            "summary": summary,
+        }
+    except Exception as exc:
+        return _unavailable(f"normal contact/direct audit failed: {type(exc).__name__}: {exc}")
+
+
+def _hermiticity_norm(matrix: np.ndarray) -> float:
+    array = np.asarray(matrix, dtype=complex)
+    if array.ndim != 2 or array.shape[0] != array.shape[1]:
+        return float("nan")
+    return float(np.linalg.norm(array - array.conjugate().T))
+
+
+def _direct_nonzero_pattern(direct: np.ndarray) -> dict[str, float]:
+    matrix = np.asarray(direct, dtype=complex)
+    if matrix.shape != (3, 3):
+        return {
+            "density_density_norm": float("nan"),
+            "density_current_norm": float("nan"),
+            "current_density_norm": float("nan"),
+            "current_current_norm": float("nan"),
+            "current_x_current_x_norm": float("nan"),
+            "current_x_current_y_norm": float("nan"),
+            "current_y_current_x_norm": float("nan"),
+            "current_y_current_y_norm": float("nan"),
+        }
+    return {
+        "density_density_norm": float(abs(matrix[0, 0])),
+        "density_current_norm": float(np.linalg.norm(matrix[0, 1:3])),
+        "current_density_norm": float(np.linalg.norm(matrix[1:3, 0])),
+        "current_current_norm": float(np.linalg.norm(matrix[1:3, 1:3])),
+        "current_x_current_x_norm": float(abs(matrix[1, 1])),
+        "current_x_current_y_norm": float(abs(matrix[1, 2])),
+        "current_y_current_x_norm": float(abs(matrix[2, 1])),
+        "current_y_current_y_norm": float(abs(matrix[2, 2])),
+    }
+
+
+def _direct_block_interpretation(direct: np.ndarray, expected_shape_ok: bool) -> str:
+    if not expected_shape_ok:
+        return "unexpected_shape"
+    pattern = _direct_nonzero_pattern(direct)
+    density_norm = max(
+        pattern["density_density_norm"],
+        pattern["density_current_norm"],
+        pattern["current_density_norm"],
+    )
+    if density_norm > 1e-12:
+        return "has_density_mixing"
+    if pattern["current_current_norm"] > 0.0:
+        return "current_current_only"
+    return "unknown"
+
+
+def _direct_candidate_audit(
+    bubble: np.ndarray,
+    direct: np.ndarray,
+    total: np.ndarray,
+    omega_eV: float,
+    q_model: tuple[float, float],
+) -> dict[str, Any]:
+    current_block_direct = np.zeros_like(direct)
+    xx_only_direct = np.zeros_like(direct)
+    yy_only_direct = np.zeros_like(direct)
+    if direct.shape == (3, 3):
+        current_block_direct[1:3, 1:3] = direct[1:3, 1:3]
+        xx_only_direct[1, 1] = direct[1, 1]
+        yy_only_direct[2, 2] = direct[2, 2]
+    candidates = {
+        "total_current": total,
+        "total_without_direct": bubble,
+        "total_flip_direct": bubble - direct,
+        "total_double_direct": bubble + 2.0 * direct,
+        "total_half_direct": bubble + 0.5 * direct,
+        "total_current_block_only_direct": bubble + current_block_direct,
+        "total_xx_only_direct": bubble + xx_only_direct,
+        "total_yy_only_direct": bubble + yy_only_direct,
+    }
+    current_summary = _ward_residual_summary(total, omega_eV, q_model)
+    current_norm = max(current_summary.max_norm, _EPS)
+    payload: dict[str, Any] = {}
+    for name, matrix in candidates.items():
+        summary = _ward_residual_summary(matrix, omega_eV, q_model)
+        payload[name] = {
+            "max_norm": summary.max_norm,
+            "vector_norm": summary.norm,
+            "dominant_component": summary.dominant_component,
+            "improves_over_current_total": bool(summary.max_norm < current_summary.max_norm),
+            "relative_to_current_total": float(summary.max_norm / current_norm),
+        }
+    return payload
+
+
+def _normal_contact_q_scaling(model: Any, omega_eV: float, nk: int) -> dict[str, Any]:
+    q_values = [0.005, 0.01, 0.02]
+    points = uniform_bz_mesh(nk)
+    weights = k_weights(points)
+    config = KuboConfig.from_kelvin(omega_eV=omega_eV, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+    direct_residuals: list[float] = []
+    total_residuals: list[float] = []
+    for q_value in q_values:
+        q_model = (q_value, 0.0)
+        components = normal_physical_density_current_response_components_imag_axis_from_model(
+            model.spec,
+            points,
+            config,
+            np.asarray(q_model, dtype=float),
+            weights,
+        )
+        direct = _find_component_matrix(components, ("direct", "contact", "diamagnetic"))
+        total = _find_component_matrix(components, ("total", "bare_total"))
+        if direct is None or total is None:
+            return _unavailable("normal response components missing direct or total during q scaling audit")
+        direct_residuals.append(_ward_residual_summary(direct, omega_eV, q_model).max_norm)
+        total_residuals.append(_ward_residual_summary(total, omega_eV, q_model).max_norm)
+    return {
+        "available": True,
+        "q_values": q_values,
+        "direct_residuals": direct_residuals,
+        "total_residuals": total_residuals,
+        "direct_scaling_slope": _scaling_slope(q_values, direct_residuals),
+        "total_scaling_slope": _scaling_slope(q_values, total_residuals),
+        "valid_for_casimir_input": False,
+    }
+
+
+def _q0_direct_convention_audit(model: Any, omega_eV: float, nk: int) -> dict[str, Any]:
+    points = uniform_bz_mesh(nk)
+    weights = k_weights(points)
+    config = KuboConfig.from_kelvin(omega_eV=omega_eV, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+    components = normal_physical_density_current_response_components_imag_axis_from_model(
+        model.spec,
+        points,
+        config,
+        np.asarray((0.0, 0.0), dtype=float),
+        weights,
+    )
+    direct = _find_component_matrix(components, ("direct", "contact", "diamagnetic"))
+    if direct is None:
+        return _unavailable("normal q=0 finite-q components did not expose direct/contact matrix")
+    q0_direct_norm = float(np.linalg.norm(direct[1:3, 1:3] if direct.shape == (3, 3) else direct))
+    return {
+        "available": False,
+        "reason": "local normal diamagnetic response-level comparator is not exposed by the current public API",
+        "q0_direct_norm": q0_direct_norm,
+        "q0_local_diamagnetic_norm": None,
+        "best_q0_direct_match": "unavailable",
+        "q0_direct_match_relative_error": None,
+        "interpretation": "q=0 finite-q direct norm is recorded, but local diamagnetic sign relation was not compared",
+        "valid_for_casimir_input": False,
+    }
+
+
+def _normal_contact_direct_summary(
+    *,
+    direct_block: str,
+    candidates: dict[str, Any],
+    q_scaling: dict[str, Any],
+    q0_convention: dict[str, Any],
+) -> dict[str, Any]:
+    current = candidates.get("total_current", {})
+    current_norm = float(current.get("max_norm", 0.0))
+    improvement_threshold = 0.8 * max(current_norm, _EPS)
+    flip_norm = float(candidates.get("total_flip_direct", {}).get("max_norm", float("inf")))
+    half_norm = float(candidates.get("total_half_direct", {}).get("max_norm", float("inf")))
+    double_norm = float(candidates.get("total_double_direct", {}).get("max_norm", float("inf")))
+    current_block_norm = float(candidates.get("total_current_block_only_direct", {}).get("max_norm", float("inf")))
+    xx_norm = float(candidates.get("total_xx_only_direct", {}).get("max_norm", float("inf")))
+    yy_norm = float(candidates.get("total_yy_only_direct", {}).get("max_norm", float("inf")))
+
+    if direct_block == "has_density_mixing":
+        issue = "direct_has_density_mixing"
+        fix = "Inspect why finite-q contact/direct contributes outside the current-current block."
+    elif min(xx_norm, yy_norm, current_block_norm) < improvement_threshold:
+        issue = "direct_component_placement_suspicious"
+        fix = "Audit current-current component placement and density-current index ordering before changing formulas."
+    elif flip_norm < improvement_threshold:
+        issue = "direct_sign_suspicious"
+        fix = "Audit finite-q direct/contact sign convention against the response-level Ward residual."
+    elif min(half_norm, double_norm) < improvement_threshold:
+        issue = "direct_magnitude_suspicious"
+        fix = "Audit direct/contact normalization and any missing factor in response assembly."
+    elif q0_convention.get("best_q0_direct_match") not in {None, "unavailable", "local_diamagnetic", "-local_diamagnetic"}:
+        issue = "q0_finiteq_direct_convention_mismatch"
+        fix = "Compare q=0 local direct convention with finite-q direct/contact convention."
+    elif (
+        q_scaling.get("available")
+        and q_scaling.get("direct_scaling_slope") is not None
+        and 0.5 <= float(q_scaling["direct_scaling_slope"]) <= 1.5
+    ):
+        issue = "q_factor_or_contact_scaling_suspicious"
+        fix = "Audit q-factor placement in the contact/direct Ward contribution."
+    elif direct_block == "unexpected_shape":
+        issue = "ward_validator_component_order_suspicious"
+        fix = "Audit matrix shape and component order expected by the Ward validator."
+    else:
+        issue = "normal_contact_unresolved"
+        fix = "Use direct/contact block and candidate residual summaries to choose the next narrow audit."
+    return {
+        "suspected_issue": issue,
+        "recommended_next_fix": fix,
+        "valid_for_casimir_input": False,
+    }
 
 
 def _row_residual_vector(row: Any) -> np.ndarray:

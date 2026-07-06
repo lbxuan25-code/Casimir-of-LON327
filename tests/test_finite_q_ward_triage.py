@@ -146,6 +146,117 @@ def test_contact_cancellation_triage_reports_geometry(monkeypatch):
     }
 
 
+def test_normal_contact_direct_audit_reports_fields(monkeypatch):
+    bubble = np.eye(3, dtype=complex)
+    direct = np.zeros((3, 3), dtype=complex)
+    direct[1, 1] = 2.0
+    direct[2, 2] = 3.0
+
+    monkeypatch.setattr(
+        triage,
+        "get_finite_q_validation_model",
+        lambda model_name: SimpleNamespace(name=model_name, spec=object()),
+    )
+    monkeypatch.setattr(triage, "uniform_bz_mesh", lambda nk: np.zeros((nk, 2), dtype=float))
+    monkeypatch.setattr(triage, "k_weights", lambda points: np.ones(points.shape[0]) / points.shape[0])
+    monkeypatch.setattr(
+        triage.KuboConfig,
+        "from_kelvin",
+        staticmethod(lambda **kwargs: SimpleNamespace(omega_eV=kwargs["omega_eV"])),
+    )
+    monkeypatch.setattr(
+        triage,
+        "normal_physical_density_current_response_components_imag_axis_from_model",
+        lambda *args, **kwargs: {
+            "bubble": bubble,
+            "direct": direct,
+            "total": bubble + direct,
+        },
+    )
+
+    payload = triage.run_normal_contact_direct_audit(nk=2)
+
+    assert payload["available"] is True
+    assert payload["valid_for_casimir_input"] is False
+    assert payload["matrix_shape"] == [3, 3]
+    assert payload["direct_block_interpretation"] == "current_current_only"
+    assert "direct_nonzero_pattern" in payload
+    assert "residual_component_audit" in payload
+    assert "direct_sign_candidates" in payload
+    assert "q_scaling" in payload
+    assert "summary" in payload
+    assert payload["summary"]["valid_for_casimir_input"] is False
+
+
+def test_normal_contact_direct_audit_detects_current_current_block(monkeypatch):
+    bubble = np.zeros((3, 3), dtype=complex)
+    direct = np.zeros((3, 3), dtype=complex)
+    direct[1:3, 1:3] = np.eye(2)
+
+    monkeypatch.setattr(
+        triage,
+        "get_finite_q_validation_model",
+        lambda model_name: SimpleNamespace(name=model_name, spec=object()),
+    )
+    monkeypatch.setattr(triage, "uniform_bz_mesh", lambda nk: np.zeros((nk, 2), dtype=float))
+    monkeypatch.setattr(triage, "k_weights", lambda points: np.ones(points.shape[0]) / points.shape[0])
+    monkeypatch.setattr(
+        triage.KuboConfig,
+        "from_kelvin",
+        staticmethod(lambda **kwargs: SimpleNamespace(omega_eV=kwargs["omega_eV"])),
+    )
+    monkeypatch.setattr(
+        triage,
+        "normal_physical_density_current_response_components_imag_axis_from_model",
+        lambda *args, **kwargs: {
+            "bubble": bubble,
+            "direct": direct,
+            "total": bubble + direct,
+        },
+    )
+
+    payload = triage.run_normal_contact_direct_audit(nk=2)
+
+    assert payload["direct_block_interpretation"] == "current_current_only"
+    assert payload["direct_nonzero_pattern"]["density_current_norm"] == 0.0
+    assert payload["direct_nonzero_pattern"]["current_density_norm"] == 0.0
+
+
+def test_normal_contact_direct_audit_flags_sign_or_magnitude_candidate(monkeypatch):
+    bubble = np.eye(3, dtype=complex)
+    direct = np.eye(3, dtype=complex)
+
+    monkeypatch.setattr(
+        triage,
+        "get_finite_q_validation_model",
+        lambda model_name: SimpleNamespace(name=model_name, spec=object()),
+    )
+    monkeypatch.setattr(triage, "uniform_bz_mesh", lambda nk: np.zeros((nk, 2), dtype=float))
+    monkeypatch.setattr(triage, "k_weights", lambda points: np.ones(points.shape[0]) / points.shape[0])
+    monkeypatch.setattr(
+        triage.KuboConfig,
+        "from_kelvin",
+        staticmethod(lambda **kwargs: SimpleNamespace(omega_eV=kwargs["omega_eV"])),
+    )
+    monkeypatch.setattr(
+        triage,
+        "normal_physical_density_current_response_components_imag_axis_from_model",
+        lambda *args, **kwargs: {
+            "bubble": bubble,
+            "direct": direct,
+            "total": bubble + direct,
+        },
+    )
+
+    payload = triage.run_normal_contact_direct_audit(nk=2)
+
+    assert payload["summary"]["suspected_issue"] in {
+        "direct_sign_suspicious",
+        "direct_magnitude_suspicious",
+        "direct_has_density_mixing",
+    }
+
+
 def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path):
     module = _load_report_module()
     scan_report = SimpleNamespace(
@@ -199,6 +310,14 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
             "normal_finite_q": {"suspected_layer": "normal_closed", "valid_for_casimir_input": False},
             "operator_identity": {"suspected_layer": "response_assembly_or_collective", "valid_for_casimir_input": False},
             "contact_cancellation": {"by_pairing": {}, "valid_for_casimir_input": False},
+            "normal_contact_direct_audit": {
+                "summary": {
+                    "suspected_issue": "normal_contact_unresolved",
+                    "recommended_next_fix": "inspect normal contact",
+                    "valid_for_casimir_input": False,
+                },
+                "valid_for_casimir_input": False,
+            },
             "summary": {
                 "suspected_layer": "response_assembly_or_collective",
                 "recommended_next_fix": "inspect response assembly",
@@ -220,7 +339,9 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
 
     assert "ward_triage" in report
     assert report["ward_triage"]["summary"]["valid_for_casimir_input"] is False
+    assert "normal_contact_direct_audit" in report["ward_triage"]
     assert "## Ward triage" in markdown
+    assert "normal contact/direct audit" in markdown
     assert "suspected primary layer" in markdown
 
 

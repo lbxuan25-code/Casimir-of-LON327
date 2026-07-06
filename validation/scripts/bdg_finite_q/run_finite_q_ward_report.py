@@ -24,6 +24,7 @@ from validation.lib.finite_q_validation_models import (  # noqa: E402
 )
 from validation.lib.finite_q_ward_triage import (  # noqa: E402
     run_contact_cancellation_triage,
+    run_normal_contact_direct_audit,
     run_normal_finite_q_ward_triage,
     run_operator_identity_triage,
     summarize_ward_triage,
@@ -146,10 +147,17 @@ def _run_ward_triage(
         nk=nk,
         delta0_eV=delta0,
     )
+    normal_contact = run_normal_contact_direct_audit(
+        model_name=model_name,
+        q_model=q_model,
+        omega_eV=omega,
+        nk=nk,
+    )
     return {
         "normal_finite_q": normal,
         "operator_identity": operator,
         "contact_cancellation": contact,
+        "normal_contact_direct_audit": normal_contact,
         "summary": summarize_ward_triage(normal, operator, contact),
     }
 
@@ -248,6 +256,8 @@ def format_markdown(report: dict[str, Any]) -> str:
     normal_triage = triage.get("normal_finite_q", {}) if isinstance(triage, dict) else {}
     operator_triage = triage.get("operator_identity", {}) if isinstance(triage, dict) else {}
     contact_triage = triage.get("contact_cancellation", {}) if isinstance(triage, dict) else {}
+    normal_contact_audit = triage.get("normal_contact_direct_audit", {}) if isinstance(triage, dict) else {}
+    normal_contact_summary = normal_contact_audit.get("summary", {}) if isinstance(normal_contact_audit, dict) else {}
     lines = [
         "# finite-q Ward validation report",
         "",
@@ -281,6 +291,8 @@ def format_markdown(report: dict[str, Any]) -> str:
             f"- normal finite-q triage conclusion: {normal_triage.get('suspected_layer', normal_triage.get('reason', 'unavailable'))}",
             f"- operator identity conclusion: {operator_triage.get('suspected_layer', operator_triage.get('reason', 'unavailable'))}",
             f"- contact cancellation conclusion: {_contact_conclusion(contact_triage)}",
+            f"- normal contact/direct audit: {normal_contact_summary.get('suspected_issue', normal_contact_audit.get('reason', 'unavailable'))}",
+            f"- recommended normal contact fix: {normal_contact_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
             f"- suspected primary layer: {triage_summary.get('suspected_layer', 'unavailable')}",
             f"- recommended next fix: {triage_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
             f"- valid_for_casimir_input: {_format_bool(bool(triage_summary.get('valid_for_casimir_input', False)))}",
