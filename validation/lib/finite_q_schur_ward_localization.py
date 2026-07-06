@@ -128,13 +128,13 @@ def _candidate_payload(
 
 def _classify_analytic_identity(
     *,
-    contact_aware_left_aa_norm: float,
-    contact_aware_right_aa_norm: float,
+    full_hessian_left_aa_norm: float,
+    full_hessian_right_aa_norm: float,
     left_aeta_norm: float,
     right_etaa_norm: float,
     tolerance: float,
 ) -> str:
-    aa_small = contact_aware_left_aa_norm <= tolerance and contact_aware_right_aa_norm <= tolerance
+    aa_small = full_hessian_left_aa_norm <= tolerance and full_hessian_right_aa_norm <= tolerance
     mixed_small = left_aeta_norm <= tolerance and right_etaa_norm <= tolerance
     if aa_small and mixed_small:
         return "aa_small_mixed_small"
@@ -160,43 +160,61 @@ def _analytic_identity_payload(
     r_left = np.asarray([0.0, 2.0j * float(delta0_eV)], dtype=complex)
     r_right = np.asarray([0.0, -2.0j * float(delta0_eV)], dtype=complex)
 
-    homogeneous_left_aa = rectangular_ward_left(k_aa, omega_eV, q_model) + r_left @ k_etaa
-    homogeneous_right_aa = rectangular_ward_right(k_aa, omega_eV, q_model) + k_aeta @ r_right
-    contact_aware_left_aa = rectangular_ward_left(k_aa, omega_eV, q_model) - rectangular_ward_left(
+    full_hessian_left_aa = rectangular_ward_left(k_aa, omega_eV, q_model) + r_left @ k_etaa
+    full_hessian_right_aa = rectangular_ward_right(k_aa, omega_eV, q_model) + k_aeta @ r_right
+    bubble_only_left_aa = rectangular_ward_left(k_aa, omega_eV, q_model) - rectangular_ward_left(
         k_direct, omega_eV, q_model
     ) + r_left @ k_etaa
-    contact_aware_right_aa = rectangular_ward_right(k_aa, omega_eV, q_model) - rectangular_ward_right(
+    bubble_only_right_aa = rectangular_ward_right(k_aa, omega_eV, q_model) - rectangular_ward_right(
         k_direct, omega_eV, q_model
     ) + k_aeta @ r_right
     left_aeta = rectangular_ward_left(k_aeta, omega_eV, q_model) + r_left @ k_etaeta
     right_etaa = rectangular_ward_right(k_etaa, omega_eV, q_model) + k_etaeta @ r_right
 
     norms = {
-        "homogeneous_left_aa_norm": float(np.linalg.norm(homogeneous_left_aa)),
-        "homogeneous_right_aa_norm": float(np.linalg.norm(homogeneous_right_aa)),
-        "contact_aware_left_aa_norm": float(np.linalg.norm(contact_aware_left_aa)),
-        "contact_aware_right_aa_norm": float(np.linalg.norm(contact_aware_right_aa)),
+        "full_hessian_left_aa_norm": float(np.linalg.norm(full_hessian_left_aa)),
+        "full_hessian_right_aa_norm": float(np.linalg.norm(full_hessian_right_aa)),
+        "bubble_only_left_aa_norm": float(np.linalg.norm(bubble_only_left_aa)),
+        "bubble_only_right_aa_norm": float(np.linalg.norm(bubble_only_right_aa)),
         "left_aeta_norm": float(np.linalg.norm(left_aeta)),
         "right_etaa_norm": float(np.linalg.norm(right_etaa)),
     }
+    max_full_hessian_norm = float(
+        max(
+            norms["full_hessian_left_aa_norm"],
+            norms["full_hessian_right_aa_norm"],
+            norms["left_aeta_norm"],
+            norms["right_etaa_norm"],
+        )
+    )
+    max_bubble_only_norm = float(
+        max(
+            norms["bubble_only_left_aa_norm"],
+            norms["bubble_only_right_aa_norm"],
+            norms["left_aeta_norm"],
+            norms["right_etaa_norm"],
+        )
+    )
     return {
         "analytic_R_left": _complex_vector_payload(r_left),
         "analytic_R_right": _complex_vector_payload(r_right),
         "eta2_relation": "eta2 = delta0 * theta",
         "source_convention": "endpoint_average_delta_minus_plus_delta_plus_over_2delta0",
-        "aa_identity": "contact_aware",
+        "aa_identity": "full_hessian",
+        "aa_kernel_definition": "K_AA_full = K_AA_bubble + K_AA_direct",
+        "direct_role": "included_in_full_hessian_not_subtracted_from_formal_identity",
         **norms,
-        "max_contact_aware_norm": float(
-            max(
-                norms["contact_aware_left_aa_norm"],
-                norms["contact_aware_right_aa_norm"],
-                norms["left_aeta_norm"],
-                norms["right_etaa_norm"],
-            )
-        ),
+        "homogeneous_left_aa_norm": norms["full_hessian_left_aa_norm"],
+        "homogeneous_right_aa_norm": norms["full_hessian_right_aa_norm"],
+        "contact_aware_left_aa_norm": norms["bubble_only_left_aa_norm"],
+        "contact_aware_right_aa_norm": norms["bubble_only_right_aa_norm"],
+        "max_full_hessian_norm": max_full_hessian_norm,
+        "max_contact_aware_norm": max_bubble_only_norm,
+        "max_bubble_only_diagnostic_norm": max_bubble_only_norm,
+        "bubble_only_contact_rhs_diagnostic_only": True,
         "classification": _classify_analytic_identity(
-            contact_aware_left_aa_norm=norms["contact_aware_left_aa_norm"],
-            contact_aware_right_aa_norm=norms["contact_aware_right_aa_norm"],
+            full_hessian_left_aa_norm=norms["full_hessian_left_aa_norm"],
+            full_hessian_right_aa_norm=norms["full_hessian_right_aa_norm"],
             left_aeta_norm=norms["left_aeta_norm"],
             right_etaa_norm=norms["right_etaa_norm"],
             tolerance=tolerance,
