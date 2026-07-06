@@ -26,6 +26,51 @@ def _load_report_module():
     return module
 
 
+def _component(real: float, imag: float = 0.0, component: str = "density"):
+    return {"component": component, "real": real, "imag": imag}
+
+
+def _vector_row(pairing: str, response: str, q: float, left, right=None):
+    right = left if right is None else right
+    labels = ("density", "current_x", "current_y")
+    left_vector = tuple(_component(float(value), component=labels[index]) for index, value in enumerate(left))
+    right_vector = tuple(_component(float(value), component=labels[index]) for index, value in enumerate(right))
+    max_norm = max(float(np.linalg.norm(np.asarray(left, dtype=complex))), float(np.linalg.norm(np.asarray(right, dtype=complex))))
+    return SimpleNamespace(
+        pairing_name=pairing,
+        response_name=response,
+        q_model=(q, 0.0),
+        q_norm=q,
+        left_ward_residual_norm=max_norm,
+        right_ward_residual_norm=max_norm,
+        residual_component_labels=labels,
+        left_ward_residual_vector=left_vector,
+        right_ward_residual_vector=right_vector,
+        max_ward_residual_norm=max_norm,
+        residual_ratio_to_bare=None,
+        collective_matrix_condition_number=None,
+        inverse_method="not_used",
+        pinv_diagnostic_used=False,
+    )
+
+
+def _criterion_rows(pairings=("spm", "dwave"), q_values=(0.01,), closure_delta=1e-8):
+    rows = []
+    for pairing in pairings:
+        for q in q_values:
+            direct = np.array([0.0, 0.3, 0.0])
+            rows.extend(
+                [
+                    _vector_row(pairing, "bare_bubble", q, [1e-8, 0.0, 0.0]),
+                    _vector_row(pairing, "direct", q, direct),
+                    _vector_row(pairing, "bare_total", q, direct + np.array([2e-8, 0.0, 0.0])),
+                    _vector_row(pairing, "minus_schur", q, direct + np.array([3e-8, 0.0, 0.0])),
+                    _vector_row(pairing, "amplitude_phase_schur", q, direct + np.array([closure_delta, 0.0, 0.0])),
+                ]
+            )
+    return rows
+
+
 def test_normal_finite_q_ward_triage_reports_fields(monkeypatch):
     matrix = np.eye(3, dtype=complex)
 
@@ -271,6 +316,97 @@ def test_contact_aware_helper_algebra_for_current_contact():
     assert right[1] == pytest.approx(-0.00706)
     np.testing.assert_allclose(left, rhs_left)
     np.testing.assert_allclose(right, rhs_right)
+
+
+def test_bdg_ward_criterion_contact_aware_vector_algebra():
+    rows = _criterion_rows(pairings=("spm",), q_values=(0.01,), closure_delta=1e-8)
+
+    payload = triage.evaluate_finite_q_bdg_ward_criterion(
+        finite_q_rows=rows,
+        pairings=("spm",),
+        q_values=(0.01,),
+        q0_precondition_status={"spm": "convention_aware_pass"},
+    )
+
+    spm_rows = payload["by_pairing"]["spm"]["rows"]
+    closure = next(row for row in spm_rows if row["response_name"] == "amplitude_phase_schur")
+    direct = np.array([0.0, 0.3, 0.0])
+    total = direct + np.array([1e-8, 0.0, 0.0])
+
+    assert payload["evaluated"] is True
+    assert closure["criterion_type"] == "contact_aware_collective_corrected"
+    assert closure["contact_rhs_norm"] == pytest.approx(np.linalg.norm(direct))
+    assert closure["contact_aware_residual_norm"] == pytest.approx(np.linalg.norm(total - direct))
+    assert closure["passed"] is True
+    assert closure["valid_for_casimir_input"] is False
+
+
+def test_bdg_ward_criterion_refuses_norm_only_rows():
+    rows = [
+        {
+            "pairing_name": "spm",
+            "response_name": name,
+            "q_model": [0.01, 0.0],
+            "max_ward_residual_norm": 0.0,
+        }
+        for name in ("bare_bubble", "direct", "bare_total", "minus_schur", "amplitude_phase_schur")
+    ]
+
+    payload = triage.evaluate_finite_q_bdg_ward_criterion(
+        finite_q_rows=rows,
+        pairings=("spm",),
+        q_values=(0.01,),
+        q0_precondition_status={"spm": "convention_aware_pass"},
+    )
+
+    spm = payload["by_pairing"]["spm"]
+    assert payload["evaluated"] is False
+    assert payload["ward_identity_closed"] is False
+    assert spm["blocking_reason"] == "missing_residual_vector"
+    assert spm["closed"] is False
+
+
+def test_bdg_ward_criterion_passes_when_all_pairings_close():
+    payload = triage.evaluate_finite_q_bdg_ward_criterion(
+        finite_q_rows=_criterion_rows(closure_delta=1e-8),
+        pairings=("spm", "dwave"),
+        q_values=(0.01,),
+        q0_precondition_status={"spm": "convention_aware_pass", "dwave": "convention_aware_pass"},
+        absolute_tol=1e-6,
+        relative_tol=1e-6,
+    )
+
+    assert payload["evaluated"] is True
+    assert payload["ward_identity_closed"] is True
+    assert payload["summary"]["closed_pairings"] == ["spm", "dwave"]
+    assert payload["summary"]["failed_pairings"] == []
+    assert payload["valid_for_casimir_input"] is False
+
+
+def test_bdg_ward_criterion_reports_largest_blocker_on_failure():
+    rows = _criterion_rows(closure_delta=1e-8)
+    rows = [
+        _vector_row("dwave", "amplitude_phase_schur", 0.01, [0.0, 0.3 + 2e-3, 0.0])
+        if row.pairing_name == "dwave" and row.response_name == "amplitude_phase_schur"
+        else row
+        for row in rows
+    ]
+
+    payload = triage.evaluate_finite_q_bdg_ward_criterion(
+        finite_q_rows=rows,
+        pairings=("spm", "dwave"),
+        q_values=(0.01,),
+        q0_precondition_status={"spm": "convention_aware_pass", "dwave": "convention_aware_pass"},
+        absolute_tol=1e-6,
+        relative_tol=1e-6,
+    )
+
+    blocker = payload["summary"]["largest_blocker"]
+    assert payload["ward_identity_closed"] is False
+    assert payload["by_pairing"]["dwave"]["closed"] is False
+    assert blocker["pairing_name"] == "dwave"
+    assert blocker["response_name"] == "amplitude_phase_schur"
+    assert blocker["contact_aware_residual_norm"] == pytest.approx(2e-3)
 
 
 def test_normal_ward_convention_audit_reports_fields(monkeypatch):
@@ -669,6 +805,75 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
     assert "suspected primary layer" in markdown
 
 
+def test_report_builder_includes_formal_ward_criterion_and_status_linkage(monkeypatch, tmp_path):
+    module = _load_report_module()
+    scan_report = SimpleNamespace(
+        model_name="symmetry_bdg_2band",
+        primary_validation_model=True,
+        q0_precondition_status={"spm": "convention_aware_pass", "dwave": "convention_aware_pass"},
+        diagnostic_run_completed=True,
+        ward_identity_closed=False,
+        workspace_evaluation=True,
+        pairing_names=("spm", "dwave"),
+        rows=tuple(_criterion_rows()),
+    )
+    q0_reports = (
+        SimpleNamespace(
+            pairing_name="spm",
+            status="convention_aware_pass",
+            passed=True,
+            comparator_family="local_bdg",
+            q0_comparator_available=True,
+            best_transformed_match={},
+        ),
+        SimpleNamespace(
+            pairing_name="dwave",
+            status="convention_aware_pass",
+            passed=True,
+            comparator_family="local_bdg",
+            q0_comparator_available=True,
+            best_transformed_match={},
+        ),
+    )
+
+    class Model:
+        name = "symmetry_bdg_2band"
+        primary_validation_model = True
+
+        @staticmethod
+        def require_pairing(pairing):
+            return None
+
+        @staticmethod
+        def build_pairing_params(delta0):
+            return SimpleNamespace(delta0_eV=delta0)
+
+    monkeypatch.setattr(module, "get_finite_q_validation_model", lambda model_name: Model())
+    monkeypatch.setattr(module, "run_q0_bdg_response_alignment_many", lambda *args, **kwargs: q0_reports)
+    monkeypatch.setattr(module, "run_finite_q_ward_scan", lambda *args, **kwargs: scan_report)
+
+    report = module.build_report(
+        model_name="symmetry_bdg_2band",
+        output_dir=tmp_path,
+        nk=2,
+        omega=0.01,
+        delta0=0.1,
+        q_values=(0.01,),
+        pairings=("spm", "dwave"),
+        include_triage=False,
+    )
+    markdown = module.format_markdown(report)
+
+    assert "ward_criterion" in report
+    assert report["ward_criterion"]["criterion_version"] == "contact_aware_v1"
+    assert report["ward_criterion"]["ward_identity_closed"] is True
+    assert report["finite_q_status"]["ward_identity_closed"] == report["ward_criterion"]["ward_identity_closed"]
+    assert report["finite_q_rows"][0]["left_ward_residual_vector"]
+    assert "## Ward criterion" in markdown
+    assert "full_bdg_ward_closed: True" in markdown
+    assert "valid_for_casimir_input: False" in markdown
+
+
 def test_report_cli_bubble_audit_defaults_and_custom_values():
     module = _load_report_module()
 
@@ -677,9 +882,21 @@ def test_report_cli_bubble_audit_defaults_and_custom_values():
     assert defaults.bubble_audit_q_values == [0.005, 0.01, 0.02]
     assert defaults.bubble_audit_omega_values == [0.005, 0.01, 0.02]
     assert defaults.disable_bubble_audit_mesh_shifts is False
+    assert defaults.ward_criterion == "contact_aware_v1"
+    assert defaults.bdg_ward_closure_response == "amplitude_phase_schur"
+    assert defaults.bdg_ward_absolute_tol == 1e-6
+    assert defaults.bdg_ward_relative_tol == 1e-6
 
     custom = module.parse_args(
         [
+            "--ward-criterion",
+            "contact_aware_v1",
+            "--bdg-ward-closure-response",
+            "minus_schur",
+            "--bdg-ward-absolute-tol",
+            "1e-7",
+            "--bdg-ward-relative-tol",
+            "2e-7",
             "--bubble-audit-nk-values",
             "5",
             "7",
@@ -696,6 +913,9 @@ def test_report_cli_bubble_audit_defaults_and_custom_values():
     assert custom.bubble_audit_q_values == [0.003, 0.006]
     assert custom.bubble_audit_omega_values == [0.004, 0.008]
     assert custom.disable_bubble_audit_mesh_shifts is True
+    assert custom.bdg_ward_closure_response == "minus_schur"
+    assert custom.bdg_ward_absolute_tol == 1e-7
+    assert custom.bdg_ward_relative_tol == 2e-7
 
 
 def test_report_command_text_records_bubble_audit_provenance():
@@ -721,6 +941,10 @@ def test_report_command_text_records_bubble_audit_provenance():
     assert "--bubble-audit-q-values 0.003 0.006" in command
     assert "--bubble-audit-omega-values 0.004 0.008" in command
     assert "--disable-bubble-audit-mesh-shifts" in command
+    assert "--ward-criterion contact_aware_v1" in command
+    assert "--bdg-ward-closure-response amplitude_phase_schur" in command
+    assert "--bdg-ward-absolute-tol 1e-06" in command
+    assert "--bdg-ward-relative-tol 1e-06" in command
 
 
 def test_report_bubble_outlier_cli_and_command_text():

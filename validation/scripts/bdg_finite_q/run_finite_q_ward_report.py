@@ -23,6 +23,7 @@ from validation.lib.finite_q_validation_models import (  # noqa: E402
     get_finite_q_validation_model,
 )
 from validation.lib.finite_q_ward_triage import (  # noqa: E402
+    evaluate_finite_q_bdg_ward_criterion,
     run_contact_cancellation_triage,
     run_normal_bubble_convergence_audit,
     run_normal_bubble_per_k_outlier_audit,
@@ -68,6 +69,9 @@ def _compact_rows(scan_report: Any) -> list[dict[str, Any]]:
             "q_norm": float(row.q_norm),
             "left_ward_residual_norm": float(row.left_ward_residual_norm),
             "right_ward_residual_norm": float(row.right_ward_residual_norm),
+            "residual_component_labels": list(row.residual_component_labels),
+            "left_ward_residual_vector": list(row.left_ward_residual_vector),
+            "right_ward_residual_vector": list(row.right_ward_residual_vector),
             "max_ward_residual_norm": float(row.max_ward_residual_norm),
             "residual_ratio_to_bare": _round_float(row.residual_ratio_to_bare),
             "collective_matrix_condition_number": _round_float(row.collective_matrix_condition_number),
@@ -116,6 +120,50 @@ def _diagnostic_interpretation(scan_report: Any) -> dict[str, Any]:
         "suspected_blockers": blockers,
         "recommended_next_action": (
             "Investigate the largest finite-q residual rows before changing any Casimir input gate."
+        ),
+    }
+
+
+def _ward_criterion_summary(ward_criterion: dict[str, Any]) -> dict[str, Any]:
+    if not ward_criterion.get("evaluated", False):
+        suspected_layer = "ward_criterion_incomplete"
+        for payload in ward_criterion.get("by_pairing", {}).values():
+            if isinstance(payload, dict) and payload.get("blocking_reason") == "missing_response_row":
+                suspected_layer = "finite_q_response_reporting"
+                break
+    elif not ward_criterion.get("ward_identity_closed", False):
+        suspected_layer = "bdg_collective_closure"
+    else:
+        suspected_layer = "none"
+    return {
+        "suspected_layer": suspected_layer,
+        "recommended_next_fix": ward_criterion.get("summary", {}).get(
+            "recommended_next_fix", "Inspect the formal Ward criterion rows."
+        ),
+        "valid_for_casimir_input": False,
+    }
+
+
+def _diagnostic_interpretation_from_criterion(scan_report: Any, ward_criterion: dict[str, Any]) -> dict[str, Any]:
+    blockers: list[str] = []
+    if not ward_criterion.get("evaluated", False):
+        blockers.append("finite-q Ward criterion is incomplete because required residual rows or vectors are missing")
+    elif not ward_criterion.get("ward_identity_closed", False):
+        blockers.append("contact-aware finite-q BdG Ward criterion failed for at least one requested pairing")
+    if any(status == "diagnostic_only_not_passed" for status in scan_report.q0_precondition_status.values()):
+        blockers.append("at least one q=0 precondition is diagnostic-only")
+    if not blockers:
+        blockers.append("Casimir gating remains intentionally closed for this diagnostic report")
+    return {
+        "main_observation": (
+            "The contact-aware finite-q BdG Ward criterion is closed for the requested pairings."
+            if ward_criterion.get("ward_identity_closed", False)
+            else "The contact-aware finite-q BdG Ward criterion is not closed for the requested pairings."
+        ),
+        "suspected_blockers": blockers,
+        "recommended_next_action": ward_criterion.get("summary", {}).get(
+            "recommended_next_fix",
+            "Inspect the largest finite-q contact-aware residual before changing any Casimir input gate.",
         ),
     }
 
@@ -214,6 +262,10 @@ def build_report(
     bubble_audit_mesh_shifts_enabled: bool = True,
     include_bubble_outlier_audit: bool = False,
     bubble_outlier_top_n: int = 12,
+    ward_criterion: str = "contact_aware_v1",
+    bdg_ward_closure_response: str = "amplitude_phase_schur",
+    bdg_ward_absolute_tol: float = 1e-6,
+    bdg_ward_relative_tol: float = 1e-6,
 ) -> dict[str, Any]:
     model = get_finite_q_validation_model(model_name)
     for pairing in pairings:
@@ -236,6 +288,18 @@ def build_report(
         pairing_params=pairing_params,
         q0_status=q0_status,
     )
+    finite_q_rows = _compact_rows(scan_report)
+    if ward_criterion != "contact_aware_v1":
+        raise ValueError("only contact_aware_v1 Ward criterion is supported")
+    ward_criterion_payload = evaluate_finite_q_bdg_ward_criterion(
+        finite_q_rows=finite_q_rows,
+        pairings=pairings,
+        q_values=q_values,
+        closure_response_name=bdg_ward_closure_response,
+        absolute_tol=bdg_ward_absolute_tol,
+        relative_tol=bdg_ward_relative_tol,
+        q0_precondition_status=dict(scan_report.q0_precondition_status),
+    )
     report = {
         "problem": "finite_q_ward",
         "model_name": scan_report.model_name,
@@ -248,17 +312,22 @@ def build_report(
             "delta0": delta0,
             "q_values": list(q_values),
             "pairings": list(pairings),
+            "ward_criterion": ward_criterion,
+            "bdg_ward_closure_response": bdg_ward_closure_response,
+            "bdg_ward_absolute_tol": bdg_ward_absolute_tol,
+            "bdg_ward_relative_tol": bdg_ward_relative_tol,
         },
         "q0_precondition_status": dict(scan_report.q0_precondition_status),
         "q0_comparator_summary": _compact_q0_summary(q0_reports),
         "finite_q_status": {
             "diagnostic_run_completed": bool(scan_report.diagnostic_run_completed),
-            "ward_identity_closed": bool(scan_report.ward_identity_closed),
+            "ward_identity_closed": bool(ward_criterion_payload["ward_identity_closed"]),
             "workspace_evaluation": bool(scan_report.workspace_evaluation),
         },
         "pairing_summary": _pairing_summary(scan_report),
-        "finite_q_rows": _compact_rows(scan_report),
-        "diagnostic_interpretation": _diagnostic_interpretation(scan_report),
+        "finite_q_rows": finite_q_rows,
+        "ward_criterion": ward_criterion_payload,
+        "diagnostic_interpretation": _diagnostic_interpretation_from_criterion(scan_report, ward_criterion_payload),
     }
     if include_triage:
         report["ward_triage_run_config"] = {
@@ -306,6 +375,8 @@ def build_report(
             include_bubble_outlier_audit=include_bubble_outlier_audit,
             bubble_outlier_top_n=bubble_outlier_top_n,
         )
+        report["ward_triage"]["diagnostic_summary"] = report["ward_triage"].get("summary", {})
+        report["ward_triage"]["summary"] = _ward_criterion_summary(ward_criterion_payload)
     else:
         report["ward_triage_run_config"] = {
             "include_triage": False,
@@ -353,6 +424,21 @@ def format_markdown(report: dict[str, Any]) -> str:
         if isinstance(triage_config, dict)
         else {}
     )
+    ward_criterion = report.get("ward_criterion", {})
+    ward_summary = ward_criterion.get("summary", {}) if isinstance(ward_criterion, dict) else {}
+    largest_blocker = ward_summary.get("largest_blocker") if isinstance(ward_summary, dict) else None
+    by_pairing = ward_criterion.get("by_pairing", {}) if isinstance(ward_criterion, dict) else {}
+    spm_criterion = by_pairing.get("spm", {}) if isinstance(by_pairing, dict) else {}
+    dwave_criterion = by_pairing.get("dwave", {}) if isinstance(by_pairing, dict) else {}
+    blocker_text = (
+        "none"
+        if not largest_blocker
+        else (
+            f"pairing={largest_blocker.get('pairing_name')}, q={largest_blocker.get('q_model')}, "
+            f"response={largest_blocker.get('response_name')}, "
+            f"residual={largest_blocker.get('contact_aware_residual_norm')}"
+        )
+    )
     lines = [
         "# finite-q Ward validation report",
         "",
@@ -377,6 +463,16 @@ def format_markdown(report: dict[str, Any]) -> str:
         )
     lines.extend(
         [
+            "",
+            "## Ward criterion",
+            f"- criterion_version: {ward_criterion.get('criterion_version', 'unavailable')}",
+            f"- closure_response_name: {ward_criterion.get('closure_response_name', 'unavailable')}",
+            f"- full_bdg_ward_closed: {_format_bool(bool(ward_criterion.get('ward_identity_closed', False)))}",
+            f"- spm max contact-aware closure residual: {spm_criterion.get('max_closure_contact_aware_residual_norm')}",
+            f"- dwave max contact-aware closure residual: {dwave_criterion.get('max_closure_contact_aware_residual_norm')}",
+            f"- largest blocker: {blocker_text}",
+            f"- recommended next fix: {ward_summary.get('recommended_next_fix', 'inspect finite-q Ward criterion rows')}",
+            f"- valid_for_casimir_input: {_format_bool(bool(ward_criterion.get('valid_for_casimir_input', False)))}",
             "",
             "## Casimir gating",
             "- valid_for_casimir_input: False",
@@ -452,6 +548,14 @@ def _command_text(args: argparse.Namespace) -> str:
         *(str(value) for value in args.q_values),
         "--pairings",
         *args.pairings,
+        "--ward-criterion",
+        args.ward_criterion,
+        "--bdg-ward-closure-response",
+        args.bdg_ward_closure_response,
+        "--bdg-ward-absolute-tol",
+        str(args.bdg_ward_absolute_tol),
+        "--bdg-ward-relative-tol",
+        str(args.bdg_ward_relative_tol),
         "--triage-qx",
         str(args.triage_qx),
         "--triage-qy",
@@ -494,6 +598,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--delta0", type=float, default=0.1)
     parser.add_argument("--q-values", nargs="+", type=float, default=list(DEFAULT_Q_VALUES))
     parser.add_argument("--pairings", nargs="+", default=list(DEFAULT_PAIRINGS))
+    parser.add_argument("--ward-criterion", choices=["contact_aware_v1"], default="contact_aware_v1")
+    parser.add_argument(
+        "--bdg-ward-closure-response",
+        choices=["minus_schur", "amplitude_phase_schur"],
+        default="amplitude_phase_schur",
+    )
+    parser.add_argument("--bdg-ward-absolute-tol", type=float, default=1e-6)
+    parser.add_argument("--bdg-ward-relative-tol", type=float, default=1e-6)
     triage_group = parser.add_mutually_exclusive_group()
     triage_group.add_argument("--include-triage", dest="include_triage", action="store_true", default=True)
     triage_group.add_argument("--no-triage", dest="include_triage", action="store_false")
@@ -527,6 +639,10 @@ def main(argv: list[str] | None = None) -> int:
         bubble_audit_mesh_shifts_enabled=not bool(args.disable_bubble_audit_mesh_shifts),
         include_bubble_outlier_audit=bool(args.include_bubble_outlier_audit),
         bubble_outlier_top_n=int(args.bubble_outlier_top_n),
+        ward_criterion=args.ward_criterion,
+        bdg_ward_closure_response=args.bdg_ward_closure_response,
+        bdg_ward_absolute_tol=float(args.bdg_ward_absolute_tol),
+        bdg_ward_relative_tol=float(args.bdg_ward_relative_tol),
     )
     write_report(report, output_dir, _command_text(args))
     print(f"Wrote finite-q Ward report to {output_dir}")

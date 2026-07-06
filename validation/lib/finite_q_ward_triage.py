@@ -1527,6 +1527,307 @@ def _row_residual_vector(row: Any) -> np.ndarray:
     return np.asarray(values, dtype=complex)
 
 
+def _row_field(row: Any, name: str, default: Any = None) -> Any:
+    if isinstance(row, dict):
+        return row.get(name, default)
+    return getattr(row, name, default)
+
+
+def _row_has_residual_vectors(row: Any) -> bool:
+    return _row_field(row, "left_ward_residual_vector") is not None and _row_field(row, "right_ward_residual_vector") is not None
+
+
+def _component_value(component: Any) -> complex:
+    if isinstance(component, dict):
+        return complex(float(component.get("real", 0.0)), float(component.get("imag", 0.0)))
+    return complex(float(getattr(component, "real", 0.0)), float(getattr(component, "imag", 0.0)))
+
+
+def _criterion_residual_vectors(row: Any) -> tuple[np.ndarray, np.ndarray] | None:
+    if not _row_has_residual_vectors(row):
+        return None
+    try:
+        left = np.asarray([_component_value(item) for item in _row_field(row, "left_ward_residual_vector")], dtype=complex)
+        right = np.asarray([_component_value(item) for item in _row_field(row, "right_ward_residual_vector")], dtype=complex)
+    except (TypeError, ValueError):
+        return None
+    if left.size != len(COMPONENT_LABELS) or right.size != len(COMPONENT_LABELS):
+        return None
+    return left, right
+
+
+def _criterion_vector_payload(vector: np.ndarray) -> list[dict[str, float | str]]:
+    return _complex_component_payload(np.asarray(vector, dtype=complex).reshape(-1))
+
+
+def _criterion_norm(left: np.ndarray, right: np.ndarray) -> float:
+    return float(max(np.linalg.norm(left), np.linalg.norm(right)))
+
+
+def _criterion_q_key(q_model: Any) -> tuple[float, float]:
+    q = tuple(float(value) for value in q_model)
+    if len(q) != 2:
+        raise ValueError("q_model must have two components")
+    return (round(q[0], 15), round(q[1], 15))
+
+
+def _criterion_row_payload(
+    *,
+    row: Any,
+    criterion_type: str,
+    homogeneous_residual_norm: float,
+    contact_rhs_norm: float | None,
+    contact_aware_left: np.ndarray | None,
+    contact_aware_right: np.ndarray | None,
+    absolute_tol: float,
+    relative_tol: float,
+) -> dict[str, Any]:
+    if contact_aware_left is None or contact_aware_right is None:
+        contact_aware_norm = None
+        passed = False
+        threshold = None
+    else:
+        contact_aware_norm = _criterion_norm(contact_aware_left, contact_aware_right)
+        threshold = float(absolute_tol + relative_tol * max(abs(homogeneous_residual_norm), abs(contact_rhs_norm or 0.0)))
+        passed = bool(contact_aware_norm <= threshold)
+    payload = {
+        "q_model": [float(value) for value in _row_field(row, "q_model")],
+        "response_name": str(_row_field(row, "response_name")),
+        "criterion_type": criterion_type,
+        "homogeneous_residual_norm": float(homogeneous_residual_norm),
+        "contact_rhs_norm": None if contact_rhs_norm is None else float(contact_rhs_norm),
+        "contact_aware_residual_norm": contact_aware_norm,
+        "absolute_tol": float(absolute_tol),
+        "relative_tol": float(relative_tol),
+        "threshold": threshold,
+        "passed": passed,
+        "valid_for_casimir_input": False,
+    }
+    if contact_aware_left is not None and contact_aware_right is not None:
+        payload["contact_aware_left_residual_vector"] = _criterion_vector_payload(contact_aware_left)
+        payload["contact_aware_right_residual_vector"] = _criterion_vector_payload(contact_aware_right)
+    return payload
+
+
+def _empty_criterion_pairing(
+    *,
+    q0_status: str,
+    closure_response_name: str,
+    reason: str,
+) -> dict[str, Any]:
+    return {
+        "evaluated": False,
+        "q0_precondition_status": q0_status,
+        "closure_response_name": closure_response_name,
+        "max_closure_contact_aware_residual_norm": None,
+        "max_closure_homogeneous_residual_norm": None,
+        "max_contact_rhs_norm": None,
+        "closed": False,
+        "blocking_response_name": closure_response_name,
+        "blocking_q_model": None,
+        "blocking_reason": reason,
+        "rows": [],
+        "valid_for_casimir_input": False,
+    }
+
+
+def evaluate_finite_q_bdg_ward_criterion(
+    *,
+    finite_q_rows: list[dict[str, Any]] | tuple[Any, ...],
+    pairings: tuple[str, ...],
+    q_values: tuple[float, ...],
+    closure_response_name: str = "amplitude_phase_schur",
+    absolute_tol: float = 1e-6,
+    relative_tol: float = 1e-6,
+    q0_precondition_status: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Evaluate the formal finite-q BdG Ward criterion from compact scan rows."""
+    required_responses = ("bare_bubble", "direct", "bare_total", "minus_schur", "amplitude_phase_schur")
+    criterion_types = {
+        "bare_bubble": "homogeneous_bubble",
+        "bare_total": "contact_aware_total",
+        "minus_schur": "contact_aware_collective_corrected",
+        "amplitude_phase_schur": "contact_aware_collective_corrected",
+    }
+    if closure_response_name not in {"minus_schur", "amplitude_phase_schur"}:
+        raise ValueError("closure_response_name must be minus_schur or amplitude_phase_schur")
+
+    rows_by_key: dict[tuple[str, tuple[float, float], str], Any] = {}
+    for row in finite_q_rows:
+        try:
+            key = (
+                str(_row_field(row, "pairing_name")),
+                _criterion_q_key(_row_field(row, "q_model")),
+                str(_row_field(row, "response_name")),
+            )
+        except (TypeError, ValueError):
+            continue
+        rows_by_key[key] = row
+
+    by_pairing: dict[str, Any] = {}
+    largest_blocker: dict[str, Any] | None = None
+    closed_pairings: list[str] = []
+    failed_pairings: list[str] = []
+
+    for pairing in pairings:
+        q0_status = (q0_precondition_status or {}).get(pairing, "unknown")
+        if q0_status in {"diagnostic_only_not_passed", "missing_q0_status"}:
+            payload = _empty_criterion_pairing(
+                q0_status=q0_status,
+                closure_response_name=closure_response_name,
+                reason="q0_precondition_not_established",
+            )
+            by_pairing[pairing] = payload
+            failed_pairings.append(pairing)
+            continue
+
+        criterion_rows: list[dict[str, Any]] = []
+        missing: list[str] = []
+        missing_vectors: list[str] = []
+        closure_failures: list[dict[str, Any]] = []
+        max_closure_contact_aware: float | None = None
+        max_closure_homogeneous: float | None = None
+        max_contact_rhs: float | None = None
+
+        for q_value in q_values:
+            q_key = _criterion_q_key((float(q_value), 0.0))
+            found = {name: rows_by_key.get((pairing, q_key, name)) for name in required_responses}
+            for name, row in found.items():
+                if row is None:
+                    missing.append(f"{name}@q={list(q_key)}")
+            if any(row is None for row in found.values()):
+                continue
+            direct_vectors = _criterion_residual_vectors(found["direct"])
+            if direct_vectors is None:
+                missing_vectors.append(f"direct@q={list(q_key)}")
+                continue
+            direct_left, direct_right = direct_vectors
+            direct_norm = _criterion_norm(direct_left, direct_right)
+            max_contact_rhs = direct_norm if max_contact_rhs is None else max(max_contact_rhs, direct_norm)
+
+            for response_name in ("bare_bubble", "bare_total", "minus_schur", "amplitude_phase_schur"):
+                row = found[response_name]
+                vectors = _criterion_residual_vectors(row)
+                homogeneous_norm = float(_row_field(row, "max_ward_residual_norm", float("nan")))
+                if vectors is None:
+                    missing_vectors.append(f"{response_name}@q={list(q_key)}")
+                    continue
+                left, right = vectors
+                if response_name == "bare_bubble":
+                    contact_left = left
+                    contact_right = right
+                    contact_rhs_norm = None
+                else:
+                    contact_left = left - direct_left
+                    contact_right = right - direct_right
+                    contact_rhs_norm = direct_norm
+                payload = _criterion_row_payload(
+                    row=row,
+                    criterion_type=criterion_types[response_name],
+                    homogeneous_residual_norm=homogeneous_norm,
+                    contact_rhs_norm=contact_rhs_norm,
+                    contact_aware_left=contact_left,
+                    contact_aware_right=contact_right,
+                    absolute_tol=absolute_tol,
+                    relative_tol=relative_tol,
+                )
+                criterion_rows.append(payload)
+                if response_name == closure_response_name:
+                    max_closure_contact_aware = (
+                        payload["contact_aware_residual_norm"]
+                        if max_closure_contact_aware is None
+                        else max(max_closure_contact_aware, payload["contact_aware_residual_norm"])
+                    )
+                    max_closure_homogeneous = (
+                        homogeneous_norm
+                        if max_closure_homogeneous is None
+                        else max(max_closure_homogeneous, homogeneous_norm)
+                    )
+                    if not payload["passed"]:
+                        closure_failures.append(payload)
+
+        evaluated = not missing and not missing_vectors and bool(criterion_rows)
+        closed = bool(evaluated and not closure_failures)
+        if not evaluated:
+            reason = "missing_response_row" if missing else "missing_residual_vector"
+            blocking_response = "direct" if any(item.startswith("direct@") for item in missing_vectors) else closure_response_name
+            blocking_q = None
+        elif closure_failures:
+            worst = max(closure_failures, key=lambda item: float(item["contact_aware_residual_norm"] or 0.0))
+            reason = "closure_contact_aware_residual_above_tolerance"
+            blocking_response = str(worst["response_name"])
+            blocking_q = list(worst["q_model"])
+        else:
+            reason = "closed"
+            blocking_response = None
+            blocking_q = None
+
+        payload = {
+            "evaluated": evaluated,
+            "q0_precondition_status": q0_status,
+            "closure_response_name": closure_response_name,
+            "max_closure_contact_aware_residual_norm": max_closure_contact_aware,
+            "max_closure_homogeneous_residual_norm": max_closure_homogeneous,
+            "max_contact_rhs_norm": max_contact_rhs,
+            "closed": closed,
+            "blocking_response_name": blocking_response,
+            "blocking_q_model": blocking_q,
+            "blocking_reason": reason,
+            "missing": missing,
+            "missing_residual_vectors": missing_vectors,
+            "rows": criterion_rows,
+            "valid_for_casimir_input": False,
+        }
+        by_pairing[pairing] = payload
+        if closed:
+            closed_pairings.append(pairing)
+        else:
+            failed_pairings.append(pairing)
+            blockers = [
+                row
+                for row in criterion_rows
+                if row["response_name"] == closure_response_name and row["contact_aware_residual_norm"] is not None
+            ]
+            if blockers:
+                worst = max(blockers, key=lambda item: float(item["contact_aware_residual_norm"]))
+                candidate = {
+                    "pairing_name": pairing,
+                    "q_model": list(worst["q_model"]),
+                    "response_name": str(worst["response_name"]),
+                    "contact_aware_residual_norm": float(worst["contact_aware_residual_norm"]),
+                }
+                if largest_blocker is None or candidate["contact_aware_residual_norm"] > float(
+                    largest_blocker["contact_aware_residual_norm"]
+                ):
+                    largest_blocker = candidate
+
+    evaluated = bool(by_pairing) and all(payload.get("evaluated", False) for payload in by_pairing.values())
+    ward_identity_closed = bool(evaluated and not failed_pairings)
+    if not evaluated:
+        recommended = "Ensure finite_q_rows include direct and closure residual vectors for every requested pairing and q."
+    elif failed_pairings:
+        recommended = "Inspect BdG collective closure for the largest contact-aware finite-q residual."
+    else:
+        recommended = "No finite-q BdG Ward closure fix is indicated by the contact-aware criterion."
+    return {
+        "criterion_version": "contact_aware_v1",
+        "closure_response_name": closure_response_name,
+        "absolute_tol": float(absolute_tol),
+        "relative_tol": float(relative_tol),
+        "evaluated": evaluated,
+        "ward_identity_closed": ward_identity_closed,
+        "valid_for_casimir_input": False,
+        "by_pairing": by_pairing,
+        "summary": {
+            "closed_pairings": closed_pairings,
+            "failed_pairings": failed_pairings,
+            "largest_blocker": largest_blocker,
+            "recommended_next_fix": recommended,
+            "valid_for_casimir_input": False,
+        },
+    }
+
+
 def summarize_ward_triage(
     normal_finite_q: dict[str, Any],
     operator_identity: dict[str, Any],
