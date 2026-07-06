@@ -23,6 +23,14 @@
 - valid_for_casimir_input: False
 - This report is diagnostic-only and does not promote finite-q response data to Casimir input.
 
+## Ward triage
+- normal finite-q triage conclusion: normal_contact_or_vertex
+- operator identity conclusion: unknown
+- contact cancellation conclusion: spm: direct_dominant; dwave: direct_dominant
+- suspected primary layer: normal_contact_or_vertex
+- recommended next fix: Inspect normal finite-q contact/vertex assembly before collective-sector changes.
+- valid_for_casimir_input: False
+
 ## 下一步建议
 - Investigate the largest finite-q residual rows before changing any Casimir input gate.
 

@@ -900,5 +900,139 @@
       "finite-q Ward residuals remain above tolerance for at least one closure response"
     ],
     "recommended_next_action": "Investigate the largest finite-q residual rows before changing any Casimir input gate."
+  },
+  "ward_triage": {
+    "normal_finite_q": {
+      "available": true,
+      "model_name": "symmetry_bdg_2band",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "omega_eV": 0.01,
+      "nk": 9,
+      "workspace_evaluation": true,
+      "valid_for_casimir_input": false,
+      "residual_components": {
+        "bare_bubble": {
+          "max_norm": 8.445039220875928e-05,
+          "vector_norm": 0.00011943089000935453,
+          "dominant_component": "left_current_x"
+        },
+        "direct": {
+          "max_norm": 0.007060024466777546,
+          "vector_norm": 0.009984382351602684,
+          "dominant_component": "left_current_x"
+        },
+        "total": {
+          "max_norm": 0.006975574074568787,
+          "vector_norm": 0.00986495146159333,
+          "dominant_component": "left_current_x"
+        }
+      },
+      "component_labels": [
+        "density",
+        "current_x",
+        "current_y"
+      ],
+      "dominant_total_component": "left_current_x",
+      "normal_total_closed": false,
+      "suspected_layer": "normal_contact_or_vertex",
+      "interpretation": "diagnostic-only normal finite-q Ward residual decomposition"
+    },
+    "operator_identity": {
+      "available": true,
+      "model_name": "symmetry_bdg_2band",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "nk": 9,
+      "valid_for_casimir_input": false,
+      "normal_vertex": {
+        "available": false,
+        "reason": "normal operator identity API unavailable: AttributeError: 'SymmetryBdG2BandSpec' object has no attribute 'current_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'current_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'current_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'peierls_vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'peierls_vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'peierls_vector_vertex'",
+        "valid_for_casimir_input": false
+      },
+      "bdg_vertex": {
+        "available": false,
+        "reason": "compatible BdG finite-q operator identity API was not found by triage helper",
+        "by_pairing": {
+          "spm": {
+            "available": false,
+            "reason": "compatible BdG finite-q operator identity API was not found by triage helper",
+            "valid_for_casimir_input": false
+          },
+          "dwave": {
+            "available": false,
+            "reason": "compatible BdG finite-q operator identity API was not found by triage helper",
+            "valid_for_casimir_input": false
+          }
+        },
+        "valid_for_casimir_input": false
+      },
+      "pairing_sector": {
+        "available": false,
+        "reason": "compatible pairing-sector gauge variation API was not found by triage helper",
+        "by_pairing": {
+          "spm": {
+            "available": false,
+            "reason": "compatible pairing-sector gauge variation API was not found by triage helper",
+            "valid_for_casimir_input": false
+          },
+          "dwave": {
+            "available": false,
+            "reason": "compatible pairing-sector gauge variation API was not found by triage helper",
+            "valid_for_casimir_input": false
+          }
+        },
+        "valid_for_casimir_input": false
+      },
+      "operator_identity_status": "diagnostic_only",
+      "suspected_layer": "unknown",
+      "interpretation": "diagnostic-only operator identity triage; unavailable subchecks are explicit"
+    },
+    "contact_cancellation": {
+      "available": true,
+      "model_name": "symmetry_bdg_2band",
+      "q_model": [
+        0.01,
+        0.0
+      ],
+      "omega_eV": 0.01,
+      "nk": 9,
+      "by_pairing": {
+        "spm": {
+          "available": true,
+          "bubble_residual_norm": 0.004691358345287705,
+          "direct_residual_norm": 0.009772030639548684,
+          "total_residual_norm": 0.010680352957269237,
+          "cosine_bubble_vs_minus_direct": 0.037425610276042263,
+          "cancellation_fraction": 0.2615594472037873,
+          "dominant_remaining_component": "left_current_x",
+          "interpretation": "direct_dominant",
+          "residual_vector_source": "left/right Ward residual vectors flattened from finite-q scan rows",
+          "valid_for_casimir_input": false
+        },
+        "dwave": {
+          "available": true,
+          "bubble_residual_norm": 0.00221654200375164,
+          "direct_residual_norm": 0.009895415033795868,
+          "total_residual_norm": 0.010021692771157739,
+          "cosine_bubble_vs_minus_direct": 0.05466432347371877,
+          "cancellation_fraction": 0.17257857338082305,
+          "dominant_remaining_component": "left_current_x",
+          "interpretation": "direct_dominant",
+          "residual_vector_source": "left/right Ward residual vectors flattened from finite-q scan rows",
+          "valid_for_casimir_input": false
+        }
+      },
+      "valid_for_casimir_input": false
+    },
+    "summary": {
+      "suspected_layer": "normal_contact_or_vertex",
+      "recommended_next_fix": "Inspect normal finite-q contact/vertex assembly before collective-sector changes.",
+      "valid_for_casimir_input": false
+    }
   }
 }

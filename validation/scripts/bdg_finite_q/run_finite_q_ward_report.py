@@ -22,6 +22,12 @@ from validation.lib.finite_q_validation_models import (  # noqa: E402
     available_finite_q_validation_models,
     get_finite_q_validation_model,
 )
+from validation.lib.finite_q_ward_triage import (  # noqa: E402
+    run_contact_cancellation_triage,
+    run_normal_finite_q_ward_triage,
+    run_operator_identity_triage,
+    summarize_ward_triage,
+)
 
 
 DEFAULT_OUTPUT_DIR = ROOT / "validation" / "outputs" / "finite_q_ward"
@@ -110,6 +116,44 @@ def _diagnostic_interpretation(scan_report: Any) -> dict[str, Any]:
     }
 
 
+def _run_ward_triage(
+    *,
+    model_name: str,
+    pairings: tuple[str, ...],
+    q_model: tuple[float, float],
+    omega: float,
+    nk: int,
+    delta0: float,
+) -> dict[str, Any]:
+    normal = run_normal_finite_q_ward_triage(
+        model_name=model_name,
+        q_model=q_model,
+        omega_eV=omega,
+        nk=nk,
+    )
+    operator = run_operator_identity_triage(
+        model_name=model_name,
+        pairings=pairings,
+        q_model=q_model,
+        nk=nk,
+        delta0_eV=delta0,
+    )
+    contact = run_contact_cancellation_triage(
+        model_name=model_name,
+        pairings=pairings,
+        q_model=q_model,
+        omega_eV=omega,
+        nk=nk,
+        delta0_eV=delta0,
+    )
+    return {
+        "normal_finite_q": normal,
+        "operator_identity": operator,
+        "contact_cancellation": contact,
+        "summary": summarize_ward_triage(normal, operator, contact),
+    }
+
+
 def build_report(
     *,
     model_name: str,
@@ -119,6 +163,8 @@ def build_report(
     delta0: float,
     q_values: tuple[float, ...],
     pairings: tuple[str, ...],
+    include_triage: bool = True,
+    triage_q: tuple[float, float] = (0.01, 0.0),
 ) -> dict[str, Any]:
     model = get_finite_q_validation_model(model_name)
     for pairing in pairings:
@@ -141,7 +187,7 @@ def build_report(
         pairing_params=pairing_params,
         q0_status=q0_status,
     )
-    return {
+    report = {
         "problem": "finite_q_ward",
         "model_name": scan_report.model_name,
         "primary_validation_model": bool(scan_report.primary_validation_model),
@@ -165,6 +211,27 @@ def build_report(
         "finite_q_rows": _compact_rows(scan_report),
         "diagnostic_interpretation": _diagnostic_interpretation(scan_report),
     }
+    if include_triage:
+        report["ward_triage"] = _run_ward_triage(
+            model_name=model.name,
+            pairings=pairings,
+            q_model=triage_q,
+            omega=omega,
+            nk=nk,
+            delta0=delta0,
+        )
+    else:
+        report["ward_triage"] = {
+            "available": False,
+            "reason": "triage disabled by CLI",
+            "summary": {
+                "suspected_layer": "unavailable",
+                "recommended_next_fix": "rerun report with --include-triage",
+                "valid_for_casimir_input": False,
+            },
+            "valid_for_casimir_input": False,
+        }
+    return report
 
 
 def _format_bool(value: bool) -> str:
@@ -176,6 +243,11 @@ def format_markdown(report: dict[str, Any]) -> str:
     finite_q_status = report["finite_q_status"]
     q0_status = report["q0_precondition_status"]
     interpretation = report["diagnostic_interpretation"]
+    triage = report.get("ward_triage", {})
+    triage_summary = triage.get("summary", {}) if isinstance(triage, dict) else {}
+    normal_triage = triage.get("normal_finite_q", {}) if isinstance(triage, dict) else {}
+    operator_triage = triage.get("operator_identity", {}) if isinstance(triage, dict) else {}
+    contact_triage = triage.get("contact_cancellation", {}) if isinstance(triage, dict) else {}
     lines = [
         "# finite-q Ward validation report",
         "",
@@ -205,6 +277,14 @@ def format_markdown(report: dict[str, Any]) -> str:
             "- valid_for_casimir_input: False",
             "- This report is diagnostic-only and does not promote finite-q response data to Casimir input.",
             "",
+            "## Ward triage",
+            f"- normal finite-q triage conclusion: {normal_triage.get('suspected_layer', normal_triage.get('reason', 'unavailable'))}",
+            f"- operator identity conclusion: {operator_triage.get('suspected_layer', operator_triage.get('reason', 'unavailable'))}",
+            f"- contact cancellation conclusion: {_contact_conclusion(contact_triage)}",
+            f"- suspected primary layer: {triage_summary.get('suspected_layer', 'unavailable')}",
+            f"- recommended next fix: {triage_summary.get('recommended_next_fix', 'rerun report with triage enabled')}",
+            f"- valid_for_casimir_input: {_format_bool(bool(triage_summary.get('valid_for_casimir_input', False)))}",
+            "",
             "## 下一步建议",
             f"- {interpretation['recommended_next_action']}",
             "",
@@ -213,6 +293,19 @@ def format_markdown(report: dict[str, Any]) -> str:
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def _contact_conclusion(contact_triage: dict[str, Any]) -> str:
+    if not contact_triage.get("available", False):
+        return str(contact_triage.get("reason", "unavailable"))
+    by_pairing = contact_triage.get("by_pairing", {})
+    if not isinstance(by_pairing, dict):
+        return "unavailable"
+    pieces = []
+    for pairing, payload in by_pairing.items():
+        if isinstance(payload, dict):
+            pieces.append(f"{pairing}: {payload.get('interpretation', payload.get('reason', 'unknown'))}")
+    return "; ".join(pieces) if pieces else "unavailable"
 
 
 def _command_text(args: argparse.Namespace) -> str:
@@ -239,7 +332,12 @@ def _command_text(args: argparse.Namespace) -> str:
         *(str(value) for value in args.q_values),
         "--pairings",
         *args.pairings,
+        "--triage-qx",
+        str(args.triage_qx),
+        "--triage-qy",
+        str(args.triage_qy),
     ]
+    parts.append("--include-triage" if args.include_triage else "--no-triage")
     return " ".join(shlex.quote(part) for part in parts) + "\n"
 
 
@@ -259,6 +357,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--delta0", type=float, default=0.1)
     parser.add_argument("--q-values", nargs="+", type=float, default=list(DEFAULT_Q_VALUES))
     parser.add_argument("--pairings", nargs="+", default=list(DEFAULT_PAIRINGS))
+    triage_group = parser.add_mutually_exclusive_group()
+    triage_group.add_argument("--include-triage", dest="include_triage", action="store_true", default=True)
+    triage_group.add_argument("--no-triage", dest="include_triage", action="store_false")
+    parser.add_argument("--triage-qx", type=float, default=0.01)
+    parser.add_argument("--triage-qy", type=float, default=0.0)
     return parser.parse_args(argv)
 
 
@@ -273,6 +376,8 @@ def main(argv: list[str] | None = None) -> int:
         delta0=args.delta0,
         q_values=tuple(args.q_values),
         pairings=tuple(args.pairings),
+        include_triage=bool(args.include_triage),
+        triage_q=(float(args.triage_qx), float(args.triage_qy)),
     )
     write_report(report, output_dir, _command_text(args))
     print(f"Wrote finite-q Ward report to {output_dir}")
