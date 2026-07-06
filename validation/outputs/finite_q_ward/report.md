@@ -24,8 +24,8 @@
 - closure_response_name: amplitude_phase_schur
 - full_bdg_ward_closed: False
 - spm max primary closure residual: 0.0017709885262371322
-- dwave max primary closure residual: 0.010984308169148483
-- largest blocker: pairing=dwave, q=[0.02, 0.0], response=amplitude_phase_schur, primary_residual=0.010984308169148483
+- dwave max primary closure residual: 0.011058627347831368
+- largest blocker: pairing=dwave, q=[0.02, 0.0], response=amplitude_phase_schur, primary_residual=0.011058627347831368
 - recommended next fix: Inspect BdG collective closure for the largest primary finite-q Ward residual.
 - valid_for_casimir_input: False
 
