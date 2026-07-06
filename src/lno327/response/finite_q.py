@@ -78,7 +78,15 @@ def kubo_factor(
 
 
 def vertex_band(states_minus: np.ndarray, vertex: np.ndarray, states_plus: np.ndarray) -> np.ndarray:
-    return states_minus.conjugate().T @ vertex @ states_plus
+    """Return forward finite-q vertex matrix elements in minus-plus storage.
+
+    The matrix vertex is defined by Psi†_{k+q/2} Gamma(k,q) Psi_{k-q/2}.
+    For loop indices m in the k-q/2 band and n in the k+q/2 band, the bubble
+    needs <n,+|Gamma(k,q)|m,->.  We store those elements as [m, n] so the Kubo
+    loops can remain ordered by energies_minus then energies_plus.
+    """
+
+    return (states_plus.conjugate().T @ vertex @ states_minus).T
 
 
 def add_bubble(
@@ -137,7 +145,7 @@ def add_band_bubble(
     static_limit: bool = False,
     prefactor: float = 0.5,
 ) -> None:
-    """Accumulate a bubble from already band-transformed vertices."""
+    """Accumulate a bubble from forward vertices stored as [minus, plus]."""
 
     for m, energy_minus in enumerate(energies_minus):
         for n, energy_plus in enumerate(energies_plus):
