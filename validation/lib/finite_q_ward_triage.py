@@ -242,6 +242,45 @@ def _scaling_slope(q_values: list[float], residuals: list[float]) -> float | Non
     return float((np.log(last_r) - np.log(first_r)) / (np.log(last_q) - np.log(first_q)))
 
 
+def _classify_monotonic_trend(values: list[float], *, relative_flat_tolerance: float = 0.05) -> str:
+    finite = [float(value) for value in values if np.isfinite(value)]
+    if len(finite) < 2:
+        return "inconclusive"
+    scale = max(max(abs(value) for value in finite), _EPS)
+    if max(finite) - min(finite) <= relative_flat_tolerance * scale:
+        return "flat"
+    if all(later < earlier for earlier, later in zip(finite, finite[1:])):
+        return "decreasing"
+    if all(later > earlier for earlier, later in zip(finite, finite[1:])):
+        return "increasing"
+    return "nonmonotonic"
+
+
+def _classify_q_residual_trend(q_values: list[float], residuals: list[float]) -> str:
+    slope = _scaling_slope(q_values, residuals)
+    if slope is None:
+        return "inconclusive"
+    monotonic = _classify_monotonic_trend(residuals)
+    if monotonic == "flat":
+        return "flat"
+    if monotonic == "nonmonotonic":
+        return "nonmonotonic"
+    if 0.5 <= slope < 1.5:
+        return "linear"
+    if 1.5 <= slope < 2.5:
+        return "quadratic"
+    return "inconclusive"
+
+
+def _classify_omega_trend(residuals: list[float]) -> str:
+    trend = _classify_monotonic_trend(residuals)
+    if trend == "decreasing":
+        return "decreasing_with_omega"
+    if trend == "increasing":
+        return "increasing_with_omega"
+    return trend
+
+
 def _normal_vertex_identity(model: Any, points: np.ndarray, q: np.ndarray) -> dict[str, Any]:
     errors_by_sign: dict[str, list[float]] = {"plus": [], "minus": []}
     worst_by_sign: dict[str, list[float] | None] = {"plus": None, "minus": None}
@@ -650,6 +689,228 @@ def run_normal_ward_convention_audit(
         }
     except Exception as exc:
         return _unavailable(f"normal Ward convention audit failed: {type(exc).__name__}: {exc}")
+
+
+def run_normal_bubble_convergence_audit(
+    *,
+    model_name: str = "symmetry_bdg_2band",
+    base_q_model: tuple[float, float] = (0.01, 0.0),
+    base_omega_eV: float = 0.01,
+    base_nk: int = 9,
+    nk_values: tuple[int, ...] = (7, 9, 11),
+    q_values: tuple[float, ...] = (0.005, 0.01, 0.02),
+    omega_values: tuple[float, ...] = (0.005, 0.01, 0.02),
+) -> dict[str, Any]:
+    """Diagnostic-only convergence audit for the normal bubble homogeneous Ward residual."""
+    try:
+        model = get_finite_q_validation_model(model_name)
+        base_row = _normal_bubble_residual_row(model, base_nk, base_q_model, base_omega_eV)
+        base_point = {
+            **base_row,
+            "passed_1e_minus_8": bool(base_row["bubble_residual_max_norm"] <= 1e-8),
+            "passed_1e_minus_5": bool(base_row["bubble_residual_max_norm"] <= 1e-5),
+            "residual_vector": base_row["residual_vector"],
+            "valid_for_casimir_input": False,
+        }
+        nk_rows = [
+            _normal_bubble_residual_row(model, nk, base_q_model, base_omega_eV)
+            for nk in nk_values
+        ]
+        q_rows = [
+            _normal_bubble_residual_row(model, base_nk, (float(q), 0.0), base_omega_eV)
+            for q in q_values
+        ]
+        omega_rows = [
+            _normal_bubble_residual_row(model, base_nk, base_q_model, float(omega))
+            for omega in omega_values
+        ]
+        nk_trend = _bubble_nk_trend(nk_rows)
+        q_trend = _bubble_q_trend(list(q_values), q_rows)
+        omega_trend = _bubble_omega_trend(omega_rows)
+        mesh_shift = _normal_bubble_mesh_shift_trend(model, base_nk, base_q_model, base_omega_eV)
+        summary = _normal_bubble_convergence_summary(
+            base_point=base_point,
+            nk_trend=nk_trend,
+            q_trend=q_trend,
+            omega_trend=omega_trend,
+            mesh_shift=mesh_shift,
+        )
+        return {
+            "available": True,
+            "model_name": model.name,
+            "base_q_model": [float(base_q_model[0]), float(base_q_model[1])],
+            "base_omega_eV": float(base_omega_eV),
+            "base_nk": int(base_nk),
+            "valid_for_casimir_input": False,
+            "base_point": base_point,
+            "nk_trend": nk_trend,
+            "q_trend": q_trend,
+            "omega_trend": omega_trend,
+            "mesh_shift_trend": mesh_shift,
+            "summary": summary,
+        }
+    except Exception as exc:
+        return _unavailable(f"normal bubble convergence audit failed: {type(exc).__name__}: {exc}")
+
+
+def _normal_bubble_residual_row(
+    model: Any,
+    nk: int,
+    q_model: tuple[float, float],
+    omega_eV: float,
+    *,
+    points: np.ndarray | None = None,
+) -> dict[str, Any]:
+    mesh = uniform_bz_mesh(nk) if points is None else np.asarray(points, dtype=float)
+    weights = k_weights(mesh)
+    config = KuboConfig.from_kelvin(omega_eV=omega_eV, temperature_K=10.0, eta_eV=1e-8, output_si=False)
+    components = normal_physical_density_current_response_components_imag_axis_from_model(
+        model.spec,
+        mesh,
+        config,
+        np.asarray(q_model, dtype=float),
+        weights,
+    )
+    bubble = _find_component_matrix(components, ("bare_bubble", "bubble", "paramagnetic"))
+    if bubble is None:
+        raise ValueError("normal response components missing bubble matrix")
+    detail = _ward_residual_detail(bubble, omega_eV, q_model)
+    return {
+        "nk": int(nk),
+        "mesh_size": int(mesh.shape[0]),
+        "q_model": [float(q_model[0]), float(q_model[1])],
+        "omega_eV": float(omega_eV),
+        "bubble_residual_max_norm": detail["max_norm"],
+        "left_norm": detail["left_norm"],
+        "right_norm": detail["right_norm"],
+        "dominant_component": detail["dominant_component"],
+        "residual_vector": {
+            "left": detail["left_residual_vector"],
+            "right": detail["right_residual_vector"],
+        },
+        "valid_for_casimir_input": False,
+    }
+
+
+def _bubble_nk_trend(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    residuals = [float(row["bubble_residual_max_norm"]) for row in rows]
+    trend = _classify_monotonic_trend(residuals)
+    best_row = min(rows, key=lambda row: float(row["bubble_residual_max_norm"])) if rows else None
+    ratio = None
+    if len(residuals) >= 2 and residuals[0] > 0.0:
+        ratio = float(residuals[-1] / residuals[0])
+    return {
+        "rows": rows,
+        "trend": trend,
+        "ratio_last_to_first": ratio,
+        "best_nk": best_row["nk"] if best_row is not None else None,
+        "best_residual": float(best_row["bubble_residual_max_norm"]) if best_row is not None else None,
+        "interpretation": "nk trend is diagnostic-only; nonmonotonic nk=11 behavior is not treated as a failure",
+        "valid_for_casimir_input": False,
+    }
+
+
+def _bubble_q_trend(q_values: list[float], rows: list[dict[str, Any]]) -> dict[str, Any]:
+    residuals = [float(row["bubble_residual_max_norm"]) for row in rows]
+    slope = _scaling_slope(q_values, residuals)
+    trend = _classify_q_residual_trend(q_values, residuals)
+    return {
+        "rows": rows,
+        "q_scaling_slope": slope,
+        "trend": trend,
+        "interpretation": "q trend tests whether the bubble-only residual scales away at smaller finite q",
+        "valid_for_casimir_input": False,
+    }
+
+
+def _bubble_omega_trend(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    residuals = [float(row["bubble_residual_max_norm"]) for row in rows]
+    trend = _classify_omega_trend(residuals)
+    return {
+        "rows": rows,
+        "trend": trend,
+        "interpretation": "omega trend tests sensitivity of the bubble-only homogeneous Ward residual",
+        "valid_for_casimir_input": False,
+    }
+
+
+def _normal_bubble_mesh_shift_trend(
+    model: Any,
+    nk: int,
+    q_model: tuple[float, float],
+    omega_eV: float,
+) -> dict[str, Any]:
+    try:
+        base = uniform_bz_mesh(nk)
+        shifts = ((0.0, 0.0), (0.5 / nk, 0.0), (0.0, 0.5 / nk), (0.5 / nk, 0.5 / nk))
+        rows = []
+        for shift in shifts:
+            shifted = base + np.asarray(shift, dtype=float)
+            row = _normal_bubble_residual_row(model, nk, q_model, omega_eV, points=shifted)
+            rows.append(
+                {
+                    "shift": [float(shift[0]), float(shift[1])],
+                    "mesh_size": row["mesh_size"],
+                    "bubble_residual_max_norm": row["bubble_residual_max_norm"],
+                    "dominant_component": row["dominant_component"],
+                    "valid_for_casimir_input": False,
+                }
+            )
+        best_row = min(rows, key=lambda row: float(row["bubble_residual_max_norm"]))
+        residuals = [float(row["bubble_residual_max_norm"]) for row in rows]
+        spread_ratio = float(max(residuals) / max(min(residuals), _EPS)) if residuals else None
+        return {
+            "available": True,
+            "rows": rows,
+            "best_shift": best_row["shift"],
+            "best_residual": best_row["bubble_residual_max_norm"],
+            "spread_ratio": spread_ratio,
+            "interpretation": "diagnostic-only shifted mesh comparison; shifted points are not a production grid change",
+            "valid_for_casimir_input": False,
+        }
+    except Exception as exc:
+        return _unavailable(f"shifted mesh diagnostic unavailable: {type(exc).__name__}: {exc}")
+
+
+def _normal_bubble_convergence_summary(
+    *,
+    base_point: dict[str, Any],
+    nk_trend: dict[str, Any],
+    q_trend: dict[str, Any],
+    omega_trend: dict[str, Any],
+    mesh_shift: dict[str, Any],
+) -> dict[str, Any]:
+    base_residual = float(base_point["bubble_residual_max_norm"])
+    if nk_trend.get("trend") == "decreasing" or q_trend.get("trend") in {"linear", "quadratic"}:
+        issue = "bubble_residual_numerical_convergence_limited"
+        fix = "Introduce shifted/twist mesh averaging or tighter normal bubble quadrature before changing formulas."
+    elif (
+        mesh_shift.get("available")
+        and mesh_shift.get("spread_ratio") is not None
+        and float(mesh_shift["spread_ratio"]) > 2.0
+    ):
+        issue = "bubble_residual_mesh_sensitive"
+        fix = "Compare shifted/twist mesh averaging before changing normal bubble conventions."
+    elif q_trend.get("trend") == "nonmonotonic":
+        issue = "bubble_residual_q_scaling_suspicious"
+        fix = "Audit finite-q bubble assembly across q before modifying formulas."
+    elif omega_trend.get("trend") in {"decreasing_with_omega", "increasing_with_omega"}:
+        issue = "bubble_residual_omega_sensitive"
+        fix = "Audit Kubo denominator and frequency dependence in normal bubble assembly."
+    elif base_residual >= 1e-5 and all(
+        trend.get("trend") == "flat"
+        for trend in (nk_trend, q_trend, omega_trend)
+    ):
+        issue = "bubble_residual_convention_suspicious"
+        fix = "Audit normal bubble observable/source current sign, Kubo denominator, and left/right Ward contraction conventions."
+    else:
+        issue = "bubble_residual_unresolved"
+        fix = "Add component-level normal bubble assembly audit before modifying response formulas."
+    return {
+        "suspected_issue": issue,
+        "recommended_next_fix": fix,
+        "valid_for_casimir_input": False,
+    }
 
 
 def _ward_pair_summary(left: np.ndarray, right: np.ndarray) -> dict[str, Any]:

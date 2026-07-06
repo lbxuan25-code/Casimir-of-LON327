@@ -346,6 +346,62 @@ def test_normal_ward_convention_audit_detects_homogeneous_total_contact_rhs(monk
     assert payload["consistency_checks"]["total_minus_direct_matches_bubble"] is True
 
 
+def test_normal_bubble_convergence_audit_reports_fields(monkeypatch):
+    bubble = np.eye(3, dtype=complex)
+
+    monkeypatch.setattr(
+        triage,
+        "get_finite_q_validation_model",
+        lambda model_name: SimpleNamespace(name=model_name, spec=object()),
+    )
+    monkeypatch.setattr(triage, "uniform_bz_mesh", lambda nk: np.zeros((nk, 2), dtype=float))
+    monkeypatch.setattr(triage, "k_weights", lambda points: np.ones(points.shape[0]) / points.shape[0])
+    monkeypatch.setattr(
+        triage.KuboConfig,
+        "from_kelvin",
+        staticmethod(lambda **kwargs: SimpleNamespace(omega_eV=kwargs["omega_eV"])),
+    )
+    monkeypatch.setattr(
+        triage,
+        "normal_physical_density_current_response_components_imag_axis_from_model",
+        lambda *args, **kwargs: {
+            "bubble": bubble,
+            "direct": np.zeros((3, 3), dtype=complex),
+            "total": bubble,
+        },
+    )
+
+    payload = triage.run_normal_bubble_convergence_audit(
+        base_nk=2,
+        nk_values=(2, 3),
+        q_values=(0.005, 0.01),
+        omega_values=(0.005, 0.01),
+    )
+
+    assert payload["available"] is True
+    assert payload["valid_for_casimir_input"] is False
+    assert "base_point" in payload
+    assert "nk_trend" in payload
+    assert "q_trend" in payload
+    assert "omega_trend" in payload
+    assert "summary" in payload
+    assert payload["base_point"]["valid_for_casimir_input"] is False
+
+
+def test_normal_bubble_trend_classifiers():
+    assert triage._classify_monotonic_trend([3.0, 2.0, 1.0]) == "decreasing"
+    assert triage._classify_monotonic_trend([1.0, 1.01, 0.99]) == "flat"
+    assert triage._classify_monotonic_trend([1.0, 3.0, 2.0]) == "nonmonotonic"
+    assert triage._classify_monotonic_trend([1.0]) == "inconclusive"
+
+
+def test_normal_bubble_q_scaling_slope():
+    slope = triage._scaling_slope([0.005, 0.01, 0.02], [0.005, 0.01, 0.02])
+    assert slope == pytest.approx(1.0)
+    assert triage._scaling_slope([0.005], [0.005]) is None
+    assert triage._classify_q_residual_trend([0.005, 0.01, 0.02], [0.005, 0.01, 0.02]) == "linear"
+
+
 def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path):
     module = _load_report_module()
     scan_report = SimpleNamespace(
@@ -415,6 +471,14 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
                 },
                 "valid_for_casimir_input": False,
             },
+            "normal_bubble_convergence_audit": {
+                "summary": {
+                    "suspected_issue": "bubble_residual_unresolved",
+                    "recommended_next_fix": "inspect bubble",
+                    "valid_for_casimir_input": False,
+                },
+                "valid_for_casimir_input": False,
+            },
             "summary": {
                 "suspected_layer": "normal_ward_convention",
                 "recommended_next_fix": "separate convention checks",
@@ -438,10 +502,13 @@ def test_report_builder_includes_ward_triage_when_enabled(monkeypatch, tmp_path)
     assert report["ward_triage"]["summary"]["valid_for_casimir_input"] is False
     assert "normal_contact_direct_audit" in report["ward_triage"]
     assert "normal_ward_convention_audit" in report["ward_triage"]
+    assert "normal_bubble_convergence_audit" in report["ward_triage"]
     assert "## Ward triage" in markdown
     assert "normal contact/direct audit" in markdown
     assert "normal Ward convention audit" in markdown
     assert "recommended Ward convention fix" in markdown
+    assert "normal bubble convergence audit" in markdown
+    assert "recommended normal bubble fix" in markdown
     assert "suspected primary layer" in markdown
 
 
