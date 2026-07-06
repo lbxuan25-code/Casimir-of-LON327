@@ -1,0 +1,575 @@
+{
+  "model_name": "lno327_four_orbital",
+  "model_metadata": {
+    "model_name": "lno327_four_orbital",
+    "pairing_names": [
+      "onsite_s",
+      "spm",
+      "dwave"
+    ],
+    "default_pairings": [
+      "onsite_s",
+      "spm",
+      "dwave"
+    ],
+    "default_delta0_eV": 0.04,
+    "primary_validation_model": false,
+    "valid_for_casimir_input": false,
+    "spec_metadata": {
+      "name": "lno327_four_orbital",
+      "basis": [
+        "dz1",
+        "dx1",
+        "dz2",
+        "dx2"
+      ],
+      "description": "LNO327 bilayer four-orbital BdG model"
+    }
+  },
+  "primary_validation_model": false,
+  "pairing_names": [
+    "spm"
+  ],
+  "omega_eV": 0.01,
+  "nk": 2,
+  "mesh_size": 4,
+  "delta0_eV": 0.04,
+  "rows": [
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_bubble",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0035718681533378482,
+      "right_ward_residual_norm": 0.0035718681533378482,
+      "residual_component_labels": [
+        "density",
+        "current_x",
+        "current_y"
+      ],
+      "left_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": -1.051569070139675e-20,
+          "imag": -0.0033927726400351087
+        },
+        {
+          "component": "current_x",
+          "real": 0.0011168419395144184,
+          "imag": 1.8905775382715984e-20
+        },
+        {
+          "component": "current_y",
+          "real": 8.675734962252171e-21,
+          "imag": 1.3552527156068806e-22
+        }
+      ],
+      "right_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": -1.0278521476165545e-20,
+          "imag": -0.0033927726400351087
+        },
+        {
+          "component": "current_x",
+          "real": -0.0011168419395144184,
+          "imag": -1.9380113833178394e-20
+        },
+        {
+          "component": "current_y",
+          "real": 4.336491052586798e-20,
+          "imag": 6.776263578034403e-23
+        }
+      ],
+      "max_ward_residual_norm": 0.0035718681533378482,
+      "residual_ratio_to_bare": 1.005501821100422,
+      "collective_matrix_condition_number": 7.8756004600209355,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "direct",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.002169504716934757,
+      "right_ward_residual_norm": 0.002169504716934757,
+      "residual_component_labels": [
+        "density",
+        "current_x",
+        "current_y"
+      ],
+      "left_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": 0.0,
+          "imag": 0.0
+        },
+        {
+          "component": "current_x",
+          "real": -0.002169504716934757,
+          "imag": 0.0
+        },
+        {
+          "component": "current_y",
+          "real": 0.0,
+          "imag": 0.0
+        }
+      ],
+      "right_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": 0.0,
+          "imag": 0.0
+        },
+        {
+          "component": "current_x",
+          "real": 0.002169504716934757,
+          "imag": 0.0
+        },
+        {
+          "component": "current_y",
+          "real": 0.0,
+          "imag": 0.0
+        }
+      ],
+      "max_ward_residual_norm": 0.002169504716934757,
+      "residual_ratio_to_bare": 0.6107282940232088,
+      "collective_matrix_condition_number": 7.8756004600209355,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "bare_total",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0035523239027342515,
+      "right_ward_residual_norm": 0.0035523239027342515,
+      "residual_component_labels": [
+        "density",
+        "current_x",
+        "current_y"
+      ],
+      "left_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": -1.051569070139675e-20,
+          "imag": -0.0033927726400351087
+        },
+        {
+          "component": "current_x",
+          "real": -0.0010526627774203386,
+          "imag": 1.8905775382715984e-20
+        },
+        {
+          "component": "current_y",
+          "real": 8.675734962252171e-21,
+          "imag": 1.3552527156068806e-22
+        }
+      ],
+      "right_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": -1.0278521476165545e-20,
+          "imag": -0.0033927726400351087
+        },
+        {
+          "component": "current_x",
+          "real": 0.0010526627774203386,
+          "imag": -1.9380113833178394e-20
+        },
+        {
+          "component": "current_y",
+          "real": 4.336491052586798e-20,
+          "imag": 6.776263578034403e-23
+        }
+      ],
+      "max_ward_residual_norm": 0.0035523239027342515,
+      "residual_ratio_to_bare": 1.0,
+      "collective_matrix_condition_number": 7.8756004600209355,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "minus_schur",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0010085391892484228,
+      "right_ward_residual_norm": 0.0010085391892484228,
+      "residual_component_labels": [
+        "density",
+        "current_x",
+        "current_y"
+      ],
+      "left_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": -6.732765951198441e-18,
+          "imag": -1.8729087946452763e-07
+        },
+        {
+          "component": "current_x",
+          "real": -0.001008539171857986,
+          "imag": 1.1189550278247288e-19
+        },
+        {
+          "component": "current_y",
+          "real": 8.675734962252171e-21,
+          "imag": 1.3552527156068806e-22
+        }
+      ],
+      "right_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": -6.732875072515307e-18,
+          "imag": -1.8729087946452424e-07
+        },
+        {
+          "component": "current_x",
+          "real": 0.001008539171857986,
+          "imag": -1.1167726014874154e-19
+        },
+        {
+          "component": "current_y",
+          "real": 4.336491052586798e-20,
+          "imag": 6.776263578034403e-23
+        }
+      ],
+      "max_ward_residual_norm": 0.0010085391892484228,
+      "residual_ratio_to_bare": 0.2839096931651256,
+      "collective_matrix_condition_number": 7.8756004600209355,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "plus_schur",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.006873428795831889,
+      "right_ward_residual_norm": 0.006873428795831889,
+      "residual_component_labels": [
+        "density",
+        "current_x",
+        "current_y"
+      ],
+      "left_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": 6.711734569795648e-18,
+          "imag": -0.0067853579891907516
+        },
+        {
+          "component": "current_x",
+          "real": -0.0010967863829826913,
+          "imag": -7.408395201704089e-20
+        },
+        {
+          "component": "current_y",
+          "real": 8.675734962252171e-21,
+          "imag": 1.3552527156068806e-22
+        }
+      ],
+      "right_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": 6.712318029562976e-18,
+          "imag": -0.0067853579891907516
+        },
+        {
+          "component": "current_x",
+          "real": 0.0010967863829826913,
+          "imag": 7.291703248238474e-20
+        },
+        {
+          "component": "current_y",
+          "real": 4.336491052586798e-20,
+          "imag": 6.776263578034403e-23
+        }
+      ],
+      "max_ward_residual_norm": 0.006873428795831889,
+      "residual_ratio_to_bare": 1.934910493533925,
+      "collective_matrix_condition_number": 7.8756004600209355,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "pairing_name": "spm",
+      "response_name": "amplitude_phase_schur",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "left_ward_residual_norm": 0.0010085369845799065,
+      "right_ward_residual_norm": 0.0010085369845799065,
+      "residual_component_labels": [
+        "density",
+        "current_x",
+        "current_y"
+      ],
+      "left_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": 1.423796548124999e-19,
+          "imag": -1.8840272640312808e-07
+        },
+        {
+          "component": "current_x",
+          "real": -0.0010085369669823427,
+          "imag": 3.017392135761177e-21
+        },
+        {
+          "component": "current_y",
+          "real": 1.0437553810438218e-20,
+          "imag": 1.424087483636471e-22
+        }
+      ],
+      "right_ward_residual_vector": [
+        {
+          "component": "density",
+          "real": 1.510461432744313e-19,
+          "imag": -1.8840272640312808e-07
+        },
+        {
+          "component": "current_x",
+          "real": 0.0010085369669823427,
+          "imag": -2.0350369059623975e-20
+        },
+        {
+          "component": "current_y",
+          "real": 4.146756712083553e-20,
+          "imag": 6.193794455683396e-23
+        }
+      ],
+      "max_ward_residual_norm": 0.0010085369845799065,
+      "residual_ratio_to_bare": 0.28390907253801595,
+      "collective_matrix_condition_number": 7.8756004600209355,
+      "inverse_method": "inv",
+      "pinv_diagnostic_used": false,
+      "valid_for_casimir_input": false
+    }
+  ],
+  "q0_alignment_prerequisite": {
+    "spm": "convention_aware_pass"
+  },
+  "q0_precondition_status": {
+    "spm": "convention_aware_pass"
+  },
+  "q_scaling_estimates": {
+    "spm:bare_bubble": null,
+    "spm:direct": null,
+    "spm:bare_total": null,
+    "spm:minus_schur": null,
+    "spm:plus_schur": null,
+    "spm:amplitude_phase_schur": null
+  },
+  "schur_residual_differences": [
+    {
+      "pairing_name": "spm",
+      "q_model": [
+        0.005,
+        0.0
+      ],
+      "q_norm": 0.005,
+      "diagnostic_role": "residual_vector_decomposition",
+      "residual_component_labels": [
+        "density",
+        "current_x",
+        "current_y"
+      ],
+      "response_residual_vectors": {
+        "bare_total": {
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": -1.051569070139675e-20,
+              "imag": -0.0033927726400351087
+            },
+            {
+              "component": "current_x",
+              "real": -0.0010526627774203386,
+              "imag": 1.8905775382715984e-20
+            },
+            {
+              "component": "current_y",
+              "real": 8.675734962252171e-21,
+              "imag": 1.3552527156068806e-22
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": -1.0278521476165545e-20,
+              "imag": -0.0033927726400351087
+            },
+            {
+              "component": "current_x",
+              "real": 0.0010526627774203386,
+              "imag": -1.9380113833178394e-20
+            },
+            {
+              "component": "current_y",
+              "real": 4.336491052586798e-20,
+              "imag": 6.776263578034403e-23
+            }
+          ],
+          "left_ward_residual_norm": 0.0035523239027342515,
+          "right_ward_residual_norm": 0.0035523239027342515
+        },
+        "minus_schur": {
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": -6.732765951198441e-18,
+              "imag": -1.8729087946452763e-07
+            },
+            {
+              "component": "current_x",
+              "real": -0.001008539171857986,
+              "imag": 1.1189550278247288e-19
+            },
+            {
+              "component": "current_y",
+              "real": 8.675734962252171e-21,
+              "imag": 1.3552527156068806e-22
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": -6.732875072515307e-18,
+              "imag": -1.8729087946452424e-07
+            },
+            {
+              "component": "current_x",
+              "real": 0.001008539171857986,
+              "imag": -1.1167726014874154e-19
+            },
+            {
+              "component": "current_y",
+              "real": 4.336491052586798e-20,
+              "imag": 6.776263578034403e-23
+            }
+          ],
+          "left_ward_residual_norm": 0.0010085391892484228,
+          "right_ward_residual_norm": 0.0010085391892484228
+        },
+        "amplitude_phase_schur": {
+          "left_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 1.423796548124999e-19,
+              "imag": -1.8840272640312808e-07
+            },
+            {
+              "component": "current_x",
+              "real": -0.0010085369669823427,
+              "imag": 3.017392135761177e-21
+            },
+            {
+              "component": "current_y",
+              "real": 1.0437553810438218e-20,
+              "imag": 1.424087483636471e-22
+            }
+          ],
+          "right_ward_residual_vector": [
+            {
+              "component": "density",
+              "real": 1.510461432744313e-19,
+              "imag": -1.8840272640312808e-07
+            },
+            {
+              "component": "current_x",
+              "real": 0.0010085369669823427,
+              "imag": -2.0350369059623975e-20
+            },
+            {
+              "component": "current_y",
+              "real": 4.146756712083553e-20,
+              "imag": 6.193794455683396e-23
+            }
+          ],
+          "left_ward_residual_norm": 0.0010085369845799065,
+          "right_ward_residual_norm": 0.0010085369845799065
+        }
+      },
+      "differences": [
+        {
+          "formula": "bare_total - minus_schur",
+          "left_ward_residual_vector_difference": [
+            {
+              "component": "density",
+              "real": 6.722250260497044e-18,
+              "imag": -0.003392585349155644
+            },
+            {
+              "component": "current_x",
+              "real": -4.412360556235251e-05,
+              "imag": -9.29897273997569e-20
+            },
+            {
+              "component": "current_y",
+              "real": 0.0,
+              "imag": 0.0
+            }
+          ],
+          "right_ward_residual_vector_difference": [
+            {
+              "component": "density",
+              "real": 6.722596551039142e-18,
+              "imag": -0.003392585349155644
+            },
+            {
+              "component": "current_x",
+              "real": 4.412360556235251e-05,
+              "imag": 9.229714631556315e-20
+            },
+            {
+              "component": "current_y",
+              "real": 0.0,
+              "imag": 0.0
+            }
+          ],
+          "valid_for_casimir_input": false
+        }
+      ],
+      "valid_for_casimir_input": false
+    }
+  ],
+  "diagnostic_run_completed": true,
+  "ward_identity_closed": false,
+  "workspace_evaluation": true,
+  "notes": [
+    "q=0 response definition alignment is recorded as a precondition.",
+    "ward_identity_closed checks only the requested final full-Hessian Schur response.",
+    "bare_bubble, direct, bare_total, minus_schur, and plus_schur rows are decomposition outputs only.",
+    "finite-q outputs remain valid_for_casimir_input=False.",
+    "model_name=lno327_four_orbital; primary_validation_model=False.",
+    "left/right Ward residual vectors are ordered as density,current_x,current_y.",
+    "schur_residual_differences compares residual vectors only and does not affect closure or Casimir gating."
+  ],
+  "valid_for_casimir_input": false
+}

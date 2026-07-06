@@ -1,0 +1,18 @@
+finite-q Ward residual scan report
+model_name: lno327_four_orbital
+pairings: spm
+omega_eV: 0.01
+nk: 2
+mesh_size: 4
+delta0_eV: 0.04
+q0_precondition_status: {'spm': 'convention_aware_pass'}
+diagnostic_run_completed: True
+ward_identity_closed: False
+workspace_evaluation: True
+- spm bare_bubble q=(0.005, 0.0): max_residual=3.571868e-03, inverse=inv
+- spm direct q=(0.005, 0.0): max_residual=2.169505e-03, inverse=inv
+- spm bare_total q=(0.005, 0.0): max_residual=3.552324e-03, inverse=inv
+- spm minus_schur q=(0.005, 0.0): max_residual=1.008539e-03, inverse=inv
+- spm plus_schur q=(0.005, 0.0): max_residual=6.873429e-03, inverse=inv
+- spm amplitude_phase_schur q=(0.005, 0.0): max_residual=1.008537e-03, inverse=inv
+valid_for_casimir_input: False
