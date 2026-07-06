@@ -4,7 +4,7 @@
   "primary_validation_model": true,
   "valid_for_casimir_input": false,
   "run_config": {
-    "output_dir": "/home/liubx25/Ni_Research/Projects/Casimir_Torque_of_LNO327/validation/outputs/finite_q_ward",
+    "output_dir": "validation/outputs/finite_q_ward",
     "nk": 9,
     "omega": 0.01,
     "delta0": 0.1,
@@ -950,9 +950,26 @@
       "nk": 9,
       "valid_for_casimir_input": false,
       "normal_vertex": {
-        "available": false,
-        "reason": "normal operator identity API unavailable: AttributeError: 'SymmetryBdG2BandSpec' object has no attribute 'current_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'current_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'current_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'peierls_vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'peierls_vector_vertex'; 'SymmetryBdG2BandSpec' object has no attribute 'peierls_vector_vertex'",
-        "valid_for_casimir_input": false
+        "max_error_norm": 1.1032919805898075e-15,
+        "rms_error_norm": 5.265298514017337e-16,
+        "worst_k": [
+          2.7925268031909267,
+          -2.0943951023931957
+        ],
+        "passed_by_tolerance": true,
+        "available": true,
+        "best_sign_convention": "plus",
+        "signed_candidates": {
+          "plus": {
+            "max_error_norm": 1.1032919805898075e-15,
+            "rms_error_norm": 5.265298514017337e-16
+          },
+          "minus": {
+            "max_error_norm": 0.08212007227500548,
+            "rms_error_norm": 0.042661280259549905
+          }
+        },
+        "interpretation": "normal Peierls operator identity is within diagnostic tolerance"
       },
       "bdg_vertex": {
         "available": false,
@@ -988,8 +1005,8 @@
         },
         "valid_for_casimir_input": false
       },
-      "operator_identity_status": "diagnostic_only",
-      "suspected_layer": "unknown",
+      "operator_identity_status": "passed",
+      "suspected_layer": "response_assembly_or_collective",
       "interpretation": "diagnostic-only operator identity triage; unavailable subchecks are explicit"
     },
     "contact_cancellation": {

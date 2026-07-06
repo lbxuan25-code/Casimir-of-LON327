@@ -25,7 +25,7 @@
 
 ## Ward triage
 - normal finite-q triage conclusion: normal_contact_or_vertex
-- operator identity conclusion: unknown
+- operator identity conclusion: response_assembly_or_collective
 - contact cancellation conclusion: spm: direct_dominant; dwave: direct_dominant
 - suspected primary layer: normal_contact_or_vertex
 - recommended next fix: Inspect normal finite-q contact/vertex assembly before collective-sector changes.
