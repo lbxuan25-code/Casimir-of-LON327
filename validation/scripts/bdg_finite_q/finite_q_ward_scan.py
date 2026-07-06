@@ -23,10 +23,8 @@ from lno327.collective.validation import validate_physical_ward_identity  # noqa
 from lno327.response.finite_q_bdg import precompute_finite_q_bdg_workspace_from_model_ansatz  # noqa: E402
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions, bdg_finite_q_response_imag_axis_from_workspace  # noqa: E402
 from q0_bdg_response_alignment import run_q0_bdg_response_alignment_many  # noqa: E402
-from validation.lib.finite_q_validation_models import (  # noqa: E402
-    available_finite_q_validation_models,
-    get_finite_q_validation_model,
-)
+from validation.lib.finite_q_collective_ward_blocks import evaluate_collective_ward_blocks  # noqa: E402
+from validation.lib.finite_q_validation_models import available_finite_q_validation_models, get_finite_q_validation_model  # noqa: E402
 
 WardScanPairingName = str
 WARD_COMPONENT_LABELS = ("density", "current_x", "current_y")
@@ -64,6 +62,7 @@ class FiniteQWardScanReport:
     mesh_size: int
     delta0_eV: float
     rows: tuple[FiniteQWardScanRow, ...]
+    collective_ward_blocks: tuple[dict[str, Any], ...]
     q0_alignment_prerequisite: dict[str, str]
     q0_precondition_status: dict[str, str]
     q_scaling_estimates: dict[str, float | None]
@@ -85,6 +84,7 @@ class FiniteQWardScanReport:
             "mesh_size": self.mesh_size,
             "delta0_eV": self.delta0_eV,
             "rows": [{**row.__dict__, "q_model": list(row.q_model), "valid_for_casimir_input": False} for row in self.rows],
+            "collective_ward_blocks": list(self.collective_ward_blocks),
             "q0_alignment_prerequisite": self.q0_alignment_prerequisite,
             "q0_precondition_status": self.q0_precondition_status,
             "q_scaling_estimates": self.q_scaling_estimates,
@@ -115,6 +115,12 @@ class FiniteQWardScanReport:
             f"max_residual={row.max_ward_residual_norm:.6e}, inverse={row.inverse_method}"
             for row in self.rows
         )
+        for payload in self.collective_ward_blocks:
+            dominant = payload.get("dominant_block_residual") or {}
+            lines.append(
+                f"- collective-block {payload.get('pairing_name')} q={payload.get('q_model')}: "
+                f"dominant={dominant.get('block')} norm={dominant.get('norm')}"
+            )
         lines.append("valid_for_casimir_input: False")
         return "\n".join(lines)
 
@@ -239,6 +245,7 @@ def run_finite_q_ward_scan(
         q0_alignment = {pairing_name: q0_status.get(pairing_name, "missing_q0_status") for pairing_name in selected_pairings}
 
     rows: list[FiniteQWardScanRow] = []
+    collective_ward_blocks: list[dict[str, Any]] = []
     schur_residual_differences: list[dict[str, Any]] = []
     scaling_inputs: dict[str, tuple[list[float], list[float]]] = {}
     for pairing_name in selected_pairings:
@@ -255,6 +262,19 @@ def run_finite_q_ward_scan(
                 )
                 response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=kubo)
                 matrices = {name: getattr(response, name) for name in RESPONSE_NAMES}
+                collective_ward_blocks.append(
+                    evaluate_collective_ward_blocks(
+                        pairing_name=pairing_name,
+                        q_model=q,
+                        omega_eV=float(kubo.omega_eV),
+                        delta0_eV=float(amp.delta0_eV),
+                        k_aa_full=response.bare_total,
+                        k_aeta=response.em_collective_left,
+                        k_etaa=response.collective_em_right,
+                        k_etaeta=response.collective_total,
+                        schur_response=response.amplitude_phase_schur,
+                    )
+                )
                 bare_report = validate_physical_ward_identity(response.bare_total, kubo.omega_eV, q, tolerance=tolerance)
                 bare_max = float(max(bare_report.left_norm, bare_report.right_norm))
                 ward_reports: dict[str, Any] = {}
@@ -295,6 +315,7 @@ def run_finite_q_ward_scan(
         "q=0 response definition alignment is recorded as a precondition.",
         "ward_identity_closed checks only the requested final full-Hessian Schur response.",
         "bare_bubble, direct, bare_total, minus_schur, and plus_schur rows are decomposition outputs only.",
+        "collective_ward_blocks reports the four block identities required by the Schur proof; it is diagnostic-only.",
         "finite-q outputs remain valid_for_casimir_input=False.",
         f"model_name={model.name}; primary_validation_model={model.primary_validation_model}.",
         "left/right Ward residual vectors are ordered as density,current_x,current_y.",
@@ -310,6 +331,7 @@ def run_finite_q_ward_scan(
         mesh_size=int(points.shape[0]),
         delta0_eV=float(amp.delta0_eV),
         rows=tuple(rows),
+        collective_ward_blocks=tuple(collective_ward_blocks),
         q0_alignment_prerequisite=q0_alignment,
         q0_precondition_status=q0_alignment,
         q_scaling_estimates=slopes,
@@ -341,14 +363,7 @@ def run_and_write_report(
     model_name: str = "symmetry_bdg_2band",
     q0_status: dict[str, str] | None = None,
 ) -> FiniteQWardScanReport:
-    report = run_finite_q_ward_scan(
-        pairings,
-        model_name=model_name,
-        omega_eV=omega_eV,
-        q_values=q_values,
-        nk=nk,
-        q0_status=q0_status,
-    )
+    report = run_finite_q_ward_scan(pairings, model_name=model_name, omega_eV=omega_eV, q_values=q_values, nk=nk, q0_status=q0_status)
     _write_json(output_dir / "finite_q_ward_scan.json", report)
     _write_text(output_dir / "finite_q_ward_scan.txt", report)
     return report
@@ -365,15 +380,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--q0-status-json", type=Path, default=None)
     args = parser.parse_args(argv)
     q0_status = _q0_status_from_json(args.q0_status_json) if args.q0_status_json is not None else None
-    report = run_and_write_report(
-        args.output_dir,
-        tuple(args.pairings),
-        args.omega,
-        tuple(args.q_values),
-        args.nk,
-        model_name=args.model,
-        q0_status=q0_status,
-    )
+    report = run_and_write_report(args.output_dir, tuple(args.pairings), args.omega, tuple(args.q_values), args.nk, model_name=args.model, q0_status=q0_status)
     print(report.format_text())
     return 0
 
