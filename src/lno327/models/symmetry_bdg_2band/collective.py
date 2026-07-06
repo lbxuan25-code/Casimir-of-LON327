@@ -41,6 +41,16 @@ def _eta2_phase_vertex(phi: np.ndarray) -> np.ndarray:
     return np.block([[zero, 1j * phi], [-1j * phi.conjugate().T, zero]]).astype(complex)
 
 
+def _amplitude_vertex_from_endpoints(phi_minus: np.ndarray, phi_plus: np.ndarray) -> np.ndarray:
+    zero = np.zeros_like(phi_plus)
+    return np.block([[zero, phi_plus], [phi_minus.conjugate().T, zero]]).astype(complex)
+
+
+def _eta2_phase_vertex_from_endpoints(phi_minus: np.ndarray, phi_plus: np.ndarray) -> np.ndarray:
+    zero = np.zeros_like(phi_plus)
+    return np.block([[zero, 1j * phi_plus], [-1j * phi_minus.conjugate().T, zero]]).astype(complex)
+
+
 def _kubo_static_factor(em: float, en: float, fm: float, fn: float, config) -> complex:
     delta_e = float(em) - float(en)
     if abs(delta_e) < config.eta_eV:
@@ -117,6 +127,21 @@ class SymmetryTwoBandPairingAnsatz:
             return np.zeros((2, 2), dtype=complex)
         return float(amp.delta0_eV) * self.collective_form_factor(kx, ky, qx, qy, amp)
 
+    def _endpoint_form_factors(
+        self,
+        kx: float,
+        ky: float,
+        qx: float,
+        qy: float,
+        amp: SymmetryTwoBandPairingAmplitudes,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        delta0 = float(amp.delta0_eV)
+        if delta0 == 0.0:
+            raise ValueError("pairing form factor is undefined for delta0=0")
+        phi_minus = self.mean_pairing(kx - 0.5 * qx, ky - 0.5 * qy, amp) / delta0
+        phi_plus = self.mean_pairing(kx + 0.5 * qx, ky + 0.5 * qy, amp) / delta0
+        return phi_minus, phi_plus
+
     def collective_vertices(
         self,
         kx: float,
@@ -125,6 +150,12 @@ class SymmetryTwoBandPairingAnsatz:
         qy: float,
         amp: SymmetryTwoBandPairingAmplitudes,
     ) -> tuple[np.ndarray, ...]:
+        if self.phase_vertex == "bond_endpoint_gauge":
+            phi_minus, phi_plus = self._endpoint_form_factors(kx, ky, qx, qy, amp)
+            return (
+                _amplitude_vertex_from_endpoints(phi_minus, phi_plus),
+                _eta2_phase_vertex_from_endpoints(phi_minus, phi_plus),
+            )
         phi = self.collective_form_factor(kx, ky, qx, qy, amp)
         return (_amplitude_vertex(phi), _eta2_phase_vertex(phi))
 
