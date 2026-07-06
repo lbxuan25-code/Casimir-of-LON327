@@ -15,4 +15,5 @@ workspace_evaluation: True
 - spm minus_schur q=(0.005, 0.0): max_residual=1.008539e-03, inverse=inv
 - spm plus_schur q=(0.005, 0.0): max_residual=6.873429e-03, inverse=inv
 - spm amplitude_phase_schur q=(0.005, 0.0): max_residual=1.008537e-03, inverse=inv
+- collective-block spm q=[0.005, 0.0]: dominant=aeta_left norm=0.021084963251579478
 valid_for_casimir_input: False

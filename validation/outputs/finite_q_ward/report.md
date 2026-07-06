@@ -28,6 +28,12 @@
 - recommended next fix: Inspect the largest homogeneous full-Hessian Schur Ward residual.
 - valid_for_casimir_input: False
 
+## Collective block localization
+- identity_version: collective_block_v1
+- largest block residual: pairing=spm, q=[0.02, 0.0], block=aa_left, norm=0.026897205615790933
+- max_schur_reconstruction_difference_norm: 4.84869951806108e-18
+- diagnostic_role: algebraic localization of the four block identities; not a new Ward criterion
+
 ## Casimir gating
 - valid_for_casimir_input: False
 - This report is diagnostic-only and does not promote finite-q response data to Casimir input.
