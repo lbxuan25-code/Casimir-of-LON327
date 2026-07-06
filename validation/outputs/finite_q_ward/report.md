@@ -29,8 +29,10 @@
 - contact cancellation conclusion: spm: direct_dominant; dwave: direct_dominant
 - normal contact/direct audit: direct_component_placement_suspicious
 - recommended normal contact fix: Audit current-current component placement and density-current index ordering before changing formulas.
-- suspected primary layer: normal_contact_or_vertex
-- recommended next fix: Inspect normal finite-q contact/vertex assembly before collective-sector changes.
+- normal Ward convention audit: homogeneous_total_includes_contact_rhs
+- recommended Ward convention fix: Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.
+- suspected primary layer: normal_ward_convention
+- recommended next fix: Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.
 - valid_for_casimir_input: False
 
 ## 下一步建议
