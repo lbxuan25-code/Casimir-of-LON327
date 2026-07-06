@@ -11,12 +11,12 @@
 
 ## spm conclusion
 - q0_precondition_status: convention_aware_pass
-- max_closure_residual_norm: 0.0017709885262371322
+- max_closure_residual_norm: 0.0017709885262365808
 - ward_identity_closed: False
 
 ## dwave conclusion
 - q0_precondition_status: convention_aware_pass
-- max_closure_residual_norm: 0.011058627347831368
+- max_closure_residual_norm: 0.011058627347831026
 - ward_identity_closed: False
 
 ## Ward criterion
@@ -24,7 +24,7 @@
 - criterion_formal_name: full_hessian_v1
 - closure_response_name: amplitude_phase_schur
 - full_bdg_ward_closed: False
-- largest blocker: pairing=dwave, q=[0.02, 0.0], response=amplitude_phase_schur, primary_residual=0.011058627347831368
+- largest blocker: pairing=dwave, q=[0.02, 0.0], response=amplitude_phase_schur, primary_residual=0.011058627347831026
 - recommended next fix: Inspect the largest homogeneous full-Hessian Schur Ward residual.
 - valid_for_casimir_input: False
 

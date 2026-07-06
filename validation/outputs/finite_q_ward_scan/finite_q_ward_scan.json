@@ -53,35 +53,35 @@
       "left_ward_residual_vector": [
         {
           "component": "density",
-          "real": -1.051569070139675e-20,
+          "real": 9.440405535914567e-21,
           "imag": -0.0033927726400351087
         },
         {
           "component": "current_x",
-          "real": 0.0011168419395144184,
-          "imag": 1.8905775382715984e-20
+          "real": 0.001116841939514418,
+          "imag": -1.9041300654276672e-20
         },
         {
           "component": "current_y",
-          "real": 8.675734962252171e-21,
-          "imag": 1.3552527156068806e-22
+          "real": -2.6017675766099902e-20,
+          "imag": -6.776263578034403e-23
         }
       ],
       "right_ward_residual_vector": [
         {
           "component": "density",
-          "real": -1.0278521476165545e-20,
+          "real": 9.270998946463707e-21,
           "imag": -0.0033927726400351087
         },
         {
           "component": "current_x",
-          "real": -0.0011168419395144184,
-          "imag": -1.9380113833178394e-20
+          "real": -0.001116841939514418,
+          "imag": 1.938011383317839e-20
         },
         {
           "component": "current_y",
-          "real": 4.336491052586798e-20,
-          "imag": 6.776263578034403e-23
+          "real": 6.071320407682012e-20,
+          "imag": 0.0
         }
       ],
       "max_ward_residual_norm": 0.0035718681533378482,
@@ -165,35 +165,35 @@
       "left_ward_residual_vector": [
         {
           "component": "density",
-          "real": -1.051569070139675e-20,
+          "real": 9.440405535914567e-21,
           "imag": -0.0033927726400351087
         },
         {
           "component": "current_x",
-          "real": -0.0010526627774203386,
-          "imag": 1.8905775382715984e-20
+          "real": -0.001052662777420339,
+          "imag": -1.9041300654276672e-20
         },
         {
           "component": "current_y",
-          "real": 8.675734962252171e-21,
-          "imag": 1.3552527156068806e-22
+          "real": -2.6017675766099902e-20,
+          "imag": -6.776263578034403e-23
         }
       ],
       "right_ward_residual_vector": [
         {
           "component": "density",
-          "real": -1.0278521476165545e-20,
+          "real": 9.270998946463707e-21,
           "imag": -0.0033927726400351087
         },
         {
           "component": "current_x",
-          "real": 0.0010526627774203386,
-          "imag": -1.9380113833178394e-20
+          "real": 0.001052662777420339,
+          "imag": 1.938011383317839e-20
         },
         {
           "component": "current_y",
-          "real": 4.336491052586798e-20,
-          "imag": 6.776263578034403e-23
+          "real": 6.071320407682012e-20,
+          "imag": 0.0
         }
       ],
       "max_ward_residual_norm": 0.0035523239027342515,
@@ -211,8 +211,8 @@
         0.0
       ],
       "q_norm": 0.005,
-      "left_ward_residual_norm": 0.0010085391892484228,
-      "right_ward_residual_norm": 0.0010085391892484228,
+      "left_ward_residual_norm": 0.0010085391892484322,
+      "right_ward_residual_norm": 0.0010085391892484322,
       "residual_component_labels": [
         "density",
         "current_x",
@@ -221,39 +221,39 @@
       "left_ward_residual_vector": [
         {
           "component": "density",
-          "real": -6.732765951198441e-18,
-          "imag": -1.8729087946452763e-07
+          "real": 8.692044891543827e-19,
+          "imag": -1.8729088015287742e-07
         },
         {
           "component": "current_x",
-          "real": -0.001008539171857986,
-          "imag": 1.1189550278247288e-19
+          "real": -0.0010085391718579954,
+          "imag": -7.688619182151624e-20
         },
         {
           "component": "current_y",
-          "real": 8.675734962252171e-21,
-          "imag": 1.3552527156068806e-22
+          "real": -2.6017675766099902e-20,
+          "imag": -6.776263578034403e-23
         }
       ],
       "right_ward_residual_vector": [
         {
           "component": "density",
-          "real": -6.732875072515307e-18,
-          "imag": -1.8729087946452424e-07
+          "real": 8.687142621962753e-19,
+          "imag": -1.8729088015287065e-07
         },
         {
           "component": "current_x",
-          "real": 0.001008539171857986,
-          "imag": -1.1167726014874154e-19
+          "real": 0.0010085391718579954,
+          "imag": 7.786664573773112e-20
         },
         {
           "component": "current_y",
-          "real": 4.336491052586798e-20,
-          "imag": 6.776263578034403e-23
+          "real": 6.071320407682012e-20,
+          "imag": 0.0
         }
       ],
-      "max_ward_residual_norm": 0.0010085391892484228,
-      "residual_ratio_to_bare": 0.2839096931651256,
+      "max_ward_residual_norm": 0.0010085391892484322,
+      "residual_ratio_to_bare": 0.2839096931651282,
       "collective_matrix_condition_number": 7.8756004600209355,
       "inverse_method": "inv",
       "pinv_diagnostic_used": false,
@@ -267,8 +267,8 @@
         0.0
       ],
       "q_norm": 0.005,
-      "left_ward_residual_norm": 0.006873428795831889,
-      "right_ward_residual_norm": 0.006873428795831889,
+      "left_ward_residual_norm": 0.006873428795831209,
+      "right_ward_residual_norm": 0.006873428795831209,
       "residual_component_labels": [
         "density",
         "current_x",
@@ -277,39 +277,39 @@
       "left_ward_residual_vector": [
         {
           "component": "density",
-          "real": 6.711734569795648e-18,
-          "imag": -0.0067853579891907516
+          "real": -8.503236780825537e-19,
+          "imag": -0.006785357989190064
         },
         {
           "component": "current_x",
-          "real": -0.0010967863829826913,
-          "imag": -7.408395201704089e-20
+          "real": -0.0010967863829826829,
+          "imag": 3.8803590512962904e-20
         },
         {
           "component": "current_y",
-          "real": 8.675734962252171e-21,
-          "imag": 1.3552527156068806e-22
+          "real": -2.6017675766099902e-20,
+          "imag": -6.776263578034403e-23
         }
       ],
       "right_ward_residual_vector": [
         {
           "component": "density",
-          "real": 6.712318029562976e-18,
-          "imag": -0.0067853579891907516
+          "real": -8.501722643033479e-19,
+          "imag": -0.006785357989190064
         },
         {
           "component": "current_x",
-          "real": 0.0010967863829826913,
-          "imag": 7.291703248238474e-20
+          "real": 0.0010967863829826829,
+          "imag": -3.910641807137433e-20
         },
         {
           "component": "current_y",
-          "real": 4.336491052586798e-20,
-          "imag": 6.776263578034403e-23
+          "real": 6.071320407682012e-20,
+          "imag": 0.0
         }
       ],
-      "max_ward_residual_norm": 0.006873428795831889,
-      "residual_ratio_to_bare": 1.934910493533925,
+      "max_ward_residual_norm": 0.006873428795831209,
+      "residual_ratio_to_bare": 1.9349104935337336,
       "collective_matrix_condition_number": 7.8756004600209355,
       "inverse_method": "inv",
       "pinv_diagnostic_used": false,
@@ -323,8 +323,8 @@
         0.0
       ],
       "q_norm": 0.005,
-      "left_ward_residual_norm": 0.0010085369845799065,
-      "right_ward_residual_norm": 0.0010085369845799065,
+      "left_ward_residual_norm": 0.0010085369845799067,
+      "right_ward_residual_norm": 0.0010085369845799067,
       "residual_component_labels": [
         "density",
         "current_x",
@@ -333,39 +333,39 @@
       "left_ward_residual_vector": [
         {
           "component": "density",
-          "real": 1.423796548124999e-19,
-          "imag": -1.8840272640312808e-07
+          "real": 1.4308623026458891e-19,
+          "imag": -1.8840272640313147e-07
         },
         {
           "component": "current_x",
-          "real": -0.0010085369669823427,
-          "imag": 3.017392135761177e-21
+          "real": -0.001008536966982343,
+          "imag": 4.245908422697008e-21
         },
         {
           "component": "current_y",
-          "real": 1.0437553810438218e-20,
-          "imag": 1.424087483636471e-22
+          "real": -2.418809459639371e-20,
+          "imag": -3.8642948638271195e-23
         }
       ],
       "right_ward_residual_vector": [
         {
           "component": "density",
-          "real": 1.510461432744313e-19,
-          "imag": -1.8840272640312808e-07
+          "real": 1.5127941550710188e-19,
+          "imag": -1.8840272640313147e-07
         },
         {
           "component": "current_x",
-          "real": 0.0010085369669823427,
-          "imag": -2.0350369059623975e-20
+          "real": 0.001008536966982343,
+          "imag": -2.0632278907722945e-20
         },
         {
           "component": "current_y",
-          "real": 4.146756712083553e-20,
-          "imag": 6.193794455683396e-23
+          "real": 5.874809855477728e-20,
+          "imag": 4.763575731947767e-24
         }
       ],
-      "max_ward_residual_norm": 0.0010085369845799065,
-      "residual_ratio_to_bare": 0.28390907253801595,
+      "max_ward_residual_norm": 0.0010085369845799067,
+      "residual_ratio_to_bare": 0.283909072538016,
       "collective_matrix_condition_number": 7.8756004600209355,
       "inverse_method": "inv",
       "pinv_diagnostic_used": false,
@@ -405,35 +405,35 @@
           "left_ward_residual_vector": [
             {
               "component": "density",
-              "real": -1.051569070139675e-20,
+              "real": 9.440405535914567e-21,
               "imag": -0.0033927726400351087
             },
             {
               "component": "current_x",
-              "real": -0.0010526627774203386,
-              "imag": 1.8905775382715984e-20
+              "real": -0.001052662777420339,
+              "imag": -1.9041300654276672e-20
             },
             {
               "component": "current_y",
-              "real": 8.675734962252171e-21,
-              "imag": 1.3552527156068806e-22
+              "real": -2.6017675766099902e-20,
+              "imag": -6.776263578034403e-23
             }
           ],
           "right_ward_residual_vector": [
             {
               "component": "density",
-              "real": -1.0278521476165545e-20,
+              "real": 9.270998946463707e-21,
               "imag": -0.0033927726400351087
             },
             {
               "component": "current_x",
-              "real": 0.0010526627774203386,
-              "imag": -1.9380113833178394e-20
+              "real": 0.001052662777420339,
+              "imag": 1.938011383317839e-20
             },
             {
               "component": "current_y",
-              "real": 4.336491052586798e-20,
-              "imag": 6.776263578034403e-23
+              "real": 6.071320407682012e-20,
+              "imag": 0.0
             }
           ],
           "left_ward_residual_norm": 0.0035523239027342515,
@@ -443,77 +443,77 @@
           "left_ward_residual_vector": [
             {
               "component": "density",
-              "real": -6.732765951198441e-18,
-              "imag": -1.8729087946452763e-07
+              "real": 8.692044891543827e-19,
+              "imag": -1.8729088015287742e-07
             },
             {
               "component": "current_x",
-              "real": -0.001008539171857986,
-              "imag": 1.1189550278247288e-19
+              "real": -0.0010085391718579954,
+              "imag": -7.688619182151624e-20
             },
             {
               "component": "current_y",
-              "real": 8.675734962252171e-21,
-              "imag": 1.3552527156068806e-22
+              "real": -2.6017675766099902e-20,
+              "imag": -6.776263578034403e-23
             }
           ],
           "right_ward_residual_vector": [
             {
               "component": "density",
-              "real": -6.732875072515307e-18,
-              "imag": -1.8729087946452424e-07
+              "real": 8.687142621962753e-19,
+              "imag": -1.8729088015287065e-07
             },
             {
               "component": "current_x",
-              "real": 0.001008539171857986,
-              "imag": -1.1167726014874154e-19
+              "real": 0.0010085391718579954,
+              "imag": 7.786664573773112e-20
             },
             {
               "component": "current_y",
-              "real": 4.336491052586798e-20,
-              "imag": 6.776263578034403e-23
+              "real": 6.071320407682012e-20,
+              "imag": 0.0
             }
           ],
-          "left_ward_residual_norm": 0.0010085391892484228,
-          "right_ward_residual_norm": 0.0010085391892484228
+          "left_ward_residual_norm": 0.0010085391892484322,
+          "right_ward_residual_norm": 0.0010085391892484322
         },
         "amplitude_phase_schur": {
           "left_ward_residual_vector": [
             {
               "component": "density",
-              "real": 1.423796548124999e-19,
-              "imag": -1.8840272640312808e-07
+              "real": 1.4308623026458891e-19,
+              "imag": -1.8840272640313147e-07
             },
             {
               "component": "current_x",
-              "real": -0.0010085369669823427,
-              "imag": 3.017392135761177e-21
+              "real": -0.001008536966982343,
+              "imag": 4.245908422697008e-21
             },
             {
               "component": "current_y",
-              "real": 1.0437553810438218e-20,
-              "imag": 1.424087483636471e-22
+              "real": -2.418809459639371e-20,
+              "imag": -3.8642948638271195e-23
             }
           ],
           "right_ward_residual_vector": [
             {
               "component": "density",
-              "real": 1.510461432744313e-19,
-              "imag": -1.8840272640312808e-07
+              "real": 1.5127941550710188e-19,
+              "imag": -1.8840272640313147e-07
             },
             {
               "component": "current_x",
-              "real": 0.0010085369669823427,
-              "imag": -2.0350369059623975e-20
+              "real": 0.001008536966982343,
+              "imag": -2.0632278907722945e-20
             },
             {
               "component": "current_y",
-              "real": 4.146756712083553e-20,
-              "imag": 6.193794455683396e-23
+              "real": 5.874809855477728e-20,
+              "imag": 4.763575731947767e-24
             }
           ],
-          "left_ward_residual_norm": 0.0010085369845799065,
-          "right_ward_residual_norm": 0.0010085369845799065
+          "left_ward_residual_norm": 0.0010085369845799067,
+          "right_ward_residual_norm": 0.0010085369845799067
         }
       },
       "differences": [
@@ -522,13 +522,13 @@
           "left_ward_residual_vector_difference": [
             {
               "component": "density",
-              "real": 6.722250260497044e-18,
-              "imag": -0.003392585349155644
+              "real": -8.597640836184681e-19,
+              "imag": -0.003392585349154956
             },
             {
               "component": "current_x",
-              "real": -4.412360556235251e-05,
-              "imag": -9.29897273997569e-20
+              "real": -4.412360556234362e-05,
+              "imag": 5.784489116723957e-20
             },
             {
               "component": "current_y",
@@ -539,13 +539,13 @@
           "right_ward_residual_vector_difference": [
             {
               "component": "density",
-              "real": 6.722596551039142e-18,
-              "imag": -0.003392585349155644
+              "real": -8.594432632498117e-19,
+              "imag": -0.003392585349154956
             },
             {
               "component": "current_x",
-              "real": 4.412360556235251e-05,
-              "imag": 9.229714631556315e-20
+              "real": 4.412360556234362e-05,
+              "imag": -5.848653190455273e-20
             },
             {
               "component": "current_y",
