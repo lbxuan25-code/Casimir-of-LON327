@@ -901,6 +901,43 @@
     ],
     "recommended_next_action": "Investigate the largest finite-q residual rows before changing any Casimir input gate."
   },
+  "ward_triage_run_config": {
+    "include_triage": true,
+    "triage_q": [
+      0.01,
+      0.0
+    ],
+    "triage_nk": 9,
+    "triage_omega_eV": 0.01,
+    "normal_bubble_convergence_audit": {
+      "base_nk": 9,
+      "base_q_model": [
+        0.01,
+        0.0
+      ],
+      "base_omega_eV": 0.01,
+      "nk_values": [
+        7,
+        9,
+        11
+      ],
+      "q_values": [
+        0.005,
+        0.01,
+        0.02
+      ],
+      "omega_values": [
+        0.005,
+        0.01,
+        0.02
+      ],
+      "mesh_shifts_enabled": true,
+      "computed_in_current_run": true,
+      "valid_for_casimir_input": false
+    },
+    "computed_in_current_run": true,
+    "valid_for_casimir_input": false
+  },
   "ward_triage": {
     "normal_finite_q": {
       "available": true,
@@ -1689,6 +1726,50 @@
       "base_omega_eV": 0.01,
       "base_nk": 9,
       "valid_for_casimir_input": false,
+      "run_config": {
+        "base_nk": 9,
+        "base_q_model": [
+          0.01,
+          0.0
+        ],
+        "base_omega_eV": 0.01,
+        "nk_values": [
+          7,
+          9,
+          11
+        ],
+        "q_values": [
+          0.005,
+          0.01,
+          0.02
+        ],
+        "omega_values": [
+          0.005,
+          0.01,
+          0.02
+        ],
+        "mesh_shifts_enabled": true,
+        "mesh_shifts": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.05555555555555555,
+            0.0
+          ],
+          [
+            0.0,
+            0.05555555555555555
+          ],
+          [
+            0.05555555555555555,
+            0.05555555555555555
+          ]
+        ],
+        "computed_in_current_run": true,
+        "valid_for_casimir_input": false
+      },
       "base_point": {
         "nk": 9,
         "mesh_size": 81,

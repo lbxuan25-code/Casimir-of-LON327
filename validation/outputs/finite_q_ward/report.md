@@ -33,6 +33,7 @@
 - recommended Ward convention fix: Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.
 - normal bubble convergence audit: bubble_residual_numerical_convergence_limited
 - recommended normal bubble fix: Introduce shifted/twist mesh averaging or tighter normal bubble quadrature before changing formulas.
+- normal bubble audit config: nk=[7, 9, 11], q=[0.005, 0.01, 0.02], omega=[0.005, 0.01, 0.02], mesh_shifts=True
 - suspected primary layer: normal_ward_convention
 - recommended next fix: Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.
 - valid_for_casimir_input: False
