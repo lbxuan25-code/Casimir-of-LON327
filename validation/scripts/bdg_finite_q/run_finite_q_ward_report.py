@@ -18,10 +18,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 from finite_q_ward_scan import run_finite_q_ward_scan  # noqa: E402
 from q0_bdg_response_alignment import run_q0_bdg_response_alignment_many  # noqa: E402
-from validation.lib.finite_q_validation_models import (  # noqa: E402
-    available_finite_q_validation_models,
-    get_finite_q_validation_model,
-)
+from validation.lib.finite_q_validation_models import available_finite_q_validation_models, get_finite_q_validation_model  # noqa: E402
 from validation.lib.finite_q_ward_criterion import evaluate_finite_q_bdg_ward_criterion  # noqa: E402
 from validation.lib.finite_q_ward_triage import (  # noqa: E402
     run_contact_cancellation_triage,
@@ -99,6 +96,33 @@ def _pairing_summary(scan_report: Any) -> dict[str, Any]:
     return summary
 
 
+def _collective_block_summary(block_payloads: list[dict[str, Any]]) -> dict[str, Any]:
+    ranked: list[dict[str, Any]] = []
+    max_reconstruction_difference = 0.0
+    for payload in block_payloads:
+        dominant = payload.get("dominant_block_residual") or {}
+        ranked.append(
+            {
+                "pairing_name": payload.get("pairing_name"),
+                "q_model": payload.get("q_model"),
+                "dominant_block": dominant.get("block"),
+                "dominant_norm": dominant.get("norm"),
+                "valid_for_casimir_input": False,
+            }
+        )
+        recon = payload.get("schur_reconstruction", {})
+        max_reconstruction_difference = max(max_reconstruction_difference, float(recon.get("max_difference_norm", 0.0)))
+    ranked.sort(key=lambda item: float(item.get("dominant_norm") or 0.0), reverse=True)
+    return {
+        "identity_version": block_payloads[0].get("identity_version") if block_payloads else "unavailable",
+        "diagnostic_role": "algebraic_block_identity_localization_not_a_new_criterion",
+        "largest_block_residual": ranked[0] if ranked else None,
+        "ranked_dominant_residuals": ranked,
+        "max_schur_reconstruction_difference_norm": max_reconstruction_difference,
+        "valid_for_casimir_input": False,
+    }
+
+
 def _ward_criterion_summary(ward_criterion: dict[str, Any]) -> dict[str, Any]:
     if not ward_criterion.get("evaluated", False):
         suspected_layer = "ward_criterion_incomplete"
@@ -155,16 +179,10 @@ def _run_ward_triage(
     bubble_outlier_top_n: int = 12,
 ) -> dict[str, Any]:
     normal = run_normal_finite_q_ward_triage(model_name=model_name, q_model=q_model, omega_eV=omega, nk=nk)
-    operator = run_operator_identity_triage(
-        model_name=model_name, pairings=pairings, q_model=q_model, nk=nk, delta0_eV=delta0
-    )
-    contact = run_contact_cancellation_triage(
-        model_name=model_name, pairings=pairings, q_model=q_model, omega_eV=omega, nk=nk, delta0_eV=delta0
-    )
+    operator = run_operator_identity_triage(model_name=model_name, pairings=pairings, q_model=q_model, nk=nk, delta0_eV=delta0)
+    contact = run_contact_cancellation_triage(model_name=model_name, pairings=pairings, q_model=q_model, omega_eV=omega, nk=nk, delta0_eV=delta0)
     normal_contact = run_normal_contact_direct_audit(model_name=model_name, q_model=q_model, omega_eV=omega, nk=nk)
-    normal_ward_convention = run_normal_ward_convention_audit(
-        model_name=model_name, q_model=q_model, omega_eV=omega, nk=nk
-    )
+    normal_ward_convention = run_normal_ward_convention_audit(model_name=model_name, q_model=q_model, omega_eV=omega, nk=nk)
     normal_bubble_convergence = run_normal_bubble_convergence_audit(
         model_name=model_name,
         base_q_model=q_model,
@@ -219,9 +237,7 @@ def build_report(
     if ward_criterion not in SUPPORTED_WARD_CRITERIA:
         raise ValueError("Ward criterion must be full_hessian_v1")
     pairing_params = model.build_pairing_params(delta0)
-    q0_reports = run_q0_bdg_response_alignment_many(
-        pairings, model_name=model.name, omega_eV=omega, nk=nk, pairing_params=pairing_params
-    )
+    q0_reports = run_q0_bdg_response_alignment_many(pairings, model_name=model.name, omega_eV=omega, nk=nk, pairing_params=pairing_params)
     q0_status = {report.pairing_name: report.status for report in q0_reports}
     scan_report = run_finite_q_ward_scan(
         pairings,
@@ -243,6 +259,7 @@ def build_report(
         q0_precondition_status=dict(scan_report.q0_precondition_status),
     )
     ward_criterion_payload["requested_criterion"] = ward_criterion
+    collective_blocks = list(getattr(scan_report, "collective_ward_blocks", ()))
     report = {
         "problem": "finite_q_ward",
         "model_name": scan_report.model_name,
@@ -269,6 +286,8 @@ def build_report(
         },
         "pairing_summary": _pairing_summary(scan_report),
         "finite_q_rows": finite_q_rows,
+        "collective_ward_blocks": collective_blocks,
+        "collective_ward_block_summary": _collective_block_summary(collective_blocks),
         "ward_criterion": ward_criterion_payload,
         "diagnostic_interpretation": _diagnostic_interpretation_from_criterion(scan_report, ward_criterion_payload),
     }
@@ -312,11 +331,7 @@ def build_report(
         report["ward_triage"] = {
             "available": False,
             "reason": "triage disabled by CLI",
-            "summary": {
-                "suspected_layer": "unavailable",
-                "recommended_next_fix": "rerun report with --include-triage",
-                "valid_for_casimir_input": False,
-            },
+            "summary": {"suspected_layer": "unavailable", "recommended_next_fix": "rerun report with --include-triage", "valid_for_casimir_input": False},
             "valid_for_casimir_input": False,
         }
     return report
@@ -334,9 +349,15 @@ def format_markdown(report: dict[str, Any]) -> str:
     ward_summary = ward_criterion.get("summary", {}) if isinstance(ward_criterion, dict) else {}
     largest_blocker = ward_summary.get("largest_blocker") if isinstance(ward_summary, dict) else None
     interpretation = report["diagnostic_interpretation"]
+    block_summary = report.get("collective_ward_block_summary", {})
+    largest_block = block_summary.get("largest_block_residual") if isinstance(block_summary, dict) else None
     blocker_text = "none" if not largest_blocker else (
         f"pairing={largest_blocker.get('pairing_name')}, q={largest_blocker.get('q_model')}, "
         f"response={largest_blocker.get('response_name')}, primary_residual={largest_blocker.get('primary_residual_norm')}"
+    )
+    block_text = "unavailable" if not largest_block else (
+        f"pairing={largest_block.get('pairing_name')}, q={largest_block.get('q_model')}, "
+        f"block={largest_block.get('dominant_block')}, norm={largest_block.get('dominant_norm')}"
     )
     lines = [
         "# finite-q Ward validation report",
@@ -368,6 +389,12 @@ def format_markdown(report: dict[str, Any]) -> str:
         f"- largest blocker: {blocker_text}",
         f"- recommended next fix: {ward_summary.get('recommended_next_fix', 'inspect finite-q Ward criterion rows')}",
         f"- valid_for_casimir_input: {_format_bool(bool(ward_criterion.get('valid_for_casimir_input', False)))}",
+        "",
+        "## Collective block localization",
+        f"- identity_version: {block_summary.get('identity_version', 'unavailable')}",
+        f"- largest block residual: {block_text}",
+        f"- max_schur_reconstruction_difference_norm: {block_summary.get('max_schur_reconstruction_difference_norm')}",
+        "- diagnostic_role: algebraic localization of the four block identities; not a new Ward criterion",
         "",
         "## Casimir gating",
         "- valid_for_casimir_input: False",
