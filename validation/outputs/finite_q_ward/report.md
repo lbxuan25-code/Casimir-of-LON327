@@ -19,6 +19,16 @@
 - max_closure_residual_norm: 0.013904430677376702
 - ward_identity_closed: False
 
+## Ward criterion
+- criterion_version: contact_aware_v1
+- closure_response_name: amplitude_phase_schur
+- full_bdg_ward_closed: False
+- spm max contact-aware closure residual: 0.015382406517454098
+- dwave max contact-aware closure residual: 0.0032596479607990957
+- largest blocker: pairing=spm, q=[0.02, 0.0], response=amplitude_phase_schur, residual=0.015382406517454098
+- recommended next fix: Inspect BdG collective closure for the largest contact-aware finite-q residual.
+- valid_for_casimir_input: False
+
 ## Casimir gating
 - valid_for_casimir_input: False
 - This report is diagnostic-only and does not promote finite-q response data to Casimir input.
@@ -33,15 +43,13 @@
 - recommended Ward convention fix: Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.
 - normal bubble convergence audit: bubble_residual_numerical_convergence_limited
 - recommended normal bubble fix: Introduce shifted/twist mesh averaging or tighter normal bubble quadrature before changing formulas.
-- normal bubble per-k outlier audit: twist_sensitive_fermi_surface_sampling
-- recommended per-k outlier fix: Prioritize shifted/twist mesh averaging diagnostics for the normal bubble before changing formulas.
 - normal bubble audit config: nk=[7, 9, 11], q=[0.005, 0.01, 0.02], omega=[0.005, 0.01, 0.02], mesh_shifts=True
-- suspected primary layer: normal_ward_convention
-- recommended next fix: Separate homogeneous bubble Ward validation from contact-aware physical-kernel validation before changing response formulas.
+- suspected primary layer: bdg_collective_closure
+- recommended next fix: Inspect BdG collective closure for the largest contact-aware finite-q residual.
 - valid_for_casimir_input: False
 
 ## 下一步建议
-- Investigate the largest finite-q residual rows before changing any Casimir input gate.
+- Inspect BdG collective closure for the largest contact-aware finite-q residual.
 
 ## 主要观察
-- The finite-q diagnostic completed, but ward_identity_closed is False.
+- The contact-aware finite-q BdG Ward criterion is not closed for the requested pairings.
