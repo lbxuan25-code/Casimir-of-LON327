@@ -21,6 +21,10 @@ def _invertible_complex(rng, dim):
     return matrix + (dim + 1.0) * np.eye(dim)
 
 
+def _payload_vector(payload):
+    return np.asarray([entry["real"] + 1j * entry["imag"] for entry in payload["vector"]])
+
+
 def test_collective_generators_follow_eta2_normalization():
     left, right = collective_generators(0.1)
 
@@ -79,20 +83,46 @@ def test_collective_block_payload_reconstructs_explicit_schur_ward_residual():
     )
 
     actual_left, actual_right = physical_ward_residuals(schur, omega, q)
-    predicted_left = np.asarray(
-        [entry["real"] + 1j * entry["imag"] for entry in payload["schur_reconstruction"]["predicted_left"]["vector"]]
-    )
-    predicted_right = np.asarray(
-        [entry["real"] + 1j * entry["imag"] for entry in payload["schur_reconstruction"]["predicted_right"]["vector"]]
-    )
+    predicted_left = _payload_vector(payload["schur_reconstruction"]["predicted_left"])
+    predicted_right = _payload_vector(payload["schur_reconstruction"]["predicted_right"])
 
     assert payload["identity_version"] == BLOCK_IDENTITY_VERSION
     assert payload["diagnostic_role"] == "algebraic_block_identity_localization_not_a_new_criterion"
     assert set(payload["block_residuals"]) == {"aa_left", "aeta_left", "aa_right", "etaa_right"}
+    assert set(payload["block_decomposition"]) == {"aa_left", "aeta_left", "aa_right", "etaa_right"}
+    assert set(payload["schur_contribution_breakdown"]["contributions"]) == {
+        "left_from_aa_identity",
+        "left_from_aeta_identity",
+        "right_from_aa_identity",
+        "right_from_etaa_identity",
+    }
     np.testing.assert_allclose(predicted_left, actual_left, atol=1e-12, rtol=1e-12)
     np.testing.assert_allclose(predicted_right, actual_right, atol=1e-12, rtol=1e-12)
     assert payload["schur_reconstruction"]["max_difference_norm"] == pytest.approx(0.0, abs=1e-12)
     assert payload["valid_for_casimir_input"] is False
+
+
+def test_block_decomposition_residuals_are_sums_of_reported_terms():
+    rng = np.random.default_rng(20260711)
+    payload = evaluate_collective_ward_blocks(
+        pairing_name="spm",
+        q_model=np.asarray([0.01, 0.0]),
+        omega_eV=0.01,
+        delta0_eV=0.1,
+        k_aa_full=_random_complex(rng, (3, 3)),
+        k_aeta=_random_complex(rng, (3, 2)),
+        k_etaa=_random_complex(rng, (2, 3)),
+        k_etaeta=_invertible_complex(rng, 2),
+        schur_response=_random_complex(rng, (3, 3)),
+    )
+
+    for decomposition in payload["block_decomposition"].values():
+        terms = list(decomposition["terms"].values())
+        summed = _payload_vector(terms[0]) + _payload_vector(terms[1])
+        residual = _payload_vector(decomposition["residual"])
+        np.testing.assert_allclose(summed, residual)
+        assert "cancellation_fraction" in decomposition
+        assert "cosine_between_terms" in decomposition
 
 
 def test_collective_block_payload_validates_shapes():
