@@ -120,18 +120,38 @@ def _normal_vector_vertex(spec: Any, k: np.ndarray, q: np.ndarray, direction: in
     ky = float(k[1])
     qx = float(q[0])
     qy = float(q[1])
+    direction_label = ("x", "y")[direction]
     return np.asarray(
         _call_first(
             (
+                lambda: spec.peierls_hamiltonian_vector_vertex(kx, ky, qx, qy, direction_label),
+                lambda: spec.peierls_hamiltonian_vector_vertex(
+                    kx,
+                    ky,
+                    qx,
+                    qy,
+                    direction_label,
+                    hopping_terms=spec.hopping_terms(),
+                ),
+                lambda: spec.velocity_operator(kx, ky, direction_label),
                 lambda: spec.current_vertex(direction, kx, ky, qx, qy),
+                lambda: spec.current_vertex(direction_label, kx, ky, qx, qy),
                 lambda: spec.current_vertex(kx, ky, qx, qy, direction),
+                lambda: spec.current_vertex(kx, ky, qx, qy, direction_label),
                 lambda: spec.current_vertex(k, q, direction),
+                lambda: spec.current_vertex(k, q, direction_label),
                 lambda: spec.vector_vertex(direction, kx, ky, qx, qy),
+                lambda: spec.vector_vertex(direction_label, kx, ky, qx, qy),
                 lambda: spec.vector_vertex(kx, ky, qx, qy, direction),
+                lambda: spec.vector_vertex(kx, ky, qx, qy, direction_label),
                 lambda: spec.vector_vertex(k, q, direction),
+                lambda: spec.vector_vertex(k, q, direction_label),
                 lambda: spec.peierls_vector_vertex(direction, kx, ky, qx, qy),
+                lambda: spec.peierls_vector_vertex(direction_label, kx, ky, qx, qy),
                 lambda: spec.peierls_vector_vertex(kx, ky, qx, qy, direction),
+                lambda: spec.peierls_vector_vertex(kx, ky, qx, qy, direction_label),
                 lambda: spec.peierls_vector_vertex(k, q, direction),
+                lambda: spec.peierls_vector_vertex(k, q, direction_label),
             )
         ),
         dtype=complex,
