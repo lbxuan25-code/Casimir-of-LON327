@@ -102,6 +102,46 @@ def test_collective_block_payload_reconstructs_explicit_schur_ward_residual():
     assert payload["valid_for_casimir_input"] is False
 
 
+def test_aa_full_term_decomposition_reconstructs_bubble_direct_sum():
+    rng = np.random.default_rng(20260712)
+    omega = 0.09
+    q = np.asarray([0.02, 0.01])
+    delta0 = 0.07
+    k_aa_bubble = _random_complex(rng, (3, 3))
+    k_aa_direct = _random_complex(rng, (3, 3))
+    k_aa_full = k_aa_bubble + k_aa_direct
+    k_aeta = _random_complex(rng, (3, 2))
+    k_etaa = _random_complex(rng, (2, 3))
+    k_etaeta = _invertible_complex(rng, 2)
+    schur = k_aa_full - k_aeta @ np.linalg.inv(k_etaeta) @ k_etaa
+
+    payload = evaluate_collective_ward_blocks(
+        pairing_name="dwave",
+        q_model=q,
+        omega_eV=omega,
+        delta0_eV=delta0,
+        k_aa_full=k_aa_full,
+        k_aeta=k_aeta,
+        k_etaa=k_etaa,
+        k_etaeta=k_etaeta,
+        schur_response=schur,
+        k_aa_bubble=k_aa_bubble,
+        k_aa_direct=k_aa_direct,
+    )
+
+    aa_terms = payload["aa_full_term_decomposition"]
+    assert aa_terms is not None
+    assert aa_terms["aa_full_minus_bubble_plus_direct_norm"] == pytest.approx(0.0, abs=1e-12)
+    for side in ("left", "right"):
+        section = aa_terms[side]
+        total = _payload_vector(section["sum"])
+        full = _payload_vector(section["full_identity_residual"])
+        difference = _payload_vector(section["sum_minus_full_identity_residual"])
+        np.testing.assert_allclose(total, full, atol=1e-12, rtol=1e-12)
+        np.testing.assert_allclose(difference, np.zeros(3, dtype=complex), atol=1e-12, rtol=1e-12)
+        assert section["sum_minus_full_identity_residual_norm"] == pytest.approx(0.0, abs=1e-12)
+
+
 def test_block_decomposition_residuals_are_sums_of_reported_terms():
     rng = np.random.default_rng(20260711)
     payload = evaluate_collective_ward_blocks(
@@ -137,4 +177,18 @@ def test_collective_block_payload_validates_shapes():
             k_etaa=np.zeros((2, 3)),
             k_etaeta=np.eye(2),
             schur_response=np.zeros((3, 3)),
+        )
+
+    with pytest.raises(ValueError, match="provided together"):
+        evaluate_collective_ward_blocks(
+            pairing_name="spm",
+            q_model=[0.01, 0.0],
+            omega_eV=0.01,
+            delta0_eV=0.1,
+            k_aa_full=np.zeros((3, 3)),
+            k_aeta=np.zeros((3, 2)),
+            k_etaa=np.zeros((2, 3)),
+            k_etaeta=np.eye(2),
+            schur_response=np.zeros((3, 3)),
+            k_aa_bubble=np.zeros((3, 3)),
         )
