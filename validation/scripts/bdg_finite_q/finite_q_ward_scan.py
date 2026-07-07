@@ -273,6 +273,8 @@ def run_finite_q_ward_scan(
                         k_etaa=response.collective_em_right,
                         k_etaeta=response.collective_total,
                         schur_response=response.amplitude_phase_schur,
+                        k_aa_bubble=response.bare_bubble,
+                        k_aa_direct=response.direct,
                     )
                 )
                 bare_report = validate_physical_ward_identity(response.bare_total, kubo.omega_eV, q, tolerance=tolerance)
