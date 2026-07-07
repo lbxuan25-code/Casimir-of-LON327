@@ -1,0 +1,24 @@
+integrated finite-q Ward chain convergence
+model_name: symmetry_bdg_2band
+pairings: spm, dwave
+omega_eV: 0.01
+delta0_eV: 0.1
+q_values: [0.01, 0.02]
+nk_values: [9, 13, 17]
+shift_fractions: [0.0, 0.25, 0.5]
+
+summary rows:
+- dwave q=[0.01, 0.0] nk=9: unshifted_equal=0.006059481974011678 shift_mean_equal=0.0023271368131540324 shift_rms_equal=0.004571868787887383 shift_mean_full=0.002327136813154035
+- dwave q=[0.01, 0.0] nk=13: unshifted_equal=0.010997781051124849 shift_mean_equal=0.0020048831914094237 shift_rms_equal=0.00609622930649869 shift_mean_full=0.0020048831914094567
+- dwave q=[0.01, 0.0] nk=17: unshifted_equal=0.004843530749113836 shift_mean_equal=0.00047010245326707147 shift_rms_equal=0.003186948392509308 shift_mean_full=0.00047010245326706106
+- dwave q=[0.02, 0.0] nk=9: unshifted_equal=0.012111932873629787 shift_mean_equal=0.004599260630430776 shift_rms_equal=0.0090297541960943 shift_mean_full=0.004599260630430776
+- dwave q=[0.02, 0.0] nk=13: unshifted_equal=0.021202832993722102 shift_mean_equal=0.002663189787537252 shift_rms_equal=0.010654846160652659 shift_mean_full=0.0026631897875372588
+- dwave q=[0.02, 0.0] nk=17: unshifted_equal=0.009636863617375403 shift_mean_equal=0.0008801561488222432 shift_rms_equal=0.006186196721654298 shift_mean_full=0.0008801561488222439
+- spm q=[0.01, 0.0] nk=9: unshifted_equal=0.00034733878877893365 shift_mean_equal=0.00035930250148142684 shift_rms_equal=0.0027247192237111126 shift_mean_full=0.00035930250148142505
+- spm q=[0.01, 0.0] nk=13: unshifted_equal=0.007123965757336273 shift_mean_equal=0.0003152935987076611 shift_rms_equal=0.0030412808031821587 shift_mean_full=0.0003152935987076613
+- spm q=[0.01, 0.0] nk=17: unshifted_equal=0.0028353824751821445 shift_mean_equal=0.00017819198927956627 shift_rms_equal=0.0015169536490426882 shift_mean_full=0.00017819198927957397
+- spm q=[0.02, 0.0] nk=9: unshifted_equal=0.000600988287754978 shift_mean_equal=0.0007009613367987997 shift_rms_equal=0.005388602131323909 shift_mean_full=0.000700961336798801
+- spm q=[0.02, 0.0] nk=13: unshifted_equal=0.01404936931193986 shift_mean_equal=0.000632180920001194 shift_rms_equal=0.006027570802112899 shift_mean_full=0.0006321809200011946
+- spm q=[0.02, 0.0] nk=17: unshifted_equal=0.005611592359214903 shift_mean_equal=0.0003466416013646897 shift_rms_equal=0.002994176641213384 shift_mean_full=0.0003466416013646933
+
+valid_for_casimir_input: False

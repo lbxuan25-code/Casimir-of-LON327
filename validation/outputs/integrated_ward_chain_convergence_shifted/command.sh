@@ -1,0 +1,1 @@
+python validation/scripts/bdg_finite_q/integrated_ward_chain_convergence.py --model symmetry_bdg_2band --output-dir validation/outputs/integrated_ward_chain_convergence_shifted --pairings spm dwave --omega 0.01 --delta0 0.1 --q-values 0.01 0.02 --q-direction 1.0 0.0 --nk-values 9 13 17 --shift-fractions 0.0 0.25 0.5
