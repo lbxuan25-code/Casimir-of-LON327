@@ -26,6 +26,7 @@ from q0_bdg_response_alignment import run_q0_bdg_response_alignment_many  # noqa
 from validation.lib.finite_q_collective_ward_blocks import evaluate_collective_ward_blocks  # noqa: E402
 from validation.lib.finite_q_integrated_ward_chain import evaluate_integrated_ward_chain  # noqa: E402
 from validation.lib.finite_q_operator_ward_checks import evaluate_bdg_operator_ward_checks  # noqa: E402
+from validation.lib.finite_q_shifted_average import average_finite_q_bdg_response_over_shifts, shift_pairs_from_fractions  # noqa: E402
 from validation.lib.finite_q_validation_models import available_finite_q_validation_models, get_finite_q_validation_model  # noqa: E402
 
 WardScanPairingName = str
@@ -67,6 +68,7 @@ class FiniteQWardScanReport:
     collective_ward_blocks: tuple[dict[str, Any], ...]
     operator_ward_checks: tuple[dict[str, Any], ...]
     integrated_ward_chains: tuple[dict[str, Any], ...]
+    shifted_mesh_average: dict[str, Any]
     q0_alignment_prerequisite: dict[str, str]
     q0_precondition_status: dict[str, str]
     q_scaling_estimates: dict[str, float | None]
@@ -91,6 +93,7 @@ class FiniteQWardScanReport:
             "collective_ward_blocks": list(self.collective_ward_blocks),
             "operator_ward_checks": list(self.operator_ward_checks),
             "integrated_ward_chains": list(self.integrated_ward_chains),
+            "shifted_mesh_average": self.shifted_mesh_average,
             "q0_alignment_prerequisite": self.q0_alignment_prerequisite,
             "q0_precondition_status": self.q0_precondition_status,
             "q_scaling_estimates": self.q_scaling_estimates,
@@ -115,6 +118,7 @@ class FiniteQWardScanReport:
             f"diagnostic_run_completed: {self.diagnostic_run_completed}",
             f"ward_identity_closed: {self.ward_identity_closed}",
             f"workspace_evaluation: {self.workspace_evaluation}",
+            f"shifted_mesh_average: {self.shifted_mesh_average}",
         ]
         lines.extend(
             f"- {row.pairing_name} {row.response_name} q={row.q_model}: "
@@ -233,7 +237,11 @@ def run_finite_q_ward_scan(
     pairing_params=None,
     tolerance: float = 1e-8,
     q0_status: dict[str, str] | None = None,
+    average_shifted_meshes: bool = False,
+    shift_fractions: tuple[float, ...] = (0.0,),
 ) -> FiniteQWardScanReport:
+    if average_shifted_meshes and k_points is not None:
+        raise ValueError("average_shifted_meshes requires internally generated uniform meshes, not explicit k_points")
     model = get_finite_q_validation_model(model_name)
     selected_pairings = tuple(model.default_pairings if pairing_names is None else pairing_names)
     for pairing_name in selected_pairings:
@@ -248,6 +256,14 @@ def run_finite_q_ward_scan(
         collective_counterterm="goldstone_gap_equation",
         include_phase_phase_direct=True,
     )
+    shift_pairs = shift_pairs_from_fractions(shift_fractions)
+    shifted_mesh_average = {
+        "enabled": bool(average_shifted_meshes),
+        "shift_fractions": [float(value) for value in shift_fractions],
+        "shift_pairs": [[float(x), float(y)] for x, y in shift_pairs],
+        "num_shifted_meshes": len(shift_pairs) if average_shifted_meshes else 1,
+        "valid_for_casimir_input": False,
+    }
     if q0_status is None:
         q0_reports = run_q0_bdg_response_alignment_many(
             tuple(selected_pairings),
@@ -290,11 +306,24 @@ def run_finite_q_ward_scan(
                         current_vertex=options.current_vertex,
                     )
                 )
-                workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(
-                    model.spec, ansatz, q, points, mesh_weights, kubo, amp, options
-                )
-                response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=kubo)
-                integrated_ward_chains.append(evaluate_integrated_ward_chain(workspace=workspace, response=response, delta0_eV=float(amp.delta0_eV)))
+                if average_shifted_meshes:
+                    response, integrated_chain = average_finite_q_bdg_response_over_shifts(
+                        model=model,
+                        ansatz=ansatz,
+                        q_model=q,
+                        nk=nk,
+                        config=kubo,
+                        pairing_params=amp,
+                        options=options,
+                        shift_fractions=shift_fractions,
+                    )
+                else:
+                    workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(
+                        model.spec, ansatz, q, points, mesh_weights, kubo, amp, options
+                    )
+                    response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=kubo)
+                    integrated_chain = evaluate_integrated_ward_chain(workspace=workspace, response=response, delta0_eV=float(amp.delta0_eV))
+                integrated_ward_chains.append(integrated_chain)
                 matrices = {name: getattr(response, name) for name in RESPONSE_NAMES}
                 collective_ward_blocks.append(
                     evaluate_collective_ward_blocks(
@@ -353,7 +382,8 @@ def run_finite_q_ward_scan(
         "bare_bubble, direct, bare_total, minus_schur, and plus_schur rows are decomposition outputs only.",
         "collective_ward_blocks reports the four block identities required by the Schur proof; it is diagnostic-only.",
         "operator_ward_checks reports matrix identities before Kubo integration; it is diagnostic-only.",
-        "integrated_ward_chains reports denominator-cancelled Ward proof steps; it is diagnostic-only.",
+        "integrated_ward_chains reports denominator-cancelled Ward proof checks; it is diagnostic-only.",
+        "shifted_mesh_average is validation-only and does not promote finite-q data to Casimir input.",
         "finite-q outputs remain valid_for_casimir_input=False.",
         f"model_name={model.name}; primary_validation_model={model.primary_validation_model}.",
         "left/right Ward residual vectors are ordered as density,current_x,current_y.",
@@ -372,6 +402,7 @@ def run_finite_q_ward_scan(
         collective_ward_blocks=tuple(collective_ward_blocks),
         operator_ward_checks=tuple(operator_ward_checks),
         integrated_ward_chains=tuple(integrated_ward_chains),
+        shifted_mesh_average=shifted_mesh_average,
         q0_alignment_prerequisite=q0_alignment,
         q0_precondition_status=q0_alignment,
         q_scaling_estimates=slopes,
@@ -402,8 +433,19 @@ def run_and_write_report(
     nk: int,
     model_name: str = "symmetry_bdg_2band",
     q0_status: dict[str, str] | None = None,
+    average_shifted_meshes: bool = False,
+    shift_fractions: tuple[float, ...] = (0.0,),
 ) -> FiniteQWardScanReport:
-    report = run_finite_q_ward_scan(pairings, model_name=model_name, omega_eV=omega_eV, q_values=q_values, nk=nk, q0_status=q0_status)
+    report = run_finite_q_ward_scan(
+        pairings,
+        model_name=model_name,
+        omega_eV=omega_eV,
+        q_values=q_values,
+        nk=nk,
+        q0_status=q0_status,
+        average_shifted_meshes=average_shifted_meshes,
+        shift_fractions=shift_fractions,
+    )
     _write_json(output_dir / "finite_q_ward_scan.json", report)
     _write_text(output_dir / "finite_q_ward_scan.txt", report)
     return report
@@ -418,9 +460,21 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--q-values", nargs="+", type=float, default=[0.005, 0.01, 0.02])
     parser.add_argument("--nk", type=int, default=3)
     parser.add_argument("--q0-status-json", type=Path, default=None)
+    parser.add_argument("--average-shifted-meshes", action="store_true", default=False)
+    parser.add_argument("--shift-fractions", nargs="+", type=float, default=[0.0])
     args = parser.parse_args(argv)
     q0_status = _q0_status_from_json(args.q0_status_json) if args.q0_status_json is not None else None
-    report = run_and_write_report(args.output_dir, tuple(args.pairings), args.omega, tuple(args.q_values), args.nk, model_name=args.model, q0_status=q0_status)
+    report = run_and_write_report(
+        args.output_dir,
+        tuple(args.pairings),
+        args.omega,
+        tuple(args.q_values),
+        args.nk,
+        model_name=args.model,
+        q0_status=q0_status,
+        average_shifted_meshes=bool(args.average_shifted_meshes),
+        shift_fractions=tuple(args.shift_fractions),
+    )
     print(report.format_text())
     return 0
 
