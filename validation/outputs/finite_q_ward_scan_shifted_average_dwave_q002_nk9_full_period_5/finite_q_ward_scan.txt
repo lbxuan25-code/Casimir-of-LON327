@@ -1,0 +1,22 @@
+finite-q Ward residual scan report
+model_name: symmetry_bdg_2band
+pairings: dwave
+omega_eV: 0.01
+nk: 9
+mesh_size: 81
+delta0_eV: 0.1
+q0_precondition_status: {'dwave': 'convention_aware_pass'}
+diagnostic_run_completed: True
+ward_identity_closed: False
+workspace_evaluation: True
+shifted_mesh_average: {'enabled': True, 'shift_fractions': [0.0, 0.2, 0.4, 0.6, 0.8], 'shift_pairs': [[0.0, 0.0], [0.0, 0.2], [0.0, 0.4], [0.0, 0.6], [0.0, 0.8], [0.2, 0.0], [0.2, 0.2], [0.2, 0.4], [0.2, 0.6], [0.2, 0.8], [0.4, 0.0], [0.4, 0.2], [0.4, 0.4], [0.4, 0.6], [0.4, 0.8], [0.6, 0.0], [0.6, 0.2], [0.6, 0.4], [0.6, 0.6], [0.6, 0.8], [0.8, 0.0], [0.8, 0.2], [0.8, 0.4], [0.8, 0.6], [0.8, 0.8]], 'num_shifted_meshes': 25, 'valid_for_casimir_input': False}
+- dwave bare_bubble q=(0.02, 0.0): max_residual=3.427921e-03, inverse=inv
+- dwave direct q=(0.02, 0.0): max_residual=1.355375e-02, inverse=inv
+- dwave bare_total q=(0.02, 0.0): max_residual=1.351844e-02, inverse=inv
+- dwave minus_schur q=(0.02, 0.0): max_residual=3.715232e-03, inverse=inv
+- dwave plus_schur q=(0.02, 0.0): max_residual=2.366440e-02, inverse=inv
+- dwave amplitude_phase_schur q=(0.02, 0.0): max_residual=4.131513e-03, inverse=inv
+- collective-block dwave q=[0.02, 0.0]: dominant=aa_left norm=0.00475290961900951
+- operator-check dwave q=[0.02, 0.0]: first=3.7291573766128755e-15 contact=2.802542281530282e-15
+- integrated-chain dwave q=[0.02, 0.0]: bubble_to_equal_time=2.766048423891791e-18 equal_time_to_contact=0.004752909619009508
+valid_for_casimir_input: False
