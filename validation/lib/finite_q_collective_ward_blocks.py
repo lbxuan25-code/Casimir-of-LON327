@@ -19,14 +19,23 @@ BLOCK_IDENTITY_VERSION = "collective_block_v1"
 
 
 def collective_generators(delta0_eV: float) -> tuple[np.ndarray, np.ndarray]:
-    """Return the left and right collective gauge generators.
+    """Return left and right collective Ward generators.
 
-    The collective coordinate convention is eta2 = delta0 * theta, so the
-    finite-q Schur proof uses R_L=(0,+2i*delta0) and R_R=(0,-2i*delta0).
+    The production collective vertex convention is eta2 = delta0 * theta and
+    Gamma_eta2^H = [[0, i phi], [-i phi^dagger, 0]].  With the code's Peierls
+    source vertex satisfying q_i Gamma_i = H_+ tau3 - tau3 H_- in the diagonal
+    sector, the operator identity is
+
+        D Gamma_A - 2 i delta0 Gamma_eta2 = Q_+ tau3 - tau3 Q_-,
+
+    where D is the source-space electromagnetic Ward contraction.  After the
+    physical observable/source current mapping is absorbed into W, the block
+    identities are still written as W(K) + R K = 0, but the generator is
+    R_L=(0,-2i*delta0) and R_R=(0,+2i*delta0).
     """
 
     delta0 = float(delta0_eV)
-    return np.asarray([0.0 + 0.0j, 2j * delta0], dtype=complex), np.asarray([0.0 + 0.0j, -2j * delta0], dtype=complex)
+    return np.asarray([0.0 + 0.0j, -2j * delta0], dtype=complex), np.asarray([0.0 + 0.0j, 2j * delta0], dtype=complex)
 
 
 def left_em_contract(matrix: np.ndarray, omega_eV: float, q_model: Sequence[float] | np.ndarray) -> np.ndarray:
@@ -119,6 +128,7 @@ def _identity_decomposition_payload(
     first_array = np.asarray(first, dtype=complex)
     second_array = np.asarray(second, dtype=complex)
     residual = first_array + second_array
+    first_norm = float(np.linalg.norm(first_array))
     return {
         "identity": identity_name,
         "algebraic_form": f"{first_name} + {second_name} = 0",
@@ -130,19 +140,9 @@ def _identity_decomposition_payload(
         "residual": _vector_payload(residual, labels),
         "cosine_between_terms": _cosine(first_array, second_array),
         "cancellation_fraction": _cancellation_fraction(first_array, second_array),
-        "norm_ratio_second_to_first": (
-            None if float(np.linalg.norm(first_array)) == 0.0 else float(np.linalg.norm(second_array) / np.linalg.norm(first_array))
-        ),
+        "norm_ratio_second_to_first": None if first_norm == 0.0 else float(np.linalg.norm(second_array) / first_norm),
         "valid_for_casimir_input": False,
     }
-
-
-def _ranked_payloads(payloads: dict[str, dict[str, Any]], *, value_key: str = "norm") -> list[dict[str, Any]]:
-    return sorted(
-        ({"name": name, value_key: float(payload.get(value_key, payload.get("residual", {}).get(value_key, 0.0)))} for name, payload in payloads.items()),
-        key=lambda item: item[value_key],
-        reverse=True,
-    )
 
 
 def schur_residual_reconstruction(
@@ -290,6 +290,7 @@ def evaluate_collective_ward_blocks(
             "left": _complex_entries(r_left, COLLECTIVE_LABELS),
             "right": _complex_entries(r_right, COLLECTIVE_LABELS),
             "eta2_convention": "eta2 = delta0 * theta",
+            "operator_identity_convention": "D Gamma_A - 2i delta0 Gamma_eta2 = Q_plus tau3 - tau3 Q_minus",
         },
         "formal_identities": {
             "aa_left": "W_L(K_AA_full) + R_L K_etaA = 0",
