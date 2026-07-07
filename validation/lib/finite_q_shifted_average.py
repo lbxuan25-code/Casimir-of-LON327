@@ -22,6 +22,7 @@ from lno327.response.finite_q_bdg import (
     precompute_finite_q_bdg_workspace_from_model_ansatz,
 )
 from lno327.workflows.finite_q_engine import bdg_finite_q_response_imag_axis_from_workspace
+from validation.lib.finite_q_collective_ward_blocks import collective_generators, left_em_contract, right_em_contract
 from validation.lib.finite_q_integrated_ward_chain import evaluate_integrated_ward_chain
 from validation.lib.finite_q_integrated_ward_convergence import shifted_uniform_bz_mesh
 
@@ -55,7 +56,7 @@ CHAIN_VECTOR_KEYS = (
     "equal_time_to_contact_difference",
     "full_chain_residual",
 )
-DIRECT_QUADRATURE_MODES = ("center", "endpoint_average")
+DIRECT_QUADRATURE_MODES = ("center", "endpoint_average", "ward_conservative")
 
 
 def shift_pairs_from_fractions(shift_fractions: Sequence[float]) -> tuple[tuple[float, float], ...]:
@@ -77,6 +78,11 @@ def _mean_field(responses: Sequence[Any], field: str) -> Any:
 
 def _vector_from_payload(payload: dict[str, Any]) -> np.ndarray:
     return np.asarray([entry["real"] + 1j * entry["imag"] for entry in payload["vector"]], dtype=complex)
+
+
+def _complex_matrix_entries(matrix: np.ndarray) -> list[list[dict[str, float]]]:
+    array = np.asarray(matrix, dtype=complex)
+    return [[{"real": float(np.real(value)), "imag": float(np.imag(value))} for value in row] for row in array]
 
 
 def _vector_payload(vector: np.ndarray) -> dict[str, Any]:
@@ -238,7 +244,85 @@ def _endpoint_average_direct_contact(
     return 0.5 * (minus_direct + plus_direct)
 
 
-def _response_with_replaced_direct(response: Any, direct: np.ndarray, *, config: Any, q: np.ndarray) -> Any:
+def _ward_conservative_direct_contact(
+    response: Any,
+    *,
+    omega_eV: float,
+    q: np.ndarray,
+    delta0_eV: float,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    q_array = np.asarray(q, dtype=float).reshape(2)
+    if float(np.linalg.norm(q_array)) <= 0.0:
+        raise ValueError("ward_conservative direct quadrature requires nonzero q")
+    direct = np.asarray(response.direct, dtype=complex)
+    r_left, r_right = collective_generators(float(delta0_eV))
+    bubble_collective_left = left_em_contract(response.bare_bubble, omega_eV, q_array) + r_left @ np.asarray(response.collective_em_right, dtype=complex)
+    bubble_collective_right = right_em_contract(response.bare_bubble, omega_eV, q_array) + np.asarray(response.em_collective_left, dtype=complex) @ r_right
+    raw_left = left_em_contract(direct, omega_eV, q_array)
+    raw_right = right_em_contract(direct, omega_eV, q_array)
+    target_left = -bubble_collective_left
+    target_right = -bubble_collective_right
+    needed_left = target_left - raw_left
+    needed_right = target_right - raw_right
+    qx, qy = float(q_array[0]), float(q_array[1])
+    constraint = np.asarray(
+        [
+            [qx, 0.0, qy, 0.0],
+            [0.0, qx, 0.0, qy],
+            [-qx, -qy, 0.0, 0.0],
+            [0.0, 0.0, -qx, -qy],
+        ],
+        dtype=complex,
+    )
+    rhs = np.asarray([needed_left[1], needed_left[2], needed_right[1], needed_right[2]], dtype=complex)
+    solution, residuals, rank, singular_values = np.linalg.lstsq(constraint, rhs, rcond=None)
+    correction = np.zeros((3, 3), dtype=complex)
+    correction[1, 1] = solution[0]
+    correction[1, 2] = solution[1]
+    correction[2, 1] = solution[2]
+    correction[2, 2] = solution[3]
+    corrected = direct + correction
+    after_left = bubble_collective_left + left_em_contract(corrected, omega_eV, q_array)
+    after_right = bubble_collective_right + right_em_contract(corrected, omega_eV, q_array)
+    raw_after_left = bubble_collective_left + raw_left
+    raw_after_right = bubble_collective_right + raw_right
+    correction_norm = float(np.linalg.norm(correction))
+    direct_norm = float(np.linalg.norm(direct))
+    diagnostic = {
+        "mode": "ward_conservative",
+        "diagnostic_role": "longitudinal_direct_contact_replaced_by_discrete_block_Ward_constraint",
+        "constraint_unknowns": ["direct_xx", "direct_xy", "direct_yx", "direct_yy"],
+        "constraint_matrix_rank": int(rank),
+        "constraint_singular_values": [float(value) for value in singular_values],
+        "least_squares_residual_norm": float(np.linalg.norm(constraint @ solution - rhs)),
+        "least_squares_residuals_raw": [float(value) for value in np.asarray(residuals, dtype=float).reshape(-1)],
+        "correction": _matrix_payload(correction),
+        "correction_matrix": _complex_matrix_entries(correction),
+        "raw_direct": _matrix_payload(direct),
+        "corrected_direct": _matrix_payload(corrected),
+        "correction_norm_to_raw_direct_norm": None if direct_norm == 0.0 else float(correction_norm / direct_norm),
+        "raw_aa_left_residual": _vector_payload(raw_after_left),
+        "raw_aa_right_residual": _vector_payload(raw_after_right),
+        "corrected_aa_left_residual": _vector_payload(after_left),
+        "corrected_aa_right_residual": _vector_payload(after_right),
+        "unsatisfied_density_targets": {
+            "left_density": {"real": float(np.real(needed_left[0])), "imag": float(np.imag(needed_left[0]))},
+            "right_density": {"real": float(np.real(needed_right[0])), "imag": float(np.imag(needed_right[0]))},
+        },
+        "valid_for_casimir_input": False,
+    }
+    return corrected, diagnostic
+
+
+def _response_with_replaced_direct(
+    response: Any,
+    direct: np.ndarray,
+    *,
+    config: Any,
+    q: np.ndarray,
+    direct_quadrature: str,
+    direct_quadrature_diagnostic: dict[str, Any] | None = None,
+) -> Any:
     bare_total = np.asarray(response.bare_bubble, dtype=complex) + np.asarray(direct, dtype=complex)
     minus_result = apply_phase_only_schur(
         bare_total,
@@ -263,8 +347,9 @@ def _response_with_replaced_direct(response: Any, direct: np.ndarray, *, config:
     metadata = dict(response.metadata)
     metadata.update(
         {
-            "direct_quadrature": "endpoint_average",
-            "direct_quadrature_status": "validation_only_endpoint_translated_contact_integral",
+            "direct_quadrature": direct_quadrature,
+            "direct_quadrature_status": "validation_only_direct_quadrature_replacement",
+            "direct_quadrature_diagnostic": direct_quadrature_diagnostic,
             "collective_total_condition_number": amp_result.condition_number,
             "collective_inverse_method": amp_result.inverse_method,
             "phase_only_schur_status": minus_result.status,
@@ -371,6 +456,7 @@ def average_finite_q_bdg_response_over_shifts(
             options,
         )
         response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=config)
+        direct_quadrature_diagnostic = None
         if direct_quadrature == "endpoint_average":
             endpoint_direct = _endpoint_average_direct_contact(
                 spec=model.spec,
@@ -382,7 +468,28 @@ def average_finite_q_bdg_response_over_shifts(
                 pairing_params=pairing_params,
                 current_vertex=options.current_vertex,
             )
-            response = _response_with_replaced_direct(response, endpoint_direct, config=config, q=q)
+            response = _response_with_replaced_direct(
+                response,
+                endpoint_direct,
+                config=config,
+                q=q,
+                direct_quadrature=direct_quadrature,
+            )
+        elif direct_quadrature == "ward_conservative":
+            conservative_direct, direct_quadrature_diagnostic = _ward_conservative_direct_contact(
+                response,
+                omega_eV=float(config.omega_eV),
+                q=q,
+                delta0_eV=float(pairing_params.delta0_eV),
+            )
+            response = _response_with_replaced_direct(
+                response,
+                conservative_direct,
+                config=config,
+                q=q,
+                direct_quadrature=direct_quadrature,
+                direct_quadrature_diagnostic=direct_quadrature_diagnostic,
+            )
         chain = evaluate_integrated_ward_chain(workspace=workspace, response=response, delta0_eV=float(pairing_params.delta0_eV))
         responses.append(response)
         chains.append(chain)
@@ -398,6 +505,7 @@ def average_finite_q_bdg_response_over_shifts(
                 "collective_inverse_method": str(response.metadata.get("collective_inverse_method", "not_used")),
                 "collective_total_condition_number": response.metadata.get("collective_total_condition_number"),
                 "direct_quadrature": direct_quadrature,
+                "direct_quadrature_diagnostic": direct_quadrature_diagnostic,
                 "valid_for_casimir_input": False,
             }
         )
