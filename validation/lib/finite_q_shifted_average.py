@@ -13,9 +13,14 @@ from typing import Any, Sequence
 import numpy as np
 
 from lno327 import k_weights
-from lno327.collective.schur import apply_amplitude_phase_schur
+from lno327.collective.schur import apply_amplitude_phase_schur, apply_phase_only_schur
 from lno327.collective.validation import validate_physical_ward_identity
-from lno327.response.finite_q_bdg import precompute_finite_q_bdg_workspace_from_model_ansatz
+from lno327.response.finite_q_bdg import (
+    _thermal_expectation_from_bands,
+    bdg_contact_vertex_from_spec,
+    bdg_eigensystem_from_model_pairing,
+    precompute_finite_q_bdg_workspace_from_model_ansatz,
+)
 from lno327.workflows.finite_q_engine import bdg_finite_q_response_imag_axis_from_workspace
 from validation.lib.finite_q_integrated_ward_chain import evaluate_integrated_ward_chain
 from validation.lib.finite_q_integrated_ward_convergence import shifted_uniform_bz_mesh
@@ -50,6 +55,7 @@ CHAIN_VECTOR_KEYS = (
     "equal_time_to_contact_difference",
     "full_chain_residual",
 )
+DIRECT_QUADRATURE_MODES = ("center", "endpoint_average")
 
 
 def shift_pairs_from_fractions(shift_fractions: Sequence[float]) -> tuple[tuple[float, float], ...]:
@@ -57,6 +63,11 @@ def shift_pairs_from_fractions(shift_fractions: Sequence[float]) -> tuple[tuple[
     if not shifts:
         raise ValueError("shift_fractions must not be empty")
     return tuple((sx, sy) for sx in shifts for sy in shifts)
+
+
+def _wrap_bz_points(points: np.ndarray) -> np.ndarray:
+    array = np.asarray(points, dtype=float)
+    return ((array + np.pi) % (2.0 * np.pi)) - np.pi
 
 
 def _mean_field(responses: Sequence[Any], field: str) -> Any:
@@ -162,6 +173,128 @@ def _distribution_payload(vectors: Sequence[np.ndarray]) -> dict[str, Any]:
     }
 
 
+def _direct_contact_on_points(
+    *,
+    spec: Any,
+    ansatz: Any,
+    q: np.ndarray,
+    points: np.ndarray,
+    weights: np.ndarray,
+    config: Any,
+    pairing_params: Any,
+    current_vertex: str,
+) -> np.ndarray:
+    direct = np.zeros((3, 3), dtype=complex)
+    directions = ("x", "y")
+    qx, qy = float(q[0]), float(q[1])
+    for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
+        kx = float(kx_value)
+        ky = float(ky_value)
+        delta = ansatz.mean_pairing(kx, ky, pairing_params)
+        bands = bdg_eigensystem_from_model_pairing(spec, kx, ky, delta)
+        for i, di in enumerate(directions):
+            for j, dj in enumerate(directions):
+                vertex = bdg_contact_vertex_from_spec(spec, kx, ky, qx, qy, di, dj, current_vertex)
+                direct[1 + i, 1 + j] += -float(weight) * _thermal_expectation_from_bands(
+                    bands.energies, bands.states, vertex, config
+                )
+    return direct
+
+
+def _endpoint_average_direct_contact(
+    *,
+    spec: Any,
+    ansatz: Any,
+    q: np.ndarray,
+    center_points: np.ndarray,
+    weights: np.ndarray,
+    config: Any,
+    pairing_params: Any,
+    current_vertex: str,
+) -> np.ndarray:
+    half_q = 0.5 * np.asarray(q, dtype=float).reshape(2)
+    minus_points = _wrap_bz_points(np.asarray(center_points, dtype=float) - half_q)
+    plus_points = _wrap_bz_points(np.asarray(center_points, dtype=float) + half_q)
+    minus_direct = _direct_contact_on_points(
+        spec=spec,
+        ansatz=ansatz,
+        q=q,
+        points=minus_points,
+        weights=weights,
+        config=config,
+        pairing_params=pairing_params,
+        current_vertex=current_vertex,
+    )
+    plus_direct = _direct_contact_on_points(
+        spec=spec,
+        ansatz=ansatz,
+        q=q,
+        points=plus_points,
+        weights=weights,
+        config=config,
+        pairing_params=pairing_params,
+        current_vertex=current_vertex,
+    )
+    return 0.5 * (minus_direct + plus_direct)
+
+
+def _response_with_replaced_direct(response: Any, direct: np.ndarray, *, config: Any, q: np.ndarray) -> Any:
+    bare_total = np.asarray(response.bare_bubble, dtype=complex) + np.asarray(direct, dtype=complex)
+    minus_result = apply_phase_only_schur(
+        bare_total,
+        response.phase_coupling_left,
+        response.phase_phase_total,
+        response.phase_coupling_right,
+        sign="minus",
+    )
+    plus_result = apply_phase_only_schur(
+        bare_total,
+        response.phase_coupling_left,
+        response.phase_phase_total,
+        response.phase_coupling_right,
+        sign="plus",
+    )
+    amp_result = apply_amplitude_phase_schur(
+        bare_total,
+        response.em_collective_left,
+        response.collective_total,
+        response.collective_em_right,
+    )
+    metadata = dict(response.metadata)
+    metadata.update(
+        {
+            "direct_quadrature": "endpoint_average",
+            "direct_quadrature_status": "validation_only_endpoint_translated_contact_integral",
+            "collective_total_condition_number": amp_result.condition_number,
+            "collective_inverse_method": amp_result.inverse_method,
+            "phase_only_schur_status": minus_result.status,
+            "amplitude_phase_schur_status": amp_result.status,
+            "ward_residual_amplitude_phase_schur": _ward_payload(amp_result.corrected_response, float(config.omega_eV), q),
+            "valid_for_casimir_input": False,
+        }
+    )
+    return SimpleNamespace(
+        bare_bubble=response.bare_bubble,
+        direct=direct,
+        bare_total=bare_total,
+        phase_coupling_left=response.phase_coupling_left,
+        phase_coupling_right=response.phase_coupling_right,
+        phase_phase_bubble=response.phase_phase_bubble,
+        phase_phase_direct=response.phase_phase_direct,
+        phase_phase_total=response.phase_phase_total,
+        minus_schur=minus_result.corrected_response,
+        plus_schur=plus_result.corrected_response,
+        collective_bubble=response.collective_bubble,
+        collective_counterterm=response.collective_counterterm,
+        collective_total=response.collective_total,
+        em_collective_left=response.em_collective_left,
+        collective_em_right=response.collective_em_right,
+        amplitude_phase_schur=amp_result.corrected_response,
+        gauge_restored=amp_result.corrected_response,
+        metadata=metadata,
+    )
+
+
 def _average_chain(chains: Sequence[dict[str, Any]], *, pairing_name: str, q_model: np.ndarray, omega_eV: float, delta0_eV: float) -> dict[str, Any]:
     left_vectors: dict[str, np.ndarray] = {}
     for key in CHAIN_VECTOR_KEYS[:3]:
@@ -213,9 +346,12 @@ def average_finite_q_bdg_response_over_shifts(
     pairing_params: Any,
     options: Any,
     shift_fractions: Sequence[float],
+    direct_quadrature: str = "center",
 ) -> tuple[Any, dict[str, Any]]:
     """Average response components over shifted meshes and recompute Schur."""
 
+    if direct_quadrature not in DIRECT_QUADRATURE_MODES:
+        raise ValueError(f"direct_quadrature must be one of {DIRECT_QUADRATURE_MODES}")
     q = np.asarray(q_model, dtype=float)
     shift_pairs = shift_pairs_from_fractions(shift_fractions)
     responses: list[Any] = []
@@ -235,6 +371,18 @@ def average_finite_q_bdg_response_over_shifts(
             options,
         )
         response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=config)
+        if direct_quadrature == "endpoint_average":
+            endpoint_direct = _endpoint_average_direct_contact(
+                spec=model.spec,
+                ansatz=ansatz,
+                q=q,
+                center_points=points,
+                weights=weights,
+                config=config,
+                pairing_params=pairing_params,
+                current_vertex=options.current_vertex,
+            )
+            response = _response_with_replaced_direct(response, endpoint_direct, config=config, q=q)
         chain = evaluate_integrated_ward_chain(workspace=workspace, response=response, delta0_eV=float(pairing_params.delta0_eV))
         responses.append(response)
         chains.append(chain)
@@ -249,10 +397,12 @@ def average_finite_q_bdg_response_over_shifts(
                 "amplitude_phase_schur_ward": _ward_payload(response.amplitude_phase_schur, float(config.omega_eV), q),
                 "collective_inverse_method": str(response.metadata.get("collective_inverse_method", "not_used")),
                 "collective_total_condition_number": response.metadata.get("collective_total_condition_number"),
+                "direct_quadrature": direct_quadrature,
                 "valid_for_casimir_input": False,
             }
         )
     averaged_fields = {field: _mean_field(responses, field) for field in MATRIX_FIELDS + VECTOR_FIELDS + SCALAR_FIELDS}
+    averaged_fields["bare_total"] = averaged_fields["bare_bubble"] + averaged_fields["direct"]
     mean_per_shift_amp_schur = _mean_field(responses, "amplitude_phase_schur")
     schur_result = apply_amplitude_phase_schur(
         averaged_fields["bare_total"],
@@ -269,6 +419,7 @@ def average_finite_q_bdg_response_over_shifts(
             "shift_fractions": [float(value) for value in shift_fractions],
             "shift_pairs": [[float(x), float(y)] for x, y in shift_pairs],
             "num_shifted_meshes": len(shift_pairs),
+            "direct_quadrature": direct_quadrature,
             "collective_total_condition_number": schur_result.condition_number,
             "collective_inverse_method": schur_result.inverse_method,
             "amplitude_phase_schur_status": schur_result.status,
@@ -288,6 +439,7 @@ def average_finite_q_bdg_response_over_shifts(
         "enabled": True,
         "shift_fractions": [float(value) for value in shift_fractions],
         "shift_pairs": [[float(x), float(y)] for x, y in shift_pairs],
+        "direct_quadrature": direct_quadrature,
         "per_shift_summary": per_shift,
         "amplitude_phase_schur_ward_distribution": _distribution_payload(
             [
