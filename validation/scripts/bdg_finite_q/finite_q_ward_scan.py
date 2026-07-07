@@ -24,6 +24,7 @@ from lno327.response.finite_q_bdg import precompute_finite_q_bdg_workspace_from_
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions, bdg_finite_q_response_imag_axis_from_workspace  # noqa: E402
 from q0_bdg_response_alignment import run_q0_bdg_response_alignment_many  # noqa: E402
 from validation.lib.finite_q_collective_ward_blocks import evaluate_collective_ward_blocks  # noqa: E402
+from validation.lib.finite_q_integrated_ward_chain import evaluate_integrated_ward_chain  # noqa: E402
 from validation.lib.finite_q_operator_ward_checks import evaluate_bdg_operator_ward_checks  # noqa: E402
 from validation.lib.finite_q_validation_models import available_finite_q_validation_models, get_finite_q_validation_model  # noqa: E402
 
@@ -65,6 +66,7 @@ class FiniteQWardScanReport:
     rows: tuple[FiniteQWardScanRow, ...]
     collective_ward_blocks: tuple[dict[str, Any], ...]
     operator_ward_checks: tuple[dict[str, Any], ...]
+    integrated_ward_chains: tuple[dict[str, Any], ...]
     q0_alignment_prerequisite: dict[str, str]
     q0_precondition_status: dict[str, str]
     q_scaling_estimates: dict[str, float | None]
@@ -88,6 +90,7 @@ class FiniteQWardScanReport:
             "rows": [{**row.__dict__, "q_model": list(row.q_model), "valid_for_casimir_input": False} for row in self.rows],
             "collective_ward_blocks": list(self.collective_ward_blocks),
             "operator_ward_checks": list(self.operator_ward_checks),
+            "integrated_ward_chains": list(self.integrated_ward_chains),
             "q0_alignment_prerequisite": self.q0_alignment_prerequisite,
             "q0_precondition_status": self.q0_precondition_status,
             "q_scaling_estimates": self.q_scaling_estimates,
@@ -130,6 +133,12 @@ class FiniteQWardScanReport:
             lines.append(
                 f"- operator-check {payload.get('pairing_name')} q={payload.get('q_model')}: "
                 f"first={first.get('max_error_norm')} contact={contact.get('max_error_norm')}"
+            )
+        for payload in self.integrated_ward_chains:
+            lines.append(
+                f"- integrated-chain {payload.get('pairing_name')} q={payload.get('q_model')}: "
+                f"bubble_to_equal_time={payload.get('max_bubble_to_equal_time_difference_norm')} "
+                f"equal_time_to_contact={payload.get('max_equal_time_to_contact_difference_norm')}"
             )
         lines.append("valid_for_casimir_input: False")
         return "\n".join(lines)
@@ -257,6 +266,7 @@ def run_finite_q_ward_scan(
     rows: list[FiniteQWardScanRow] = []
     collective_ward_blocks: list[dict[str, Any]] = []
     operator_ward_checks: list[dict[str, Any]] = []
+    integrated_ward_chains: list[dict[str, Any]] = []
     schur_residual_differences: list[dict[str, Any]] = []
     scaling_inputs: dict[str, tuple[list[float], list[float]]] = {}
     for pairing_name in selected_pairings:
@@ -284,6 +294,7 @@ def run_finite_q_ward_scan(
                     model.spec, ansatz, q, points, mesh_weights, kubo, amp, options
                 )
                 response = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=kubo)
+                integrated_ward_chains.append(evaluate_integrated_ward_chain(workspace=workspace, response=response, delta0_eV=float(amp.delta0_eV)))
                 matrices = {name: getattr(response, name) for name in RESPONSE_NAMES}
                 collective_ward_blocks.append(
                     evaluate_collective_ward_blocks(
@@ -342,6 +353,7 @@ def run_finite_q_ward_scan(
         "bare_bubble, direct, bare_total, minus_schur, and plus_schur rows are decomposition outputs only.",
         "collective_ward_blocks reports the four block identities required by the Schur proof; it is diagnostic-only.",
         "operator_ward_checks reports matrix identities before Kubo integration; it is diagnostic-only.",
+        "integrated_ward_chains reports denominator-cancelled Ward proof steps; it is diagnostic-only.",
         "finite-q outputs remain valid_for_casimir_input=False.",
         f"model_name={model.name}; primary_validation_model={model.primary_validation_model}.",
         "left/right Ward residual vectors are ordered as density,current_x,current_y.",
@@ -359,6 +371,7 @@ def run_finite_q_ward_scan(
         rows=tuple(rows),
         collective_ward_blocks=tuple(collective_ward_blocks),
         operator_ward_checks=tuple(operator_ward_checks),
+        integrated_ward_chains=tuple(integrated_ward_chains),
         q0_alignment_prerequisite=q0_alignment,
         q0_precondition_status=q0_alignment,
         q_scaling_estimates=slopes,
