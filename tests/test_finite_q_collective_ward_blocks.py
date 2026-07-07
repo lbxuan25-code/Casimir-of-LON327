@@ -25,11 +25,11 @@ def _payload_vector(payload):
     return np.asarray([entry["real"] + 1j * entry["imag"] for entry in payload["vector"]])
 
 
-def test_collective_generators_follow_eta2_normalization():
+def test_collective_generators_follow_eta2_operator_identity_sign():
     left, right = collective_generators(0.1)
 
-    np.testing.assert_allclose(left, np.asarray([0.0 + 0.0j, 0.0 + 0.2j]))
-    np.testing.assert_allclose(right, np.asarray([0.0 + 0.0j, 0.0 - 0.2j]))
+    np.testing.assert_allclose(left, np.asarray([0.0 + 0.0j, 0.0 - 0.2j]))
+    np.testing.assert_allclose(right, np.asarray([0.0 + 0.0j, 0.0 + 0.2j]))
 
 
 def test_schur_reconstruction_is_exact_block_algebra():
