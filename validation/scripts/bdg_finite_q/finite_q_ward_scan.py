@@ -26,7 +26,11 @@ from q0_bdg_response_alignment import run_q0_bdg_response_alignment_many  # noqa
 from validation.lib.finite_q_collective_ward_blocks import evaluate_collective_ward_blocks  # noqa: E402
 from validation.lib.finite_q_integrated_ward_chain import evaluate_integrated_ward_chain  # noqa: E402
 from validation.lib.finite_q_operator_ward_checks import evaluate_bdg_operator_ward_checks  # noqa: E402
-from validation.lib.finite_q_shifted_average import average_finite_q_bdg_response_over_shifts, shift_pairs_from_fractions  # noqa: E402
+from validation.lib.finite_q_shifted_average import (  # noqa: E402
+    DIRECT_QUADRATURE_MODES,
+    average_finite_q_bdg_response_over_shifts,
+    shift_pairs_from_fractions,
+)
 from validation.lib.finite_q_validation_models import available_finite_q_validation_models, get_finite_q_validation_model  # noqa: E402
 
 WardScanPairingName = str
@@ -239,9 +243,14 @@ def run_finite_q_ward_scan(
     q0_status: dict[str, str] | None = None,
     average_shifted_meshes: bool = False,
     shift_fractions: tuple[float, ...] = (0.0,),
+    direct_quadrature: str = "center",
 ) -> FiniteQWardScanReport:
+    if direct_quadrature not in DIRECT_QUADRATURE_MODES:
+        raise ValueError(f"direct_quadrature must be one of {DIRECT_QUADRATURE_MODES}")
     if average_shifted_meshes and k_points is not None:
         raise ValueError("average_shifted_meshes requires internally generated uniform meshes, not explicit k_points")
+    if direct_quadrature != "center" and not average_shifted_meshes:
+        raise ValueError("non-center direct_quadrature is currently implemented only with average_shifted_meshes")
     model = get_finite_q_validation_model(model_name)
     selected_pairings = tuple(model.default_pairings if pairing_names is None else pairing_names)
     for pairing_name in selected_pairings:
@@ -262,6 +271,7 @@ def run_finite_q_ward_scan(
         "shift_fractions": [float(value) for value in shift_fractions],
         "shift_pairs": [[float(x), float(y)] for x, y in shift_pairs],
         "num_shifted_meshes": len(shift_pairs) if average_shifted_meshes else 1,
+        "direct_quadrature": direct_quadrature,
         "valid_for_casimir_input": False,
     }
     if q0_status is None:
@@ -316,6 +326,7 @@ def run_finite_q_ward_scan(
                         pairing_params=amp,
                         options=options,
                         shift_fractions=shift_fractions,
+                        direct_quadrature=direct_quadrature,
                     )
                 else:
                     workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(
@@ -384,6 +395,7 @@ def run_finite_q_ward_scan(
         "operator_ward_checks reports matrix identities before Kubo integration; it is diagnostic-only.",
         "integrated_ward_chains reports denominator-cancelled Ward proof checks; it is diagnostic-only.",
         "shifted_mesh_average is validation-only and does not promote finite-q data to Casimir input.",
+        "direct_quadrature endpoint_average translates only the contact integral quadrature to match finite-q endpoint routing; it is validation-only.",
         "finite-q outputs remain valid_for_casimir_input=False.",
         f"model_name={model.name}; primary_validation_model={model.primary_validation_model}.",
         "left/right Ward residual vectors are ordered as density,current_x,current_y.",
@@ -435,6 +447,7 @@ def run_and_write_report(
     q0_status: dict[str, str] | None = None,
     average_shifted_meshes: bool = False,
     shift_fractions: tuple[float, ...] = (0.0,),
+    direct_quadrature: str = "center",
 ) -> FiniteQWardScanReport:
     report = run_finite_q_ward_scan(
         pairings,
@@ -445,6 +458,7 @@ def run_and_write_report(
         q0_status=q0_status,
         average_shifted_meshes=average_shifted_meshes,
         shift_fractions=shift_fractions,
+        direct_quadrature=direct_quadrature,
     )
     _write_json(output_dir / "finite_q_ward_scan.json", report)
     _write_text(output_dir / "finite_q_ward_scan.txt", report)
@@ -462,6 +476,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--q0-status-json", type=Path, default=None)
     parser.add_argument("--average-shifted-meshes", action="store_true", default=False)
     parser.add_argument("--shift-fractions", nargs="+", type=float, default=[0.0])
+    parser.add_argument("--direct-quadrature", choices=DIRECT_QUADRATURE_MODES, default="center")
     args = parser.parse_args(argv)
     q0_status = _q0_status_from_json(args.q0_status_json) if args.q0_status_json is not None else None
     report = run_and_write_report(
@@ -474,6 +489,7 @@ def main(argv: list[str] | None = None) -> int:
         q0_status=q0_status,
         average_shifted_meshes=bool(args.average_shifted_meshes),
         shift_fractions=tuple(args.shift_fractions),
+        direct_quadrature=str(args.direct_quadrature),
     )
     print(report.format_text())
     return 0
