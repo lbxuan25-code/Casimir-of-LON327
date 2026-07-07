@@ -425,6 +425,14 @@
           3,
           3
         ],
+        "k_aa_bubble": [
+          3,
+          3
+        ],
+        "k_aa_direct": [
+          3,
+          3
+        ],
         "k_aeta": [
           3,
           2
@@ -926,6 +934,365 @@
           "valid_for_casimir_input": false
         }
       },
+      "aa_full_term_decomposition": {
+        "diagnostic_role": "aa_full_term_accounting_only",
+        "aa_full_definition": "K_AA_full = K_AA_bubble + K_AA_direct",
+        "aa_full_minus_bubble_plus_direct_norm": 0.0,
+        "left": {
+          "side": "left",
+          "diagnostic_role": "aa_full_term_accounting_only",
+          "terms": {
+            "W_L(K_AA_bubble)": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 9.440405535914567e-21,
+                  "imag": -0.0033927726400351087
+                },
+                {
+                  "component": "current_x",
+                  "real": 0.001116841939514418,
+                  "imag": -1.9041300654276672e-20
+                },
+                {
+                  "component": "current_y",
+                  "real": -2.6017675766099902e-20,
+                  "imag": -6.776263578034403e-23
+                }
+              ],
+              "norm": 0.0035718681533378482,
+              "max_abs": 0.0033927726400351087,
+              "dominant_component": "density",
+              "valid_for_casimir_input": false
+            },
+            "W_L(K_AA_direct)": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 0.0,
+                  "imag": 0.0
+                },
+                {
+                  "component": "current_x",
+                  "real": -0.002169504716934757,
+                  "imag": 0.0
+                },
+                {
+                  "component": "current_y",
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              ],
+              "norm": 0.002169504716934757,
+              "max_abs": 0.002169504716934757,
+              "dominant_component": "current_x",
+              "valid_for_casimir_input": false
+            },
+            "R_L K_etaA": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 4.2938747074280657e-19,
+                  "imag": 0.003392772640035108
+                },
+                {
+                  "component": "current_x",
+                  "real": 4.412604144768514e-05,
+                  "imag": 1.9449464655734837e-20
+                },
+                {
+                  "component": "current_y",
+                  "real": 1.829591166069289e-21,
+                  "imag": 2.9116757561866577e-23
+                }
+              ],
+              "norm": 0.0033930595772111985,
+              "max_abs": 0.003392772640035108,
+              "dominant_component": "density",
+              "valid_for_casimir_input": false
+            }
+          },
+          "sum": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 4.388278762787212e-19,
+                "imag": -8.673617379884035e-19
+              },
+              {
+                "component": "current_x",
+                "real": -0.0010085367359726537,
+                "imag": 4.081640014581649e-22
+              },
+              {
+                "component": "current_y",
+                "real": -2.4188084600030613e-20,
+                "imag": -3.864587821847745e-23
+              }
+            ],
+            "norm": 0.0010085367359726537,
+            "max_abs": 0.0010085367359726537,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "full_identity_residual": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 4.388278762787212e-19,
+                "imag": -8.673617379884035e-19
+              },
+              {
+                "component": "current_x",
+                "real": -0.001008536735972654,
+                "imag": 4.081640014581649e-22
+              },
+              {
+                "component": "current_y",
+                "real": -2.4188084600030613e-20,
+                "imag": -3.864587821847745e-23
+              }
+            ],
+            "norm": 0.001008536735972654,
+            "max_abs": 0.001008536735972654,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "sum_minus_full_identity_residual": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 0.0,
+                "imag": 0.0
+              },
+              {
+                "component": "current_x",
+                "real": 2.168404344971009e-19,
+                "imag": 0.0
+              },
+              {
+                "component": "current_y",
+                "real": 0.0,
+                "imag": 0.0
+              }
+            ],
+            "norm": 2.168404344971009e-19,
+            "max_abs": 2.168404344971009e-19,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "sum_minus_full_identity_residual_norm": 2.168404344971009e-19,
+          "valid_for_casimir_input": false
+        },
+        "right": {
+          "side": "right",
+          "diagnostic_role": "aa_full_term_accounting_only",
+          "terms": {
+            "W_R(K_AA_bubble)": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 9.270998946463707e-21,
+                  "imag": -0.0033927726400351087
+                },
+                {
+                  "component": "current_x",
+                  "real": -0.001116841939514418,
+                  "imag": 1.938011383317839e-20
+                },
+                {
+                  "component": "current_y",
+                  "real": 6.071320407682012e-20,
+                  "imag": 0.0
+                }
+              ],
+              "norm": 0.0035718681533378482,
+              "max_abs": 0.0033927726400351087,
+              "dominant_component": "density",
+              "valid_for_casimir_input": false
+            },
+            "W_R(K_AA_direct)": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 0.0,
+                  "imag": 0.0
+                },
+                {
+                  "component": "current_x",
+                  "real": 0.002169504716934757,
+                  "imag": 0.0
+                },
+                {
+                  "component": "current_y",
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              ],
+              "norm": 0.002169504716934757,
+              "max_abs": 0.002169504716934757,
+              "dominant_component": "current_x",
+              "valid_for_casimir_input": false
+            },
+            "K_Aeta R_R": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 3.9469273652547437e-19,
+                  "imag": 0.003392772640035108
+                },
+                {
+                  "component": "current_x",
+                  "real": -4.412604144768513e-05,
+                  "imag": -1.9379584437586357e-20
+                },
+                {
+                  "component": "current_y",
+                  "real": -1.9651164376299767e-21,
+                  "imag": 4.764560328305439e-24
+                }
+              ],
+              "norm": 0.0033930595772111985,
+              "max_abs": 0.003392772640035108,
+              "dominant_component": "density",
+              "valid_for_casimir_input": false
+            }
+          },
+          "sum": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 4.039637354719381e-19,
+                "imag": -8.673617379884035e-19
+              },
+              {
+                "component": "current_x",
+                "real": 0.0010085367359726537,
+                "imag": 5.293955920334562e-25
+              },
+              {
+                "component": "current_y",
+                "real": 5.874808763919015e-20,
+                "imag": 4.764560328305439e-24
+              }
+            ],
+            "norm": 0.0010085367359726537,
+            "max_abs": 0.0010085367359726537,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "full_identity_residual": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 4.039637354719381e-19,
+                "imag": -8.673617379884035e-19
+              },
+              {
+                "component": "current_x",
+                "real": 0.001008536735972654,
+                "imag": 5.293955920334562e-25
+              },
+              {
+                "component": "current_y",
+                "real": 5.874808763919015e-20,
+                "imag": 4.764560328305439e-24
+              }
+            ],
+            "norm": 0.001008536735972654,
+            "max_abs": 0.001008536735972654,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "sum_minus_full_identity_residual": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 0.0,
+                "imag": 0.0
+              },
+              {
+                "component": "current_x",
+                "real": -2.168404344971009e-19,
+                "imag": 0.0
+              },
+              {
+                "component": "current_y",
+                "real": 0.0,
+                "imag": 0.0
+              }
+            ],
+            "norm": 2.168404344971009e-19,
+            "max_abs": 2.168404344971009e-19,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "sum_minus_full_identity_residual_norm": 2.168404344971009e-19,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "aa_full_minus_bubble_plus_direct_norm": 0.0,
       "ranked_block_residuals": [
         {
           "block": "aa_left",
