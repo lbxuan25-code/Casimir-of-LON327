@@ -394,7 +394,7 @@
           {
             "component": "phase_eta2",
             "real": 0.0,
-            "imag": 0.08
+            "imag": -0.08
           }
         ],
         "right": [
@@ -406,10 +406,11 @@
           {
             "component": "phase_eta2",
             "real": 0.0,
-            "imag": -0.08
+            "imag": 0.08
           }
         ],
-        "eta2_convention": "eta2 = delta0 * theta"
+        "eta2_convention": "eta2 = delta0 * theta",
+        "operator_identity_convention": "D Gamma_A - 2i delta0 Gamma_eta2 = Q_plus tau3 - tau3 Q_minus"
       },
       "formal_identities": {
         "aa_left": "W_L(K_AA_full) + R_L K_etaA = 0",
@@ -473,23 +474,23 @@
           "vector": [
             {
               "component": "density",
-              "real": -4.19947065206892e-19,
-              "imag": -0.006785545280070217
+              "real": 4.388278762787212e-19,
+              "imag": -8.673617379884035e-19
             },
             {
               "component": "current_x",
-              "real": -0.0010967888188680242,
-              "imag": -3.8490765310011506e-20
+              "real": -0.001008536735972654,
+              "imag": 4.081640014581649e-22
             },
             {
               "component": "current_y",
-              "real": -2.784726693216919e-20,
-              "imag": -9.68793933422106e-23
+              "real": -2.4188084600030613e-20,
+              "imag": -3.864587821847745e-23
             }
           ],
-          "norm": 0.006873614075657514,
-          "max_abs": 0.006785545280070217,
-          "dominant_component": "density",
+          "norm": 0.001008536735972654,
+          "max_abs": 0.001008536735972654,
+          "dominant_component": "current_x",
           "valid_for_casimir_input": false
         },
         "aeta_left": {
@@ -500,18 +501,18 @@
           "vector": [
             {
               "component": "amplitude_eta1",
-              "real": -8.500920033311892e-19,
-              "imag": -0.02106767230077615
+              "real": 9.162488964609059e-19,
+              "imag": -1.214306433183765e-17
             },
             {
               "component": "phase_eta2",
-              "real": 1.3347135961074598e-19,
-              "imag": 0.0008537324800933824
+              "real": -3.722062353407568e-20,
+              "imag": -2.3564903644786393e-08
             }
           ],
-          "norm": 0.021084963251579478,
-          "max_abs": 0.02106767230077615,
-          "dominant_component": "amplitude_eta1",
+          "norm": 2.3564903644786393e-08,
+          "max_abs": 2.3564903644786393e-08,
+          "dominant_component": "phase_eta2",
           "valid_for_casimir_input": false
         },
         "aa_right": {
@@ -523,23 +524,23 @@
           "vector": [
             {
               "component": "density",
-              "real": -3.8542173757901066e-19,
-              "imag": -0.006785545280070217
+              "real": 4.039637354719381e-19,
+              "imag": -8.673617379884035e-19
             },
             {
               "component": "current_x",
-              "real": 0.0010967888188680242,
-              "imag": 3.875969827076475e-20
+              "real": 0.001008536735972654,
+              "imag": 5.293955920334562e-25
             },
             {
               "component": "current_y",
-              "real": 6.267832051445009e-20,
-              "imag": -4.764560328305439e-24
+              "real": 5.874808763919015e-20,
+              "imag": 4.764560328305439e-24
             }
           ],
-          "norm": 0.006873614075657514,
-          "max_abs": 0.006785545280070217,
-          "dominant_component": "density",
+          "norm": 0.001008536735972654,
+          "max_abs": 0.001008536735972654,
+          "dominant_component": "current_x",
           "valid_for_casimir_input": false
         },
         "etaa_right": {
@@ -550,47 +551,550 @@
           "vector": [
             {
               "component": "amplitude_eta1",
-              "real": -5.290721521618166e-18,
-              "imag": -0.02106767230077615
+              "real": 5.356861474088938e-18,
+              "imag": -1.214306433183765e-17
             },
             {
               "component": "phase_eta2",
-              "real": -1.3780383387427823e-19,
-              "imag": -0.0008537324800933824
+              "real": 3.2888149270543434e-20,
+              "imag": 2.3564903644786393e-08
             }
           ],
-          "norm": 0.021084963251579478,
-          "max_abs": 0.02106767230077615,
-          "dominant_component": "amplitude_eta1",
+          "norm": 2.3564903644786393e-08,
+          "max_abs": 2.3564903644786393e-08,
+          "dominant_component": "phase_eta2",
+          "valid_for_casimir_input": false
+        }
+      },
+      "block_decomposition": {
+        "aa_left": {
+          "identity": "W_L(K_AA_full) + R_L K_etaA = 0",
+          "algebraic_form": "W_L(K_AA_full) + R_L K_etaA = 0",
+          "labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "terms": {
+            "W_L(K_AA_full)": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 9.440405535914567e-21,
+                  "imag": -0.0033927726400351087
+                },
+                {
+                  "component": "current_x",
+                  "real": -0.001052662777420339,
+                  "imag": -1.9041300654276672e-20
+                },
+                {
+                  "component": "current_y",
+                  "real": -2.6017675766099902e-20,
+                  "imag": -6.776263578034403e-23
+                }
+              ],
+              "norm": 0.0035523239027342515,
+              "max_abs": 0.0033927726400351087,
+              "dominant_component": "density",
+              "valid_for_casimir_input": false
+            },
+            "R_L K_etaA": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 4.2938747074280657e-19,
+                  "imag": 0.003392772640035108
+                },
+                {
+                  "component": "current_x",
+                  "real": 4.412604144768514e-05,
+                  "imag": 1.9449464655734837e-20
+                },
+                {
+                  "component": "current_y",
+                  "real": 1.829591166069289e-21,
+                  "imag": 2.9116757561866577e-23
+                }
+              ],
+              "norm": 0.0033930595772111985,
+              "max_abs": 0.003392772640035108,
+              "dominant_component": "density",
+              "valid_for_casimir_input": false
+            }
+          },
+          "residual": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 4.388278762787212e-19,
+                "imag": -8.673617379884035e-19
+              },
+              {
+                "component": "current_x",
+                "real": -0.001008536735972654,
+                "imag": 4.081640014581649e-22
+              },
+              {
+                "component": "current_y",
+                "real": -2.4188084600030613e-20,
+                "imag": -3.864587821847745e-23
+              }
+            ],
+            "norm": 0.001008536735972654,
+            "max_abs": 0.001008536735972654,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "cosine_between_terms": -0.9588583370073294,
+          "cancellation_fraction": 0.8547903454309228,
+          "norm_ratio_second_to_first": 0.9551661588628035,
+          "valid_for_casimir_input": false
+        },
+        "aeta_left": {
+          "identity": "W_L(K_Aeta) + R_L K_etaeta = 0",
+          "algebraic_form": "W_L(K_Aeta) + R_L K_etaeta = 0",
+          "labels": [
+            "amplitude_eta1",
+            "phase_eta2"
+          ],
+          "terms": {
+            "W_L(K_Aeta)": {
+              "labels": [
+                "amplitude_eta1",
+                "phase_eta2"
+              ],
+              "vector": [
+                {
+                  "component": "amplitude_eta1",
+                  "real": 3.307844656485827e-20,
+                  "imag": -0.01053383615038808
+                },
+                {
+                  "component": "phase_eta2",
+                  "real": 4.812536803833515e-20,
+                  "imag": 0.0004268544575948688
+                }
+              ],
+              "norm": 0.010542481148723548,
+              "max_abs": 0.01053383615038808,
+              "dominant_component": "amplitude_eta1",
+              "valid_for_casimir_input": false
+            },
+            "R_L K_etaeta": {
+              "labels": [
+                "amplitude_eta1",
+                "phase_eta2"
+              ],
+              "vector": [
+                {
+                  "component": "amplitude_eta1",
+                  "real": 8.831704498960475e-19,
+                  "imag": 0.010533836150388068
+                },
+                {
+                  "component": "phase_eta2",
+                  "real": -8.534599157241083e-20,
+                  "imag": -0.0004268780224985136
+                }
+              ],
+              "norm": 0.010542482102869075,
+              "max_abs": 0.010533836150388068,
+              "dominant_component": "amplitude_eta1",
+              "valid_for_casimir_input": false
+            }
+          },
+          "residual": {
+            "labels": [
+              "amplitude_eta1",
+              "phase_eta2"
+            ],
+            "vector": [
+              {
+                "component": "amplitude_eta1",
+                "real": 9.162488964609059e-19,
+                "imag": -1.214306433183765e-17
+              },
+              {
+                "component": "phase_eta2",
+                "real": -3.722062353407568e-20,
+                "imag": -2.3564903644786393e-08
+              }
+            ],
+            "norm": 2.3564903644786393e-08,
+            "max_abs": 2.3564903644786393e-08,
+            "dominant_component": "phase_eta2",
+            "valid_for_casimir_input": false
+          },
+          "cosine_between_terms": -0.9999999999975058,
+          "cancellation_fraction": 0.9999988823834615,
+          "norm_ratio_second_to_first": 1.0000000905048358,
+          "valid_for_casimir_input": false
+        },
+        "aa_right": {
+          "identity": "W_R(K_AA_full) + K_Aeta R_R = 0",
+          "algebraic_form": "W_R(K_AA_full) + K_Aeta R_R = 0",
+          "labels": [
+            "density",
+            "current_x",
+            "current_y"
+          ],
+          "terms": {
+            "W_R(K_AA_full)": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 9.270998946463707e-21,
+                  "imag": -0.0033927726400351087
+                },
+                {
+                  "component": "current_x",
+                  "real": 0.001052662777420339,
+                  "imag": 1.938011383317839e-20
+                },
+                {
+                  "component": "current_y",
+                  "real": 6.071320407682012e-20,
+                  "imag": 0.0
+                }
+              ],
+              "norm": 0.0035523239027342515,
+              "max_abs": 0.0033927726400351087,
+              "dominant_component": "density",
+              "valid_for_casimir_input": false
+            },
+            "K_Aeta R_R": {
+              "labels": [
+                "density",
+                "current_x",
+                "current_y"
+              ],
+              "vector": [
+                {
+                  "component": "density",
+                  "real": 3.9469273652547437e-19,
+                  "imag": 0.003392772640035108
+                },
+                {
+                  "component": "current_x",
+                  "real": -4.412604144768513e-05,
+                  "imag": -1.9379584437586357e-20
+                },
+                {
+                  "component": "current_y",
+                  "real": -1.9651164376299767e-21,
+                  "imag": 4.764560328305439e-24
+                }
+              ],
+              "norm": 0.0033930595772111985,
+              "max_abs": 0.003392772640035108,
+              "dominant_component": "density",
+              "valid_for_casimir_input": false
+            }
+          },
+          "residual": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 4.039637354719381e-19,
+                "imag": -8.673617379884035e-19
+              },
+              {
+                "component": "current_x",
+                "real": 0.001008536735972654,
+                "imag": 5.293955920334562e-25
+              },
+              {
+                "component": "current_y",
+                "real": 5.874808763919015e-20,
+                "imag": 4.764560328305439e-24
+              }
+            ],
+            "norm": 0.001008536735972654,
+            "max_abs": 0.001008536735972654,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "cosine_between_terms": -0.9588583370073294,
+          "cancellation_fraction": 0.8547903454309228,
+          "norm_ratio_second_to_first": 0.9551661588628035,
+          "valid_for_casimir_input": false
+        },
+        "etaa_right": {
+          "identity": "W_R(K_etaA) + K_etaeta R_R = 0",
+          "algebraic_form": "W_R(K_etaA) + K_etaeta R_R = 0",
+          "labels": [
+            "amplitude_eta1",
+            "phase_eta2"
+          ],
+          "terms": {
+            "W_R(K_etaA)": {
+              "labels": [
+                "amplitude_eta1",
+                "phase_eta2"
+              ],
+              "vector": [
+                {
+                  "component": "amplitude_eta1",
+                  "real": 3.306997623538573e-20,
+                  "imag": -0.01053383615038808
+                },
+                {
+                  "component": "phase_eta2",
+                  "real": -5.2457842301867396e-20,
+                  "imag": -0.0004268544575948688
+                }
+              ],
+              "norm": 0.010542481148723548,
+              "max_abs": 0.01053383615038808,
+              "dominant_component": "amplitude_eta1",
+              "valid_for_casimir_input": false
+            },
+            "K_etaeta R_R": {
+              "labels": [
+                "amplitude_eta1",
+                "phase_eta2"
+              ],
+              "vector": [
+                {
+                  "component": "amplitude_eta1",
+                  "real": 5.323791497853552e-18,
+                  "imag": 0.010533836150388068
+                },
+                {
+                  "component": "phase_eta2",
+                  "real": 8.534599157241083e-20,
+                  "imag": 0.0004268780224985136
+                }
+              ],
+              "norm": 0.010542482102869075,
+              "max_abs": 0.010533836150388068,
+              "dominant_component": "amplitude_eta1",
+              "valid_for_casimir_input": false
+            }
+          },
+          "residual": {
+            "labels": [
+              "amplitude_eta1",
+              "phase_eta2"
+            ],
+            "vector": [
+              {
+                "component": "amplitude_eta1",
+                "real": 5.356861474088938e-18,
+                "imag": -1.214306433183765e-17
+              },
+              {
+                "component": "phase_eta2",
+                "real": 3.2888149270543434e-20,
+                "imag": 2.3564903644786393e-08
+              }
+            ],
+            "norm": 2.3564903644786393e-08,
+            "max_abs": 2.3564903644786393e-08,
+            "dominant_component": "phase_eta2",
+            "valid_for_casimir_input": false
+          },
+          "cosine_between_terms": -0.9999999999975058,
+          "cancellation_fraction": 0.9999988823834615,
+          "norm_ratio_second_to_first": 1.0000000905048358,
           "valid_for_casimir_input": false
         }
       },
       "ranked_block_residuals": [
         {
-          "block": "aeta_left",
-          "norm": 0.021084963251579478,
-          "max_abs": 0.02106767230077615
-        },
-        {
-          "block": "etaa_right",
-          "norm": 0.021084963251579478,
-          "max_abs": 0.02106767230077615
-        },
-        {
           "block": "aa_left",
-          "norm": 0.006873614075657514,
-          "max_abs": 0.006785545280070217
+          "norm": 0.001008536735972654,
+          "max_abs": 0.001008536735972654
         },
         {
           "block": "aa_right",
-          "norm": 0.006873614075657514,
-          "max_abs": 0.006785545280070217
+          "norm": 0.001008536735972654,
+          "max_abs": 0.001008536735972654
+        },
+        {
+          "block": "aeta_left",
+          "norm": 2.3564903644786393e-08,
+          "max_abs": 2.3564903644786393e-08
+        },
+        {
+          "block": "etaa_right",
+          "norm": 2.3564903644786393e-08,
+          "max_abs": 2.3564903644786393e-08
         }
       ],
       "dominant_block_residual": {
-        "block": "aeta_left",
-        "norm": 0.021084963251579478,
-        "max_abs": 0.02106767230077615
+        "block": "aa_left",
+        "norm": 0.001008536735972654,
+        "max_abs": 0.001008536735972654
+      },
+      "schur_contribution_breakdown": {
+        "contributions": {
+          "left_from_aa_identity": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 4.388278762787212e-19,
+                "imag": -8.673617379884035e-19
+              },
+              {
+                "component": "current_x",
+                "real": -0.001008536735972654,
+                "imag": 4.081640014581649e-22
+              },
+              {
+                "component": "current_y",
+                "real": -2.4188084600030613e-20,
+                "imag": -3.864587821847745e-23
+              }
+            ],
+            "norm": 0.001008536735972654,
+            "max_abs": 0.001008536735972654,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "left_from_aeta_identity": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": -2.957416460141313e-19,
+                "imag": -1.8840272640380298e-07
+              },
+              {
+                "component": "current_x",
+                "real": -2.3100968900565066e-10,
+                "imag": 3.837744421238831e-21
+              },
+              {
+                "component": "current_y",
+                "real": -9.996363095541959e-27,
+                "imag": 2.929580206267171e-27
+              }
+            ],
+            "norm": 1.8840286802982236e-07,
+            "max_abs": 1.8840272640380298e-07,
+            "dominant_component": "density",
+            "valid_for_casimir_input": false
+          },
+          "right_from_aa_identity": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": 4.039637354719381e-19,
+                "imag": -8.673617379884035e-19
+              },
+              {
+                "component": "current_x",
+                "real": 0.001008536735972654,
+                "imag": 5.293955920334562e-25
+              },
+              {
+                "component": "current_y",
+                "real": 5.874808763919015e-20,
+                "imag": 4.764560328305439e-24
+              }
+            ],
+            "norm": 0.001008536735972654,
+            "max_abs": 0.001008536735972654,
+            "dominant_component": "current_x",
+            "valid_for_casimir_input": false
+          },
+          "right_from_etaa_identity": {
+            "labels": [
+              "density",
+              "current_x",
+              "current_y"
+            ],
+            "vector": [
+              {
+                "component": "density",
+                "real": -2.526843199648357e-19,
+                "imag": -1.8840272640380298e-07
+              },
+              {
+                "component": "current_x",
+                "real": 2.3100968900565014e-10,
+                "imag": -2.0632808303314967e-20
+              },
+              {
+                "component": "current_y",
+                "real": 1.0915587139514603e-26,
+                "imag": -9.845963576771924e-28
+              }
+            ],
+            "norm": 1.8840286802982236e-07,
+            "max_abs": 1.8840272640380298e-07,
+            "dominant_component": "density",
+            "valid_for_casimir_input": false
+          }
+        },
+        "ranked_contributions": [
+          {
+            "contribution": "left_from_aa_identity",
+            "norm": 0.001008536735972654,
+            "max_abs": 0.001008536735972654
+          },
+          {
+            "contribution": "right_from_aa_identity",
+            "norm": 0.001008536735972654,
+            "max_abs": 0.001008536735972654
+          },
+          {
+            "contribution": "left_from_aeta_identity",
+            "norm": 1.8840286802982236e-07,
+            "max_abs": 1.8840272640380298e-07
+          },
+          {
+            "contribution": "right_from_etaa_identity",
+            "norm": 1.8840286802982236e-07,
+            "max_abs": 1.8840272640380298e-07
+          }
+        ],
+        "left_cancellation_fraction": 0.00018652678864861105,
+        "right_cancellation_fraction": 0.00018652678864861105,
+        "left_cosine_between_contributions": 0.0012261474117753136,
+        "right_cosine_between_contributions": 0.001226147411775311,
+        "valid_for_casimir_input": false
       },
       "schur_reconstruction": {
         "inverse_method": "inv",
@@ -660,18 +1164,18 @@
           "vector": [
             {
               "component": "density",
-              "real": 1.430862302645878e-19,
-              "imag": -1.8840272640163053e-07
+              "real": 1.4308623026458988e-19,
+              "imag": -1.8840272640467034e-07
             },
             {
               "component": "current_x",
               "real": -0.001008536966982343,
-              "imag": 4.245908422697028e-21
+              "imag": 4.245908422696996e-21
             },
             {
               "component": "current_y",
-              "real": -2.4188094596393706e-20,
-              "imag": -3.8642948638271224e-23
+              "real": -2.418809459639371e-20,
+              "imag": -3.864294863827118e-23
             }
           ],
           "norm": 0.0010085369845799067,
@@ -688,18 +1192,18 @@
           "vector": [
             {
               "component": "density",
-              "real": 1.5127941550710145e-19,
-              "imag": -1.8840272640163053e-07
+              "real": 1.5127941550710237e-19,
+              "imag": -1.8840272640467034e-07
             },
             {
               "component": "current_x",
               "real": 0.001008536966982343,
-              "imag": -2.0632278907722967e-20
+              "imag": -2.0632278907722933e-20
             },
             {
               "component": "current_y",
-              "real": 5.874809855477728e-20,
-              "imag": 4.763575731947777e-24
+              "real": 5.874809855477729e-20,
+              "imag": 4.763575731947762e-24
             }
           ],
           "norm": 0.0010085369845799067,
@@ -716,22 +1220,22 @@
           "vector": [
             {
               "component": "density",
-              "real": 1.1074097180226606e-33,
-              "imag": -1.5009423825346202e-18
+              "real": -9.62964972193618e-34,
+              "imag": 1.5388735767038518e-18
             },
             {
               "component": "current_x",
               "real": 0.0,
-              "imag": -2.0312542382209128e-35
+              "imag": 1.2037062152420224e-35
             },
             {
               "component": "current_y",
-              "real": -3.009265538105056e-36,
-              "imag": 2.938735877055719e-38
+              "real": 0.0,
+              "imag": -1.1754943508222875e-38
             }
           ],
-          "norm": 1.5009423825346202e-18,
-          "max_abs": 1.5009423825346202e-18,
+          "norm": 1.5388735767038518e-18,
+          "max_abs": 1.5388735767038518e-18,
           "dominant_component": "density",
           "valid_for_casimir_input": false
         },
@@ -744,26 +1248,26 @@
           "vector": [
             {
               "component": "density",
-              "real": 4.333342374871281e-34,
-              "imag": -1.5009423825346202e-18
+              "real": -4.81482486096809e-34,
+              "imag": 1.5388735767038518e-18
             },
             {
               "component": "current_x",
               "real": 0.0,
-              "imag": 2.1064858766735392e-35
+              "imag": -1.2037062152420224e-35
             },
             {
               "component": "current_y",
-              "real": 0.0,
-              "imag": -1.0285575569695016e-38
+              "real": -1.2037062152420224e-35,
+              "imag": 5.142787784847508e-39
             }
           ],
-          "norm": 1.5009423825346202e-18,
-          "max_abs": 1.5009423825346202e-18,
+          "norm": 1.5388735767038518e-18,
+          "max_abs": 1.5388735767038518e-18,
           "dominant_component": "density",
           "valid_for_casimir_input": false
         },
-        "max_difference_norm": 1.5009423825346202e-18
+        "max_difference_norm": 1.5388735767038518e-18
       },
       "valid_for_casimir_input": false
     }
