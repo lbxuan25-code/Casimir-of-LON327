@@ -73,4 +73,12 @@ workspace_evaluation: True
 - operator-check dwave q=[0.005, 0.0]: first=1.6394303343078566e-15 contact=1.5165819988727236e-15
 - operator-check dwave q=[0.01, 0.0]: first=1.5602904822075792e-15 contact=1.966378304186755e-15
 - operator-check dwave q=[0.02, 0.0]: first=3.7291573766128755e-15 contact=2.802542281530282e-15
+- integrated-chain spm q=[0.0025, 0.0]: bubble_to_equal_time=6.813617385797621e-18 equal_time_to_contact=9.06221691706734e-05
+- integrated-chain spm q=[0.005, 0.0]: bubble_to_equal_time=3.519804060885021e-18 equal_time_to_contact=0.00017971962701351235
+- integrated-chain spm q=[0.01, 0.0]: bubble_to_equal_time=2.0543505282229205e-17 equal_time_to_contact=0.00034733878877893365
+- integrated-chain spm q=[0.02, 0.0]: bubble_to_equal_time=1.3613186558403034e-17 equal_time_to_contact=0.000600988287754978
+- integrated-chain dwave q=[0.0025, 0.0]: bubble_to_equal_time=3.720538571439346e-18 equal_time_to_contact=0.0015151375229606864
+- integrated-chain dwave q=[0.005, 0.0]: bubble_to_equal_time=2.845154679564005e-18 equal_time_to_contact=0.003030168754378867
+- integrated-chain dwave q=[0.01, 0.0]: bubble_to_equal_time=3.621713220576517e-18 equal_time_to_contact=0.006059481974011678
+- integrated-chain dwave q=[0.02, 0.0]: bubble_to_equal_time=2.4102980549806322e-18 equal_time_to_contact=0.012111932873629787
 valid_for_casimir_input: False
