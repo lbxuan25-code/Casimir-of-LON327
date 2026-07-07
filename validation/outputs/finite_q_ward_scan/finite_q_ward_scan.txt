@@ -1,19 +1,76 @@
 finite-q Ward residual scan report
-model_name: lno327_four_orbital
-pairings: spm
+model_name: symmetry_bdg_2band
+pairings: spm, dwave
 omega_eV: 0.01
-nk: 2
-mesh_size: 4
-delta0_eV: 0.04
-q0_precondition_status: {'spm': 'convention_aware_pass'}
+nk: 9
+mesh_size: 81
+delta0_eV: 0.1
+q0_precondition_status: {'spm': 'convention_aware_pass', 'dwave': 'convention_aware_pass'}
 diagnostic_run_completed: True
 ward_identity_closed: False
 workspace_evaluation: True
-- spm bare_bubble q=(0.005, 0.0): max_residual=3.571868e-03, inverse=inv
-- spm direct q=(0.005, 0.0): max_residual=2.169505e-03, inverse=inv
-- spm bare_total q=(0.005, 0.0): max_residual=3.552324e-03, inverse=inv
-- spm minus_schur q=(0.005, 0.0): max_residual=1.008539e-03, inverse=inv
-- spm plus_schur q=(0.005, 0.0): max_residual=6.873429e-03, inverse=inv
-- spm amplitude_phase_schur q=(0.005, 0.0): max_residual=1.008537e-03, inverse=inv
-- collective-block spm q=[0.005, 0.0]: dominant=aa_left norm=0.001008536735972654
+- spm bare_bubble q=(0.0025, 0.0): max_residual=3.320803e-03, inverse=inv
+- spm direct q=(0.0025, 0.0): max_residual=1.727481e-03, inverse=inv
+- spm bare_total q=(0.0025, 0.0): max_residual=3.733130e-03, inverse=inv
+- spm minus_schur q=(0.0025, 0.0): max_residual=8.829856e-05, inverse=inv
+- spm plus_schur q=(0.0025, 0.0): max_residual=7.498909e-03, inverse=inv
+- spm amplitude_phase_schur q=(0.0025, 0.0): max_residual=9.787828e-05, inverse=inv
+- spm bare_bubble q=(0.005, 0.0): max_residual=3.319920e-03, inverse=inv
+- spm direct q=(0.005, 0.0): max_residual=3.454956e-03, inverse=inv
+- spm bare_total q=(0.005, 0.0): max_residual=4.757167e-03, inverse=inv
+- spm minus_schur q=(0.005, 0.0): max_residual=2.088653e-04, inverse=inv
+- spm plus_schur q=(0.005, 0.0): max_residual=9.676086e-03, inverse=inv
+- spm amplitude_phase_schur q=(0.005, 0.0): max_residual=2.358974e-04, inverse=inv
+- spm bare_bubble q=(0.01, 0.0): max_residual=3.317291e-03, inverse=inv
+- spm direct q=(0.01, 0.0): max_residual=6.909869e-03, inverse=inv
+- spm bare_total q=(0.01, 0.0): max_residual=7.552150e-03, inverse=inv
+- spm minus_schur q=(0.01, 0.0): max_residual=6.781869e-04, inverse=inv
+- spm plus_schur q=(0.01, 0.0): max_residual=1.576104e-02, inverse=inv
+- spm amplitude_phase_schur q=(0.01, 0.0): max_residual=6.749803e-04, inverse=inv
+- spm bare_bubble q=(0.02, 0.0): max_residual=3.331160e-03, inverse=inv
+- spm direct q=(0.02, 0.0): max_residual=1.381939e-02, inverse=inv
+- spm bare_total q=(0.02, 0.0): max_residual=1.374013e-02, inverse=inv
+- spm minus_schur q=(0.02, 0.0): max_residual=1.808789e-03, inverse=inv
+- spm plus_schur q=(0.02, 0.0): max_residual=2.928151e-02, inverse=inv
+- spm amplitude_phase_schur q=(0.02, 0.0): max_residual=1.770989e-03, inverse=inv
+- dwave bare_bubble q=(0.0025, 0.0): max_residual=1.565030e-03, inverse=inv
+- dwave direct q=(0.0025, 0.0): max_residual=1.749292e-03, inverse=inv
+- dwave bare_total q=(0.0025, 0.0): max_residual=2.331366e-03, inverse=inv
+- dwave minus_schur q=(0.0025, 0.0): max_residual=1.510949e-03, inverse=inv
+- dwave plus_schur q=(0.0025, 0.0): max_residual=3.713748e-03, inverse=inv
+- dwave amplitude_phase_schur q=(0.0025, 0.0): max_residual=1.511845e-03, inverse=inv
+- dwave bare_bubble q=(0.005, 0.0): max_residual=1.565483e-03, inverse=inv
+- dwave direct q=(0.005, 0.0): max_residual=3.498579e-03, inverse=inv
+- dwave bare_total q=(0.005, 0.0): max_residual=3.793916e-03, inverse=inv
+- dwave minus_schur q=(0.005, 0.0): max_residual=2.997765e-03, inverse=inv
+- dwave plus_schur q=(0.005, 0.0): max_residual=5.095779e-03, inverse=inv
+- dwave amplitude_phase_schur q=(0.005, 0.0): max_residual=3.004566e-03, inverse=inv
+- dwave bare_bubble q=(0.01, 0.0): max_residual=1.567332e-03, inverse=inv
+- dwave direct q=(0.01, 0.0): max_residual=6.997115e-03, inverse=inv
+- dwave bare_total q=(0.01, 0.0): max_residual=7.086407e-03, inverse=inv
+- dwave minus_schur q=(0.01, 0.0): max_residual=5.830404e-03, inverse=inv
+- dwave plus_schur q=(0.01, 0.0): max_residual=8.775029e-03, inverse=inv
+- dwave amplitude_phase_schur q=(0.01, 0.0): max_residual=5.875211e-03, inverse=inv
+- dwave bare_bubble q=(0.02, 0.0): max_residual=1.575382e-03, inverse=inv
+- dwave direct q=(0.02, 0.0): max_residual=1.399388e-02, inverse=inv
+- dwave bare_total q=(0.02, 0.0): max_residual=1.390443e-02, inverse=inv
+- dwave minus_schur q=(0.02, 0.0): max_residual=1.085920e-02, inverse=inv
+- dwave plus_schur q=(0.02, 0.0): max_residual=1.739203e-02, inverse=inv
+- dwave amplitude_phase_schur q=(0.02, 0.0): max_residual=1.105863e-02, inverse=inv
+- collective-block spm q=[0.0025, 0.0]: dominant=aa_right norm=9.06221691706721e-05
+- collective-block spm q=[0.005, 0.0]: dominant=aa_left norm=0.00017971962701351235
+- collective-block spm q=[0.01, 0.0]: dominant=aa_left norm=0.00034733878877891543
+- collective-block spm q=[0.02, 0.0]: dominant=aa_left norm=0.000600988287754985
+- collective-block dwave q=[0.0025, 0.0]: dominant=aa_right norm=0.0015151375229606886
+- collective-block dwave q=[0.005, 0.0]: dominant=aa_left norm=0.0030301687543788642
+- collective-block dwave q=[0.01, 0.0]: dominant=aa_left norm=0.006059481974011675
+- collective-block dwave q=[0.02, 0.0]: dominant=aa_left norm=0.012111932873629785
+- operator-check spm q=[0.0025, 0.0]: first=2.3625830003390955e-15 contact=2.781530509707604e-15
+- operator-check spm q=[0.005, 0.0]: first=1.639371595476246e-15 contact=1.5165819988727236e-15
+- operator-check spm q=[0.01, 0.0]: first=1.5602904822075792e-15 contact=1.966378304186755e-15
+- operator-check spm q=[0.02, 0.0]: first=3.7291573766128755e-15 contact=2.802542281530282e-15
+- operator-check dwave q=[0.0025, 0.0]: first=2.3625830003390955e-15 contact=2.781530509707604e-15
+- operator-check dwave q=[0.005, 0.0]: first=1.6394303343078566e-15 contact=1.5165819988727236e-15
+- operator-check dwave q=[0.01, 0.0]: first=1.5602904822075792e-15 contact=1.966378304186755e-15
+- operator-check dwave q=[0.02, 0.0]: first=3.7291573766128755e-15 contact=2.802542281530282e-15
 valid_for_casimir_input: False
