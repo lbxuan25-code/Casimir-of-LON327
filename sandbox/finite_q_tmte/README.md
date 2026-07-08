@@ -33,6 +33,21 @@ PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/run_scan.py \
 
 在 sandbox v1 中，公开扫描接口使用 Matsubara index `n` 和 `temperature_K`。内部响应频率为 `xi_eV = 2*pi*n*k_B*T`，并同时定义目标基中的 `g0` 和有限 q Kubo 频率；CLI 不提供独立的 `--xi` 或 `--omega`。
 
+nk sweep 诊断可将多个 `nk` 的紧凑结果写入单个聚合文件：
+
+```bash
+PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/run_nk_sweep.py \
+  --model symmetry_bdg_2band \
+  --pairing dwave \
+  --matsubara-index 1 \
+  --temperature-K 10.0 \
+  --q-values 0.02 \
+  --nk-values 5 7 9 \
+  --output-dir sandbox/finite_q_tmte/outputs/dwave_n1_q002_nk_sweep
+```
+
+该命令写出 `nk_sweep.json`。其中的 ratios 只用于 Ward/gauge 诊断，不是 Casimir-ready 判据。
+
 ## JSON 语义
 
 `tmte_scan.json` 的顶层只保存扫描级 metadata，例如模型、`frequency`、`scan_parameters`、状态和 `first_result_summary`。完整矩阵和每个 q/方向的诊断都在 `results` 条目内。
