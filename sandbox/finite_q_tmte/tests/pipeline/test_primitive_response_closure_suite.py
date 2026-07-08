@@ -31,13 +31,21 @@ def test_schema_and_default_candidate():
     assert DEFAULT_CANDIDATE == "matrix_inferred_matsubara_i_asymmetric"
 
 
-def test_fit_one_scale_complex_closes_exact_vector():
-    target = np.asarray([1.0 + 2.0j, -0.5j], dtype=complex)
+def test_fit_one_scale_complex_closes_exact_span_vector():
     basis = np.asarray([2.0 - 1.0j, 0.25 + 0.25j], dtype=complex)
     coeff = -0.3 + 0.7j
-    fit = fit_one_scale(target + coeff * basis, basis, real_only=False)
+    target = coeff * basis
+    fit = fit_one_scale(target, basis, real_only=False)
     assert fit["residual_norm"] < 1e-12
     np.testing.assert_allclose(fit["coefficient"], -coeff, atol=1e-12)
+
+
+def test_fit_one_scale_complex_leaves_orthogonal_residual_for_out_of_span_vector():
+    basis = np.asarray([1.0, 0.0], dtype=complex)
+    target = np.asarray([2.0, 3.0], dtype=complex)
+    fit = fit_one_scale(target, basis, real_only=False)
+    np.testing.assert_allclose(fit["coefficient"], -2.0 + 0.0j)
+    assert fit["residual_norm"] == pytest.approx(3.0)
 
 
 def test_fit_one_scale_real_restricts_imaginary_part():
@@ -48,15 +56,24 @@ def test_fit_one_scale_real_restricts_imaginary_part():
     assert fit["residual_norm"] < 1e-14
 
 
-def test_fit_two_scales_complex_closes_exact_vector():
-    fixed = np.asarray([1.0, 2.0j, -1.0], dtype=complex)
+def test_fit_two_scales_complex_closes_exact_span_vector():
     first = np.asarray([1.0j, 0.5, 0.0], dtype=complex)
     second = np.asarray([0.0, -1.0j, 2.0], dtype=complex)
     c1 = 0.25 - 0.5j
     c2 = -1.5 + 0.1j
-    fit = fit_two_scales(fixed + c1 * first + c2 * second, first, second, real_only=False)
+    fixed = c1 * first + c2 * second
+    fit = fit_two_scales(fixed, first, second, real_only=False)
     assert fit["residual_norm"] < 1e-12
     np.testing.assert_allclose(fit["coefficients"], [-c1, -c2], atol=1e-12)
+
+
+def test_fit_two_scales_complex_leaves_out_of_span_residual():
+    first = np.asarray([1.0, 0.0, 0.0], dtype=complex)
+    second = np.asarray([0.0, 1.0, 0.0], dtype=complex)
+    fixed = np.asarray([2.0, -3.0, 4.0], dtype=complex)
+    fit = fit_two_scales(fixed, first, second, real_only=False)
+    np.testing.assert_allclose(fit["coefficients"], [-2.0, 3.0], atol=1e-12)
+    assert fit["residual_norm"] == pytest.approx(4.0)
 
 
 def test_best_phase_grid_finds_cancellation_choice():
