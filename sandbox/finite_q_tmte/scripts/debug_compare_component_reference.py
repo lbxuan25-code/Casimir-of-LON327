@@ -26,14 +26,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Debug-only component reference comparison.")
     parser.add_argument("--model", choices=available_models(), default="symmetry_bdg_2band")
     parser.add_argument("--pairing", default="dwave")
-    parser.add_argument("--xi", type=float, required=True)
+    parser.add_argument("--xi-eV", type=float, required=True)
     parser.add_argument("--q", type=float, required=True)
     parser.add_argument("--nk", type=int, default=3)
     args = parser.parse_args(argv)
     payload = debug_compare_component_reference(
         model_name=args.model,
         pairing_name=args.pairing,
-        xi=args.xi,
+        xi_eV=args.xi_eV,
         q_value=args.q,
         nk=args.nk,
     )

@@ -19,7 +19,54 @@ def _load_run_scan_module():
 def test_run_scan_cli_rejects_independent_omega_argument(tmp_path):
     module = _load_run_scan_module()
     with pytest.raises(SystemExit):
-        module.main(
+        module.build_parser().parse_args(
+            [
+                "--model",
+                "symmetry_bdg_2band",
+                "--pairing",
+                "dwave",
+                "--matsubara-index",
+                "1",
+                "--omega",
+                "0.02",
+                "--q-values",
+                "0.02",
+                "--nk",
+                "1",
+                "--output-dir",
+                str(tmp_path),
+            ]
+        )
+
+
+def test_run_scan_cli_accepts_matsubara_index(tmp_path):
+    module = _load_run_scan_module()
+    args = module.build_parser().parse_args(
+        [
+            "--model",
+            "symmetry_bdg_2band",
+            "--pairing",
+            "dwave",
+            "--matsubara-index",
+            "1",
+            "--temperature-K",
+            "10.0",
+            "--q-values",
+            "0.02",
+            "--nk",
+            "1",
+            "--output-dir",
+            str(tmp_path),
+        ]
+    )
+    assert args.matsubara_index == 1
+    assert args.temperature_K == 10.0
+
+
+def test_run_scan_cli_rejects_old_xi_argument(tmp_path):
+    module = _load_run_scan_module()
+    with pytest.raises(SystemExit):
+        module.build_parser().parse_args(
             [
                 "--model",
                 "symmetry_bdg_2band",
@@ -27,8 +74,27 @@ def test_run_scan_cli_rejects_independent_omega_argument(tmp_path):
                 "dwave",
                 "--xi",
                 "0.01",
-                "--omega",
+                "--q-values",
                 "0.02",
+                "--nk",
+                "1",
+                "--output-dir",
+                str(tmp_path),
+            ]
+        )
+
+
+def test_run_scan_cli_rejects_negative_matsubara_index(tmp_path):
+    module = _load_run_scan_module()
+    with pytest.raises(SystemExit):
+        module.build_parser().parse_args(
+            [
+                "--model",
+                "symmetry_bdg_2band",
+                "--pairing",
+                "dwave",
+                "--matsubara-index",
+                "-1",
                 "--q-values",
                 "0.02",
                 "--nk",

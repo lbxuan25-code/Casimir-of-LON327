@@ -2,6 +2,16 @@
 
 当前 sandbox 只给出诊断协议，不给出生产科学结论。
 
+## Matsubara 频率接口
+
+公开扫描接口使用 Matsubara index `n` 与 `temperature_K`，内部响应频率为
+
+```text
+xi_eV = 2*pi*n*k_B*T
+```
+
+response layer 计算 `K_TMTE(q, xi_eV)`。`n=0` 时 `xi_eV=0.0`，但未来 Casimir Matsubara 求和中的零模半权重属于 Casimir summation layer，不属于本 sandbox response layer。
+
 ## 直接 G/TM/TE gauge 诊断
 
 主输出是 Schur 后的 `K_GTMTE_eff` 与切出的 `K_TMTE_eff`。在诊断源顺序 `["G", "TM", "TE"]` 下记录：
@@ -28,7 +38,7 @@ average_order = "average_blocks_then_schur"
 
 ## JSON 结果语义
 
-`tmte_scan.json` 顶层只表示扫描级信息。完整的 `K_GTMTE_eff`、`K_TMTE_eff`、bare blocks 和诊断量必须从 `results[i]` 读取。
+`tmte_scan.json` 顶层只表示扫描级信息，并包含 `frequency` metadata：`source="matsubara_index"`、`matsubara_index`、`temperature_K`、`xi_eV` 和 `zero_matsubara_mode`。完整的 `K_GTMTE_eff`、`K_TMTE_eff`、bare blocks 和诊断量必须从 `results[i]` 读取。
 
 `first_result_summary` 只用于快速预览第一个 q/方向的轻量诊断，不是全局响应，也不包含完整矩阵。
 

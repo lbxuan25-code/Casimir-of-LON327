@@ -7,10 +7,11 @@ import numpy as np
 from sandbox.finite_q_tmte.tmte.io.complex_json import to_jsonable
 from sandbox.finite_q_tmte.tmte.pipeline.schema import SCHEMA_VERSION, basis_payload, scan_payload
 from sandbox.finite_q_tmte.tmte.theory.conventions import finite_q_conventions
+from sandbox.finite_q_tmte.tmte.theory.frequency import frequency_payload
 
 
 def _fake_result(qx: float) -> dict[str, object]:
-    conventions = finite_q_conventions(np.asarray([0.2, 0.0]), xi=0.01)
+    conventions = finite_q_conventions(np.asarray([0.2, 0.0]), xi_eV=0.01)
     return {
         "q_model": np.asarray([qx, 0.0], dtype=float),
         "q_norm": float(abs(qx)),
@@ -35,7 +36,7 @@ def test_schema_fields_and_complex_serialization():
     payload = scan_payload(
         model_name="symmetry_bdg_2band",
         pairing_name="dwave",
-        xi=0.01,
+        frequency=frequency_payload(1, 10.0),
         nk=1,
         first_result=first,
         results=[first],
@@ -47,6 +48,12 @@ def test_schema_fields_and_complex_serialization():
     assert "effective_response" not in encoded
     assert "diagnostics" not in encoded
     assert encoded["scan_parameters"]["basis_normalization"] == "unnormalized_gauge_orthogonal_tm_te"
+    assert encoded["frequency"]["source"] == "matsubara_index"
+    assert encoded["frequency"]["matsubara_index"] == 1
+    assert encoded["frequency"]["temperature_K"] == 10.0
+    assert "xi_eV" in encoded["frequency"]
+    assert "xi" not in encoded
+    assert "xi" not in encoded["scan_parameters"]
     assert encoded["results"][0]["effective_response"]["K_TMTE_eff"]["shape"] == [2, 2]
     assert "first_result_summary" in encoded
     assert "effective_response" not in encoded["first_result_summary"]
@@ -59,7 +66,7 @@ def test_multi_result_schema_keeps_results_without_global_response():
     payload = scan_payload(
         model_name="symmetry_bdg_2band",
         pairing_name="dwave",
-        xi=0.01,
+        frequency=frequency_payload(1, 10.0),
         nk=1,
         first_result=first,
         results=[first, second],

@@ -31,11 +31,13 @@ that = (-qhat_y, qhat_x)
 sandbox v1 中集中定义
 
 ```text
-g0 = xi
+g0 = xi_eV
 gL = q
 ```
 
-其中 `xi` 必须等于有限 q Kubo bubble 使用的 `omega_eV`。v1 不允许目标基频率与 Kubo 响应频率分离。这个一致性由 adapter/config 入口强制检查。
+其中 `xi_eV = 2*pi*n*k_B*T` 是由 Matsubara index `n` 和温度得到的能量值虚频，并且必须等于有限 q Kubo bubble 使用的 `omega_eV`。v1 不允许目标基频率与 Kubo 响应频率分离。这个一致性由 adapter/config 入口强制检查。
+
+`n=0` 时 response layer 返回 `xi_eV=0.0`；未来 Casimir 求和中的零频半权重不在本层处理。
 
 这些系数只应出现在 `tmte/theory/conventions.py`。当前归一化标签为
 

@@ -10,6 +10,7 @@ import numpy as np
 from ..adapters.bubble_adapter import compute_component_reference_effective, compute_target_bare_blocks
 from ..adapters.model_adapter import build_model_scan_inputs, shifted_uniform_bz_mesh, weights_for_points
 from ..io.writers import write_json
+from ..theory.frequency import frequency_payload, matsubara_xi_eV
 from .block_builder import EffectiveTargetResponse, build_effective_from_blocks, compute_effective_target_response
 from .schema import basis_payload, scan_payload
 from .shifted_average import average_bare_blocks_then_schur, per_shift_summaries, shift_pairs_from_fractions
@@ -62,23 +63,23 @@ def run_scan(
     *,
     model_name: str,
     pairing_name: str,
-    xi: float,
+    matsubara_index: int,
     q_values: Sequence[float],
     nk: int,
     q_directions: Sequence[tuple[float, float]] = ((1.0, 0.0),),
     shift_fractions: Sequence[float] = (0.0,),
-    omega_eV: float | None = None,
     delta0_eV: float | None = None,
     temperature_K: float = 10.0,
     eta_eV: float = 1e-8,
 ) -> dict[str, Any]:
     """Run a lightweight direct target-basis scan object without writing files."""
 
+    xi_eV = matsubara_xi_eV(matsubara_index, temperature_K)
+    frequency = frequency_payload(matsubara_index, temperature_K)
     inputs = build_model_scan_inputs(
         model_name=model_name,
         pairing_name=pairing_name,
-        xi=xi,
-        omega_eV=omega_eV,
+        xi_eV=xi_eV,
         nk=nk,
         delta0_eV=delta0_eV,
         temperature_K=temperature_K,
@@ -100,7 +101,7 @@ def run_scan(
                         spec=inputs.spec,
                         ansatz=inputs.ansatz,
                         q_model=q,
-                        xi=xi,
+                        xi_eV=xi_eV,
                         k_points=points,
                         weights=weights,
                         config=inputs.config,
@@ -123,7 +124,7 @@ def run_scan(
                     spec=inputs.spec,
                     ansatz=inputs.ansatz,
                     q_model=q,
-                    xi=xi,
+                    xi_eV=xi_eV,
                     k_points=inputs.k_points,
                     weights=inputs.weights,
                     config=inputs.config,
@@ -145,7 +146,7 @@ def run_scan(
     return scan_payload(
         model_name=model_name,
         pairing_name=pairing_name,
-        xi=xi,
+        frequency=frequency,
         nk=nk,
         first_result=first,
         results=results,
@@ -163,20 +164,20 @@ def debug_compare_component_reference(
     *,
     model_name: str,
     pairing_name: str,
-    xi: float,
+    xi_eV: float,
     q_value: float,
     nk: int,
     omega_eV: float | None = None,
 ) -> dict[str, Any]:
     """Return debug-only direct target-basis versus component contraction norms."""
 
-    inputs = build_model_scan_inputs(model_name=model_name, pairing_name=pairing_name, xi=xi, omega_eV=omega_eV, nk=nk)
+    inputs = build_model_scan_inputs(model_name=model_name, pairing_name=pairing_name, xi_eV=xi_eV, omega_eV=omega_eV, nk=nk)
     q = np.asarray([float(q_value), 0.0], dtype=float)
     direct = compute_effective_target_response(
         spec=inputs.spec,
         ansatz=inputs.ansatz,
         q_model=q,
-        xi=xi,
+        xi_eV=xi_eV,
         k_points=inputs.k_points,
         weights=inputs.weights,
         config=inputs.config,
@@ -186,7 +187,7 @@ def debug_compare_component_reference(
         spec=inputs.spec,
         ansatz=inputs.ansatz,
         q_model=q,
-        xi=xi,
+        xi_eV=xi_eV,
         k_points=inputs.k_points,
         weights=inputs.weights,
         config=inputs.config,

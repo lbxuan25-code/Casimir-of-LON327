@@ -59,7 +59,7 @@ def compute_target_bare_blocks(
     spec: object,
     ansatz: object,
     q_model: np.ndarray,
-    xi: float,
+    xi_eV: float,
     k_points: np.ndarray,
     weights: np.ndarray,
     config: object,
@@ -71,9 +71,9 @@ def compute_target_bare_blocks(
 
     opts = options or FiniteQEngineOptions(include_phase_correction=False, collective_mode="amplitude_phase", collective_counterterm="goldstone_gap_equation")
     require_diagnostic_source_order(source_order)
-    require_xi_matches_omega(xi, config.omega_eV)
+    require_xi_matches_omega(xi_eV, config.omega_eV)
     q, points, mesh_weights = validate_finite_q_inputs(q_model, k_points, weights, config)
-    conventions = finite_q_conventions(q, xi)
+    conventions = finite_q_conventions(q, xi_eV)
     qx, qy = float(q[0]), float(q[1])
     shared_tol = 1e-14
     shared = bool(np.linalg.norm(q) <= shared_tol)
@@ -161,7 +161,7 @@ def compute_component_reference_effective(
     spec: object,
     ansatz: object,
     q_model: np.ndarray,
-    xi: float,
+    xi_eV: float,
     k_points: np.ndarray,
     weights: np.ndarray,
     config: object,
@@ -174,11 +174,11 @@ def compute_component_reference_effective(
 
     from ..theory.basis import component_source_vectors
 
-    require_xi_matches_omega(xi, config.omega_eV)
+    require_xi_matches_omega(xi_eV, config.omega_eV)
     options = FiniteQEngineOptions(include_phase_correction=False, current_vertex="peierls", collective_mode="amplitude_phase", collective_counterterm="goldstone_gap_equation")
     workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(spec, ansatz, q_model, k_points, weights, config, pairing_params, options)
     component = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=config)
-    coeffs = component_source_vectors(finite_q_conventions(q_model, xi))
+    coeffs = component_source_vectors(finite_q_conventions(q_model, xi_eV))
     order = SOURCE_ORDER_DIAGNOSTIC
     transform = np.vstack([coeffs[label] for label in order])
     return transform @ component.amplitude_phase_schur @ transform.T

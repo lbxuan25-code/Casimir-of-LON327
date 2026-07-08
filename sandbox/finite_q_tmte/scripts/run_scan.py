@@ -17,11 +17,18 @@ from tmte.adapters.model_adapter import available_models  # noqa: E402
 from tmte.pipeline.scan_runner import run_and_write_scan  # noqa: E402
 
 
-def main(argv: list[str] | None = None) -> int:
+def _nonnegative_int(value: str) -> int:
+    index = int(value)
+    if index < 0:
+        raise argparse.ArgumentTypeError("matsubara index must be non-negative")
+    return index
+
+
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run direct finite-q TM/TE target-basis sandbox scan.")
     parser.add_argument("--model", choices=available_models(), default="symmetry_bdg_2band")
     parser.add_argument("--pairing", default="dwave")
-    parser.add_argument("--xi", type=float, required=True)
+    parser.add_argument("--matsubara-index", "--n", dest="matsubara_index", type=_nonnegative_int, required=True)
     parser.add_argument("--q-values", nargs="+", type=float, required=True)
     parser.add_argument("--nk", type=int, required=True)
     parser.add_argument("--delta0", type=float, default=None)
@@ -29,12 +36,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--eta", type=float, default=1e-8)
     parser.add_argument("--shift-fractions", nargs="+", type=float, default=[0.0])
     parser.add_argument("--output-dir", type=Path, required=True)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
     args = parser.parse_args(argv)
     payload = run_and_write_scan(
         args.output_dir,
         model_name=args.model,
         pairing_name=args.pairing,
-        xi=args.xi,
+        matsubara_index=args.matsubara_index,
         q_values=tuple(args.q_values),
         nk=args.nk,
         delta0_eV=args.delta0,

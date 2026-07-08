@@ -9,7 +9,7 @@ from sandbox.finite_q_tmte.tmte.theory.schur import schur_effective
 
 
 def _blocks(scale: float) -> TargetBareBlocks:
-    conventions = finite_q_conventions(np.asarray([0.2, 0.0]), xi=0.01)
+    conventions = finite_q_conventions(np.asarray([0.2, 0.0]), xi_eV=0.01)
     k_ss = scale * np.eye(3, dtype=complex)
     k_seta = scale * np.asarray([[1.0, 0.2], [0.3, 0.4], [0.5, 0.6]], dtype=complex)
     k_etas = scale * np.asarray([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=complex)
@@ -43,4 +43,3 @@ def test_shifted_average_averages_blocks_before_schur():
     )
     np.testing.assert_allclose(response.schur.effective, expected)
     assert not np.allclose(response.schur.effective, per_shift_average)
-

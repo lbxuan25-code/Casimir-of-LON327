@@ -19,9 +19,18 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     payload = read_json(args.path)
     scan = payload.get("scan_parameters", {})
+    frequency = payload.get("frequency", {})
     print(f"schema_version: {payload.get('schema_version')}")
     print(f"model: {payload.get('model', {}).get('name')} pairing={payload.get('model', {}).get('pairing')}")
     print(f"valid_for_casimir_input: {payload.get('status', {}).get('valid_for_casimir_input')}")
+    print(
+        "matsubara_index={n} temperature_K={temp} xi_eV={xi} zero_matsubara_mode={zero}".format(
+            n=frequency.get("matsubara_index"),
+            temp=frequency.get("temperature_K"),
+            xi=frequency.get("xi_eV"),
+            zero=frequency.get("zero_matsubara_mode"),
+        )
+    )
     print(f"result_count: {scan.get('result_count')} q_count={scan.get('q_count')}")
     print(f"shifted_average: {scan.get('shifted_mesh_average', {}).get('average_order')}")
     for row in payload.get("results", []):

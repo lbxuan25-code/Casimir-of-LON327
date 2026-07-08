@@ -31,7 +31,7 @@ def build_model_scan_inputs(
     *,
     model_name: str,
     pairing_name: str,
-    xi: float,
+    xi_eV: float,
     nk: int,
     omega_eV: float | None = None,
     delta0_eV: float | None = None,
@@ -43,8 +43,8 @@ def build_model_scan_inputs(
 ) -> ModelScanInputs:
     """Build existing validation model objects behind a sandbox adapter."""
 
-    selected_omega = float(xi) if omega_eV is None else float(omega_eV)
-    require_xi_matches_omega(xi, selected_omega)
+    selected_omega = float(xi_eV) if omega_eV is None else float(omega_eV)
+    require_xi_matches_omega(xi_eV, selected_omega)
     model = get_finite_q_validation_model(model_name)
     model.require_pairing(pairing_name)
     ansatz = model.build_ansatz(pairing_name, phase_vertex=phase_vertex)

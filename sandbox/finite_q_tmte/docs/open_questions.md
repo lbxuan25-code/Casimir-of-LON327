@@ -9,3 +9,4 @@
 - shifted mesh 与 endpoint/contact quadrature 的最佳组合仍是验证问题，v1 不引入 `ward_conservative` 或 Ward repair。
 - debug component reference 目前只支持 q 沿 x 方向，未来若要用于一般方向排查，需要单独扩展和测试。
 - 出现 `pinv_diagnostic` 的 Schur 结果需要单独的 collective-kernel 稳定性判据；v1 只把它标记为 numerically suspect。
+- Matsubara `n=0` 的 Casimir 半权重、零模电磁边界条件和 q 外推策略属于未来 Casimir layer；本 sandbox 只输出 `K_TMTE(q, xi_eV=0)` 诊断对象。
