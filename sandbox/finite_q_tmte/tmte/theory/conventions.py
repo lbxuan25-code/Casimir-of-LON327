@@ -9,6 +9,7 @@ import numpy as np
 BASIS_NORMALIZATION = "unnormalized_gauge_orthogonal_tm_te"
 SOURCE_ORDER_DIAGNOSTIC = ("G", "TM", "TE")
 SOURCE_ORDER_PHYSICAL = ("TM", "TE")
+XI_OMEGA_TOL = 1e-14
 
 
 @dataclass(frozen=True)
@@ -38,3 +39,16 @@ def finite_q_conventions(q_model: np.ndarray | tuple[float, float], xi: float, *
     gL = q_norm
     return FiniteQConventions(q=q, q_norm=q_norm, qhat=qhat, that=that, xi=float(xi), g0=g0, gL=gL)
 
+
+def require_xi_matches_omega(xi: float, omega_eV: float, *, tol: float = XI_OMEGA_TOL) -> None:
+    """Enforce sandbox v1 convention that target-basis xi equals Kubo omega."""
+
+    if abs(float(omega_eV) - float(xi)) > float(tol):
+        raise ValueError("sandbox v1 requires xi == omega_eV")
+
+
+def require_diagnostic_source_order(source_order: tuple[str, ...]) -> None:
+    """Require the v1 diagnostic order used by gauge diagnostics."""
+
+    if tuple(source_order) != SOURCE_ORDER_DIAGNOSTIC:
+        raise ValueError("sandbox v1 requires diagnostic source order ('G', 'TM', 'TE')")

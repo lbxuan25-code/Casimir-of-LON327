@@ -30,3 +30,4 @@ PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/run_scan.py \
   --output-dir sandbox/finite_q_tmte/outputs/dwave_q002_nk13
 ```
 
+在 sandbox v1 中，`xi` 同时定义目标基中的 `g0` 和有限 q Kubo 频率；CLI 不提供独立的 `--omega`。

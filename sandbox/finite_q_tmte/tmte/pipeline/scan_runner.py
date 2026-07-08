@@ -65,7 +65,7 @@ def run_scan(
     nk: int,
     q_directions: Sequence[tuple[float, float]] = ((1.0, 0.0),),
     shift_fractions: Sequence[float] = (0.0,),
-    omega_eV: float = 0.01,
+    omega_eV: float | None = None,
     delta0_eV: float | None = None,
     temperature_K: float = 10.0,
     eta_eV: float = 1e-8,
@@ -75,6 +75,7 @@ def run_scan(
     inputs = build_model_scan_inputs(
         model_name=model_name,
         pairing_name=pairing_name,
+        xi=xi,
         omega_eV=omega_eV,
         nk=nk,
         delta0_eV=delta0_eV,
@@ -163,11 +164,11 @@ def debug_compare_component_reference(
     xi: float,
     q_value: float,
     nk: int,
-    omega_eV: float = 0.01,
+    omega_eV: float | None = None,
 ) -> dict[str, Any]:
     """Return debug-only direct target-basis versus component contraction norms."""
 
-    inputs = build_model_scan_inputs(model_name=model_name, pairing_name=pairing_name, omega_eV=omega_eV, nk=nk)
+    inputs = build_model_scan_inputs(model_name=model_name, pairing_name=pairing_name, xi=xi, omega_eV=omega_eV, nk=nk)
     q = np.asarray([float(q_value), 0.0], dtype=float)
     direct = compute_effective_target_response(
         spec=inputs.spec,

@@ -9,6 +9,8 @@ import numpy as np
 from lno327 import KuboConfig, k_weights, uniform_bz_mesh
 from validation.lib.finite_q_validation_models import available_finite_q_validation_models, get_finite_q_validation_model
 
+from ..theory.conventions import require_xi_matches_omega
+
 
 @dataclass(frozen=True)
 class ModelScanInputs:
@@ -29,8 +31,9 @@ def build_model_scan_inputs(
     *,
     model_name: str,
     pairing_name: str,
-    omega_eV: float,
+    xi: float,
     nk: int,
+    omega_eV: float | None = None,
     delta0_eV: float | None = None,
     phase_vertex: str = "bond_endpoint_gauge",
     temperature_K: float = 10.0,
@@ -40,13 +43,15 @@ def build_model_scan_inputs(
 ) -> ModelScanInputs:
     """Build existing validation model objects behind a sandbox adapter."""
 
+    selected_omega = float(xi) if omega_eV is None else float(omega_eV)
+    require_xi_matches_omega(xi, selected_omega)
     model = get_finite_q_validation_model(model_name)
     model.require_pairing(pairing_name)
     ansatz = model.build_ansatz(pairing_name, phase_vertex=phase_vertex)
     pairing_params = model.build_pairing_params(delta0_eV)
     points = uniform_bz_mesh(nk) if k_points is None else np.asarray(k_points, dtype=float)
     mesh_weights = k_weights(points) if weights is None else np.asarray(weights, dtype=float)
-    config = KuboConfig.from_kelvin(omega_eV=float(omega_eV), temperature_K=float(temperature_K), eta_eV=float(eta_eV), output_si=False)
+    config = KuboConfig.from_kelvin(omega_eV=selected_omega, temperature_K=float(temperature_K), eta_eV=float(eta_eV), output_si=False)
     return ModelScanInputs(model=model, spec=model.spec, ansatz=ansatz, pairing_params=pairing_params, k_points=points, weights=mesh_weights, config=config)
 
 

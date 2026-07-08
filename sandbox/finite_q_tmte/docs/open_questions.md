@@ -7,4 +7,4 @@
 - collective amplitude/phase normalization 沿用现有 finite-q BdG 后端；是否正好匹配目标 TM/TE Casimir kernel 仍未证明。
 - `q=0` 在本路径中被显式禁止；零模或小 q 外推需要单独设计。
 - shifted mesh 与 endpoint/contact quadrature 的最佳组合仍是验证问题，v1 不引入 `ward_conservative` 或 Ward repair。
-
+- debug component reference 目前只支持 q 沿 x 方向，未来若要用于一般方向排查，需要单独扩展和测试。

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Debug-only comparison against existing component-basis finite-q response."""
+"""Optional q-along-x debug comparison against component-basis response.
+
+This script is not the main TM/TE path. Sandbox v1 only compares
+q=(q_value, 0), so this output must not be used as evidence of
+general-direction validation.
+"""
 
 from __future__ import annotations
 
@@ -24,7 +29,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--xi", type=float, required=True)
     parser.add_argument("--q", type=float, required=True)
     parser.add_argument("--nk", type=int, default=3)
-    parser.add_argument("--omega", type=float, default=0.01)
     args = parser.parse_args(argv)
     payload = debug_compare_component_reference(
         model_name=args.model,
@@ -32,7 +36,6 @@ def main(argv: list[str] | None = None) -> int:
         xi=args.xi,
         q_value=args.q,
         nk=args.nk,
-        omega_eV=args.omega,
     )
     for key, value in payload.items():
         print(f"{key}: {value}")

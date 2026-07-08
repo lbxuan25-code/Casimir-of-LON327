@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 
 from ..theory.basis import physical_indices
+from ..theory.conventions import require_diagnostic_source_order
 
 
 def response_diagnostics(
@@ -18,6 +19,7 @@ def response_diagnostics(
 ) -> dict[str, Any]:
     """Return gauge and physical block diagnostics."""
 
+    require_diagnostic_source_order(source_order)
     eff = np.asarray(k_eff, dtype=complex)
     g_index = source_order.index("G")
     phys = physical_indices(source_order)
@@ -31,4 +33,3 @@ def response_diagnostics(
         "schur_correction_norm": float(np.linalg.norm(schur_correction)),
         "valid_for_casimir_input": False,
     }
-

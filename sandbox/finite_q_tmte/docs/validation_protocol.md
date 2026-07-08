@@ -14,6 +14,8 @@ gauge_gg_norm  = abs(K_eff[G, G])
 
 这些量只衡量目标基中纯规范源的残差，不构成 Ward repair。
 
+sandbox v1 的主诊断路径只接受 `["G", "TM", "TE"]`，不能把 physical-only `["TM", "TE"]` 静默送入 gauge diagnostics。
+
 ## Shifted mesh 稳定性
 
 若使用 shifted mesh，必须先平均 bare blocks，再 Schur。记录每个 shift 的 block norm 与条件数，并记录主结果的平均顺序：
@@ -30,7 +32,7 @@ average_order = "average_blocks_then_schur"
 
 ## 可选 component reference
 
-`debug_compare_component_reference.py` 可以把直接目标基结果与完整分量响应的事后收缩比较。该脚本只用于 debug，不属于主计算路径，不能作为生产 TM/TE 路径。
+`debug_compare_component_reference.py` 可以把直接目标基结果与完整分量响应的事后收缩比较。该脚本只用于 debug，不属于主计算路径，不能作为生产 TM/TE 路径。v1 只支持 `q=(q_value, 0)`，不能作为一般方向验证证据。
 
 ## Casimir-readiness 限制
 
@@ -39,4 +41,3 @@ average_order = "average_blocks_then_schur"
 ```text
 valid_for_casimir_input = false
 ```
-

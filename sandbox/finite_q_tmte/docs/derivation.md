@@ -35,6 +35,8 @@ g0 = xi
 gL = q
 ```
 
+其中 `xi` 必须等于有限 q Kubo bubble 使用的 `omega_eV`。v1 不允许目标基频率与 Kubo 响应频率分离。这个一致性由 adapter/config 入口强制检查。
+
 这些系数只应出现在 `tmte/theory/conventions.py`。当前归一化标签为
 
 ```text
@@ -157,4 +159,3 @@ Kbar_eff    = Schur(Kbar_SS, Kbar_Seta, Kbar_etaeta, Kbar_etaS)
 ```
 
 平均每个 shift 的 Schur 结果只允许作为可选诊断，不作为主结果。
-

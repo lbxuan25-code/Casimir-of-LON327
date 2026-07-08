@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .conventions import FiniteQConventions, SOURCE_ORDER_DIAGNOSTIC, SOURCE_ORDER_PHYSICAL
+from .conventions import FiniteQConventions, SOURCE_ORDER_DIAGNOSTIC, SOURCE_ORDER_PHYSICAL, require_diagnostic_source_order
 
 
 def aligned_source_vectors(conventions: FiniteQConventions) -> dict[str, np.ndarray]:
@@ -36,5 +36,5 @@ def component_source_vectors(conventions: FiniteQConventions) -> dict[str, np.nd
 def physical_indices(source_order: tuple[str, ...] = SOURCE_ORDER_DIAGNOSTIC) -> tuple[int, int]:
     """Return indices for the physical TM/TE block."""
 
+    require_diagnostic_source_order(source_order)
     return tuple(source_order.index(label) for label in SOURCE_ORDER_PHYSICAL)  # type: ignore[return-value]
-

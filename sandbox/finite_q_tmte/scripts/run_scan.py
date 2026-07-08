@@ -24,7 +24,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--xi", type=float, required=True)
     parser.add_argument("--q-values", nargs="+", type=float, required=True)
     parser.add_argument("--nk", type=int, required=True)
-    parser.add_argument("--omega", type=float, default=0.01)
     parser.add_argument("--delta0", type=float, default=None)
     parser.add_argument("--temperature-K", type=float, default=10.0)
     parser.add_argument("--eta", type=float, default=1e-8)
@@ -38,7 +37,6 @@ def main(argv: list[str] | None = None) -> int:
         xi=args.xi,
         q_values=tuple(args.q_values),
         nk=args.nk,
-        omega_eV=args.omega,
         delta0_eV=args.delta0,
         temperature_K=args.temperature_K,
         eta_eV=args.eta,
@@ -52,4 +50,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

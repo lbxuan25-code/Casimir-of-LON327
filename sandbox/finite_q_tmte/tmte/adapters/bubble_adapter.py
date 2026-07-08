@@ -15,7 +15,13 @@ from lno327.response.validation import validate_finite_q_inputs
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 
 from ..theory.contacts import project_spatial_contact
-from ..theory.conventions import FiniteQConventions, SOURCE_ORDER_DIAGNOSTIC, finite_q_conventions
+from ..theory.conventions import (
+    FiniteQConventions,
+    SOURCE_ORDER_DIAGNOSTIC,
+    finite_q_conventions,
+    require_diagnostic_source_order,
+    require_xi_matches_omega,
+)
 from ..theory.vertices import target_vertices
 from .collective_adapter import collective_counterterm, collective_vertices
 from .primitive_vertices_adapter import primitive_observable_vertices, primitive_source_vertices, primitive_spatial_contact_vertices
@@ -64,6 +70,8 @@ def compute_target_bare_blocks(
     """Compute G/TM/TE target-basis bare blocks without component 3x3 rotation."""
 
     opts = options or FiniteQEngineOptions(include_phase_correction=False, collective_mode="amplitude_phase", collective_counterterm="goldstone_gap_equation")
+    require_diagnostic_source_order(source_order)
+    require_xi_matches_omega(xi, config.omega_eV)
     q, points, mesh_weights = validate_finite_q_inputs(q_model, k_points, weights, config)
     conventions = finite_q_conventions(q, xi)
     qx, qy = float(q[0]), float(q[1])
@@ -166,6 +174,7 @@ def compute_component_reference_effective(
 
     from ..theory.basis import component_source_vectors
 
+    require_xi_matches_omega(xi, config.omega_eV)
     options = FiniteQEngineOptions(include_phase_correction=False, current_vertex="peierls", collective_mode="amplitude_phase", collective_counterterm="goldstone_gap_equation")
     workspace = precompute_finite_q_bdg_workspace_from_model_ansatz(spec, ansatz, q_model, k_points, weights, config, pairing_params, options)
     component = bdg_finite_q_response_imag_axis_from_workspace(workspace, config=config)
