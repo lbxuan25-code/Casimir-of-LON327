@@ -21,6 +21,7 @@ from .signed_decomposition import decomposition_ratios
 SCHEMA_VERSION = "finite_q_tmte_extended_ward_kernel_v1"
 EXTENDED_WARD_TOLERANCE = 1e-8
 SCHUR_CONDITION_THRESHOLD = 1e12
+PRIMITIVE_ORDER = ("A0", "L", "T")
 
 
 def _norm(value: np.ndarray) -> float:
@@ -195,6 +196,131 @@ def collective_mixed_channel_decomposition(
     }
 
 
+def primitive_mixed_blocks(blocks: TargetBareBlocks) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
+    """Invert target G/TM/TE mixed blocks back to primitive A0/L/T components."""
+
+    require_diagnostic_source_order(blocks.source_order)
+    source_order = blocks.source_order
+    g = source_order.index("G")
+    tm = source_order.index("TM")
+    te = source_order.index("TE")
+    g0 = float(blocks.conventions.g0)
+    g_l = float(blocks.conventions.gL)
+    denominator = g0 * g0 + g_l * g_l
+    if denominator <= 0.0:
+        raise ValueError("primitive mixed decomposition requires nonzero xi^2 + q^2")
+
+    k_etas = np.asarray(blocks.k_etas, dtype=complex)
+    k_seta = np.asarray(blocks.k_seta, dtype=complex)
+    primitive_etas = np.zeros_like(k_etas, dtype=complex)
+    primitive_seta = np.zeros_like(k_seta, dtype=complex)
+
+    primitive_etas[:, 0] = (g0 * k_etas[:, g] - g_l * k_etas[:, tm]) / denominator
+    primitive_etas[:, 1] = (g_l * k_etas[:, g] + g0 * k_etas[:, tm]) / denominator
+    primitive_etas[:, 2] = k_etas[:, te]
+
+    primitive_seta[0, :] = (g0 * k_seta[g, :] - g_l * k_seta[tm, :]) / denominator
+    primitive_seta[1, :] = (g_l * k_seta[g, :] + g0 * k_seta[tm, :]) / denominator
+    primitive_seta[2, :] = k_seta[te, :]
+
+    return primitive_etas, primitive_seta, {
+        "primitive_order": list(PRIMITIVE_ORDER),
+        "target_order": list(source_order),
+        "transform_convention": "G=xi*A0+q*L; TM=-q*A0+xi*L; TE=T",
+        "xi_eV": g0,
+        "q_norm": g_l,
+        "denominator_xi2_plus_q2": denominator,
+        "valid_for_casimir_input": False,
+    }
+
+
+def _target_from_primitive_values(values: np.ndarray, blocks: TargetBareBlocks) -> np.ndarray:
+    primitive = np.asarray(values, dtype=complex).reshape(3)
+    g0 = float(blocks.conventions.g0)
+    g_l = float(blocks.conventions.gL)
+    return np.asarray([g0 * primitive[0] + g_l * primitive[1], -g_l * primitive[0] + g0 * primitive[1], primitive[2]], dtype=complex)
+
+
+def collective_mixed_primitive_decomposition(
+    *,
+    blocks: TargetBareBlocks,
+    w_eta_left: np.ndarray,
+    w_eta_right: np.ndarray,
+    collective_order: tuple[str, ...],
+) -> dict[str, Any]:
+    """Decompose mixed collective terms into primitive A0/L/T components."""
+
+    primitive_etas, primitive_seta, metadata = primitive_mixed_blocks(blocks)
+    n_eta = int(primitive_etas.shape[0])
+    if len(collective_order) != n_eta:
+        raise ValueError("collective_order length must match collective channel count")
+    w_left = np.asarray(w_eta_left, dtype=complex).reshape(-1)
+    w_right = np.asarray(w_eta_right, dtype=complex).reshape(-1)
+    if w_left.shape[0] != n_eta or w_right.shape[0] != n_eta:
+        raise ValueError("W_eta vector length must match collective channel count")
+
+    left_primitive_entries = []
+    left_primitive_totals = []
+    for primitive_index, primitive_label in enumerate(PRIMITIVE_ORDER):
+        values = w_left * primitive_etas[:, primitive_index]
+        total = complex(np.sum(values))
+        left_primitive_totals.append(total)
+        left_primitive_entries.append(
+            {
+                "primitive_label": primitive_label,
+                "contributions": complex_vector_payload(values, collective_order),
+                "total": total,
+                "valid_for_casimir_input": False,
+            }
+        )
+
+    right_primitive_entries = []
+    right_primitive_totals = []
+    for primitive_index, primitive_label in enumerate(PRIMITIVE_ORDER):
+        values = primitive_seta[primitive_index, :] * w_right
+        total = complex(np.sum(values))
+        right_primitive_totals.append(total)
+        right_primitive_entries.append(
+            {
+                "primitive_label": primitive_label,
+                "contributions": complex_vector_payload(values, collective_order),
+                "total": total,
+                "valid_for_casimir_input": False,
+            }
+        )
+
+    left_primitive_totals_array = np.asarray(left_primitive_totals, dtype=complex)
+    right_primitive_totals_array = np.asarray(right_primitive_totals, dtype=complex)
+    left_target_from_primitive = _target_from_primitive_values(left_primitive_totals_array, blocks)
+    right_target_from_primitive = _target_from_primitive_values(right_primitive_totals_array, blocks)
+    left_direct_target = w_left @ np.asarray(blocks.k_etas, dtype=complex)
+    right_direct_target = np.asarray(blocks.k_seta, dtype=complex) @ w_right
+
+    phase_index = collective_order.index("phase_eta2") if "phase_eta2" in collective_order else n_eta - 1
+    left_phase_primitive = primitive_etas[phase_index, :]
+    right_phase_primitive = primitive_seta[:, phase_index]
+    return {
+        **metadata,
+        "collective_order": list(collective_order),
+        "left_primitive_weighted": left_primitive_entries,
+        "right_primitive_weighted": right_primitive_entries,
+        "left_target_from_primitive": complex_vector_payload(left_target_from_primitive, blocks.source_order),
+        "right_target_from_primitive": complex_vector_payload(right_target_from_primitive, blocks.source_order),
+        "left_target_reconstruction_error_norm": float(np.linalg.norm(left_target_from_primitive - left_direct_target)),
+        "right_target_reconstruction_error_norm": float(np.linalg.norm(right_target_from_primitive - right_direct_target)),
+        "phase_eta2_focus": {
+            "left_K_etaS_phase_primitive": complex_vector_payload(left_phase_primitive, PRIMITIVE_ORDER),
+            "left_K_etaS_phase_target_reconstructed": complex_vector_payload(_target_from_primitive_values(left_phase_primitive, blocks), blocks.source_order),
+            "left_K_etaS_phase_target_direct": complex_vector_payload(np.asarray(blocks.k_etas, dtype=complex)[phase_index, :], blocks.source_order),
+            "right_K_Seta_primitive_phase": complex_vector_payload(right_phase_primitive, PRIMITIVE_ORDER),
+            "right_K_Seta_target_reconstructed_phase": complex_vector_payload(_target_from_primitive_values(right_phase_primitive, blocks), blocks.source_order),
+            "right_K_Seta_target_direct_phase": complex_vector_payload(np.asarray(blocks.k_seta, dtype=complex)[:, phase_index], blocks.source_order),
+            "valid_for_casimir_input": False,
+        },
+        "valid_for_casimir_input": False,
+    }
+
+
 def extended_ward_candidate_result(
     *,
     name: str,
@@ -252,6 +378,12 @@ def extended_ward_candidate_result(
             right_em=right_em,
         ),
         "collective_mixed_channel_decomposition": collective_mixed_channel_decomposition(
+            blocks=blocks,
+            w_eta_left=w_left,
+            w_eta_right=w_right,
+            collective_order=collective_order,
+        ),
+        "collective_mixed_primitive_decomposition": collective_mixed_primitive_decomposition(
             blocks=blocks,
             w_eta_left=w_left,
             w_eta_right=w_right,
