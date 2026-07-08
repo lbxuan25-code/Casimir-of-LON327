@@ -20,7 +20,7 @@ from sandbox.finite_q_tmte.tmte.theory.frequency import frequency_payload
 
 def _fake_blocks() -> TargetBareBlocks:
     conventions = finite_q_conventions(np.asarray([0.2, 0.0]), xi_eV=0.01)
-    k_ss = np.asarray(
+    k_ss_bubble = np.asarray(
         [
             [1.0 + 0.2j, 2.0 - 0.3j, 0.5 + 0.1j],
             [3.0 + 0.4j, 4.0 + 0.0j, 0.7],
@@ -28,14 +28,23 @@ def _fake_blocks() -> TargetBareBlocks:
         ],
         dtype=complex,
     )
+    k_ss_contact = np.asarray(
+        [
+            [0.1 - 0.05j, 0.2 + 0.03j, 0.0],
+            [0.4 - 0.02j, 0.1, 0.0],
+            [0.0, 0.0, 0.05],
+        ],
+        dtype=complex,
+    )
+    k_ss = k_ss_bubble + k_ss_contact
     k_seta = np.asarray([[0.2 + 0.1j, 0.4 - 0.2j], [0.1, 0.3 + 0.4j], [0.5j, 0.2]], dtype=complex)
     k_etas = np.asarray([[0.7 - 0.1j, 0.2 + 0.5j, 0.1], [0.3 + 0.2j, 0.8, 0.4 - 0.1j]], dtype=complex)
     k_etaeta = np.asarray([[2.0 + 0.0j, 0.25 - 0.1j], [0.4 + 0.2j, 3.0 + 0.0j]], dtype=complex)
     return TargetBareBlocks(
         source_order=("G", "TM", "TE"),
         conventions=conventions,
-        k_ss_bubble=k_ss.copy(),
-        k_ss_contact=np.zeros_like(k_ss),
+        k_ss_bubble=k_ss_bubble,
+        k_ss_contact=k_ss_contact,
         k_ss=k_ss,
         k_seta=k_seta,
         k_etas=k_etas,
@@ -56,6 +65,10 @@ def _load_debug_script():
     return module
 
 
+def _payload_vector(values: list[dict[str, object]]) -> np.ndarray:
+    return np.asarray([item["value"] for item in values], dtype=complex)
+
+
 def test_zero_collective_candidate_returns_raw_g_row_and_column():
     blocks = _fake_blocks()
     zero = np.zeros(2, dtype=complex)
@@ -69,10 +82,57 @@ def test_zero_collective_candidate_returns_raw_g_row_and_column():
         physical_matrix_norm=1.0,
         etaeta_norm=1.0,
     )
-    left = np.asarray([item["value"] for item in result["left_em_residual"]])
-    right = np.asarray([item["value"] for item in result["right_em_residual"]])
+    left = _payload_vector(result["left_em_residual"])
+    right = _payload_vector(result["right_em_residual"])
     np.testing.assert_allclose(left, blocks.k_ss[0, :])
     np.testing.assert_allclose(right, blocks.k_ss[:, 0])
+
+
+def test_em_source_decomposition_reconstructs_total_residual():
+    blocks = _fake_blocks()
+    w_left = np.asarray([0.0, -0.2j], dtype=complex)
+    w_right = np.asarray([0.0, -0.2j], dtype=complex)
+    result = extended_ward_candidate_result(
+        name="analytic_imaginary_same_negative",
+        description="test",
+        blocks=blocks,
+        w_eta_left=w_left,
+        w_eta_right=w_right,
+        collective_order=("amplitude_eta1", "phase_eta2"),
+        physical_matrix_norm=1.0,
+        etaeta_norm=1.0,
+    )
+    decomp = result["em_source_decomposition"]
+    left_total = _payload_vector(decomp["left"]["total"])
+    left_sum = _payload_vector(decomp["left"]["bubble"]) + _payload_vector(decomp["left"]["contact"]) + _payload_vector(decomp["left"]["collective_mixed"])
+    right_total = _payload_vector(decomp["right"]["total"])
+    right_sum = _payload_vector(decomp["right"]["bubble"]) + _payload_vector(decomp["right"]["contact"]) + _payload_vector(decomp["right"]["collective_mixed"])
+    np.testing.assert_allclose(left_total, left_sum)
+    np.testing.assert_allclose(right_total, right_sum)
+    np.testing.assert_allclose(left_total, _payload_vector(result["left_em_residual"]))
+    np.testing.assert_allclose(right_total, _payload_vector(result["right_em_residual"]))
+    assert decomp["left"]["reconstruction_error_norm"] < 1e-14
+    assert decomp["right"]["reconstruction_error_norm"] < 1e-14
+
+
+def test_same_sign_analytic_candidates_are_reported():
+    blocks = _fake_blocks()
+    candidates, _ = extended_ward_candidates(
+        blocks=blocks,
+        delta0_eV=0.1,
+        collective_order=("amplitude_eta1", "phase_eta2"),
+    )
+    by_name = {row["candidate"]: row for row in candidates}
+    assert "analytic_imaginary_same_negative" in by_name
+    assert "analytic_imaginary_same_positive" in by_name
+    neg_left = _payload_vector(by_name["analytic_imaginary_same_negative"]["W_eta_left"])
+    neg_right = _payload_vector(by_name["analytic_imaginary_same_negative"]["W_eta_right"])
+    pos_left = _payload_vector(by_name["analytic_imaginary_same_positive"]["W_eta_left"])
+    pos_right = _payload_vector(by_name["analytic_imaginary_same_positive"]["W_eta_right"])
+    np.testing.assert_allclose(neg_left, [0.0 + 0.0j, -0.2j])
+    np.testing.assert_allclose(neg_right, [0.0 + 0.0j, -0.2j])
+    np.testing.assert_allclose(pos_left, [0.0 + 0.0j, 0.2j])
+    np.testing.assert_allclose(pos_right, [0.0 + 0.0j, 0.2j])
 
 
 def test_fitted_left_collective_equation_closes_collective_block():
@@ -97,8 +157,8 @@ def test_fitted_em_residuals_equal_schur_g_row_and_column():
         collective_order=("amplitude_eta1", "phase_eta2"),
     )
     by_name = {row["candidate"]: row for row in candidates}
-    left = np.asarray([item["value"] for item in by_name["fitted_left_collective_equation"]["left_em_residual"]])
-    right = np.asarray([item["value"] for item in by_name["fitted_right_collective_equation"]["right_em_residual"]])
+    left = _payload_vector(by_name["fitted_left_collective_equation"]["left_em_residual"])
+    right = _payload_vector(by_name["fitted_right_collective_equation"]["right_em_residual"])
     k_eff = derived["K_eff"]
     np.testing.assert_allclose(left, k_eff[0, :], atol=1e-13)
     np.testing.assert_allclose(right, k_eff[:, 0], atol=1e-13)
@@ -133,6 +193,7 @@ def test_extended_ward_payload_is_debug_only():
     assert payload["debug_parameters"]["debug_only_extended_ward_kernel"] is True
     assert payload["valid_for_casimir_input"] is False
     assert all(row["valid_for_casimir_input"] is False for row in payload["candidate_results"])
+    assert all("em_source_decomposition" in row for row in payload["candidate_results"])
 
 
 def test_extended_ward_cli_rejects_nonpositive_nk(tmp_path):
