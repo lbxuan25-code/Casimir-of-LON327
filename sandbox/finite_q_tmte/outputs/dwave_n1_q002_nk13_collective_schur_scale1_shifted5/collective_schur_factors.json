@@ -1,0 +1,611 @@
+{
+  "schema_version": "finite_q_tmte_collective_schur_factors_v1",
+  "status": {
+    "diagnostic_run_completed": true,
+    "valid_for_casimir_input": false,
+    "reason": "collective_schur_factors_debug_not_casimir_input"
+  },
+  "model": {
+    "name": "symmetry_bdg_2band",
+    "pairing": "dwave",
+    "valid_for_casimir_input": false
+  },
+  "frequency": {
+    "source": "matsubara_index",
+    "matsubara_index": 1,
+    "temperature_K": 10.0,
+    "xi_eV": 0.00541443017397794,
+    "zero_matsubara_mode": false,
+    "valid_for_casimir_input": false
+  },
+  "debug_parameters": {
+    "debug_only_collective_schur_factors": true,
+    "q_model_convention": "q_along_x_only",
+    "q_value": 0.02,
+    "nk": 13,
+    "shift_fractions": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "num_shifted_meshes": 25,
+    "contact_scale": 1.0,
+    "ratio_eps": 1e-30,
+    "average_order": "average_blocks_then_schur",
+    "valid_for_casimir_input": false
+  },
+  "source_order_diagnostic": [
+    "G",
+    "TM",
+    "TE"
+  ],
+  "collective_order": [
+    "eta0",
+    "eta1"
+  ],
+  "matrices": {
+    "K_Seta": {
+      "shape": [
+        3,
+        2
+      ],
+      "data": [
+        [
+          {
+            "real": 7.211910945386502e-05,
+            "imag": -4.041903494841498e-06
+          },
+          {
+            "real": 5.8631063811137535e-05,
+            "imag": 0.0010375893197116992
+          }
+        ],
+        [
+          {
+            "real": -0.00026639593507170453,
+            "imag": -1.0942302121388505e-06
+          },
+          {
+            "real": -0.00021657334909561406,
+            "imag": 0.0002808977460422136
+          }
+        ],
+        [
+          {
+            "real": -1.3901613819095453e-18,
+            "imag": -5.551115123125783e-19
+          },
+          {
+            "real": -3.88804393427758e-20,
+            "imag": 3.469446951953614e-18
+          }
+        ]
+      ]
+    },
+    "K_etaS": {
+      "shape": [
+        2,
+        3
+      ],
+      "data": [
+        [
+          {
+            "real": 7.211910945386523e-05,
+            "imag": 4.04190349484151e-06
+          },
+          {
+            "real": -0.00026639593507170453,
+            "imag": 1.0942302121388253e-06
+          },
+          {
+            "real": 1.3591390994104544e-18,
+            "imag": -3.686287386450715e-19
+          }
+        ],
+        [
+          {
+            "real": -5.863106381113754e-05,
+            "imag": 0.0010375893197116996
+          },
+          {
+            "real": 0.00021657334909561406,
+            "imag": 0.00028089774604221336
+          },
+          {
+            "real": -1.8255122195108364e-20,
+            "imag": 2.914335439641036e-18
+          }
+        ]
+      ]
+    },
+    "K_etaeta": {
+      "shape": [
+        2,
+        2
+      ],
+      "data": [
+        [
+          {
+            "real": 0.19240881450250058,
+            "imag": -5.376032787612738e-20
+          },
+          {
+            "real": -0.00034038602979511877,
+            "imag": 3.323327331264923e-18
+          }
+        ],
+        [
+          {
+            "real": 0.00034038602979511877,
+            "imag": -3.690015074031762e-18
+          },
+          {
+            "real": 0.005494424223128425,
+            "imag": -1.8016489937341976e-19
+          }
+        ]
+      ]
+    },
+    "K_etaeta_inverse_or_solver_action": {
+      "kind": "solve_action_X",
+      "description": "X = solve(K_etaeta, K_etaS); no explicit inverse is used for Schur construction",
+      "X": {
+        "shape": [
+          2,
+          3
+        ],
+        "data": [
+          [
+            {
+              "real": 0.00035590542626194545,
+              "imag": 0.0003550476256227543
+            },
+            {
+              "real": -0.0013146551523462021,
+              "imag": 9.611902886855233e-05
+            },
+            {
+              "real": 7.057157751177554e-18,
+              "imag": -9.774065030113022e-19
+            }
+          ],
+          [
+            {
+              "real": -0.01069306021163269,
+              "imag": 0.1888220538364819
+            },
+            {
+              "real": 0.03949837699643497,
+              "imag": 0.0511181912902367
+            },
+            {
+              "real": -3.759680589772108e-18,
+              "imag": 5.304774470982753e-16
+            }
+          ]
+        ]
+      },
+      "diagnostic_inverse_only": false,
+      "valid_for_casimir_input": false
+    },
+    "Schur_correction": {
+      "shape": [
+        3,
+        3
+      ],
+      "data": [
+        [
+          {
+            "real": -0.000196519589231735,
+            "imag": -2.693300074472658e-21
+          },
+          {
+            "real": -5.08182807186023e-05,
+            "imag": 4.3992453780913346e-05
+          },
+          {
+            "real": -5.501331621801369e-19,
+            "imag": 2.710243858856367e-20
+          }
+        ],
+        [
+          {
+            "real": -5.081828071860236e-05,
+            "imag": -4.3992453780913366e-05
+          },
+          {
+            "real": -2.2562956540189835e-05,
+            "imag": 7.927698990708217e-21
+          },
+          {
+            "real": -1.5007674024507502e-19,
+            "imag": -1.1569070817717888e-19
+          }
+        ],
+        [
+          {
+            "real": -6.549900232204552e-19,
+            "imag": -4.5131630266365134e-20
+          },
+          {
+            "real": -1.7700662760944416e-19,
+            "imag": 1.3564618518941233e-19
+          },
+          {
+            "real": -1.8506703416558885e-33,
+            "imag": -3.62279653040901e-35
+          }
+        ]
+      ]
+    },
+    "K_eff": {
+      "shape": [
+        3,
+        3
+      ],
+      "data": [
+        [
+          {
+            "real": -7.060841325584686e-05,
+            "imag": 2.57902244018405e-21
+          },
+          {
+            "real": 2.6875833262865957e-05,
+            "imag": -4.587809434490059e-05
+          },
+          {
+            "real": 3.33292727683036e-19,
+            "imag": -2.0597225553650644e-20
+          }
+        ],
+        [
+          {
+            "real": 2.6875833262866028e-05,
+            "imag": 4.5878094344900616e-05
+          },
+          {
+            "real": -0.000162607382703001,
+            "imag": -8.509007201889567e-21
+          },
+          {
+            "real": 1.0237184465571283e-19,
+            "imag": 1.0918549514226584e-19
+          }
+        ],
+        [
+          {
+            "real": 4.338127800334123e-19,
+            "imag": 3.4289608541510086e-20
+          },
+          {
+            "real": 1.5532258415973408e-19,
+            "imag": -9.769910915241967e-20
+          },
+          {
+            "real": -0.6431594251288896,
+            "imag": 8.763548181669614e-19
+          }
+        ]
+      ]
+    }
+  },
+  "schur_factor_decomposition": {
+    "GG": {
+      "total": {
+        "real": -0.000196519589231735,
+        "imag": -2.693300074472658e-21
+      },
+      "contributions": [
+        {
+          "collective_channel": "eta0",
+          "K_Seta": {
+            "real": 7.211910945386502e-05,
+            "imag": -4.041903494841498e-06
+          },
+          "X": {
+            "real": 0.00035590542626194545,
+            "imag": 0.0003550476256227543
+          },
+          "product": {
+            "real": 2.7102650630649516e-08,
+            "imag": 2.4167183187381095e-08
+          }
+        },
+        {
+          "collective_channel": "eta1",
+          "K_Seta": {
+            "real": 5.8631063811137535e-05,
+            "imag": 0.0010375893197116992
+          },
+          "X": {
+            "real": -0.01069306021163269,
+            "imag": 0.1888220538364819
+          },
+          "product": {
+            "real": -0.00019654669188236566,
+            "imag": -2.4167183187383788e-08
+          }
+        }
+      ],
+      "reconstruction_error": 0.0
+    },
+    "GTM": {
+      "total": {
+        "real": -5.08182807186023e-05,
+        "imag": 4.3992453780913346e-05
+      },
+      "contributions": [
+        {
+          "collective_channel": "eta0",
+          "K_Seta": {
+            "real": 7.211910945386502e-05,
+            "imag": -4.041903494841498e-06
+          },
+          "X": {
+            "real": -0.0013146551523462021,
+            "imag": 9.611902886855233e-05
+          },
+          "product": {
+            "real": -9.442325498743876e-08,
+            "imag": 1.2245728018349833e-08
+          }
+        },
+        {
+          "collective_channel": "eta1",
+          "K_Seta": {
+            "real": 5.8631063811137535e-05,
+            "imag": 0.0010375893197116992
+          },
+          "X": {
+            "real": 0.03949837699643497,
+            "imag": 0.0511181912902367
+          },
+          "product": {
+            "real": -5.0723857463614864e-05,
+            "imag": 4.3980208052894997e-05
+          }
+        }
+      ],
+      "reconstruction_error": 0.0
+    },
+    "TMG": {
+      "total": {
+        "real": -5.081828071860236e-05,
+        "imag": -4.3992453780913366e-05
+      },
+      "contributions": [
+        {
+          "collective_channel": "eta0",
+          "K_Seta": {
+            "real": -0.00026639593507170453,
+            "imag": -1.0942302121388505e-06
+          },
+          "X": {
+            "real": 0.00035590542626194545,
+            "imag": 0.0003550476256227543
+          },
+          "product": {
+            "real": -9.442325498743997e-08,
+            "imag": -9.497268669284207e-08
+          }
+        },
+        {
+          "collective_channel": "eta1",
+          "K_Seta": {
+            "real": -0.00021657334909561406,
+            "imag": 0.0002808977460422136
+          },
+          "X": {
+            "real": -0.01069306021163269,
+            "imag": 0.1888220538364819
+          },
+          "product": {
+            "real": -5.0723857463614925e-05,
+            "imag": -4.389748109422052e-05
+          }
+        }
+      ],
+      "reconstruction_error": 0.0
+    },
+    "TMTM": {
+      "total": {
+        "real": -2.2562956540189835e-05,
+        "imag": 7.927698990708217e-21
+      },
+      "contributions": [
+        {
+          "collective_channel": "eta0",
+          "K_Seta": {
+            "real": -0.00026639593507170453,
+            "imag": -1.0942302121388505e-06
+          },
+          "X": {
+            "real": -0.0013146551523462021,
+            "imag": 9.611902886855233e-05
+          },
+          "product": {
+            "real": 3.503239649514501e-07,
+            "imag": -2.4167183187380942e-08
+          }
+        },
+        {
+          "collective_channel": "eta1",
+          "K_Seta": {
+            "real": -0.00021657334909561406,
+            "imag": 0.0002808977460422136
+          },
+          "X": {
+            "real": 0.03949837699643497,
+            "imag": 0.0511181912902367
+          },
+          "product": {
+            "real": -2.2913280505141286e-05,
+            "imag": 2.416718318738887e-08
+          }
+        }
+      ],
+      "reconstruction_error": 0.0
+    },
+    "GTE": {
+      "total": {
+        "real": -5.501331621801369e-19,
+        "imag": 2.710243858856367e-20
+      },
+      "contributions": [
+        {
+          "collective_channel": "eta0",
+          "K_Seta": {
+            "real": 7.211910945386502e-05,
+            "imag": -4.041903494841498e-06
+          },
+          "X": {
+            "real": 7.057157751177554e-18,
+            "imag": -9.774065030113022e-19
+          },
+          "product": {
+            "real": 5.050053495299637e-22,
+            "imag": -9.901403714972386e-23
+          }
+        },
+        {
+          "collective_channel": "eta1",
+          "K_Seta": {
+            "real": 5.8631063811137535e-05,
+            "imag": 0.0010375893197116992
+          },
+          "X": {
+            "real": -3.759680589772108e-18,
+            "imag": 5.304774470982753e-16
+          },
+          "product": {
+            "real": -5.506381675296668e-19,
+            "imag": 2.7201452625713394e-20
+          }
+        }
+      ],
+      "reconstruction_error": 0.0
+    },
+    "TEG": {
+      "total": {
+        "real": -6.549900232204552e-19,
+        "imag": -4.5131630266365134e-20
+      },
+      "contributions": [
+        {
+          "collective_channel": "eta0",
+          "K_Seta": {
+            "real": -1.3901613819095453e-18,
+            "imag": -5.551115123125783e-19
+          },
+          "X": {
+            "real": 0.00035590542626194545,
+            "imag": 0.0003550476256227543
+          },
+          "product": {
+            "real": -2.9767495479897465e-22,
+            "imag": -6.911406972919523e-22
+          }
+        },
+        {
+          "collective_channel": "eta1",
+          "K_Seta": {
+            "real": -3.88804393427758e-20,
+            "imag": 3.469446951953614e-18
+          },
+          "X": {
+            "real": -0.01069306021163269,
+            "imag": 0.1888220538364819
+          },
+          "product": {
+            "real": -6.546923482656563e-19,
+            "imag": -4.4440489569073184e-20
+          }
+        }
+      ],
+      "reconstruction_error": 0.0
+    }
+  },
+  "consistency_diagnostics": {
+    "diagnostic_only": true,
+    "K_eff_GTM_minus_conj_TMG": {
+      "difference": {
+        "real": -7.115076756936123e-20,
+        "imag": 2.710505431213761e-20
+      },
+      "abs": 7.61387923135979e-20
+    },
+    "Schur_GTM_minus_conj_TMG": {
+      "difference": {
+        "real": 6.098637220230962e-20,
+        "imag": -2.0328790734103208e-20
+      },
+      "abs": 6.428528079669252e-20
+    },
+    "K_Seta_minus_K_etaS_dagger": {
+      "available": true,
+      "difference": {
+        "shape": [
+          3,
+          2
+        ],
+        "data": [
+          [
+            {
+              "real": -2.168404344971009e-19,
+              "imag": 1.1858461261560205e-20
+            },
+            {
+              "real": 0.00011726212762227508,
+              "imag": 0.002075178639423399
+            }
+          ],
+          [
+            {
+              "real": 0.0,
+              "imag": -2.5199230180815435e-20
+            },
+            {
+              "real": -0.0004331466981912281,
+              "imag": 0.0005617954920844269
+            }
+          ],
+          [
+            {
+              "real": -2.7493004813199997e-18,
+              "imag": -9.237402509576497e-19
+            },
+            {
+              "real": -2.062531714766744e-20,
+              "imag": 6.3837823915946496e-18
+            }
+          ]
+        ]
+      },
+      "frobenius_norm": 0.0021962119727325954,
+      "max_abs": 0.00207848906470389
+    },
+    "etaeta_condition_number": 35.015297774318306,
+    "valid_for_casimir_input": false
+  },
+  "ratios": {
+    "gauge_row_norm": 8.83892412955413e-05,
+    "gauge_col_norm": 8.838924129554132e-05,
+    "gauge_gg_norm": 7.060841325584686e-05,
+    "physical_matrix_norm": 0.643159445684571,
+    "gauge_over_physical": 0.00013742974916812562,
+    "gauge_over_tm_abs": 0.5435745894574936,
+    "gauge_gg_over_tm_abs": 0.4342263683366189,
+    "ratio_eps": 1e-30,
+    "valid_for_casimir_input": false
+  },
+  "schur": {
+    "solve_method": "solve",
+    "etaeta_condition_number": 35.015297774318306,
+    "condition_threshold": 1000000000000.0,
+    "numerically_suspect": false,
+    "valid_for_casimir_input": false
+  },
+  "valid_for_casimir_input": false
+}
