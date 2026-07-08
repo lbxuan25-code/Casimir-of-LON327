@@ -1,0 +1,4511 @@
+{
+  "schema_version": "finite_q_tmte_nk_sweep_v1",
+  "status": {
+    "diagnostic_run_completed": true,
+    "valid_for_casimir_input": false,
+    "reason": "nk_sweep_diagnostic_not_casimir_input"
+  },
+  "model": {
+    "name": "symmetry_bdg_2band",
+    "pairing": "dwave",
+    "valid_for_casimir_input": false
+  },
+  "frequency": {
+    "source": "matsubara_index",
+    "matsubara_index": 1,
+    "temperature_K": 10.0,
+    "xi_eV": 0.00541443017397794,
+    "zero_matsubara_mode": false,
+    "valid_for_casimir_input": false
+  },
+  "sweep_parameters": {
+    "nk_values": [
+      9,
+      11,
+      13
+    ],
+    "q_values": [
+      0.02
+    ],
+    "q_direction": [
+      1.0,
+      0.0
+    ],
+    "shift_fractions": [
+      0.0,
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9
+    ],
+    "ratio_eps": 1e-30,
+    "single_q_summary": true,
+    "valid_for_casimir_input": false
+  },
+  "nk_results": [
+    {
+      "nk": 9,
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "diagnostics": {
+        "gauge_row_norm": 7.444267534489e-05,
+        "gauge_col_norm": 7.444267534488999e-05,
+        "gauge_gg_norm": 3.834790002586524e-05,
+        "etaeta_condition_number": 31.018186523516686,
+        "physical_matrix_norm": 0.5953068544605681,
+        "schur_correction_norm": 0.0002342107637846833,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 31.018186523516686,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "shifted_mesh_average": {
+        "enabled": true,
+        "average_order": "average_blocks_then_schur",
+        "shift_fractions": [
+          0.0,
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9
+        ],
+        "shift_pairs": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.1
+          ],
+          [
+            0.0,
+            0.2
+          ],
+          [
+            0.0,
+            0.3
+          ],
+          [
+            0.0,
+            0.4
+          ],
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.6
+          ],
+          [
+            0.0,
+            0.7
+          ],
+          [
+            0.0,
+            0.8
+          ],
+          [
+            0.0,
+            0.9
+          ],
+          [
+            0.1,
+            0.0
+          ],
+          [
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.2
+          ],
+          [
+            0.1,
+            0.3
+          ],
+          [
+            0.1,
+            0.4
+          ],
+          [
+            0.1,
+            0.5
+          ],
+          [
+            0.1,
+            0.6
+          ],
+          [
+            0.1,
+            0.7
+          ],
+          [
+            0.1,
+            0.8
+          ],
+          [
+            0.1,
+            0.9
+          ],
+          [
+            0.2,
+            0.0
+          ],
+          [
+            0.2,
+            0.1
+          ],
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.2,
+            0.4
+          ],
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.2,
+            0.6
+          ],
+          [
+            0.2,
+            0.7
+          ],
+          [
+            0.2,
+            0.8
+          ],
+          [
+            0.2,
+            0.9
+          ],
+          [
+            0.3,
+            0.0
+          ],
+          [
+            0.3,
+            0.1
+          ],
+          [
+            0.3,
+            0.2
+          ],
+          [
+            0.3,
+            0.3
+          ],
+          [
+            0.3,
+            0.4
+          ],
+          [
+            0.3,
+            0.5
+          ],
+          [
+            0.3,
+            0.6
+          ],
+          [
+            0.3,
+            0.7
+          ],
+          [
+            0.3,
+            0.8
+          ],
+          [
+            0.3,
+            0.9
+          ],
+          [
+            0.4,
+            0.0
+          ],
+          [
+            0.4,
+            0.1
+          ],
+          [
+            0.4,
+            0.2
+          ],
+          [
+            0.4,
+            0.3
+          ],
+          [
+            0.4,
+            0.4
+          ],
+          [
+            0.4,
+            0.5
+          ],
+          [
+            0.4,
+            0.6
+          ],
+          [
+            0.4,
+            0.7
+          ],
+          [
+            0.4,
+            0.8
+          ],
+          [
+            0.4,
+            0.9
+          ],
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.1
+          ],
+          [
+            0.5,
+            0.2
+          ],
+          [
+            0.5,
+            0.3
+          ],
+          [
+            0.5,
+            0.4
+          ],
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.6
+          ],
+          [
+            0.5,
+            0.7
+          ],
+          [
+            0.5,
+            0.8
+          ],
+          [
+            0.5,
+            0.9
+          ],
+          [
+            0.6,
+            0.0
+          ],
+          [
+            0.6,
+            0.1
+          ],
+          [
+            0.6,
+            0.2
+          ],
+          [
+            0.6,
+            0.3
+          ],
+          [
+            0.6,
+            0.4
+          ],
+          [
+            0.6,
+            0.5
+          ],
+          [
+            0.6,
+            0.6
+          ],
+          [
+            0.6,
+            0.7
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            0.6,
+            0.9
+          ],
+          [
+            0.7,
+            0.0
+          ],
+          [
+            0.7,
+            0.1
+          ],
+          [
+            0.7,
+            0.2
+          ],
+          [
+            0.7,
+            0.3
+          ],
+          [
+            0.7,
+            0.4
+          ],
+          [
+            0.7,
+            0.5
+          ],
+          [
+            0.7,
+            0.6
+          ],
+          [
+            0.7,
+            0.7
+          ],
+          [
+            0.7,
+            0.8
+          ],
+          [
+            0.7,
+            0.9
+          ],
+          [
+            0.8,
+            0.0
+          ],
+          [
+            0.8,
+            0.1
+          ],
+          [
+            0.8,
+            0.2
+          ],
+          [
+            0.8,
+            0.3
+          ],
+          [
+            0.8,
+            0.4
+          ],
+          [
+            0.8,
+            0.5
+          ],
+          [
+            0.8,
+            0.6
+          ],
+          [
+            0.8,
+            0.7
+          ],
+          [
+            0.8,
+            0.8
+          ],
+          [
+            0.8,
+            0.9
+          ],
+          [
+            0.9,
+            0.0
+          ],
+          [
+            0.9,
+            0.1
+          ],
+          [
+            0.9,
+            0.2
+          ],
+          [
+            0.9,
+            0.3
+          ],
+          [
+            0.9,
+            0.4
+          ],
+          [
+            0.9,
+            0.5
+          ],
+          [
+            0.9,
+            0.6
+          ],
+          [
+            0.9,
+            0.7
+          ],
+          [
+            0.9,
+            0.8
+          ],
+          [
+            0.9,
+            0.9
+          ]
+        ],
+        "num_shifted_meshes": 100,
+        "per_shift_summaries": [
+          {
+            "shift": [
+              0.0,
+              0.0
+            ],
+            "K_SS_norm": 0.6912186240605847,
+            "K_TMTE_eff_norm": 0.6912185605948171,
+            "etaeta_condition_number": 197.87314835014848,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.1
+            ],
+            "K_SS_norm": 0.6873893065867962,
+            "K_TMTE_eff_norm": 0.6873892435158245,
+            "etaeta_condition_number": 205.1404304430479,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.2
+            ],
+            "K_SS_norm": 0.6853581557014338,
+            "K_TMTE_eff_norm": 0.6853580910495163,
+            "etaeta_condition_number": 94.27404261540592,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.3
+            ],
+            "K_SS_norm": 0.4739453586949725,
+            "K_TMTE_eff_norm": 0.4739452641577624,
+            "etaeta_condition_number": 18.987974562611576,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.4
+            ],
+            "K_SS_norm": 0.6551037002067942,
+            "K_TMTE_eff_norm": 0.6551036540190583,
+            "etaeta_condition_number": 24.279892159013716,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.5
+            ],
+            "K_SS_norm": 0.6619590770599987,
+            "K_TMTE_eff_norm": 0.6619590506425224,
+            "etaeta_condition_number": 28.02577842714033,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.6
+            ],
+            "K_SS_norm": 0.6551037002067939,
+            "K_TMTE_eff_norm": 0.655103654019058,
+            "etaeta_condition_number": 24.279892159014246,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.7
+            ],
+            "K_SS_norm": 0.47394535869497234,
+            "K_TMTE_eff_norm": 0.4739452641577622,
+            "etaeta_condition_number": 18.987974562612116,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.8
+            ],
+            "K_SS_norm": 0.6853581557014331,
+            "K_TMTE_eff_norm": 0.6853580910495155,
+            "etaeta_condition_number": 94.27404261540202,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.9
+            ],
+            "K_SS_norm": 0.6873893065867963,
+            "K_TMTE_eff_norm": 0.6873892435158246,
+            "etaeta_condition_number": 205.14043044312447,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.0
+            ],
+            "K_SS_norm": 0.6797875660437708,
+            "K_TMTE_eff_norm": 0.6797875018501207,
+            "etaeta_condition_number": 127.26988235475481,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.1
+            ],
+            "K_SS_norm": 0.6825937862440865,
+            "K_TMTE_eff_norm": 0.6143657956352813,
+            "etaeta_condition_number": 108.43930151144531,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.2
+            ],
+            "K_SS_norm": 0.6017578617250222,
+            "K_TMTE_eff_norm": 0.1339710745829001,
+            "etaeta_condition_number": 25.118436045950386,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.3
+            ],
+            "K_SS_norm": 0.6527008614055384,
+            "K_TMTE_eff_norm": 0.642284923543408,
+            "etaeta_condition_number": 31.063268898143235,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.4
+            ],
+            "K_SS_norm": 0.5191500638414868,
+            "K_TMTE_eff_norm": 0.4471747266734196,
+            "etaeta_condition_number": 22.12216931870226,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.5
+            ],
+            "K_SS_norm": 0.6581355989039684,
+            "K_TMTE_eff_norm": 0.6581355441875298,
+            "etaeta_condition_number": 37.87266170304061,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.6
+            ],
+            "K_SS_norm": 0.5191500638414815,
+            "K_TMTE_eff_norm": 0.44717472667341873,
+            "etaeta_condition_number": 22.12216931870058,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.7
+            ],
+            "K_SS_norm": 0.6527008614055378,
+            "K_TMTE_eff_norm": 0.6422849235434066,
+            "etaeta_condition_number": 31.06326889814413,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.8
+            ],
+            "K_SS_norm": 0.6017578617250227,
+            "K_TMTE_eff_norm": 0.13397107458292506,
+            "etaeta_condition_number": 25.118436045949505,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.9
+            ],
+            "K_SS_norm": 0.6825937862440865,
+            "K_TMTE_eff_norm": 0.6143657956353057,
+            "etaeta_condition_number": 108.43930151140486,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.0
+            ],
+            "K_SS_norm": 0.6575985722605234,
+            "K_TMTE_eff_norm": 0.65759850524787,
+            "etaeta_condition_number": 34.41746229369226,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.1
+            ],
+            "K_SS_norm": 0.5861041116293086,
+            "K_TMTE_eff_norm": 0.1886277669395287,
+            "etaeta_condition_number": 21.139048226084853,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.2
+            ],
+            "K_SS_norm": 0.6586176187518774,
+            "K_TMTE_eff_norm": 0.5780740478244719,
+            "etaeta_condition_number": 62.16167056611342,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.3
+            ],
+            "K_SS_norm": 0.6685271303918258,
+            "K_TMTE_eff_norm": 0.66247113706015,
+            "etaeta_condition_number": 89.66891987128722,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.4
+            ],
+            "K_SS_norm": 0.6659268031105717,
+            "K_TMTE_eff_norm": 0.6639318954788291,
+            "etaeta_condition_number": 38.26295052780922,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.5
+            ],
+            "K_SS_norm": 0.3561562145775522,
+            "K_TMTE_eff_norm": 0.35615614192064265,
+            "etaeta_condition_number": 26.836048225520315,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.6
+            ],
+            "K_SS_norm": 0.6659268031105705,
+            "K_TMTE_eff_norm": 0.6639318954788279,
+            "etaeta_condition_number": 38.26295052781243,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.7
+            ],
+            "K_SS_norm": 0.6685271303918262,
+            "K_TMTE_eff_norm": 0.6624711370601509,
+            "etaeta_condition_number": 89.66891987128166,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.8
+            ],
+            "K_SS_norm": 0.6586176187518777,
+            "K_TMTE_eff_norm": 0.5780740478244835,
+            "etaeta_condition_number": 62.161670566105805,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.9
+            ],
+            "K_SS_norm": 0.5861041116293072,
+            "K_TMTE_eff_norm": 0.18862776693952554,
+            "etaeta_condition_number": 21.139048226084586,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.0
+            ],
+            "K_SS_norm": 0.4568484078946858,
+            "K_TMTE_eff_norm": 0.456848315155452,
+            "etaeta_condition_number": 18.009074469524315,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.1
+            ],
+            "K_SS_norm": 0.6031197111626736,
+            "K_TMTE_eff_norm": 0.5989641395641516,
+            "etaeta_condition_number": 28.3494054456721,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.2
+            ],
+            "K_SS_norm": 0.6360420708780443,
+            "K_TMTE_eff_norm": 0.634530672827137,
+            "etaeta_condition_number": 63.23498310113433,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.3
+            ],
+            "K_SS_norm": 0.6719751700350987,
+            "K_TMTE_eff_norm": 0.6422542626250376,
+            "etaeta_condition_number": 47.270301424941366,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.4
+            ],
+            "K_SS_norm": 0.5426099641889294,
+            "K_TMTE_eff_norm": 0.46490415726344275,
+            "etaeta_condition_number": 25.822094220644132,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.5
+            ],
+            "K_SS_norm": 0.6951358426528786,
+            "K_TMTE_eff_norm": 0.6951357820437368,
+            "etaeta_condition_number": 44.08093878017876,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.6
+            ],
+            "K_SS_norm": 0.5426099641888994,
+            "K_TMTE_eff_norm": 0.4649041572633961,
+            "etaeta_condition_number": 25.82209422064984,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.7
+            ],
+            "K_SS_norm": 0.6719751700350987,
+            "K_TMTE_eff_norm": 0.6422542626250383,
+            "etaeta_condition_number": 47.270301424940186,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.8
+            ],
+            "K_SS_norm": 0.6360420708780445,
+            "K_TMTE_eff_norm": 0.6345306728271374,
+            "etaeta_condition_number": 63.234983101123674,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.9
+            ],
+            "K_SS_norm": 0.6031197111626739,
+            "K_TMTE_eff_norm": 0.5989641395641514,
+            "etaeta_condition_number": 28.34940544567407,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.0
+            ],
+            "K_SS_norm": 0.5976902260152411,
+            "K_TMTE_eff_norm": 0.5976901579449372,
+            "etaeta_condition_number": 60.31739411768368,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.1
+            ],
+            "K_SS_norm": 0.48542058362395624,
+            "K_TMTE_eff_norm": 0.3979190383990724,
+            "etaeta_condition_number": 30.080122515294462,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.2
+            ],
+            "K_SS_norm": 0.6335630526117866,
+            "K_TMTE_eff_norm": 0.6321271003163748,
+            "etaeta_condition_number": 33.12085011436164,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.3
+            ],
+            "K_SS_norm": 0.4880839588222418,
+            "K_TMTE_eff_norm": 0.36559447657540073,
+            "etaeta_condition_number": 45.0347002425476,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.4
+            ],
+            "K_SS_norm": 0.7008163582430124,
+            "K_TMTE_eff_norm": 0.699144547853034,
+            "etaeta_condition_number": 138.2790862145345,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.5
+            ],
+            "K_SS_norm": 0.34365797558969335,
+            "K_TMTE_eff_norm": 0.3436579578849062,
+            "etaeta_condition_number": 5.795037956787468,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.6
+            ],
+            "K_SS_norm": 0.700816358243012,
+            "K_TMTE_eff_norm": 0.699144547853036,
+            "etaeta_condition_number": 138.27908621431197,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.7
+            ],
+            "K_SS_norm": 0.48808395882221756,
+            "K_TMTE_eff_norm": 0.3655944765753777,
+            "etaeta_condition_number": 45.03470024254626,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.8
+            ],
+            "K_SS_norm": 0.6335630526117867,
+            "K_TMTE_eff_norm": 0.6321271003163748,
+            "etaeta_condition_number": 33.120850114363826,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.9
+            ],
+            "K_SS_norm": 0.4854205836239613,
+            "K_TMTE_eff_norm": 0.3979190383990733,
+            "etaeta_condition_number": 30.080122515296523,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.0
+            ],
+            "K_SS_norm": 0.5900414728761515,
+            "K_TMTE_eff_norm": 0.5900414205727548,
+            "etaeta_condition_number": 82.72781470570428,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.1
+            ],
+            "K_SS_norm": 0.617867507284214,
+            "K_TMTE_eff_norm": 0.6178674404757243,
+            "etaeta_condition_number": 56.54418996064291,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.2
+            ],
+            "K_SS_norm": 0.3207551542324903,
+            "K_TMTE_eff_norm": 0.3207550829972549,
+            "etaeta_condition_number": 28.237785254251374,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.3
+            ],
+            "K_SS_norm": 0.679738890071895,
+            "K_TMTE_eff_norm": 0.6797388238159314,
+            "etaeta_condition_number": 150.42564987587832,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.4
+            ],
+            "K_SS_norm": 0.27961047432684893,
+            "K_TMTE_eff_norm": 0.27961042116690193,
+            "etaeta_condition_number": 6.580642338964993,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.5
+            ],
+            "K_SS_norm": 0.7100713794629654,
+            "K_TMTE_eff_norm": 0.7100713148453206,
+            "etaeta_condition_number": 170.28689775147723,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.6
+            ],
+            "K_SS_norm": 0.27961047432684716,
+            "K_TMTE_eff_norm": 0.2796104211669002,
+            "etaeta_condition_number": 6.580642338964731,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.7
+            ],
+            "K_SS_norm": 0.6797388900718951,
+            "K_TMTE_eff_norm": 0.6797388238159314,
+            "etaeta_condition_number": 150.42564987594565,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.8
+            ],
+            "K_SS_norm": 0.3207551542324905,
+            "K_TMTE_eff_norm": 0.32075508299725514,
+            "etaeta_condition_number": 28.23778525424822,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.9
+            ],
+            "K_SS_norm": 0.6178675072842142,
+            "K_TMTE_eff_norm": 0.6178674404757245,
+            "etaeta_condition_number": 56.544189960646484,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.0
+            ],
+            "K_SS_norm": 0.5976902260152409,
+            "K_TMTE_eff_norm": 0.597690157944937,
+            "etaeta_condition_number": 60.31739411769776,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.1
+            ],
+            "K_SS_norm": 0.48542058362395396,
+            "K_TMTE_eff_norm": 0.39791903839907083,
+            "etaeta_condition_number": 30.08012251529406,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.2
+            ],
+            "K_SS_norm": 0.6335630526117857,
+            "K_TMTE_eff_norm": 0.6321271003163734,
+            "etaeta_condition_number": 33.120850114364735,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.3
+            ],
+            "K_SS_norm": 0.48808395882220595,
+            "K_TMTE_eff_norm": 0.3655944765753759,
+            "etaeta_condition_number": 45.03470024254172,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.4
+            ],
+            "K_SS_norm": 0.7008163582430121,
+            "K_TMTE_eff_norm": 0.6991445478530371,
+            "etaeta_condition_number": 138.2790862142255,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.5
+            ],
+            "K_SS_norm": 0.34365797558969313,
+            "K_TMTE_eff_norm": 0.343657957884906,
+            "etaeta_condition_number": 5.795037956787364,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.6
+            ],
+            "K_SS_norm": 0.7008163582430118,
+            "K_TMTE_eff_norm": 0.6991445478530386,
+            "etaeta_condition_number": 138.27908621405876,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.7
+            ],
+            "K_SS_norm": 0.4880839588221975,
+            "K_TMTE_eff_norm": 0.365594476575362,
+            "etaeta_condition_number": 45.03470024254179,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.8
+            ],
+            "K_SS_norm": 0.6335630526117859,
+            "K_TMTE_eff_norm": 0.6321271003163735,
+            "etaeta_condition_number": 33.12085011436538,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.9
+            ],
+            "K_SS_norm": 0.48542058362395535,
+            "K_TMTE_eff_norm": 0.3979190383990682,
+            "etaeta_condition_number": 30.0801225152955,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.0
+            ],
+            "K_SS_norm": 0.4568484078946877,
+            "K_TMTE_eff_norm": 0.45684831515545393,
+            "etaeta_condition_number": 18.00907446952814,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.1
+            ],
+            "K_SS_norm": 0.6031197111626733,
+            "K_TMTE_eff_norm": 0.598964139564151,
+            "etaeta_condition_number": 28.349405445672588,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.2
+            ],
+            "K_SS_norm": 0.6360420708780445,
+            "K_TMTE_eff_norm": 0.634530672827138,
+            "etaeta_condition_number": 63.234983101091665,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.3
+            ],
+            "K_SS_norm": 0.671975170035099,
+            "K_TMTE_eff_norm": 0.6422542626250386,
+            "etaeta_condition_number": 47.270301424940506,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.4
+            ],
+            "K_SS_norm": 0.5426099641889138,
+            "K_TMTE_eff_norm": 0.46490415726340373,
+            "etaeta_condition_number": 25.82209422065182,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.5
+            ],
+            "K_SS_norm": 0.6951358426528788,
+            "K_TMTE_eff_norm": 0.6951357820437368,
+            "etaeta_condition_number": 44.08093878017112,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.6
+            ],
+            "K_SS_norm": 0.5426099641888883,
+            "K_TMTE_eff_norm": 0.46490415726338125,
+            "etaeta_condition_number": 25.822094220649927,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.7
+            ],
+            "K_SS_norm": 0.6719751700350989,
+            "K_TMTE_eff_norm": 0.6422542626250335,
+            "etaeta_condition_number": 47.270301424948265,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.8
+            ],
+            "K_SS_norm": 0.6360420708780445,
+            "K_TMTE_eff_norm": 0.6345306728271376,
+            "etaeta_condition_number": 63.234983101107424,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.9
+            ],
+            "K_SS_norm": 0.6031197111626738,
+            "K_TMTE_eff_norm": 0.598964139564151,
+            "etaeta_condition_number": 28.349405445673586,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.0
+            ],
+            "K_SS_norm": 0.6575985722605233,
+            "K_TMTE_eff_norm": 0.6575985052478698,
+            "etaeta_condition_number": 34.417462293679634,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.1
+            ],
+            "K_SS_norm": 0.5861041116293102,
+            "K_TMTE_eff_norm": 0.18862776693952377,
+            "etaeta_condition_number": 21.1390482260855,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.2
+            ],
+            "K_SS_norm": 0.6586176187518773,
+            "K_TMTE_eff_norm": 0.5780740478244654,
+            "etaeta_condition_number": 62.16167056611899,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.3
+            ],
+            "K_SS_norm": 0.6685271303918259,
+            "K_TMTE_eff_norm": 0.6624711370601554,
+            "etaeta_condition_number": 89.66891987120839,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.4
+            ],
+            "K_SS_norm": 0.6659268031105717,
+            "K_TMTE_eff_norm": 0.6639318954788288,
+            "etaeta_condition_number": 38.26295052781426,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.5
+            ],
+            "K_SS_norm": 0.35615621457755225,
+            "K_TMTE_eff_norm": 0.35615614192064277,
+            "etaeta_condition_number": 26.836048225524763,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.6
+            ],
+            "K_SS_norm": 0.6659268031105708,
+            "K_TMTE_eff_norm": 0.6639318954788282,
+            "etaeta_condition_number": 38.26295052781038,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.7
+            ],
+            "K_SS_norm": 0.6685271303918262,
+            "K_TMTE_eff_norm": 0.6624711370601544,
+            "etaeta_condition_number": 89.66891987122904,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.8
+            ],
+            "K_SS_norm": 0.6586176187518775,
+            "K_TMTE_eff_norm": 0.5780740478244841,
+            "etaeta_condition_number": 62.16167056610559,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.9
+            ],
+            "K_SS_norm": 0.5861041116293089,
+            "K_TMTE_eff_norm": 0.18862776693952996,
+            "etaeta_condition_number": 21.139048226084775,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.0
+            ],
+            "K_SS_norm": 0.6797875660437709,
+            "K_TMTE_eff_norm": 0.6797875018501208,
+            "etaeta_condition_number": 127.26988235463777,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.1
+            ],
+            "K_SS_norm": 0.6825937862440862,
+            "K_TMTE_eff_norm": 0.61436579563532,
+            "etaeta_condition_number": 108.43930151137988,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.2
+            ],
+            "K_SS_norm": 0.6017578617250219,
+            "K_TMTE_eff_norm": 0.1339710745828377,
+            "etaeta_condition_number": 25.118436045953697,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.3
+            ],
+            "K_SS_norm": 0.6527008614055387,
+            "K_TMTE_eff_norm": 0.6422849235434079,
+            "etaeta_condition_number": 31.063268898142855,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.4
+            ],
+            "K_SS_norm": 0.5191500638414934,
+            "K_TMTE_eff_norm": 0.4471747266734222,
+            "etaeta_condition_number": 22.122169318704007,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.5
+            ],
+            "K_SS_norm": 0.6581355989039687,
+            "K_TMTE_eff_norm": 0.65813554418753,
+            "etaeta_condition_number": 37.8726617030558,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.6
+            ],
+            "K_SS_norm": 0.5191500638414825,
+            "K_TMTE_eff_norm": 0.4471747266734164,
+            "etaeta_condition_number": 22.12216931870151,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.7
+            ],
+            "K_SS_norm": 0.6527008614055383,
+            "K_TMTE_eff_norm": 0.6422849235434063,
+            "etaeta_condition_number": 31.06326889814485,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.8
+            ],
+            "K_SS_norm": 0.6017578617250208,
+            "K_TMTE_eff_norm": 0.1339710745828596,
+            "etaeta_condition_number": 25.11843604595242,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.9
+            ],
+            "K_SS_norm": 0.6825937862440862,
+            "K_TMTE_eff_norm": 0.6143657956353138,
+            "etaeta_condition_number": 108.43930151138825,
+            "valid_for_casimir_input": false
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "selected_matrix_elements": {
+        "K_GG": {
+          "real": -3.834790002586524e-05,
+          "imag": 1.1307708895877203e-20
+        },
+        "K_GTM": {
+          "real": 4.04178857936493e-05,
+          "imag": -4.937149971473886e-05
+        },
+        "K_TMG": {
+          "real": 4.041788579364931e-05,
+          "imag": 4.937149971473884e-05
+        },
+        "K_TMTM": {
+          "real": -0.00017670282297391633,
+          "imag": -8.402932545158477e-21
+        },
+        "K_TETE": {
+          "real": -0.5953068282355313,
+          "imag": 2.5492700196040725e-18
+        },
+        "K_TMTE": {
+          "real": -1.8115793706879294e-18,
+          "imag": -9.162229309581545e-19
+        },
+        "K_TETM": {
+          "real": -1.548025377409951e-18,
+          "imag": 8.047540086563944e-19
+        }
+      },
+      "ratios": {
+        "gauge_over_physical": 0.00012504924945362094,
+        "gauge_over_tm_abs": 0.4212874140436269,
+        "gauge_gg_over_tm_abs": 0.21701917026829787,
+        "ratio_eps": 1e-30,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "nk": 11,
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "diagnostics": {
+        "gauge_row_norm": 7.23463704979987e-05,
+        "gauge_col_norm": 7.234637049799874e-05,
+        "gauge_gg_norm": 2.8226697493017862e-05,
+        "etaeta_condition_number": 33.99733789824105,
+        "physical_matrix_norm": 0.5712147944272812,
+        "schur_correction_norm": 0.00023475642953727977,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 33.99733789824105,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "shifted_mesh_average": {
+        "enabled": true,
+        "average_order": "average_blocks_then_schur",
+        "shift_fractions": [
+          0.0,
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9
+        ],
+        "shift_pairs": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.1
+          ],
+          [
+            0.0,
+            0.2
+          ],
+          [
+            0.0,
+            0.3
+          ],
+          [
+            0.0,
+            0.4
+          ],
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.6
+          ],
+          [
+            0.0,
+            0.7
+          ],
+          [
+            0.0,
+            0.8
+          ],
+          [
+            0.0,
+            0.9
+          ],
+          [
+            0.1,
+            0.0
+          ],
+          [
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.2
+          ],
+          [
+            0.1,
+            0.3
+          ],
+          [
+            0.1,
+            0.4
+          ],
+          [
+            0.1,
+            0.5
+          ],
+          [
+            0.1,
+            0.6
+          ],
+          [
+            0.1,
+            0.7
+          ],
+          [
+            0.1,
+            0.8
+          ],
+          [
+            0.1,
+            0.9
+          ],
+          [
+            0.2,
+            0.0
+          ],
+          [
+            0.2,
+            0.1
+          ],
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.2,
+            0.4
+          ],
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.2,
+            0.6
+          ],
+          [
+            0.2,
+            0.7
+          ],
+          [
+            0.2,
+            0.8
+          ],
+          [
+            0.2,
+            0.9
+          ],
+          [
+            0.3,
+            0.0
+          ],
+          [
+            0.3,
+            0.1
+          ],
+          [
+            0.3,
+            0.2
+          ],
+          [
+            0.3,
+            0.3
+          ],
+          [
+            0.3,
+            0.4
+          ],
+          [
+            0.3,
+            0.5
+          ],
+          [
+            0.3,
+            0.6
+          ],
+          [
+            0.3,
+            0.7
+          ],
+          [
+            0.3,
+            0.8
+          ],
+          [
+            0.3,
+            0.9
+          ],
+          [
+            0.4,
+            0.0
+          ],
+          [
+            0.4,
+            0.1
+          ],
+          [
+            0.4,
+            0.2
+          ],
+          [
+            0.4,
+            0.3
+          ],
+          [
+            0.4,
+            0.4
+          ],
+          [
+            0.4,
+            0.5
+          ],
+          [
+            0.4,
+            0.6
+          ],
+          [
+            0.4,
+            0.7
+          ],
+          [
+            0.4,
+            0.8
+          ],
+          [
+            0.4,
+            0.9
+          ],
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.1
+          ],
+          [
+            0.5,
+            0.2
+          ],
+          [
+            0.5,
+            0.3
+          ],
+          [
+            0.5,
+            0.4
+          ],
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.6
+          ],
+          [
+            0.5,
+            0.7
+          ],
+          [
+            0.5,
+            0.8
+          ],
+          [
+            0.5,
+            0.9
+          ],
+          [
+            0.6,
+            0.0
+          ],
+          [
+            0.6,
+            0.1
+          ],
+          [
+            0.6,
+            0.2
+          ],
+          [
+            0.6,
+            0.3
+          ],
+          [
+            0.6,
+            0.4
+          ],
+          [
+            0.6,
+            0.5
+          ],
+          [
+            0.6,
+            0.6
+          ],
+          [
+            0.6,
+            0.7
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            0.6,
+            0.9
+          ],
+          [
+            0.7,
+            0.0
+          ],
+          [
+            0.7,
+            0.1
+          ],
+          [
+            0.7,
+            0.2
+          ],
+          [
+            0.7,
+            0.3
+          ],
+          [
+            0.7,
+            0.4
+          ],
+          [
+            0.7,
+            0.5
+          ],
+          [
+            0.7,
+            0.6
+          ],
+          [
+            0.7,
+            0.7
+          ],
+          [
+            0.7,
+            0.8
+          ],
+          [
+            0.7,
+            0.9
+          ],
+          [
+            0.8,
+            0.0
+          ],
+          [
+            0.8,
+            0.1
+          ],
+          [
+            0.8,
+            0.2
+          ],
+          [
+            0.8,
+            0.3
+          ],
+          [
+            0.8,
+            0.4
+          ],
+          [
+            0.8,
+            0.5
+          ],
+          [
+            0.8,
+            0.6
+          ],
+          [
+            0.8,
+            0.7
+          ],
+          [
+            0.8,
+            0.8
+          ],
+          [
+            0.8,
+            0.9
+          ],
+          [
+            0.9,
+            0.0
+          ],
+          [
+            0.9,
+            0.1
+          ],
+          [
+            0.9,
+            0.2
+          ],
+          [
+            0.9,
+            0.3
+          ],
+          [
+            0.9,
+            0.4
+          ],
+          [
+            0.9,
+            0.5
+          ],
+          [
+            0.9,
+            0.6
+          ],
+          [
+            0.9,
+            0.7
+          ],
+          [
+            0.9,
+            0.8
+          ],
+          [
+            0.9,
+            0.9
+          ]
+        ],
+        "num_shifted_meshes": 100,
+        "per_shift_summaries": [
+          {
+            "shift": [
+              0.0,
+              0.0
+            ],
+            "K_SS_norm": 2.4174331224218952,
+            "K_TMTE_eff_norm": 2.4174327902111625,
+            "etaeta_condition_number": 7.889944467109609,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.1
+            ],
+            "K_SS_norm": 0.6576666208613936,
+            "K_TMTE_eff_norm": 0.6576665537551045,
+            "etaeta_condition_number": 38.617735706676065,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.2
+            ],
+            "K_SS_norm": 0.677253280728023,
+            "K_TMTE_eff_norm": 0.6772532236393609,
+            "etaeta_condition_number": 49.47621191932334,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.3
+            ],
+            "K_SS_norm": 0.6612930885949161,
+            "K_TMTE_eff_norm": 0.661293028182471,
+            "etaeta_condition_number": 34.959769844295984,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.4
+            ],
+            "K_SS_norm": 0.651323139201361,
+            "K_TMTE_eff_norm": 0.6513230760175841,
+            "etaeta_condition_number": 40.22127391423362,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.5
+            ],
+            "K_SS_norm": 0.6499631544284968,
+            "K_TMTE_eff_norm": 0.6499630898498082,
+            "etaeta_condition_number": 48.240858498735456,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.6
+            ],
+            "K_SS_norm": 0.6513231392013611,
+            "K_TMTE_eff_norm": 0.6513230760175842,
+            "etaeta_condition_number": 40.221273914247455,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.7
+            ],
+            "K_SS_norm": 0.6612930885949156,
+            "K_TMTE_eff_norm": 0.6612930281824706,
+            "etaeta_condition_number": 34.959769844295344,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.8
+            ],
+            "K_SS_norm": 0.6772532807280232,
+            "K_TMTE_eff_norm": 0.6772532236393611,
+            "etaeta_condition_number": 49.47621191932689,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.9
+            ],
+            "K_SS_norm": 0.6576666208613942,
+            "K_TMTE_eff_norm": 0.657666553755105,
+            "etaeta_condition_number": 38.61773570667146,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.0
+            ],
+            "K_SS_norm": 0.6419633998449953,
+            "K_TMTE_eff_norm": 0.6419633304049149,
+            "etaeta_condition_number": 34.05773721024107,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.1
+            ],
+            "K_SS_norm": 0.25452665264897767,
+            "K_TMTE_eff_norm": 0.9709838545163597,
+            "etaeta_condition_number": 20.021514224416155,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.2
+            ],
+            "K_SS_norm": 0.6660686667340944,
+            "K_TMTE_eff_norm": 0.6079798955483993,
+            "etaeta_condition_number": 43.50702741999904,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.3
+            ],
+            "K_SS_norm": 0.6649416581329487,
+            "K_TMTE_eff_norm": 0.6649405330748175,
+            "etaeta_condition_number": 48.826243345630374,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.4
+            ],
+            "K_SS_norm": 0.6532667202889861,
+            "K_TMTE_eff_norm": 0.6434054282615734,
+            "etaeta_condition_number": 33.026309706305675,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.5
+            ],
+            "K_SS_norm": 0.654827960356082,
+            "K_TMTE_eff_norm": 0.6548279015906836,
+            "etaeta_condition_number": 29.529807599153642,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.6
+            ],
+            "K_SS_norm": 0.653266720288986,
+            "K_TMTE_eff_norm": 0.6434054282615728,
+            "etaeta_condition_number": 33.02630970630707,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.7
+            ],
+            "K_SS_norm": 0.6649416581329484,
+            "K_TMTE_eff_norm": 0.6649405330748172,
+            "etaeta_condition_number": 48.82624334563611,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.8
+            ],
+            "K_SS_norm": 0.6660686667340953,
+            "K_TMTE_eff_norm": 0.6079798955484029,
+            "etaeta_condition_number": 43.50702741999744,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.9
+            ],
+            "K_SS_norm": 0.2545266526489647,
+            "K_TMTE_eff_norm": 0.9709838545163413,
+            "etaeta_condition_number": 20.021514224416716,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.0
+            ],
+            "K_SS_norm": 0.6505090512650975,
+            "K_TMTE_eff_norm": 0.6505089839277141,
+            "etaeta_condition_number": 102.06493308756701,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.1
+            ],
+            "K_SS_norm": 0.6532154956584624,
+            "K_TMTE_eff_norm": 0.5866288259538038,
+            "etaeta_condition_number": 51.47031375272262,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.2
+            ],
+            "K_SS_norm": 0.34870194081864286,
+            "K_TMTE_eff_norm": 0.008953289139666486,
+            "etaeta_condition_number": 26.260838968050074,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.3
+            ],
+            "K_SS_norm": 0.6508230979717757,
+            "K_TMTE_eff_norm": 0.5546301060908121,
+            "etaeta_condition_number": 32.36088954390906,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.4
+            ],
+            "K_SS_norm": 0.6633642756727295,
+            "K_TMTE_eff_norm": 0.5964019546416109,
+            "etaeta_condition_number": 49.66410209141033,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.5
+            ],
+            "K_SS_norm": 0.6589360543176249,
+            "K_TMTE_eff_norm": 0.6589359941667866,
+            "etaeta_condition_number": 65.59984494827826,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.6
+            ],
+            "K_SS_norm": 0.6633642756727295,
+            "K_TMTE_eff_norm": 0.5964019546416104,
+            "etaeta_condition_number": 49.66410209141046,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.7
+            ],
+            "K_SS_norm": 0.6508230979717738,
+            "K_TMTE_eff_norm": 0.554630106090811,
+            "etaeta_condition_number": 32.3608895439073,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.8
+            ],
+            "K_SS_norm": 0.34870194081865347,
+            "K_TMTE_eff_norm": 0.008953289139663733,
+            "etaeta_condition_number": 26.260838968050674,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.9
+            ],
+            "K_SS_norm": 0.6532154956584626,
+            "K_TMTE_eff_norm": 0.5866288259538033,
+            "etaeta_condition_number": 51.47031375272376,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.0
+            ],
+            "K_SS_norm": 0.6537588625785509,
+            "K_TMTE_eff_norm": 0.6537588025230687,
+            "etaeta_condition_number": 35.08875311039287,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.1
+            ],
+            "K_SS_norm": 0.6621947795832229,
+            "K_TMTE_eff_norm": 0.6621343949856041,
+            "etaeta_condition_number": 61.42429245533232,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.2
+            ],
+            "K_SS_norm": 0.6496296484219359,
+            "K_TMTE_eff_norm": 0.5101446570065146,
+            "etaeta_condition_number": 47.596687619914334,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.3
+            ],
+            "K_SS_norm": 0.5616153293729296,
+            "K_TMTE_eff_norm": 0.011909699138998756,
+            "etaeta_condition_number": 31.588711257100556,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.4
+            ],
+            "K_SS_norm": 0.6402161557252,
+            "K_TMTE_eff_norm": 0.462708360929882,
+            "etaeta_condition_number": 23.41906147823628,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.5
+            ],
+            "K_SS_norm": 0.6471749664031247,
+            "K_TMTE_eff_norm": 0.6471749036850142,
+            "etaeta_condition_number": 34.694408488022916,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.6
+            ],
+            "K_SS_norm": 0.6402161557251994,
+            "K_TMTE_eff_norm": 0.4627083609299239,
+            "etaeta_condition_number": 23.419061478230823,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.7
+            ],
+            "K_SS_norm": 0.5616153293729308,
+            "K_TMTE_eff_norm": 0.011909699138878304,
+            "etaeta_condition_number": 31.588711257110134,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.8
+            ],
+            "K_SS_norm": 0.6496296484219358,
+            "K_TMTE_eff_norm": 0.5101446570065039,
+            "etaeta_condition_number": 47.59668761991703,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.9
+            ],
+            "K_SS_norm": 0.6621947795832233,
+            "K_TMTE_eff_norm": 0.6621343949856044,
+            "etaeta_condition_number": 61.42429245532786,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.0
+            ],
+            "K_SS_norm": 0.6746693247318267,
+            "K_TMTE_eff_norm": 0.6746692666619217,
+            "etaeta_condition_number": 104.2491878447347,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.1
+            ],
+            "K_SS_norm": 0.663764743249987,
+            "K_TMTE_eff_norm": 0.6518453221761485,
+            "etaeta_condition_number": 52.46239432611242,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.2
+            ],
+            "K_SS_norm": 0.6605396196519243,
+            "K_TMTE_eff_norm": 0.5974261466406531,
+            "etaeta_condition_number": 52.270851402297616,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.3
+            ],
+            "K_SS_norm": 0.6353721172837864,
+            "K_TMTE_eff_norm": 0.34911191961024285,
+            "etaeta_condition_number": 32.63350204026482,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.4
+            ],
+            "K_SS_norm": 0.6227900717394843,
+            "K_TMTE_eff_norm": 0.5472793056058762,
+            "etaeta_condition_number": 28.935023367523982,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.5
+            ],
+            "K_SS_norm": 0.650434277226547,
+            "K_TMTE_eff_norm": 0.6504342168345616,
+            "etaeta_condition_number": 25.479670570701643,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.6
+            ],
+            "K_SS_norm": 0.6227900717394859,
+            "K_TMTE_eff_norm": 0.5472793056058819,
+            "etaeta_condition_number": 28.935023367523808,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.7
+            ],
+            "K_SS_norm": 0.6353721172837863,
+            "K_TMTE_eff_norm": 0.3491119196101965,
+            "etaeta_condition_number": 32.633502040270024,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.8
+            ],
+            "K_SS_norm": 0.6605396196519243,
+            "K_TMTE_eff_norm": 0.5974261466406301,
+            "etaeta_condition_number": 52.270851402314776,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.9
+            ],
+            "K_SS_norm": 0.6637647432499874,
+            "K_TMTE_eff_norm": 0.6518453221761457,
+            "etaeta_condition_number": 52.46239432612743,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.0
+            ],
+            "K_SS_norm": 0.6792101608393227,
+            "K_TMTE_eff_norm": 0.6792101031719745,
+            "etaeta_condition_number": 161.32493003681859,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.1
+            ],
+            "K_SS_norm": 0.6677518325667884,
+            "K_TMTE_eff_norm": 0.6677517739641566,
+            "etaeta_condition_number": 142.81119043589922,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.2
+            ],
+            "K_SS_norm": 0.6657369756728619,
+            "K_TMTE_eff_norm": 0.6657369174296726,
+            "etaeta_condition_number": 86.68420437894726,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.3
+            ],
+            "K_SS_norm": 0.6449031010564622,
+            "K_TMTE_eff_norm": 0.64490304505498,
+            "etaeta_condition_number": 20.39449002067374,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.4
+            ],
+            "K_SS_norm": 0.6473252840157202,
+            "K_TMTE_eff_norm": 0.6473252178118993,
+            "etaeta_condition_number": 32.26585747527172,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.5
+            ],
+            "K_SS_norm": 0.6254866649766416,
+            "K_TMTE_eff_norm": 0.6254866574698836,
+            "etaeta_condition_number": 24.95634850254072,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.6
+            ],
+            "K_SS_norm": 0.6473252840157196,
+            "K_TMTE_eff_norm": 0.6473252178118988,
+            "etaeta_condition_number": 32.265857475268504,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.7
+            ],
+            "K_SS_norm": 0.6449031010564618,
+            "K_TMTE_eff_norm": 0.6449030450549795,
+            "etaeta_condition_number": 20.394490020674237,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.8
+            ],
+            "K_SS_norm": 0.6657369756728624,
+            "K_TMTE_eff_norm": 0.665736917429673,
+            "etaeta_condition_number": 86.68420437891086,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.9
+            ],
+            "K_SS_norm": 0.6677518325667889,
+            "K_TMTE_eff_norm": 0.6677517739641572,
+            "etaeta_condition_number": 142.81119043593247,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.0
+            ],
+            "K_SS_norm": 0.674669324731826,
+            "K_TMTE_eff_norm": 0.674669266661921,
+            "etaeta_condition_number": 104.24918784476047,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.1
+            ],
+            "K_SS_norm": 0.6637647432499869,
+            "K_TMTE_eff_norm": 0.65184532217615,
+            "etaeta_condition_number": 52.46239432610511,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.2
+            ],
+            "K_SS_norm": 0.6605396196519244,
+            "K_TMTE_eff_norm": 0.5974261466406314,
+            "etaeta_condition_number": 52.270851402314406,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.3
+            ],
+            "K_SS_norm": 0.6353721172837864,
+            "K_TMTE_eff_norm": 0.34911191961039256,
+            "etaeta_condition_number": 32.63350204024749,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.4
+            ],
+            "K_SS_norm": 0.6227900717394863,
+            "K_TMTE_eff_norm": 0.5472793056058983,
+            "etaeta_condition_number": 28.93502336751797,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.5
+            ],
+            "K_SS_norm": 0.6504342772265468,
+            "K_TMTE_eff_norm": 0.6504342168345613,
+            "etaeta_condition_number": 25.479670570700293,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.6
+            ],
+            "K_SS_norm": 0.6227900717394874,
+            "K_TMTE_eff_norm": 0.5472793056058968,
+            "etaeta_condition_number": 28.935023367520568,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.7
+            ],
+            "K_SS_norm": 0.6353721172837861,
+            "K_TMTE_eff_norm": 0.3491119196103977,
+            "etaeta_condition_number": 32.633502040246775,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.8
+            ],
+            "K_SS_norm": 0.6605396196519244,
+            "K_TMTE_eff_norm": 0.5974261466406288,
+            "etaeta_condition_number": 52.270851402314605,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.9
+            ],
+            "K_SS_norm": 0.6637647432499874,
+            "K_TMTE_eff_norm": 0.6518453221761481,
+            "etaeta_condition_number": 52.46239432611645,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.0
+            ],
+            "K_SS_norm": 0.6537588625785508,
+            "K_TMTE_eff_norm": 0.6537588025230686,
+            "etaeta_condition_number": 35.088753110393974,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.1
+            ],
+            "K_SS_norm": 0.6621947795832231,
+            "K_TMTE_eff_norm": 0.6621343949856043,
+            "etaeta_condition_number": 61.4242924553031,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.2
+            ],
+            "K_SS_norm": 0.649629648421935,
+            "K_TMTE_eff_norm": 0.5101446570065253,
+            "etaeta_condition_number": 47.59668761990903,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.3
+            ],
+            "K_SS_norm": 0.5616153293729316,
+            "K_TMTE_eff_norm": 0.011909699138999268,
+            "etaeta_condition_number": 31.588711257101007,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.4
+            ],
+            "K_SS_norm": 0.6402161557251995,
+            "K_TMTE_eff_norm": 0.4627083609299014,
+            "etaeta_condition_number": 23.419061478233534,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.5
+            ],
+            "K_SS_norm": 0.6471749664031247,
+            "K_TMTE_eff_norm": 0.6471749036850142,
+            "etaeta_condition_number": 34.69440848801596,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.6
+            ],
+            "K_SS_norm": 0.6402161557251992,
+            "K_TMTE_eff_norm": 0.46270836092990614,
+            "etaeta_condition_number": 23.419061478232763,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.7
+            ],
+            "K_SS_norm": 0.5616153293729331,
+            "K_TMTE_eff_norm": 0.011909699139028448,
+            "etaeta_condition_number": 31.588711257099476,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.8
+            ],
+            "K_SS_norm": 0.6496296484219344,
+            "K_TMTE_eff_norm": 0.5101446570065475,
+            "etaeta_condition_number": 47.59668761989989,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.9
+            ],
+            "K_SS_norm": 0.6621947795832235,
+            "K_TMTE_eff_norm": 0.6621343949856047,
+            "etaeta_condition_number": 61.42429245532786,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.0
+            ],
+            "K_SS_norm": 0.6505090512650976,
+            "K_TMTE_eff_norm": 0.6505089839277142,
+            "etaeta_condition_number": 102.06493308753562,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.1
+            ],
+            "K_SS_norm": 0.6532154956584624,
+            "K_TMTE_eff_norm": 0.5866288259538006,
+            "etaeta_condition_number": 51.47031375272533,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.2
+            ],
+            "K_SS_norm": 0.34870194081865147,
+            "K_TMTE_eff_norm": 0.008953289139646941,
+            "etaeta_condition_number": 26.26083896804565,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.3
+            ],
+            "K_SS_norm": 0.6508230979717748,
+            "K_TMTE_eff_norm": 0.5546301060908264,
+            "etaeta_condition_number": 32.36088954390301,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.4
+            ],
+            "K_SS_norm": 0.6633642756727292,
+            "K_TMTE_eff_norm": 0.5964019546416321,
+            "etaeta_condition_number": 49.664102091393644,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.5
+            ],
+            "K_SS_norm": 0.6589360543176241,
+            "K_TMTE_eff_norm": 0.6589359941667858,
+            "etaeta_condition_number": 65.59984494814236,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.6
+            ],
+            "K_SS_norm": 0.6633642756727287,
+            "K_TMTE_eff_norm": 0.5964019546416365,
+            "etaeta_condition_number": 49.66410209138997,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.7
+            ],
+            "K_SS_norm": 0.6508230979717731,
+            "K_TMTE_eff_norm": 0.5546301060908292,
+            "etaeta_condition_number": 32.360889543900186,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.8
+            ],
+            "K_SS_norm": 0.3487019408186624,
+            "K_TMTE_eff_norm": 0.008953289139640875,
+            "etaeta_condition_number": 26.26083896804534,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.9
+            ],
+            "K_SS_norm": 0.6532154956584626,
+            "K_TMTE_eff_norm": 0.5866288259538114,
+            "etaeta_condition_number": 51.470313752718056,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.0
+            ],
+            "K_SS_norm": 0.641963399844995,
+            "K_TMTE_eff_norm": 0.6419633304049146,
+            "etaeta_condition_number": 34.05773721023892,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.1
+            ],
+            "K_SS_norm": 0.25452665264897545,
+            "K_TMTE_eff_norm": 0.9709838545162922,
+            "etaeta_condition_number": 20.02151422441521,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.2
+            ],
+            "K_SS_norm": 0.6660686667340948,
+            "K_TMTE_eff_norm": 0.6079798955484258,
+            "etaeta_condition_number": 43.507027419981064,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.3
+            ],
+            "K_SS_norm": 0.6649416581329487,
+            "K_TMTE_eff_norm": 0.6649405330748175,
+            "etaeta_condition_number": 48.826243345596225,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.4
+            ],
+            "K_SS_norm": 0.6532667202889864,
+            "K_TMTE_eff_norm": 0.6434054282615779,
+            "etaeta_condition_number": 33.0263097062915,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.5
+            ],
+            "K_SS_norm": 0.6548279603560825,
+            "K_TMTE_eff_norm": 0.654827901590684,
+            "etaeta_condition_number": 29.52980759915763,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.6
+            ],
+            "K_SS_norm": 0.653266720288986,
+            "K_TMTE_eff_norm": 0.6434054282615788,
+            "etaeta_condition_number": 33.026309706286966,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.7
+            ],
+            "K_SS_norm": 0.6649416581329487,
+            "K_TMTE_eff_norm": 0.6649405330748175,
+            "etaeta_condition_number": 48.82624334559354,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.8
+            ],
+            "K_SS_norm": 0.6660686667340955,
+            "K_TMTE_eff_norm": 0.6079798955484219,
+            "etaeta_condition_number": 43.507027419984546,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.9
+            ],
+            "K_SS_norm": 0.25452665264896285,
+            "K_TMTE_eff_norm": 0.9709838545162686,
+            "etaeta_condition_number": 20.021514224415636,
+            "valid_for_casimir_input": false
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "selected_matrix_elements": {
+        "K_GG": {
+          "real": -2.8226697493017862e-05,
+          "imag": 2.1066126693281397e-20
+        },
+        "K_GTM": {
+          "real": 4.259211110973642e-05,
+          "imag": -5.1216822862095064e-05
+        },
+        "K_TMG": {
+          "real": 4.2592111109736444e-05,
+          "imag": 5.121682286209509e-05
+        },
+        "K_TMTM": {
+          "real": -0.00017402423576277933,
+          "imag": -6.0779507175308484e-21
+        },
+        "K_TETE": {
+          "real": -0.5712147679184831,
+          "imag": 8.062560996012432e-18
+        },
+        "K_TMTE": {
+          "real": 1.2838343936251894e-18,
+          "imag": -5.706061458744693e-20
+        },
+        "K_TETM": {
+          "real": -1.9877823540470865e-18,
+          "imag": 5.807078393464536e-19
+        }
+      },
+      "ratios": {
+        "gauge_over_physical": 0.00012665353069248768,
+        "gauge_over_tm_abs": 0.4157258337086879,
+        "gauge_gg_over_tm_abs": 0.16219980722394903,
+        "ratio_eps": 1e-30,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "nk": 13,
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "diagnostics": {
+        "gauge_row_norm": 7.783002915476914e-05,
+        "gauge_col_norm": 7.783002915476915e-05,
+        "gauge_gg_norm": 5.458463904209945e-05,
+        "etaeta_condition_number": 34.45447123563788,
+        "physical_matrix_norm": 0.623458670950991,
+        "schur_correction_norm": 0.00022743323135321835,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 34.45447123563788,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "shifted_mesh_average": {
+        "enabled": true,
+        "average_order": "average_blocks_then_schur",
+        "shift_fractions": [
+          0.0,
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9
+        ],
+        "shift_pairs": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.1
+          ],
+          [
+            0.0,
+            0.2
+          ],
+          [
+            0.0,
+            0.3
+          ],
+          [
+            0.0,
+            0.4
+          ],
+          [
+            0.0,
+            0.5
+          ],
+          [
+            0.0,
+            0.6
+          ],
+          [
+            0.0,
+            0.7
+          ],
+          [
+            0.0,
+            0.8
+          ],
+          [
+            0.0,
+            0.9
+          ],
+          [
+            0.1,
+            0.0
+          ],
+          [
+            0.1,
+            0.1
+          ],
+          [
+            0.1,
+            0.2
+          ],
+          [
+            0.1,
+            0.3
+          ],
+          [
+            0.1,
+            0.4
+          ],
+          [
+            0.1,
+            0.5
+          ],
+          [
+            0.1,
+            0.6
+          ],
+          [
+            0.1,
+            0.7
+          ],
+          [
+            0.1,
+            0.8
+          ],
+          [
+            0.1,
+            0.9
+          ],
+          [
+            0.2,
+            0.0
+          ],
+          [
+            0.2,
+            0.1
+          ],
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.2,
+            0.3
+          ],
+          [
+            0.2,
+            0.4
+          ],
+          [
+            0.2,
+            0.5
+          ],
+          [
+            0.2,
+            0.6
+          ],
+          [
+            0.2,
+            0.7
+          ],
+          [
+            0.2,
+            0.8
+          ],
+          [
+            0.2,
+            0.9
+          ],
+          [
+            0.3,
+            0.0
+          ],
+          [
+            0.3,
+            0.1
+          ],
+          [
+            0.3,
+            0.2
+          ],
+          [
+            0.3,
+            0.3
+          ],
+          [
+            0.3,
+            0.4
+          ],
+          [
+            0.3,
+            0.5
+          ],
+          [
+            0.3,
+            0.6
+          ],
+          [
+            0.3,
+            0.7
+          ],
+          [
+            0.3,
+            0.8
+          ],
+          [
+            0.3,
+            0.9
+          ],
+          [
+            0.4,
+            0.0
+          ],
+          [
+            0.4,
+            0.1
+          ],
+          [
+            0.4,
+            0.2
+          ],
+          [
+            0.4,
+            0.3
+          ],
+          [
+            0.4,
+            0.4
+          ],
+          [
+            0.4,
+            0.5
+          ],
+          [
+            0.4,
+            0.6
+          ],
+          [
+            0.4,
+            0.7
+          ],
+          [
+            0.4,
+            0.8
+          ],
+          [
+            0.4,
+            0.9
+          ],
+          [
+            0.5,
+            0.0
+          ],
+          [
+            0.5,
+            0.1
+          ],
+          [
+            0.5,
+            0.2
+          ],
+          [
+            0.5,
+            0.3
+          ],
+          [
+            0.5,
+            0.4
+          ],
+          [
+            0.5,
+            0.5
+          ],
+          [
+            0.5,
+            0.6
+          ],
+          [
+            0.5,
+            0.7
+          ],
+          [
+            0.5,
+            0.8
+          ],
+          [
+            0.5,
+            0.9
+          ],
+          [
+            0.6,
+            0.0
+          ],
+          [
+            0.6,
+            0.1
+          ],
+          [
+            0.6,
+            0.2
+          ],
+          [
+            0.6,
+            0.3
+          ],
+          [
+            0.6,
+            0.4
+          ],
+          [
+            0.6,
+            0.5
+          ],
+          [
+            0.6,
+            0.6
+          ],
+          [
+            0.6,
+            0.7
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            0.6,
+            0.9
+          ],
+          [
+            0.7,
+            0.0
+          ],
+          [
+            0.7,
+            0.1
+          ],
+          [
+            0.7,
+            0.2
+          ],
+          [
+            0.7,
+            0.3
+          ],
+          [
+            0.7,
+            0.4
+          ],
+          [
+            0.7,
+            0.5
+          ],
+          [
+            0.7,
+            0.6
+          ],
+          [
+            0.7,
+            0.7
+          ],
+          [
+            0.7,
+            0.8
+          ],
+          [
+            0.7,
+            0.9
+          ],
+          [
+            0.8,
+            0.0
+          ],
+          [
+            0.8,
+            0.1
+          ],
+          [
+            0.8,
+            0.2
+          ],
+          [
+            0.8,
+            0.3
+          ],
+          [
+            0.8,
+            0.4
+          ],
+          [
+            0.8,
+            0.5
+          ],
+          [
+            0.8,
+            0.6
+          ],
+          [
+            0.8,
+            0.7
+          ],
+          [
+            0.8,
+            0.8
+          ],
+          [
+            0.8,
+            0.9
+          ],
+          [
+            0.9,
+            0.0
+          ],
+          [
+            0.9,
+            0.1
+          ],
+          [
+            0.9,
+            0.2
+          ],
+          [
+            0.9,
+            0.3
+          ],
+          [
+            0.9,
+            0.4
+          ],
+          [
+            0.9,
+            0.5
+          ],
+          [
+            0.9,
+            0.6
+          ],
+          [
+            0.9,
+            0.7
+          ],
+          [
+            0.9,
+            0.8
+          ],
+          [
+            0.9,
+            0.9
+          ]
+        ],
+        "num_shifted_meshes": 100,
+        "per_shift_summaries": [
+          {
+            "shift": [
+              0.0,
+              0.0
+            ],
+            "K_SS_norm": 0.512890361799025,
+            "K_TMTE_eff_norm": 0.512890287769196,
+            "etaeta_condition_number": 17.02736845914745,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.1
+            ],
+            "K_SS_norm": 0.6429738614640989,
+            "K_TMTE_eff_norm": 0.6429737952357968,
+            "etaeta_condition_number": 40.95795925019565,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.2
+            ],
+            "K_SS_norm": 0.6149041909402368,
+            "K_TMTE_eff_norm": 0.6149041230295621,
+            "etaeta_condition_number": 31.90289633240615,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.3
+            ],
+            "K_SS_norm": 0.6694141958608928,
+            "K_TMTE_eff_norm": 0.6694141333070845,
+            "etaeta_condition_number": 51.335706490607784,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.4
+            ],
+            "K_SS_norm": 0.6708189834907796,
+            "K_TMTE_eff_norm": 0.6708189177896057,
+            "etaeta_condition_number": 57.45748316946745,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.5
+            ],
+            "K_SS_norm": 0.6650227666063975,
+            "K_TMTE_eff_norm": 0.6650226988515515,
+            "etaeta_condition_number": 68.19231934517605,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.6
+            ],
+            "K_SS_norm": 0.6708189834907796,
+            "K_TMTE_eff_norm": 0.6708189177896057,
+            "etaeta_condition_number": 57.4574831694498,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.7
+            ],
+            "K_SS_norm": 0.6694141958608935,
+            "K_TMTE_eff_norm": 0.6694141333070852,
+            "etaeta_condition_number": 51.33570649061332,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.8
+            ],
+            "K_SS_norm": 0.614904190940238,
+            "K_TMTE_eff_norm": 0.6149041230295631,
+            "etaeta_condition_number": 31.902896332405028,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.0,
+              0.9
+            ],
+            "K_SS_norm": 0.6429738614640994,
+            "K_TMTE_eff_norm": 0.6429737952357973,
+            "etaeta_condition_number": 40.95795925019976,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.0
+            ],
+            "K_SS_norm": 0.6504081993030084,
+            "K_TMTE_eff_norm": 0.6504081337667262,
+            "etaeta_condition_number": 48.33435138564589,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.1
+            ],
+            "K_SS_norm": 0.5750042355134649,
+            "K_TMTE_eff_norm": 0.47461353289424507,
+            "etaeta_condition_number": 23.515223939184118,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.2
+            ],
+            "K_SS_norm": 0.6474036921940018,
+            "K_TMTE_eff_norm": 0.5860373448694968,
+            "etaeta_condition_number": 30.66210189848897,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.3
+            ],
+            "K_SS_norm": 0.6503027126494187,
+            "K_TMTE_eff_norm": 0.5593512889568738,
+            "etaeta_condition_number": 37.5175243284681,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.4
+            ],
+            "K_SS_norm": 0.6676246390238283,
+            "K_TMTE_eff_norm": 0.6553413348971114,
+            "etaeta_condition_number": 68.32128152719966,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.5
+            ],
+            "K_SS_norm": 0.6659676621614219,
+            "K_TMTE_eff_norm": 0.6659675945278596,
+            "etaeta_condition_number": 76.59182240335443,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.6
+            ],
+            "K_SS_norm": 0.6676246390238283,
+            "K_TMTE_eff_norm": 0.6553413348971147,
+            "etaeta_condition_number": 68.32128152718408,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.7
+            ],
+            "K_SS_norm": 0.6503027126494174,
+            "K_TMTE_eff_norm": 0.5593512889568828,
+            "etaeta_condition_number": 37.5175243284628,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.8
+            ],
+            "K_SS_norm": 0.6474036921940026,
+            "K_TMTE_eff_norm": 0.5860373448694947,
+            "etaeta_condition_number": 30.66210189849182,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.1,
+              0.9
+            ],
+            "K_SS_norm": 0.5750042355134652,
+            "K_TMTE_eff_norm": 0.47461353289424896,
+            "etaeta_condition_number": 23.51522393918336,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.0
+            ],
+            "K_SS_norm": 0.628306712918672,
+            "K_TMTE_eff_norm": 0.6283066483249735,
+            "etaeta_condition_number": 41.92383153016636,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.1
+            ],
+            "K_SS_norm": 0.6528978114096385,
+            "K_TMTE_eff_norm": 0.5261539239274353,
+            "etaeta_condition_number": 55.217836814870665,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.2
+            ],
+            "K_SS_norm": 0.6447390286476843,
+            "K_TMTE_eff_norm": 0.4148916984464909,
+            "etaeta_condition_number": 44.37921468878809,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.3
+            ],
+            "K_SS_norm": 0.6335048542580005,
+            "K_TMTE_eff_norm": 0.5238961096186354,
+            "etaeta_condition_number": 28.563740082234087,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.4
+            ],
+            "K_SS_norm": 0.6490113823450896,
+            "K_TMTE_eff_norm": 0.5816081728280306,
+            "etaeta_condition_number": 32.27302299976423,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.5
+            ],
+            "K_SS_norm": 0.664526926655695,
+            "K_TMTE_eff_norm": 0.6645268623084734,
+            "etaeta_condition_number": 41.773263329534466,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.6
+            ],
+            "K_SS_norm": 0.6490113823450891,
+            "K_TMTE_eff_norm": 0.5816081728280416,
+            "etaeta_condition_number": 32.273022999758936,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.7
+            ],
+            "K_SS_norm": 0.633504854257998,
+            "K_TMTE_eff_norm": 0.5238961096186272,
+            "etaeta_condition_number": 28.563740082235157,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.8
+            ],
+            "K_SS_norm": 0.6447390286476857,
+            "K_TMTE_eff_norm": 0.4148916984464938,
+            "etaeta_condition_number": 44.379214688789425,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.2,
+              0.9
+            ],
+            "K_SS_norm": 0.6528978114096388,
+            "K_TMTE_eff_norm": 0.5261539239274127,
+            "etaeta_condition_number": 55.217836814879874,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.0
+            ],
+            "K_SS_norm": 0.6799178679762893,
+            "K_TMTE_eff_norm": 0.6799178054124394,
+            "etaeta_condition_number": 111.6921940608434,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.1
+            ],
+            "K_SS_norm": 0.6601884511128149,
+            "K_TMTE_eff_norm": 0.5557936466244439,
+            "etaeta_condition_number": 46.08459828053715,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.2
+            ],
+            "K_SS_norm": 0.6364623072072024,
+            "K_TMTE_eff_norm": 0.4644458588910573,
+            "etaeta_condition_number": 37.7816760098665,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.3
+            ],
+            "K_SS_norm": 0.6565751138278995,
+            "K_TMTE_eff_norm": 0.64717812232734,
+            "etaeta_condition_number": 52.78421207470056,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.4
+            ],
+            "K_SS_norm": 0.5628193246008806,
+            "K_TMTE_eff_norm": 0.4813390839388959,
+            "etaeta_condition_number": 26.581598743067786,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.5
+            ],
+            "K_SS_norm": 0.6311829478501906,
+            "K_TMTE_eff_norm": 0.6311828832378635,
+            "etaeta_condition_number": 21.78360398294062,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.6
+            ],
+            "K_SS_norm": 0.56281932460088,
+            "K_TMTE_eff_norm": 0.4813390839388771,
+            "etaeta_condition_number": 26.581598743074007,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.7
+            ],
+            "K_SS_norm": 0.6565751138278986,
+            "K_TMTE_eff_norm": 0.6471781223273418,
+            "etaeta_condition_number": 52.784212074681435,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.8
+            ],
+            "K_SS_norm": 0.636462307207206,
+            "K_TMTE_eff_norm": 0.4644458588910746,
+            "etaeta_condition_number": 37.781676009863936,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.3,
+              0.9
+            ],
+            "K_SS_norm": 0.6601884511128155,
+            "K_TMTE_eff_norm": 0.5557936466244384,
+            "etaeta_condition_number": 46.0845982805399,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.0
+            ],
+            "K_SS_norm": 0.6937211791313346,
+            "K_TMTE_eff_norm": 0.6937211212329869,
+            "etaeta_condition_number": 45.23887673837162,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.1
+            ],
+            "K_SS_norm": 0.6849603702282944,
+            "K_TMTE_eff_norm": 0.6747188126326286,
+            "etaeta_condition_number": 56.320559555932775,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.2
+            ],
+            "K_SS_norm": 0.6572099061502418,
+            "K_TMTE_eff_norm": 0.5796592588231413,
+            "etaeta_condition_number": 40.98000951082126,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.3
+            ],
+            "K_SS_norm": 0.553442564312068,
+            "K_TMTE_eff_norm": 0.44193952988845464,
+            "etaeta_condition_number": 29.834439603179327,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.4
+            ],
+            "K_SS_norm": 0.6366905518199837,
+            "K_TMTE_eff_norm": 0.535667963144982,
+            "etaeta_condition_number": 32.66934438622441,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.5
+            ],
+            "K_SS_norm": 0.19757142961505794,
+            "K_TMTE_eff_norm": 0.1975713869146434,
+            "etaeta_condition_number": 12.456301128092926,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.6
+            ],
+            "K_SS_norm": 0.6366905518199839,
+            "K_TMTE_eff_norm": 0.535667963144981,
+            "etaeta_condition_number": 32.66934438622572,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.7
+            ],
+            "K_SS_norm": 0.5534425643120697,
+            "K_TMTE_eff_norm": 0.4419395298884598,
+            "etaeta_condition_number": 29.83443960317981,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.8
+            ],
+            "K_SS_norm": 0.6572099061502423,
+            "K_TMTE_eff_norm": 0.579659258823169,
+            "etaeta_condition_number": 40.98000951080694,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.4,
+              0.9
+            ],
+            "K_SS_norm": 0.6849603702282939,
+            "K_TMTE_eff_norm": 0.6747188126326308,
+            "etaeta_condition_number": 56.320559555915736,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.0
+            ],
+            "K_SS_norm": 0.7002254482412261,
+            "K_TMTE_eff_norm": 0.700225389974398,
+            "etaeta_condition_number": 77.93765121612658,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.1
+            ],
+            "K_SS_norm": 0.6934816481380297,
+            "K_TMTE_eff_norm": 0.6934815901766698,
+            "etaeta_condition_number": 46.69522419381944,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.2
+            ],
+            "K_SS_norm": 0.6652331767924599,
+            "K_TMTE_eff_norm": 0.6652331151488938,
+            "etaeta_condition_number": 38.79819232822217,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.3
+            ],
+            "K_SS_norm": 0.6234770094004752,
+            "K_TMTE_eff_norm": 0.6234769393330117,
+            "etaeta_condition_number": 27.816191807518436,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.4
+            ],
+            "K_SS_norm": 0.1821326516542079,
+            "K_TMTE_eff_norm": 0.18213260273179246,
+            "etaeta_condition_number": 13.154418004364915,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.5
+            ],
+            "K_SS_norm": 0.6444238218251211,
+            "K_TMTE_eff_norm": 0.6444237653783349,
+            "etaeta_condition_number": 102.79785863392364,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.6
+            ],
+            "K_SS_norm": 0.18213265165420103,
+            "K_TMTE_eff_norm": 0.18213260273178558,
+            "etaeta_condition_number": 13.154418004365214,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.7
+            ],
+            "K_SS_norm": 0.6234770094004747,
+            "K_TMTE_eff_norm": 0.6234769393330112,
+            "etaeta_condition_number": 27.81619180752024,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.8
+            ],
+            "K_SS_norm": 0.6652331767924583,
+            "K_TMTE_eff_norm": 0.6652331151488923,
+            "etaeta_condition_number": 38.79819232823791,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.5,
+              0.9
+            ],
+            "K_SS_norm": 0.6934816481380297,
+            "K_TMTE_eff_norm": 0.6934815901766698,
+            "etaeta_condition_number": 46.69522419382108,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.0
+            ],
+            "K_SS_norm": 0.6937211791313348,
+            "K_TMTE_eff_norm": 0.6937211212329872,
+            "etaeta_condition_number": 45.238876738368525,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.1
+            ],
+            "K_SS_norm": 0.6849603702282945,
+            "K_TMTE_eff_norm": 0.6747188126326266,
+            "etaeta_condition_number": 56.320559555947334,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.2
+            ],
+            "K_SS_norm": 0.6572099061502414,
+            "K_TMTE_eff_norm": 0.5796592588231788,
+            "etaeta_condition_number": 40.980009510802255,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.3
+            ],
+            "K_SS_norm": 0.5534425643120674,
+            "K_TMTE_eff_norm": 0.4419395298885106,
+            "etaeta_condition_number": 29.83443960316508,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.4
+            ],
+            "K_SS_norm": 0.636690551819984,
+            "K_TMTE_eff_norm": 0.5356679631450052,
+            "etaeta_condition_number": 32.66934438621847,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.5
+            ],
+            "K_SS_norm": 0.19757142961505364,
+            "K_TMTE_eff_norm": 0.19757138691463907,
+            "etaeta_condition_number": 12.456301128096497,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.6
+            ],
+            "K_SS_norm": 0.6366905518199842,
+            "K_TMTE_eff_norm": 0.5356679631449858,
+            "etaeta_condition_number": 32.66934438622517,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.7
+            ],
+            "K_SS_norm": 0.5534425643120685,
+            "K_TMTE_eff_norm": 0.44193952988852403,
+            "etaeta_condition_number": 29.834439603162977,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.8
+            ],
+            "K_SS_norm": 0.6572099061502416,
+            "K_TMTE_eff_norm": 0.5796592588231729,
+            "etaeta_condition_number": 40.980009510805004,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.6,
+              0.9
+            ],
+            "K_SS_norm": 0.6849603702282944,
+            "K_TMTE_eff_norm": 0.6747188126326269,
+            "etaeta_condition_number": 56.32055955594333,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.0
+            ],
+            "K_SS_norm": 0.679917867976291,
+            "K_TMTE_eff_norm": 0.6799178054124411,
+            "etaeta_condition_number": 111.69219406060438,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.1
+            ],
+            "K_SS_norm": 0.6601884511128141,
+            "K_TMTE_eff_norm": 0.5557936466244854,
+            "etaeta_condition_number": 46.084598280517916,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.2
+            ],
+            "K_SS_norm": 0.6364623072072003,
+            "K_TMTE_eff_norm": 0.464445858891101,
+            "etaeta_condition_number": 37.781676009856206,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.3
+            ],
+            "K_SS_norm": 0.6565751138278992,
+            "K_TMTE_eff_norm": 0.6471781223273381,
+            "etaeta_condition_number": 52.784212074706225,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.4
+            ],
+            "K_SS_norm": 0.5628193246008834,
+            "K_TMTE_eff_norm": 0.481339083938901,
+            "etaeta_condition_number": 26.581598743068252,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.5
+            ],
+            "K_SS_norm": 0.6311829478501899,
+            "K_TMTE_eff_norm": 0.631182883237863,
+            "etaeta_condition_number": 21.783603982932863,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.6
+            ],
+            "K_SS_norm": 0.5628193246008826,
+            "K_TMTE_eff_norm": 0.481339083938904,
+            "etaeta_condition_number": 26.581598743067463,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.7
+            ],
+            "K_SS_norm": 0.6565751138278986,
+            "K_TMTE_eff_norm": 0.6471781223273358,
+            "etaeta_condition_number": 52.784212074710226,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.8
+            ],
+            "K_SS_norm": 0.6364623072072026,
+            "K_TMTE_eff_norm": 0.4644458588910953,
+            "etaeta_condition_number": 37.78167600985801,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.7,
+              0.9
+            ],
+            "K_SS_norm": 0.6601884511128152,
+            "K_TMTE_eff_norm": 0.555793646624502,
+            "etaeta_condition_number": 46.08459828051121,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.0
+            ],
+            "K_SS_norm": 0.6283067129186726,
+            "K_TMTE_eff_norm": 0.6283066483249741,
+            "etaeta_condition_number": 41.92383153017577,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.1
+            ],
+            "K_SS_norm": 0.6528978114096384,
+            "K_TMTE_eff_norm": 0.526153923927456,
+            "etaeta_condition_number": 55.217836814863176,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.2
+            ],
+            "K_SS_norm": 0.6447390286476856,
+            "K_TMTE_eff_norm": 0.4148916984466695,
+            "etaeta_condition_number": 44.379214688756,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.3
+            ],
+            "K_SS_norm": 0.6335048542580024,
+            "K_TMTE_eff_norm": 0.5238961096186414,
+            "etaeta_condition_number": 28.56374008223306,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.4
+            ],
+            "K_SS_norm": 0.6490113823450898,
+            "K_TMTE_eff_norm": 0.5816081728280377,
+            "etaeta_condition_number": 32.27302299976055,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.5
+            ],
+            "K_SS_norm": 0.6645269266556935,
+            "K_TMTE_eff_norm": 0.6645268623084718,
+            "etaeta_condition_number": 41.77326332952159,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.6
+            ],
+            "K_SS_norm": 0.6490113823450896,
+            "K_TMTE_eff_norm": 0.5816081728280321,
+            "etaeta_condition_number": 32.27302299976291,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.7
+            ],
+            "K_SS_norm": 0.6335048542579996,
+            "K_TMTE_eff_norm": 0.5238961096186441,
+            "etaeta_condition_number": 28.563740082231174,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.8
+            ],
+            "K_SS_norm": 0.6447390286476868,
+            "K_TMTE_eff_norm": 0.4148916984465878,
+            "etaeta_condition_number": 44.37921468877353,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.8,
+              0.9
+            ],
+            "K_SS_norm": 0.6528978114096384,
+            "K_TMTE_eff_norm": 0.526153923927458,
+            "etaeta_condition_number": 55.21783681486124,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.0
+            ],
+            "K_SS_norm": 0.6504081993030079,
+            "K_TMTE_eff_norm": 0.6504081337667257,
+            "etaeta_condition_number": 48.33435138565331,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.1
+            ],
+            "K_SS_norm": 0.5750042355134659,
+            "K_TMTE_eff_norm": 0.47461353289423713,
+            "etaeta_condition_number": 23.515223939186036,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.2
+            ],
+            "K_SS_norm": 0.6474036921940026,
+            "K_TMTE_eff_norm": 0.5860373448694953,
+            "etaeta_condition_number": 30.662101898489635,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.3
+            ],
+            "K_SS_norm": 0.6503027126494183,
+            "K_TMTE_eff_norm": 0.559351288956906,
+            "etaeta_condition_number": 37.517524328454584,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.4
+            ],
+            "K_SS_norm": 0.6676246390238281,
+            "K_TMTE_eff_norm": 0.6553413348971208,
+            "etaeta_condition_number": 68.32128152714323,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.5
+            ],
+            "K_SS_norm": 0.6659676621614217,
+            "K_TMTE_eff_norm": 0.6659675945278594,
+            "etaeta_condition_number": 76.59182240342957,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.6
+            ],
+            "K_SS_norm": 0.6676246390238283,
+            "K_TMTE_eff_norm": 0.6553413348971241,
+            "etaeta_condition_number": 68.32128152712787,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.7
+            ],
+            "K_SS_norm": 0.6503027126494172,
+            "K_TMTE_eff_norm": 0.5593512889569084,
+            "etaeta_condition_number": 37.51752432845184,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.8
+            ],
+            "K_SS_norm": 0.6474036921940028,
+            "K_TMTE_eff_norm": 0.586037344869491,
+            "etaeta_condition_number": 30.662101898492946,
+            "valid_for_casimir_input": false
+          },
+          {
+            "shift": [
+              0.9,
+              0.9
+            ],
+            "K_SS_norm": 0.5750042355134659,
+            "K_TMTE_eff_norm": 0.47461353289423713,
+            "etaeta_condition_number": 23.515223939186203,
+            "valid_for_casimir_input": false
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "selected_matrix_elements": {
+        "K_GG": {
+          "real": -5.458463904209945e-05,
+          "imag": 4.831337050963064e-21
+        },
+        "K_GTM": {
+          "real": 3.082210775885941e-05,
+          "imag": -4.613055703302514e-05
+        },
+        "K_TMG": {
+          "real": 3.082210775885945e-05,
+          "imag": 4.613055703302514e-05
+        },
+        "K_TMTM": {
+          "real": -0.00016009214544273294,
+          "imag": -9.875581021982267e-21
+        },
+        "K_TETE": {
+          "real": -0.6234586503967051,
+          "imag": 1.106613064318714e-18
+        },
+        "K_TMTE": {
+          "real": -1.0139250079989268e-19,
+          "imag": -9.134793567739116e-20
+        },
+        "K_TETM": {
+          "real": -3.3106937320396974e-19,
+          "imag": 1.1156020233932306e-19
+        }
+      },
+      "ratios": {
+        "gauge_over_physical": 0.0001248359077852768,
+        "gauge_over_tm_abs": 0.4861576996143759,
+        "gauge_gg_over_tm_abs": 0.3409576334375823,
+        "ratio_eps": 1e-30,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    }
+  ],
+  "valid_for_casimir_input": false
+}
