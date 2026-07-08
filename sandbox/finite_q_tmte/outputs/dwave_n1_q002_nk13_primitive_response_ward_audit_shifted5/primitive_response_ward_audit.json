@@ -1,0 +1,1349 @@
+{
+  "schema_version": "finite_q_tmte_primitive_response_ward_audit_v1",
+  "status": {
+    "diagnostic_run_completed": true,
+    "diagnostic_only_not_a_fix": true,
+    "accepted_convention": false,
+    "requires_analytic_derivation_before_convention_change": true,
+    "valid_for_casimir_input": false,
+    "reason": "primitive_response_ward_audit_not_production_convention"
+  },
+  "model": {
+    "name": "symmetry_bdg_2band",
+    "pairing": "dwave",
+    "valid_for_casimir_input": false
+  },
+  "frequency": {
+    "source": "matsubara_index",
+    "matsubara_index": 1,
+    "temperature_K": 10.0,
+    "xi_eV": 0.00541443017397794,
+    "zero_matsubara_mode": false,
+    "valid_for_casimir_input": false
+  },
+  "debug_parameters": {
+    "q_model_convention": "q_along_x_only",
+    "q_value": 0.02,
+    "nk": 13,
+    "shift_fractions": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "num_shifted_meshes": 25,
+    "contact_scale": 1.0,
+    "ratio_eps": 1e-30,
+    "shifted_mesh_average": {
+      "enabled": true,
+      "average_order": "average_blocks_then_schur",
+      "shift_fractions": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8
+      ],
+      "shift_pairs": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.2
+        ],
+        [
+          0.0,
+          0.4
+        ],
+        [
+          0.0,
+          0.6
+        ],
+        [
+          0.0,
+          0.8
+        ],
+        [
+          0.2,
+          0.0
+        ],
+        [
+          0.2,
+          0.2
+        ],
+        [
+          0.2,
+          0.4
+        ],
+        [
+          0.2,
+          0.6
+        ],
+        [
+          0.2,
+          0.8
+        ],
+        [
+          0.4,
+          0.0
+        ],
+        [
+          0.4,
+          0.2
+        ],
+        [
+          0.4,
+          0.4
+        ],
+        [
+          0.4,
+          0.6
+        ],
+        [
+          0.4,
+          0.8
+        ],
+        [
+          0.6,
+          0.0
+        ],
+        [
+          0.6,
+          0.2
+        ],
+        [
+          0.6,
+          0.4
+        ],
+        [
+          0.6,
+          0.6
+        ],
+        [
+          0.6,
+          0.8
+        ],
+        [
+          0.8,
+          0.0
+        ],
+        [
+          0.8,
+          0.2
+        ],
+        [
+          0.8,
+          0.4
+        ],
+        [
+          0.8,
+          0.6
+        ],
+        [
+          0.8,
+          0.8
+        ]
+      ],
+      "num_shifted_meshes": 25,
+      "valid_for_casimir_input": false
+    },
+    "primitive_basis_source_order": [
+      "A0",
+      "L",
+      "T"
+    ],
+    "note": "Primitive response-level Ward contractions use asymmetric vectors inferred from inverse-Green matrix audit. No candidate is accepted without analytic derivation.",
+    "valid_for_casimir_input": false
+  },
+  "collective_order": [
+    "amplitude_eta1",
+    "phase_eta2"
+  ],
+  "raw_ansatz_channel_names": [
+    "eta1",
+    "eta2"
+  ],
+  "primitive_metadata": {
+    "primitive_order": [
+      "A0",
+      "L",
+      "T"
+    ],
+    "source_order_baseline": [
+      "G",
+      "TM",
+      "TE"
+    ],
+    "baseline_transform_convention": "G=xi*A0+q*L; TM=-q*A0+xi*L; TE=T",
+    "diagnostic_only_not_a_fix": true,
+    "requires_analytic_derivation_before_convention_change": true,
+    "valid_for_casimir_input": false
+  },
+  "block_norms": {
+    "primitive_K_SS_norm": 0.9965440703479709,
+    "primitive_K_Seta_norm": 0.05464610560517709,
+    "primitive_K_etaS_norm": 0.05464610560517711,
+    "primitive_K_etaeta_norm": 0.19248784980122755,
+    "primitive_schur_correction_norm": 0.5111958451860794,
+    "primitive_K_eff_norm": 0.7841169510999456,
+    "valid_for_casimir_input": false
+  },
+  "schur": {
+    "solve_method": "solve",
+    "etaeta_condition_number": 35.015297774318306,
+    "condition_threshold": 1000000000000.0,
+    "numerically_suspect": false,
+    "valid_for_casimir_input": false
+  },
+  "candidate_results": [
+    {
+      "candidate": "matrix_inferred_matsubara_i_asymmetric",
+      "description": "Observable uses +i xi A0 + q L - 2i Delta eta2; source uses -i xi A0 + q L - 2i Delta eta2 as read from inverse-Green audit.",
+      "left_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.0,
+            "imag": 0.00541443017397794
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": 0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "right_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.0,
+            "imag": -0.00541443017397794
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": 0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "left_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": -0.2
+          }
+        }
+      ],
+      "right_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": -0.2
+          }
+        }
+      ],
+      "bare_block_residuals": {
+        "left_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 2.5144387488873165e-18,
+              "imag": -8.673617379884035e-19
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.0023466338042670825,
+              "imag": 4.725259217778727e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.6671580021040743e-19,
+              "imag": 5.2969805688098526e-21
+            }
+          }
+        ],
+        "left_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": -9.674428545235972e-19,
+              "imag": -1.3552527156068805e-20
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": 2.256098404615615e-21,
+              "imag": -2.6644611028482732e-06
+            }
+          }
+        ],
+        "right_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -8.582588251978657e-20,
+              "imag": 8.673617379884035e-19
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.002346633804267086,
+              "imag": -1.921410349702246e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 4.720339244422396e-19,
+              "imag": 1.6879722332713853e-20
+            }
+          }
+        ],
+        "right_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": 6.418732994399013e-19,
+              "imag": 0.0
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": 1.5371766526629298e-21,
+              "imag": -2.6644611028478395e-06
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_schur_residuals": {
+        "left_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 2.579183535530114e-18,
+              "imag": -5.262094456632855e-06
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.002371789255157444,
+              "imag": 4.675179495410188e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.653023636866757e-19,
+              "imag": 5.2869630461192685e-21
+            }
+          }
+        ],
+        "right_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -1.2692154838746247e-19,
+              "imag": 5.262094456631988e-06
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.0023717892551574442,
+              "imag": -1.9636211534319493e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 4.703521145294357e-19,
+              "imag": 1.6859677272551434e-20
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "norms": {
+        "left_em_norm": 0.0023466338042670825,
+        "left_collective_norm": 2.6644611028482732e-06,
+        "right_em_norm": 0.002346633804267086,
+        "right_collective_norm": 2.6644611028478395e-06,
+        "left_total_extended_norm": 0.002346635316934007,
+        "right_total_extended_norm": 0.002346635316934011,
+        "left_effective_norm": 0.0023717950924391365,
+        "right_effective_norm": 0.002371795092439137,
+        "left_effective_over_effective_norm": 0.003024797626313299,
+        "right_effective_over_effective_norm": 0.0030247976263132995,
+        "left_total_over_primitive_norm": 0.0023547732476242767,
+        "right_total_over_primitive_norm": 0.0023547732476242806,
+        "valid_for_casimir_input": false
+      },
+      "accepted_convention": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "candidate": "matrix_inferred_source_overall_flipped",
+      "description": "Same source null vector with an overall right-side sign flip; equivalent if the response-level mapping is perfectly linear.",
+      "left_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.0,
+            "imag": 0.00541443017397794
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": 0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "right_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.0,
+            "imag": 0.00541443017397794
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": -0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "left_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": -0.2
+          }
+        }
+      ],
+      "right_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": 0.2
+          }
+        }
+      ],
+      "bare_block_residuals": {
+        "left_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 2.5144387488873165e-18,
+              "imag": -8.673617379884035e-19
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.0023466338042670825,
+              "imag": 4.725259217778727e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.6671580021040743e-19,
+              "imag": 5.2969805688098526e-21
+            }
+          }
+        ],
+        "left_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": -9.674428545235972e-19,
+              "imag": -1.3552527156068805e-20
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": 2.256098404615615e-21,
+              "imag": -2.6644611028482732e-06
+            }
+          }
+        ],
+        "right_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 8.582588251978657e-20,
+              "imag": -8.673617379884035e-19
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.002346633804267086,
+              "imag": 1.921410349702246e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -4.720339244422396e-19,
+              "imag": -1.6879722332713853e-20
+            }
+          }
+        ],
+        "right_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": -6.418732994399013e-19,
+              "imag": 0.0
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": -1.5371766526629298e-21,
+              "imag": 2.6644611028478395e-06
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_schur_residuals": {
+        "left_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 2.579183535530114e-18,
+              "imag": -5.262094456632855e-06
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.002371789255157444,
+              "imag": 4.675179495410188e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.653023636866757e-19,
+              "imag": 5.2869630461192685e-21
+            }
+          }
+        ],
+        "right_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 1.2692154838746247e-19,
+              "imag": -5.262094456631988e-06
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0023717892551574442,
+              "imag": 1.9636211534319493e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -4.703521145294357e-19,
+              "imag": -1.6859677272551434e-20
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "norms": {
+        "left_em_norm": 0.0023466338042670825,
+        "left_collective_norm": 2.6644611028482732e-06,
+        "right_em_norm": 0.002346633804267086,
+        "right_collective_norm": 2.6644611028478395e-06,
+        "left_total_extended_norm": 0.002346635316934007,
+        "right_total_extended_norm": 0.002346635316934011,
+        "left_effective_norm": 0.0023717950924391365,
+        "right_effective_norm": 0.002371795092439137,
+        "left_effective_over_effective_norm": 0.003024797626313299,
+        "right_effective_over_effective_norm": 0.0030247976263132995,
+        "left_total_over_primitive_norm": 0.0023547732476242767,
+        "right_total_over_primitive_norm": 0.0023547732476242806,
+        "valid_for_casimir_input": false
+      },
+      "accepted_convention": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "candidate": "legacy_validation_like",
+      "description": "Historical physical EM contraction: left i xi rho + q j, right i xi rho - q j, with opposite phase-generator signs.",
+      "left_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.0,
+            "imag": 0.00541443017397794
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": 0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "right_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.0,
+            "imag": 0.00541443017397794
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": -0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "left_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": -0.2
+          }
+        }
+      ],
+      "right_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": 0.2
+          }
+        }
+      ],
+      "bare_block_residuals": {
+        "left_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 2.5144387488873165e-18,
+              "imag": -8.673617379884035e-19
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.0023466338042670825,
+              "imag": 4.725259217778727e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.6671580021040743e-19,
+              "imag": 5.2969805688098526e-21
+            }
+          }
+        ],
+        "left_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": -9.674428545235972e-19,
+              "imag": -1.3552527156068805e-20
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": 2.256098404615615e-21,
+              "imag": -2.6644611028482732e-06
+            }
+          }
+        ],
+        "right_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 8.582588251978657e-20,
+              "imag": -8.673617379884035e-19
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.002346633804267086,
+              "imag": 1.921410349702246e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -4.720339244422396e-19,
+              "imag": -1.6879722332713853e-20
+            }
+          }
+        ],
+        "right_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": -6.418732994399013e-19,
+              "imag": 0.0
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": -1.5371766526629298e-21,
+              "imag": 2.6644611028478395e-06
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_schur_residuals": {
+        "left_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 2.579183535530114e-18,
+              "imag": -5.262094456632855e-06
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.002371789255157444,
+              "imag": 4.675179495410188e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.653023636866757e-19,
+              "imag": 5.2869630461192685e-21
+            }
+          }
+        ],
+        "right_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 1.2692154838746247e-19,
+              "imag": -5.262094456631988e-06
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0023717892551574442,
+              "imag": 1.9636211534319493e-19
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -4.703521145294357e-19,
+              "imag": -1.6859677272551434e-20
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "norms": {
+        "left_em_norm": 0.0023466338042670825,
+        "left_collective_norm": 2.6644611028482732e-06,
+        "right_em_norm": 0.002346633804267086,
+        "right_collective_norm": 2.6644611028478395e-06,
+        "left_total_extended_norm": 0.002346635316934007,
+        "right_total_extended_norm": 0.002346635316934011,
+        "left_effective_norm": 0.0023717950924391365,
+        "right_effective_norm": 0.002371795092439137,
+        "left_effective_over_effective_norm": 0.003024797626313299,
+        "right_effective_over_effective_norm": 0.0030247976263132995,
+        "left_total_over_primitive_norm": 0.0023547732476242767,
+        "right_total_over_primitive_norm": 0.0023547732476242806,
+        "valid_for_casimir_input": false
+      },
+      "accepted_convention": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "candidate": "baseline_real_target_like",
+      "description": "Current real target-basis-like diagnostic retained as a negative control.",
+      "left_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.00541443017397794,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": 0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "right_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.00541443017397794,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": 0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "left_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": -0.2
+          }
+        }
+      ],
+      "right_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": -0.2
+          }
+        }
+      ],
+      "bare_block_residuals": {
+        "left_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.002253577425322917,
+              "imag": 0.002253577425322919
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.002370415046708903,
+              "imag": -2.37812424418211e-05
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.6602665343110633e-19,
+              "imag": 1.0156237473934698e-20
+            }
+          }
+        ],
+        "left_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": 7.211910945386429e-05,
+              "imag": -7.211910945386525e-05
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": 5.86310638111375e-05,
+              "imag": -6.129552491398581e-05
+            }
+          }
+        ],
+        "right_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.0022535774253229198,
+              "imag": -0.002253577425322919
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.0023704150467089066,
+              "imag": 2.3781242441821198e-05
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 4.7271214720368e-19,
+              "imag": -3.0659338562998862e-21
+            }
+          }
+        ],
+        "right_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": 7.21191094538659e-05,
+              "imag": 7.211910945386526e-05
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": -5.8631063811137575e-05,
+              "imag": -6.129552491398538e-05
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_schur_residuals": {
+        "left_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.002142526420158507,
+              "imag": 0.0021372643257018768
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.002950392677899787,
+              "imag": -0.0005786034227423427
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.332927276830359e-19,
+              "imag": -2.059722555365064e-20
+            }
+          }
+        ],
+        "right_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.0021425264201585096,
+              "imag": -0.0021372643257018776
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.0029503926778997867,
+              "imag": 0.0005786034227423433
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 4.338127800334124e-19,
+              "imag": 3.428960854151009e-20
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "norms": {
+        "left_em_norm": 0.003971983819831873,
+        "left_collective_norm": 0.00013265396682701875,
+        "right_em_norm": 0.003971983819831876,
+        "right_collective_norm": 0.00013265396682701945,
+        "left_total_extended_norm": 0.003974198351859295,
+        "right_total_extended_norm": 0.003974198351859299,
+        "left_effective_norm": 0.004265901678849262,
+        "right_effective_norm": 0.004265901678849264,
+        "left_effective_over_effective_norm": 0.005440389565440627,
+        "right_effective_over_effective_norm": 0.005440389565440629,
+        "left_total_over_primitive_norm": 0.003987980532031658,
+        "right_total_over_primitive_norm": 0.003987980532031662,
+        "valid_for_casimir_input": false
+      },
+      "accepted_convention": false,
+      "valid_for_casimir_input": false
+    },
+    {
+      "candidate": "baseline_real_validation_spatial_sign",
+      "description": "Real frequency coefficient with validation-style right spatial sign and opposite phase sign; debug negative control.",
+      "left_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.00541443017397794,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": 0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "right_primitive_vector": [
+        {
+          "label": "A0",
+          "value": {
+            "real": 0.00541443017397794,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "L",
+          "value": {
+            "real": -0.02,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "T",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        }
+      ],
+      "left_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": -0.2
+          }
+        }
+      ],
+      "right_collective_vector": [
+        {
+          "label": "amplitude_eta1",
+          "value": {
+            "real": 0.0,
+            "imag": 0.0
+          }
+        },
+        {
+          "label": "phase_eta2",
+          "value": {
+            "real": 0.0,
+            "imag": 0.2
+          }
+        }
+      ],
+      "bare_block_residuals": {
+        "left_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.002253577425322917,
+              "imag": 0.002253577425322919
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.002370415046708903,
+              "imag": -2.37812424418211e-05
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.6602665343110633e-19,
+              "imag": 1.0156237473934698e-20
+            }
+          }
+        ],
+        "left_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": 7.211910945386429e-05,
+              "imag": -7.211910945386525e-05
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": 5.86310638111375e-05,
+              "imag": -6.129552491398581e-05
+            }
+          }
+        ],
+        "right_em": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.0022535774253229198,
+              "imag": 0.002253577425322919
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0023704150467089066,
+              "imag": 2.378124244182098e-05
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -4.919795806312534e-19,
+              "imag": -1.7557945094154207e-20
+            }
+          }
+        ],
+        "right_collective": [
+          {
+            "label": "amplitude_eta1",
+            "value": {
+              "real": 7.211910945386462e-05,
+              "imag": -7.211910945386526e-05
+            }
+          },
+          {
+            "label": "phase_eta2",
+            "value": {
+              "real": -5.863106381113751e-05,
+              "imag": 6.129552491398538e-05
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_schur_residuals": {
+        "left_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.002142526420158507,
+              "imag": 0.0021372643257018768
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -0.002950392677899787,
+              "imag": -0.0005786034227423427
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": 3.332927276830359e-19,
+              "imag": -2.059722555365064e-20
+            }
+          }
+        ],
+        "right_effective": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.0021425264201585096,
+              "imag": 0.0021372643257018776
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0029503926778997876,
+              "imag": 0.0005786034227423425
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -4.529221832604771e-19,
+              "imag": 1.9679657223471822e-20
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "norms": {
+        "left_em_norm": 0.003971983819831873,
+        "left_collective_norm": 0.00013265396682701875,
+        "right_em_norm": 0.003971983819831876,
+        "right_collective_norm": 0.00013265396682701872,
+        "left_total_extended_norm": 0.003974198351859295,
+        "right_total_extended_norm": 0.003974198351859299,
+        "left_effective_norm": 0.004265901678849262,
+        "right_effective_norm": 0.004265901678849264,
+        "left_effective_over_effective_norm": 0.005440389565440627,
+        "right_effective_over_effective_norm": 0.005440389565440629,
+        "left_total_over_primitive_norm": 0.003987980532031658,
+        "right_total_over_primitive_norm": 0.003987980532031662,
+        "valid_for_casimir_input": false
+      },
+      "accepted_convention": false,
+      "valid_for_casimir_input": false
+    }
+  ],
+  "valid_for_casimir_input": false
+}
