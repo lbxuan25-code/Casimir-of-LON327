@@ -1,0 +1,4589 @@
+{
+  "schema_version": "finite_q_tmte_ward_basis_convention_scan_v1",
+  "status": {
+    "diagnostic_run_completed": true,
+    "diagnostic_only_not_a_fix": true,
+    "accepted_convention": false,
+    "requires_analytic_derivation_before_convention_change": true,
+    "valid_for_casimir_input": false,
+    "reason": "ward_basis_convention_fingerprint_scan_not_production_convention"
+  },
+  "model": {
+    "name": "symmetry_bdg_2band",
+    "pairing": "dwave",
+    "valid_for_casimir_input": false
+  },
+  "frequency": {
+    "source": "matsubara_index",
+    "matsubara_index": 1,
+    "temperature_K": 10.0,
+    "xi_eV": 0.00541443017397794,
+    "zero_matsubara_mode": false,
+    "valid_for_casimir_input": false
+  },
+  "debug_parameters": {
+    "q_model_convention": "q_along_x_only",
+    "q_value": 0.02,
+    "nk": 13,
+    "shift_fractions": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "num_shifted_meshes": 25,
+    "contact_scale": 1.0,
+    "ratio_eps": 1e-30,
+    "candidate_names": [
+      "baseline_real",
+      "temporal_i_plus",
+      "temporal_i_minus",
+      "spatial_i_plus",
+      "spatial_i_minus",
+      "a0_i_only_plus",
+      "a0_i_only_minus"
+    ],
+    "shifted_mesh_average": {
+      "enabled": true,
+      "average_order": "average_blocks_then_schur",
+      "shift_fractions": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8
+      ],
+      "shift_pairs": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.2
+        ],
+        [
+          0.0,
+          0.4
+        ],
+        [
+          0.0,
+          0.6
+        ],
+        [
+          0.0,
+          0.8
+        ],
+        [
+          0.2,
+          0.0
+        ],
+        [
+          0.2,
+          0.2
+        ],
+        [
+          0.2,
+          0.4
+        ],
+        [
+          0.2,
+          0.6
+        ],
+        [
+          0.2,
+          0.8
+        ],
+        [
+          0.4,
+          0.0
+        ],
+        [
+          0.4,
+          0.2
+        ],
+        [
+          0.4,
+          0.4
+        ],
+        [
+          0.4,
+          0.6
+        ],
+        [
+          0.4,
+          0.8
+        ],
+        [
+          0.6,
+          0.0
+        ],
+        [
+          0.6,
+          0.2
+        ],
+        [
+          0.6,
+          0.4
+        ],
+        [
+          0.6,
+          0.6
+        ],
+        [
+          0.6,
+          0.8
+        ],
+        [
+          0.8,
+          0.0
+        ],
+        [
+          0.8,
+          0.2
+        ],
+        [
+          0.8,
+          0.4
+        ],
+        [
+          0.8,
+          0.6
+        ],
+        [
+          0.8,
+          0.8
+        ]
+      ],
+      "num_shifted_meshes": 25,
+      "valid_for_casimir_input": false
+    },
+    "valid_for_casimir_input": false,
+    "scan_purpose": "fingerprint_possible_matsubara_A0_L_relative_i_convention",
+    "not_a_residual_minimization_fix": true
+  },
+  "collective_order": [
+    "amplitude_eta1",
+    "phase_eta2"
+  ],
+  "raw_ansatz_channel_names": [
+    "eta1",
+    "eta2"
+  ],
+  "primitive_metadata": {
+    "primitive_order": [
+      "A0",
+      "L",
+      "T"
+    ],
+    "source_order_baseline": [
+      "G",
+      "TM",
+      "TE"
+    ],
+    "baseline_transform_convention": "G=xi*A0+q*L; TM=-q*A0+xi*L; TE=T",
+    "diagnostic_only_not_a_fix": true,
+    "requires_analytic_derivation_before_convention_change": true,
+    "valid_for_casimir_input": false
+  },
+  "basis_candidates": [
+    {
+      "basis_candidate": "baseline_real",
+      "status": {
+        "diagnostic_only_not_a_fix": true,
+        "accepted_convention": false,
+        "requires_analytic_derivation_before_convention_change": true,
+        "valid_for_casimir_input": false
+      },
+      "transform_matrix_primitive_to_target": [
+        {
+          "row": "G",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.00541443017397794,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.02,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TM",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -0.02,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.00541443017397794,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TE",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 1.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "transform_determinant": {
+        "real": 0.00042931605410888296,
+        "imag": 0.0
+      },
+      "phase_eta2_primitive_fingerprint": {
+        "primitive_order": [
+          "A0",
+          "L",
+          "T"
+        ],
+        "target_order": [
+          "G",
+          "TM",
+          "TE"
+        ],
+        "collective_order": [
+          "amplitude_eta1",
+          "phase_eta2"
+        ],
+        "left_K_etaS_phase_primitive": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.010828667454780703,
+              "imag": 6.938893903907228e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0,
+              "imag": 0.05187946598558498
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_primitive_phase": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 0.010828667454780703,
+              "imag": -8.673617379884035e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -4.336808689942018e-19,
+              "imag": 0.05187946598558496
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "left_K_etaS_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": -5.863106381113754e-05,
+              "imag": 0.0010375893197116996
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": 0.00021657334909561406,
+              "imag": 0.00028089774604221336
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": 5.8631063811137535e-05,
+              "imag": 0.0010375893197116992
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": -0.00021657334909561406,
+              "imag": 0.0002808977460422136
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_metrics": {
+        "K_eff_GG": {
+          "real": -7.060841325584697e-05,
+          "imag": 2.4286022784556893e-21
+        },
+        "K_eff_GTM": {
+          "real": 2.6875833262865943e-05,
+          "imag": -4.587809434490059e-05
+        },
+        "K_eff_TMG": {
+          "real": 2.6875833262866004e-05,
+          "imag": 4.5878094344900616e-05
+        },
+        "K_eff_TMTM": {
+          "real": -0.000162607382703001,
+          "imag": -8.562973701148942e-21
+        },
+        "gauge_row_norm": 8.838924129554138e-05,
+        "gauge_gg_norm": 7.060841325584697e-05,
+        "physical_matrix_norm": 0.643159445684571,
+        "gauge_over_tm_abs": 0.543574589457494,
+        "gauge_gg_over_tm_abs": 0.43422636833661954,
+        "valid_for_casimir_input": false
+      },
+      "extended_ward_candidates": [
+        {
+          "candidate": "zero_collective",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.00026712800248758197,
+                "imag": -2.6469779601696886e-22
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -2.394244745573636e-05,
+                "imag": -1.8856405639872453e-06
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.168404344971009e-19,
+                "imag": 6.505213034913026e-21
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.00026712800248758197,
+                "imag": -2.6469779601696886e-22
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -2.394244745573636e-05,
+                "imag": 1.885640563987248e-06
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.211772431870429e-19,
+                "imag": -1.0842021724855046e-20
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 7.211910945386502e-05,
+                "imag": -4.041903494841498e-06
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 5.8631063811137535e-05,
+                "imag": 0.0010375893197116992
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 7.211910945386523e-05,
+                "imag": 4.04190349484151e-06
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -5.863106381113754e-05,
+                "imag": 0.0010375893197116996
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.00026820545509648544,
+            "right_em_norm": 0.00026820545509648544,
+            "left_collective_norm": 0.0010417517463175631,
+            "right_collective_norm": 0.0010417517463175636,
+            "left_total_extended_norm": 0.0010757234157064749,
+            "right_total_extended_norm": 0.0010757234157064753,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "analytic_same_negative",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -5.9610138545242045e-05,
+                "imag": 1.172621276222751e-05
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 3.2237101752706314e-05,
+                "imag": -4.520031038311006e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.6602665343110633e-19,
+                "imag": 1.0156237473934698e-20
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -5.9610138545242126e-05,
+                "imag": -1.1726212762227508e-05
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 3.223710175270636e-05,
+                "imag": 4.5200310383110063e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.7271214720368e-19,
+                "imag": -3.0659338562998862e-21
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 7.211910945386429e-05,
+                "imag": -7.211910945386525e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 5.86310638111375e-05,
+                "imag": -6.129552491398581e-05
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 7.21191094538659e-05,
+                "imag": 7.211910945386526e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -5.8631063811137575e-05,
+                "imag": -6.129552491398538e-05
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 8.229927989522026e-05,
+            "right_em_norm": 8.229927989522034e-05,
+            "left_collective_norm": 0.00013265396682701875,
+            "right_collective_norm": 0.00013265396682701945,
+            "left_total_extended_norm": 0.00015610972546966956,
+            "right_total_extended_norm": 0.0001561097254696702,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "fitted_both_independent",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -0.0003559054262619375,
+                "imag": 0.0003550476256227536
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -0.010693060211632676,
+                "imag": -0.18882205383648182
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -0.00035590542626194545,
+                "imag": -0.0003550476256227543
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.01069306021163269,
+                "imag": -0.1888220538364819
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -7.060841325584694e-05,
+                "imag": 3.877822711648594e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 2.6875833262865943e-05,
+                "imag": -4.587809434490059e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.332927276830359e-19,
+                "imag": -2.0597225553650644e-20
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -7.060841325584694e-05,
+                "imag": 3.1234339930002325e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 2.687583326286601e-05,
+                "imag": 4.5878094344900616e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.338127800334124e-19,
+                "imag": 3.428960854151009e-20
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -1.3552527156068805e-20,
+                "imag": -4.235164736271502e-21
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 6.776263578034403e-21,
+                "imag": 0.0
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -1.3552527156068805e-20,
+                "imag": -1.6093625997831706e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -6.776263578034403e-21,
+                "imag": 0.0
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 8.838924129554135e-05,
+            "right_em_norm": 8.838924129554139e-05,
+            "left_collective_norm": 1.5732938719080287e-20,
+            "right_collective_norm": 2.2104152056866208e-20,
+            "left_total_extended_norm": 8.838924129554135e-05,
+            "right_total_extended_norm": 8.838924129554139e-05,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "left": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "right": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        }
+      ],
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "basis_candidate": "temporal_i_plus",
+      "status": {
+        "diagnostic_only_not_a_fix": true,
+        "accepted_convention": false,
+        "requires_analytic_derivation_before_convention_change": true,
+        "valid_for_casimir_input": false
+      },
+      "transform_matrix_primitive_to_target": [
+        {
+          "row": "G",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.00541443017397794
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.02,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TM",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -0.02,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": 0.00541443017397794
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TE",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 1.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "transform_determinant": {
+        "real": 0.00037068394589111745,
+        "imag": 0.0
+      },
+      "phase_eta2_primitive_fingerprint": {
+        "primitive_order": [
+          "A0",
+          "L",
+          "T"
+        ],
+        "target_order": [
+          "G",
+          "TM",
+          "TE"
+        ],
+        "collective_order": [
+          "amplitude_eta1",
+          "phase_eta2"
+        ],
+        "left_K_etaS_phase_primitive": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.010828667454780703,
+              "imag": 6.938893903907228e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0,
+              "imag": 0.05187946598558498
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_primitive_phase": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 0.010828667454780703,
+              "imag": -8.673617379884035e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -4.336808689942018e-19,
+              "imag": 0.05187946598558496
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "left_K_etaS_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": -3.757015652734688e-20,
+              "imag": 0.000978958255900562
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": -6.432439694659947e-05,
+              "imag": -1.3877787807814457e-19
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": 3.828907827929957e-20,
+              "imag": 0.0010962203835228367
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": -0.0004974710951378275,
+              "imag": 1.7112421281472155e-19
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_metrics": {
+        "K_eff_GG": {
+          "real": -4.740729386014457e-05,
+          "imag": 2.3315168149821734e-20
+        },
+        "K_eff_GTM": {
+          "real": -5.411501400347347e-20,
+          "imag": -1.2736645420308468e-05
+        },
+        "K_eff_TMG": {
+          "real": -1.0816398115265929e-20,
+          "imag": 6.648831194604052e-05
+        },
+        "K_eff_TMTM": {
+          "real": -0.00015395799556422484,
+          "imag": -2.760547210737186e-20
+        },
+        "gauge_row_norm": 4.908842682043055e-05,
+        "gauge_gg_norm": 4.740729386014457e-05,
+        "physical_matrix_norm": 0.6431594435559413,
+        "gauge_over_tm_abs": 0.31884298467599176,
+        "gauge_gg_over_tm_abs": 0.30792355854209746,
+        "valid_for_casimir_input": false
+      },
+      "extended_ward_candidates": [
+        {
+          "candidate": "zero_collective",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.00024272432726545406,
+                "imag": 1.5550740162682903e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -2.509165797097827e-20,
+                "imag": -2.5570564266420204e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.161512877177998e-19,
+                "imag": 1.6459561297881801e-21
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.00024272432726545406,
+                "imag": 1.5550740162682903e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -3.538020426065887e-20,
+                "imag": -2.2314330645052425e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.0123158699802917e-19,
+                "imag": -1.0163798963414692e-20
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.294398397172448e-19,
+                "imag": 6.807720595902374e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 3.828907827929957e-20,
+                "imag": 0.0010962203835228367
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.924953746622098e-20,
+                "imag": 7.616101294870677e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -3.757015652734688e-20,
+                "imag": 0.000978958255900562
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.00024406751689516238,
+            "right_em_norm": 0.000243747878757137,
+            "left_collective_norm": 0.0010983322062209332,
+            "right_collective_norm": 0.0009819163745906489,
+            "left_total_extended_norm": 0.0011251233656917417,
+            "right_total_extended_norm": 0.0010117177447726453,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "analytic_same_negative",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.6932676085341646e-05,
+                "imag": 2.306477146815228e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -5.2847233586607185e-20,
+                "imag": -1.270568487710031e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.6671580021040743e-19,
+                "imag": 5.2969805688098526e-21
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -2.348025056088672e-05,
+                "imag": 7.89292450682299e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -1.1553616977145552e-21,
+                "imag": 7.717988838251308e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.926578033926937e-19,
+                "imag": -2.3877110948595313e-21
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -9.674428545235972e-19,
+                "imag": -1.3552527156068805e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 2.256098404615615e-21,
+                "imag": -2.6644611028482732e-06
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.354159287867636e-19,
+                "imag": 0.00014423821890773052
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -7.360313640203084e-20,
+                "imag": -0.00011992658872512292
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 4.862211958283776e-05,
+            "right_em_norm": 8.067253149083149e-05,
+            "left_collective_norm": 2.6644611028482732e-06,
+            "right_collective_norm": 0.00018758211662341152,
+            "left_total_extended_norm": 4.869507024018311e-05,
+            "right_total_extended_norm": 0.0002041937996464593,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "fitted_both_independent",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 5.0189654082922866e-18,
+                "imag": -8.578006391884214e-07
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -1.1610368088446777e-19,
+                "imag": -0.19951511404811448
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.9008744261433382e-18,
+                "imag": -0.0007109530518846965
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 1.3335991246916909e-17,
+                "imag": -0.1781289936248492
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.7407293860144594e-05,
+                "imag": 2.331516814982173e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -5.4115014003473463e-20,
+                "imag": -1.2736645420308468e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.6530236368667573e-19,
+                "imag": 5.286963046119269e-21
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.740729386014457e-05,
+                "imag": 2.3315168149821734e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -1.0816398115265926e-20,
+                "imag": 6.648831194604052e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.163828487644537e-19,
+                "imag": -2.249725954513158e-21
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -9.62964972193618e-35,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 2.168404344971009e-19
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -8.425943506694157e-35,
+                "imag": -2.710505431213761e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -6.018531076210112e-36,
+                "imag": 0.0
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 4.908842682043058e-05,
+            "right_em_norm": 8.165872357915041e-05,
+            "left_collective_norm": 2.168404344971009e-19,
+            "right_collective_norm": 2.710505431213761e-20,
+            "left_total_extended_norm": 4.908842682043058e-05,
+            "right_total_extended_norm": 8.165872357915041e-05,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "left": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "right": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        }
+      ],
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "basis_candidate": "temporal_i_minus",
+      "status": {
+        "diagnostic_only_not_a_fix": true,
+        "accepted_convention": false,
+        "requires_analytic_derivation_before_convention_change": true,
+        "valid_for_casimir_input": false
+      },
+      "transform_matrix_primitive_to_target": [
+        {
+          "row": "G",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": -0.00541443017397794
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.02,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TM",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -0.02,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": -0.00541443017397794
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TE",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 1.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "transform_determinant": {
+        "real": 0.00037068394589111745,
+        "imag": 0.0
+      },
+      "phase_eta2_primitive_fingerprint": {
+        "primitive_order": [
+          "A0",
+          "L",
+          "T"
+        ],
+        "target_order": [
+          "G",
+          "TM",
+          "TE"
+        ],
+        "collective_order": [
+          "amplitude_eta1",
+          "phase_eta2"
+        ],
+        "left_K_etaS_phase_primitive": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.010828667454780703,
+              "imag": 6.938893903907228e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0,
+              "imag": 0.05187946598558498
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_primitive_phase": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 0.010828667454780703,
+              "imag": -8.673617379884035e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -4.336808689942018e-19,
+              "imag": 0.05187946598558496
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "left_K_etaS_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": 3.757015652734688e-20,
+              "imag": 0.0010962203835228371
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": 0.0004974710951378276,
+              "imag": -1.3877787807814457e-19
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": -5.563631303906764e-20,
+              "imag": 0.0009789582559005616
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": 6.432439694659936e-05,
+              "imag": 1.7582048238063989e-19
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_metrics": {
+        "K_eff_GG": {
+          "real": -4.740729386014462e-05,
+          "imag": -3.2400344455468195e-21
+        },
+        "K_eff_GTM": {
+          "real": -4.1823373882798616e-20,
+          "imag": -6.648831194604048e-05
+        },
+        "K_eff_TMG": {
+          "real": 1.475242005408918e-21,
+          "imag": 1.2736645420308484e-05
+        },
+        "K_eff_TMTM": {
+          "real": -0.00015395799556422479,
+          "imag": -1.050269512003306e-21
+        },
+        "gauge_row_norm": 8.165872357915041e-05,
+        "gauge_gg_norm": 4.740729386014462e-05,
+        "physical_matrix_norm": 0.6431594435559413,
+        "gauge_over_tm_abs": 0.5303961205774846,
+        "gauge_gg_over_tm_abs": 0.3079235585420979,
+        "valid_for_casimir_input": false
+      },
+      "extended_ward_candidates": [
+        {
+          "candidate": "zero_collective",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.0002427243272654541,
+                "imag": -1.4505385059194602e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -2.419936675345378e-20,
+                "imag": 2.2314330645052438e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.1198117759197605e-19,
+                "imag": 7.194359814214126e-21
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.0002427243272654541,
+                "imag": -1.4505385059194602e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -3.4487913043134384e-20,
+                "imag": 2.5570564266420204e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.2185546594848325e-19,
+                "imag": 9.103634464158691e-21
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.2158826403672507e-19,
+                "imag": -7.616101294870675e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -5.563631303906764e-20,
+                "imag": 0.0009789582559005616
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.2792166813083234e-20,
+                "imag": -6.807720595902375e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 3.757015652734688e-20,
+                "imag": 0.0010962203835228371
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.00024374787875713704,
+            "right_em_norm": 0.0002440675168951624,
+            "left_collective_norm": 0.0009819163745906484,
+            "right_collective_norm": 0.0010983322062209336,
+            "left_total_extended_norm": 0.001011717744772645,
+            "right_total_extended_norm": 0.001125123365691742,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "analytic_same_negative",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -2.348025056088664e-05,
+                "imag": -2.201941636466398e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -5.1954942369082695e-20,
+                "imag": -7.717988838251309e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.708859103362312e-19,
+                "imag": 1.08453842532358e-20
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.6932676085341754e-05,
+                "imag": -3.3781224513810726e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 6.761834329935948e-22,
+                "imag": 1.2705684877100332e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.720339244422396e-19,
+                "imag": 1.6879722332713853e-20
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -9.595912788430775e-19,
+                "imag": -0.00014423821890773052
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -9.16692929137516e-20,
+                "imag": -0.00011992658872512336
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.418732994399013e-19,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 1.5371766526629298e-21,
+                "imag": -2.6644611028478395e-06
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 8.067253149083148e-05,
+            "right_em_norm": 4.862211958283787e-05,
+            "left_collective_norm": 0.00018758211662341182,
+            "right_collective_norm": 2.6644611028478395e-06,
+            "left_total_extended_norm": 0.00020419379964645956,
+            "right_total_extended_norm": 4.86950702401832e-05,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "fitted_both_independent",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 4.538106727640611e-18,
+                "imag": 0.0007109530518846961
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 1.6678061134344623e-17,
+                "imag": -0.17812899362484913
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -3.3277715302293715e-18,
+                "imag": 8.57800639188351e-07
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -9.008668048555609e-20,
+                "imag": -0.19951511404811456
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.740729386014462e-05,
+                "imag": -3.240034445546821e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -4.1823373882798616e-20,
+                "imag": -6.648831194604048e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.0740853908326603e-19,
+                "imag": 1.1412410449989152e-20
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.740729386014462e-05,
+                "imag": -3.240034445546821e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 1.475242005408918e-21,
+                "imag": 1.2736645420308484e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.703521145294356e-19,
+                "imag": 1.685967727255143e-20
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -9.62964972193618e-35,
+                "imag": -1.3552527156068805e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -6.319457630020618e-35,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 6.018531076210112e-36,
+                "imag": 2.168404344971009e-19
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 8.165872357915041e-05,
+            "right_em_norm": 4.9088426820430604e-05,
+            "left_collective_norm": 1.3552527156068805e-20,
+            "right_collective_norm": 2.168404344971009e-19,
+            "left_total_extended_norm": 8.165872357915041e-05,
+            "right_total_extended_norm": 4.9088426820430604e-05,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "left": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "right": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        }
+      ],
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "basis_candidate": "spatial_i_plus",
+      "status": {
+        "diagnostic_only_not_a_fix": true,
+        "accepted_convention": false,
+        "requires_analytic_derivation_before_convention_change": true,
+        "valid_for_casimir_input": false
+      },
+      "transform_matrix_primitive_to_target": [
+        {
+          "row": "G",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.00541443017397794,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": 0.02
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TM",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": -0.02
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.00541443017397794,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TE",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 1.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "transform_determinant": {
+        "real": -0.00037068394589111745,
+        "imag": 0.0
+      },
+      "phase_eta2_primitive_fingerprint": {
+        "primitive_order": [
+          "A0",
+          "L",
+          "T"
+        ],
+        "target_order": [
+          "G",
+          "TM",
+          "TE"
+        ],
+        "collective_order": [
+          "amplitude_eta1",
+          "phase_eta2"
+        ],
+        "left_K_etaS_phase_primitive": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.010828667454780703,
+              "imag": 6.938893903907228e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0,
+              "imag": 0.05187946598558498
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_primitive_phase": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 0.010828667454780703,
+              "imag": -8.673617379884035e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -4.336808689942018e-19,
+              "imag": 0.05187946598558496
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "left_K_etaS_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": -0.0010962203835228371,
+              "imag": 3.757015652734688e-20
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": 1.3877787807814457e-19,
+              "imag": 0.0004974710951378276
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": -0.0009789582559005616,
+              "imag": -5.563631303906764e-20
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": -1.7582048238063989e-19,
+              "imag": 6.432439694659936e-05
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_metrics": {
+        "K_eff_GG": {
+          "real": 4.740729386014462e-05,
+          "imag": 3.2400344455468195e-21
+        },
+        "K_eff_GTM": {
+          "real": 4.1823373882798616e-20,
+          "imag": 6.648831194604048e-05
+        },
+        "K_eff_TMG": {
+          "real": -1.475242005408918e-21,
+          "imag": -1.2736645420308484e-05
+        },
+        "K_eff_TMTM": {
+          "real": 0.00015395799556422479,
+          "imag": 1.050269512003306e-21
+        },
+        "gauge_row_norm": 8.165872357915041e-05,
+        "gauge_gg_norm": 4.740729386014462e-05,
+        "physical_matrix_norm": 0.6431594435559413,
+        "gauge_over_tm_abs": 0.5303961205774846,
+        "gauge_gg_over_tm_abs": 0.3079235585420979,
+        "valid_for_casimir_input": false
+      },
+      "extended_ward_candidates": [
+        {
+          "candidate": "zero_collective",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 0.0002427243272654541,
+                "imag": 1.4505385059194602e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 2.419936675345378e-20,
+                "imag": -2.2314330645052438e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -7.194359814214126e-21,
+                "imag": -2.1198117759197605e-19
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 0.0002427243272654541,
+                "imag": 1.4505385059194602e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 3.4487913043134384e-20,
+                "imag": -2.5570564266420204e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -9.103634464158691e-21,
+                "imag": -2.2185546594848325e-19
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 7.616101294870675e-05,
+                "imag": -2.2158826403672507e-19
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -0.0009789582559005616,
+                "imag": -5.563631303906764e-20
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.807720595902375e-05,
+                "imag": -2.2792166813083234e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -0.0010962203835228371,
+                "imag": 3.757015652734688e-20
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.00024374787875713704,
+            "right_em_norm": 0.0002440675168951624,
+            "left_collective_norm": 0.0009819163745906484,
+            "right_collective_norm": 0.0010983322062209336,
+            "left_total_extended_norm": 0.001011717744772645,
+            "right_total_extended_norm": 0.001125123365691742,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "analytic_same_negative",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 0.0002427243272654541,
+                "imag": 0.00021924407670456748
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 9.949421902756555e-05,
+                "imag": -2.2314330645052465e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 5.756727281139931e-19,
+                "imag": -2.0833015315295437e-19
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 0.0002427243272654541,
+                "imag": 0.00019579165118011236
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 1.2864879389319906e-05,
+                "imag": -2.557056426642017e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 6.847857559265642e-19,
+                "imag": -2.1407937807992809e-19
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 7.616101294870602e-05,
+                "imag": -6.807720595902397e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -0.0009789582559005616,
+                "imag": -0.001098884844625685
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.807720595902442e-05,
+                "imag": 6.807720595902373e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -0.0010962203835228371,
+                "imag": -0.001098884844625685
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.0003426077833157727,
+            "right_em_norm": 0.00031315942999837466,
+            "left_collective_norm": 0.0014752430899375348,
+            "right_collective_norm": 0.0015551578836058243,
+            "left_total_extended_norm": 0.0015145039675078414,
+            "right_total_extended_norm": 0.0015863747575961531,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "fitted_both_independent",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -0.0007109530518846961,
+                "imag": 4.538106727640611e-18
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.17812899362484913,
+                "imag": 1.6678061134344623e-17
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -8.57800639188351e-07,
+                "imag": -3.3277715302293715e-18
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.19951511404811456,
+                "imag": -9.008668048555609e-20
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 4.740729386014462e-05,
+                "imag": 3.240034445546821e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 4.1823373882798616e-20,
+                "imag": 6.648831194604048e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -1.1412410449989152e-20,
+                "imag": 3.0740853908326603e-19
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 4.740729386014462e-05,
+                "imag": 3.240034445546821e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -1.475242005408918e-21,
+                "imag": -1.2736645420308484e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -1.685967727255143e-20,
+                "imag": 4.703521145294356e-19
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 1.3552527156068805e-20,
+                "imag": -9.62964972193618e-35
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": -6.319457630020618e-35
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -2.168404344971009e-19,
+                "imag": 6.018531076210112e-36
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 8.165872357915041e-05,
+            "right_em_norm": 4.9088426820430604e-05,
+            "left_collective_norm": 1.3552527156068805e-20,
+            "right_collective_norm": 2.168404344971009e-19,
+            "left_total_extended_norm": 8.165872357915041e-05,
+            "right_total_extended_norm": 4.9088426820430604e-05,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "left": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "right": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        }
+      ],
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "basis_candidate": "spatial_i_minus",
+      "status": {
+        "diagnostic_only_not_a_fix": true,
+        "accepted_convention": false,
+        "requires_analytic_derivation_before_convention_change": true,
+        "valid_for_casimir_input": false
+      },
+      "transform_matrix_primitive_to_target": [
+        {
+          "row": "G",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.00541443017397794,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": -0.02
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TM",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.02
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.00541443017397794,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TE",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 1.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "transform_determinant": {
+        "real": -0.00037068394589111745,
+        "imag": 0.0
+      },
+      "phase_eta2_primitive_fingerprint": {
+        "primitive_order": [
+          "A0",
+          "L",
+          "T"
+        ],
+        "target_order": [
+          "G",
+          "TM",
+          "TE"
+        ],
+        "collective_order": [
+          "amplitude_eta1",
+          "phase_eta2"
+        ],
+        "left_K_etaS_phase_primitive": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.010828667454780703,
+              "imag": 6.938893903907228e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0,
+              "imag": 0.05187946598558498
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_primitive_phase": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 0.010828667454780703,
+              "imag": -8.673617379884035e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -4.336808689942018e-19,
+              "imag": 0.05187946598558496
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "left_K_etaS_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": 0.000978958255900562,
+              "imag": 3.757015652734688e-20
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": -1.3877787807814457e-19,
+              "imag": 6.432439694659947e-05
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": 0.0010962203835228367,
+              "imag": -3.828907827929957e-20
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": 1.7112421281472155e-19,
+              "imag": 0.0004974710951378275
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_metrics": {
+        "K_eff_GG": {
+          "real": 4.740729386014457e-05,
+          "imag": -2.3315168149821734e-20
+        },
+        "K_eff_GTM": {
+          "real": 5.411501400347347e-20,
+          "imag": 1.2736645420308468e-05
+        },
+        "K_eff_TMG": {
+          "real": 1.0816398115265929e-20,
+          "imag": -6.648831194604052e-05
+        },
+        "K_eff_TMTM": {
+          "real": 0.00015395799556422484,
+          "imag": 2.760547210737186e-20
+        },
+        "gauge_row_norm": 4.908842682043055e-05,
+        "gauge_gg_norm": 4.740729386014457e-05,
+        "physical_matrix_norm": 0.6431594435559413,
+        "gauge_over_tm_abs": 0.31884298467599176,
+        "gauge_gg_over_tm_abs": 0.30792355854209746,
+        "valid_for_casimir_input": false
+      },
+      "extended_ward_candidates": [
+        {
+          "candidate": "zero_collective",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 0.00024272432726545406,
+                "imag": -1.5550740162682903e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 2.509165797097827e-20,
+                "imag": 2.5570564266420204e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 1.6459561297881801e-21,
+                "imag": 2.161512877177998e-19
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 0.00024272432726545406,
+                "imag": -1.5550740162682903e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 3.538020426065887e-20,
+                "imag": 2.2314330645052425e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -1.0163798963414692e-20,
+                "imag": 2.0123158699802917e-19
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.807720595902374e-05,
+                "imag": 2.294398397172448e-19
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0010962203835228367,
+                "imag": -3.828907827929957e-20
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 7.616101294870677e-05,
+                "imag": 2.924953746622098e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.000978958255900562,
+                "imag": 3.757015652734688e-20
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.00024406751689516238,
+            "right_em_norm": 0.000243747878757137,
+            "left_collective_norm": 0.0010983322062209332,
+            "right_collective_norm": 0.0009819163745906489,
+            "left_total_extended_norm": 0.0011251233656917417,
+            "right_total_extended_norm": 0.0010117177447726453,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "analytic_same_negative",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 0.00024272432726545406,
+                "imag": -0.00019579165118011245
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 1.286487938931992e-05,
+                "imag": 2.557056426642023e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 5.845130440579954e-19,
+                "imag": 2.198023121568215e-19
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 0.00024272432726545406,
+                "imag": -0.00021924407670456737
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 9.949421902756554e-05,
+                "imag": 2.231433064505239e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 6.837255914273082e-19,
+                "imag": 2.0900767486658434e-19
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.807720595902301e-05,
+                "imag": -6.807720595902352e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0010962203835228367,
+                "imag": -0.001098884844625685
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 7.616101294870743e-05,
+                "imag": 6.807720595902378e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.000978958255900562,
+                "imag": -0.001098884844625685
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.00031315942999837466,
+            "right_em_norm": 0.0003426077833157726,
+            "left_collective_norm": 0.001555157883605824,
+            "right_collective_norm": 0.0014752430899375353,
+            "left_total_extended_norm": 0.001586374757596153,
+            "right_total_extended_norm": 0.0015145039675078418,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "fitted_both_independent",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -8.578006391884214e-07,
+                "imag": -5.0189654082922866e-18
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -0.19951511404811448,
+                "imag": 1.1610368088446777e-19
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -0.0007109530518846965,
+                "imag": 2.9008744261433382e-18
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -0.1781289936248492,
+                "imag": -1.3335991246916909e-17
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 4.7407293860144594e-05,
+                "imag": -2.331516814982173e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 5.4115014003473463e-20,
+                "imag": 1.2736645420308468e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 5.286963046119269e-21,
+                "imag": -3.6530236368667573e-19
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": 4.740729386014457e-05,
+                "imag": -2.3315168149821734e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": 1.0816398115265926e-20,
+                "imag": -6.648831194604052e-05
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.249725954513158e-21,
+                "imag": -4.163828487644537e-19
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 9.62964972193618e-35
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 2.168404344971009e-19,
+                "imag": 0.0
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.710505431213761e-20,
+                "imag": 8.425943506694157e-35
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 6.018531076210112e-36
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 4.908842682043058e-05,
+            "right_em_norm": 8.165872357915041e-05,
+            "left_collective_norm": 2.168404344971009e-19,
+            "right_collective_norm": 2.710505431213761e-20,
+            "left_total_extended_norm": 4.908842682043058e-05,
+            "right_total_extended_norm": 8.165872357915041e-05,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "left": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "right": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        }
+      ],
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "basis_candidate": "a0_i_only_plus",
+      "status": {
+        "diagnostic_only_not_a_fix": true,
+        "accepted_convention": false,
+        "requires_analytic_derivation_before_convention_change": true,
+        "valid_for_casimir_input": false
+      },
+      "transform_matrix_primitive_to_target": [
+        {
+          "row": "G",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.00541443017397794
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.02,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TM",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": -0.02
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.00541443017397794,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TE",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 1.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "transform_determinant": {
+        "real": 0.0,
+        "imag": 0.00042931605410888296
+      },
+      "phase_eta2_primitive_fingerprint": {
+        "primitive_order": [
+          "A0",
+          "L",
+          "T"
+        ],
+        "target_order": [
+          "G",
+          "TM",
+          "TE"
+        ],
+        "collective_order": [
+          "amplitude_eta1",
+          "phase_eta2"
+        ],
+        "left_K_etaS_phase_primitive": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.010828667454780703,
+              "imag": 6.938893903907228e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0,
+              "imag": 0.05187946598558498
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_primitive_phase": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 0.010828667454780703,
+              "imag": -8.673617379884035e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -4.336808689942018e-19,
+              "imag": 0.05187946598558496
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "left_K_etaS_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": -3.757015652734688e-20,
+              "imag": 0.000978958255900562
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": 1.3877787807814457e-19,
+              "imag": 0.0004974710951378276
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": 3.828907827929957e-20,
+              "imag": 0.0010962203835228367
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": -1.7582048238063989e-19,
+              "imag": 6.432439694659936e-05
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_metrics": {
+        "K_eff_GG": {
+          "real": -4.740729386014457e-05,
+          "imag": 2.3315168149821734e-20
+        },
+        "K_eff_GTM": {
+          "real": -1.294712919857382e-05,
+          "imag": -4.905232741773109e-20
+        },
+        "K_eff_TMG": {
+          "real": -0.00010470331788837498,
+          "imag": 1.0949506814440301e-21
+        },
+        "K_eff_TMTM": {
+          "real": 0.00015395799556422479,
+          "imag": 1.050269512003306e-21
+        },
+        "gauge_row_norm": 4.914346004939684e-05,
+        "gauge_gg_norm": 4.740729386014457e-05,
+        "physical_matrix_norm": 0.6431594435559413,
+        "gauge_over_tm_abs": 0.3192004408039741,
+        "gauge_gg_over_tm_abs": 0.3079235585420976,
+        "valid_for_casimir_input": false
+      },
+      "extended_ward_candidates": [
+        {
+          "candidate": "zero_collective",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.00024272432726545406,
+                "imag": 1.5550740162682903e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -0.00011219990390466588,
+                "imag": -1.9974740753256564e-20
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.161512877177998e-19,
+                "imag": 1.6459561297881801e-21
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.00024272432726545406,
+                "imag": 1.5550740162682903e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -0.00011597118503264036,
+                "imag": -3.189065495607909e-20
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.0123158699802917e-19,
+                "imag": -1.0163798963414692e-20
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.294398397172448e-19,
+                "imag": 6.807720595902374e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 3.828907827929957e-20,
+                "imag": 0.0010962203835228367
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.924953746622098e-20,
+                "imag": 7.616101294870677e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -3.757015652734688e-20,
+                "imag": 0.000978958255900562
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.00026740216431937026,
+            "right_em_norm": 0.0002690063471450853,
+            "left_collective_norm": 0.0010983322062209332,
+            "right_collective_norm": 0.0009819163745906489,
+            "left_total_extended_norm": 0.001130414770208186,
+            "right_total_extended_norm": 0.0010180983162217613,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "analytic_same_negative",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.6932676085341646e-05,
+                "imag": 2.306477146815228e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -1.2705684877100352e-05,
+                "imag": -4.773031636888548e-20
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.6671580021040743e-19,
+                "imag": 5.2969805688098526e-21
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -2.348025056088672e-05,
+                "imag": 7.89292450682299e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -0.00010310630564332049,
+                "imag": 3.273441520048888e-21
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.926578033926937e-19,
+                "imag": -2.3877110948595313e-21
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -9.674428545235972e-19,
+                "imag": -1.3552527156068805e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 2.256098404615615e-21,
+                "imag": -2.6644611028482732e-06
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.354159287867636e-19,
+                "imag": 0.00014423821890773052
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -7.360313640203084e-20,
+                "imag": -0.00011992658872512292
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 4.8622119582837776e-05,
+            "right_em_norm": 0.0001057460752454475,
+            "left_collective_norm": 2.6644611028482732e-06,
+            "right_collective_norm": 0.00018758211662341152,
+            "left_total_extended_norm": 4.869507024018312e-05,
+            "right_total_extended_norm": 0.00021533528021839573,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "fitted_both_independent",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 5.0189654082922866e-18,
+                "imag": -8.578006391884214e-07
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -1.1610368088446777e-19,
+                "imag": -0.19951511404811448
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.9008744261433382e-18,
+                "imag": -0.0007109530518846965
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 1.3335991246916909e-17,
+                "imag": -0.1781289936248492
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.7407293860144594e-05,
+                "imag": 2.331516814982173e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -1.2947129198573806e-05,
+                "imag": -4.905232741773109e-20
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.6530236368667573e-19,
+                "imag": 5.286963046119269e-21
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.740729386014457e-05,
+                "imag": 2.3315168149821734e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -0.00010470331788837498,
+                "imag": 1.0949506814440361e-21
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.163828487644537e-19,
+                "imag": -2.249725954513158e-21
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -9.62964972193618e-35,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 2.168404344971009e-19
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -8.425943506694157e-35,
+                "imag": -2.710505431213761e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -6.018531076210112e-36,
+                "imag": 0.0
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 4.9143460049396866e-05,
+            "right_em_norm": 0.00011493579202309526,
+            "left_collective_norm": 2.168404344971009e-19,
+            "right_collective_norm": 2.710505431213761e-20,
+            "left_total_extended_norm": 4.9143460049396866e-05,
+            "right_total_extended_norm": 0.00011493579202309526,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "left": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "right": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        }
+      ],
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "basis_candidate": "a0_i_only_minus",
+      "status": {
+        "diagnostic_only_not_a_fix": true,
+        "accepted_convention": false,
+        "requires_analytic_derivation_before_convention_change": true,
+        "valid_for_casimir_input": false
+      },
+      "transform_matrix_primitive_to_target": [
+        {
+          "row": "G",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": -0.00541443017397794
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.02,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TM",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.02
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.00541443017397794,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "row": "TE",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 1.0,
+                "imag": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "transform_determinant": {
+        "real": 0.0,
+        "imag": -0.00042931605410888296
+      },
+      "phase_eta2_primitive_fingerprint": {
+        "primitive_order": [
+          "A0",
+          "L",
+          "T"
+        ],
+        "target_order": [
+          "G",
+          "TM",
+          "TE"
+        ],
+        "collective_order": [
+          "amplitude_eta1",
+          "phase_eta2"
+        ],
+        "left_K_etaS_phase_primitive": [
+          {
+            "label": "A0",
+            "value": {
+              "real": -0.010828667454780703,
+              "imag": 6.938893903907228e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": 0.0,
+              "imag": 0.05187946598558498
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_primitive_phase": [
+          {
+            "label": "A0",
+            "value": {
+              "real": 0.010828667454780703,
+              "imag": -8.673617379884035e-18
+            }
+          },
+          {
+            "label": "L",
+            "value": {
+              "real": -4.336808689942018e-19,
+              "imag": 0.05187946598558496
+            }
+          },
+          {
+            "label": "T",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "left_K_etaS_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": 3.757015652734688e-20,
+              "imag": 0.0010962203835228371
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": -1.3877787807814457e-19,
+              "imag": 6.432439694659947e-05
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -1.8255122195108364e-20,
+              "imag": 2.914335439641036e-18
+            }
+          }
+        ],
+        "right_K_Seta_phase_target_under_candidate": [
+          {
+            "label": "G",
+            "value": {
+              "real": -5.563631303906764e-20,
+              "imag": 0.0009789582559005616
+            }
+          },
+          {
+            "label": "TM",
+            "value": {
+              "real": 1.7112421281472155e-19,
+              "imag": 0.0004974710951378275
+            }
+          },
+          {
+            "label": "TE",
+            "value": {
+              "real": -3.88804393427758e-20,
+              "imag": 3.469446951953614e-18
+            }
+          }
+        ],
+        "valid_for_casimir_input": false
+      },
+      "effective_metrics": {
+        "K_eff_GG": {
+          "real": -4.740729386014462e-05,
+          "imag": -3.2400344455468195e-21
+        },
+        "K_eff_GTM": {
+          "real": -0.00010470331788837497,
+          "imag": 4.654565816908554e-20
+        },
+        "K_eff_TMG": {
+          "real": -1.2947129198573779e-05,
+          "imag": -3.601619930089582e-21
+        },
+        "K_eff_TMTM": {
+          "real": 0.00015395799556422484,
+          "imag": 2.760547210737186e-20
+        },
+        "gauge_row_norm": 0.00011493579202309526,
+        "gauge_gg_norm": 4.740729386014462e-05,
+        "physical_matrix_norm": 0.6431594435559413,
+        "gauge_over_tm_abs": 0.7465399351419124,
+        "gauge_gg_over_tm_abs": 0.3079235585420978,
+        "valid_for_casimir_input": false
+      },
+      "extended_ward_candidates": [
+        {
+          "candidate": "zero_collective",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.0002427243272654541,
+                "imag": -1.4505385059194602e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -0.00011597118503264036,
+                "imag": 1.955207649232391e-20
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.1198117759197605e-19,
+                "imag": 7.194359814214126e-21
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -0.0002427243272654541,
+                "imag": -1.4505385059194602e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -0.00011219990390466587,
+                "imag": 3.146799069514644e-20
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": -2.2185546594848325e-19,
+                "imag": 9.103634464158691e-21
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.2158826403672507e-19,
+                "imag": -7.616101294870675e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -5.563631303906764e-20,
+                "imag": 0.0009789582559005616
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.2792166813083234e-20,
+                "imag": -6.807720595902375e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 3.757015652734688e-20,
+                "imag": 0.0010962203835228371
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.0002690063471450853,
+            "right_em_norm": 0.0002674021643193703,
+            "left_collective_norm": 0.0009819163745906484,
+            "right_collective_norm": 0.0010983322062209336,
+            "left_total_extended_norm": 0.0010180983162217608,
+            "right_total_extended_norm": 0.0011304147702081865,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "analytic_same_negative",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.2
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -2.348025056088664e-05,
+                "imag": -2.201941636466398e-20
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -0.00010310630564332047,
+                "imag": 4.7307652107952825e-20
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.708859103362312e-19,
+                "imag": 1.08453842532358e-20
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.6932676085341754e-05,
+                "imag": -3.3781224513810726e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -1.2705684877100366e-05,
+                "imag": -2.7568518677978696e-21
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.720339244422396e-19,
+                "imag": 1.6879722332713853e-20
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -9.595912788430775e-19,
+                "imag": -0.00014423821890773052
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -9.16692929137516e-20,
+                "imag": -0.00011992658872512336
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.418732994399013e-19,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 1.5371766526629298e-21,
+                "imag": -2.6644611028478395e-06
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.00010574607524544745,
+            "right_em_norm": 4.862211958283788e-05,
+            "left_collective_norm": 0.00018758211662341182,
+            "right_collective_norm": 2.6644611028478395e-06,
+            "left_total_extended_norm": 0.00021533528021839594,
+            "right_total_extended_norm": 4.86950702401832e-05,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        {
+          "candidate": "fitted_both_independent",
+          "W_eta_left": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 4.538106727640611e-18,
+                "imag": 0.0007109530518846961
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 1.6678061134344623e-17,
+                "imag": -0.17812899362484913
+              }
+            }
+          ],
+          "W_eta_right": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -3.3277715302293715e-18,
+                "imag": 8.57800639188351e-07
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -9.008668048555609e-20,
+                "imag": -0.19951511404811456
+              }
+            }
+          ],
+          "left_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.740729386014462e-05,
+                "imag": -3.240034445546821e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -0.00010470331788837497,
+                "imag": 4.6545658169085545e-20
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 3.0740853908326603e-19,
+                "imag": 1.1412410449989152e-20
+              }
+            }
+          ],
+          "right_em_residual": [
+            {
+              "label": "G",
+              "value": {
+                "real": -4.740729386014462e-05,
+                "imag": -3.240034445546821e-21
+              }
+            },
+            {
+              "label": "TM",
+              "value": {
+                "real": -1.2947129198573779e-05,
+                "imag": -3.601619930089582e-21
+              }
+            },
+            {
+              "label": "TE",
+              "value": {
+                "real": 4.703521145294356e-19,
+                "imag": 1.685967727255143e-20
+              }
+            }
+          ],
+          "left_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -9.62964972193618e-35,
+                "imag": -1.3552527156068805e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            }
+          ],
+          "right_collective_residual": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -6.319457630020618e-35,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 6.018531076210112e-36,
+                "imag": 2.168404344971009e-19
+              }
+            }
+          ],
+          "norms": {
+            "left_em_norm": 0.00011493579202309526,
+            "right_em_norm": 4.914346004939688e-05,
+            "left_collective_norm": 1.3552527156068805e-20,
+            "right_collective_norm": 2.168404344971009e-19,
+            "left_total_extended_norm": 0.00011493579202309526,
+            "right_total_extended_norm": 4.914346004939688e-05,
+            "valid_for_casimir_input": false
+          },
+          "solve": {
+            "left": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "right": {
+              "solve_method": "solve",
+              "etaeta_condition_number": 35.015297774318306,
+              "condition_threshold": 1000000000000.0,
+              "numerically_suspect": false,
+              "valid_for_casimir_input": false
+            },
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        }
+      ],
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    }
+  ],
+  "valid_for_casimir_input": false
+}
