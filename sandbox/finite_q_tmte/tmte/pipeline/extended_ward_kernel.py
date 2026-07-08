@@ -137,13 +137,15 @@ def collective_mixed_channel_decomposition(
     blocks: TargetBareBlocks,
     w_eta_left: np.ndarray,
     w_eta_right: np.ndarray,
+    collective_order: tuple[str, ...],
 ) -> dict[str, Any]:
     """Decompose W_eta K_etaS and K_Seta W_eta into per-collective-channel products."""
 
     require_diagnostic_source_order(blocks.source_order)
     source_order = blocks.source_order
     n_eta = int(np.asarray(blocks.k_etaeta).shape[0])
-    collective_order, raw_names = collective_order_from_ansatz(None, n_eta)
+    if len(collective_order) != n_eta:
+        raise ValueError("collective_order length must match collective channel count")
     w_left = np.asarray(w_eta_left, dtype=complex).reshape(-1)
     w_right = np.asarray(w_eta_right, dtype=complex).reshape(-1)
     k_etas = np.asarray(blocks.k_etas, dtype=complex)
@@ -185,7 +187,6 @@ def collective_mixed_channel_decomposition(
     right_direct = k_seta @ w_right
     return {
         "collective_order": list(collective_order),
-        "raw_ansatz_channel_names": list(raw_names) if raw_names is not None else None,
         "left": left_entries,
         "right": right_entries,
         "left_reconstruction_error_norm": float(np.linalg.norm(np.asarray(left_totals, dtype=complex) - left_direct)),
@@ -254,6 +255,7 @@ def extended_ward_candidate_result(
             blocks=blocks,
             w_eta_left=w_left,
             w_eta_right=w_right,
+            collective_order=collective_order,
         ),
         "norms": {
             "left_em_norm": left_em_norm,
