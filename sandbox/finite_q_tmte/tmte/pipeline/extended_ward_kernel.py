@@ -132,6 +132,68 @@ def em_source_decomposition(
     }
 
 
+def collective_mixed_channel_decomposition(
+    *,
+    blocks: TargetBareBlocks,
+    w_eta_left: np.ndarray,
+    w_eta_right: np.ndarray,
+) -> dict[str, Any]:
+    """Decompose W_eta K_etaS and K_Seta W_eta into per-collective-channel products."""
+
+    require_diagnostic_source_order(blocks.source_order)
+    source_order = blocks.source_order
+    n_eta = int(np.asarray(blocks.k_etaeta).shape[0])
+    collective_order, raw_names = collective_order_from_ansatz(None, n_eta)
+    w_left = np.asarray(w_eta_left, dtype=complex).reshape(-1)
+    w_right = np.asarray(w_eta_right, dtype=complex).reshape(-1)
+    k_etas = np.asarray(blocks.k_etas, dtype=complex)
+    k_seta = np.asarray(blocks.k_seta, dtype=complex)
+    if w_left.shape[0] != n_eta or w_right.shape[0] != n_eta:
+        raise ValueError("W_eta vector length must match collective channel count")
+
+    left_entries = []
+    left_totals = []
+    for source_index, source_label in enumerate(source_order):
+        values = w_left * k_etas[:, source_index]
+        total = complex(np.sum(values))
+        left_totals.append(total)
+        left_entries.append(
+            {
+                "source_label": source_label,
+                "contributions": complex_vector_payload(values, collective_order),
+                "total": total,
+                "valid_for_casimir_input": False,
+            }
+        )
+
+    right_entries = []
+    right_totals = []
+    for source_index, source_label in enumerate(source_order):
+        values = k_seta[source_index, :] * w_right
+        total = complex(np.sum(values))
+        right_totals.append(total)
+        right_entries.append(
+            {
+                "source_label": source_label,
+                "contributions": complex_vector_payload(values, collective_order),
+                "total": total,
+                "valid_for_casimir_input": False,
+            }
+        )
+
+    left_direct = w_left @ k_etas
+    right_direct = k_seta @ w_right
+    return {
+        "collective_order": list(collective_order),
+        "raw_ansatz_channel_names": list(raw_names) if raw_names is not None else None,
+        "left": left_entries,
+        "right": right_entries,
+        "left_reconstruction_error_norm": float(np.linalg.norm(np.asarray(left_totals, dtype=complex) - left_direct)),
+        "right_reconstruction_error_norm": float(np.linalg.norm(np.asarray(right_totals, dtype=complex) - right_direct)),
+        "valid_for_casimir_input": False,
+    }
+
+
 def extended_ward_candidate_result(
     *,
     name: str,
@@ -187,6 +249,11 @@ def extended_ward_candidate_result(
             w_eta_right=w_right,
             left_em=left_em,
             right_em=right_em,
+        ),
+        "collective_mixed_channel_decomposition": collective_mixed_channel_decomposition(
+            blocks=blocks,
+            w_eta_left=w_left,
+            w_eta_right=w_right,
         ),
         "norms": {
             "left_em_norm": left_em_norm,
