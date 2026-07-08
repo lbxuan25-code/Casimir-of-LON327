@@ -73,6 +73,10 @@ def _entry_by_source(entries: list[dict[str, object]], source_label: str) -> dic
     return next(item for item in entries if item["source_label"] == source_label)
 
 
+def _entry_by_primitive(entries: list[dict[str, object]], primitive_label: str) -> dict[str, object]:
+    return next(item for item in entries if item["primitive_label"] == primitive_label)
+
+
 def _dict_by_label(values: list[dict[str, object]]) -> dict[str, complex]:
     return {str(item["label"]): complex(item["value"]) for item in values}
 
@@ -152,6 +156,48 @@ def test_collective_mixed_channel_decomposition_reconstructs_collective_terms():
         np.testing.assert_allclose(np.sum(right_parts), right_entry["total"])
         np.testing.assert_allclose(left_entry["total"], left_mixed[label])
         np.testing.assert_allclose(right_entry["total"], right_mixed[label])
+
+
+def test_collective_mixed_primitive_decomposition_reconstructs_target_terms():
+    blocks = _fake_blocks()
+    result = extended_ward_candidate_result(
+        name="primitive_test",
+        description="test",
+        blocks=blocks,
+        w_eta_left=np.asarray([0.1 + 0.2j, -0.3j], dtype=complex),
+        w_eta_right=np.asarray([-0.05j, 0.2 + 0.1j], dtype=complex),
+        collective_order=("amplitude_eta1", "phase_eta2"),
+        physical_matrix_norm=1.0,
+        etaeta_norm=1.0,
+    )
+    primitive = result["collective_mixed_primitive_decomposition"]
+    assert primitive["primitive_order"] == ["A0", "L", "T"]
+    assert primitive["transform_convention"] == "G=xi*A0+q*L; TM=-q*A0+xi*L; TE=T"
+    assert primitive["left_target_reconstruction_error_norm"] < 1e-14
+    assert primitive["right_target_reconstruction_error_norm"] < 1e-14
+    left_target = _dict_by_label(primitive["left_target_from_primitive"])
+    right_target = _dict_by_label(primitive["right_target_from_primitive"])
+    left_mixed = _dict_by_label(result["em_source_decomposition"]["left"]["collective_mixed"])
+    right_mixed = _dict_by_label(result["em_source_decomposition"]["right"]["collective_mixed"])
+    for label in ("G", "TM", "TE"):
+        np.testing.assert_allclose(left_target[label], left_mixed[label])
+        np.testing.assert_allclose(right_target[label], right_mixed[label])
+    for label in ("A0", "L", "T"):
+        left_entry = _entry_by_primitive(primitive["left_primitive_weighted"], label)
+        right_entry = _entry_by_primitive(primitive["right_primitive_weighted"], label)
+        assert [item["label"] for item in left_entry["contributions"]] == ["amplitude_eta1", "phase_eta2"]
+        assert [item["label"] for item in right_entry["contributions"]] == ["amplitude_eta1", "phase_eta2"]
+        np.testing.assert_allclose(np.sum(_payload_vector(left_entry["contributions"])), left_entry["total"])
+        np.testing.assert_allclose(np.sum(_payload_vector(right_entry["contributions"])), right_entry["total"])
+    focus = primitive["phase_eta2_focus"]
+    np.testing.assert_allclose(
+        _payload_vector(focus["left_K_etaS_phase_target_reconstructed"]),
+        _payload_vector(focus["left_K_etaS_phase_target_direct"]),
+    )
+    np.testing.assert_allclose(
+        _payload_vector(focus["right_K_Seta_target_reconstructed_phase"]),
+        _payload_vector(focus["right_K_Seta_target_direct_phase"]),
+    )
 
 
 def test_same_sign_analytic_candidates_are_reported():
@@ -234,6 +280,7 @@ def test_extended_ward_payload_is_debug_only():
     assert all(row["valid_for_casimir_input"] is False for row in payload["candidate_results"])
     assert all("em_source_decomposition" in row for row in payload["candidate_results"])
     assert all("collective_mixed_channel_decomposition" in row for row in payload["candidate_results"])
+    assert all("collective_mixed_primitive_decomposition" in row for row in payload["candidate_results"])
 
 
 def test_extended_ward_cli_rejects_nonpositive_nk(tmp_path):
