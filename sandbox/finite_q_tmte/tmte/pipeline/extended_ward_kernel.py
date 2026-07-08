@@ -88,6 +88,50 @@ def schur_effective_from_blocks(blocks: TargetBareBlocks) -> tuple[np.ndarray, n
     return effective, correction, schur
 
 
+def em_source_decomposition(
+    *,
+    blocks: TargetBareBlocks,
+    w_eta_left: np.ndarray,
+    w_eta_right: np.ndarray,
+    left_em: np.ndarray,
+    right_em: np.ndarray,
+) -> dict[str, Any]:
+    """Decompose fitted/analytic EM residuals into bubble, contact, and mixed collective pieces."""
+
+    require_diagnostic_source_order(blocks.source_order)
+    source_order = blocks.source_order
+    g = source_order.index("G")
+    w_left = np.asarray(w_eta_left, dtype=complex).reshape(-1)
+    w_right = np.asarray(w_eta_right, dtype=complex).reshape(-1)
+    left_bubble = np.asarray(blocks.k_ss_bubble, dtype=complex)[g, :]
+    left_contact = np.asarray(blocks.k_ss_contact, dtype=complex)[g, :]
+    left_collective = w_left @ np.asarray(blocks.k_etas, dtype=complex)
+    left_total = left_bubble + left_contact + left_collective
+    right_bubble = np.asarray(blocks.k_ss_bubble, dtype=complex)[:, g]
+    right_contact = np.asarray(blocks.k_ss_contact, dtype=complex)[:, g]
+    right_collective = np.asarray(blocks.k_seta, dtype=complex) @ w_right
+    right_total = right_bubble + right_contact + right_collective
+    return {
+        "left": {
+            "bubble": complex_vector_payload(left_bubble, source_order),
+            "contact": complex_vector_payload(left_contact, source_order),
+            "collective_mixed": complex_vector_payload(left_collective, source_order),
+            "total": complex_vector_payload(left_total, source_order),
+            "reconstruction_error_norm": float(np.linalg.norm(left_total - np.asarray(left_em, dtype=complex))),
+            "valid_for_casimir_input": False,
+        },
+        "right": {
+            "bubble": complex_vector_payload(right_bubble, source_order),
+            "contact": complex_vector_payload(right_contact, source_order),
+            "collective_mixed": complex_vector_payload(right_collective, source_order),
+            "total": complex_vector_payload(right_total, source_order),
+            "reconstruction_error_norm": float(np.linalg.norm(right_total - np.asarray(right_em, dtype=complex))),
+            "valid_for_casimir_input": False,
+        },
+        "valid_for_casimir_input": False,
+    }
+
+
 def extended_ward_candidate_result(
     *,
     name: str,
@@ -137,6 +181,13 @@ def extended_ward_candidate_result(
         "left_collective_residual": complex_vector_payload(left_collective, collective_order),
         "right_em_residual": complex_vector_payload(right_em, source_order),
         "right_collective_residual": complex_vector_payload(right_collective, collective_order),
+        "em_source_decomposition": em_source_decomposition(
+            blocks=blocks,
+            w_eta_left=w_left,
+            w_eta_right=w_right,
+            left_em=left_em,
+            right_em=right_em,
+        ),
         "norms": {
             "left_em_norm": left_em_norm,
             "left_collective_norm": left_collective_norm,
@@ -184,6 +235,14 @@ def extended_ward_candidates(
     analytic_right = np.zeros(n_eta, dtype=complex)
     analytic_left[phase_index] = 2j * float(delta0_eV)
     analytic_right[phase_index] = -2j * float(delta0_eV)
+    analytic_same_negative_left = np.zeros(n_eta, dtype=complex)
+    analytic_same_negative_right = np.zeros(n_eta, dtype=complex)
+    analytic_same_negative_left[phase_index] = -2j * float(delta0_eV)
+    analytic_same_negative_right[phase_index] = -2j * float(delta0_eV)
+    analytic_same_positive_left = np.zeros(n_eta, dtype=complex)
+    analytic_same_positive_right = np.zeros(n_eta, dtype=complex)
+    analytic_same_positive_left[phase_index] = 2j * float(delta0_eV)
+    analytic_same_positive_right[phase_index] = 2j * float(delta0_eV)
     legacy_left = np.zeros(n_eta, dtype=complex)
     legacy_right = np.zeros(n_eta, dtype=complex)
     legacy_left[phase_index] = 2.0 * float(delta0_eV)
@@ -214,6 +273,20 @@ def extended_ward_candidates(
             description="Analytic BdG eta2 convention: W_left=[0,+2i delta0], W_right=[0,-2i delta0].",
             w_eta_left=analytic_left,
             w_eta_right=analytic_right,
+            **base_kwargs,
+        ),
+        extended_ward_candidate_result(
+            name="analytic_imaginary_same_negative",
+            description="Same-sign negative imaginary diagnostic: W_left=[0,-2i delta0], W_right=[0,-2i delta0].",
+            w_eta_left=analytic_same_negative_left,
+            w_eta_right=analytic_same_negative_right,
+            **base_kwargs,
+        ),
+        extended_ward_candidate_result(
+            name="analytic_imaginary_same_positive",
+            description="Same-sign positive imaginary diagnostic: W_left=[0,+2i delta0], W_right=[0,+2i delta0].",
+            w_eta_left=analytic_same_positive_left,
+            w_eta_right=analytic_same_positive_right,
             **base_kwargs,
         ),
         extended_ward_candidate_result(
@@ -270,6 +343,8 @@ def extended_ward_candidates(
 def interpretation_flags(candidate_results: Sequence[dict[str, Any]], *, tolerance: float = EXTENDED_WARD_TOLERANCE) -> dict[str, Any]:
     by_name = {str(item["candidate"]): item for item in candidate_results}
     analytic = by_name.get("analytic_imaginary_left_right_opposite")
+    analytic_same_negative = by_name.get("analytic_imaginary_same_negative")
+    analytic_same_positive = by_name.get("analytic_imaginary_same_positive")
     fitted_left = by_name.get("fitted_left_collective_equation")
     fitted_right = by_name.get("fitted_right_collective_equation")
 
@@ -279,6 +354,10 @@ def interpretation_flags(candidate_results: Sequence[dict[str, Any]], *, toleran
     return {
         "analytic_extended_ward_left_closed": bool(analytic is not None and norm(analytic, "left_total_extended_norm") < float(tolerance)),
         "analytic_extended_ward_right_closed": bool(analytic is not None and norm(analytic, "right_total_extended_norm") < float(tolerance)),
+        "analytic_same_negative_left_closed": bool(analytic_same_negative is not None and norm(analytic_same_negative, "left_total_extended_norm") < float(tolerance)),
+        "analytic_same_negative_right_closed": bool(analytic_same_negative is not None and norm(analytic_same_negative, "right_total_extended_norm") < float(tolerance)),
+        "analytic_same_positive_left_closed": bool(analytic_same_positive is not None and norm(analytic_same_positive, "left_total_extended_norm") < float(tolerance)),
+        "analytic_same_positive_right_closed": bool(analytic_same_positive is not None and norm(analytic_same_positive, "right_total_extended_norm") < float(tolerance)),
         "fitted_collective_left_closes_but_em_fails": bool(
             fitted_left is not None and norm(fitted_left, "left_collective_norm") < float(tolerance) and norm(fitted_left, "left_em_norm") >= float(tolerance)
         ),
