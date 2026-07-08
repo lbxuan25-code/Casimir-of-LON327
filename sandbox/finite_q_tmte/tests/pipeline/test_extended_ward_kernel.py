@@ -69,6 +69,14 @@ def _payload_vector(values: list[dict[str, object]]) -> np.ndarray:
     return np.asarray([item["value"] for item in values], dtype=complex)
 
 
+def _entry_by_source(entries: list[dict[str, object]], source_label: str) -> dict[str, object]:
+    return next(item for item in entries if item["source_label"] == source_label)
+
+
+def _dict_by_label(values: list[dict[str, object]]) -> dict[str, complex]:
+    return {str(item["label"]): complex(item["value"]) for item in values}
+
+
 def test_zero_collective_candidate_returns_raw_g_row_and_column():
     blocks = _fake_blocks()
     zero = np.zeros(2, dtype=complex)
@@ -113,6 +121,37 @@ def test_em_source_decomposition_reconstructs_total_residual():
     np.testing.assert_allclose(right_total, _payload_vector(result["right_em_residual"]))
     assert decomp["left"]["reconstruction_error_norm"] < 1e-14
     assert decomp["right"]["reconstruction_error_norm"] < 1e-14
+
+
+def test_collective_mixed_channel_decomposition_reconstructs_collective_terms():
+    blocks = _fake_blocks()
+    result = extended_ward_candidate_result(
+        name="fitted_like",
+        description="test",
+        blocks=blocks,
+        w_eta_left=np.asarray([0.1 + 0.2j, -0.3j], dtype=complex),
+        w_eta_right=np.asarray([-0.05j, 0.2 + 0.1j], dtype=complex),
+        collective_order=("amplitude_eta1", "phase_eta2"),
+        physical_matrix_norm=1.0,
+        etaeta_norm=1.0,
+    )
+    channel = result["collective_mixed_channel_decomposition"]
+    assert channel["collective_order"] == ["amplitude_eta1", "phase_eta2"]
+    assert channel["left_reconstruction_error_norm"] < 1e-14
+    assert channel["right_reconstruction_error_norm"] < 1e-14
+    left_mixed = _dict_by_label(result["em_source_decomposition"]["left"]["collective_mixed"])
+    right_mixed = _dict_by_label(result["em_source_decomposition"]["right"]["collective_mixed"])
+    for label in ("G", "TM", "TE"):
+        left_entry = _entry_by_source(channel["left"], label)
+        right_entry = _entry_by_source(channel["right"], label)
+        left_parts = _payload_vector(left_entry["contributions"])
+        right_parts = _payload_vector(right_entry["contributions"])
+        assert [item["label"] for item in left_entry["contributions"]] == ["amplitude_eta1", "phase_eta2"]
+        assert [item["label"] for item in right_entry["contributions"]] == ["amplitude_eta1", "phase_eta2"]
+        np.testing.assert_allclose(np.sum(left_parts), left_entry["total"])
+        np.testing.assert_allclose(np.sum(right_parts), right_entry["total"])
+        np.testing.assert_allclose(left_entry["total"], left_mixed[label])
+        np.testing.assert_allclose(right_entry["total"], right_mixed[label])
 
 
 def test_same_sign_analytic_candidates_are_reported():
@@ -194,6 +233,7 @@ def test_extended_ward_payload_is_debug_only():
     assert payload["valid_for_casimir_input"] is False
     assert all(row["valid_for_casimir_input"] is False for row in payload["candidate_results"])
     assert all("em_source_decomposition" in row for row in payload["candidate_results"])
+    assert all("collective_mixed_channel_decomposition" in row for row in payload["candidate_results"])
 
 
 def test_extended_ward_cli_rejects_nonpositive_nk(tmp_path):
