@@ -84,9 +84,9 @@ def test_no_schur_keff_entries_equal_scaled_kss_entries():
 
 def test_single_channel_schur_sum_reconstructs_full_schur_for_diagonal_etaeta():
     blocks = _fake_blocks(offdiagonal_etaeta=False)
-    results = eta_channel_mode_results(blocks=blocks)
-    eta0 = _mode(results, "eta0_only")
-    eta1 = _mode(results, "eta1_only")
+    results = eta_channel_mode_results(blocks=blocks, collective_order=("amplitude_eta1", "phase_eta2"))
+    eta0 = _mode(results, "amplitude_eta1_only")
+    eta1 = _mode(results, "phase_eta2_only")
     all_channels = _mode(results, "eta_all")
     names = ("GG", "GTM", "TMG", "TMTM")
     summed = _complex_entries(eta0["Schur_correction_entries"], names) + _complex_entries(eta1["Schur_correction_entries"], names)
@@ -96,12 +96,14 @@ def test_single_channel_schur_sum_reconstructs_full_schur_for_diagonal_etaeta():
 def test_sliced_schur_uses_sliced_eta_blocks_consistently():
     blocks = _fake_blocks()
     result = eta_channel_mode_result(
-        mode="eta1_only",
+        mode="phase_eta2_only",
         k_ss_scaled=blocks.k_ss,
         k_seta=blocks.k_seta,
         k_etas=blocks.k_etas,
         k_etaeta=blocks.k_etaeta,
         channel_indices=(1,),
+        collective_order=("amplitude_eta1", "phase_eta2"),
+        legacy_mode="eta1_only",
         source_order=blocks.source_order,
     )
     manual_x = np.linalg.solve(blocks.k_etaeta[np.ix_([1], [1])], blocks.k_etas[[1], :])
@@ -109,6 +111,16 @@ def test_sliced_schur_uses_sliced_eta_blocks_consistently():
     np.testing.assert_allclose(result["Schur_correction_entries"]["GG"], manual_correction[0, 0])
     np.testing.assert_allclose(result["Schur_correction_entries"]["GTM"], manual_correction[0, 1])
     assert result["diagnostics"]["etaeta_condition_number"] == pytest.approx(float(np.linalg.cond(blocks.k_etaeta[np.ix_([1], [1])])))
+    assert result["legacy_mode"] == "eta1_only"
+    assert result["included_collective_channels"] == ["phase_eta2"]
+
+
+def test_eta_channel_mode_names_use_corrected_collective_labels():
+    blocks = _fake_blocks()
+    results = eta_channel_mode_results(blocks=blocks, collective_order=("amplitude_eta1", "phase_eta2"))
+    assert [result["mode"] for result in results] == ["no_schur", "amplitude_eta1_only", "phase_eta2_only", "eta_all"]
+    assert _mode(results, "amplitude_eta1_only")["legacy_mode"] == "eta0_only"
+    assert _mode(results, "phase_eta2_only")["legacy_mode"] == "eta1_only"
 
 
 def test_eta_channel_payload_is_debug_only_and_not_casimir_ready():
@@ -123,8 +135,12 @@ def test_eta_channel_payload_is_debug_only_and_not_casimir_ready():
         frequency=frequency_payload(1, 10.0),
         debug_parameters={"q_value": 0.02, "nk": 5, "contact_scale": 1.0},
         mode_results=pieces["mode_results"],
+        collective_order=("amplitude_eta1", "phase_eta2"),
+        raw_ansatz_channel_names=("eta1", "eta2"),
     )
     assert payload["schema_version"] == "finite_q_tmte_eta_channel_ablation_v1"
+    assert payload["collective_order"] == ["amplitude_eta1", "phase_eta2"]
+    assert payload["raw_ansatz_channel_names"] == ["eta1", "eta2"]
     assert payload["debug_parameters"]["debug_only_eta_channel_ablation"] is True
     assert payload["valid_for_casimir_input"] is False
     assert payload["status"]["valid_for_casimir_input"] is False

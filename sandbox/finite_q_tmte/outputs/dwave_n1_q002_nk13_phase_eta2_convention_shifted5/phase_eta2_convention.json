@@ -1,0 +1,1204 @@
+{
+  "schema_version": "finite_q_tmte_phase_eta2_convention_v1",
+  "status": {
+    "diagnostic_run_completed": true,
+    "valid_for_casimir_input": false,
+    "reason": "phase_eta2_convention_debug_not_casimir_input"
+  },
+  "model": {
+    "name": "symmetry_bdg_2band",
+    "pairing": "dwave",
+    "valid_for_casimir_input": false
+  },
+  "frequency": {
+    "source": "matsubara_index",
+    "matsubara_index": 1,
+    "temperature_K": 10.0,
+    "xi_eV": 0.00541443017397794,
+    "zero_matsubara_mode": false,
+    "valid_for_casimir_input": false
+  },
+  "debug_parameters": {
+    "debug_only_phase_eta2_convention": true,
+    "q_model_convention": "q_along_x_only",
+    "q_value": 0.02,
+    "nk": 13,
+    "shift_fractions": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "num_shifted_meshes": 25,
+    "contact_scale": 1.0,
+    "transforms": [
+      "identity",
+      "phase_eta2_seta_sign_flip",
+      "phase_eta2_etas_sign_flip",
+      "phase_eta2_both_sign_flip",
+      "phase_eta2_seta_times_i",
+      "phase_eta2_seta_times_minus_i",
+      "phase_eta2_etas_times_i",
+      "phase_eta2_etas_times_minus_i",
+      "phase_eta2_seta_conjugate",
+      "phase_eta2_etas_conjugate",
+      "phase_eta2_both_conjugate",
+      "phase_eta2_kernel_sign_flip"
+    ],
+    "ratio_eps": 1e-30,
+    "average_order": "average_blocks_then_schur",
+    "shifted_mesh_average": {
+      "enabled": true,
+      "average_order": "average_blocks_then_schur",
+      "shift_fractions": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8
+      ],
+      "shift_pairs": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.2
+        ],
+        [
+          0.0,
+          0.4
+        ],
+        [
+          0.0,
+          0.6
+        ],
+        [
+          0.0,
+          0.8
+        ],
+        [
+          0.2,
+          0.0
+        ],
+        [
+          0.2,
+          0.2
+        ],
+        [
+          0.2,
+          0.4
+        ],
+        [
+          0.2,
+          0.6
+        ],
+        [
+          0.2,
+          0.8
+        ],
+        [
+          0.4,
+          0.0
+        ],
+        [
+          0.4,
+          0.2
+        ],
+        [
+          0.4,
+          0.4
+        ],
+        [
+          0.4,
+          0.6
+        ],
+        [
+          0.4,
+          0.8
+        ],
+        [
+          0.6,
+          0.0
+        ],
+        [
+          0.6,
+          0.2
+        ],
+        [
+          0.6,
+          0.4
+        ],
+        [
+          0.6,
+          0.6
+        ],
+        [
+          0.6,
+          0.8
+        ],
+        [
+          0.8,
+          0.0
+        ],
+        [
+          0.8,
+          0.2
+        ],
+        [
+          0.8,
+          0.4
+        ],
+        [
+          0.8,
+          0.6
+        ],
+        [
+          0.8,
+          0.8
+        ]
+      ],
+      "num_shifted_meshes": 25,
+      "valid_for_casimir_input": false
+    },
+    "valid_for_casimir_input": false
+  },
+  "source_order_diagnostic": [
+    "G",
+    "TM",
+    "TE"
+  ],
+  "collective_order": [
+    "amplitude_eta1",
+    "phase_eta2"
+  ],
+  "raw_ansatz_channel_names": [
+    "eta1",
+    "eta2"
+  ],
+  "transform_results": [
+    {
+      "transform": "identity",
+      "description": "No debug convention transform.",
+      "changed_blocks": [],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": -0.000196519589231735,
+          "imag": -2.693300074472658e-21
+        },
+        "GTM": {
+          "real": -5.08182807186023e-05,
+          "imag": 4.3992453780913346e-05
+        },
+        "TMG": {
+          "real": -5.081828071860236e-05,
+          "imag": -4.3992453780913366e-05
+        },
+        "TMTM": {
+          "real": -2.2562956540189835e-05,
+          "imag": 7.927698990708217e-21
+        },
+        "GTE": {
+          "real": -5.501331621801369e-19,
+          "imag": 2.710243858856367e-20
+        },
+        "TEG": {
+          "real": -6.549900232204552e-19,
+          "imag": -4.5131630266365134e-20
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -7.060841325584686e-05,
+          "imag": 2.57902244018405e-21
+        },
+        "GTM": {
+          "real": 2.6875833262865957e-05,
+          "imag": -4.587809434490059e-05
+        },
+        "TMG": {
+          "real": 2.6875833262866028e-05,
+          "imag": 4.5878094344900616e-05
+        },
+        "TMTM": {
+          "real": -0.000162607382703001,
+          "imag": -8.509007201889567e-21
+        },
+        "GTE": {
+          "real": 3.33292727683036e-19,
+          "imag": -2.0597225553650644e-20
+        },
+        "TEG": {
+          "real": 4.338127800334123e-19,
+          "imag": 3.4289608541510086e-20
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 8.83892412955413e-05,
+        "gauge_col_norm": 8.838924129554132e-05,
+        "gauge_gg_norm": 7.060841325584686e-05,
+        "physical_matrix_norm": 0.643159445684571,
+        "gauge_over_physical": 0.00013742974916812562,
+        "gauge_over_tm_abs": 0.5435745894574936,
+        "gauge_gg_over_tm_abs": 0.4342263683366189,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": 0.0,
+        "delta_gauge_gg_over_tm_abs_vs_identity": 0.0,
+        "delta_gauge_row_norm_vs_identity": 0.0,
+        "delta_gauge_gg_norm_vs_identity": 0.0
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_seta_sign_flip",
+      "description": "Multiply K_Seta[:, phase_eta2] by -1.",
+      "changed_blocks": [
+        "K_Seta"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": 0.00019657379453299632,
+          "imag": 4.833436637476488e-08
+        },
+        "GTM": {
+          "real": 5.062943420862743e-05,
+          "imag": -4.396796232487665e-05
+        },
+        "TMG": {
+          "real": 5.062943420862749e-05,
+          "imag": 4.380250840752768e-05
+        },
+        "TMTM": {
+          "real": 2.3263604470092738e-05,
+          "imag": -4.833436637476981e-08
+        },
+        "GTE": {
+          "real": 5.511431728791967e-19,
+          "imag": -2.730046666286312e-20
+        },
+        "TEG": {
+          "real": 6.543946733108574e-19,
+          "imag": 4.3749348871781234e-20
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -0.0004637017970205782,
+          "imag": -4.8334366374764995e-08
+        },
+        "GTM": {
+          "real": -7.457188166436378e-05,
+          "imag": 4.2082321760889404e-05
+        },
+        "TMG": {
+          "real": -7.457188166436382e-05,
+          "imag": -4.191686784354043e-05
+        },
+        "TMTM": {
+          "real": -0.00020843394371328357,
+          "imag": 4.833436637476923e-08
+        },
+        "GTE": {
+          "real": -7.679836073762976e-19,
+          "imag": 3.3805679697776147e-20
+        },
+        "TEG": {
+          "real": -8.755719164979003e-19,
+          "imag": -5.459137059663628e-20
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 0.00047154135156534825,
+        "gauge_col_norm": 0.00047152661456284863,
+        "gauge_gg_norm": 0.0004637017995396659,
+        "physical_matrix_norm": 0.6431594589033383,
+        "gauge_over_physical": 0.0007331639845107481,
+        "gauge_over_tm_abs": 2.262305891671724,
+        "gauge_gg_over_tm_abs": 2.2246942067645725,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": 1.7187313022142305,
+        "delta_gauge_gg_over_tm_abs_vs_identity": 1.7904678384279538,
+        "delta_gauge_row_norm_vs_identity": 0.00038315211026980695,
+        "delta_gauge_gg_norm_vs_identity": 0.000393093386283819
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_etas_sign_flip",
+      "description": "Multiply K_etaS[phase_eta2, :] by -1.",
+      "changed_blocks": [
+        "K_etaS"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": 0.00019657379453299624,
+          "imag": -4.833436637475641e-08
+        },
+        "GTM": {
+          "real": 5.062943420862743e-05,
+          "imag": -4.3802508407527664e-05
+        },
+        "TMG": {
+          "real": 5.0629434208627474e-05,
+          "imag": 4.3967962324876654e-05
+        },
+        "TMTM": {
+          "real": 2.3263604470092738e-05,
+          "imag": 4.8334366374752944e-08
+        },
+        "GTE": {
+          "real": 5.5083885062440235e-19,
+          "imag": -2.832995074555689e-20
+        },
+        "TEG": {
+          "real": 6.539821649981963e-19,
+          "imag": 4.4496133130663826e-20
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -0.0004637017970205781,
+          "imag": 4.83343663747563e-08
+        },
+        "GTM": {
+          "real": -7.457188166436378e-05,
+          "imag": 4.191686784354042e-05
+        },
+        "TMG": {
+          "real": -7.45718816643638e-05,
+          "imag": -4.2082321760889404e-05
+        },
+        "TMTM": {
+          "real": -0.00020843394371328357,
+          "imag": -4.833436637475353e-08
+        },
+        "GTE": {
+          "real": -7.676792851215032e-19,
+          "imag": 3.4835163780469916e-20
+        },
+        "TEG": {
+          "real": -8.751594081852391e-19,
+          "imag": -5.533815485551887e-20
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 0.00047152661456284847,
+        "gauge_col_norm": 0.00047154135156534814,
+        "gauge_gg_norm": 0.00046370179953966577,
+        "physical_matrix_norm": 0.6431594589033383,
+        "gauge_over_physical": 0.0007331410710601322,
+        "gauge_over_tm_abs": 2.2622351882064393,
+        "gauge_gg_over_tm_abs": 2.224694206764572,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": 1.7186605987489458,
+        "delta_gauge_gg_over_tm_abs_vs_identity": 1.7904678384279533,
+        "delta_gauge_row_norm_vs_identity": 0.0003831373732673072,
+        "delta_gauge_gg_norm_vs_identity": 0.0003930933862838189
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_both_sign_flip",
+      "description": "Multiply K_Seta[:, phase_eta2] and K_etaS[phase_eta2, :] by -1.",
+      "changed_blocks": [
+        "K_Seta",
+        "K_etaS"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": -0.00019651954469536228,
+          "imag": -5.777029398070345e-21
+        },
+        "GTM": {
+          "real": -5.083985651592588e-05,
+          "imag": 4.3802039446093e-05
+        },
+        "TMG": {
+          "real": -5.0839856515925926e-05,
+          "imag": -4.380203944609301e-05
+        },
+        "TMTM": {
+          "real": -2.2489055647463275e-05,
+          "imag": 9.085751848282456e-21
+        },
+        "GTE": {
+          "real": -5.498423137178122e-19,
+          "imag": 2.7861165915557426e-20
+        },
+        "TEG": {
+          "real": -6.554242010202765e-19,
+          "imag": -4.4062832027241135e-20
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -7.060845779221958e-05,
+          "imag": 5.662751763781737e-21
+        },
+        "GTM": {
+          "real": 2.6897409060189533e-05,
+          "imag": -4.568768001008024e-05
+        },
+        "TMG": {
+          "real": 2.689740906018959e-05,
+          "imag": 4.568768001008026e-05
+        },
+        "TMTM": {
+          "real": -0.00016268128359572755,
+          "imag": -9.667060059463806e-21
+        },
+        "GTE": {
+          "real": 3.330018792207113e-19,
+          "imag": -2.13559528806444e-20
+        },
+        "TEG": {
+          "real": 4.342469578332336e-19,
+          "imag": 3.3220810302386093e-20
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 8.829716320839705e-05,
+        "gauge_col_norm": 8.829716320839707e-05,
+        "gauge_gg_norm": 7.060845779221958e-05,
+        "physical_matrix_norm": 0.6431594457032593,
+        "gauge_over_physical": 0.00013728658390743057,
+        "gauge_over_tm_abs": 0.5427616579902371,
+        "gauge_gg_over_tm_abs": 0.43402938698028537,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": -0.0008129314672564725,
+        "delta_gauge_gg_over_tm_abs_vs_identity": -0.00019698135633350322,
+        "delta_gauge_row_norm_vs_identity": -9.207808714425242e-08,
+        "delta_gauge_gg_norm_vs_identity": 4.453637271798448e-11
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_seta_times_i",
+      "description": "Multiply K_Seta[:, phase_eta2] by 1j.",
+      "changed_blocks": [
+        "K_Seta"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": 5.1269833818033303e-08,
+          "imag": -0.00019652252469917828
+        },
+        "GTM": {
+          "real": -4.4074631307882434e-05,
+          "imag": -5.0711611735596514e-05
+        },
+        "TMG": {
+          "real": 4.3803057839233085e-05,
+          "imag": -5.081883015030777e-05
+        },
+        "TMTM": {
+          "real": 3.261567817640612e-07,
+          "imag": -2.2937447688328667e-05
+        },
+        "GTE": {
+          "real": -2.669644727618343e-20,
+          "imag": -5.507371815668165e-19
+        },
+        "TEG": {
+          "real": 4.414281461427421e-20,
+          "imag": -6.553834889629482e-19
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -0.0002671792723213999,
+          "imag": 0.00019652252469917828
+        },
+        "GTM": {
+          "real": 2.013218385214609e-05,
+          "imag": 4.882597117160927e-05
+        },
+        "TMG": {
+          "real": -6.774550529496942e-05,
+          "imag": 5.270447071429502e-05
+        },
+        "TMTM": {
+          "real": -0.0001854964960249549,
+          "imag": 2.2937447688328667e-05
+        },
+        "GTE": {
+          "real": -1.9014398722091746e-19,
+          "imag": 5.572423946017295e-19
+        },
+        "TEG": {
+          "real": -2.653200578013171e-19,
+          "imag": 6.445414672380932e-19
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 0.00033584988694331777,
+        "gauge_col_norm": 0.0003425975496019734,
+        "gauge_gg_norm": 0.0003316713226559268,
+        "physical_matrix_norm": 0.6431594522878445,
+        "gauge_over_physical": 0.000522187593991869,
+        "gauge_over_tm_abs": 1.7968604796349517,
+        "gauge_gg_over_tm_abs": 1.7745043695943548,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": 1.253285890177458,
+        "delta_gauge_gg_over_tm_abs_vs_identity": 1.3402780012577358,
+        "delta_gauge_row_norm_vs_identity": 0.0002474606456477765,
+        "delta_gauge_gg_norm_vs_identity": 0.00026106290940007993
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_seta_times_minus_i",
+      "description": "Multiply K_Seta[:, phase_eta2] by -1j.",
+      "changed_blocks": [
+        "K_Seta"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": 2.935467443265728e-09,
+          "imag": 0.00019657085906555304
+        },
+        "GTM": {
+          "real": 4.388578479790756e-05,
+          "imag": 5.0736103191633214e-05
+        },
+        "TMG": {
+          "real": -4.399190434920796e-05,
+          "imag": 5.062888477692208e-05
+        },
+        "TMTM": {
+          "real": 3.7449114813883897e-07,
+          "imag": 2.2889113321953906e-05
+        },
+        "GTE": {
+          "real": 2.770645797524336e-20,
+          "imag": 5.50539153492517e-19
+        },
+        "TEG": {
+          "real": -4.473816452387216e-20,
+          "imag": 6.540012075683644e-19
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -0.00026713093795502514,
+          "imag": -0.00019657085906555304
+        },
+        "GTM": {
+          "real": -6.78282322536439e-05,
+          "imag": -5.2621743755620456e-05
+        },
+        "TMG": {
+          "real": 2.0049456893471625e-05,
+          "imag": -4.874324421293483e-05
+        },
+        "TMTM": {
+          "real": -0.00018554483039132967,
+          "imag": -2.2889113321953906e-05
+        },
+        "GTE": {
+          "real": -2.4454689247234423e-19,
+          "imag": -5.440339404576041e-19
+        },
+        "TEG": {
+          "real": -1.7643907866317074e-19,
+          "imag": -6.648432292932194e-19
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 0.00034259123989535613,
+        "gauge_col_norm": 0.00033582275864602447,
+        "gauge_gg_norm": 0.00033166103275256956,
+        "physical_matrix_norm": 0.6431594523000648,
+        "gauge_over_physical": 0.0005326692139409324,
+        "gauge_over_tm_abs": 1.832515770045762,
+        "gauge_gg_over_tm_abs": 1.7740502442922685,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": 1.2889411805882682,
+        "delta_gauge_gg_over_tm_abs_vs_identity": 1.3398238759556498,
+        "delta_gauge_row_norm_vs_identity": 0.00025420199859981483,
+        "delta_gauge_gg_norm_vs_identity": 0.0002610526194967227
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_etas_times_i",
+      "description": "Multiply K_etaS[phase_eta2, :] by 1j.",
+      "changed_blocks": [
+        "K_etaS"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": 2.935467443270961e-09,
+          "imag": -0.00019657085906555304
+        },
+        "GTM": {
+          "real": -4.399190434920793e-05,
+          "imag": -5.062888477692202e-05
+        },
+        "TMG": {
+          "real": 4.388578479790758e-05,
+          "imag": -5.0736103191633275e-05
+        },
+        "TMTM": {
+          "real": 3.7449114813882435e-07,
+          "imag": -2.2889113321953906e-05
+        },
+        "GTE": {
+          "real": -2.736335044492758e-20,
+          "imag": -5.510997624807662e-19
+        },
+        "TEG": {
+          "real": 4.430995258738503e-20,
+          "imag": -6.548038426771766e-19
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -0.00026713093795502514,
+          "imag": 0.00019657085906555304
+        },
+        "GTM": {
+          "real": 2.0049456893471588e-05,
+          "imag": 4.874324421293478e-05
+        },
+        "TMG": {
+          "real": -6.782823225364392e-05,
+          "imag": 5.2621743755620524e-05
+        },
+        "TMTM": {
+          "real": -0.00018554483039132964,
+          "imag": 2.2889113321953906e-05
+        },
+        "GTE": {
+          "real": -1.8947708405217332e-19,
+          "imag": 5.576049755156792e-19
+        },
+        "TEG": {
+          "real": -2.6548719577442795e-19,
+          "imag": 6.439618209523216e-19
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 0.00033582275864602447,
+        "gauge_col_norm": 0.00034259123989535613,
+        "gauge_gg_norm": 0.00033166103275256956,
+        "physical_matrix_norm": 0.6431594523000648,
+        "gauge_over_physical": 0.000522145414243787,
+        "gauge_over_tm_abs": 1.7963112581252358,
+        "gauge_gg_over_tm_abs": 1.7740502442922688,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": 1.2527366686677421,
+        "delta_gauge_gg_over_tm_abs_vs_identity": 1.3398238759556498,
+        "delta_gauge_row_norm_vs_identity": 0.0002474335173504832,
+        "delta_gauge_gg_norm_vs_identity": 0.0002610526194967227
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_etas_times_minus_i",
+      "description": "Multiply K_etaS[phase_eta2, :] by -1j.",
+      "changed_blocks": [
+        "K_etaS"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": 5.126983381802639e-08,
+          "imag": 0.00019652252469917823
+        },
+        "GTM": {
+          "real": 4.3803057839233065e-05,
+          "imag": 5.08188301503077e-05
+        },
+        "TMG": {
+          "real": -4.407463130788245e-05,
+          "imag": 5.071161173559657e-05
+        },
+        "TMTM": {
+          "real": 3.261567817640776e-07,
+          "imag": 2.293744768832867e-05
+        },
+        "GTE": {
+          "real": 2.8069038889192975e-20,
+          "imag": 5.498722503237729e-19
+        },
+        "TEG": {
+          "real": -4.5317810809643944e-20,
+          "imag": 6.541683455414751e-19
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -0.0002671792723213999,
+          "imag": -0.00019652252469917823
+        },
+        "GTM": {
+          "real": -6.774550529496941e-05,
+          "imag": -5.2704470714294944e-05
+        },
+        "TMG": {
+          "real": 2.0132183852146113e-05,
+          "imag": -4.882597117160932e-05
+        },
+        "TMTM": {
+          "real": -0.0001854964960249549,
+          "imag": -2.293744768832867e-05
+        },
+        "GTE": {
+          "real": -2.4490947338629384e-19,
+          "imag": -5.433670372888599e-19
+        },
+        "TEG": {
+          "real": -1.7585943237739897e-19,
+          "imag": -6.6501036726633015e-19
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 0.00034259754960197335,
+        "gauge_col_norm": 0.00033584988694331777,
+        "gauge_gg_norm": 0.0003316713226559268,
+        "physical_matrix_norm": 0.6431594522878445,
+        "gauge_over_physical": 0.0005326790244367653,
+        "gauge_over_tm_abs": 1.8329617523541324,
+        "gauge_gg_over_tm_abs": 1.7745043695943548,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": 1.289387162896639,
+        "delta_gauge_gg_over_tm_abs_vs_identity": 1.3402780012577358,
+        "delta_gauge_row_norm_vs_identity": 0.00025420830830643205,
+        "delta_gauge_gg_norm_vs_identity": 0.00026106290940007993
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_seta_conjugate",
+      "description": "Conjugate K_Seta[:, phase_eta2].",
+      "changed_blocks": [
+        "K_Seta"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": 0.00019531990354178718,
+          "imag": 2.21900101412484e-05
+        },
+        "GTM": {
+          "real": 5.526109793285611e-05,
+          "imag": -3.7973734453981035e-05
+        },
+        "TMG": {
+          "real": 5.5261097932856186e-05,
+          "imag": -3.798514075743077e-05
+        },
+        "TMTM": {
+          "real": 6.1550128901745704e-06,
+          "imag": -2.2190010141248395e-05
+        },
+        "GTE": {
+          "real": 5.507023047340599e-19,
+          "imag": 3.4904447439513515e-20
+        },
+        "TEG": {
+          "real": 6.552261750687515e-19,
+          "imag": 2.906638005024587e-20
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -0.00046244790602936904,
+          "imag": -2.21900101412484e-05
+        },
+        "GTM": {
+          "real": -7.920354538859246e-05,
+          "imag": 3.608809388999379e-05
+        },
+        "TMG": {
+          "real": -7.920354538859252e-05,
+          "imag": 3.987078132141802e-05
+        },
+        "TMTM": {
+          "real": -0.00019132535213336538,
+          "imag": 2.2190010141248395e-05
+        },
+        "GTE": {
+          "real": -7.675427392311608e-19,
+          "imag": -2.839923440460049e-20
+        },
+        "TEG": {
+          "real": -8.764034182557944e-19,
+          "imag": -3.990840177510092e-20
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 0.00047109024025525375,
+        "gauge_col_norm": 0.0004713951030147853,
+        "gauge_gg_norm": 0.0004629799804970155,
+        "physical_matrix_norm": 0.6431594539691621,
+        "gauge_over_physical": 0.0007324625912718705,
+        "gauge_over_tm_abs": 2.4458516149256755,
+        "gauge_gg_over_tm_abs": 2.403743988335055,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": 1.902277025468182,
+        "delta_gauge_gg_over_tm_abs_vs_identity": 1.9695176199984363,
+        "delta_gauge_row_norm_vs_identity": 0.00038270099895971245,
+        "delta_gauge_gg_norm_vs_identity": 0.0003923715672411686
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_etas_conjugate",
+      "description": "Conjugate K_etaS[phase_eta2, :].",
+      "changed_blocks": [
+        "K_etaS"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": 0.00019531990354178713,
+          "imag": -2.2190010141248385e-05
+        },
+        "GTM": {
+          "real": 5.526109793285612e-05,
+          "imag": 3.798514075743075e-05
+        },
+        "TMG": {
+          "real": 5.5261097932856166e-05,
+          "imag": 3.797373445398104e-05
+        },
+        "TMTM": {
+          "real": 6.155012890174571e-06,
+          "imag": 2.2190010141248392e-05
+        },
+        "GTE": {
+          "real": 5.504484443827964e-19,
+          "imag": -3.5223890077389495e-20
+        },
+        "TEG": {
+          "real": 6.548643420359657e-19,
+          "imag": -2.951981269073795e-20
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -0.000462447906029369,
+          "imag": 2.2190010141248385e-05
+        },
+        "GTM": {
+          "real": -7.920354538859246e-05,
+          "imag": -3.9870781321417994e-05
+        },
+        "TMG": {
+          "real": -7.92035453885925e-05,
+          "imag": -3.608809388999379e-05
+        },
+        "TMTM": {
+          "real": -0.00019132535213336538,
+          "imag": -2.2190010141248392e-05
+        },
+        "GTE": {
+          "real": -7.672888788798973e-19,
+          "imag": 4.172910311230252e-20
+        },
+        "TEG": {
+          "real": -8.760415852230086e-19,
+          "imag": 1.8677790965882904e-20
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 0.00047139510301478523,
+        "gauge_col_norm": 0.00047109024025525364,
+        "gauge_gg_norm": 0.0004629799804970154,
+        "physical_matrix_norm": 0.6431594539691621,
+        "gauge_over_physical": 0.0007329365993232954,
+        "gauge_over_tm_abs": 2.447434430719793,
+        "gauge_gg_over_tm_abs": 2.4037439883350546,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": 1.9038598412622996,
+        "delta_gauge_gg_over_tm_abs_vs_identity": 1.9695176199984359,
+        "delta_gauge_row_norm_vs_identity": 0.00038300586171924393,
+        "delta_gauge_gg_norm_vs_identity": 0.00039237156724116856
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_both_conjugate",
+      "description": "Conjugate K_Seta[:, phase_eta2] and K_etaS[phase_eta2, :].",
+      "changed_blocks": [
+        "K_Seta",
+        "K_etaS"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": -0.00019652498991123404,
+          "imag": -8.92031572577185e-21
+        },
+        "GTM": {
+          "real": -5.081974279870429e-05,
+          "imag": -4.398104747746363e-05
+        },
+        "TMG": {
+          "real": -5.081974279870435e-05,
+          "imag": 4.3981047477463636e-05
+        },
+        "TMTM": {
+          "real": -2.256335235672089e-05,
+          "imag": -9.403389203502819e-21
+        },
+        "GTE": {
+          "real": -5.498944710209257e-19,
+          "imag": -2.742188122643973e-20
+        },
+        "TEG": {
+          "real": -6.553699148152081e-19,
+          "imag": 4.4678197625872974e-20
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -7.060301257634782e-05,
+          "imag": 8.806038091483242e-21
+        },
+        "GTM": {
+          "real": 2.6877295342967944e-05,
+          "imag": 4.209540691347639e-05
+        },
+        "TMG": {
+          "real": 2.6877295342968015e-05,
+          "imag": -4.209540691347639e-05
+        },
+        "TMTM": {
+          "real": -0.00016260698688646993,
+          "imag": 8.822080992321469e-21
+        },
+        "GTE": {
+          "real": 3.3305403652382485e-19,
+          "imag": 3.392709426135276e-20
+        },
+        "TEG": {
+          "real": 4.341926716281652e-19,
+          "imag": -5.552021935072802e-20
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 8.64823546916954e-05,
+        "gauge_col_norm": 8.648235469169542e-05,
+        "gauge_gg_norm": 7.060301257634782e-05,
+        "physical_matrix_norm": 0.6431594456844709,
+        "gauge_over_physical": 0.00013446487534620298,
+        "gauge_over_tm_abs": 0.5318489466389058,
+        "gauge_gg_over_tm_abs": 0.4341942122428104,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": -0.01172564281858779,
+        "delta_gauge_gg_over_tm_abs_vs_identity": -3.21560938084664e-05,
+        "delta_gauge_row_norm_vs_identity": -1.9068866038459006e-06,
+        "delta_gauge_gg_norm_vs_identity": -5.400679499044294e-09
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "transform": "phase_eta2_kernel_sign_flip",
+      "description": "Multiply the phase_eta2 row and column of K_etaeta by -1.",
+      "changed_blocks": [
+        "K_etaeta"
+      ],
+      "Schur_correction_entries": {
+        "GG": {
+          "real": -0.00019651954469536228,
+          "imag": -5.777029398070345e-21
+        },
+        "GTM": {
+          "real": -5.083985651592588e-05,
+          "imag": 4.3802039446093e-05
+        },
+        "TMG": {
+          "real": -5.0839856515925926e-05,
+          "imag": -4.380203944609301e-05
+        },
+        "TMTM": {
+          "real": -2.2489055647463275e-05,
+          "imag": 9.085751848282456e-21
+        },
+        "GTE": {
+          "real": -5.498423137178122e-19,
+          "imag": 2.7861165915557426e-20
+        },
+        "TEG": {
+          "real": -6.554242010202765e-19,
+          "imag": -4.4062832027241135e-20
+        }
+      },
+      "K_eff_entries": {
+        "GG": {
+          "real": -7.060845779221958e-05,
+          "imag": 5.662751763781737e-21
+        },
+        "GTM": {
+          "real": 2.6897409060189533e-05,
+          "imag": -4.568768001008024e-05
+        },
+        "TMG": {
+          "real": 2.689740906018959e-05,
+          "imag": 4.568768001008026e-05
+        },
+        "TMTM": {
+          "real": -0.00016268128359572755,
+          "imag": -9.667060059463806e-21
+        },
+        "GTE": {
+          "real": 3.330018792207113e-19,
+          "imag": -2.13559528806444e-20
+        },
+        "TEG": {
+          "real": 4.342469578332336e-19,
+          "imag": 3.3220810302386093e-20
+        }
+      },
+      "diagnostics": {
+        "gauge_row_norm": 8.829716320839705e-05,
+        "gauge_col_norm": 8.829716320839707e-05,
+        "gauge_gg_norm": 7.060845779221958e-05,
+        "physical_matrix_norm": 0.6431594457032593,
+        "gauge_over_physical": 0.00013728658390743057,
+        "gauge_over_tm_abs": 0.5427616579902371,
+        "gauge_gg_over_tm_abs": 0.43402938698028537,
+        "ratio_eps": 1e-30,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false,
+        "valid_for_casimir_input": false,
+        "delta_gauge_over_tm_abs_vs_identity": -0.0008129314672564725,
+        "delta_gauge_gg_over_tm_abs_vs_identity": -0.00019698135633350322,
+        "delta_gauge_row_norm_vs_identity": -9.207808714425242e-08,
+        "delta_gauge_gg_norm_vs_identity": 4.453637271798448e-11
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    }
+  ],
+  "valid_for_casimir_input": false
+}

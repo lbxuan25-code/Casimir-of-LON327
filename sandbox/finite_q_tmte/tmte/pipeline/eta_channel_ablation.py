@@ -12,7 +12,7 @@ from ..adapters.model_adapter import build_model_scan_inputs, shifted_uniform_bz
 from ..io.writers import write_json
 from ..theory.conventions import SOURCE_ORDER_DIAGNOSTIC, require_diagnostic_source_order
 from ..theory.frequency import frequency_payload, matsubara_xi_eV
-from .collective_schur_factors import COLLECTIVE_ORDER, solve_collective_action
+from .collective_schur_factors import FALLBACK_COLLECTIVE_ORDER, collective_order_from_ansatz, solve_collective_action
 from .contact_ablation import _shifted_payload, scaled_contact_blocks
 from .nk_sweep import RATIO_EPS
 from .shifted_average import average_bare_blocks_then_schur, shift_pairs_from_fractions
@@ -40,6 +40,8 @@ def eta_channel_mode_result(
     k_etas: np.ndarray,
     k_etaeta: np.ndarray,
     channel_indices: tuple[int, ...],
+    collective_order: tuple[str, ...] = FALLBACK_COLLECTIVE_ORDER,
+    legacy_mode: str | None = None,
     source_order: tuple[str, ...] = SOURCE_ORDER_DIAGNOSTIC,
     ratio_eps: float = RATIO_EPS,
 ) -> dict[str, Any]:
@@ -84,7 +86,8 @@ def eta_channel_mode_result(
     }
     return {
         "mode": mode,
-        "included_collective_channels": [COLLECTIVE_ORDER[index] for index in channel_indices],
+        "legacy_mode": legacy_mode,
+        "included_collective_channels": [collective_order[index] for index in channel_indices],
         "Schur_correction_entries": _entries(schur_correction, SCHUR_ENTRY_NAMES, source_order=source_order),
         "K_eff_entries": _entries(k_eff, tuple(name for name, _, _ in ENTRY_SPECS), source_order=source_order),
         "diagnostics": diagnostics,
@@ -96,6 +99,7 @@ def eta_channel_mode_result(
 def eta_channel_mode_results(
     *,
     blocks: TargetBareBlocks,
+    collective_order: tuple[str, ...] = FALLBACK_COLLECTIVE_ORDER,
     ratio_eps: float = RATIO_EPS,
 ) -> list[dict[str, Any]]:
     """Return no/one-channel/full Schur mode results from averaged scaled blocks."""
@@ -108,26 +112,31 @@ def eta_channel_mode_results(
             k_etas=blocks.k_etas,
             k_etaeta=blocks.k_etaeta,
             channel_indices=(),
+            collective_order=collective_order,
             source_order=blocks.source_order,
             ratio_eps=ratio_eps,
         ),
         eta_channel_mode_result(
-            mode="eta0_only",
+            mode=f"{collective_order[0]}_only",
             k_ss_scaled=blocks.k_ss,
             k_seta=blocks.k_seta,
             k_etas=blocks.k_etas,
             k_etaeta=blocks.k_etaeta,
             channel_indices=(0,),
+            collective_order=collective_order,
+            legacy_mode="eta0_only",
             source_order=blocks.source_order,
             ratio_eps=ratio_eps,
         ),
         eta_channel_mode_result(
-            mode="eta1_only",
+            mode=f"{collective_order[1]}_only",
             k_ss_scaled=blocks.k_ss,
             k_seta=blocks.k_seta,
             k_etas=blocks.k_etas,
             k_etaeta=blocks.k_etaeta,
             channel_indices=(1,),
+            collective_order=collective_order,
+            legacy_mode="eta1_only",
             source_order=blocks.source_order,
             ratio_eps=ratio_eps,
         ),
@@ -138,6 +147,7 @@ def eta_channel_mode_results(
             k_etas=blocks.k_etas,
             k_etaeta=blocks.k_etaeta,
             channel_indices=tuple(range(blocks.k_etaeta.shape[0])),
+            collective_order=collective_order,
             source_order=blocks.source_order,
             ratio_eps=ratio_eps,
         ),
@@ -151,6 +161,8 @@ def eta_channel_ablation_payload(
     frequency: dict[str, Any],
     debug_parameters: dict[str, Any],
     mode_results: Sequence[dict[str, Any]],
+    collective_order: tuple[str, ...] = FALLBACK_COLLECTIVE_ORDER,
+    raw_ansatz_channel_names: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     """Build the top-level eta-channel ablation payload."""
 
@@ -170,7 +182,8 @@ def eta_channel_ablation_payload(
             "valid_for_casimir_input": False,
         },
         "source_order_diagnostic": list(SOURCE_ORDER_DIAGNOSTIC),
-        "collective_order": list(COLLECTIVE_ORDER),
+        "collective_order": list(collective_order),
+        "raw_ansatz_channel_names": list(raw_ansatz_channel_names) if raw_ansatz_channel_names is not None else None,
         "mode_results": list(mode_results),
         "valid_for_casimir_input": False,
     }
@@ -241,6 +254,7 @@ def run_eta_channel_ablation(
 
     shifted = _shifted_payload(shift_fractions, shifts)
     response = average_bare_blocks_then_schur(scaled_blocks)
+    collective_order, raw_names = collective_order_from_ansatz(inputs.ansatz, response.bare_blocks.k_etaeta.shape[0])
     return eta_channel_ablation_payload(
         model_name=model_name,
         pairing_name=pairing_name,
@@ -257,7 +271,9 @@ def run_eta_channel_ablation(
             "average_order": "average_blocks_then_schur",
             "valid_for_casimir_input": False,
         },
-        mode_results=eta_channel_mode_results(blocks=response.bare_blocks, ratio_eps=ratio_eps),
+        mode_results=eta_channel_mode_results(blocks=response.bare_blocks, collective_order=collective_order, ratio_eps=ratio_eps),
+        collective_order=collective_order,
+        raw_ansatz_channel_names=raw_names,
     )
 
 

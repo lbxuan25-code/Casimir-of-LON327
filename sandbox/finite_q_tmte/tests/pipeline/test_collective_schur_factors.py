@@ -10,6 +10,8 @@ from sandbox.finite_q_tmte.tmte.adapters.bubble_adapter import TargetBareBlocks
 from sandbox.finite_q_tmte.tmte.pipeline.collective_schur_factors import (
     collective_schur_factors_from_blocks,
     collective_schur_factors_payload,
+    collective_order_from_ansatz,
+    friendly_collective_order,
     schur_factor_decomposition,
     solve_collective_action,
 )
@@ -54,6 +56,27 @@ def _load_debug_script():
     assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
+
+
+class _NamedAnsatz:
+    channel_names = ("eta1", "eta2")
+
+
+class _CustomNamedAnsatz:
+    channel_names = ("density", "phase")
+
+
+def test_collective_labels_prefer_ansatz_channel_names():
+    labels, raw = collective_order_from_ansatz(_CustomNamedAnsatz(), 2)
+    assert labels == ("density", "phase")
+    assert raw == ("density", "phase")
+
+
+def test_known_eta1_eta2_labels_map_to_friendly_amplitude_phase_names():
+    labels, raw = collective_order_from_ansatz(_NamedAnsatz(), 2)
+    assert labels == ("amplitude_eta1", "phase_eta2")
+    assert raw == ("eta1", "eta2")
+    assert friendly_collective_order(None, 3) == ("eta0", "eta1", "eta2")
 
 
 def test_per_channel_products_reconstruct_schur_correction_entries():
@@ -104,9 +127,13 @@ def test_collective_output_schema_is_debug_only_and_not_casimir_ready():
         consistency_diagnostics_payload=pieces["consistency_diagnostics"],
         ratios=pieces["ratios"],
         schur=pieces["schur"],
+        collective_order=("amplitude_eta1", "phase_eta2"),
+        raw_ansatz_channel_names=("eta1", "eta2"),
     )
 
     assert payload["schema_version"] == "finite_q_tmte_collective_schur_factors_v1"
+    assert payload["collective_order"] == ["amplitude_eta1", "phase_eta2"]
+    assert payload["raw_ansatz_channel_names"] == ["eta1", "eta2"]
     assert payload["debug_parameters"]["debug_only_collective_schur_factors"] is True
     assert payload["debug_parameters"]["average_order"] == "average_blocks_then_schur"
     assert payload["valid_for_casimir_input"] is False

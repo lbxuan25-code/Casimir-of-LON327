@@ -18,8 +18,36 @@ from .shifted_average import average_bare_blocks_then_schur, shift_pairs_from_fr
 from .signed_decomposition import ENTRY_SPECS, decomposition_ratios
 
 SCHEMA_VERSION = "finite_q_tmte_collective_schur_factors_v1"
-COLLECTIVE_ORDER = ("eta0", "eta1")
+FALLBACK_COLLECTIVE_ORDER = ("eta0", "eta1")
 SCHUR_CONDITION_THRESHOLD = 1e12
+
+
+def raw_collective_channel_names(ansatz: object | None) -> tuple[str, ...] | None:
+    """Return ansatz-provided collective channel names when available."""
+
+    if ansatz is None or not hasattr(ansatz, "channel_names"):
+        return None
+    names = tuple(str(name) for name in getattr(ansatz, "channel_names"))
+    return names or None
+
+
+def friendly_collective_order(raw_names: Sequence[str] | None, n_channels: int) -> tuple[str, ...]:
+    """Return debug labels for collective channels, preferring known ansatz labels."""
+
+    if raw_names is not None:
+        names = tuple(str(name) for name in raw_names)
+        if names == ("eta1", "eta2"):
+            return ("amplitude_eta1", "phase_eta2")
+        if len(names) == n_channels:
+            return names
+    return tuple(f"eta{index}" for index in range(n_channels))
+
+
+def collective_order_from_ansatz(ansatz: object | None, n_channels: int) -> tuple[tuple[str, ...], tuple[str, ...] | None]:
+    """Return friendly collective labels and raw ansatz labels."""
+
+    raw_names = raw_collective_channel_names(ansatz)
+    return friendly_collective_order(raw_names, n_channels), raw_names
 
 
 def solve_collective_action(
@@ -53,7 +81,7 @@ def schur_factor_decomposition(
     x_action: np.ndarray,
     *,
     source_order: tuple[str, ...] = SOURCE_ORDER_DIAGNOSTIC,
-    collective_order: tuple[str, ...] = COLLECTIVE_ORDER,
+    collective_order: tuple[str, ...] = FALLBACK_COLLECTIVE_ORDER,
 ) -> dict[str, Any]:
     """Decompose Schur entries into per-collective-channel products."""
 
@@ -200,7 +228,8 @@ def collective_schur_factors_payload(
     consistency_diagnostics_payload: dict[str, Any],
     ratios: dict[str, Any],
     schur: dict[str, Any],
-    collective_order: tuple[str, ...] = COLLECTIVE_ORDER,
+    collective_order: tuple[str, ...] = FALLBACK_COLLECTIVE_ORDER,
+    raw_ansatz_channel_names: tuple[str, ...] | None = None,
 ) -> dict[str, Any]:
     """Build the top-level collective Schur factor JSON payload."""
 
@@ -221,6 +250,7 @@ def collective_schur_factors_payload(
         },
         "source_order_diagnostic": list(SOURCE_ORDER_DIAGNOSTIC),
         "collective_order": list(collective_order),
+        "raw_ansatz_channel_names": list(raw_ansatz_channel_names) if raw_ansatz_channel_names is not None else None,
         "matrices": matrices,
         "schur_factor_decomposition": schur_factor_decomposition_payload,
         "consistency_diagnostics": {**consistency_diagnostics_payload, "diagnostic_only": True, "valid_for_casimir_input": False},
@@ -277,6 +307,7 @@ def run_collective_schur_factors(
     shifted = _shifted_payload(shift_fractions, shifts)
     response = average_bare_blocks_then_schur(scaled_blocks)
     averaged = response.bare_blocks
+    collective_order, raw_names = collective_order_from_ansatz(inputs.ansatz, averaged.k_etaeta.shape[0])
     x_action, schur = solve_collective_action(averaged.k_etaeta, averaged.k_etas, condition_threshold=response.schur.condition_threshold)
     schur_correction = averaged.k_seta @ x_action
     k_eff = averaged.k_ss - schur_correction
@@ -311,7 +342,7 @@ def run_collective_schur_factors(
             "Schur_correction": schur_correction,
             "K_eff": k_eff,
         },
-        schur_factor_decomposition_payload=schur_factor_decomposition(averaged.k_seta, x_action, source_order=averaged.source_order),
+        schur_factor_decomposition_payload=schur_factor_decomposition(averaged.k_seta, x_action, source_order=averaged.source_order, collective_order=collective_order),
         consistency_diagnostics_payload=consistency_diagnostics(
             k_eff=k_eff,
             schur_correction=schur_correction,
@@ -322,6 +353,8 @@ def run_collective_schur_factors(
         ),
         ratios=decomposition_ratios(k_eff, eps=ratio_eps, source_order=averaged.source_order),
         schur=schur,
+        collective_order=collective_order,
+        raw_ansatz_channel_names=raw_names,
     )
 
 

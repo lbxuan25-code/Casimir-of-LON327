@@ -73,7 +73,10 @@ def _print_summary(payload: dict[str, object]) -> None:
     solver_action = matrices["K_etaeta_inverse_or_solver_action"]  # type: ignore[index]
     _print_matrix("X = solve(K_etaeta, K_etaS)", solver_action["X"])  # type: ignore[index]
 
-    print("entry total.real total.imag eta0.product.real eta0.product.imag eta1.product.real eta1.product.imag reconstruction_error")
+    collective_order = payload["collective_order"]  # type: ignore[index]
+    first_label = collective_order[0]  # type: ignore[index]
+    second_label = collective_order[1]  # type: ignore[index]
+    print(f"entry total.real total.imag {first_label}.product.real {first_label}.product.imag {second_label}.product.real {second_label}.product.imag reconstruction_error")
     decomposition = payload["schur_factor_decomposition"]  # type: ignore[index]
     for entry_name in ("GG", "GTM", "TMG", "TMTM"):
         row = decomposition[entry_name]  # type: ignore[index]
