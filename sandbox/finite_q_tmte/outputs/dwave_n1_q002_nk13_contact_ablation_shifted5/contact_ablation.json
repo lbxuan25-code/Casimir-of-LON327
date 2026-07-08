@@ -1,0 +1,693 @@
+{
+  "schema_version": "finite_q_tmte_contact_ablation_v1",
+  "status": {
+    "diagnostic_run_completed": true,
+    "valid_for_casimir_input": false,
+    "reason": "contact_ablation_debug_not_casimir_input"
+  },
+  "model": {
+    "name": "symmetry_bdg_2band",
+    "pairing": "dwave",
+    "valid_for_casimir_input": false
+  },
+  "frequency": {
+    "source": "matsubara_index",
+    "matsubara_index": 1,
+    "temperature_K": 10.0,
+    "xi_eV": 0.00541443017397794,
+    "zero_matsubara_mode": false,
+    "valid_for_casimir_input": false
+  },
+  "debug_parameters": {
+    "debug_only_contact_ablation": true,
+    "q_model_convention": "q_along_x_only",
+    "q_value": 0.02,
+    "nk": 13,
+    "shift_fractions": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "contact_scales": [
+      1.0,
+      0.0,
+      -1.0
+    ],
+    "ratio_eps": 1e-30,
+    "average_order": "average_blocks_then_schur",
+    "valid_for_casimir_input": false
+  },
+  "contact_scale_results": [
+    {
+      "debug_only_contact_ablation": true,
+      "contact_scale": 1.0,
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "shifted_mesh_average": {
+        "enabled": true,
+        "average_order": "average_blocks_then_schur",
+        "shift_fractions": [
+          0.0,
+          0.2,
+          0.4,
+          0.6,
+          0.8
+        ],
+        "shift_pairs": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.2
+          ],
+          [
+            0.0,
+            0.4
+          ],
+          [
+            0.0,
+            0.6
+          ],
+          [
+            0.0,
+            0.8
+          ],
+          [
+            0.2,
+            0.0
+          ],
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.2,
+            0.4
+          ],
+          [
+            0.2,
+            0.6
+          ],
+          [
+            0.2,
+            0.8
+          ],
+          [
+            0.4,
+            0.0
+          ],
+          [
+            0.4,
+            0.2
+          ],
+          [
+            0.4,
+            0.4
+          ],
+          [
+            0.4,
+            0.6
+          ],
+          [
+            0.4,
+            0.8
+          ],
+          [
+            0.6,
+            0.0
+          ],
+          [
+            0.6,
+            0.2
+          ],
+          [
+            0.6,
+            0.4
+          ],
+          [
+            0.6,
+            0.6
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            0.8,
+            0.0
+          ],
+          [
+            0.8,
+            0.2
+          ],
+          [
+            0.8,
+            0.4
+          ],
+          [
+            0.8,
+            0.6
+          ],
+          [
+            0.8,
+            0.8
+          ]
+        ],
+        "num_shifted_meshes": 25,
+        "valid_for_casimir_input": false
+      },
+      "bare_diagnostics": {
+        "K_SS_bubble": {
+          "G_row_norm": 4.960226236561831e-05,
+          "G_col_norm": 4.960226236561831e-05,
+          "GG_abs": 3.848662880837725e-06,
+          "GTM_abs": 4.94527271828086e-05,
+          "TMG_abs": 4.94527271828086e-05,
+          "TMTM_real": -0.0001653104227827278,
+          "TETE_real": 0.03430699815576422,
+          "valid_for_casimir_input": false
+        },
+        "K_SS_contact_scaled": {
+          "G_row_norm": 0.00028073105833010376,
+          "G_col_norm": 0.00028073105833010376,
+          "GG_abs": 0.0002709766653684196,
+          "GTM_abs": 7.33592116707347e-05,
+          "TMG_abs": 7.33592116707347e-05,
+          "TMTM_real": -1.9859916460463038e-05,
+          "TETE_real": -0.677466423284654,
+          "valid_for_casimir_input": false
+        },
+        "K_SS_scaled": {
+          "G_row_norm": 0.00026820545509648533,
+          "G_col_norm": 0.00026820545509648533,
+          "GG_abs": 0.00026712800248758186,
+          "GTM_abs": 2.401658657068589e-05,
+          "TMG_abs": 2.401658657068588e-05,
+          "TMTM_real": -0.00018517033924319082,
+          "TETE_real": -0.6431594251288896,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "effective_diagnostics": {
+        "G_row_norm": 8.83892412955413e-05,
+        "G_col_norm": 8.838924129554132e-05,
+        "GG_abs": 7.060841325584686e-05,
+        "GTM_abs": 5.317057413920759e-05,
+        "TMG_abs": 5.3170574139207653e-05,
+        "TMTM_real": -0.000162607382703001,
+        "TETE_real": -0.6431594251288896,
+        "valid_for_casimir_input": false,
+        "physical_matrix_norm": 0.643159445684571,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "selected_matrix_elements": {
+        "K_GG": {
+          "real": -7.060841325584686e-05,
+          "imag": 2.57902244018405e-21
+        },
+        "K_GTM": {
+          "real": 2.6875833262865957e-05,
+          "imag": -4.587809434490059e-05
+        },
+        "K_TMG": {
+          "real": 2.6875833262866028e-05,
+          "imag": 4.5878094344900616e-05
+        },
+        "K_TMTM": {
+          "real": -0.000162607382703001,
+          "imag": -8.509007201889567e-21
+        },
+        "K_TETE": {
+          "real": -0.6431594251288896,
+          "imag": 8.763548181669614e-19
+        },
+        "K_TMTE": {
+          "real": 1.0237184465571283e-19,
+          "imag": 1.0918549514226584e-19
+        },
+        "K_TETM": {
+          "real": 1.5532258415973408e-19,
+          "imag": -9.769910915241967e-20
+        }
+      },
+      "ratios": {
+        "gauge_over_physical": 0.00013742974916812562,
+        "gauge_over_tm_abs": 0.5435745894574936,
+        "gauge_gg_over_tm_abs": 0.4342263683366189,
+        "ratio_eps": 1e-30,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "debug_only_contact_ablation": true,
+      "contact_scale": 0.0,
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "shifted_mesh_average": {
+        "enabled": true,
+        "average_order": "average_blocks_then_schur",
+        "shift_fractions": [
+          0.0,
+          0.2,
+          0.4,
+          0.6,
+          0.8
+        ],
+        "shift_pairs": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.2
+          ],
+          [
+            0.0,
+            0.4
+          ],
+          [
+            0.0,
+            0.6
+          ],
+          [
+            0.0,
+            0.8
+          ],
+          [
+            0.2,
+            0.0
+          ],
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.2,
+            0.4
+          ],
+          [
+            0.2,
+            0.6
+          ],
+          [
+            0.2,
+            0.8
+          ],
+          [
+            0.4,
+            0.0
+          ],
+          [
+            0.4,
+            0.2
+          ],
+          [
+            0.4,
+            0.4
+          ],
+          [
+            0.4,
+            0.6
+          ],
+          [
+            0.4,
+            0.8
+          ],
+          [
+            0.6,
+            0.0
+          ],
+          [
+            0.6,
+            0.2
+          ],
+          [
+            0.6,
+            0.4
+          ],
+          [
+            0.6,
+            0.6
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            0.8,
+            0.0
+          ],
+          [
+            0.8,
+            0.2
+          ],
+          [
+            0.8,
+            0.4
+          ],
+          [
+            0.8,
+            0.6
+          ],
+          [
+            0.8,
+            0.8
+          ]
+        ],
+        "num_shifted_meshes": 25,
+        "valid_for_casimir_input": false
+      },
+      "bare_diagnostics": {
+        "K_SS_bubble": {
+          "G_row_norm": 4.960226236561831e-05,
+          "G_col_norm": 4.960226236561831e-05,
+          "GG_abs": 3.848662880837725e-06,
+          "GTM_abs": 4.94527271828086e-05,
+          "TMG_abs": 4.94527271828086e-05,
+          "TMTM_real": -0.0001653104227827278,
+          "TETE_real": 0.03430699815576422,
+          "valid_for_casimir_input": false
+        },
+        "K_SS_contact_scaled": {
+          "G_row_norm": 0.0,
+          "G_col_norm": 0.0,
+          "GG_abs": 0.0,
+          "GTM_abs": 0.0,
+          "TMG_abs": 0.0,
+          "TMTM_real": 0.0,
+          "TETE_real": 0.0,
+          "valid_for_casimir_input": false
+        },
+        "K_SS_scaled": {
+          "G_row_norm": 4.960226236561831e-05,
+          "G_col_norm": 4.960226236561831e-05,
+          "GG_abs": 3.848662880837725e-06,
+          "GTM_abs": 4.94527271828086e-05,
+          "TMG_abs": 4.94527271828086e-05,
+          "TMTM_real": -0.0001653104227827278,
+          "TETE_real": 0.03430699815576422,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "effective_diagnostics": {
+        "G_row_norm": 0.00022869040257126672,
+        "G_col_norm": 0.00022869040257126675,
+        "GG_abs": 0.0002003682521125727,
+        "GTM_abs": 0.00011023549234960826,
+        "TMG_abs": 0.00011023549234960834,
+        "TMTM_real": -0.00014274746624253797,
+        "TETE_real": 0.03430699815576422,
+        "valid_for_casimir_input": false,
+        "physical_matrix_norm": 0.034307295132358195,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "selected_matrix_elements": {
+        "K_GG": {
+          "real": 0.0002003682521125727,
+          "imag": 2.2966884770367534e-21
+        },
+        "K_GTM": {
+          "real": 0.00010023504493360066,
+          "imag": -4.587809434490059e-05
+        },
+        "K_TMG": {
+          "real": 0.00010023504493360072,
+          "imag": 4.5878094344900616e-05
+        },
+        "K_TMTM": {
+          "real": -0.00014274746624253797,
+          "imag": -8.52969949624057e-21
+        },
+        "K_TETE": {
+          "real": 0.03430699815576422,
+          "imag": 6.504942874388115e-19
+        },
+        "K_TMTE": {
+          "real": 8.502460989594476e-20,
+          "imag": 1.1054074785787272e-19
+        },
+        "K_TETM": {
+          "real": 1.40143753744937e-19,
+          "imag": -9.688595752305556e-20
+        }
+      },
+      "ratios": {
+        "gauge_over_physical": 0.006665940922738875,
+        "gauge_over_tm_abs": 1.602062779753342,
+        "gauge_gg_over_tm_abs": 1.4036554019959484,
+        "ratio_eps": 1e-30,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "debug_only_contact_ablation": true,
+      "contact_scale": -1.0,
+      "q_model": [
+        0.02,
+        0.0
+      ],
+      "q_norm": 0.02,
+      "shifted_mesh_average": {
+        "enabled": true,
+        "average_order": "average_blocks_then_schur",
+        "shift_fractions": [
+          0.0,
+          0.2,
+          0.4,
+          0.6,
+          0.8
+        ],
+        "shift_pairs": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.2
+          ],
+          [
+            0.0,
+            0.4
+          ],
+          [
+            0.0,
+            0.6
+          ],
+          [
+            0.0,
+            0.8
+          ],
+          [
+            0.2,
+            0.0
+          ],
+          [
+            0.2,
+            0.2
+          ],
+          [
+            0.2,
+            0.4
+          ],
+          [
+            0.2,
+            0.6
+          ],
+          [
+            0.2,
+            0.8
+          ],
+          [
+            0.4,
+            0.0
+          ],
+          [
+            0.4,
+            0.2
+          ],
+          [
+            0.4,
+            0.4
+          ],
+          [
+            0.4,
+            0.6
+          ],
+          [
+            0.4,
+            0.8
+          ],
+          [
+            0.6,
+            0.0
+          ],
+          [
+            0.6,
+            0.2
+          ],
+          [
+            0.6,
+            0.4
+          ],
+          [
+            0.6,
+            0.6
+          ],
+          [
+            0.6,
+            0.8
+          ],
+          [
+            0.8,
+            0.0
+          ],
+          [
+            0.8,
+            0.2
+          ],
+          [
+            0.8,
+            0.4
+          ],
+          [
+            0.8,
+            0.6
+          ],
+          [
+            0.8,
+            0.8
+          ]
+        ],
+        "num_shifted_meshes": 25,
+        "valid_for_casimir_input": false
+      },
+      "bare_diagnostics": {
+        "K_SS_bubble": {
+          "G_row_norm": 4.960226236561831e-05,
+          "G_col_norm": 4.960226236561831e-05,
+          "GG_abs": 3.848662880837725e-06,
+          "GTM_abs": 4.94527271828086e-05,
+          "TMG_abs": 4.94527271828086e-05,
+          "TMTM_real": -0.0001653104227827278,
+          "TETE_real": 0.03430699815576422,
+          "valid_for_casimir_input": false
+        },
+        "K_SS_contact_scaled": {
+          "G_row_norm": 0.00028073105833010376,
+          "G_col_norm": 0.00028073105833010376,
+          "GG_abs": 0.0002709766653684196,
+          "GTM_abs": 7.33592116707347e-05,
+          "TMG_abs": 7.33592116707347e-05,
+          "TMTM_real": 1.9859916460463038e-05,
+          "TETE_real": 0.677466423284654,
+          "valid_for_casimir_input": false
+        },
+        "K_SS_scaled": {
+          "G_row_norm": 0.0003010090645517883,
+          "G_col_norm": 0.0003010090645517883,
+          "GG_abs": 0.0002748253282492573,
+          "GTM_abs": 0.00012279045522771979,
+          "TMG_abs": 0.0001227904552277198,
+          "TMTM_real": -0.00014545050632226478,
+          "TETE_real": 0.711773421440418,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "effective_diagnostics": {
+        "G_row_norm": 0.0005043865548385433,
+        "G_col_norm": 0.0005043865548385433,
+        "GG_abs": 0.0004713449174809923,
+        "GTM_abs": 0.00017955435240263998,
+        "TMG_abs": 0.0001795543524026401,
+        "TMTM_real": -0.00012288754978207495,
+        "TETE_real": 0.711773421440418,
+        "valid_for_casimir_input": false,
+        "physical_matrix_norm": 0.7117734320486743,
+        "etaeta_condition_number": 35.015297774318306,
+        "schur_solve_method": "solve",
+        "schur_numerically_suspect": false
+      },
+      "schur": {
+        "solve_method": "solve",
+        "etaeta_condition_number": 35.015297774318306,
+        "condition_threshold": 1000000000000.0,
+        "numerically_suspect": false,
+        "valid_for_casimir_input": false
+      },
+      "selected_matrix_elements": {
+        "K_GG": {
+          "real": 0.0004713449174809923,
+          "imag": 2.0143545138894567e-21
+        },
+        "K_GTM": {
+          "real": 0.00017359425660433536,
+          "imag": -4.587809434490059e-05
+        },
+        "K_TMG": {
+          "real": 0.00017359425660433544,
+          "imag": 4.5878094344900616e-05
+        },
+        "K_TMTM": {
+          "real": -0.00012288754978207495,
+          "imag": -8.550391790591574e-21
+        },
+        "K_TETE": {
+          "real": 0.711773421440418,
+          "imag": 4.2463375671066266e-19
+        },
+        "K_TMTE": {
+          "real": 7.20141838261187e-20,
+          "imag": 1.1189600057347962e-19
+        },
+        "K_TETM": {
+          "real": 1.244228222438972e-19,
+          "imag": -9.498860372120592e-20
+        }
+      },
+      "ratios": {
+        "gauge_over_physical": 0.0007086335793495184,
+        "gauge_over_tm_abs": 4.1044561123808485,
+        "gauge_gg_over_tm_abs": 3.8355790990776613,
+        "ratio_eps": 1e-30,
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    }
+  ],
+  "valid_for_casimir_input": false
+}
