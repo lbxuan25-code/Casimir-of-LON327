@@ -49,6 +49,8 @@ def _result_payload(
         "schur": {
             "solve_method": response.schur.solve_method,
             "etaeta_condition_number": response.schur.etaeta_condition_number,
+            "condition_threshold": response.schur.condition_threshold,
+            "numerically_suspect": response.schur.numerically_suspect,
             "valid_for_casimir_input": False,
         },
         "shifted_mesh_average": shifted,

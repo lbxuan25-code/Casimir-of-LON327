@@ -12,6 +12,7 @@ def test_gauge_diagnostics_reject_physical_only_source_order():
             k_eff=np.eye(2, dtype=complex),
             schur_correction=np.zeros((2, 2), dtype=complex),
             etaeta_condition_number=1.0,
+            schur_solve_method="solve",
+            schur_numerically_suspect=False,
             source_order=("TM", "TE"),
         )
-

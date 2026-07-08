@@ -26,6 +26,14 @@ average_order = "average_blocks_then_schur"
 
 平均 per-shift Schur 仅可作为 debug 参考。
 
+## JSON 结果语义
+
+`tmte_scan.json` 顶层只表示扫描级信息。完整的 `K_GTMTE_eff`、`K_TMTE_eff`、bare blocks 和诊断量必须从 `results[i]` 读取。
+
+`first_result_summary` 只用于快速预览第一个 q/方向的轻量诊断，不是全局响应，也不包含完整矩阵。
+
+若某个结果的 Schur solve method 为 `pinv_diagnostic`，JSON 会同时给出 `numerically_suspect=true`。该结果可保留为诊断对象，但需要审阅 collective kernel 条件数与稳定性。
+
 ## nk 稳定性
 
 人工后续可对多个 `nk` 做小范围稳定性比较，但不能在实现阶段运行昂贵扫描，也不能仅凭 sandbox v1 输出声明物理收敛。

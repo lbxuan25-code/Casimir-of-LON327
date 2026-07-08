@@ -31,6 +31,8 @@ def build_effective_from_blocks(blocks: TargetBareBlocks) -> EffectiveTargetResp
         k_eff=schur.effective,
         schur_correction=schur.correction,
         etaeta_condition_number=schur.etaeta_condition_number,
+        schur_solve_method=schur.solve_method,
+        schur_numerically_suspect=schur.numerically_suspect,
         source_order=blocks.source_order,
     )
     return EffectiveTargetResponse(bare_blocks=blocks, schur=schur, k_tmte_eff=k_tmte, diagnostics=diagnostics)
@@ -40,4 +42,3 @@ def compute_effective_target_response(**kwargs: Any) -> EffectiveTargetResponse:
     """Compute bare target blocks through the adapter, then Schur them."""
 
     return build_effective_from_blocks(compute_target_bare_blocks(**kwargs))
-

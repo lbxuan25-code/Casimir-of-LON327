@@ -15,6 +15,8 @@ def response_diagnostics(
     k_eff: np.ndarray,
     schur_correction: np.ndarray,
     etaeta_condition_number: float,
+    schur_solve_method: str,
+    schur_numerically_suspect: bool,
     source_order: tuple[str, ...],
 ) -> dict[str, Any]:
     """Return gauge and physical block diagnostics."""
@@ -31,5 +33,7 @@ def response_diagnostics(
         "etaeta_condition_number": float(etaeta_condition_number),
         "physical_matrix_norm": float(np.linalg.norm(k_tmte)),
         "schur_correction_norm": float(np.linalg.norm(schur_correction)),
+        "schur_solve_method": str(schur_solve_method),
+        "schur_numerically_suspect": bool(schur_numerically_suspect),
         "valid_for_casimir_input": False,
     }

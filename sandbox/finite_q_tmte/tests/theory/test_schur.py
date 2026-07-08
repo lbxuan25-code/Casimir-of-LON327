@@ -14,4 +14,15 @@ def test_schur_matches_solve_formula():
     expected = k_ss - k_seta @ np.linalg.solve(k_etaeta, k_etas)
     np.testing.assert_allclose(result.effective, expected)
     assert result.solve_method == "solve"
+    assert result.numerically_suspect is False
 
+
+def test_schur_pinv_diagnostic_is_marked_numerically_suspect():
+    k_ss = np.eye(2, dtype=complex)
+    k_seta = np.ones((2, 2), dtype=complex)
+    k_etaeta = np.asarray([[1.0, 0.0], [0.0, 0.0]], dtype=complex)
+    k_etas = np.ones((2, 2), dtype=complex)
+    result = schur_effective(k_ss, k_seta, k_etaeta, k_etas)
+    assert result.solve_method == "pinv_diagnostic"
+    assert result.numerically_suspect is True
+    assert result.condition_threshold == 1e12

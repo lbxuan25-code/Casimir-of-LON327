@@ -13,6 +13,8 @@ class TargetSchurResult:
     correction: np.ndarray
     etaeta_condition_number: float
     solve_method: str
+    condition_threshold: float
+    numerically_suspect: bool
 
 
 def schur_effective(
@@ -37,5 +39,11 @@ def schur_effective(
         solved = np.linalg.solve(etaeta, etas)
         method = "solve"
     correction = seta @ solved
-    return TargetSchurResult(effective=ss - correction, correction=correction, etaeta_condition_number=condition, solve_method=method)
-
+    return TargetSchurResult(
+        effective=ss - correction,
+        correction=correction,
+        etaeta_condition_number=condition,
+        solve_method=method,
+        condition_threshold=float(condition_threshold),
+        numerically_suspect=method == "pinv_diagnostic",
+    )

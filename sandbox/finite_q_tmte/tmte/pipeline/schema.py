@@ -38,16 +38,31 @@ def scan_payload(
     results: list[dict[str, Any]],
     shifted_mesh_average: dict[str, Any],
 ) -> dict[str, Any]:
+    first_summary = {
+        "q_model": first_result["q_model"],
+        "q_norm": first_result["q_norm"],
+        "basis": first_result["basis"],
+        "diagnostics": first_result["diagnostics"],
+        "schur": first_result["schur"],
+        "shifted_mesh_average": first_result["shifted_mesh_average"],
+        "valid_for_casimir_input": False,
+    }
     return {
         "schema_version": SCHEMA_VERSION,
         "status": status_payload(),
-        "model": {"name": model_name, "pairing": pairing_name, "nk": int(nk), "valid_for_casimir_input": False},
-        "xi": float(xi),
-        "basis": first_result["basis"],
-        "shifted_mesh_average": shifted_mesh_average,
-        "effective_response": first_result["effective_response"],
-        "diagnostics": first_result["diagnostics"],
+        "model": {"name": model_name, "pairing": pairing_name, "valid_for_casimir_input": False},
+        "scan_parameters": {
+            "xi": float(xi),
+            "nk": int(nk),
+            "q_count": len({tuple(result["q_model"]) for result in results}),
+            "result_count": len(results),
+            "source_order_diagnostic": list(SOURCE_ORDER_DIAGNOSTIC),
+            "source_order_physical": list(SOURCE_ORDER_PHYSICAL),
+            "basis_normalization": BASIS_NORMALIZATION,
+            "shifted_mesh_average": shifted_mesh_average,
+            "valid_for_casimir_input": False,
+        },
         "results": results,
+        "first_result_summary": first_summary,
         "valid_for_casimir_input": False,
     }
-
