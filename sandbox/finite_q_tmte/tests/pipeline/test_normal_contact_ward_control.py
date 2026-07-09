@@ -23,18 +23,18 @@ class MockNormalSpec:
 
     def peierls_hamiltonian_vector_vertex(self, kx: float, ky: float, qx: float, qy: float, direction: str) -> np.ndarray:
         if direction == "x":
-            return np.asarray([[2j * np.sin(kx) * np.sinc(qx / (2.0 * np.pi))]], dtype=complex)
+            return np.asarray([[-2.0 * np.sin(kx) * np.sinc(qx / (2.0 * np.pi))]], dtype=complex)
         if direction == "y":
-            return np.asarray([[0.5j * np.sin(ky) * np.sinc(qy / (2.0 * np.pi))]], dtype=complex)
+            return np.asarray([[-0.5 * np.sin(ky) * np.sinc(qy / (2.0 * np.pi))]], dtype=complex)
         raise ValueError(direction)
 
     def peierls_hamiltonian_contact_vertex(self, kx: float, ky: float, qx: float, qy: float, direction_i: str, direction_j: str) -> np.ndarray:
         if direction_i != direction_j:
             return np.zeros((1, 1), dtype=complex)
         if direction_i == "x":
-            return np.asarray([[2.0 * np.cos(kx) * np.sinc(qx / (2.0 * np.pi)) ** 2]], dtype=complex)
+            return np.asarray([[-2.0 * np.cos(kx) * np.sinc(qx / (2.0 * np.pi)) ** 2]], dtype=complex)
         if direction_i == "y":
-            return np.asarray([[0.5 * np.cos(ky) * np.sinc(qy / (2.0 * np.pi)) ** 2]], dtype=complex)
+            return np.asarray([[-0.5 * np.cos(ky) * np.sinc(qy / (2.0 * np.pi)) ** 2]], dtype=complex)
         raise ValueError(direction_i)
 
 
