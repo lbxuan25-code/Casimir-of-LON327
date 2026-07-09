@@ -1,0 +1,5027 @@
+{
+  "schema_version": "finite_q_tmte_normal_response_convention_audit_v1",
+  "status": {
+    "diagnostic_run_completed": true,
+    "diagnostic_only_not_a_fix": true,
+    "accepted_convention": false,
+    "requires_analytic_derivation_before_convention_change": true,
+    "valid_for_casimir_input": false,
+    "reason": "normal_response_convention_audit_not_production_convention"
+  },
+  "model": {
+    "name": "symmetry_bdg_2band",
+    "valid_for_casimir_input": false
+  },
+  "frequency": {
+    "source": "matsubara_index",
+    "matsubara_index": 1,
+    "temperature_K": 10.0,
+    "xi_eV": 0.00541443017397794,
+    "zero_matsubara_mode": false,
+    "valid_for_casimir_input": false
+  },
+  "debug_parameters": {
+    "q_model_convention": "q_along_x_only",
+    "q_value": 0.02,
+    "nk": 13,
+    "eta_eV": 1e-08,
+    "shift_fractions": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "num_shifted_meshes": 25,
+    "shifted_mesh_average": {
+      "enabled": true,
+      "average_order": "average_blocks_then_schur",
+      "shift_fractions": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8
+      ],
+      "shift_pairs": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.2
+        ],
+        [
+          0.0,
+          0.4
+        ],
+        [
+          0.0,
+          0.6
+        ],
+        [
+          0.0,
+          0.8
+        ],
+        [
+          0.2,
+          0.0
+        ],
+        [
+          0.2,
+          0.2
+        ],
+        [
+          0.2,
+          0.4
+        ],
+        [
+          0.2,
+          0.6
+        ],
+        [
+          0.2,
+          0.8
+        ],
+        [
+          0.4,
+          0.0
+        ],
+        [
+          0.4,
+          0.2
+        ],
+        [
+          0.4,
+          0.4
+        ],
+        [
+          0.4,
+          0.6
+        ],
+        [
+          0.4,
+          0.8
+        ],
+        [
+          0.6,
+          0.0
+        ],
+        [
+          0.6,
+          0.2
+        ],
+        [
+          0.6,
+          0.4
+        ],
+        [
+          0.6,
+          0.6
+        ],
+        [
+          0.6,
+          0.8
+        ],
+        [
+          0.8,
+          0.0
+        ],
+        [
+          0.8,
+          0.2
+        ],
+        [
+          0.8,
+          0.4
+        ],
+        [
+          0.8,
+          0.6
+        ],
+        [
+          0.8,
+          0.8
+        ]
+      ],
+      "num_shifted_meshes": 25,
+      "valid_for_casimir_input": false
+    },
+    "candidate_names": [
+      "baseline_current",
+      "contact_plus_expectation",
+      "contact_eval_plus",
+      "contact_eval_minus",
+      "contact_eval_sym_pm",
+      "kubo_denominator_flipped",
+      "kubo_fully_reversed",
+      "band_direct_minus_plus",
+      "current_sign_both_plus",
+      "current_sign_observable_plus_source_minus",
+      "ward_right_spatial_plus",
+      "ward_temporal_minus",
+      "kubo_fully_reversed_contact_plus"
+    ],
+    "full_grid": false,
+    "normal_state_only": true,
+    "valid_for_casimir_input": false
+  },
+  "available_conventions": {
+    "band_orientations": [
+      "forward_minus_plus",
+      "direct_minus_plus"
+    ],
+    "kubo_conventions": [
+      "minus_plus",
+      "denominator_flipped",
+      "fully_reversed"
+    ],
+    "current_sign_conventions": [
+      "observable_minus_source_plus",
+      "both_plus",
+      "observable_plus_source_minus",
+      "both_minus"
+    ],
+    "contact_signs": [
+      "minus_expectation",
+      "plus_expectation"
+    ],
+    "contact_evaluations": [
+      "mid",
+      "plus",
+      "minus",
+      "sym_pm"
+    ],
+    "ward_conventions": [
+      "standard",
+      "right_spatial_plus",
+      "left_spatial_minus_right_plus",
+      "temporal_minus"
+    ],
+    "valid_for_casimir_input": false
+  },
+  "candidates": [
+    {
+      "candidate": {
+        "name": "baseline_current",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.010295243254468006,
+                  "imag": 1.0202733387987805e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6779086354006509e-18,
+                  "imag": 7.5356044532206195e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.010295243254468006,
+                  "imag": -1.0924084520893535e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.6839197149764714e-18,
+                  "imag": -7.792544152534264e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "max_residual_norm": 0.010295243254468006,
+          "max_residual_over_reference": 0.010697113711434295,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013610594238709195,
+                  "imag": -1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.2204460492503132e-20,
+                  "imag": 3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.014141878016187595,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 0.5002769235546183,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.0033153509842411893,
+                  "imag": 1.0371295461895254e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.700113095893154e-18,
+                  "imag": 7.535211420407666e-19
+                }
+              }
+            ],
+            "norm": 0.0033153509842411893
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.0033153509842411893,
+                  "imag": -1.1092646594800984e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.7061241754689746e-18,
+                  "imag": -7.7921511197213105e-19
+                }
+              }
+            ],
+            "norm": 0.0033153509842411893
+          },
+          "max_residual_norm": 0.0033153509842411893,
+          "max_residual_over_reference": 0.0034447643047533024,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.0033153509842411893,
+        "total_right_norm": 0.0033153509842411893,
+        "total_max_residual_norm": 0.0033153509842411893,
+        "total_max_residual_over_reference": 0.0034447643047533024,
+        "alpha_left": {
+          "real": 0.756413942984784,
+          "imag": 7.58984942888837e-17
+        },
+        "alpha_right": {
+          "real": 0.756413942984784,
+          "imag": 8.11984181588803e-17
+        },
+        "alpha_real_mean": 0.756413942984784,
+        "alpha_imag_mean": 7.8548456223882e-17,
+        "left_right_alpha_abs_diff": 5.299923869996599e-18,
+        "left_projection_residual_over_required": 2.5613007586420212e-15,
+        "right_projection_residual_over_required": 2.53754243627342e-15,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4339305505069335e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.010295243254468006,
+                "imag": -1.0202733387987805e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.6779086354006509e-18,
+                "imag": -7.5356044532206195e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013610594238709195,
+                "imag": -1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -2.2204460492503132e-20,
+                "imag": 3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4072850454499992e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.010295243254468006,
+                "imag": 1.0924084520893535e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.6839197149764714e-18,
+                "imag": 7.792544152534264e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.756413942984784,
+            "imag": 7.58984942888837e-17
+          },
+          "residual_norm": 2.6369214358073054e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 2.5613007586420212e-15,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.756413942984784,
+            "imag": 8.11984181588803e-17
+          },
+          "residual_norm": 2.6124616649970238e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 2.53754243627342e-15,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 0.5002769235546183,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "contact_plus_expectation",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "plus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.010295243254468006,
+                  "imag": 1.0202733387987805e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6779086354006509e-18,
+                  "imag": 7.5356044532206195e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.010295243254468006,
+                  "imag": -1.0924084520893535e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.6839197149764714e-18,
+                  "imag": -7.792544152534264e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "max_residual_norm": 0.010295243254468006,
+          "max_residual_over_reference": 0.006433777512539159,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013610594238709195,
+                  "imag": -1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.2204460492503132e-20,
+                  "imag": 3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.008505630511187683,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 1.6001863966236034,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.023905837493177203,
+                  "imag": 1.003417131408035e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6557041749081477e-18,
+                  "imag": 7.535997486033573e-19
+                }
+              }
+            ],
+            "norm": 0.023905837493177203
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.023905837493177203,
+                  "imag": -1.0755522446986079e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.6617152544839683e-18,
+                  "imag": -7.792937185347218e-19
+                }
+              }
+            ],
+            "norm": 0.023905837493177203
+          },
+          "max_residual_norm": 0.023905837493177203,
+          "max_residual_over_reference": 0.014939408023726841,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.023905837493177203,
+        "total_right_norm": 0.023905837493177203,
+        "total_max_residual_norm": 0.023905837493177203,
+        "total_max_residual_over_reference": 0.014939408023726841,
+        "alpha_left": {
+          "real": -0.756413942984784,
+          "imag": -7.58984942888837e-17
+        },
+        "alpha_right": {
+          "real": -0.756413942984784,
+          "imag": -8.11984181588803e-17
+        },
+        "alpha_real_mean": -0.756413942984784,
+        "alpha_imag_mean": -7.8548456223882e-17,
+        "left_right_alpha_abs_diff": 5.299923869996599e-18,
+        "left_projection_residual_over_required": 2.5613007586420212e-15,
+        "right_projection_residual_over_required": 2.53754243627342e-15,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013610594238709195,
+                "imag": -1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -2.2204460492503132e-20,
+                "imag": 3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4339305505069335e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.010295243254468006,
+                "imag": -1.0202733387987805e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.6779086354006509e-18,
+                "imag": -7.5356044532206195e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4072850454499992e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.010295243254468006,
+                "imag": 1.0924084520893535e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.6839197149764714e-18,
+                "imag": 7.792544152534264e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": -0.756413942984784,
+            "imag": -7.58984942888837e-17
+          },
+          "residual_norm": 2.6369214358073054e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 2.5613007586420212e-15,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": -0.756413942984784,
+            "imag": -8.11984181588803e-17
+          },
+          "residual_norm": 2.6124616649970238e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 2.53754243627342e-15,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 1.6001863966236034,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "contact_eval_plus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "plus",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.010295243254468006,
+                  "imag": 1.0202733387987805e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6779086354006509e-18,
+                  "imag": 7.5356044532206195e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.010295243254468006,
+                  "imag": -1.0924084520893535e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.6839197149764714e-18,
+                  "imag": -7.792544152534264e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "max_residual_norm": 0.010295243254468006,
+          "max_residual_over_reference": 0.010718907499741347,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9604750535179482,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013550452989075153,
+                  "imag": 1.7044764932573468e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 3.8302694349567905e-19,
+                  "imag": -1.8827781316611332e-22
+                }
+              }
+            ],
+            "norm": 0.013550452989075153
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013550452989075153,
+                  "imag": -1.7044764932573468e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -3.8302694349567905e-19,
+                  "imag": 1.8827781316611332e-22
+                }
+              }
+            ],
+            "norm": 0.013550452989075153
+          },
+          "max_residual_norm": 0.013550452989075153,
+          "max_residual_over_reference": 0.014108073853083098,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 0.4993049841060912,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.0032552097346071466,
+                  "imag": 1.0373181037313544e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.06093557889633e-18,
+                  "imag": 7.533721675088963e-19
+                }
+              }
+            ],
+            "norm": 0.0032552097346071466
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.0032552097346071466,
+                  "imag": -1.1094532170219274e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.0669466584721504e-18,
+                  "imag": -7.790661374402592e-19
+                }
+              }
+            ],
+            "norm": 0.0032552097346071466
+          },
+          "max_residual_norm": 0.0032552097346071466,
+          "max_residual_over_reference": 0.0033891663533417503,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.0032552097346071466,
+        "total_right_norm": 0.0032552097346071466,
+        "total_max_residual_norm": 0.0032552097346071466,
+        "total_max_residual_over_reference": 0.0033891663533417503,
+        "alpha_left": {
+          "real": 0.7597711502905763,
+          "imag": 7.625010472277607e-17
+        },
+        "alpha_right": {
+          "real": 0.7597711502905763,
+          "imag": 8.157355135210505e-17
+        },
+        "alpha_real_mean": 0.7597711502905763,
+        "alpha_imag_mean": 7.891182803744056e-17,
+        "left_right_alpha_abs_diff": 5.3234466293289816e-18,
+        "left_projection_residual_over_required": 2.5631500749512072e-15,
+        "right_projection_residual_over_required": 2.539415167819817e-15,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013550452989075153,
+                "imag": 1.7044764932573468e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 3.8302694349567905e-19,
+                "imag": -1.8827781316611332e-22
+              }
+            }
+          ],
+          "norm": 0.013550452989075153
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4339305505069335e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.010295243254468006,
+                "imag": -1.0202733387987805e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.6779086354006509e-18,
+                "imag": -7.5356044532206195e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013550452989075153,
+                "imag": -1.7044764932573468e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -3.8302694349567905e-19,
+                "imag": 1.8827781316611332e-22
+              }
+            }
+          ],
+          "norm": 0.013550452989075153
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4072850454499992e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.010295243254468006,
+                "imag": 1.0924084520893535e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.6839197149764714e-18,
+                "imag": 7.792544152534264e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.7597711502905763,
+            "imag": 7.625010472277607e-17
+          },
+          "residual_norm": 2.638825351933058e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013550452989075153,
+          "residual_over_required_norm": 2.5631500749512072e-15,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.7597711502905763,
+            "imag": 8.157355135210505e-17
+          },
+          "residual_norm": 2.6143896876790713e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013550452989075153,
+          "residual_over_required_norm": 2.539415167819817e-15,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9604750535179482,
+        "total_norm": 0.4993049841060912,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "contact_eval_minus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "minus",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.010295243254468006,
+                  "imag": 1.0202733387987805e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6779086354006509e-18,
+                  "imag": 7.5356044532206195e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.010295243254468006,
+                  "imag": -1.0924084520893535e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.6839197149764714e-18,
+                  "imag": -7.792544152534264e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "max_residual_norm": 0.010295243254468006,
+          "max_residual_over_reference": 0.010718907499741347,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9604750535179482,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013550452989075153,
+                  "imag": 1.6597169889660265e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -3.025357742103552e-19,
+                  "imag": -1.4346129437274946e-22
+                }
+              }
+            ],
+            "norm": 0.013550452989075153
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013550452989075153,
+                  "imag": -1.6597169889660265e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 3.025357742103552e-19,
+                  "imag": 1.4346129437274946e-22
+                }
+              }
+            ],
+            "norm": 0.013550452989075153
+          },
+          "max_residual_norm": 0.013550452989075153,
+          "max_residual_over_reference": 0.014108073853083098,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 0.49930498410609114,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.0032552097346071466,
+                  "imag": 1.03687050868844e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.3753728611902957e-18,
+                  "imag": 7.534169840276902e-19
+                }
+              }
+            ],
+            "norm": 0.0032552097346071466
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.0032552097346071466,
+                  "imag": -1.109005621979013e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.3813839407661163e-18,
+                  "imag": -7.791109539590546e-19
+                }
+              }
+            ],
+            "norm": 0.0032552097346071466
+          },
+          "max_residual_norm": 0.0032552097346071466,
+          "max_residual_over_reference": 0.0033891663533417503,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.0032552097346071466,
+        "total_right_norm": 0.0032552097346071466,
+        "total_max_residual_norm": 0.0032552097346071466,
+        "total_max_residual_over_reference": 0.0033891663533417503,
+        "alpha_left": {
+          "real": 0.7597711502905763,
+          "imag": 7.62250081595178e-17
+        },
+        "alpha_right": {
+          "real": 0.7597711502905763,
+          "imag": 8.154845478884678e-17
+        },
+        "alpha_real_mean": 0.7597711502905763,
+        "alpha_imag_mean": 7.88867314741823e-17,
+        "left_right_alpha_abs_diff": 5.3234466293289816e-18,
+        "left_projection_residual_over_required": 2.5598724487892775e-15,
+        "right_projection_residual_over_required": 2.53609522269566e-15,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013550452989075153,
+                "imag": 1.6597169889660265e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -3.025357742103552e-19,
+                "imag": -1.4346129437274946e-22
+              }
+            }
+          ],
+          "norm": 0.013550452989075153
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4339305505069335e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.010295243254468006,
+                "imag": -1.0202733387987805e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.6779086354006509e-18,
+                "imag": -7.5356044532206195e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013550452989075153,
+                "imag": -1.6597169889660265e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 3.025357742103552e-19,
+                "imag": 1.4346129437274946e-22
+              }
+            }
+          ],
+          "norm": 0.013550452989075153
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4072850454499992e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.010295243254468006,
+                "imag": 1.0924084520893535e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.6839197149764714e-18,
+                "imag": 7.792544152534264e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.7597711502905763,
+            "imag": 7.62250081595178e-17
+          },
+          "residual_norm": 2.6354509560696305e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013550452989075153,
+          "residual_over_required_norm": 2.5598724487892775e-15,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.7597711502905763,
+            "imag": 8.154845478884678e-17
+          },
+          "residual_norm": 2.6109717234146028e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013550452989075153,
+          "residual_over_required_norm": 2.53609522269566e-15,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9604750535179482,
+        "total_norm": 0.49930498410609114,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "contact_eval_sym_pm",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "sym_pm",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.010295243254468006,
+                  "imag": 1.0202733387987805e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6779086354006509e-18,
+                  "imag": 7.5356044532206195e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.010295243254468006,
+                  "imag": -1.0924084520893535e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.6839197149764714e-18,
+                  "imag": -7.792544152534264e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "max_residual_norm": 0.010295243254468006,
+          "max_residual_over_reference": 0.010718907499741347,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9604750535179482,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013550452989075153,
+                  "imag": 1.6820967411116865e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 4.163336342344337e-20,
+                  "imag": -1.6586955376943207e-22
+                }
+              }
+            ],
+            "norm": 0.013550452989075153
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013550452989075153,
+                  "imag": -1.6820967411116865e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -4.163336342344337e-20,
+                  "imag": 1.6586955376943207e-22
+                }
+              }
+            ],
+            "norm": 0.013550452989075153
+          },
+          "max_residual_norm": 0.013550452989075153,
+          "max_residual_over_reference": 0.014108073853083098,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 0.4993049841060912,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.0032552097346071466,
+                  "imag": 1.0370943062098969e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.7195419988240943e-18,
+                  "imag": 7.533945757682932e-19
+                }
+              }
+            ],
+            "norm": 0.0032552097346071466
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.0032552097346071466,
+                  "imag": -1.1092294195004698e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.7255530783999148e-18,
+                  "imag": -7.790885456996561e-19
+                }
+              }
+            ],
+            "norm": 0.0032552097346071466
+          },
+          "max_residual_norm": 0.0032552097346071466,
+          "max_residual_over_reference": 0.0033891663533417503,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.0032552097346071466,
+        "total_right_norm": 0.0032552097346071466,
+        "total_max_residual_norm": 0.0032552097346071466,
+        "total_max_residual_over_reference": 0.0033891663533417503,
+        "alpha_left": {
+          "real": 0.7597711502905763,
+          "imag": 7.623755644114693e-17
+        },
+        "alpha_right": {
+          "real": 0.7597711502905763,
+          "imag": 8.156100307047592e-17
+        },
+        "alpha_real_mean": 0.7597711502905763,
+        "alpha_imag_mean": 7.889927975581143e-17,
+        "left_right_alpha_abs_diff": 5.323446629328994e-18,
+        "left_projection_residual_over_required": 2.5613935095690766e-15,
+        "right_projection_residual_over_required": 2.5376363779366702e-15,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013550452989075153,
+                "imag": 1.6820967411116865e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 4.163336342344337e-20,
+                "imag": -1.6586955376943207e-22
+              }
+            }
+          ],
+          "norm": 0.013550452989075153
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4339305505069335e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.010295243254468006,
+                "imag": -1.0202733387987805e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.6779086354006509e-18,
+                "imag": -7.5356044532206195e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013550452989075153,
+                "imag": -1.6820967411116865e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -4.163336342344337e-20,
+                "imag": 1.6586955376943207e-22
+              }
+            }
+          ],
+          "norm": 0.013550452989075153
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4072850454499992e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.010295243254468006,
+                "imag": 1.0924084520893535e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.6839197149764714e-18,
+                "imag": 7.792544152534264e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.7597711502905763,
+            "imag": 7.623755644114693e-17
+          },
+          "residual_norm": 2.637016925142917e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013550452989075153,
+          "residual_over_required_norm": 2.5613935095690766e-15,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.7597711502905763,
+            "imag": 8.156100307047592e-17
+          },
+          "residual_norm": 2.612558380224513e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013550452989075153,
+          "residual_over_required_norm": 2.5376363779366702e-15,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9604750535179482,
+        "total_norm": 0.4993049841060912,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "kubo_denominator_flipped",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "denominator_flipped",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.985020442749985e-17,
+                  "imag": 0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.009387892492658487,
+                  "imag": -1.0798507327521303e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.389403129088057e-18,
+                  "imag": 2.4900172495451922e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.9583749376930508e-17,
+                  "imag": 0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.009387892492658487,
+                  "imag": 1.0870642440811877e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.3833917607249082e-18,
+                  "imag": -2.490778554448458e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "max_residual_norm": 0.00996823764326327,
+          "max_residual_over_reference": 0.006229422812427522,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013610594238709195,
+                  "imag": -1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.2204460492503132e-20,
+                  "imag": 3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.008505630511187683,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 1.6001863966236034,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.985020442749985e-17,
+                  "imag": 0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.022998486731367684,
+                  "imag": -1.0781651120130558e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.367198668595554e-18,
+                  "imag": 2.4900133192170627e-17
+                }
+              }
+            ],
+            "norm": 0.023241420528697307
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.9583749376930508e-17,
+                  "imag": 0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.022998486731367684,
+                  "imag": 1.085378623342113e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.361187300232405e-18,
+                  "imag": -2.4907746241203285e-17
+                }
+              }
+            ],
+            "norm": 0.023241420528697307
+          },
+          "max_residual_norm": 0.023241420528697307,
+          "max_residual_over_reference": 0.01452419579227567,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.023241420528697307,
+        "total_right_norm": 0.023241420528697307,
+        "total_max_residual_norm": 0.023241420528697307,
+        "total_max_residual_over_reference": 0.01452419579227567,
+        "alpha_left": {
+          "real": -0.6897489064774895,
+          "imag": -7.942440784394174e-16
+        },
+        "alpha_right": {
+          "real": -0.6897489064774895,
+          "imag": -7.99544002309414e-16
+        },
+        "alpha_real_mean": -0.6897489064774895,
+        "alpha_imag_mean": -7.9689404037441575e-16,
+        "left_right_alpha_abs_diff": 5.2999238699966115e-18,
+        "left_projection_residual_over_required": 0.3362281441889537,
+        "right_projection_residual_over_required": 0.3362281441889537,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": -1.985020442749985e-17,
+                "imag": -0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.009387892492658487,
+                "imag": 1.0798507327521303e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.389403129088057e-18,
+                "imag": -2.4900172495451922e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013610594238709195,
+                "imag": -1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -2.2204460492503132e-20,
+                "imag": 3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": -1.9583749376930508e-17,
+                "imag": -0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.009387892492658487,
+                "imag": -1.0870642440811877e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.3833917607249082e-18,
+                "imag": 2.490778554448458e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": -0.6897489064774895,
+            "imag": -7.942440784394174e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": -0.6897489064774895,
+            "imag": -7.99544002309414e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 1.6001863966236034,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "kubo_fully_reversed",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "fully_reversed",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.985020442749985e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.009387892492658487,
+                  "imag": 1.0798507327521303e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.389403129088057e-18,
+                  "imag": -2.4900172495451922e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.9583749376930508e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.009387892492658487,
+                  "imag": -1.0870642440811877e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.3833917607249082e-18,
+                  "imag": 2.490778554448458e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "max_residual_norm": 0.00996823764326327,
+          "max_residual_over_reference": 0.010357343574792205,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013610594238709195,
+                  "imag": -1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.2204460492503132e-20,
+                  "imag": 3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.014141878016187595,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 0.5002769235546183,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.985020442749985e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.004222701746050709,
+                  "imag": 1.0815363534912049e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.4116075895805604e-18,
+                  "imag": -2.4900211798733218e-17
+                }
+              }
+            ],
+            "norm": 0.00539114517472466
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.9583749376930508e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.004222701746050709,
+                  "imag": -1.0887498648202622e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.4055962212174114e-18,
+                  "imag": 2.4907824847765876e-17
+                }
+              }
+            ],
+            "norm": 0.00539114517472466
+          },
+          "max_residual_norm": 0.00539114517472466,
+          "max_residual_over_reference": 0.005601586241670595,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.00539114517472466,
+        "total_right_norm": 0.00539114517472466,
+        "total_max_residual_norm": 0.00539114517472466,
+        "total_max_residual_over_reference": 0.005601586241670595,
+        "alpha_left": {
+          "real": 0.6897489064774895,
+          "imag": 7.942440784394174e-16
+        },
+        "alpha_right": {
+          "real": 0.6897489064774895,
+          "imag": 7.99544002309414e-16
+        },
+        "alpha_real_mean": 0.6897489064774895,
+        "alpha_imag_mean": 7.9689404037441575e-16,
+        "left_right_alpha_abs_diff": 5.2999238699966115e-18,
+        "left_projection_residual_over_required": 0.3362281441889537,
+        "right_projection_residual_over_required": 0.3362281441889537,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 1.985020442749985e-17,
+                "imag": 0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.009387892492658487,
+                "imag": -1.0798507327521303e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.389403129088057e-18,
+                "imag": 2.4900172495451922e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013610594238709195,
+                "imag": -1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -2.2204460492503132e-20,
+                "imag": 3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 1.9583749376930508e-17,
+                "imag": 0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.009387892492658487,
+                "imag": 1.0870642440811877e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.3833917607249082e-18,
+                "imag": -2.490778554448458e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.6897489064774895,
+            "imag": 7.942440784394174e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.6897489064774895,
+            "imag": 7.99544002309414e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 0.5002769235546183,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "band_direct_minus_plus",
+        "band_orientation": "direct_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.429490350857867e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.010295243254468006,
+                  "imag": 8.1024956678354e-19
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.5904352313550874e-18,
+                  "imag": 7.887062050374675e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4117266151748576e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.010295243254468006,
+                  "imag": -8.583398200258673e-19
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.5105907083800268e-18,
+                  "imag": -7.885150078527872e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "max_residual_norm": 0.010295243254468006,
+          "max_residual_over_reference": 0.010697113711434295,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013610594238709195,
+                  "imag": -1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.2204460492503132e-20,
+                  "imag": 3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.014141878016187595,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 0.5002769235546183,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.429490350857867e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.0033153509842411893,
+                  "imag": 8.271057741742857e-19
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6126396918475908e-18,
+                  "imag": 7.886669017561721e-19
+                }
+              }
+            ],
+            "norm": 0.0033153509842411893
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4117266151748576e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.0033153509842411893,
+                  "imag": -8.751960274166129e-19
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.53279516887253e-18,
+                  "imag": -7.884757045714919e-19
+                }
+              }
+            ],
+            "norm": 0.0033153509842411893
+          },
+          "max_residual_norm": 0.0033153509842411893,
+          "max_residual_over_reference": 0.0034447643047533024,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.0033153509842411893,
+        "total_right_norm": 0.0033153509842411893,
+        "total_max_residual_norm": 0.0033153509842411893,
+        "total_max_residual_over_reference": 0.0034447643047533024,
+        "alpha_left": {
+          "real": 0.756413942984784,
+          "imag": 6.046759036714878e-17
+        },
+        "alpha_right": {
+          "real": 0.756413942984784,
+          "imag": 6.400088600427506e-17
+        },
+        "alpha_real_mean": 0.756413942984784,
+        "alpha_imag_mean": 6.223423818571192e-17,
+        "left_right_alpha_abs_diff": 3.533295637126275e-18,
+        "left_projection_residual_over_required": 2.556887593689938e-15,
+        "right_projection_residual_over_required": 2.540506566337412e-15,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.429490350857867e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.010295243254468006,
+                "imag": -8.1024956678354e-19
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.5904352313550874e-18,
+                "imag": -7.887062050374675e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013610594238709195,
+                "imag": -1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -2.2204460492503132e-20,
+                "imag": 3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4117266151748576e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.010295243254468006,
+                "imag": 8.583398200258673e-19
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.5105907083800268e-18,
+                "imag": 7.885150078527872e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.756413942984784,
+            "imag": 6.046759036714878e-17
+          },
+          "residual_norm": 2.632377975136927e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 2.556887593689938e-15,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.756413942984784,
+            "imag": 6.400088600427506e-17
+          },
+          "residual_norm": 2.615513309001692e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 2.540506566337412e-15,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 0.5002769235546183,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "current_sign_both_plus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "both_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.985020442749985e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.009387892492658487,
+                  "imag": 1.0798507232230098e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.3954142108136593e-18,
+                  "imag": -2.4999363526410482e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.010295243254468006,
+                  "imag": 1.0924084520893535e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6839197149764714e-18,
+                  "imag": 7.792544152534264e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "max_residual_norm": 0.010295243254468006,
+          "max_residual_over_reference": 0.006433777512539159,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013610594238709195,
+                  "imag": -1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.2204460492503132e-20,
+                  "imag": 3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.008505630511187683,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 1.6001863966236034,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.985020442749985e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.022998486731367684,
+                  "imag": 1.0815363439620842e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.3732097503211561e-18,
+                  "imag": -2.4999402829691777e-17
+                }
+              }
+            ],
+            "norm": 0.023241420528697307
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4072850454499992e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.023905837493177203,
+                  "imag": 1.0755522446986079e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6617152544839683e-18,
+                  "imag": 7.792937185347218e-19
+                }
+              }
+            ],
+            "norm": 0.023905837493177203
+          },
+          "max_residual_norm": 0.023905837493177203,
+          "max_residual_over_reference": 0.014939408023726841,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.023241420528697307,
+        "total_right_norm": 0.023905837493177203,
+        "total_max_residual_norm": 0.023905837493177203,
+        "total_max_residual_over_reference": 0.014939408023726841,
+        "alpha_left": {
+          "real": -0.6897489064774895,
+          "imag": 7.925356154499528e-16
+        },
+        "alpha_right": {
+          "real": -0.756413942984784,
+          "imag": -8.11984181588803e-17
+        },
+        "alpha_real_mean": -0.7230814247311368,
+        "alpha_imag_mean": 3.5566859864553625e-16,
+        "left_right_alpha_abs_diff": 0.0666650365072945,
+        "left_projection_residual_over_required": 0.3362281441889537,
+        "right_projection_residual_over_required": 2.53754243627342e-15,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": -1.985020442749985e-17,
+                "imag": 0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.009387892492658487,
+                "imag": -1.0798507232230098e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.3954142108136593e-18,
+                "imag": 2.4999363526410482e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013610594238709195,
+                "imag": -1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -2.2204460492503132e-20,
+                "imag": 3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4072850454499992e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.010295243254468006,
+                "imag": -1.0924084520893535e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.6839197149764714e-18,
+                "imag": -7.792544152534264e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": -0.6897489064774895,
+            "imag": 7.925356154499528e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": -0.756413942984784,
+            "imag": -8.11984181588803e-17
+          },
+          "residual_norm": 2.6124616649970238e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 2.53754243627342e-15,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 1.6001863966236034,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "current_sign_observable_plus_source_minus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_plus_source_minus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.985020442749985e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.009387892492658487,
+                  "imag": -1.0798507232230098e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.3954142108136593e-18,
+                  "imag": 2.4999363526410482e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.9583749376930508e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.009387892492658487,
+                  "imag": 1.0870642345520669e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.3894031312378388e-18,
+                  "imag": -2.4952923369084437e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "max_residual_norm": 0.00996823764326327,
+          "max_residual_over_reference": 0.010357343574792205,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013610594238709195,
+                  "imag": -1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.2204460492503132e-20,
+                  "imag": 3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.014141878016187595,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 0.5002769235546183,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.985020442749985e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.004222701746050709,
+                  "imag": -1.0781651024839353e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.4176186713061625e-18,
+                  "imag": 2.4999324223129187e-17
+                }
+              }
+            ],
+            "norm": 0.00539114517472466
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.9583749376930508e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.004222701746050709,
+                  "imag": 1.0853786138129924e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.411607591730342e-18,
+                  "imag": -2.495288406580314e-17
+                }
+              }
+            ],
+            "norm": 0.00539114517472466
+          },
+          "max_residual_norm": 0.00539114517472466,
+          "max_residual_over_reference": 0.005601586241670595,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.00539114517472466,
+        "total_right_norm": 0.00539114517472466,
+        "total_max_residual_norm": 0.00539114517472466,
+        "total_max_residual_over_reference": 0.005601586241670595,
+        "alpha_left": {
+          "real": 0.6897489064774895,
+          "imag": -7.925356154499528e-16
+        },
+        "alpha_right": {
+          "real": 0.6897489064774895,
+          "imag": -7.978355393199492e-16
+        },
+        "alpha_real_mean": 0.6897489064774895,
+        "alpha_imag_mean": -7.95185577384951e-16,
+        "left_right_alpha_abs_diff": 5.299923869996414e-18,
+        "left_projection_residual_over_required": 0.3362281441889537,
+        "right_projection_residual_over_required": 0.3362281441889537,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": -1.985020442749985e-17,
+                "imag": 0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.009387892492658487,
+                "imag": 1.0798507232230098e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.3954142108136593e-18,
+                "imag": -2.4999363526410482e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013610594238709195,
+                "imag": -1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -2.2204460492503132e-20,
+                "imag": 3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": -1.9583749376930508e-17,
+                "imag": 0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.009387892492658487,
+                "imag": -1.0870642345520669e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.3894031312378388e-18,
+                "imag": 2.4952923369084437e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.6897489064774895,
+            "imag": -7.925356154499528e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.6897489064774895,
+            "imag": -7.978355393199492e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 0.5002769235546183,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "ward_right_spatial_plus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "right_spatial_plus"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.010295243254468006,
+                  "imag": 1.0202733387987805e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.6779086354006509e-18,
+                  "imag": 7.5356044532206195e-19
+                }
+              }
+            ],
+            "norm": 0.010295243254468006
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.9583749376930508e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.009387892492658487,
+                  "imag": -1.0870642345520669e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.3894031312378388e-18,
+                  "imag": 2.4952923369084437e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "max_residual_norm": 0.010295243254468006,
+          "max_residual_over_reference": 0.010697113711434295,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.014141878016187595,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 0.5002769235546183,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -2.4339305505069335e-17,
+                  "imag": 9.974659986866641e-18
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.0033153509842411893,
+                  "imag": 1.0371295461895254e-18
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.700113095893154e-18,
+                  "imag": 7.535211420407666e-19
+                }
+              }
+            ],
+            "norm": 0.0033153509842411893
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 1.9583749376930508e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.004222701746050709,
+                  "imag": -1.0853786138129924e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.411607591730342e-18,
+                  "imag": 2.495288406580314e-17
+                }
+              }
+            ],
+            "norm": 0.00539114517472466
+          },
+          "max_residual_norm": 0.00539114517472466,
+          "max_residual_over_reference": 0.005601586241670595,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.0033153509842411893,
+        "total_right_norm": 0.00539114517472466,
+        "total_max_residual_norm": 0.00539114517472466,
+        "total_max_residual_over_reference": 0.005601586241670595,
+        "alpha_left": {
+          "real": 0.756413942984784,
+          "imag": 7.58984942888837e-17
+        },
+        "alpha_right": {
+          "real": 0.6897489064774895,
+          "imag": -7.978355393199492e-16
+        },
+        "alpha_real_mean": 0.7230814247311368,
+        "alpha_imag_mean": -3.6096852251553277e-16,
+        "left_right_alpha_abs_diff": 0.0666650365072945,
+        "left_projection_residual_over_required": 2.5613007586420212e-15,
+        "right_projection_residual_over_required": 0.3362281441889537,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 2.4339305505069335e-17,
+                "imag": -9.974659986866641e-18
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.010295243254468006,
+                "imag": -1.0202733387987805e-18
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.6779086354006509e-18,
+                "imag": -7.5356044532206195e-19
+              }
+            }
+          ],
+          "norm": 0.010295243254468006
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": -1.9583749376930508e-17,
+                "imag": 0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.009387892492658487,
+                "imag": 1.0870642345520669e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.3894031312378388e-18,
+                "imag": -2.4952923369084437e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.756413942984784,
+            "imag": 7.58984942888837e-17
+          },
+          "residual_norm": 2.6369214358073054e-17,
+          "required_norm": 0.010295243254468006,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 2.5613007586420212e-15,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.6897489064774895,
+            "imag": -7.978355393199492e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 0.5002769235546183,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "ward_temporal_minus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "temporal_minus"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.985020442749985e-17,
+                  "imag": 0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.009387892492658487,
+                  "imag": -1.0798507232230098e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.3954142108136593e-18,
+                  "imag": 2.4999363526410482e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.9583749376930508e-17,
+                  "imag": 0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.009387892492658487,
+                  "imag": 1.0870642345520669e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.3894031312378388e-18,
+                  "imag": -2.4952923369084437e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "max_residual_norm": 0.00996823764326327,
+          "max_residual_over_reference": 0.010357343574792205,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013610594238709195,
+                  "imag": -1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.2204460492503132e-20,
+                  "imag": 3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.014141878016187595,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 0.5002769235546183,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.985020442749985e-17,
+                  "imag": 0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.004222701746050709,
+                  "imag": -1.0781651024839353e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.4176186713061625e-18,
+                  "imag": 2.4999324223129187e-17
+                }
+              }
+            ],
+            "norm": 0.00539114517472466
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.9583749376930508e-17,
+                  "imag": 0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.004222701746050709,
+                  "imag": 1.0853786138129924e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.411607591730342e-18,
+                  "imag": -2.495288406580314e-17
+                }
+              }
+            ],
+            "norm": 0.00539114517472466
+          },
+          "max_residual_norm": 0.00539114517472466,
+          "max_residual_over_reference": 0.005601586241670595,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.00539114517472466,
+        "total_right_norm": 0.00539114517472466,
+        "total_max_residual_norm": 0.00539114517472466,
+        "total_max_residual_over_reference": 0.005601586241670595,
+        "alpha_left": {
+          "real": 0.6897489064774895,
+          "imag": -7.925356154499528e-16
+        },
+        "alpha_right": {
+          "real": 0.6897489064774895,
+          "imag": -7.978355393199492e-16
+        },
+        "alpha_real_mean": 0.6897489064774895,
+        "alpha_imag_mean": -7.95185577384951e-16,
+        "left_right_alpha_abs_diff": 5.299923869996414e-18,
+        "left_projection_residual_over_required": 0.3362281441889537,
+        "right_projection_residual_over_required": 0.3362281441889537,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 1.985020442749985e-17,
+                "imag": -0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.009387892492658487,
+                "imag": 1.0798507232230098e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.3954142108136593e-18,
+                "imag": -2.4999363526410482e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013610594238709195,
+                "imag": -1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -2.2204460492503132e-20,
+                "imag": 3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 1.9583749376930508e-17,
+                "imag": -0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.009387892492658487,
+                "imag": -1.0870642345520669e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.3894031312378388e-18,
+                "imag": 2.4952923369084437e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.6897489064774895,
+            "imag": -7.925356154499528e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": 0.6897489064774895,
+            "imag": -7.978355393199492e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 0.5002769235546183,
+        "valid_for_casimir_input": false
+      }
+    },
+    {
+      "candidate": {
+        "name": "kubo_fully_reversed_contact_plus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "fully_reversed",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "plus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "responses": [
+        {
+          "name": "bubble",
+          "matrix_norm": 0.6922150167555402,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.985020442749985e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.009387892492658487,
+                  "imag": 1.0798507327521303e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.389403129088057e-18,
+                  "imag": -2.4900172495451922e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.9583749376930508e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.009387892492658487,
+                  "imag": -1.0870642440811877e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.3833917607249082e-18,
+                  "imag": 2.490778554448458e-17
+                }
+              }
+            ],
+            "norm": 0.00996823764326327
+          },
+          "max_residual_norm": 0.00996823764326327,
+          "max_residual_over_reference": 0.006229422812427522,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "contact",
+          "matrix_norm": 0.9624318794950527,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.013610594238709195,
+                  "imag": -1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -2.2204460492503132e-20,
+                  "imag": 3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": 0.0,
+                  "imag": 0.0
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.013610594238709195,
+                  "imag": 1.6856207390745212e-20
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 2.2204460492503132e-20,
+                  "imag": -3.930328129490385e-23
+                }
+              }
+            ],
+            "norm": 0.013610594238709195
+          },
+          "max_residual_norm": 0.013610594238709195,
+          "max_residual_over_reference": 0.008505630511187683,
+          "valid_for_casimir_input": false
+        },
+        {
+          "name": "total",
+          "matrix_norm": 1.6001863966236034,
+          "left_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.985020442749985e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": 0.022998486731367684,
+                  "imag": 1.0781651120130558e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": 1.367198668595554e-18,
+                  "imag": -2.4900133192170627e-17
+                }
+              }
+            ],
+            "norm": 0.023241420528697307
+          },
+          "right_residual": {
+            "values": [
+              {
+                "label": "density",
+                "value": {
+                  "real": -1.9583749376930508e-17,
+                  "imag": -0.0033516020436288787
+                }
+              },
+              {
+                "label": "current_x",
+                "value": {
+                  "real": -0.022998486731367684,
+                  "imag": -1.085378623342113e-17
+                }
+              },
+              {
+                "label": "current_y",
+                "value": {
+                  "real": -1.361187300232405e-18,
+                  "imag": 2.4907746241203285e-17
+                }
+              }
+            ],
+            "norm": 0.023241420528697307
+          },
+          "max_residual_norm": 0.023241420528697307,
+          "max_residual_over_reference": 0.01452419579227567,
+          "valid_for_casimir_input": false
+        }
+      ],
+      "summary": {
+        "total_left_norm": 0.023241420528697307,
+        "total_right_norm": 0.023241420528697307,
+        "total_max_residual_norm": 0.023241420528697307,
+        "total_max_residual_over_reference": 0.01452419579227567,
+        "alpha_left": {
+          "real": -0.6897489064774895,
+          "imag": -7.942440784394174e-16
+        },
+        "alpha_right": {
+          "real": -0.6897489064774895,
+          "imag": -7.99544002309414e-16
+        },
+        "alpha_real_mean": -0.6897489064774895,
+        "alpha_imag_mean": -7.9689404037441575e-16,
+        "left_right_alpha_abs_diff": 5.2999238699966115e-18,
+        "left_projection_residual_over_required": 0.3362281441889537,
+        "right_projection_residual_over_required": 0.3362281441889537,
+        "valid_for_casimir_input": false
+      },
+      "contact_formula": {
+        "left_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.013610594238709195,
+                "imag": -1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -2.2204460492503132e-20,
+                "imag": 3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "left_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 1.985020442749985e-17,
+                "imag": 0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.009387892492658487,
+                "imag": -1.0798507327521303e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": -1.389403129088057e-18,
+                "imag": 2.4900172495451922e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "right_current_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": -0.013610594238709195,
+                "imag": 1.6856207390745212e-20
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 2.2204460492503132e-20,
+                "imag": -3.930328129490385e-23
+              }
+            }
+          ],
+          "norm": 0.013610594238709195
+        },
+        "right_required_contact": {
+          "values": [
+            {
+              "label": "density",
+              "value": {
+                "real": 1.9583749376930508e-17,
+                "imag": 0.0033516020436288787
+              }
+            },
+            {
+              "label": "current_x",
+              "value": {
+                "real": 0.009387892492658487,
+                "imag": 1.0870642440811877e-17
+              }
+            },
+            {
+              "label": "current_y",
+              "value": {
+                "real": 1.3833917607249082e-18,
+                "imag": -2.490778554448458e-17
+              }
+            }
+          ],
+          "norm": 0.00996823764326327
+        },
+        "left_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": -0.6897489064774895,
+            "imag": -7.942440784394174e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "right_required_over_current_scalar_projection": {
+          "alpha_required_over_current": {
+            "real": -0.6897489064774895,
+            "imag": -7.99544002309414e-16
+          },
+          "residual_norm": 0.0033516020436288787,
+          "required_norm": 0.00996823764326327,
+          "current_norm": 0.013610594238709195,
+          "residual_over_required_norm": 0.3362281441889537,
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false,
+      "vertex_identity": {
+        "max_abs_error_over_shifted_meshes": 3.207339049544845e-15,
+        "max_rel_error_over_shifted_meshes": 3140184917367.55,
+        "mean_rel_error_over_shifted_meshes": 19063184789.849377,
+        "valid_for_casimir_input": false
+      },
+      "block_norms": {
+        "bubble_norm": 0.6922150167555402,
+        "contact_norm": 0.9624318794950527,
+        "total_norm": 1.6001863966236034,
+        "valid_for_casimir_input": false
+      }
+    }
+  ],
+  "ranked_candidates": [
+    {
+      "rank": 1,
+      "name": "contact_eval_plus",
+      "total_max_residual_over_reference": 0.0033891663533417503,
+      "total_max_residual_norm": 0.0032552097346071466,
+      "alpha_real_mean": 0.7597711502905763,
+      "left_right_alpha_abs_diff": 5.3234466293289816e-18,
+      "candidate": {
+        "name": "contact_eval_plus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "plus",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 2,
+      "name": "contact_eval_minus",
+      "total_max_residual_over_reference": 0.0033891663533417503,
+      "total_max_residual_norm": 0.0032552097346071466,
+      "alpha_real_mean": 0.7597711502905763,
+      "left_right_alpha_abs_diff": 5.3234466293289816e-18,
+      "candidate": {
+        "name": "contact_eval_minus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "minus",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 3,
+      "name": "contact_eval_sym_pm",
+      "total_max_residual_over_reference": 0.0033891663533417503,
+      "total_max_residual_norm": 0.0032552097346071466,
+      "alpha_real_mean": 0.7597711502905763,
+      "left_right_alpha_abs_diff": 5.323446629328994e-18,
+      "candidate": {
+        "name": "contact_eval_sym_pm",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "sym_pm",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 4,
+      "name": "baseline_current",
+      "total_max_residual_over_reference": 0.0034447643047533024,
+      "total_max_residual_norm": 0.0033153509842411893,
+      "alpha_real_mean": 0.756413942984784,
+      "left_right_alpha_abs_diff": 5.299923869996599e-18,
+      "candidate": {
+        "name": "baseline_current",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 5,
+      "name": "band_direct_minus_plus",
+      "total_max_residual_over_reference": 0.0034447643047533024,
+      "total_max_residual_norm": 0.0033153509842411893,
+      "alpha_real_mean": 0.756413942984784,
+      "left_right_alpha_abs_diff": 3.533295637126275e-18,
+      "candidate": {
+        "name": "band_direct_minus_plus",
+        "band_orientation": "direct_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 6,
+      "name": "kubo_fully_reversed",
+      "total_max_residual_over_reference": 0.005601586241670595,
+      "total_max_residual_norm": 0.00539114517472466,
+      "alpha_real_mean": 0.6897489064774895,
+      "left_right_alpha_abs_diff": 5.2999238699966115e-18,
+      "candidate": {
+        "name": "kubo_fully_reversed",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "fully_reversed",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 7,
+      "name": "current_sign_observable_plus_source_minus",
+      "total_max_residual_over_reference": 0.005601586241670595,
+      "total_max_residual_norm": 0.00539114517472466,
+      "alpha_real_mean": 0.6897489064774895,
+      "left_right_alpha_abs_diff": 5.299923869996414e-18,
+      "candidate": {
+        "name": "current_sign_observable_plus_source_minus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_plus_source_minus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 8,
+      "name": "ward_right_spatial_plus",
+      "total_max_residual_over_reference": 0.005601586241670595,
+      "total_max_residual_norm": 0.00539114517472466,
+      "alpha_real_mean": 0.7230814247311368,
+      "left_right_alpha_abs_diff": 0.0666650365072945,
+      "candidate": {
+        "name": "ward_right_spatial_plus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "right_spatial_plus"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 9,
+      "name": "ward_temporal_minus",
+      "total_max_residual_over_reference": 0.005601586241670595,
+      "total_max_residual_norm": 0.00539114517472466,
+      "alpha_real_mean": 0.6897489064774895,
+      "left_right_alpha_abs_diff": 5.299923869996414e-18,
+      "candidate": {
+        "name": "ward_temporal_minus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "temporal_minus"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 10,
+      "name": "kubo_denominator_flipped",
+      "total_max_residual_over_reference": 0.01452419579227567,
+      "total_max_residual_norm": 0.023241420528697307,
+      "alpha_real_mean": -0.6897489064774895,
+      "left_right_alpha_abs_diff": 5.2999238699966115e-18,
+      "candidate": {
+        "name": "kubo_denominator_flipped",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "denominator_flipped",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 11,
+      "name": "kubo_fully_reversed_contact_plus",
+      "total_max_residual_over_reference": 0.01452419579227567,
+      "total_max_residual_norm": 0.023241420528697307,
+      "alpha_real_mean": -0.6897489064774895,
+      "left_right_alpha_abs_diff": 5.2999238699966115e-18,
+      "candidate": {
+        "name": "kubo_fully_reversed_contact_plus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "fully_reversed",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "plus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 12,
+      "name": "contact_plus_expectation",
+      "total_max_residual_over_reference": 0.014939408023726841,
+      "total_max_residual_norm": 0.023905837493177203,
+      "alpha_real_mean": -0.756413942984784,
+      "left_right_alpha_abs_diff": 5.299923869996599e-18,
+      "candidate": {
+        "name": "contact_plus_expectation",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "observable_minus_source_plus",
+        "contact_sign": "plus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    },
+    {
+      "rank": 13,
+      "name": "current_sign_both_plus",
+      "total_max_residual_over_reference": 0.014939408023726841,
+      "total_max_residual_norm": 0.023905837493177203,
+      "alpha_real_mean": -0.7230814247311368,
+      "left_right_alpha_abs_diff": 0.0666650365072945,
+      "candidate": {
+        "name": "current_sign_both_plus",
+        "band_orientation": "forward_minus_plus",
+        "kubo_convention": "minus_plus",
+        "current_sign_convention": "both_plus",
+        "contact_sign": "minus_expectation",
+        "contact_evaluation": "mid",
+        "ward_convention": "standard"
+      },
+      "valid_for_casimir_input": false
+    }
+  ],
+  "interpretation_guardrails": {
+    "not_a_residual_minimization_fix": true,
+    "best_candidate_requires_analytic_derivation_before_change": true,
+    "if_only_contact_sign_fixes": "inspect sign convention of diamagnetic term",
+    "if_kubo_or_band_orientation_fixes": "inspect response assembly convention before any BdG pairing work",
+    "if_no_candidate_closes": "normal response may need a missing finite-q equal-time/contact term beyond the scanned controls",
+    "valid_for_casimir_input": false
+  },
+  "valid_for_casimir_input": false
+}
