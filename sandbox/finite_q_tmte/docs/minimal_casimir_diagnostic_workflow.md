@@ -34,6 +34,7 @@ phi-scan
 q-scan
 shift-scan
 n-scan
+n-tail-fit
 ```
 
 The old individual debug scripts are still present and can reproduce previous runs.  New exploratory commands should prefer the unified CLI.
@@ -81,7 +82,8 @@ Suggested research flow:
 3. q-scan
 4. shift-scan / R_norm guard when suspicious
 5. n-scan
-6. q-phi-n diagnostic sum, not implemented yet
+6. n-tail-fit, offline CSV-only
+7. q-phi-n diagnostic sum/checkpoint, not implemented yet
 ```
 
 Do not skip the status flags in the output JSON.  All current outputs must retain:
@@ -178,7 +180,7 @@ PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diag
   n-scan \
   --model symmetry_bdg_2band \
   --pairing dwave \
-  --matsubara-indices 1 2 3 4 5 \
+  --matsubara-indices 100 150 200 300 500 \
   --temperature-K 10.0 \
   --q-values 0.00125 0.0025 0.005 0.0075 0.01 0.015 0.02 0.04 0.08 \
   --phi-values 0 30 60 90 120 150 180 210 240 270 300 330 \
@@ -187,7 +189,19 @@ PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diag
   --separation-nm 20.0 \
   --shift-fractions 0.0 \
   --skip-rhs-aware-validation \
-  --output-dir sandbox/finite_q_tmte/outputs/diag_n_scan_dwave_n1_5_theta45_phi12_qrefined_noshift
+  --output-dir sandbox/finite_q_tmte/outputs/diag_n_tail_scan_dwave_n100_500_sparse_theta45_phi12_qrefined_noshift
+```
+
+### 4.6 n tail fit
+
+```bash
+PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
+  n-tail-fit \
+  --input-csv sandbox/finite_q_tmte/outputs/diag_n_tail_scan_dwave_n100_500_sparse_theta45_phi12_qrefined_noshift/minimal_casimir_n_scan.csv \
+  --models power_n power_xi \
+  --fit-min-n 100 \
+  --tail-start-n-exclusive 500 \
+  --output-dir sandbox/finite_q_tmte/outputs/diag_n_tail_fit_dwave_n100_500_theta45_phi12_qrefined_noshift
 ```
 
 ---
@@ -209,7 +223,7 @@ They are useful for reproducing older checkpoints and should not be removed duri
 
 ## 6. Next planned diagnostic
 
-The next diagnostic should be a q-phi-n diagnostic sum/checkpoint built on top of n-scan:
+The next diagnostic should be a q-phi-n diagnostic sum/checkpoint built on top of n-scan and n-tail-fit:
 
 ```text
 n >= 1 partial sums only until n=0 and tail policies are defined
