@@ -33,6 +33,7 @@ theta-scan
 phi-scan
 q-scan
 shift-scan
+n-scan
 ```
 
 The old individual debug scripts are still present and can reproduce previous runs.  New exploratory commands should prefer the unified CLI.
@@ -79,7 +80,7 @@ Suggested research flow:
 2. phi-scan
 3. q-scan
 4. shift-scan / R_norm guard when suspicious
-5. n-scan, not implemented yet
+5. n-scan
 6. q-phi-n diagnostic sum, not implemented yet
 ```
 
@@ -170,6 +171,25 @@ PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diag
   --output-dir sandbox/finite_q_tmte/outputs/diag_shift_scan_dwave_n1_q004_theta45_phi4_shifts002468
 ```
 
+### 4.5 n scan
+
+```bash
+PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
+  n-scan \
+  --model symmetry_bdg_2band \
+  --pairing dwave \
+  --matsubara-indices 1 2 3 4 5 \
+  --temperature-K 10.0 \
+  --q-values 0.00125 0.0025 0.005 0.0075 0.01 0.015 0.02 0.04 0.08 \
+  --phi-values 0 30 60 90 120 150 180 210 240 270 300 330 \
+  --plate2-theta-deg 45.0 \
+  --nk 13 \
+  --separation-nm 20.0 \
+  --shift-fractions 0.0 \
+  --skip-rhs-aware-validation \
+  --output-dir sandbox/finite_q_tmte/outputs/diag_n_scan_dwave_n1_5_theta45_phi12_qrefined_noshift
+```
+
 ---
 
 ## 5. What remains deliberately unintegrated
@@ -189,11 +209,10 @@ They are useful for reproducing older checkpoints and should not be removed duri
 
 ## 6. Next planned diagnostic
 
-The next diagnostic should be an n-scan subcommand built on top of q-scan:
+The next diagnostic should be a q-phi-n diagnostic sum/checkpoint built on top of n-scan:
 
 ```text
-n >= 1 only
-no n=0 policy
+n >= 1 partial sums only until n=0 and tail policies are defined
 no production energy
 valid_for_casimir_input: False
 ```
