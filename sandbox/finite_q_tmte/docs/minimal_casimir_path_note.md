@@ -79,11 +79,31 @@ Matsubara summation
 Casimir energy/force/torque claim
 ```
 
-The `theta != 0` and torque path require arbitrary `q_vec = (qx, qy)` support in the sandbox response calculation, because the current sandbox Schur response path is still q-along-x only.
+The `theta != 0` and torque path require arbitrary `q_vec = (qx,qy)` support in the sandbox response calculation, because the current sandbox Schur response path is still q-along-x only.
 
 ---
 
-## 4. Existing helpers reused
+## 4. Basis convention in v1
+
+The sandbox response order is
+
+```text
+[A0, L, T]
+```
+
+The existing reflection helper expects a spatial `xy` conductivity tensor.  In this v1 diagnostic this is allowed only because
+
+```text
+q = (q, 0),
+L = x,
+T = y.
+```
+
+Therefore the v1 path treats the sandbox `L/T` spatial block as the lab `x/y` block.  This is not valid for arbitrary q direction or theta-dependent torque geometry.
+
+---
+
+## 5. Existing helpers reused
 
 The path reuses the existing non-sandbox physical mapping helpers:
 
@@ -111,7 +131,7 @@ R1_TE_TM = R2_TE_TM
 
 ---
 
-## 5. Example commands
+## 6. Example commands
 
 Dwave representative point:
 
@@ -145,7 +165,7 @@ PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_path
 
 ---
 
-## 6. Interpretation
+## 7. Interpretation
 
 A successful run means only:
 
@@ -166,6 +186,6 @@ valid_for_casimir_input can be True
 
 ---
 
-## 7. Immediate next step
+## 8. Immediate next step
 
 After this single-point path is verified, the next natural extension is arbitrary `q_vec=(qx,qy)` support in the sandbox response layer.  That is needed before theta-dependent plate rotation, phi integration, and torque diagnostics can be meaningful.
