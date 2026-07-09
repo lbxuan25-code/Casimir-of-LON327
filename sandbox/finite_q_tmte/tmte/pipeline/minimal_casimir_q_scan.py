@@ -98,9 +98,14 @@ def _trapezoid_q_integral(rows: list[dict[str, Any]], field: str) -> float | Non
     if len(rows) < 2:
         return None
     rows_sorted = sorted(rows, key=lambda row: float(row["q_magnitude"]))
-    q = np.asarray([float(row["q_magnitude"]) for row in rows_sorted], dtype=float)
-    values = np.asarray([float(row[field]) for row in rows_sorted], dtype=float)
-    return float(np.trapz(values, q))
+    total = 0.0
+    for left, right in zip(rows_sorted[:-1], rows_sorted[1:]):
+        q_left = float(left["q_magnitude"])
+        q_right = float(right["q_magnitude"])
+        value_left = float(left[field])
+        value_right = float(right[field])
+        total += 0.5 * (value_left + value_right) * (q_right - q_left)
+    return float(total)
 
 
 def _summary_from_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
