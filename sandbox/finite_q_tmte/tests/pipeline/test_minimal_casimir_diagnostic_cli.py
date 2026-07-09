@@ -70,6 +70,23 @@ def test_unified_cli_n_scan_parse_args_defaults_to_no_shift(tmp_path):
     assert not hasattr(args, "matsubara_index")
 
 
+def test_unified_cli_n_tail_fit_parse_args(tmp_path):
+    module = _load_cli()
+    parser = module.build_parser()
+    args = parser.parse_args([
+        "n-tail-fit",
+        "--input-csv", str(tmp_path / "minimal_casimir_n_scan.csv"),
+        "--models", "power_n",
+        "--fit-min-n", "100",
+        "--tail-start-n-exclusive", "500",
+        "--output-dir", str(tmp_path / "tail_fit"),
+    ])
+    assert args.command == "n-tail-fit"
+    assert args.models == ["power_n"]
+    assert args.fit_min_n == 100
+    assert args.tail_start_n_exclusive == 500
+
+
 def test_unified_cli_theta_scan_accepts_polar_q_without_plate2_arg(tmp_path):
     module = _load_cli()
     parser = module.build_parser()
