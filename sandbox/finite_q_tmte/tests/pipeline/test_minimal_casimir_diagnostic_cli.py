@@ -101,6 +101,26 @@ def test_unified_cli_n_budget_parse_args(tmp_path):
     assert len(args.tail_fit_json_paths) == 1
 
 
+def test_unified_cli_health_report_parse_args(tmp_path):
+    module = _load_cli()
+    parser = module.build_parser()
+    args = parser.parse_args([
+        "health-report",
+        "--input-json", str(tmp_path / "a.json"), str(tmp_path / "b.json"),
+        "--input-csv", str(tmp_path / "c.csv"),
+        "--r-norm-warning-threshold", "3.0",
+        "--rdiff-warning-threshold", "4.0",
+        "--phi-range-warning-threshold", "0.01",
+        "--output-dir", str(tmp_path / "health"),
+    ])
+    assert args.command == "health-report"
+    assert len(args.input_json_paths) == 2
+    assert len(args.input_csv_paths) == 1
+    assert args.r_norm_warning_threshold == 3.0
+    assert args.rdiff_warning_threshold == 4.0
+    assert args.phi_range_warning_threshold == 0.01
+
+
 def test_unified_cli_theta_scan_accepts_polar_q_without_plate2_arg(tmp_path):
     module = _load_cli()
     parser = module.build_parser()
