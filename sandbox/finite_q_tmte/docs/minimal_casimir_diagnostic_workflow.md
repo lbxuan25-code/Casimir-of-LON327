@@ -12,6 +12,7 @@ unified CLI entry point
 old debug scripts retained for reproducibility
 default shift policy: no-shift
 positive-n budget checkpoint documented
+health-report credibility gate added
 not a full q/phi/n Casimir integral
 not a torque calculation
 valid_for_casimir_input: False
@@ -21,6 +22,12 @@ Current checkpoint note:
 
 ```text
 sandbox/finite_q_tmte/docs/minimal_casimir_n_budget_checkpoint_note.md
+```
+
+Health-report note:
+
+```text
+sandbox/finite_q_tmte/docs/minimal_casimir_health_report_note.md
 ```
 
 Checkpoint summary:
@@ -53,6 +60,7 @@ shift-scan
 n-scan
 n-tail-fit
 n-budget
+health-report
 ```
 
 The old individual debug scripts are still present and can reproduce previous runs.  New exploratory commands should prefer the unified CLI.
@@ -103,7 +111,16 @@ Suggested research flow:
 6. n-tail-fit, offline CSV-only
 7. n-budget, offline CSV-only
 8. n-budget checkpoint note
-9. q-phi-n diagnostic sum/checkpoint, not implemented yet
+9. health-report, offline artifact credibility gate
+10. q-phi-n diagnostic sum/checkpoint, not implemented yet
+```
+
+Important distinction:
+
+```text
+health-report is intended for future formal result credibility checks.
+It should read outputs after a run and classify their trustworthiness.
+It should not be used as an excuse to continue bulk sandbox scanning.
 ```
 
 Do not skip the status flags in the output JSON.  All current outputs must retain:
@@ -240,6 +257,20 @@ PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diag
   --output-dir sandbox/finite_q_tmte/outputs/diag_n_budget_dwave_theta45_phi12_qrefined_noshift
 ```
 
+### 4.8 health report
+
+```bash
+PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
+  health-report \
+  --input-json \
+    sandbox/finite_q_tmte/outputs/diag_n_budget_with_midpoints_dwave_theta45_phi12_qrefined_noshift/minimal_casimir_n_budget.json \
+    sandbox/finite_q_tmte/outputs/diag_theta_probe_compare_dwave_theta0_45_90_phi12_qrefined_noshift/theta_probe_compare_summary.json \
+  --input-csv \
+    sandbox/finite_q_tmte/outputs/diag_phi_scan_dwave_n12_q004_theta45_phi24_noshift/minimal_casimir_phi_scan.csv \
+    sandbox/finite_q_tmte/outputs/diag_phi_scan_dwave_n12_q004_theta45_phi24_noshift_nk17/minimal_casimir_phi_scan.csv \
+  --output-dir sandbox/finite_q_tmte/outputs/diag_health_report_current_checkpoint
+```
+
 ---
 
 ## 5. What remains deliberately unintegrated
@@ -257,9 +288,17 @@ They are useful for reproducing older checkpoints and should not be removed duri
 
 ---
 
-## 6. Next planned diagnostic
+## 6. Next planned diagnostic tooling
 
-The next diagnostic should be a q-phi-n diagnostic sum/checkpoint built on top of n-scan, n-tail-fit, and n-budget:
+The next diagnostic-tooling step should be a reviewed override manifest for health-report findings:
+
+```text
+unresolved needs_review
+reviewed finite-grid artifact
+hard fail
+```
+
+After that, a manifest-based controlled runner can call scans and then immediately run health-report, while still keeping:
 
 ```text
 n >= 1 partial sums only until n=0 and tail policies are defined
