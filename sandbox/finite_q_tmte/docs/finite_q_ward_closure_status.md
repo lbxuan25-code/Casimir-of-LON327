@@ -2,7 +2,7 @@
 
 This note summarizes the current state of the finite-q Ward residual work after the RHS-aware primitive and Schur-effective diagnostics.
 
-Status: diagnostic closure achieved; production/Casimir readiness not yet achieved.
+Status: diagnostic closure achieved; sandbox RHS-aware validation staging implemented; production/Casimir readiness not yet achieved.
 
 ---
 
@@ -95,10 +95,20 @@ sandbox/finite_q_tmte/scripts/debug_schur_effective_translation_rhs_audit.py
 sandbox/finite_q_tmte/tmte/pipeline/schur_effective_translation_rhs_audit.py
 ```
 
+Sandbox RHS-aware validation staging:
+
+```text
+sandbox/finite_q_tmte/scripts/debug_rhs_aware_finite_q_validation.py
+sandbox/finite_q_tmte/tmte/pipeline/rhs_aware_finite_q_validation.py
+sandbox/finite_q_tmte/scripts/debug_rhs_aware_convergence_scan.py
+sandbox/finite_q_tmte/tmte/pipeline/rhs_aware_convergence_scan.py
+```
+
 Analytic derivation note:
 
 ```text
 sandbox/finite_q_tmte/docs/finite_q_bdg_schur_ward_derivation.md
+sandbox/finite_q_tmte/docs/rhs_aware_finite_q_validation_note.md
 ```
 
 ---
@@ -121,7 +131,33 @@ The contact-scaling numbers such as the historical `~0.8268` are therefore not p
 
 ---
 
-## 5. Still not Casimir-ready
+## 5. Sandbox validation staging now available
+
+The sandbox now has a production-style but diagnostic-only validation summary:
+
+```text
+rhs_aware_ward_closed
+primitive_s_channel_closed
+schur_effective_closed
+condition_ok
+legacy_zero_rhs_check.status = invalid_target_at_finite_q
+valid_for_casimir_input = False
+```
+
+It also has a norm-level convergence scan that compares adjacent `nk` values and shift modes for:
+
+```text
+K_eff norm
+R_eff norm
+eta projection / R_S
+K_etaeta condition number
+```
+
+This staging layer is intended for future migration into the main validation flow only after the sandbox finite-q calculation path replaces the old main-flow basis.
+
+---
+
+## 6. Still not Casimir-ready
 
 The current status remains
 
@@ -129,7 +165,7 @@ The current status remains
 valid_for_casimir_input: False
 ```
 
-because the production validator and scan runner still need to be made RHS-aware.  The diagnostic closure does not by itself define a convergence policy for physical Casimir inputs.
+because the main production validator and scan runner have not been replaced, and the convergence scan is only a norm-level diagnostic.  It does not yet define a physical Casimir error budget.
 
 A production-facing validation should check and report at least:
 
@@ -147,9 +183,10 @@ The production runner should not use fitted contact scales or any zero-RHS finit
 
 ---
 
-## 6. Recommended next work
+## 7. Recommended next work
 
-1. Implement an RHS-aware finite-q validation summary that consumes the existing Schur audit logic.
-2. Add convergence diagnostics for `K_eff`, `R_eff`, `eta_projection_over_rhs_s`, and `cond(K_etaeta)`.
-3. Keep `contact_scale` and scalar alpha projections diagnostic-only.
-4. Only after RHS-aware validation and convergence policy exist should `valid_for_casimir_input` be reconsidered.
+1. Run the sandbox RHS-aware validation and convergence scan on representative finite-q points.
+2. Decide which response combination is actually consumed by the future Casimir path.
+3. Extend convergence diagnostics from norm-level summaries to the final Casimir-consumed response combination.
+4. Keep `contact_scale` and scalar alpha projections diagnostic-only.
+5. Only after the main validation flow is replaced and a convergence/error policy exists should `valid_for_casimir_input` be reconsidered.
