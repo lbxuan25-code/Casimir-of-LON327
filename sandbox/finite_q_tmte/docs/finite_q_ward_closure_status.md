@@ -2,7 +2,7 @@
 
 This note summarizes the current state of the finite-q Ward residual work after the RHS-aware primitive and Schur-effective diagnostics.
 
-Status: diagnostic closure achieved; sandbox RHS-aware validation staging implemented; production/Casimir readiness not yet achieved.
+Status: Ward-specific work is complete at the sandbox diagnostic level.  Physical response convergence is not complete.  Production/Casimir readiness is not achieved.
 
 ---
 
@@ -68,6 +68,22 @@ no-shift light scan:
   effective residual/reference about 1e-15 to 2.25e-13.
 ```
 
+RHS-aware validation staging:
+
+```text
+dwave, shifted5, n=1, q=0.02, nk=13:
+  rhs_aware_ward_closed = True
+  max_S_res/rhs = 1.08053316e-13
+  max_eff_res/ref = 1.06907163e-13
+  legacy_zero_rhs/Keff = 3.02479763e-03
+
+spm, shifted5, n=1, q=0.02, nk=13:
+  rhs_aware_ward_closed = True
+  max_S_res/rhs = 1.40334963e-12
+  max_eff_res/ref = 1.41435872e-12
+  legacy_zero_rhs/Keff = 7.18476027e-05
+```
+
 These results show that the residual previously seen in `K_eff` is a Schur-projected finite-q RHS, not an unexplained Ward failure.
 
 ---
@@ -104,11 +120,12 @@ sandbox/finite_q_tmte/scripts/debug_rhs_aware_convergence_scan.py
 sandbox/finite_q_tmte/tmte/pipeline/rhs_aware_convergence_scan.py
 ```
 
-Analytic derivation note:
+Analytic and handoff notes:
 
 ```text
 sandbox/finite_q_tmte/docs/finite_q_bdg_schur_ward_derivation.md
 sandbox/finite_q_tmte/docs/rhs_aware_finite_q_validation_note.md
+sandbox/finite_q_tmte/docs/finite_q_ward_final_handoff.md
 ```
 
 ---
@@ -153,7 +170,27 @@ eta projection / R_S
 K_etaeta condition number
 ```
 
-This staging layer is intended for future migration into the main validation flow only after the sandbox finite-q calculation path replaces the old main-flow basis.
+The latest convergence diagnostics confirm the boundary:
+
+```text
+no-shift light scan:
+  num_rows = 36
+  num_rhs_aware_closed = 36
+  all_rhs_aware_closed = True
+  max_nk_relative_change_K_eff_norm = 2.40427139e-01
+  max_nk_relative_change_R_eff_norm = 9.13985107e-01
+  max_nk_relative_change_eta_projection_over_rhs_s = 9.53879376e-01
+
+shift comparison at n=1, q=0.02, nk=13:
+  num_rows = 6
+  num_rhs_aware_closed = 6
+  all_rhs_aware_closed = True
+  max_shift_relative_change_K_eff_norm = 3.52423884e-01
+  max_shift_relative_change_R_eff_norm = 9.93591687e-01
+  max_shift_relative_change_eta_projection_over_rhs_s = 9.68565728e-01
+```
+
+Thus Ward closure is complete, while physical response convergence remains a separate unsolved problem.
 
 ---
 
@@ -183,10 +220,17 @@ The production runner should not use fitted contact scales or any zero-RHS finit
 
 ---
 
-## 7. Recommended next work
+## 7. Final Ward handoff
 
-1. Run the sandbox RHS-aware validation and convergence scan on representative finite-q points.
-2. Decide which response combination is actually consumed by the future Casimir path.
-3. Extend convergence diagnostics from norm-level summaries to the final Casimir-consumed response combination.
-4. Keep `contact_scale` and scalar alpha projections diagnostic-only.
-5. Only after the main validation flow is replaced and a convergence/error policy exists should `valid_for_casimir_input` be reconsidered.
+Ward-specific work should now stop at the sandbox diagnostic level.  The next stage is not to keep searching for Ward residual fixes; it is to solve physical response convergence and define the future Casimir-consumed response combination.
+
+Recommended next work outside the Ward closure scope:
+
+```text
+1. Decide which K_eff components or projected combinations will be consumed by the future Casimir path.
+2. Extend convergence diagnostics from norms to those final response combinations.
+3. Study nk and shift convergence at higher nk and practical shift modes.
+4. Define an error budget before reconsidering valid_for_casimir_input.
+```
+
+Until those tasks are complete, the finite-q path remains diagnostic-only.
