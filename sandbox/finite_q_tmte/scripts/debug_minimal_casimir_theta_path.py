@@ -94,18 +94,18 @@ def _print_summary(payload: dict[str, object]) -> None:
     print("minimal_casimir_theta_path summary")
     print("status:", payload["status"])
     print("input:", payload["input"])
-    print(
-        "metrics: "
-        f"p1_ward={_ward_closed_label(p1.get('rhs_aware_validation'))} "
-        f"p2_ward={_ward_closed_label(p2.get('rhs_aware_validation'))} "
-        f"p1_Keff={float(p1['sandbox_response_source']['K_eff_norm']):.8e} "
-        f"p2_Keff={float(p2['sandbox_response_source']['K_eff_norm']):.8e} "
-        f"p1_R={float(p1_point['reflection']['R_TE_TM_norm']):.8e} "
-        f"p2_R={float(p2_point['reflection']['R_TE_TM_norm']):.8e} "
-        f"Rdiff={float(mixed['R1_minus_R2_norm']):.8e} "
-        f"round_trip={float(mixed['round_trip_factor']):.8e} "
-        f"mixed_logdet_abs={float(mixed['logdet_abs']):.8e}"
-    )
+    metrics = {
+        "p1_ward": _ward_closed_label(p1.get("rhs_aware_validation")),
+        "p2_ward": _ward_closed_label(p2.get("rhs_aware_validation")),
+        "p1_Keff": f"{float(p1['sandbox_response_source']['K_eff_norm']):.8e}",
+        "p2_Keff": f"{float(p2['sandbox_response_source']['K_eff_norm']):.8e}",
+        "p1_R": f"{float(p1_point['reflection']['R_TE_TM_norm']):.8e}",
+        "p2_R": f"{float(p2_point['reflection']['R_TE_TM_norm']):.8e}",
+        "Rdiff": f"{float(mixed['R1_minus_R2_norm']):.8e}",
+        "round_trip": f"{float(mixed['round_trip_factor']):.8e}",
+        "mixed_logdet_abs": f"{float(mixed['logdet_abs']):.8e}",
+    }
+    print("metrics:", ", ".join(f"{key}={value}" for key, value in metrics.items()))
     print("geometry:", payload["geometry"])
     print("sanity_checks:", payload["sanity_checks"])
 
