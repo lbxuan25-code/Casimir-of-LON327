@@ -3,6 +3,9 @@
 This module stitches the sandbox Schur-effective K_eff response into the
 existing electrodynamics and Lifshitz trace-log helpers.  It intentionally
 supports only n>=1, q>0, q=(q,0), theta=0 single-point diagnostics.
+
+Because q is fixed along the x direction, the sandbox (L,T) spatial block can
+be identified with the lab (x,y) block for this v1 diagnostic only.
 """
 
 from __future__ import annotations
@@ -169,6 +172,7 @@ def response_to_minimal_casimir_point(
             "full_response_norm": _norm(matrix),
             "spatial_response_norm": _norm(matrix[1:3, 1:3]),
             "spatial_order": list(SPATIAL_ORDER),
+            "spatial_basis_note": "For v1 q=(q,0), L/T is identified with lab x/y before calling the existing xy reflection helper.",
             "valid_for_casimir_input": False,
         },
         "conductivity": {
@@ -193,6 +197,7 @@ def response_to_minimal_casimir_point(
             "R_TE_TM_norm": _norm(r_te_tm),
             "TE_TM_order": list(TE_TM_ORDER),
             "same_plate_theta0_diagnostic": True,
+            "q_along_x_LT_equals_xy_only_in_v1": True,
             "sigma_tilde_xy_matrix": reflection["sigma_tilde_xy_matrix"],
             "sigma_tilde_LT_matrix": reflection["sigma_tilde_LT_matrix"],
             "reflection_tangential_E_LT": reflection["reflection_tangential_E_LT"],
@@ -222,6 +227,7 @@ def response_to_minimal_casimir_point(
         "sanity_checks": {
             "finite_reflection": bool(np.isfinite(r_te_tm.real).all() and np.isfinite(r_te_tm.imag).all()),
             "finite_logdet": _finite_complex(logdet),
+            "q_along_x_LT_equals_xy_only_in_v1": True,
             "single_point_trace_log_only": True,
             "valid_for_casimir_input": False,
         },
@@ -324,6 +330,7 @@ def run_minimal_casimir_path(
         "sandbox_response_source": {
             "source": "sandbox_finite_q_tmte_schur_effective_K_eff",
             "primitive_order": ["A0", "L", "T"],
+            "spatial_basis_note": "For v1 q=(q,0), primitive L/T is treated as lab x/y for the existing xy reflection helper.",
             "K_eff": response["K_eff"],
             "K_SS_norm": response["metadata"]["K_SS_norm"],
             "K_eff_norm": response["metadata"]["K_eff_norm"],
@@ -339,6 +346,7 @@ def run_minimal_casimir_path(
             "uses_existing_conductivity_reflection_trace_log_helpers": True,
             "does_not_modify_main_validation": True,
             "does_not_modify_main_casimir_pipeline": True,
+            "q_along_x_LT_equals_xy_only_in_v1": True,
             "not_a_full_casimir_energy": True,
             "not_a_torque_calculation": True,
             "valid_for_casimir_input": False,
