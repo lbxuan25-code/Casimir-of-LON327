@@ -87,6 +87,20 @@ def test_unified_cli_n_tail_fit_parse_args(tmp_path):
     assert args.tail_start_n_exclusive == 500
 
 
+def test_unified_cli_n_budget_parse_args(tmp_path):
+    module = _load_cli()
+    parser = module.build_parser()
+    args = parser.parse_args([
+        "n-budget",
+        "--input-csv", str(tmp_path / "n1.csv"), str(tmp_path / "n2.csv"),
+        "--tail-fit-json", str(tmp_path / "tail.json"),
+        "--output-dir", str(tmp_path / "budget"),
+    ])
+    assert args.command == "n-budget"
+    assert len(args.input_csv_paths) == 2
+    assert len(args.tail_fit_json_paths) == 1
+
+
 def test_unified_cli_theta_scan_accepts_polar_q_without_plate2_arg(tmp_path):
     module = _load_cli()
     parser = module.build_parser()
