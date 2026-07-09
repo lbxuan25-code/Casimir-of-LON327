@@ -51,7 +51,7 @@ def test_unified_cli_shift_scan_parse_args(tmp_path):
     assert args.r_norm_warning_threshold == module.DEFAULT_R_NORM_WARNING_THRESHOLD
 
 
-def test_unified_cli_theta_scan_accepts_polar_q(tmp_path):
+def test_unified_cli_theta_scan_accepts_polar_q_without_plate2_arg(tmp_path):
     module = _load_cli()
     parser = module.build_parser()
     args = parser.parse_args([
@@ -60,7 +60,6 @@ def test_unified_cli_theta_scan_accepts_polar_q(tmp_path):
         "--q", "0.02",
         "--phi-deg", "30",
         "--theta-values", "0", "45",
-        "--plate2-theta-deg", "45",
         "--nk", "13",
         "--separation-nm", "20",
         "--output-dir", str(tmp_path),
