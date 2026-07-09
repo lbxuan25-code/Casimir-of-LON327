@@ -49,13 +49,14 @@ def _positive_float(value: str) -> float:
     return parsed
 
 
-def _add_common_model_args(parser: argparse.ArgumentParser) -> None:
+def _add_common_model_args(parser: argparse.ArgumentParser, *, include_plate2_theta: bool = True) -> None:
     parser.add_argument("--model", choices=available_models(), default="symmetry_bdg_2band")
     parser.add_argument("--pairing", default="dwave")
     parser.add_argument("--matsubara-index", "--n", dest="matsubara_index", type=_positive_int, required=True)
     parser.add_argument("--temperature-K", type=float, default=10.0)
     parser.add_argument("--plate1-theta-deg", type=float, default=0.0)
-    parser.add_argument("--plate2-theta-deg", type=float, required=True)
+    if include_plate2_theta:
+        parser.add_argument("--plate2-theta-deg", type=float, required=True)
     parser.add_argument("--nk", type=_positive_int, required=True)
     parser.add_argument("--separation-nm", type=_positive_float, required=True)
     parser.add_argument("--delta0-eV", type=float, default=None)
@@ -201,7 +202,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     theta = subparsers.add_parser("theta-scan", help="scan plate angle at fixed lab q")
-    _add_common_model_args(theta)
+    _add_common_model_args(theta, include_plate2_theta=False)
     _add_shift_fractions_arg(theta)
     theta.add_argument("--q", type=_positive_float, default=None, help="lab q magnitude for polar input")
     theta.add_argument("--phi-deg", type=float, default=None, help="lab q direction in degrees for polar input")
