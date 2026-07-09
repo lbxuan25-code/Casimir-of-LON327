@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(SANDBOX_ROOT))
 
 from tmte.adapters.model_adapter import available_models  # noqa: E402
+from tmte.pipeline.minimal_casimir_n_scan import run_and_write_minimal_casimir_n_scan  # noqa: E402
 from tmte.pipeline.minimal_casimir_phi_scan import run_and_write_minimal_casimir_phi_scan  # noqa: E402
 from tmte.pipeline.minimal_casimir_q_scan import run_and_write_minimal_casimir_q_scan  # noqa: E402
 from tmte.pipeline.minimal_casimir_qvec_path import q_model_vector_from_polar  # noqa: E402
@@ -49,10 +50,11 @@ def _positive_float(value: str) -> float:
     return parsed
 
 
-def _add_common_model_args(parser: argparse.ArgumentParser, *, include_plate2_theta: bool = True) -> None:
+def _add_common_model_args(parser: argparse.ArgumentParser, *, include_plate2_theta: bool = True, include_single_matsubara: bool = True) -> None:
     parser.add_argument("--model", choices=available_models(), default="symmetry_bdg_2band")
     parser.add_argument("--pairing", default="dwave")
-    parser.add_argument("--matsubara-index", "--n", dest="matsubara_index", type=_positive_int, required=True)
+    if include_single_matsubara:
+        parser.add_argument("--matsubara-index", "--n", dest="matsubara_index", type=_positive_int, required=True)
     parser.add_argument("--temperature-K", type=float, default=10.0)
     parser.add_argument("--plate1-theta-deg", type=float, default=0.0)
     if include_plate2_theta:
@@ -194,6 +196,28 @@ def _run_shift_scan(args: argparse.Namespace) -> dict[str, Any]:
     )
 
 
+def _run_n_scan(args: argparse.Namespace) -> dict[str, Any]:
+    return run_and_write_minimal_casimir_n_scan(
+        args.output_dir,
+        model_name=args.model,
+        pairing_name=args.pairing,
+        matsubara_indices=tuple(args.matsubara_indices),
+        temperature_K=args.temperature_K,
+        q_values=tuple(args.q_values),
+        phi_values_deg=tuple(args.phi_values),
+        plate1_theta_deg=args.plate1_theta_deg,
+        plate2_theta_deg=args.plate2_theta_deg,
+        nk=args.nk,
+        separation_nm=args.separation_nm,
+        delta0_eV=args.delta0_eV,
+        eta_eV=args.eta,
+        shift_fractions=tuple(args.shift_fractions),
+        candidate_name=args.candidate,
+        include_rhs_aware_validation=not args.skip_rhs_aware_validation,
+        include_q_scan_payloads=args.include_q_scan_payloads,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Unified debug-only minimal Casimir diagnostics. Default shift policy is no-shift.",
@@ -236,6 +260,15 @@ def build_parser() -> argparse.ArgumentParser:
     shift.add_argument("--r-norm-warning-threshold", type=_positive_float, default=DEFAULT_R_NORM_WARNING_THRESHOLD)
     shift.add_argument("--include-phi-scan-payloads", action="store_true")
     shift.set_defaults(func=_run_shift_scan, kind="shift-scan")
+
+    nscan = subparsers.add_parser("n-scan", help="scan positive Matsubara indices using q-scan diagnostics")
+    _add_common_model_args(nscan, include_single_matsubara=False)
+    _add_shift_fractions_arg(nscan)
+    nscan.add_argument("--matsubara-indices", "--n-values", dest="matsubara_indices", nargs="+", type=_positive_int, required=True)
+    nscan.add_argument("--q-values", nargs="+", type=_positive_float, required=True)
+    nscan.add_argument("--phi-values", nargs="+", type=float, required=True)
+    nscan.add_argument("--include-q-scan-payloads", action="store_true")
+    nscan.set_defaults(func=_run_n_scan, kind="n-scan")
 
     return parser
 
