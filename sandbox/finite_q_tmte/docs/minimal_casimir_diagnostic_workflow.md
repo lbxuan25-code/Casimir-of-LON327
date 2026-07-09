@@ -1,54 +1,42 @@
 # Minimal Casimir diagnostic workflow
 
-This document defines the current lightweight diagnostic workflow for the sandbox finite-q TMTE Casimir path.
+This is the current workflow document for the sandbox finite-q TMTE minimal Casimir diagnostics.
 
-Read the documentation map first:
-
-```text
-sandbox/finite_q_tmte/docs/README.md
-```
-
-The goal is to reduce script sprawl without promoting the sandbox diagnostics to a production Casimir pipeline.
-
-Status:
+Status boundary:
 
 ```text
 diagnostic-only workflow
 unified CLI entry point
-old debug scripts retained for reproducibility
-default shift policy: no-shift
+primary scan mode: no-shift
 positive-n budget checkpoint documented
 health-report credibility gate added
-not a full q/phi/n Casimir integral
+not a production Casimir pipeline
+not a Casimir energy
 not a torque calculation
-valid_for_casimir_input: False
-```
-
-Current checkpoint note:
-
-```text
-sandbox/finite_q_tmte/docs/minimal_casimir_n_budget_checkpoint_note.md
-```
-
-Health-report note:
-
-```text
-sandbox/finite_q_tmte/docs/minimal_casimir_health_report_note.md
-```
-
-Checkpoint summary:
-
-```text
-positive-n diagnostic budget: 0.007431760613385256 to 0.007449706575429743
-midpoint validation: globally passed, about 1.2% budget shift
-n>500 tail: controlled, about 4.2e-05 to 6.0e-05
-local nk=13 pathology: n=12, q=0.04, removed by nk=17
 valid_for_casimir_input: False
 ```
 
 ---
 
-## 1. Unified entry point
+## 1. Current authoritative docs
+
+Only these docs should be treated as current sandbox status for main-flow integration work:
+
+```text
+finite_q_ward_final_handoff.md
+finite_q_ward_closure_status.md
+finite_q_bdg_schur_ward_derivation.md
+finite_q_remaining_work_items.md
+minimal_casimir_diagnostic_workflow.md
+minimal_casimir_n_budget_checkpoint_note.md
+minimal_casimir_health_report_note.md
+```
+
+Other old sandbox notes have been removed to avoid conflicting historical status.
+
+---
+
+## 2. Unified diagnostic CLI
 
 Use:
 
@@ -69,245 +57,113 @@ n-budget
 health-report
 ```
 
-The old individual debug scripts are still present and can reproduce previous runs.  New exploratory commands should prefer the unified CLI.
+The CLI remains diagnostic-only. It must not be interpreted as a production Casimir runner.
 
 ---
 
-## 2. Shift policy
-
-The unified CLI defaults to:
+## 3. Current numerical policy
 
 ```text
---shift-fractions 0.0
-```
+q=0:
+  excluded from finite-q path
 
-Reason:
+n=0:
+  excluded; no static Matsubara policy yet
 
-```text
-single-shift scans showed reflection-norm pathologies for shifted meshes
-no-shift has been cleaner in the current n=1 diagnostics
-shifted5 should be treated as a stress test, not as the default high-accuracy setting
-```
+shift:
+  default no-shift
+  shifted meshes are stress/pathology probes, not default accuracy policy
 
-Recommended use:
+nk:
+  nk=13 is scouting-level
+  suspicious local points require nk convergence probes, e.g. nk=17
 
-```text
-primary diagnostic scans:
-  no-shift
+logdet_abs:
+  diagnostic-only quantity
+  not a physical signed Casimir integrand
 
-quick auxiliary check:
-  shifted2, e.g. 0.0 0.5
-
-stress/pathology check:
-  shift-scan over 0.0 0.2 0.4 0.6 0.8
+valid_for_casimir_input:
+  always False in current sandbox outputs
 ```
 
 ---
 
-## 3. Current diagnostic order
+## 4. Current positive-n checkpoint
 
-Suggested research flow:
+The current positive-n diagnostic checkpoint is recorded in:
 
 ```text
-1. theta-scan
-2. phi-scan
-3. q-scan
-4. shift-scan / R_norm guard when suspicious
-5. n-scan
-6. n-tail-fit, offline CSV-only
-7. n-budget, offline CSV-only
-8. n-budget checkpoint note
-9. health-report, offline artifact credibility gate
-10. q-phi-n diagnostic sum/checkpoint, not implemented yet
+minimal_casimir_n_budget_checkpoint_note.md
 ```
 
-Important distinction:
+Summary:
 
 ```text
-health-report is intended for future formal result credibility checks.
-It should read outputs after a run and classify their trustworthiness.
-It should not be used as an excuse to continue bulk sandbox scanning.
-```
-
-Do not skip the status flags in the output JSON.  All current outputs must retain:
-
-```text
+positive-n diagnostic budget: 0.007431760613385256 to 0.007449706575429743
+midpoint validation: globally passed, about 1.2% budget shift
+n>500 tail: controlled, about 4.2e-05 to 6.0e-05
+local nk=13 pathology: n=12, q=0.04, removed by nk=17
 valid_for_casimir_input: False
 ```
 
 ---
 
-## 4. Example commands
+## 5. Health report
 
-### 4.1 theta scan
+The current artifact credibility checker is documented in:
 
-```bash
-PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
-  theta-scan \
-  --model symmetry_bdg_2band \
-  --pairing dwave \
-  --matsubara-index 1 \
-  --temperature-K 10.0 \
-  --q 0.02 \
-  --phi-deg 30 \
-  --theta-values 0 15 30 45 60 75 90 \
-  --nk 13 \
-  --separation-nm 20.0 \
-  --shift-fractions 0.0 \
-  --skip-rhs-aware-validation \
-  --output-dir sandbox/finite_q_tmte/outputs/diag_theta_scan_dwave_n1_q002_phi30_theta0_90_noshift
+```text
+minimal_casimir_health_report_note.md
 ```
 
-### 4.2 phi scan
+Purpose:
 
-```bash
-PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
-  phi-scan \
-  --model symmetry_bdg_2band \
-  --pairing dwave \
-  --matsubara-index 1 \
-  --temperature-K 10.0 \
-  --q 0.02 \
-  --phi-values 0 30 60 90 120 150 180 210 240 270 300 330 \
-  --plate2-theta-deg 45.0 \
-  --nk 13 \
-  --separation-nm 20.0 \
-  --shift-fractions 0.0 \
-  --skip-rhs-aware-validation \
-  --output-dir sandbox/finite_q_tmte/outputs/diag_phi_scan_dwave_n1_q002_theta45_phi12_noshift
+```text
+read existing JSON/CSV artifacts
+classify numerical health as pass / needs_review / fail
+flag R_norm, Rdiff, phi-range, kappa, and nonfinite issues
+do not run BdG
+do not schedule scans
+do not define Casimir policy
 ```
 
-### 4.3 q scan
-
-```bash
-PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
-  q-scan \
-  --model symmetry_bdg_2band \
-  --pairing dwave \
-  --matsubara-index 1 \
-  --temperature-K 10.0 \
-  --q-values 0.00125 0.0025 0.005 0.0075 0.01 0.015 0.02 0.04 0.08 \
-  --phi-values 0 30 60 90 120 150 180 210 240 270 300 330 \
-  --plate2-theta-deg 45.0 \
-  --nk 13 \
-  --separation-nm 20.0 \
-  --shift-fractions 0.0 \
-  --skip-rhs-aware-validation \
-  --output-dir sandbox/finite_q_tmte/outputs/diag_q_scan_dwave_n1_theta45_phi12_noshift_refined
-```
-
-### 4.4 shift scan
-
-```bash
-PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
-  shift-scan \
-  --model symmetry_bdg_2band \
-  --pairing dwave \
-  --matsubara-index 1 \
-  --temperature-K 10.0 \
-  --q 0.04 \
-  --phi-values 0 15 30 45 \
-  --plate2-theta-deg 45.0 \
-  --nk 13 \
-  --separation-nm 20.0 \
-  --shift-values 0.0 0.2 0.4 0.6 0.8 \
-  --r-norm-warning-threshold 2.0 \
-  --skip-rhs-aware-validation \
-  --output-dir sandbox/finite_q_tmte/outputs/diag_shift_scan_dwave_n1_q004_theta45_phi4_shifts002468
-```
-
-### 4.5 n scan
-
-```bash
-PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
-  n-scan \
-  --model symmetry_bdg_2band \
-  --pairing dwave \
-  --matsubara-indices 100 150 200 300 500 \
-  --temperature-K 10.0 \
-  --q-values 0.00125 0.0025 0.005 0.0075 0.01 0.015 0.02 0.04 0.08 \
-  --phi-values 0 30 60 90 120 150 180 210 240 270 300 330 \
-  --plate2-theta-deg 45.0 \
-  --nk 13 \
-  --separation-nm 20.0 \
-  --shift-fractions 0.0 \
-  --skip-rhs-aware-validation \
-  --output-dir sandbox/finite_q_tmte/outputs/diag_n_tail_scan_dwave_n100_500_sparse_theta45_phi12_qrefined_noshift
-```
-
-### 4.6 n tail fit
-
-```bash
-PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
-  n-tail-fit \
-  --input-csv sandbox/finite_q_tmte/outputs/diag_n_tail_scan_dwave_n100_500_sparse_theta45_phi12_qrefined_noshift/minimal_casimir_n_scan.csv \
-  --models power_n power_xi \
-  --fit-min-n 100 \
-  --tail-start-n-exclusive 500 \
-  --output-dir sandbox/finite_q_tmte/outputs/diag_n_tail_fit_dwave_n100_500_theta45_phi12_qrefined_noshift
-```
-
-### 4.7 n budget
-
-```bash
-PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
-  n-budget \
-  --input-csv \
-    sandbox/finite_q_tmte/outputs/diag_n_scan_dwave_n1_5_theta45_phi12_qrefined_noshift/minimal_casimir_n_scan.csv \
-    sandbox/finite_q_tmte/outputs/diag_n_tail_scan_dwave_n10_100_sparse_theta45_phi12_qrefined_noshift/minimal_casimir_n_scan.csv \
-    sandbox/finite_q_tmte/outputs/diag_n_tail_scan_dwave_n100_500_sparse_theta45_phi12_qrefined_noshift/minimal_casimir_n_scan.csv \
-  --tail-fit-json \
-    sandbox/finite_q_tmte/outputs/diag_n_tail_fit_dwave_n100_500_theta45_phi12_qrefined_noshift/minimal_casimir_n_tail_fit.json \
-    sandbox/finite_q_tmte/outputs/diag_n_tail_fit_dwave_n150_500_theta45_phi12_qrefined_noshift/minimal_casimir_n_tail_fit.json \
-    sandbox/finite_q_tmte/outputs/diag_n_tail_fit_dwave_n200_500_theta45_phi12_qrefined_noshift/minimal_casimir_n_tail_fit.json \
-  --output-dir sandbox/finite_q_tmte/outputs/diag_n_budget_dwave_theta45_phi12_qrefined_noshift
-```
-
-### 4.8 health report
-
-```bash
-PYTHONPATH=src:. python sandbox/finite_q_tmte/scripts/debug_minimal_casimir_diagnostic.py \
-  health-report \
-  --input-json \
-    sandbox/finite_q_tmte/outputs/diag_n_budget_with_midpoints_dwave_theta45_phi12_qrefined_noshift/minimal_casimir_n_budget.json \
-    sandbox/finite_q_tmte/outputs/diag_theta_probe_compare_dwave_theta0_45_90_phi12_qrefined_noshift/theta_probe_compare_summary.json \
-  --input-csv \
-    sandbox/finite_q_tmte/outputs/diag_phi_scan_dwave_n12_q004_theta45_phi24_noshift/minimal_casimir_phi_scan.csv \
-    sandbox/finite_q_tmte/outputs/diag_phi_scan_dwave_n12_q004_theta45_phi24_noshift_nk17/minimal_casimir_phi_scan.csv \
-  --output-dir sandbox/finite_q_tmte/outputs/diag_health_report_current_checkpoint
-```
+This tool is intended for future formal data-production result checking, not for bulk sandbox scanning.
 
 ---
 
-## 5. What remains deliberately unintegrated
+## 6. Remaining blockers before main-flow Casimir input
 
-The following remain separate for now:
+The current remaining-work list is:
 
 ```text
-minimal single-point path scripts
-q-vector single-point scripts
-theta-path single-point script
-legacy debug scripts used in earlier handoff notes
+finite_q_remaining_work_items.md
 ```
 
-They are useful for reproducing older checkpoints and should not be removed during this lightweight consolidation.
+Highest-priority blockers:
+
+```text
+Casimir-consumed response contract not fixed
+physical EM -> TE/TM/reflection production mapping not fixed
+signed/physical logdet policy not fixed
+units / prefactors / q-phi measure not fixed
+n=0 static Matsubara mode policy not fixed
+q=0 / q->0 / xi->0 limit policy not fixed
+health-report reviewed override mechanism not implemented
+final valid_for_casimir_input criteria not defined
+```
+
+Engineering optimization is deliberately not first priority. Caching, parallel execution, vectorization, output-size control, and large-nk runtime control should come after the sandbox flow and main-flow contract are fixed.
 
 ---
 
-## 6. Next planned diagnostic tooling
+## 7. Recommended next non-scanning work
 
-The next diagnostic-tooling step should be a reviewed override manifest for health-report findings:
-
-```text
-unresolved needs_review
-reviewed finite-grid artifact
-hard fail
-```
-
-After that, a manifest-based controlled runner can call scans and then immediately run health-report, while still keeping:
+Next work should focus on process clarity and main-flow readiness, not more data production:
 
 ```text
-n >= 1 partial sums only until n=0 and tail policies are defined
-no production energy
-valid_for_casimir_input: False
+1. reviewed override manifest for health-report findings
+2. Casimir-consumed response contract
+3. signed/physical logdet policy
+4. q=0/n=0/order-of-limits policy
+5. valid_for_casimir_input criteria
 ```
