@@ -125,7 +125,8 @@ def test_cli_accepts_polar_and_explicit_qvec_and_rejects_bad_mix(tmp_path):
     assert np.allclose(q, [0.02, 0.01])
 
     with pytest.raises(SystemExit):
-        parser.parse_args(["--matsubara-index", "1", "--nk", "13", "--separation-nm", "20", "--output-dir", str(tmp_path)])
+        args = parser.parse_args(["--matsubara-index", "1", "--nk", "13", "--separation-nm", "20", "--output-dir", str(tmp_path)])
+        module.q_vector_from_args(args, parser)
     with pytest.raises(SystemExit):
         args = parser.parse_args(["--matsubara-index", "1", "--q", "0.02", "--qx", "0.02", "--qy", "0.0", "--nk", "13", "--separation-nm", "20", "--output-dir", str(tmp_path)])
         module.q_vector_from_args(args, parser)
