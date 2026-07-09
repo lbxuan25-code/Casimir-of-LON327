@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(SANDBOX_ROOT))
 
 from tmte.adapters.model_adapter import available_models  # noqa: E402
+from tmte.pipeline.minimal_casimir_n_budget import run_and_write_minimal_casimir_n_budget  # noqa: E402
 from tmte.pipeline.minimal_casimir_n_scan import run_and_write_minimal_casimir_n_scan  # noqa: E402
 from tmte.pipeline.minimal_casimir_n_tail_fit import (  # noqa: E402
     DEFAULT_QUANTITY_COLUMN,
@@ -235,6 +236,15 @@ def _run_n_tail_fit(args: argparse.Namespace) -> dict[str, Any]:
     )
 
 
+def _run_n_budget(args: argparse.Namespace) -> dict[str, Any]:
+    return run_and_write_minimal_casimir_n_budget(
+        args.output_dir,
+        input_csv_paths=tuple(args.input_csv_paths),
+        quantity_column=args.quantity_column,
+        tail_fit_json_paths=tuple(args.tail_fit_json_paths),
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Unified debug-only minimal Casimir diagnostics. Default shift policy is no-shift.",
@@ -296,6 +306,13 @@ def build_parser() -> argparse.ArgumentParser:
     tail.add_argument("--tail-start-n-exclusive", type=_positive_int, default=None)
     tail.add_argument("--output-dir", type=Path, required=True)
     tail.set_defaults(func=_run_n_tail_fit, kind="n-tail-fit")
+
+    budget = subparsers.add_parser("n-budget", help="offline aggregation of n-scan CSVs and optional tail-fit JSON")
+    budget.add_argument("--input-csv", dest="input_csv_paths", nargs="+", type=Path, required=True)
+    budget.add_argument("--quantity-column", default=DEFAULT_QUANTITY_COLUMN)
+    budget.add_argument("--tail-fit-json", dest="tail_fit_json_paths", nargs="*", type=Path, default=[])
+    budget.add_argument("--output-dir", type=Path, required=True)
+    budget.set_defaults(func=_run_n_budget, kind="n-budget")
 
     return parser
 
