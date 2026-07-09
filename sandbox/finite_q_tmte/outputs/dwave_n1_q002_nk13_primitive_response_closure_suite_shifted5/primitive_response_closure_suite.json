@@ -1,0 +1,2080 @@
+{
+  "schema_version": "finite_q_tmte_primitive_response_closure_suite_v1",
+  "status": {
+    "diagnostic_run_completed": true,
+    "diagnostic_only_not_a_fix": true,
+    "accepted_convention": false,
+    "requires_analytic_derivation_before_convention_change": true,
+    "valid_for_casimir_input": false,
+    "reason": "primitive_response_closure_suite_not_production_convention"
+  },
+  "model": {
+    "name": "symmetry_bdg_2band",
+    "pairing": "dwave",
+    "valid_for_casimir_input": false
+  },
+  "frequency": {
+    "source": "matsubara_index",
+    "matsubara_index": 1,
+    "temperature_K": 10.0,
+    "xi_eV": 0.00541443017397794,
+    "zero_matsubara_mode": false,
+    "valid_for_casimir_input": false
+  },
+  "debug_parameters": {
+    "q_model_convention": "q_along_x_only",
+    "q_value": 0.02,
+    "nk": 13,
+    "shift_fractions": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8
+    ],
+    "num_shifted_meshes": 25,
+    "contact_scale": 1.0,
+    "candidate_name": "matrix_inferred_matsubara_i_asymmetric",
+    "shifted_mesh_average": {
+      "enabled": true,
+      "average_order": "average_blocks_then_schur",
+      "shift_fractions": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8
+      ],
+      "shift_pairs": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.2
+        ],
+        [
+          0.0,
+          0.4
+        ],
+        [
+          0.0,
+          0.6
+        ],
+        [
+          0.0,
+          0.8
+        ],
+        [
+          0.2,
+          0.0
+        ],
+        [
+          0.2,
+          0.2
+        ],
+        [
+          0.2,
+          0.4
+        ],
+        [
+          0.2,
+          0.6
+        ],
+        [
+          0.2,
+          0.8
+        ],
+        [
+          0.4,
+          0.0
+        ],
+        [
+          0.4,
+          0.2
+        ],
+        [
+          0.4,
+          0.4
+        ],
+        [
+          0.4,
+          0.6
+        ],
+        [
+          0.4,
+          0.8
+        ],
+        [
+          0.6,
+          0.0
+        ],
+        [
+          0.6,
+          0.2
+        ],
+        [
+          0.6,
+          0.4
+        ],
+        [
+          0.6,
+          0.6
+        ],
+        [
+          0.6,
+          0.8
+        ],
+        [
+          0.8,
+          0.0
+        ],
+        [
+          0.8,
+          0.2
+        ],
+        [
+          0.8,
+          0.4
+        ],
+        [
+          0.8,
+          0.6
+        ],
+        [
+          0.8,
+          0.8
+        ]
+      ],
+      "num_shifted_meshes": 25,
+      "valid_for_casimir_input": false
+    },
+    "note": "Fixed matrix-inferred primitive Ward vector. Fits/scans response-sector balances only; no convention is accepted.",
+    "valid_for_casimir_input": false
+  },
+  "collective_order": [
+    "amplitude_eta1",
+    "phase_eta2"
+  ],
+  "raw_ansatz_channel_names": [
+    "eta1",
+    "eta2"
+  ],
+  "primitive_metadata": {
+    "primitive_order": [
+      "A0",
+      "L",
+      "T"
+    ],
+    "source_order_baseline": [
+      "G",
+      "TM",
+      "TE"
+    ],
+    "baseline_transform_convention": "G=xi*A0+q*L; TM=-q*A0+xi*L; TE=T",
+    "diagnostic_only_not_a_fix": true,
+    "requires_analytic_derivation_before_convention_change": true,
+    "valid_for_casimir_input": false
+  },
+  "block_norms": {
+    "K_SS_bubble_norm": 0.4195976519920372,
+    "K_SS_contact_norm": 0.9580646961540645,
+    "K_SS_total_norm": 0.9965440703479709,
+    "K_Seta_norm": 0.05464610560517709,
+    "K_etaS_norm": 0.05464610560517711,
+    "K_etaeta_bubble_norm": 0.8271709594715448,
+    "K_etaeta_counterterm_norm": 0.956482088894695,
+    "K_etaeta_total_norm": 0.19248784980122755,
+    "Schur_correction_norm": 0.5111958451860794,
+    "K_eff_norm": 0.7841169510999456,
+    "valid_for_casimir_input": false
+  },
+  "schur": {
+    "solve_method": "solve",
+    "etaeta_condition_number": 35.015297774318306,
+    "condition_threshold": 1000000000000.0,
+    "numerically_suspect": false,
+    "valid_for_casimir_input": false
+  },
+  "candidate_analysis": {
+    "candidate": "matrix_inferred_matsubara_i_asymmetric",
+    "description": "Observable uses +i xi A0 + q L - 2i Delta eta2; source uses -i xi A0 + q L - 2i Delta eta2 as read from inverse-Green audit.",
+    "left_primitive_vector": [
+      {
+        "label": "A0",
+        "value": {
+          "real": 0.0,
+          "imag": 0.00541443017397794
+        }
+      },
+      {
+        "label": "L",
+        "value": {
+          "real": 0.02,
+          "imag": 0.0
+        }
+      },
+      {
+        "label": "T",
+        "value": {
+          "real": 0.0,
+          "imag": 0.0
+        }
+      }
+    ],
+    "right_primitive_vector": [
+      {
+        "label": "A0",
+        "value": {
+          "real": 0.0,
+          "imag": -0.00541443017397794
+        }
+      },
+      {
+        "label": "L",
+        "value": {
+          "real": 0.02,
+          "imag": 0.0
+        }
+      },
+      {
+        "label": "T",
+        "value": {
+          "real": 0.0,
+          "imag": 0.0
+        }
+      }
+    ],
+    "left_collective_vector": [
+      {
+        "label": "amplitude_eta1",
+        "value": {
+          "real": 0.0,
+          "imag": 0.0
+        }
+      },
+      {
+        "label": "phase_eta2",
+        "value": {
+          "real": 0.0,
+          "imag": -0.2
+        }
+      }
+    ],
+    "right_collective_vector": [
+      {
+        "label": "amplitude_eta1",
+        "value": {
+          "real": 0.0,
+          "imag": 0.0
+        }
+      },
+      {
+        "label": "phase_eta2",
+        "value": {
+          "real": 0.0,
+          "imag": -0.2
+        }
+      }
+    ],
+    "em_balance": {
+      "left": {
+        "sector": "left_em",
+        "fixed_term": {
+          "name": "bubble",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 1.9234586996637227e-18,
+                "imag": -0.0021657334909561416
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0008263062670369032,
+                "imag": 4.638523043979886e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": -2.4848820997772888e-19,
+                "imag": 4.542935239113355e-21
+              }
+            }
+          ],
+          "norm": 0.002318012856045785,
+          "norm_over_reference": 0.0023260515264883234,
+          "valid_for_casimir_input": false
+        },
+        "first_scalable_term": {
+          "name": "contact",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -5.551115123125783e-19,
+                "imag": -8.430888923113354e-20
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": -0.013548833268420981,
+                "imag": -8.046581130121351e-20
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 3.8174309432457804e-20,
+                "imag": -1.1792774323065295e-21
+              }
+            }
+          ],
+          "norm": 0.013548833268420981,
+          "norm_over_reference": 0.013595819464050429,
+          "valid_for_casimir_input": false
+        },
+        "second_scalable_term": {
+          "name": "mixed",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 1.3877787807814458e-18,
+                "imag": 0.0021657334909561407
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.010375893197116997,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 5.828670879282072e-19,
+                "imag": 3.651024439021673e-21
+              }
+            }
+          ],
+          "norm": 0.010599507591951045,
+          "norm_over_reference": 0.01063626577824093,
+          "valid_for_casimir_input": false
+        },
+        "current_total": {
+          "name": "current_total",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 2.75612596813259e-18,
+                "imag": -8.673617379884035e-19
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": -0.0023466338042670808,
+                "imag": 3.8338649309677515e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 3.725531873829362e-19,
+                "imag": 7.014682245828499e-21
+              }
+            }
+          ],
+          "norm": 0.0023466338042670808,
+          "norm_over_reference": 0.002354771729711551,
+          "valid_for_casimir_input": false
+        },
+        "one_scale_fits": {
+          "fit_contact": {
+            "complex": {
+              "coefficient": {
+                "real": 0.8268017800664424,
+                "imag": 2.9325257792175927e-17
+              },
+              "residual_norm": 3.486656560134596e-18,
+              "target_norm": 0.0112021994641539,
+              "basis_norm": 0.013548833268420981,
+              "improvement_factor_vs_target": 3212877228069018.5,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 0.8268017800664423,
+                "imag": 0.0
+              },
+              "residual_norm": 3.0504711142879785e-18,
+              "target_norm": 0.0112021994641539,
+              "basis_norm": 0.013548833268420981,
+              "improvement_factor_vs_target": 3672285048589501.5,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_mixed": {
+            "complex": {
+              "coefficient": {
+                "real": 1.2167202209561516,
+                "imag": 1.7721982958969698e-17
+              },
+              "residual_norm": 0.00047947353939066794,
+              "target_norm": 0.012905545120404484,
+              "basis_norm": 0.010599507591951045,
+              "improvement_factor_vs_target": 26.916073693671002,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.2167202209561514,
+                "imag": 0.0
+              },
+              "residual_norm": 0.0004794735393906682,
+              "target_norm": 0.012905545120404484,
+              "basis_norm": 0.010599507591951045,
+              "improvement_factor_vs_target": 26.916073693670988,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_bubble": {
+            "complex": {
+              "coefficient": {
+                "real": 1.360873248146624,
+                "imag": -1.3724303917365233e-15
+              },
+              "residual_norm": 0.002192474216722228,
+              "target_norm": 0.003841607768882139,
+              "basis_norm": 0.002318012856045785,
+              "improvement_factor_vs_target": 1.752179222716417,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.360873248146624,
+                "imag": 0.0
+              },
+              "residual_norm": 0.002192474216722228,
+              "target_norm": 0.003841607768882139,
+              "basis_norm": 0.002318012856045785,
+              "improvement_factor_vs_target": 1.752179222716417,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "two_scale_fits": {
+          "fit_contact_and_mixed": {
+            "complex": {
+              "coefficients": [
+                {
+                  "real": 0.8268017800664427,
+                  "imag": 1.2588230349251869e-15
+                },
+                {
+                  "real": 1.0000000000000004,
+                  "imag": 1.6019731728034102e-15
+                }
+              ],
+              "residual_norm": 8.392099169122705e-19,
+              "fixed_norm": 0.002318012856045785,
+              "first_basis_norm": 0.013548833268420981,
+              "second_basis_norm": 0.010599507591951045,
+              "improvement_factor_vs_fixed": 2762137111742574.5,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficients": [
+                {
+                  "real": 0.8268017800664427,
+                  "imag": 0.0
+                },
+                {
+                  "real": 1.0000000000000004,
+                  "imag": 0.0
+                }
+              ],
+              "residual_norm": 2.935192631391533e-18,
+              "fixed_norm": 0.002318012856045785,
+              "first_basis_norm": 0.013548833268420981,
+              "second_basis_norm": 0.010599507591951045,
+              "improvement_factor_vs_fixed": 789731083151039.4,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "phase_sign_grid": {
+          "first_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "second_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "residual_norm": 0.0023466338042670808,
+          "fixed_norm": 0.002318012856045785,
+          "improvement_factor_vs_fixed": 0.987803402401665,
+          "grid_coefficients": [
+            {
+              "real": 1.0,
+              "imag": 0.0
+            },
+            {
+              "real": -1.0,
+              "imag": 0.0
+            },
+            {
+              "real": 0.0,
+              "imag": 1.0
+            },
+            {
+              "real": 0.0,
+              "imag": -1.0
+            }
+          ],
+          "valid_for_casimir_input": false
+        },
+        "cancellation": {
+          "contact_vs_mixed": {
+            "first_norm": 0.013548833268420981,
+            "second_norm": 0.010599507591951045,
+            "sum_norm": 0.003841607768882139,
+            "difference_norm": 0.02402255061405142,
+            "normalized_overlap": {
+              "real": -0.9789033223577429,
+              "imag": -2.557736029061854e-18
+            },
+            "real_overlap": -0.9789033223577429,
+            "imag_overlap": -2.557736029061854e-18,
+            "sum_over_first_plus_second_norms": 0.15908371474026622,
+            "valid_for_casimir_input": false
+          },
+          "bubble_vs_contact_plus_mixed": {
+            "first_norm": 0.002318012856045785,
+            "second_norm": 0.003841607768882139,
+            "sum_norm": 0.002346633804267081,
+            "difference_norm": 0.0058953861188330405,
+            "normalized_overlap": {
+              "real": -0.8211462164890894,
+              "imag": 8.281197570044838e-16
+            },
+            "real_overlap": -0.8211462164890894,
+            "imag_overlap": 8.281197570044838e-16,
+            "sum_over_first_plus_second_norms": 0.38097050892554607,
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "right": {
+        "sector": "right_em",
+        "fixed_term": {
+          "name": "bubble",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 1.6500716608485e-18,
+                "imag": 0.0021657334909561416
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0008263062670369032,
+                "imag": -5.035792261811936e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": -2.5821454700508867e-19,
+                "imag": 7.849233789311882e-21
+              }
+            }
+          ],
+          "norm": 0.002318012856045785,
+          "norm_over_reference": 0.0023260515264883234,
+          "valid_for_casimir_input": false
+        },
+        "first_scalable_term": {
+          "name": "contact",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -3.4937197976306827e-19,
+                "imag": 8.430888923113354e-20
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": -0.013548833268420981,
+                "imag": 1.6439732426675238e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 3.8174309432457804e-20,
+                "imag": 1.4435937035947655e-21
+              }
+            }
+          ],
+          "norm": 0.013548833268420981,
+          "norm_over_reference": 0.013595819464050429,
+          "valid_for_casimir_input": false
+        },
+        "second_scalable_term": {
+          "name": "mixed",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -1.734723475976807e-18,
+                "imag": -0.0021657334909561407
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.010375893197116993,
+                "imag": 8.673617379884036e-20
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 6.938893903907229e-19,
+                "imag": 7.77608786855516e-21
+              }
+            }
+          ],
+          "norm": 0.010599507591951041,
+          "norm_over_reference": 0.010636265778240927,
+          "valid_for_casimir_input": false
+        },
+        "current_total": {
+          "name": "current_total",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -4.340237948913754e-19,
+                "imag": 8.673617379884035e-19
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": -0.0023466338042670842,
+                "imag": -2.5244572811560085e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 4.73849152818092e-19,
+                "imag": 1.7068915361461807e-20
+              }
+            }
+          ],
+          "norm": 0.0023466338042670842,
+          "norm_over_reference": 0.0023547717297115545,
+          "valid_for_casimir_input": false
+        },
+        "one_scale_fits": {
+          "fit_contact": {
+            "complex": {
+              "coefficient": {
+                "real": 0.8268017800664421,
+                "imag": -2.0733818659883876e-17
+              },
+              "residual_norm": 2.060453509380804e-18,
+              "target_norm": 0.011202199464153897,
+              "basis_norm": 0.013548833268420981,
+              "improvement_factor_vs_target": 5436764000329383.0,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 0.826801780066442,
+                "imag": 0.0
+              },
+              "residual_norm": 1.1467862224555702e-18,
+              "target_norm": 0.011202199464153897,
+              "basis_norm": 0.013548833268420981,
+              "improvement_factor_vs_target": 9768341513701698.0,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_mixed": {
+            "complex": {
+              "coefficient": {
+                "real": 1.2167202209561518,
+                "imag": 2.986920205451585e-17
+              },
+              "residual_norm": 0.0004794735393906691,
+              "target_norm": 0.012905545120404484,
+              "basis_norm": 0.010599507591951041,
+              "improvement_factor_vs_target": 26.91607369367094,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.2167202209561518,
+                "imag": 0.0
+              },
+              "residual_norm": 0.0004794735393906691,
+              "target_norm": 0.012905545120404484,
+              "basis_norm": 0.010599507591951041,
+              "improvement_factor_vs_target": 26.91607369367094,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_bubble": {
+            "complex": {
+              "coefficient": {
+                "real": 1.3608732481466246,
+                "imag": 8.38113281625858e-17
+              },
+              "residual_norm": 0.0021924742167222316,
+              "target_norm": 0.003841607768882142,
+              "basis_norm": 0.002318012856045785,
+              "improvement_factor_vs_target": 1.7521792227164157,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.3608732481466246,
+                "imag": 0.0
+              },
+              "residual_norm": 0.0021924742167222316,
+              "target_norm": 0.003841607768882142,
+              "basis_norm": 0.002318012856045785,
+              "improvement_factor_vs_target": 1.7521792227164157,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "two_scale_fits": {
+          "fit_contact_and_mixed": {
+            "complex": {
+              "coefficients": [
+                {
+                  "real": 0.8268017800664423,
+                  "imag": -1.8536051314872684e-16
+                },
+                {
+                  "real": 1.0000000000000002,
+                  "imag": -2.002466466004262e-16
+                }
+              ],
+              "residual_norm": 2.4049009568335514e-18,
+              "fixed_norm": 0.002318012856045785,
+              "first_basis_norm": 0.013548833268420981,
+              "second_basis_norm": 0.010599507591951041,
+              "improvement_factor_vs_fixed": 963870403668445.1,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficients": [
+                {
+                  "real": 0.8268017800664423,
+                  "imag": 0.0
+                },
+                {
+                  "real": 1.0000000000000002,
+                  "imag": 0.0
+                }
+              ],
+              "residual_norm": 2.3080463183335118e-18,
+              "fixed_norm": 0.002318012856045785,
+              "first_basis_norm": 0.013548833268420981,
+              "second_basis_norm": 0.010599507591951041,
+              "improvement_factor_vs_fixed": 1004318170581372.6,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "phase_sign_grid": {
+          "first_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "second_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "residual_norm": 0.0023466338042670842,
+          "fixed_norm": 0.002318012856045785,
+          "improvement_factor_vs_fixed": 0.9878034024016634,
+          "grid_coefficients": [
+            {
+              "real": 1.0,
+              "imag": 0.0
+            },
+            {
+              "real": -1.0,
+              "imag": 0.0
+            },
+            {
+              "real": 0.0,
+              "imag": 1.0
+            },
+            {
+              "real": 0.0,
+              "imag": -1.0
+            }
+          ],
+          "valid_for_casimir_input": false
+        },
+        "cancellation": {
+          "contact_vs_mixed": {
+            "first_norm": 0.013548833268420981,
+            "second_norm": 0.010599507591951041,
+            "sum_norm": 0.003841607768882142,
+            "difference_norm": 0.02402255061405142,
+            "normalized_overlap": {
+              "real": -0.9789033223577428,
+              "imag": -1.4792021598606504e-17
+            },
+            "real_overlap": -0.9789033223577428,
+            "imag_overlap": -1.4792021598606504e-17,
+            "sum_over_first_plus_second_norms": 0.1590837147402664,
+            "valid_for_casimir_input": false
+          },
+          "bubble_vs_contact_plus_mixed": {
+            "first_norm": 0.002318012856045785,
+            "second_norm": 0.003841607768882142,
+            "sum_norm": 0.0023466338042670847,
+            "difference_norm": 0.005895386118833043,
+            "normalized_overlap": {
+              "real": -0.8211462164890891,
+              "imag": -5.057146586822887e-17
+            },
+            "real_overlap": -0.8211462164890891,
+            "imag_overlap": -5.057146586822887e-17,
+            "sum_over_first_plus_second_norms": 0.38097050892554646,
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    "schur_balance": {
+      "left": {
+        "sector": "left_schur",
+        "fixed_term": {
+          "name": "bubble",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 1.9234586996637227e-18,
+                "imag": -0.0021657334909561416
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0008263062670369032,
+                "imag": 4.638523043979886e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": -2.4848820997772888e-19,
+                "imag": 4.542935239113355e-21
+              }
+            }
+          ],
+          "norm": 0.002318012856045785,
+          "norm_over_reference": 0.002956208066659083,
+          "valid_for_casimir_input": false
+        },
+        "first_scalable_term": {
+          "name": "contact",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -5.551115123125783e-19,
+                "imag": -8.430888923113354e-20
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": -0.013548833268420981,
+                "imag": -8.046581130121351e-20
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 3.8174309432457804e-20,
+                "imag": -1.1792774323065295e-21
+              }
+            }
+          ],
+          "norm": 0.013548833268420981,
+          "norm_over_reference": 0.017279097524182985,
+          "valid_for_casimir_input": false
+        },
+        "second_scalable_term": {
+          "name": "schur",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 1.4525235674242434e-18,
+                "imag": 0.0021604713964995088
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.010350737746226635,
+                "imag": -5.007972236853825e-21
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 5.814536514044755e-19,
+                "imag": 3.64100691633109e-21
+              }
+            }
+          ],
+          "norm": 0.01057380766546533,
+          "norm_over_reference": 0.013484987986336192,
+          "valid_for_casimir_input": false
+        },
+        "current_total": {
+          "name": "current_total",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 2.8208707547753878e-18,
+                "imag": -5.262094456632855e-06
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": -0.002371789255157443,
+                "imag": 3.7837852085992133e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 3.711397508592045e-19,
+                "imag": 7.004664723137915e-21
+              }
+            }
+          ],
+          "norm": 0.0023717950924391357,
+          "norm_over_reference": 0.0030247976263132977,
+          "valid_for_casimir_input": false
+        },
+        "one_scale_fits": {
+          "fit_contact": {
+            "complex": {
+              "coefficient": {
+                "real": 0.8249451293577061,
+                "imag": 2.8950748092174144e-17
+              },
+              "residual_norm": 5.262094456632924e-06,
+              "target_norm": 0.011177045251946884,
+              "basis_norm": 0.013548833268420981,
+              "improvement_factor_vs_target": 2124.0677726448075,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 0.8249451293577061,
+                "imag": 0.0
+              },
+              "residual_norm": 5.262094456632924e-06,
+              "target_norm": 0.011177045251946884,
+              "basis_norm": 0.013548833268420981,
+              "improvement_factor_vs_target": 2124.0677726448075,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_schur": {
+            "complex": {
+              "coefficient": {
+                "real": 1.219677540589204,
+                "imag": 1.9654102070855677e-17
+              },
+              "residual_norm": 0.0004794598544792939,
+              "target_norm": 0.012905545120404484,
+              "basis_norm": 0.01057380766546533,
+              "improvement_factor_vs_target": 26.916841941689253,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.219677540589204,
+                "imag": 0.0
+              },
+              "residual_norm": 0.0004794598544792939,
+              "target_norm": 0.012905545120404484,
+              "basis_norm": 0.01057380766546533,
+              "improvement_factor_vs_target": 26.916841941689253,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_bubble": {
+            "complex": {
+              "coefficient": {
+                "real": 1.3626207805633752,
+                "imag": -1.398044410664694e-15
+              },
+              "residual_norm": 0.0022178528956830375,
+              "target_norm": 0.0038594626082101204,
+              "basis_norm": 0.002318012856045785,
+              "improvement_factor_vs_target": 1.7401797097194367,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.3626207805633752,
+                "imag": 0.0
+              },
+              "residual_norm": 0.0022178528956830375,
+              "target_norm": 0.0038594626082101204,
+              "basis_norm": 0.002318012856045785,
+              "improvement_factor_vs_target": 1.7401797097194367,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "two_scale_fits": {
+          "fit_contact_and_schur": {
+            "complex": {
+              "coefficients": [
+                {
+                  "real": 0.8268058429300403,
+                  "imag": 1.1054769411236562e-15
+                },
+                {
+                  "real": 1.002435623292749,
+                  "imag": 1.4051406039802678e-15
+                }
+              ],
+              "residual_norm": 1.6105844925952737e-18,
+              "fixed_norm": 0.002318012856045785,
+              "first_basis_norm": 0.013548833268420981,
+              "second_basis_norm": 0.01057380766546533,
+              "improvement_factor_vs_fixed": 1439237038915338.8,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficients": [
+                {
+                  "real": 0.8268058429300406,
+                  "imag": 0.0
+                },
+                {
+                  "real": 1.0024356232927492,
+                  "imag": 0.0
+                }
+              ],
+              "residual_norm": 3.0321020454735965e-18,
+              "fixed_norm": 0.002318012856045785,
+              "first_basis_norm": 0.013548833268420981,
+              "second_basis_norm": 0.01057380766546533,
+              "improvement_factor_vs_fixed": 764490383661782.4,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "phase_sign_grid": {
+          "first_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "second_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "residual_norm": 0.0023717950924391357,
+          "fixed_norm": 0.002318012856045785,
+          "improvement_factor_vs_fixed": 0.9773242483868868,
+          "grid_coefficients": [
+            {
+              "real": 1.0,
+              "imag": 0.0
+            },
+            {
+              "real": -1.0,
+              "imag": 0.0
+            },
+            {
+              "real": 0.0,
+              "imag": 1.0
+            },
+            {
+              "real": 0.0,
+              "imag": -1.0
+            }
+          ],
+          "valid_for_casimir_input": false
+        },
+        "cancellation": {
+          "contact_vs_schur": {
+            "first_norm": 0.013548833268420981,
+            "second_norm": 0.01057380766546533,
+            "sum_norm": 0.0038594626082101204,
+            "difference_norm": 0.023997023384980005,
+            "normalized_overlap": {
+              "real": -0.9789035391699763,
+              "imag": -2.084071667720046e-18
+            },
+            "real_overlap": -0.9789035391699763,
+            "imag_overlap": -2.084071667720046e-18,
+            "sum_over_first_plus_second_norms": 0.15999336966412064,
+            "valid_for_casimir_input": false
+          },
+          "bubble_vs_contact_plus_schur": {
+            "first_norm": 0.002318012856045785,
+            "second_norm": 0.0038594626082101204,
+            "sum_norm": 0.002371795092439136,
+            "difference_norm": 0.005908625769958092,
+            "normalized_overlap": {
+              "real": -0.8183969655624876,
+              "imag": 8.396725778220784e-16
+            },
+            "real_overlap": -0.8183969655624876,
+            "imag_overlap": 8.396725778220784e-16,
+            "sum_over_first_plus_second_norms": 0.3839424545128203,
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "right": {
+        "sector": "right_schur",
+        "fixed_term": {
+          "name": "bubble",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": 1.6500716608485e-18,
+                "imag": 0.0021657334909561416
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.0008263062670369032,
+                "imag": -5.035792261811936e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": -2.5821454700508867e-19,
+                "imag": 7.849233789311882e-21
+              }
+            }
+          ],
+          "norm": 0.002318012856045785,
+          "norm_over_reference": 0.002956208066659083,
+          "valid_for_casimir_input": false
+        },
+        "first_scalable_term": {
+          "name": "contact",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -3.4937197976306827e-19,
+                "imag": 8.430888923113354e-20
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": -0.013548833268420981,
+                "imag": 1.6439732426675238e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 3.8174309432457804e-20,
+                "imag": 1.4435937035947655e-21
+              }
+            }
+          ],
+          "norm": 0.013548833268420981,
+          "norm_over_reference": 0.017279097524182985,
+          "valid_for_casimir_input": false
+        },
+        "second_scalable_term": {
+          "name": "schur",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -1.775819141844483e-18,
+                "imag": -0.002160471396499509
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": 0.010350737746226633,
+                "imag": 8.251509342587003e-20
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 6.922075804779189e-19,
+                "imag": 7.75604280839274e-21
+              }
+            }
+          ],
+          "norm": 0.010573807665465328,
+          "norm_over_reference": 0.01348498798633619,
+          "valid_for_casimir_input": false
+        },
+        "current_total": {
+          "name": "current_total",
+          "values": [
+            {
+              "label": "A0",
+              "value": {
+                "real": -4.751194607590512e-19,
+                "imag": 5.262094456632421e-06
+              }
+            },
+            {
+              "label": "L",
+              "value": {
+                "real": -0.0023717892551574447,
+                "imag": -2.566668084885712e-19
+              }
+            },
+            {
+              "label": "T",
+              "value": {
+                "real": 4.72167342905288e-19,
+                "imag": 1.7048870301299388e-20
+              }
+            }
+          ],
+          "norm": 0.0023717950924391374,
+          "norm_over_reference": 0.0030247976263133,
+          "valid_for_casimir_input": false
+        },
+        "one_scale_fits": {
+          "fit_contact": {
+            "complex": {
+              "coefficient": {
+                "real": 0.824945129357706,
+                "imag": -2.105787753945017e-17
+              },
+              "residual_norm": 5.262094456632491e-06,
+              "target_norm": 0.011177045251946882,
+              "basis_norm": 0.013548833268420981,
+              "improvement_factor_vs_target": 2124.067772644982,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 0.824945129357706,
+                "imag": 0.0
+              },
+              "residual_norm": 5.262094456632491e-06,
+              "target_norm": 0.011177045251946882,
+              "basis_norm": 0.013548833268420981,
+              "improvement_factor_vs_target": 2124.067772644982,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_schur": {
+            "complex": {
+              "coefficient": {
+                "real": 1.2196775405892044,
+                "imag": 3.1275847825879157e-17
+              },
+              "residual_norm": 0.00047945985447929483,
+              "target_norm": 0.012905545120404484,
+              "basis_norm": 0.010573807665465328,
+              "improvement_factor_vs_target": 26.916841941689203,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.2196775405892044,
+                "imag": 0.0
+              },
+              "residual_norm": 0.00047945985447929483,
+              "target_norm": 0.012905545120404484,
+              "basis_norm": 0.010573807665465328,
+              "improvement_factor_vs_target": 26.916841941689203,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_bubble": {
+            "complex": {
+              "coefficient": {
+                "real": 1.3626207805633754,
+                "imag": 6.863793539579774e-17
+              },
+              "residual_norm": 0.002217852895683039,
+              "target_norm": 0.0038594626082101226,
+              "basis_norm": 0.002318012856045785,
+              "improvement_factor_vs_target": 1.7401797097194365,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.3626207805633754,
+                "imag": 0.0
+              },
+              "residual_norm": 0.002217852895683039,
+              "target_norm": 0.0038594626082101226,
+              "basis_norm": 0.002318012856045785,
+              "improvement_factor_vs_target": 1.7401797097194365,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "two_scale_fits": {
+          "fit_contact_and_schur": {
+            "complex": {
+              "coefficients": [
+                {
+                  "real": 0.8268058429300403,
+                  "imag": -3.2008724323518386e-17
+                },
+                {
+                  "real": 1.0024356232927492,
+                  "imag": 0.0
+                }
+              ],
+              "residual_norm": 1.4522192631723937e-18,
+              "fixed_norm": 0.002318012856045785,
+              "first_basis_norm": 0.013548833268420981,
+              "second_basis_norm": 0.010573807665465328,
+              "improvement_factor_vs_fixed": 1596186550357452.8,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficients": [
+                {
+                  "real": 0.8268058429300403,
+                  "imag": 0.0
+                },
+                {
+                  "real": 1.0024356232927492,
+                  "imag": 0.0
+                }
+              ],
+              "residual_norm": 1.4724151707544744e-18,
+              "fixed_norm": 0.002318012856045785,
+              "first_basis_norm": 0.013548833268420981,
+              "second_basis_norm": 0.010573807665465328,
+              "improvement_factor_vs_fixed": 1574292972584642.2,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "phase_sign_grid": {
+          "first_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "second_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "residual_norm": 0.0023717950924391374,
+          "fixed_norm": 0.002318012856045785,
+          "improvement_factor_vs_fixed": 0.9773242483868861,
+          "grid_coefficients": [
+            {
+              "real": 1.0,
+              "imag": 0.0
+            },
+            {
+              "real": -1.0,
+              "imag": 0.0
+            },
+            {
+              "real": 0.0,
+              "imag": 1.0
+            },
+            {
+              "real": 0.0,
+              "imag": -1.0
+            }
+          ],
+          "valid_for_casimir_input": false
+        },
+        "cancellation": {
+          "contact_vs_schur": {
+            "first_norm": 0.013548833268420981,
+            "second_norm": 0.010573807665465328,
+            "sum_norm": 0.0038594626082101226,
+            "difference_norm": 0.02399702338498,
+            "normalized_overlap": {
+              "real": -0.9789035391699761,
+              "imag": -1.441273856380777e-17
+            },
+            "real_overlap": -0.9789035391699761,
+            "imag_overlap": -1.441273856380777e-17,
+            "sum_over_first_plus_second_norms": 0.15999336966412073,
+            "valid_for_casimir_input": false
+          },
+          "bubble_vs_contact_plus_schur": {
+            "first_norm": 0.002318012856045785,
+            "second_norm": 0.0038594626082101226,
+            "sum_norm": 0.002371795092439138,
+            "difference_norm": 0.005908625769958093,
+            "normalized_overlap": {
+              "real": -0.8183969655624873,
+              "imag": -4.1224292812538905e-17
+            },
+            "real_overlap": -0.8183969655624873,
+            "imag_overlap": -4.1224292812538905e-17,
+            "sum_over_first_plus_second_norms": 0.3839424545128204,
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    "collective_balance": {
+      "left": {
+        "sector": "left_collective",
+        "fixed_term": {
+          "name": "mixed",
+          "values": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.294398397172448e-19,
+                "imag": 6.807720595902374e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 3.828907827929957e-20,
+                "imag": 0.0010962203835228367
+              }
+            }
+          ],
+          "norm": 0.0010983322062209332,
+          "norm_over_reference": 0.0011021411284273862,
+          "valid_for_casimir_input": false
+        },
+        "first_scalable_term": {
+          "name": "etaeta_bubble",
+          "values": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -7.380030148063524e-19,
+                "imag": -6.807720595902375e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -3.6032979874683953e-20,
+                "imag": 0.13416810938355692
+              }
+            }
+          ],
+          "norm": 0.1341681266548209,
+          "norm_over_reference": 0.1346334102494558,
+          "valid_for_casimir_input": false
+        },
+        "second_scalable_term": {
+          "name": "etaeta_counterterm",
+          "values": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.1352669942281826
+              }
+            }
+          ],
+          "norm": 0.1352669942281826,
+          "norm_over_reference": 0.13573608860163144,
+          "valid_for_casimir_input": false
+        },
+        "current_total": {
+          "name": "current_total",
+          "values": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -9.674428545235972e-19,
+                "imag": -1.3552527156068805e-20
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 2.256098404615615e-21,
+                "imag": -2.664461102863669e-06
+              }
+            }
+          ],
+          "norm": 2.664461102863669e-06,
+          "norm_over_reference": 2.6737012262120017e-06,
+          "valid_for_casimir_input": false
+        },
+        "one_scale_fits": {
+          "fit_etaeta_bubble": {
+            "complex": {
+              "coefficient": {
+                "real": 1.0000198591187512,
+                "imag": 2.046883455911839e-20
+              },
+              "residual_norm": 1.351953491436123e-09,
+              "target_norm": 0.13417079111558078,
+              "basis_norm": 0.1341681266548209,
+              "improvement_factor_vs_target": 99242164.73826835,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.0000198591187512,
+                "imag": 0.0
+              },
+              "residual_norm": 1.351953491436123e-09,
+              "target_norm": 0.13417079111558078,
+              "basis_norm": 0.1341681266548209,
+              "improvement_factor_vs_target": 99242164.73826835,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_etaeta_counterterm": {
+            "complex": {
+              "coefficient": {
+                "real": 0.9999803022081027,
+                "imag": -1.6678853681111526e-20
+              },
+              "residual_norm": 9.675377758832375e-19,
+              "target_norm": 0.13526432976707975,
+              "basis_norm": 0.1352669942281826,
+              "improvement_factor_vs_target": 1.3980263421094936e+17,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 0.9999803022081027,
+                "imag": 0.0
+              },
+              "residual_norm": 9.675404062575853e-19,
+              "target_norm": 0.13526432976707975,
+              "basis_norm": 0.1352669942281826,
+              "improvement_factor_vs_target": 1.3980225414076272e+17,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_mixed": {
+            "complex": {
+              "coefficient": {
+                "real": 1.0024212510426447,
+                "imag": -5.246111340601256e-17
+              },
+              "residual_norm": 1.651495478706996e-07,
+              "target_norm": 0.0011009915566066934,
+              "basis_norm": 0.0010983322062209332,
+              "improvement_factor_vs_target": 6666.63379223231,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.002421251042645,
+                "imag": 0.0
+              },
+              "residual_norm": 1.6514954787069967e-07,
+              "target_norm": 0.0011009915566066934,
+              "basis_norm": 0.0010983322062209332,
+              "improvement_factor_vs_target": 6666.633792232306,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "two_scale_fits": {
+          "fit_etaeta_bubble_and_etaeta_counterterm": {
+            "complex": {
+              "coefficients": [
+                {
+                  "real": 0.9999999999999994,
+                  "imag": -1.3041690881277042e-13
+                },
+                {
+                  "real": 0.9999803022081021,
+                  "imag": -1.293574585036679e-13
+                }
+              ],
+              "residual_norm": 3.2533814561328896e-17,
+              "fixed_norm": 0.0010983322062209332,
+              "first_basis_norm": 0.1341681266548209,
+              "second_basis_norm": 0.1352669942281826,
+              "improvement_factor_vs_fixed": 33759711888394.992,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficients": [
+                {
+                  "real": 0.9999999999999997,
+                  "imag": 0.0
+                },
+                {
+                  "real": 0.9999803022081025,
+                  "imag": 0.0
+                }
+              ],
+              "residual_norm": 2.4522064127306507e-17,
+              "fixed_norm": 0.0010983322062209332,
+              "first_basis_norm": 0.1341681266548209,
+              "second_basis_norm": 0.1352669942281826,
+              "improvement_factor_vs_fixed": 44789549546846.14,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "phase_sign_grid": {
+          "first_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "second_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "residual_norm": 2.664461102863669e-06,
+          "fixed_norm": 0.0010983322062209332,
+          "improvement_factor_vs_fixed": 412.2155151901014,
+          "grid_coefficients": [
+            {
+              "real": 1.0,
+              "imag": 0.0
+            },
+            {
+              "real": -1.0,
+              "imag": 0.0
+            },
+            {
+              "real": 0.0,
+              "imag": 1.0
+            },
+            {
+              "real": 0.0,
+              "imag": -1.0
+            }
+          ],
+          "valid_for_casimir_input": false
+        },
+        "cancellation": {
+          "etaeta_bubble_vs_etaeta_counterterm": {
+            "first_norm": 0.1341681266548209,
+            "second_norm": 0.1352669942281826,
+            "sum_norm": 0.0011009915566066934,
+            "difference_norm": 0.2694351122121517,
+            "normalized_overlap": {
+              "real": -0.9999998712714829,
+              "imag": 2.6856587159025694e-19
+            },
+            "real_overlap": -0.9999998712714829,
+            "imag_overlap": 2.6856587159025694e-19,
+            "sum_over_first_plus_second_norms": 0.004086295628418746,
+            "valid_for_casimir_input": false
+          },
+          "mixed_vs_etaeta_bubble_plus_etaeta_counterterm": {
+            "first_norm": 0.0010983322062209332,
+            "second_norm": 0.0011009915566066934,
+            "sum_norm": 2.6644611028604163e-06,
+            "difference_norm": 0.002199323756641977,
+            "normalized_overlap": {
+              "real": -0.999999988749889,
+              "imag": 5.2334398099853753e-17
+            },
+            "real_overlap": -0.999999988749889,
+            "imag_overlap": 5.2334398099853753e-17,
+            "sum_over_first_plus_second_norms": 0.0012114910718896484,
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "right": {
+        "sector": "right_collective",
+        "fixed_term": {
+          "name": "mixed",
+          "values": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": -2.2792166813083234e-20,
+                "imag": -6.807720595902375e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 3.757015652734688e-20,
+                "imag": 0.0010962203835228371
+              }
+            }
+          ],
+          "norm": 0.0010983322062209336,
+          "norm_over_reference": 0.0011021411284273866,
+          "valid_for_casimir_input": false
+        },
+        "first_scalable_term": {
+          "name": "etaeta_bubble",
+          "values": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.646654662529846e-19,
+                "imag": 6.807720595902375e-05
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": -3.6032979874683953e-20,
+                "imag": 0.13416810938355692
+              }
+            }
+          ],
+          "norm": 0.1341681266548209,
+          "norm_over_reference": 0.1346334102494558,
+          "valid_for_casimir_input": false
+        },
+        "second_scalable_term": {
+          "name": "etaeta_counterterm",
+          "values": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 0.0,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 0.0,
+                "imag": -0.1352669942281826
+              }
+            }
+          ],
+          "norm": 0.1352669942281826,
+          "norm_over_reference": 0.13573608860163144,
+          "valid_for_casimir_input": false
+        },
+        "current_total": {
+          "name": "current_total",
+          "values": [
+            {
+              "label": "amplitude_eta1",
+              "value": {
+                "real": 6.418732994399013e-19,
+                "imag": 0.0
+              }
+            },
+            {
+              "label": "phase_eta2",
+              "value": {
+                "real": 1.5371766526629298e-21,
+                "imag": -2.664461102863669e-06
+              }
+            }
+          ],
+          "norm": 2.664461102863669e-06,
+          "norm_over_reference": 2.6737012262120017e-06,
+          "valid_for_casimir_input": false
+        },
+        "one_scale_fits": {
+          "fit_etaeta_bubble": {
+            "complex": {
+              "coefficient": {
+                "real": 1.0000198591187512,
+                "imag": 1.3879218992291697e-20
+              },
+              "residual_norm": 1.3519534914225704e-09,
+              "target_norm": 0.13417079111558078,
+              "basis_norm": 0.1341681266548209,
+              "improvement_factor_vs_target": 99242164.73926319,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.0000198591187512,
+                "imag": 0.0
+              },
+              "residual_norm": 1.3519534914225704e-09,
+              "target_norm": 0.13417079111558078,
+              "basis_norm": 0.1341681266548209,
+              "improvement_factor_vs_target": 99242164.73926319,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_etaeta_counterterm": {
+            "complex": {
+              "coefficient": {
+                "real": 0.9999803022081027,
+                "imag": -1.1364018705626432e-20
+              },
+              "residual_norm": 6.418732994399013e-19,
+              "target_norm": 0.13526432976707975,
+              "basis_norm": 0.1352669942281826,
+              "improvement_factor_vs_target": 2.1073369134549046e+17,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 0.9999803022081027,
+                "imag": 0.0
+              },
+              "residual_norm": 6.418751400747086e-19,
+              "target_norm": 0.13526432976707975,
+              "basis_norm": 0.1352669942281826,
+              "improvement_factor_vs_target": 2.107330870476401e+17,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "fit_mixed": {
+            "complex": {
+              "coefficient": {
+                "real": 1.0024212510426447,
+                "imag": -3.474308514777535e-17
+              },
+              "residual_norm": 1.6514954787068623e-07,
+              "target_norm": 0.0011009915566066934,
+              "basis_norm": 0.0010983322062209336,
+              "improvement_factor_vs_target": 6666.633792232849,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficient": {
+                "real": 1.0024212510426447,
+                "imag": 0.0
+              },
+              "residual_norm": 1.6514954787068623e-07,
+              "target_norm": 0.0011009915566066934,
+              "basis_norm": 0.0010983322062209336,
+              "improvement_factor_vs_target": 6666.633792232849,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "two_scale_fits": {
+          "fit_etaeta_bubble_and_etaeta_counterterm": {
+            "complex": {
+              "coefficients": [
+                {
+                  "real": 0.9999999999999998,
+                  "imag": -1.3360192747857712e-13
+                },
+                {
+                  "real": 0.9999803022081025,
+                  "imag": -1.325166034613829e-13
+                }
+              ],
+              "residual_norm": 1.0411551219690528e-17,
+              "fixed_norm": 0.0010983322062209336,
+              "first_basis_norm": 0.1341681266548209,
+              "second_basis_norm": 0.1352669942281826,
+              "improvement_factor_vs_fixed": 105491696966706.2,
+              "real_only": false,
+              "valid_for_casimir_input": false
+            },
+            "real": {
+              "coefficients": [
+                {
+                  "real": 0.9999999999999999,
+                  "imag": 0.0
+                },
+                {
+                  "real": 0.9999803022081027,
+                  "imag": 0.0
+                }
+              ],
+              "residual_norm": 2.4077849223418907e-17,
+              "fixed_norm": 0.0010983322062209336,
+              "first_basis_norm": 0.1341681266548209,
+              "second_basis_norm": 0.1352669942281826,
+              "improvement_factor_vs_fixed": 45615876901191.805,
+              "real_only": true,
+              "valid_for_casimir_input": false
+            }
+          },
+          "valid_for_casimir_input": false
+        },
+        "phase_sign_grid": {
+          "first_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "second_coefficient": {
+            "real": 1.0,
+            "imag": 0.0
+          },
+          "residual_norm": 2.664461102863669e-06,
+          "fixed_norm": 0.0010983322062209336,
+          "improvement_factor_vs_fixed": 412.2155151901016,
+          "grid_coefficients": [
+            {
+              "real": 1.0,
+              "imag": 0.0
+            },
+            {
+              "real": -1.0,
+              "imag": 0.0
+            },
+            {
+              "real": 0.0,
+              "imag": 1.0
+            },
+            {
+              "real": 0.0,
+              "imag": -1.0
+            }
+          ],
+          "valid_for_casimir_input": false
+        },
+        "cancellation": {
+          "etaeta_bubble_vs_etaeta_counterterm": {
+            "first_norm": 0.1341681266548209,
+            "second_norm": 0.1352669942281826,
+            "sum_norm": 0.0011009915566066934,
+            "difference_norm": 0.2694351122121517,
+            "normalized_overlap": {
+              "real": -0.9999998712714829,
+              "imag": 2.6856587159025694e-19
+            },
+            "real_overlap": -0.9999998712714829,
+            "imag_overlap": 2.6856587159025694e-19,
+            "sum_over_first_plus_second_norms": 0.004086295628418746,
+            "valid_for_casimir_input": false
+          },
+          "mixed_vs_etaeta_bubble_plus_etaeta_counterterm": {
+            "first_norm": 0.0010983322062209336,
+            "second_norm": 0.0011009915566066934,
+            "sum_norm": 2.6644611028599826e-06,
+            "difference_norm": 0.002199323756641977,
+            "normalized_overlap": {
+              "real": -0.999999988749889,
+              "imag": 3.4659166214577546e-17
+            },
+            "real_overlap": -0.999999988749889,
+            "imag_overlap": 3.4659166214577546e-17,
+            "sum_over_first_plus_second_norms": 0.001211491071889451,
+            "valid_for_casimir_input": false
+          },
+          "valid_for_casimir_input": false
+        },
+        "valid_for_casimir_input": false
+      },
+      "valid_for_casimir_input": false
+    },
+    "accepted_convention": false,
+    "valid_for_casimir_input": false
+  },
+  "valid_for_casimir_input": false
+}
