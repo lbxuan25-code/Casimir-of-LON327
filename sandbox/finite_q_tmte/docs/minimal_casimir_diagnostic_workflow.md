@@ -11,8 +11,25 @@ diagnostic-only workflow
 unified CLI entry point
 old debug scripts retained for reproducibility
 default shift policy: no-shift
+positive-n budget checkpoint documented
 not a full q/phi/n Casimir integral
 not a torque calculation
+valid_for_casimir_input: False
+```
+
+Current checkpoint note:
+
+```text
+sandbox/finite_q_tmte/docs/minimal_casimir_n_budget_checkpoint_note.md
+```
+
+Checkpoint summary:
+
+```text
+positive-n diagnostic budget: 0.007431760613385256 to 0.007449706575429743
+midpoint validation: globally passed, about 1.2% budget shift
+n>500 tail: controlled, about 4.2e-05 to 6.0e-05
+local nk=13 pathology: n=12, q=0.04, removed by nk=17
 valid_for_casimir_input: False
 ```
 
@@ -85,7 +102,8 @@ Suggested research flow:
 5. n-scan
 6. n-tail-fit, offline CSV-only
 7. n-budget, offline CSV-only
-8. q-phi-n diagnostic sum/checkpoint, not implemented yet
+8. n-budget checkpoint note
+9. q-phi-n diagnostic sum/checkpoint, not implemented yet
 ```
 
 Do not skip the status flags in the output JSON.  All current outputs must retain:
