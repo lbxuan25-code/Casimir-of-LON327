@@ -51,6 +51,25 @@ def test_unified_cli_shift_scan_parse_args(tmp_path):
     assert args.r_norm_warning_threshold == module.DEFAULT_R_NORM_WARNING_THRESHOLD
 
 
+def test_unified_cli_n_scan_parse_args_defaults_to_no_shift(tmp_path):
+    module = _load_cli()
+    parser = module.build_parser()
+    args = parser.parse_args([
+        "n-scan",
+        "--matsubara-indices", "1", "2", "3",
+        "--q-values", "0.01", "0.02",
+        "--phi-values", "0", "180",
+        "--plate2-theta-deg", "45",
+        "--nk", "13",
+        "--separation-nm", "20",
+        "--output-dir", str(tmp_path),
+    ])
+    assert args.command == "n-scan"
+    assert args.matsubara_indices == [1, 2, 3]
+    assert args.shift_fractions == [0.0]
+    assert not hasattr(args, "matsubara_index")
+
+
 def test_unified_cli_theta_scan_accepts_polar_q_without_plate2_arg(tmp_path):
     module = _load_cli()
     parser = module.build_parser()
