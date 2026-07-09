@@ -22,6 +22,12 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(SANDBOX_ROOT))
 
 from tmte.adapters.model_adapter import available_models  # noqa: E402
+from tmte.pipeline.minimal_casimir_health_report import (  # noqa: E402
+    DEFAULT_PHI_RANGE_WARNING_THRESHOLD,
+    DEFAULT_RDIFF_WARNING_THRESHOLD,
+    DEFAULT_R_NORM_WARNING_THRESHOLD as HEALTH_DEFAULT_R_NORM_WARNING_THRESHOLD,
+    run_and_write_minimal_casimir_health_report,
+)
 from tmte.pipeline.minimal_casimir_n_budget import run_and_write_minimal_casimir_n_budget  # noqa: E402
 from tmte.pipeline.minimal_casimir_n_scan import run_and_write_minimal_casimir_n_scan  # noqa: E402
 from tmte.pipeline.minimal_casimir_n_tail_fit import (  # noqa: E402
@@ -245,6 +251,17 @@ def _run_n_budget(args: argparse.Namespace) -> dict[str, Any]:
     )
 
 
+def _run_health_report(args: argparse.Namespace) -> dict[str, Any]:
+    return run_and_write_minimal_casimir_health_report(
+        args.output_dir,
+        input_json_paths=tuple(args.input_json_paths),
+        input_csv_paths=tuple(args.input_csv_paths),
+        r_norm_warning_threshold=args.r_norm_warning_threshold,
+        rdiff_warning_threshold=args.rdiff_warning_threshold,
+        phi_range_warning_threshold=args.phi_range_warning_threshold,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Unified debug-only minimal Casimir diagnostics. Default shift policy is no-shift.",
@@ -313,6 +330,15 @@ def build_parser() -> argparse.ArgumentParser:
     budget.add_argument("--tail-fit-json", dest="tail_fit_json_paths", nargs="*", type=Path, default=[])
     budget.add_argument("--output-dir", type=Path, required=True)
     budget.set_defaults(func=_run_n_budget, kind="n-budget")
+
+    health = subparsers.add_parser("health-report", help="offline credibility gate for existing JSON/CSV artifacts")
+    health.add_argument("--input-json", dest="input_json_paths", nargs="*", type=Path, default=[])
+    health.add_argument("--input-csv", dest="input_csv_paths", nargs="*", type=Path, default=[])
+    health.add_argument("--r-norm-warning-threshold", type=float, default=HEALTH_DEFAULT_R_NORM_WARNING_THRESHOLD)
+    health.add_argument("--rdiff-warning-threshold", type=float, default=DEFAULT_RDIFF_WARNING_THRESHOLD)
+    health.add_argument("--phi-range-warning-threshold", type=float, default=DEFAULT_PHI_RANGE_WARNING_THRESHOLD)
+    health.add_argument("--output-dir", type=Path, required=True)
+    health.set_defaults(func=_run_health_report, kind="health-report")
 
     return parser
 
