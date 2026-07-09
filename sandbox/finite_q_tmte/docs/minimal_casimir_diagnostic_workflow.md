@@ -2,6 +2,12 @@
 
 This document defines the current lightweight diagnostic workflow for the sandbox finite-q TMTE Casimir path.
 
+Read the documentation map first:
+
+```text
+sandbox/finite_q_tmte/docs/README.md
+```
+
 The goal is to reduce script sprawl without promoting the sandbox diagnostics to a production Casimir pipeline.
 
 Status:
