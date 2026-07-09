@@ -23,6 +23,11 @@ sys.path.insert(0, str(SANDBOX_ROOT))
 
 from tmte.adapters.model_adapter import available_models  # noqa: E402
 from tmte.pipeline.minimal_casimir_n_scan import run_and_write_minimal_casimir_n_scan  # noqa: E402
+from tmte.pipeline.minimal_casimir_n_tail_fit import (  # noqa: E402
+    DEFAULT_QUANTITY_COLUMN,
+    SUPPORTED_MODELS,
+    run_and_write_minimal_casimir_n_tail_fit,
+)
 from tmte.pipeline.minimal_casimir_phi_scan import run_and_write_minimal_casimir_phi_scan  # noqa: E402
 from tmte.pipeline.minimal_casimir_q_scan import run_and_write_minimal_casimir_q_scan  # noqa: E402
 from tmte.pipeline.minimal_casimir_qvec_path import q_model_vector_from_polar  # noqa: E402
@@ -218,6 +223,18 @@ def _run_n_scan(args: argparse.Namespace) -> dict[str, Any]:
     )
 
 
+def _run_n_tail_fit(args: argparse.Namespace) -> dict[str, Any]:
+    return run_and_write_minimal_casimir_n_tail_fit(
+        args.output_dir,
+        input_csv_path=args.input_csv,
+        quantity_column=args.quantity_column,
+        models=tuple(args.models),
+        fit_min_n=args.fit_min_n,
+        fit_max_n=args.fit_max_n,
+        tail_start_n_exclusive=args.tail_start_n_exclusive,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Unified debug-only minimal Casimir diagnostics. Default shift policy is no-shift.",
@@ -269,6 +286,16 @@ def build_parser() -> argparse.ArgumentParser:
     nscan.add_argument("--phi-values", nargs="+", type=float, required=True)
     nscan.add_argument("--include-q-scan-payloads", action="store_true")
     nscan.set_defaults(func=_run_n_scan, kind="n-scan")
+
+    tail = subparsers.add_parser("n-tail-fit", help="offline power-law fit for n-scan CSV tail data")
+    tail.add_argument("--input-csv", type=Path, required=True)
+    tail.add_argument("--quantity-column", default=DEFAULT_QUANTITY_COLUMN)
+    tail.add_argument("--models", nargs="+", choices=SUPPORTED_MODELS, default=list(SUPPORTED_MODELS))
+    tail.add_argument("--fit-min-n", type=_positive_int, default=None)
+    tail.add_argument("--fit-max-n", type=_positive_int, default=None)
+    tail.add_argument("--tail-start-n-exclusive", type=_positive_int, default=None)
+    tail.add_argument("--output-dir", type=Path, required=True)
+    tail.set_defaults(func=_run_n_tail_fit, kind="n-tail-fit")
 
     return parser
 
