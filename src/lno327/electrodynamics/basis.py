@@ -86,7 +86,7 @@ def xy_to_lt_rotation(q_x: float, q_y: float, *, allow_q_zero: bool = False) -> 
     if magnitude == 0.0:
         if allow_q_zero:
             return np.eye(2, dtype=float)
-        raise ValueError("q must be nonzero to define the LT basis")
+        raise ValueError("Q must be nonzero to define the LT basis")
     qx_hat = qx / magnitude
     qy_hat = qy / magnitude
     return np.array([[qx_hat, qy_hat], [-qy_hat, qx_hat]], dtype=float)
