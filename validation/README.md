@@ -1,47 +1,21 @@
-# Validation 指南
+# Validation
 
-`validation/` 保存当前可复现的数值检验、诊断结果、轻量 status 和复现入口。这里不是 raw numerical artifacts 的长期仓库。
+`validation/` 只保存能够直接消费当前 two-band finite-q production contract 的数值验证入口和轻量证据。
 
-## 目录组织
+## 当前 active surface
 
-- `scripts/`：可复现的 validation、diagnostic、convergence 和 smoke 检验入口；
-- `outputs/`：按具体检验对象组织的 README、summary、status marker 和 command；
-- `cache/`：可再生成的响应张量或中间数组缓存；
-- `reports/`：跨主题 validation 总览和 artifact policy。
+- `run_static_nk_scan.py`：exact zero-Matsubara 固定非零 q 的 k-grid 收敛与耗时扫描；
+- `lib/finite_q_validation_models.py`：仅暴露 `symmetry_bdg_2band`；
+- `outputs/zero_matsubara/static_nk_convergence/`：当前扫描说明、复现命令和本地 raw 输出位置；
+- `reports/`：当前状态和 artifact policy。
 
-validation 报告按“具体检验对象”阅读：每个检验应说明检验目的、被检验对象、判据、结果、边界和复现方式。
+历史 stage 脚本、四轨道诊断、local-q=0 零模代理、旧 TE/TM adapter、旧 Ward triage 和 sandbox 路线已经从当前工作树删除。需要追溯时使用 Git 历史，而不是在 active validation 中并行维护。
 
-BdG finite-q validation 关注 raw finite-q response 是否满足 Ward / gauge closure，以及它是否可进入 formal conductivity / reflection / Casimir gating chain。对应复现入口位于 `validation/scripts/bdg_finite_q/`，统一轻量报告和复现命令位于 `validation/outputs/finite_q_ward/`。
+## 输出约定
 
-## Artifact 策略
+- 完整 CSV、JSON 和 log 写入各主题的 `raw/`，由 Git 忽略；
+- Git 中只保留 README、command、summary 和小型 status；
+- 正式主计算结果进入根目录 `outputs/`；
+- 不使用根目录 `results/`。
 
-长期进入 Git 的证据应保持紧凑：
-
-- README；
-- summary markdown；
-- 小型 status / summary JSON 或 CSV；
-- `command.sh` 或复现命令；
-- validation report 文档。
-
-默认不跟踪：
-
-- `.npz` / `.npy`；
-- raw、expanded 或大型 data CSV；
-- cache tensors；
-- intermediate outputs；
-- repeated benchmark figures；
-- scratch logs。
-
-`validation/cache/` 总是可再生成。`validation/outputs/` 只保留小型摘要、状态和复现入口。需要复查 raw artifact 时，运行对应目录的 `command.sh` 或 `validation/scripts/**` 重新生成本地 ignored 输出。
-
-## 阅读顺序
-
-1. `validation/reports/validation_summary.md`
-2. `validation/reports/validation_artifact_inventory.md`
-3. `validation/outputs/**/README.md`
-4. `validation/outputs/**/*summary*.md`
-5. `validation/outputs/**/command.sh`
-
-## 边界
-
-validation 报告只说明当前检验结果和适用范围。除非 summary/status 明确写成 production-ready，否则 diagnostic-only 结果不得作为正式 Casimir energy、force、torque 输入。
+当前 validation 只证明相应数值门禁；在收敛报告完成前，不宣称 finite-q Casimir production-ready。

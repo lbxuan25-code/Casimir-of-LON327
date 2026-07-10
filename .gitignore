@@ -1,10 +1,9 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+/results/
 
-# Root outputs archive policy:
-# keep human-readable summaries, figures, and plotting data;
-# ignore raw runtime artifacts, logs, caches, and complete large data dumps.
+# Root outputs: keep lightweight summaries and reproducibility metadata only.
 outputs/**/logs/**
 outputs/**/*.log
 outputs/**/*.jsonl
@@ -24,7 +23,6 @@ outputs/**/*.pickle
 outputs/**/*.npy.gz
 outputs/**/*.npz.gz
 outputs/**/*.csv.gz
-
 outputs/**/*.json
 !outputs/**/summary*.json
 !outputs/**/status*.json
@@ -33,35 +31,26 @@ outputs/**/*.json
 !outputs/**/README.md
 !outputs/**/command.sh
 !outputs/**/.gitkeep
-
 !outputs/**/data/
 !outputs/**/data/**/
-
 !outputs/**/figures/
 !outputs/**/figures/**/
 !outputs/**/figures/**/*.png
 !outputs/**/figures/**/*.pdf
 !outputs/**/figures/**/*.svg
 
-# Validation generated artifacts
-validation/cache/**/*.npz
-validation/cache/**/*.npy
-validation/cache/**/*.csv
-validation/cache/**/*.jsonl
-
+# Validation artifacts: raw scans, caches and logs are reproducible local data.
+validation/cache/**
+validation/outputs/**/raw/**
+validation/outputs/**/intermediate/**
 validation/outputs/**/data/*.npz
 validation/outputs/**/data/*.npy
 validation/outputs/**/data/*.csv
-validation/outputs/**/data/*expanded*.csv
-validation/outputs/**/data/*raw*.csv
-validation/outputs/**/raw/**
-validation/outputs/**/intermediate/**
 validation/outputs/**/figures/*.png
 validation/outputs/**/figures/*.pdf
-validation/logs/*.log
-validation/logs/**/*.log
+validation/logs/**
 
-# Keep validation documentation and lightweight summaries
+# Keep validation documentation and compact summaries.
 !validation/README.md
 !validation/reports/**
 !validation/outputs/**/README.md
@@ -70,34 +59,3 @@ validation/logs/**/*.log
 !validation/outputs/**/*summary*.csv
 !validation/outputs/**/*status*.json
 !validation/outputs/**/command.sh
-!validation/outputs/**/*command*.sh
-
-# Historical large reproducible unit-audit data
-validation/outputs/**/data/*.npz
-validation/outputs/**/data/*expanded*.csv
-validation/outputs/units/casimir_q_grid_model_q_audit/data/casimir_q_grid_model_q_audit.csv
-
-# finite-q BdG Casimir smoke-pilot archive
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/logs/
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/*.log
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/*.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/reflection_results*.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/point_results.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/energy_point_results*.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/failed_points*.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/*.tmp
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/*.active
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/raw/**
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/intermediate/**
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/cache/**
-
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/README.md
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/run_config.json
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/summary.json
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/status.json
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/run_status.json
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/*.csv
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/*.png

@@ -1,28 +1,18 @@
-# 输出指南
+# 输出目录
 
-`outputs/` 保存当前主计算产物的轻量说明、summary、figures/data 目录占位和必要复现入口。
+`outputs/` 只保存当前主计算产物的轻量说明、summary、必要图表和复现入口。
 
-raw 数组、scratch 图、cache、临时结果和大型 CSV 不作为 `outputs/` 的长期 Git 内容。数值收敛性、公式诊断、benchmark-only 证据和 cache 属于 `validation/` 或本地再生成产物。
+## 当前边界
 
-## 当前保留内容
+- `normal_state/`、`pairing/`、`bdg/`：历史主计算的轻量说明；
+- `casimir/local_response_distance_scan/`：明确标注为 local-response baseline / benchmark，不是 finite-q production 结果；
+- 当前尚无正式 finite-q Casimir energy、force 或 torque 输出。
 
-- `normal_state/`：normal-state conductivity 与 band / block inspection 的说明；
-- `pairing/`：pairing 和 gap structure 的说明；
-- `bdg/`：BdG paramagnetic / diamagnetic / total kernel 与 superconducting response 的说明；
-- `casimir/local_response_distance_scan/`：local-response baseline / benchmark 的轻量说明与复现入口。
-
-## 阅读顺序
-
-1. `../docs/current_route.md`
-2. `normal_state/README.md`
-3. `pairing/gap_structure/README.md`
-4. `bdg/total_kernel_imag/README.md`
-5. `bdg/superconducting_response_imag/README.md`
-6. `casimir/local_response_distance_scan/README.md`
+旧 `finite_q_bdg_pipeline` 产物已经删除，因为对应实现使用过失效的 Ward、零模外推和 TE/TM-amplitude 路线。
 
 ## 维护原则
 
-- `outputs/` 面向当前主计算产物和边界清楚的结果摘要；
-- `validation/` 面向“为什么这些计算可信”的支撑证据；
-- `outputs/**/data/` 和 `outputs/**/figures/` 只保留目录占位；生成内容不提交；
-- 需要复查 validation 证据时先看 `../validation/README.md`。
+- 正式主流程结果进入 `outputs/`；
+- 数值验证和 benchmark 进入 `validation/outputs/`；
+- raw 数组、cache、scratch log 和大型表格不提交；
+- 不建立第三套根目录 `results/`。
