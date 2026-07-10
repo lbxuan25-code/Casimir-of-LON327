@@ -59,7 +59,7 @@ def test_multishift_point_budget_is_fail_closed():
 def test_periodic_multishift_runner_smoke_reports_ward_fields():
     row = _run_task(
         {
-            "base_nk": 2,
+            "base_nk": 4,
             "shift_order": 1,
             "qx": 0.03,
             "qy": 0.02,
@@ -78,9 +78,9 @@ def test_periodic_multishift_runner_smoke_reports_ward_fields():
             "separation_nm": 20.0,
         }
     )
-    assert row["base_nk"] == 2
+    assert row["base_nk"] == 4
     assert row["shift_order"] == 1
-    assert row["num_quadrature_points"] == 4
+    assert row["num_quadrature_points"] == 16
     assert np.isfinite(row["chi_bar"])
     assert np.isfinite(row["dbar_t"])
     assert "ward_primitive_mixed_ratio_max" in row
