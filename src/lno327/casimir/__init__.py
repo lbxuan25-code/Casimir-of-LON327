@@ -15,10 +15,14 @@ def casimir_layer_metadata() -> dict[str, object]:
         "valid_for_casimir_input": False,
         "requires_gauge_closed_response": True,
         "ward_identity_closed_by_this_module": False,
+        "positive_matsubara_signed_logdet_supported": True,
+        "zero_matsubara_signed_logdet_supported": True,
+        "zero_matsubara_prime_weight_applied_by_quadrature": True,
         "notes": (
             "This package contains mathematical integrand building blocks only.",
             "It does not validate finite-q Ward/gauge closure.",
-            "It does not make BdG response outputs Casimir-ready.",
+            "The n=0 half weight belongs to the future Matsubara quadrature layer.",
+            "It does not make BdG response outputs Casimir-ready by itself.",
         ),
     }
 
