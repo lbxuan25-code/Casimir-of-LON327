@@ -21,8 +21,10 @@ from lno327.workflows.dwave_periodic_shift_ensemble import (
 from validation.lib.dwave_shift_batch import (
     ShiftBatchConfig,
     evaluate_one_shift,
+    evaluate_one_shift_portable,
     jackknife_orbit_errors,
     merge_prefix,
+    restore_portable_shift_result,
 )
 
 
@@ -151,11 +153,14 @@ def main() -> None:
     else:
         with ProcessPoolExecutor(max_workers=int(args.workers)) as executor:
             futures = {
-                executor.submit(evaluate_one_shift, config, index, shifts[index]): index
+                executor.submit(
+                    evaluate_one_shift_portable, config, index, shifts[index]
+                ): index
                 for index in range(1, maximum)
             }
             for future in as_completed(futures):
-                result = future.result()
+                portable = future.result()
+                result = restore_portable_shift_result(portable)
                 results[int(result["index"])] = result
                 print(f"completed shift {int(result['index']) + 1}/{maximum}")
     if any(item is None for item in results):
@@ -225,6 +230,7 @@ def main() -> None:
             "batch_sizes": batches,
             "workers": int(args.workers),
             "per_shift_components_computed_once": True,
+            "worker_transfer": "pickle-safe numeric payloads; typed objects restored in parent",
             "prefix_recomputation": "primitive merge, one Schur, and postprocessing only",
             "wall_seconds": time.perf_counter() - started,
         }
