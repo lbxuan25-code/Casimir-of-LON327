@@ -66,9 +66,12 @@ def test_dwave_nodal_quadrature_rejects_non_dwave_ansatz():
 
 
 def test_dwave_static_adaptive_runner_smoke_reports_full_contract_fields():
+    # A 2x2 d-wave grid can make the collective block exactly singular by
+    # symmetry.  Eight cells per direction remains a small smoke calculation
+    # while exercising the normal finite-condition Schur path.
     row = _run_task(
         {
-            "coarse_grid": 2,
+            "coarse_grid": 8,
             "adaptive_level": 0,
             "gauss_order": 1,
             "sample_order": 2,
@@ -96,9 +99,9 @@ def test_dwave_static_adaptive_runner_smoke_reports_full_contract_fields():
         }
     )
 
-    assert row["coarse_grid"] == 2
+    assert row["coarse_grid"] == 8
     assert row["adaptive_level"] == 0
-    assert row["num_quadrature_points"] == 4
+    assert row["num_quadrature_points"] == 64
     assert row["ward_passed"] is True
     assert row["ward_condition_ok"] is True
     assert np.isfinite(row["chi_bar"])
