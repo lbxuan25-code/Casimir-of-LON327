@@ -17,6 +17,7 @@ def casimir_layer_metadata() -> dict[str, object]:
         "ward_identity_closed_by_this_module": False,
         "positive_matsubara_signed_logdet_supported": True,
         "zero_matsubara_signed_logdet_supported": True,
+        "zero_matsubara_uses_static_susceptibility_not_conductivity": True,
         "zero_matsubara_prime_weight_applied_by_quadrature": True,
         "notes": (
             "This package contains mathematical integrand building blocks only.",
