@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import numpy as np
 
 from validation.run_static_nk_scan import (
+    _collective_channel_diagnostics,
     _kll_decomposition_diagnostics,
     _longitudinal_component_diagnostics,
     _run_one,
@@ -65,21 +66,59 @@ def test_kll_decomposition_reports_fixed_sign_convention_and_cancellations():
     assert diagnostics["scaled_kll_bubble_real"] == 5.0
     assert diagnostics["scaled_kll_direct_real"] == -3.0
     assert diagnostics["scaled_kll_bare_total_real"] == 2.0
-    assert np.isclose(
-        diagnostics["scaled_kll_collective_correction_real"],
-        1.5,
-    )
+    assert np.isclose(diagnostics["scaled_kll_collective_correction_real"], 1.5)
     assert np.isclose(diagnostics["scaled_kll_effective_real"], 0.5)
-    assert np.isclose(
-        diagnostics["kll_bubble_direct_cancellation_ratio"],
-        2.0 / 5.0,
-    )
-    assert np.isclose(
-        diagnostics["kll_schur_cancellation_ratio"],
-        0.5 / 2.0,
-    )
+    assert np.isclose(diagnostics["kll_bubble_direct_cancellation_ratio"], 2.0 / 5.0)
+    assert np.isclose(diagnostics["kll_schur_cancellation_ratio"], 0.5 / 2.0)
     assert diagnostics["kll_bubble_direct_closure_abs"] < 1e-14
     assert diagnostics["kll_schur_closure_abs"] < 1e-14
+
+
+def test_collective_channel_decomposition_reconstructs_correction_and_spectrum():
+    # Local L couplings are [2, 3] and [5, 7]. With diag(2, 4),
+    # eta1-eta1 contributes 5 and eta2-eta2 contributes 21/4.
+    kernel = SimpleNamespace(
+        k_seta=np.asarray(
+            [
+                [0.0, 0.0],
+                [2.0, 3.0],
+                [0.0, 0.0],
+            ],
+            dtype=complex,
+        ),
+        k_etaeta=np.diag([2.0, 4.0]).astype(complex),
+        k_etas=np.asarray(
+            [
+                [0.0, 5.0, 0.0],
+                [0.0, 7.0, 0.0],
+            ],
+            dtype=complex,
+        ),
+        schur_inverse_method="inv",
+    )
+    diagnostics = _collective_channel_diagnostics(
+        kernel,
+        np.eye(3),
+        1.0,
+        10.25,
+    )
+
+    assert np.isclose(
+        diagnostics["scaled_kll_channel_eta1_amplitude_eta1_amplitude_real"],
+        5.0,
+    )
+    assert diagnostics["scaled_kll_channel_eta1_amplitude_eta2_phase_abs"] == 0.0
+    assert diagnostics["scaled_kll_channel_eta2_phase_eta1_amplitude_abs"] == 0.0
+    assert np.isclose(
+        diagnostics["scaled_kll_channel_eta2_phase_eta2_phase_real"],
+        21.0 / 4.0,
+    )
+    assert np.isclose(diagnostics["scaled_kll_channel_sum_real"], 10.25)
+    assert diagnostics["collective_channel_sum_closure_abs"] < 1e-14
+    assert np.isclose(diagnostics["collective_singular_value_min"], 2.0)
+    assert np.isclose(diagnostics["collective_singular_value_max"], 4.0)
+    assert np.isclose(diagnostics["collective_condition_from_svd"], 2.0)
+    assert diagnostics["dominant_collective_channel"] == "eta2_phase_eta2_phase"
 
 
 def test_ward_side_diagnostics_reports_rhs_projection_cancellation():
@@ -100,7 +139,7 @@ def test_ward_side_diagnostics_reports_rhs_projection_cancellation():
     assert diagnostics["ward_left_direct_prediction_relative_residual"] == 0.0
 
 
-def test_static_scan_row_contains_resolved_longitudinal_ward_and_kll_fields():
+def test_static_scan_row_contains_resolved_collective_fields():
     row = _run_one(
         {
             "nk": 2,
@@ -134,6 +173,21 @@ def test_static_scan_row_contains_resolved_longitudinal_ward_and_kll_fields():
         "scaled_kll_effective_real",
         "kll_bubble_direct_cancellation_ratio",
         "kll_schur_cancellation_ratio",
+        "collective_singular_value_min",
+        "collective_singular_value_max",
+        "collective_condition_from_svd",
+        "collective_eigenvalue_small_real",
+        "collective_eigenvalue_large_real",
+        "raw_k_l_eta1_amplitude_abs",
+        "raw_k_l_eta2_phase_abs",
+        "raw_k_eta1_amplitude_l_abs",
+        "raw_k_eta2_phase_l_abs",
+        "scaled_kll_channel_eta1_amplitude_eta1_amplitude_real",
+        "scaled_kll_channel_eta1_amplitude_eta2_phase_real",
+        "scaled_kll_channel_eta2_phase_eta1_amplitude_real",
+        "scaled_kll_channel_eta2_phase_eta2_phase_real",
+        "scaled_kll_channel_sum_real",
+        "dominant_collective_channel",
     ):
         assert field in row
 
@@ -144,4 +198,8 @@ def test_static_scan_row_contains_resolved_longitudinal_ward_and_kll_fields():
     assert np.isclose(
         row["scaled_kll_effective_relative_abs"],
         row["relative_kll"],
+    )
+    assert np.isclose(
+        row["scaled_kll_channel_sum_real"],
+        row["scaled_kll_collective_correction_real"],
     )
