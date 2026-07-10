@@ -55,7 +55,7 @@ jobs:
           MKL_NUM_THREADS: "1"
           NUMEXPR_NUM_THREADS: "1"
         run: >-
-          python validation/run_static_nk_scan.py
+          python -m validation.run_static_nk_scan
           --nks 2 3
           --workers 2
           --output /tmp/static-nk-smoke.csv
