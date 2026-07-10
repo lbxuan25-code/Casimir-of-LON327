@@ -6,8 +6,10 @@ oversubscription with OMP_NUM_THREADS=1, OPENBLAS_NUM_THREADS=1, and related
 environment variables.
 
 Besides aggregate static validation fields, the CSV/JSON output resolves the
-five longitudinal entries in the scaled local ``(A0,L,T)`` kernel and records
-the left/right Ward RHS--collective-projection cancellation.
+five longitudinal entries in the scaled local ``(A0,L,T)`` kernel, records the
+left/right Ward RHS--collective-projection cancellation, and decomposes the
+static ``K_LL`` entry into bubble, direct/contact, bare ``K_SS``, collective
+Schur correction, and final effective contributions.
 """
 
 from __future__ import annotations
@@ -103,6 +105,109 @@ def _longitudinal_component_diagnostics(
     return result
 
 
+def _complex_scalar_fields(prefix: str, value: complex, scale: float) -> dict[str, float]:
+    scalar = complex(value)
+    denominator = max(float(scale), 1e-30)
+    return {
+        f"{prefix}_real": float(scalar.real),
+        f"{prefix}_imag": float(scalar.imag),
+        f"{prefix}_abs": float(abs(scalar)),
+        f"{prefix}_relative_abs": float(abs(scalar) / denominator),
+    }
+
+
+def _collective_schur_correction(kernel: object) -> np.ndarray:
+    """Recompute ``K_Seta K_etaeta^-1 K_etaS`` using the selected inverse policy."""
+
+    k_seta = np.asarray(getattr(kernel, "k_seta"), dtype=complex)
+    k_etaeta = np.asarray(getattr(kernel, "k_etaeta"), dtype=complex)
+    k_etas = np.asarray(getattr(kernel, "k_etas"), dtype=complex)
+    method = str(getattr(kernel, "schur_inverse_method"))
+    if method == "inv":
+        inverse = np.linalg.inv(k_etaeta)
+    elif method == "pinv_diagnostic":
+        inverse = np.linalg.pinv(k_etaeta)
+    else:
+        raise ValueError(f"unsupported Schur inverse method {method!r}")
+    return k_seta @ inverse @ k_etas
+
+
+def _kll_decomposition_diagnostics(
+    components: object,
+    kernel: object,
+    transform: np.ndarray,
+    energy_scale_eV: float,
+    static_scale: float,
+) -> dict[str, float]:
+    """Decompose scaled local ``K_LL`` into microscopic and Schur pieces.
+
+    The fixed sign convention is
+
+    ``K_SS = K_bubble + K_direct``
+
+    and
+
+    ``K_eff = K_SS - K_collective_correction``.
+    """
+
+    rotation = np.asarray(transform, dtype=float)
+    if rotation.shape != (3, 3):
+        raise ValueError(f"transform must have shape (3, 3), got {rotation.shape}")
+
+    bubble_xy = np.asarray(getattr(components, "bare_bubble"), dtype=complex)
+    direct_xy = np.asarray(getattr(components, "direct"), dtype=complex)
+    bare_total_xy = np.asarray(getattr(components, "bare_total"), dtype=complex)
+    effective_xy = np.asarray(getattr(kernel, "k_eff"), dtype=complex)
+    correction_xy = _collective_schur_correction(kernel)
+
+    if not np.allclose(bubble_xy + direct_xy, bare_total_xy, rtol=2e-12, atol=2e-13):
+        raise RuntimeError("K_SS decomposition does not satisfy bubble + direct = bare_total")
+    if not np.allclose(
+        bare_total_xy - correction_xy,
+        effective_xy,
+        rtol=2e-12,
+        atol=2e-13,
+    ):
+        raise RuntimeError("Schur decomposition does not satisfy K_eff = K_SS - correction")
+
+    pieces_xy = {
+        "scaled_kll_bubble": bubble_xy,
+        "scaled_kll_direct": direct_xy,
+        "scaled_kll_bare_total": bare_total_xy,
+        "scaled_kll_collective_correction": correction_xy,
+        "scaled_kll_effective": effective_xy,
+    }
+    values: dict[str, complex] = {}
+    result: dict[str, float] = {}
+    for prefix, matrix_xy in pieces_xy.items():
+        matrix_lt = rotation @ matrix_xy @ rotation.T
+        value = complex(_scaled_static_kernel(matrix_lt, energy_scale_eV)[1, 1])
+        values[prefix] = value
+        result.update(_complex_scalar_fields(prefix, value, static_scale))
+
+    bubble = values["scaled_kll_bubble"]
+    direct = values["scaled_kll_direct"]
+    bare_total = values["scaled_kll_bare_total"]
+    correction = values["scaled_kll_collective_correction"]
+    effective = values["scaled_kll_effective"]
+    bubble_direct_scale = max(abs(bubble), abs(direct), 1e-30)
+    schur_scale = max(abs(bare_total), abs(correction), 1e-30)
+
+    result.update(
+        {
+            "kll_bubble_direct_cancellation_ratio": float(
+                abs(bare_total) / bubble_direct_scale
+            ),
+            "kll_schur_cancellation_ratio": float(abs(effective) / schur_scale),
+            "kll_bubble_direct_closure_abs": float(abs(bubble + direct - bare_total)),
+            "kll_schur_closure_abs": float(
+                abs(bare_total - correction - effective)
+            ),
+        }
+    )
+    return result
+
+
 def _ward_side_diagnostics(side: object, prefix: str) -> dict[str, float]:
     """Record absolute norms and the physical RHS/projection cancellation ratio."""
 
@@ -181,10 +286,18 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
         static.kernel_lt,
         static.energy_scale_eV,
     )
+    transform = np.asarray(static.metadata["local_projection_matrix"], dtype=float)
+    kll_decomposition = _kll_decomposition_diagnostics(
+        components,
+        kernel,
+        transform,
+        static.energy_scale_eV,
+        float(longitudinal["static_kernel_real_scale"]),
+    )
     ward_left = _ward_side_diagnostics(ward.left, "ward_left")
     ward_right = _ward_side_diagnostics(ward.right, "ward_right")
 
-    # Keep the decomposition tied to the production aggregate definition.
+    # Keep all decompositions tied to the production aggregate definition.
     if not np.isclose(
         longitudinal["longitudinal_components_relative_norm"],
         static.validation.relative_longitudinal_gauge_residual,
@@ -192,6 +305,13 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
         atol=5e-15,
     ):
         raise RuntimeError("longitudinal component decomposition disagrees with static validation")
+    if not np.isclose(
+        kll_decomposition["scaled_kll_effective_relative_abs"],
+        longitudinal["relative_kll"],
+        rtol=5e-13,
+        atol=5e-15,
+    ):
+        raise RuntimeError("K_LL decomposition disagrees with longitudinal diagnostics")
 
     total_seconds = time.perf_counter() - total_start
     cpu_seconds = time.process_time() - cpu_start
@@ -229,6 +349,7 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
             static.validation.relative_longitudinal_gauge_residual
         ),
         **longitudinal,
+        **kll_decomposition,
         "relative_density_transverse_mixing": (
             static.validation.relative_density_transverse_mixing
         ),
@@ -274,6 +395,16 @@ def _write_outputs(rows: list[dict[str, Any]], output: Path, args: argparse.Name
             "scaled_abs_klt": "|scaled K_LT|",
             "scaled_abs_ktl": "|scaled K_TL|",
             "relative_kxy": "scaled_abs_kxy / max(||Re K_scaled||_F, 1)",
+            "kll_sign_convention": (
+                "K_SS = K_bubble + K_direct; "
+                "K_eff = K_SS - K_collective_correction"
+            ),
+            "kll_bubble_direct_cancellation_ratio": (
+                "|K_LL^SS| / max(|K_LL^bubble|, |K_LL^direct|, 1e-30)"
+            ),
+            "kll_schur_cancellation_ratio": (
+                "|K_LL^eff| / max(|K_LL^SS|, |K_LL^collective|, 1e-30)"
+            ),
             "rhs_projection_cancellation_ratio": (
                 "||effective_predicted|| / max(||primitive_rhs||, "
                 "||collective_projection||, 1e-30)"
@@ -317,6 +448,25 @@ def _print_summary(rows: list[dict[str, Any]]) -> None:
             f"{row['relative_kll']:13.3e} "
             f"{row['relative_klt']:13.3e} "
             f"{row['relative_ktl']:13.3e}"
+        )
+
+    print("\nK_LL decomposition (scaled local values; K_eff = K_SS - K_coll)")
+    header = (
+        " nk       Re(bubble)    Re(direct)       Re(KSS)      Re(Kcoll)      "
+        "Re(Keff)  b+d cancel  Schur cancel"
+    )
+    print(header)
+    print("-" * len(header))
+    for row in rows:
+        print(
+            f"{row['nk']:3d} "
+            f"{row['scaled_kll_bubble_real']:14.6e} "
+            f"{row['scaled_kll_direct_real']:14.6e} "
+            f"{row['scaled_kll_bare_total_real']:14.6e} "
+            f"{row['scaled_kll_collective_correction_real']:14.6e} "
+            f"{row['scaled_kll_effective_real']:14.6e} "
+            f"{row['kll_bubble_direct_cancellation_ratio']:11.3e} "
+            f"{row['kll_schur_cancellation_ratio']:13.3e}"
         )
 
     print("\nWard RHS--collective cancellation")
