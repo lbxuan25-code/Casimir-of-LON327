@@ -70,3 +70,22 @@ gauss2_shift4: cell_nk = base_nk,     4 shifts, N = 4 * base_nk^2
 ```
 
 因此该比值越小，表示 RHS 与 collective projection 的物理相消越充分；它不同于已经衡量数值恒等式闭合的 Ward residual。
+
+## Ward mixed absolute-relative closure
+
+生产 Ward pass/fail 使用混合判据：
+
+```text
+||residual|| <= absolute_residual_tolerance
+                + residual_tolerance * reference_scale
+```
+
+`residual_tolerance` 保留为 relative tolerance；默认 `absolute_residual_tolerance=1e-12`。旧的 pure relative residual 仍保留为诊断字段，但不再单独决定 closure。
+
+当
+
+```text
+residual_tolerance * reference_scale <= absolute_residual_tolerance
+```
+
+时，诊断标记为 denominator collapse：恒等式两边已经同时接近零，pure relative residual 可能因分母塌缩而上升。此时应检查 absolute residual 与 mixed ratio，不能把 relative residual 的上升解释为物理 Ward closure 变坏。
