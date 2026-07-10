@@ -30,10 +30,13 @@ jobs:
           tests/test_effective_em_kernel_contract.py
           tests/test_electrodynamics_basis.py
           tests/test_positive_matsubara_sheet_response.py
+          tests/test_zero_matsubara_static_sheet.py
           tests/test_two_band_casimir_contract_integration.py
           tests/test_sheet_reflection_contract.py
           tests/test_passive_sheet_logdet.py
           tests/test_primitive_xy_ward_validation.py
           tests/test_legacy_casimir_pipeline_retired.py
+          tests/test_bdg_finite_q_response.py
+          tests/test_response_finite_q_primitives_regression.py
           tests/test_electrodynamics_reflection_regression.py
           tests/test_electrodynamics_conventions_regression.py
