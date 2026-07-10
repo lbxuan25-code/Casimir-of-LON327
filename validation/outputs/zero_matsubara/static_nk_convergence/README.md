@@ -9,8 +9,18 @@
 - primitive/effective Ward residual；
 - Schur condition number；
 - imaginary residual；
-- longitudinal gauge leakage；
+- aggregate longitudinal gauge leakage；
+- 分解后的 `K_0L`、`K_L0`、`K_LL`、`K_LT`、`K_TL` scaled absolute/relative entries，以及主导分量；
+- 左右 Ward RHS、collective projection、effective direct/predicted norms 与 RHS-projection cancellation ratio；
 - density-transverse mixing；
 - `chi_bar` 与 `Dbar_T`；
 - material cache、q workspace、response 和后处理耗时；
 - peak RSS。
+
+五个 longitudinal relative entries 使用与 `StaticSheetValidation` 相同的 mixed-unit scaling 和总尺度；其二范数必须复现 `relative_longitudinal_gauge_residual`。`rhs_projection_cancellation_ratio` 定义为
+
+```text
+||effective_predicted|| / max(||primitive_rhs||, ||collective_projection||, 1e-30)
+```
+
+因此该比值越小，表示 RHS 与 collective projection 的物理相消越充分；它不同于已经衡量数值恒等式闭合的 Ward residual。
