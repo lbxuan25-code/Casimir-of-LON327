@@ -59,6 +59,15 @@ jobs:
           cat pytest-output.txt
           exit $status
 
+      - name: Run full test suite after cleanup
+        shell: bash
+        run: |
+          set +e
+          python -m pytest -q --tb=short > full-pytest-output.txt 2>&1
+          status=$?
+          cat full-pytest-output.txt
+          exit $status
+
       - name: Smoke test timed static scan CLI
         env:
           OMP_NUM_THREADS: "1"
@@ -79,5 +88,6 @@ jobs:
           path: |
             collect-output.txt
             pytest-output.txt
+            full-pytest-output.txt
           if-no-files-found: ignore
           retention-days: 7
