@@ -46,6 +46,7 @@ def test_cached_material_counterterm_matches_ansatz_reference(pairing_name: str)
     )
     assert material.metadata["duplicate_midpoint_eigensystem_passes"] == 0
     assert material.metadata["goldstone_counterterm_from_cached_midpoint_bands"] is True
+    assert material.metadata["production_current_vertex"] == "peierls"
 
     q_workspace = precompute_finite_q_q_workspace(material, np.asarray([0.03, 0.02]))
     response = finite_q_bdg_response_from_q_workspace(q_workspace, 0.01)
