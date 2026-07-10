@@ -12,6 +12,8 @@
 - aggregate longitudinal gauge leakage；
 - 分解后的 `K_0L`、`K_L0`、`K_LL`、`K_LT`、`K_TL` scaled absolute/relative entries，以及主导分量；
 - `K_LL` 的 bubble、direct/contact、裸 `K_SS`、collective Schur correction 和最终 `K_eff` 分解；
+- collective correction 的四个 amplitude/phase channel：`eta1-eta1`、`eta1-eta2`、`eta2-eta1`、`eta2-eta2`；
+- `K_etaeta` 的奇异值、按模排序的特征值、inverse Frobenius norm，以及左右 `L-eta` coupling；
 - bubble/direct 与 Schur 两级 cancellation ratio；
 - 左右 Ward RHS、collective projection、effective direct/predicted norms 与 RHS-projection cancellation ratio；
 - density-transverse mixing；
@@ -30,6 +32,21 @@ K_eff = K_SS - K_collective_correction
 
 扫描入口会按实际 inverse policy 独立重算
 `K_collective_correction = K_Seta @ inv(K_etaeta) @ K_etaS`，并对两条重构关系执行 fail-closed 检查。
+
+collective channel 采用固定顺序：
+
+```text
+eta1 = amplitude
+eta2 = phase
+```
+
+每项定义为：
+
+```text
+term_ab = K_Leta[a] * inv(K_etaeta)[a,b] * K_etaL[b] / E0
+```
+
+四项之和必须复现 scaled local `K_LL` collective correction；不一致时扫描直接失败。
 
 `rhs_projection_cancellation_ratio` 定义为
 
