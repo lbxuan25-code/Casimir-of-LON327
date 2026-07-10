@@ -10,6 +10,7 @@ from validation.lib.dwave_global_extrapolation import (
     static_power_law_fits,
     summarize_fit_ensemble,
 )
+from validation.run_dwave_small_xi_extrapolation_scan import _fit_channel
 from validation.run_dwave_static_global_reference_scan import _run_task
 
 
@@ -39,6 +40,24 @@ def test_small_xi_even_fit_recovers_zero_frequency_intercept():
     summary = summarize_fit_ensemble(fits)
     assert np.isfinite(summary.estimate)
     assert summary.num_accepted_models >= 1
+
+
+def test_small_xi_runner_fit_channel_exposes_reference_residuals():
+    xi = np.asarray([1e-4, 2e-4, 4e-4, 8e-4, 1.6e-3, 3.2e-3])
+    limit = 0.4498
+    values = (limit + 4.0 * xi**2).tolist()
+    fits, summary = _fit_channel(
+        xi,
+        values,
+        "chi_bar_proxy",
+        (4, 5, 6),
+        same_grid_static=limit,
+        external_reference=limit,
+    )
+    assert fits
+    assert abs(float(summary["estimate"]) - limit) < 1e-8
+    assert float(summary["relative_to_same_grid_static"]) < 1e-7
+    assert float(summary["relative_to_external_reference"]) < 1e-7
 
 
 def test_local_lt_kernel_proxies_match_transverse_projection():
