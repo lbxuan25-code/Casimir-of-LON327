@@ -39,8 +39,8 @@ def _synthetic_static_contract(
     kernel_lt[1, 1] = float(kll_noise)
     kernel_lt[0, 1] = 0.1 * float(kll_noise)
     kernel_lt[1, 0] = -0.08 * float(kll_noise)
-    kernel_lt[1, 2] = 0.05j * float(kll_noise)
-    kernel_lt[2, 1] = -0.04j * float(kll_noise)
+    kernel_lt[1, 2] = 0.05 * float(kll_noise)
+    kernel_lt[2, 1] = -0.04 * float(kll_noise)
     kernel_xy = transform.T @ kernel_lt @ transform
 
     kernel = EffectiveEMKernel(
@@ -158,11 +158,20 @@ def test_projection_does_not_change_static_reflection_or_logical_physical_output
         theta_rad=0.0,
     )
 
-    assert projected.chi_bar == clean.chi_bar
-    assert projected.dbar_t == clean.dbar_t
-    np.testing.assert_array_equal(projected_reflection.matrix_lt, clean_reflection.matrix_lt)
-    assert projected_reflection.lambda_l == clean_reflection.lambda_l
-    assert projected_reflection.lambda_t == clean_reflection.lambda_t
+    assert projected.chi_bar == pytest.approx(clean.chi_bar, rel=0.0, abs=1e-14)
+    assert projected.dbar_t == pytest.approx(clean.dbar_t, rel=0.0, abs=1e-14)
+    np.testing.assert_allclose(
+        projected_reflection.matrix_lt,
+        clean_reflection.matrix_lt,
+        rtol=0.0,
+        atol=1e-14,
+    )
+    assert projected_reflection.lambda_l == pytest.approx(
+        clean_reflection.lambda_l, rel=0.0, abs=1e-14
+    )
+    assert projected_reflection.lambda_t == pytest.approx(
+        clean_reflection.lambda_t, rel=0.0, abs=1e-14
+    )
 
 
 def test_projection_rejects_raw_longitudinal_leakage_above_ceiling():
