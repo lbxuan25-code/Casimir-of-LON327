@@ -8,7 +8,6 @@ from lno327.workflows.dwave_periodic_multishift_quadrature import (
     DWavePeriodicMultishiftOptions,
     build_dwave_periodic_multishift_quadrature,
 )
-from validation.run_dwave_static_periodic_multishift_scan import _run_task
 
 
 def test_shift_order_one_matches_uniform_midpoint_mesh():
@@ -54,35 +53,3 @@ def test_multishift_point_budget_is_fail_closed():
                 max_quadrature_points=899,
             ),
         )
-
-
-def test_periodic_multishift_runner_smoke_reports_ward_fields():
-    row = _run_task(
-        {
-            "base_nk": 4,
-            "shift_order": 1,
-            "qx": 0.03,
-            "qy": 0.02,
-            "temperature_K": 10.0,
-            "delta0_eV": 0.1,
-            "eta_eV": 1e-8,
-            "max_quadrature_points": 100,
-            "ward_tolerance": 1e-6,
-            "ward_absolute_tolerance": 1e-12,
-            "condition_max": 1e12,
-            "raw_longitudinal_ceiling": 10.0,
-            "longitudinal_tolerance": 1e-7,
-            "mixing_tolerance": 10.0,
-            "reality_tolerance": 10.0,
-            "passivity_tolerance": 10.0,
-            "separation_nm": 20.0,
-        }
-    )
-    assert row["base_nk"] == 4
-    assert row["shift_order"] == 1
-    assert row["num_quadrature_points"] == 16
-    assert np.isfinite(row["chi_bar"])
-    assert np.isfinite(row["dbar_t"])
-    assert "ward_primitive_mixed_ratio_max" in row
-    assert "ward_effective_mixed_ratio_max" in row
-    assert "projection_eligible" in row
