@@ -98,7 +98,7 @@ def test_xy_to_lt_is_only_an_orthogonal_residual_projection():
     np.testing.assert_allclose(diagnostics.xy_norms, diagnostics.lt_norms, rtol=1e-14, atol=1e-14)
 
 
-def test_rhs_builder_accepts_nonzero_qy_and_matches_kernel_kinematics():
+def test_rhs_builder_closes_real_two_band_response_for_nonzero_qy():
     model = get_finite_q_validation_model("symmetry_bdg_2band")
     ansatz = model.build_ansatz("spm", phase_vertex="bond_endpoint_gauge")
     pairing_params = model.build_pairing_params(0.1)
@@ -138,15 +138,17 @@ def test_rhs_builder_accepts_nonzero_qy_and_matches_kernel_kinematics():
     report = validate_effective_ward_xy(
         kernel,
         rhs,
-        residual_tolerance=1.0,
+        residual_tolerance=1e-7,
     )
 
     np.testing.assert_array_equal(rhs.q_model, q_model)
     assert rhs.metadata["basis"] == "crystal_A0_xy"
     assert rhs.metadata["formula"] == "R_S = equal_forward - delta_v_mid + qM_mid"
     assert report.metadata["lt_projection_is_diagnostic_only"] is True
-    assert np.isfinite(report.left.effective_relative_residual)
-    assert np.isfinite(report.right.effective_relative_residual)
+    assert report.primitive_closed is True
+    assert report.effective_closed is True
+    assert report.left.effective_relative_residual < 1e-7
+    assert report.right.effective_relative_residual < 1e-7
 
 
 def test_validator_rejects_mismatched_q_or_frequency():
