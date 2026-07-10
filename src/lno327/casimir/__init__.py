@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .lifshitz import casimir_energy_integrand
+from .lifshitz_integrand import LifshitzPoint, passive_sheet_logdet
 from .reflection import reflection_matrix_weak_2d
 from .setup import CasimirSetup, matsubara_frequency
 from .torque import casimir_torque_integrand
@@ -24,9 +25,11 @@ def casimir_layer_metadata() -> dict[str, object]:
 
 __all__ = [
     "CasimirSetup",
+    "LifshitzPoint",
     "casimir_energy_integrand",
     "casimir_layer_metadata",
     "casimir_torque_integrand",
     "matsubara_frequency",
+    "passive_sheet_logdet",
     "reflection_matrix_weak_2d",
 ]
