@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import numpy as np
 
 from validation.run_static_nk_scan import (
+    _kll_decomposition_diagnostics,
     _longitudinal_component_diagnostics,
     _run_one,
     _ward_side_diagnostics,
@@ -33,6 +34,54 @@ def test_longitudinal_component_decomposition_reproduces_aggregate_norm():
     assert diagnostics["dominant_longitudinal_component"] == "KTL"
 
 
+def test_kll_decomposition_reports_fixed_sign_convention_and_cancellations():
+    bubble = np.zeros((3, 3), dtype=complex)
+    direct = np.zeros((3, 3), dtype=complex)
+    correction = np.zeros((3, 3), dtype=complex)
+    bubble[1, 1] = 5.0
+    direct[1, 1] = -3.0
+    correction[1, 1] = 1.5
+
+    components = SimpleNamespace(
+        bare_bubble=bubble,
+        direct=direct,
+        bare_total=bubble + direct,
+    )
+    kernel = SimpleNamespace(
+        k_seta=np.asarray([[0.0], [np.sqrt(1.5)], [0.0]], dtype=complex),
+        k_etaeta=np.asarray([[1.0]], dtype=complex),
+        k_etas=np.asarray([[0.0, np.sqrt(1.5), 0.0]], dtype=complex),
+        k_eff=bubble + direct - correction,
+        schur_inverse_method="inv",
+    )
+    diagnostics = _kll_decomposition_diagnostics(
+        components,
+        kernel,
+        np.eye(3),
+        1.0,
+        1.0,
+    )
+
+    assert diagnostics["scaled_kll_bubble_real"] == 5.0
+    assert diagnostics["scaled_kll_direct_real"] == -3.0
+    assert diagnostics["scaled_kll_bare_total_real"] == 2.0
+    assert np.isclose(
+        diagnostics["scaled_kll_collective_correction_real"],
+        1.5,
+    )
+    assert np.isclose(diagnostics["scaled_kll_effective_real"], 0.5)
+    assert np.isclose(
+        diagnostics["kll_bubble_direct_cancellation_ratio"],
+        2.0 / 5.0,
+    )
+    assert np.isclose(
+        diagnostics["kll_schur_cancellation_ratio"],
+        0.5 / 2.0,
+    )
+    assert diagnostics["kll_bubble_direct_closure_abs"] < 1e-14
+    assert diagnostics["kll_schur_closure_abs"] < 1e-14
+
+
 def test_ward_side_diagnostics_reports_rhs_projection_cancellation():
     side = SimpleNamespace(
         primitive_rhs=np.asarray([3.0, 0.0, 0.0], dtype=complex),
@@ -51,7 +100,7 @@ def test_ward_side_diagnostics_reports_rhs_projection_cancellation():
     assert diagnostics["ward_left_direct_prediction_relative_residual"] == 0.0
 
 
-def test_static_scan_row_contains_resolved_longitudinal_and_ward_fields():
+def test_static_scan_row_contains_resolved_longitudinal_ward_and_kll_fields():
     row = _run_one(
         {
             "nk": 2,
@@ -78,10 +127,21 @@ def test_static_scan_row_contains_resolved_longitudinal_and_ward_fields():
         "ward_right_rhs_norm",
         "ward_right_collective_projection_norm",
         "ward_right_rhs_projection_cancellation_ratio",
+        "scaled_kll_bubble_real",
+        "scaled_kll_direct_real",
+        "scaled_kll_bare_total_real",
+        "scaled_kll_collective_correction_real",
+        "scaled_kll_effective_real",
+        "kll_bubble_direct_cancellation_ratio",
+        "kll_schur_cancellation_ratio",
     ):
         assert field in row
 
     assert np.isclose(
         row["longitudinal_components_relative_norm"],
         row["relative_longitudinal_gauge_residual"],
+    )
+    assert np.isclose(
+        row["scaled_kll_effective_relative_abs"],
+        row["relative_kll"],
     )
