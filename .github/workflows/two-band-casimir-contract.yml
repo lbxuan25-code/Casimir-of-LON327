@@ -24,6 +24,9 @@ jobs:
       - name: Install package and test dependencies
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
 
+      - name: Verify test collection after cleanup
+        run: python -m pytest --collect-only -q
+
       - name: Run contract and compatibility tests
         shell: bash
         run: |
@@ -43,6 +46,8 @@ jobs:
             tests/test_response_finite_q_primitives_regression.py \
             tests/test_electrodynamics_reflection_regression.py \
             tests/test_electrodynamics_conventions_regression.py \
+            tests/test_finite_q_validation_model_adapter.py \
+            tests/test_repository_layout_contract.py \
             > pytest-output.txt 2>&1
           status=$?
           cat pytest-output.txt
