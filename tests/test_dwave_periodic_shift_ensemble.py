@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pickle
+
 import numpy as np
 import pytest
 
@@ -10,7 +12,13 @@ from lno327.workflows.dwave_periodic_shift_ensemble import (
     nested_c4_antithetic_shifts,
     periodic_shift_mesh,
 )
-from validation.lib.dwave_shift_batch import ShiftBatchConfig, evaluate_one_shift, merge_prefix
+from validation.lib.dwave_shift_batch import (
+    ShiftBatchConfig,
+    evaluate_one_shift,
+    evaluate_one_shift_portable,
+    merge_prefix,
+    restore_portable_shift_result,
+)
 
 
 def _config() -> ShiftBatchConfig:
@@ -99,6 +107,20 @@ def test_identical_cached_shift_primitives_merge_before_one_schur():
     assert np.allclose(rhs.left, result["rhs"].left, rtol=1e-12, atol=1e-13)
     assert components.metadata["shift_ensemble_merged_before_schur"] is True
     assert components.metadata["num_shift_components"] == 2
+
+
+def test_worker_payload_is_pickle_safe_and_restores_typed_objects():
+    config = _config()
+    payload = evaluate_one_shift_portable(config, 1, np.asarray([0.25, 0.75]))
+    transferred = pickle.loads(pickle.dumps(payload))
+    result = restore_portable_shift_result(transferred)
+    assert result["workspace"] is None
+    assert result["index"] == 1
+    assert np.allclose(result["shift"], [0.25, 0.75])
+    assert result["components"].bare_bubble.shape == (3, 3)
+    assert result["components"].collective_bubble.shape == (2, 2)
+    assert result["rhs"].left.shape == (3,)
+    assert result["rhs"].metadata["source"] == "portable worker payload"
 
 
 def test_cached_four_shift_prefix_reports_full_static_diagnostics():
