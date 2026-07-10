@@ -6,7 +6,8 @@ external so callers can avoid process/thread oversubscription.
 Besides aggregate static validation fields, the CSV/JSON output resolves the
 five longitudinal entries in local ``(A0,L,T)``, the static ``K_LL`` bubble /
 direct / Schur decomposition, the four amplitude-phase Schur channel terms,
-and the spectrum and couplings of ``K_etaeta``.
+the spectrum and couplings of ``K_etaeta``, and the factorized phase-channel
+quantities that generate the longitudinal collective correction.
 """
 
 from __future__ import annotations
@@ -279,6 +280,94 @@ def _collective_channel_diagnostics(
     return result
 
 
+def _phase_channel_factor_diagnostics(
+    components: object,
+    kernel: object,
+    transform: np.ndarray,
+    energy_scale_eV: float,
+    static_scale: float,
+) -> dict[str, float]:
+    """Factor the phase-only longitudinal Schur term into couplings and kernel.
+
+    The production amplitude/phase block uses
+
+    ``K_etaeta = collective_bubble + collective_counterterm``.
+
+    When amplitude mixing is negligible, the dominant phase correction is
+
+    ``K_Leta2 * inv(K_etaeta)[2,2] * K_eta2L / E0``.
+    """
+
+    rotation = np.asarray(transform, dtype=float)
+    if rotation.shape != (3, 3):
+        raise ValueError(f"transform must have shape (3, 3), got {rotation.shape}")
+    energy = float(energy_scale_eV)
+    if not np.isfinite(energy) or energy <= 0.0:
+        raise ValueError("energy_scale_eV must be finite and positive")
+
+    collective_bubble = np.asarray(getattr(components, "collective_bubble"), dtype=complex)
+    collective_counterterm = np.asarray(
+        getattr(components, "collective_counterterm"), dtype=complex
+    )
+    collective_total = np.asarray(getattr(components, "collective_total"), dtype=complex)
+    k_etaeta = np.asarray(getattr(kernel, "k_etaeta"), dtype=complex)
+    if any(matrix.shape != (2, 2) for matrix in (
+        collective_bubble,
+        collective_counterterm,
+        collective_total,
+        k_etaeta,
+    )):
+        raise ValueError("phase factor diagnostics require 2x2 collective matrices")
+    if not np.allclose(
+        collective_bubble + collective_counterterm,
+        collective_total,
+        rtol=2e-12,
+        atol=2e-13,
+    ):
+        raise RuntimeError("collective bubble + counterterm does not reconstruct total")
+    if not np.allclose(collective_total, k_etaeta, rtol=2e-12, atol=2e-13):
+        raise RuntimeError("component collective_total disagrees with effective kernel k_etaeta")
+
+    k_seta_lt = rotation @ np.asarray(getattr(kernel, "k_seta"), dtype=complex)
+    k_etas_lt = np.asarray(getattr(kernel, "k_etas"), dtype=complex) @ rotation.T
+    inverse = _collective_inverse(kernel)
+
+    left_phase = complex(k_seta_lt[1, 1])
+    right_phase = complex(k_etas_lt[1, 1])
+    phase_bubble = complex(collective_bubble[1, 1])
+    phase_counterterm = complex(collective_counterterm[1, 1])
+    phase_total = complex(collective_total[1, 1])
+    inverse_22 = complex(inverse[1, 1])
+    scalar_inverse = complex(1.0 / phase_total) if abs(phase_total) > 0.0 else complex(np.inf)
+    correction = complex(left_phase * inverse_22 * right_phase / energy)
+
+    full_channel_term = correction
+    result: dict[str, float] = {
+        "phase_collective_total_closure_abs": float(
+            abs(phase_bubble + phase_counterterm - phase_total)
+        ),
+        "phase_inverse_scalar_mismatch_abs": float(abs(inverse_22 - scalar_inverse)),
+        "phase_inverse_scalar_mismatch_relative": float(
+            abs(inverse_22 - scalar_inverse) / max(abs(inverse_22), abs(scalar_inverse), 1e-30)
+        ),
+    }
+    result.update(_complex_scalar_fields("raw_phase_left_coupling", left_phase, max(abs(left_phase), 1e-30)))
+    result.update(_complex_scalar_fields("raw_phase_right_coupling", right_phase, max(abs(right_phase), 1e-30)))
+    result.update(_complex_scalar_fields("raw_phase_collective_bubble", phase_bubble, max(abs(phase_total), 1e-30)))
+    result.update(_complex_scalar_fields("raw_phase_collective_counterterm", phase_counterterm, max(abs(phase_total), 1e-30)))
+    result.update(_complex_scalar_fields("raw_phase_collective_total", phase_total, max(abs(phase_total), 1e-30)))
+    result.update(_complex_scalar_fields("raw_phase_inverse_22", inverse_22, max(abs(inverse_22), 1e-30)))
+    result.update(_complex_scalar_fields("raw_phase_scalar_inverse", scalar_inverse, max(abs(inverse_22), abs(scalar_inverse), 1e-30)))
+    result.update(_complex_scalar_fields("scaled_phase_factorized_correction", correction, static_scale))
+    result["phase_factorized_correction_closure_abs"] = float(
+        abs(full_channel_term - correction)
+    )
+    result["phase_bubble_counterterm_cancellation_ratio"] = float(
+        abs(phase_total) / max(abs(phase_bubble), abs(phase_counterterm), 1e-30)
+    )
+    return result
+
+
 def _ward_side_diagnostics(side: object, prefix: str) -> dict[str, float]:
     """Record absolute norms and RHS/projection cancellation."""
 
@@ -371,6 +460,13 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
         static.energy_scale_eV,
         static_scale,
     )
+    phase_factors = _phase_channel_factor_diagnostics(
+        components,
+        kernel,
+        transform,
+        static.energy_scale_eV,
+        static_scale,
+    )
     ward_left = _ward_side_diagnostics(ward.left, "ward_left")
     ward_right = _ward_side_diagnostics(ward.right, "ward_right")
 
@@ -395,6 +491,15 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
         atol=5e-15,
     ):
         raise RuntimeError("collective channel sum disagrees with K_LL Schur correction")
+    if not np.isclose(
+        phase_factors["scaled_phase_factorized_correction_real"],
+        collective_channels[
+            "scaled_kll_channel_eta2_phase_eta2_phase_real"
+        ],
+        rtol=5e-13,
+        atol=5e-15,
+    ):
+        raise RuntimeError("factorized phase correction disagrees with eta2-eta2 term")
 
     total_seconds = time.perf_counter() - total_start
     cpu_seconds = time.process_time() - cpu_start
@@ -434,6 +539,7 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
         **longitudinal,
         **kll_decomposition,
         **collective_channels,
+        **phase_factors,
         "relative_density_transverse_mixing": (
             static.validation.relative_density_transverse_mixing
         ),
@@ -481,12 +587,21 @@ def _write_outputs(rows: list[dict[str, Any]], output: Path, args: argparse.Name
             "collective_channel_formula": (
                 "term_ab = K_Leta[a] * inv(K_etaeta)[a,b] * K_etaL[b] / E0"
             ),
+            "phase_factor_formula": (
+                "phase_term = K_Leta2 * inv(K_etaeta)[2,2] * K_eta2L / E0"
+            ),
+            "phase_collective_total_definition": (
+                "K_eta2eta2 = collective_bubble[2,2] + collective_counterterm[2,2]"
+            ),
             "collective_order": list(_COLLECTIVE_LABELS),
             "kll_bubble_direct_cancellation_ratio": (
                 "|K_LL^SS| / max(|K_LL^bubble|, |K_LL^direct|, 1e-30)"
             ),
             "kll_schur_cancellation_ratio": (
                 "|K_LL^eff| / max(|K_LL^SS|, |K_LL^collective|, 1e-30)"
+            ),
+            "phase_bubble_counterterm_cancellation_ratio": (
+                "|K_eta2eta2| / max(|bubble_22|, |counterterm_22|, 1e-30)"
             ),
             "rhs_projection_cancellation_ratio": (
                 "||effective_predicted|| / max(||primitive_rhs||, "
@@ -571,6 +686,26 @@ def _print_summary(rows: list[dict[str, Any]]) -> None:
             f"{row['collective_singular_value_min']:10.3e} "
             f"{row['collective_singular_value_max']:10.3e} "
             f"{row['collective_condition_from_svd']:9.3e}"
+        )
+
+    print("\nPhase-channel factors (production eta2 block)")
+    header = (
+        " nk      |K_L2|       |K_2L|      Re(B22)      Re(Cg22)     "
+        "Re(K22)      Re(inv22)    Re(corr22)  B+C cancel"
+    )
+    print(header)
+    print("-" * len(header))
+    for row in rows:
+        print(
+            f"{row['nk']:3d} "
+            f"{row['raw_phase_left_coupling_abs']:12.4e} "
+            f"{row['raw_phase_right_coupling_abs']:12.4e} "
+            f"{row['raw_phase_collective_bubble_real']:12.4e} "
+            f"{row['raw_phase_collective_counterterm_real']:12.4e} "
+            f"{row['raw_phase_collective_total_real']:12.4e} "
+            f"{row['raw_phase_inverse_22_real']:12.4e} "
+            f"{row['scaled_phase_factorized_correction_real']:12.4e} "
+            f"{row['phase_bubble_counterterm_cancellation_ratio']:10.3e}"
         )
 
     print("\nWard RHS--collective cancellation")
