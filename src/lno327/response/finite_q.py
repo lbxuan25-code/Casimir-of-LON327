@@ -132,7 +132,8 @@ def add_bubble(
 ) -> None:
     left_band = tuple(vertex_band(states_minus, vertex, states_plus) for vertex in left_vertices)
     right_band = tuple(vertex_band(states_minus, vertex, states_plus) for vertex in right_vertices)
-    static_matsubara = bool(static_limit or _is_zero_matsubara(omega_eV))
+    exact_zero_matsubara = _is_zero_matsubara(omega_eV)
+    static_matsubara = bool(static_limit or exact_zero_matsubara)
     for m, energy_minus in enumerate(energies_minus):
         for n, energy_plus in enumerate(energies_plus):
             occupation_diff = float(occupations_minus[m] - occupations_plus[n])
@@ -140,7 +141,7 @@ def add_bubble(
                 continue
             if config is None:
                 delta_e = float(energy_minus - energy_plus)
-                if static_matsubara and abs(delta_e) < 1e-14:
+                if exact_zero_matsubara and abs(delta_e) < 1e-14:
                     raise ValueError(
                         "config is required for a degenerate zero-Matsubara bubble"
                     )
@@ -179,7 +180,8 @@ def add_band_bubble(
 ) -> None:
     """Accumulate a bubble from forward vertices stored as [minus, plus]."""
 
-    static_matsubara = bool(static_limit or _is_zero_matsubara(omega_eV))
+    exact_zero_matsubara = _is_zero_matsubara(omega_eV)
+    static_matsubara = bool(static_limit or exact_zero_matsubara)
     for m, energy_minus in enumerate(energies_minus):
         for n, energy_plus in enumerate(energies_plus):
             occupation_diff = float(occupations_minus[m] - occupations_plus[n])
@@ -187,7 +189,7 @@ def add_band_bubble(
                 continue
             if config is None:
                 delta_e = float(energy_minus - energy_plus)
-                if static_matsubara and abs(delta_e) < 1e-14:
+                if exact_zero_matsubara and abs(delta_e) < 1e-14:
                     raise ValueError(
                         "config is required for a degenerate zero-Matsubara bubble"
                     )
