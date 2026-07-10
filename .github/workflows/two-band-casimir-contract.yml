@@ -33,5 +33,7 @@ jobs:
           tests/test_two_band_casimir_contract_integration.py
           tests/test_sheet_reflection_contract.py
           tests/test_passive_sheet_logdet.py
+          tests/test_primitive_xy_ward_validation.py
+          tests/test_legacy_casimir_pipeline_retired.py
           tests/test_electrodynamics_reflection_regression.py
           tests/test_electrodynamics_conventions_regression.py
