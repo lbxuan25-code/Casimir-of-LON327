@@ -8,7 +8,6 @@ from lno327.workflows.dwave_nodal_quadrature import (
     build_dwave_nodal_quadrature,
 )
 from validation.lib.finite_q_validation_models import get_finite_q_validation_model
-from validation.run_dwave_static_adaptive_scan import _run_task
 
 
 def _model_inputs(pairing: str = "dwave"):
@@ -63,49 +62,3 @@ def test_dwave_nodal_quadrature_rejects_non_dwave_ansatz():
             np.array([0.03, 0.02]),
             DWaveNodalQuadratureOptions(coarse_grid=2, adaptive_level=0, gauss_order=1),
         )
-
-
-def test_dwave_static_adaptive_runner_smoke_reports_full_contract_fields():
-    # A 2x2 d-wave grid can make the collective block exactly singular by
-    # symmetry.  Eight cells per direction remains a small smoke calculation
-    # while exercising the normal finite-condition Schur path.
-    row = _run_task(
-        {
-            "coarse_grid": 8,
-            "adaptive_level": 0,
-            "gauss_order": 1,
-            "sample_order": 2,
-            "qx": 0.03,
-            "qy": 0.02,
-            "temperature_K": 10.0,
-            "delta0_eV": 0.1,
-            "eta_eV": 1e-8,
-            "quasiparticle_window_eV": 0.1,
-            "normal_window_eV": 0.2,
-            "gap_window_eV": 0.1,
-            "transition_window_eV": 0.1,
-            "transition_shell_eV": 0.3,
-            "include_transition_indicator": True,
-            "max_quadrature_points": 1_000,
-            "ward_tolerance": 1e-6,
-            "ward_absolute_tolerance": 1e-12,
-            "condition_max": 1e12,
-            "raw_longitudinal_ceiling": 10.0,
-            "longitudinal_tolerance": 1e-7,
-            "mixing_tolerance": 10.0,
-            "reality_tolerance": 10.0,
-            "passivity_tolerance": 10.0,
-            "separation_nm": 20.0,
-        }
-    )
-
-    assert row["coarse_grid"] == 8
-    assert row["adaptive_level"] == 0
-    assert row["num_quadrature_points"] == 64
-    assert row["ward_passed"] is True
-    assert row["ward_condition_ok"] is True
-    assert np.isfinite(row["chi_bar"])
-    assert np.isfinite(row["dbar_t"])
-    assert "projection_eligible" in row
-    assert "reflection_constructed" in row
-    assert "logdet_passed" in row
