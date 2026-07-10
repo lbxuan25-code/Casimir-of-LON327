@@ -1,15 +1,12 @@
 """Timed zero-Matsubara k-grid convergence scan using optimized workspaces.
 
-The scan parallelizes independent ``nk`` values only. Each worker keeps BLAS
-threading external to this module so callers can avoid process/thread
-oversubscription with OMP_NUM_THREADS=1, OPENBLAS_NUM_THREADS=1, and related
-environment variables.
+Independent ``nk`` values may run in separate processes. BLAS threading remains
+external so callers can avoid process/thread oversubscription.
 
 Besides aggregate static validation fields, the CSV/JSON output resolves the
-five longitudinal entries in the scaled local ``(A0,L,T)`` kernel, records the
-left/right Ward RHS--collective-projection cancellation, and decomposes the
-static ``K_LL`` entry into bubble, direct/contact, bare ``K_SS``, collective
-Schur correction, and final effective contributions.
+five longitudinal entries in local ``(A0,L,T)``, the static ``K_LL`` bubble /
+direct / Schur decomposition, the four amplitude-phase Schur channel terms,
+and the spectrum and couplings of ``K_etaeta``.
 """
 
 from __future__ import annotations
@@ -54,11 +51,11 @@ _LONGITUDINAL_COMPONENTS = {
     "klt": (1, 2),
     "ktl": (2, 1),
 }
+_COLLECTIVE_LABELS = ("eta1_amplitude", "eta2_phase")
 
 
 def _peak_rss_mb() -> float:
-    # Linux reports ru_maxrss in KiB. This validation CLI targets the project's
-    # Linux/WSL environment.
+    # Linux reports ru_maxrss in KiB. This validation CLI targets Linux/WSL.
     return float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) / 1024.0
 
 
@@ -67,7 +64,7 @@ def _norm(value: np.ndarray) -> float:
 
 
 def _scaled_static_kernel(kernel_lt: np.ndarray, energy_scale_eV: float) -> np.ndarray:
-    """Mirror the mixed-unit scaling used by the static sheet validation."""
+    """Mirror the mixed-unit scaling used by static-sheet validation."""
 
     matrix = np.array(kernel_lt, dtype=complex, copy=True)
     if matrix.shape != (3, 3):
@@ -78,6 +75,17 @@ def _scaled_static_kernel(kernel_lt: np.ndarray, energy_scale_eV: float) -> np.n
     matrix[0, 0] *= energy
     matrix[1:3, 1:3] /= energy
     return matrix
+
+
+def _complex_scalar_fields(prefix: str, value: complex, scale: float) -> dict[str, float]:
+    scalar = complex(value)
+    denominator = max(float(scale), 1e-30)
+    return {
+        f"{prefix}_real": float(scalar.real),
+        f"{prefix}_imag": float(scalar.imag),
+        f"{prefix}_abs": float(abs(scalar)),
+        f"{prefix}_relative_abs": float(abs(scalar) / denominator),
+    }
 
 
 def _longitudinal_component_diagnostics(
@@ -105,31 +113,22 @@ def _longitudinal_component_diagnostics(
     return result
 
 
-def _complex_scalar_fields(prefix: str, value: complex, scale: float) -> dict[str, float]:
-    scalar = complex(value)
-    denominator = max(float(scale), 1e-30)
-    return {
-        f"{prefix}_real": float(scalar.real),
-        f"{prefix}_imag": float(scalar.imag),
-        f"{prefix}_abs": float(abs(scalar)),
-        f"{prefix}_relative_abs": float(abs(scalar) / denominator),
-    }
+def _collective_inverse(kernel: object) -> np.ndarray:
+    k_etaeta = np.asarray(getattr(kernel, "k_etaeta"), dtype=complex)
+    method = str(getattr(kernel, "schur_inverse_method"))
+    if method == "inv":
+        return np.linalg.inv(k_etaeta)
+    if method == "pinv_diagnostic":
+        return np.linalg.pinv(k_etaeta)
+    raise ValueError(f"unsupported Schur inverse method {method!r}")
 
 
 def _collective_schur_correction(kernel: object) -> np.ndarray:
-    """Recompute ``K_Seta K_etaeta^-1 K_etaS`` using the selected inverse policy."""
+    """Recompute ``K_Seta K_etaeta^-1 K_etaS`` with the selected policy."""
 
     k_seta = np.asarray(getattr(kernel, "k_seta"), dtype=complex)
-    k_etaeta = np.asarray(getattr(kernel, "k_etaeta"), dtype=complex)
     k_etas = np.asarray(getattr(kernel, "k_etas"), dtype=complex)
-    method = str(getattr(kernel, "schur_inverse_method"))
-    if method == "inv":
-        inverse = np.linalg.inv(k_etaeta)
-    elif method == "pinv_diagnostic":
-        inverse = np.linalg.pinv(k_etaeta)
-    else:
-        raise ValueError(f"unsupported Schur inverse method {method!r}")
-    return k_seta @ inverse @ k_etas
+    return k_seta @ _collective_inverse(kernel) @ k_etas
 
 
 def _kll_decomposition_diagnostics(
@@ -141,12 +140,7 @@ def _kll_decomposition_diagnostics(
 ) -> dict[str, float]:
     """Decompose scaled local ``K_LL`` into microscopic and Schur pieces.
 
-    The fixed sign convention is
-
-    ``K_SS = K_bubble + K_direct``
-
-    and
-
+    The fixed sign convention is ``K_SS = K_bubble + K_direct`` and
     ``K_eff = K_SS - K_collective_correction``.
     """
 
@@ -190,34 +184,109 @@ def _kll_decomposition_diagnostics(
     bare_total = values["scaled_kll_bare_total"]
     correction = values["scaled_kll_collective_correction"]
     effective = values["scaled_kll_effective"]
-    bubble_direct_scale = max(abs(bubble), abs(direct), 1e-30)
-    schur_scale = max(abs(bare_total), abs(correction), 1e-30)
-
     result.update(
         {
             "kll_bubble_direct_cancellation_ratio": float(
-                abs(bare_total) / bubble_direct_scale
+                abs(bare_total) / max(abs(bubble), abs(direct), 1e-30)
             ),
-            "kll_schur_cancellation_ratio": float(abs(effective) / schur_scale),
+            "kll_schur_cancellation_ratio": float(
+                abs(effective) / max(abs(bare_total), abs(correction), 1e-30)
+            ),
             "kll_bubble_direct_closure_abs": float(abs(bubble + direct - bare_total)),
-            "kll_schur_closure_abs": float(
-                abs(bare_total - correction - effective)
-            ),
+            "kll_schur_closure_abs": float(abs(bare_total - correction - effective)),
         }
     )
     return result
 
 
+def _collective_channel_diagnostics(
+    kernel: object,
+    transform: np.ndarray,
+    energy_scale_eV: float,
+    static_scale: float,
+) -> dict[str, float | str]:
+    """Resolve the local ``K_LL`` Schur correction into four eta-channel terms."""
+
+    rotation = np.asarray(transform, dtype=float)
+    if rotation.shape != (3, 3):
+        raise ValueError(f"transform must have shape (3, 3), got {rotation.shape}")
+    energy = float(energy_scale_eV)
+    if not np.isfinite(energy) or energy <= 0.0:
+        raise ValueError("energy_scale_eV must be finite and positive")
+
+    k_seta = np.asarray(getattr(kernel, "k_seta"), dtype=complex)
+    k_etaeta = np.asarray(getattr(kernel, "k_etaeta"), dtype=complex)
+    k_etas = np.asarray(getattr(kernel, "k_etas"), dtype=complex)
+    if k_seta.shape != (3, 2) or k_etaeta.shape != (2, 2) or k_etas.shape != (2, 3):
+        raise ValueError("collective channel diagnostics require 3x2, 2x2, and 2x3 blocks")
+
+    inverse = _collective_inverse(kernel)
+    k_seta_lt = rotation @ k_seta
+    k_etas_lt = k_etas @ rotation.T
+    left = np.asarray(k_seta_lt[1, :], dtype=complex)
+    right = np.asarray(k_etas_lt[:, 1], dtype=complex)
+
+    terms: dict[str, complex] = {}
+    for a, left_label in enumerate(_COLLECTIVE_LABELS):
+        for b, right_label in enumerate(_COLLECTIVE_LABELS):
+            name = f"{left_label}_{right_label}"
+            # Spatial static entries are scaled by 1/E0.
+            terms[name] = complex(left[a] * inverse[a, b] * right[b] / energy)
+
+    correction_sum = sum(terms.values(), 0.0 + 0.0j)
+    correction_xy = _collective_schur_correction(kernel)
+    expected = complex(
+        _scaled_static_kernel(rotation @ correction_xy @ rotation.T, energy)[1, 1]
+    )
+    if not np.isclose(correction_sum, expected, rtol=2e-12, atol=2e-13):
+        raise RuntimeError("collective eta-channel terms do not reconstruct K_LL correction")
+
+    singular_values = np.linalg.svd(k_etaeta, compute_uv=False)
+    singular_values = np.sort(np.asarray(singular_values, dtype=float))
+    eigenvalues = sorted(np.linalg.eigvals(k_etaeta), key=lambda value: abs(value))
+    sv_min = float(singular_values[0])
+    sv_max = float(singular_values[-1])
+
+    result: dict[str, float | str] = {
+        "collective_singular_value_min": sv_min,
+        "collective_singular_value_max": sv_max,
+        "collective_condition_from_svd": float(sv_max / max(sv_min, 1e-30)),
+        "collective_inverse_frobenius_norm": float(np.linalg.norm(inverse)),
+        "collective_channel_sum_closure_abs": float(abs(correction_sum - expected)),
+    }
+    result.update(_complex_scalar_fields("collective_eigenvalue_small", eigenvalues[0], sv_max))
+    result.update(_complex_scalar_fields("collective_eigenvalue_large", eigenvalues[1], sv_max))
+
+    left_scale = max(float(np.linalg.norm(left)), 1e-30)
+    right_scale = max(float(np.linalg.norm(right)), 1e-30)
+    for index, label in enumerate(_COLLECTIVE_LABELS):
+        result.update(_complex_scalar_fields(f"raw_k_l_{label}", left[index], left_scale))
+        result.update(_complex_scalar_fields(f"raw_k_{label}_l", right[index], right_scale))
+
+    for name, value in terms.items():
+        result.update(_complex_scalar_fields(f"scaled_kll_channel_{name}", value, static_scale))
+    result.update(_complex_scalar_fields("scaled_kll_channel_sum", correction_sum, static_scale))
+
+    dominant = max(terms, key=lambda name: abs(terms[name]))
+    result["dominant_collective_channel"] = dominant
+    result["dominant_collective_channel_relative_abs"] = float(
+        abs(terms[dominant]) / max(float(static_scale), 1e-30)
+    )
+    result["phase_phase_fraction_of_term_norm"] = float(
+        abs(terms["eta2_phase_eta2_phase"])
+        / max(sum(abs(value) for value in terms.values()), 1e-30)
+    )
+    return result
+
+
 def _ward_side_diagnostics(side: object, prefix: str) -> dict[str, float]:
-    """Record absolute norms and the physical RHS/projection cancellation ratio."""
+    """Record absolute norms and RHS/projection cancellation."""
 
     rhs_norm = _norm(getattr(side, "primitive_rhs"))
     projection_norm = _norm(getattr(side, "collective_projection"))
     direct_norm = _norm(getattr(side, "effective_direct"))
     predicted_norm = _norm(getattr(side, "effective_predicted"))
     residual_norm = _norm(getattr(side, "effective_residual"))
-    cancellation_scale = max(rhs_norm, projection_norm, 1e-30)
-    closure_scale = max(direct_norm, predicted_norm, 1e-30)
     return {
         f"{prefix}_rhs_norm": rhs_norm,
         f"{prefix}_collective_projection_norm": projection_norm,
@@ -225,8 +294,9 @@ def _ward_side_diagnostics(side: object, prefix: str) -> dict[str, float]:
         f"{prefix}_effective_predicted_norm": predicted_norm,
         f"{prefix}_effective_residual_norm": residual_norm,
         f"{prefix}_rhs_projection_cancellation_ratio": predicted_norm
-        / cancellation_scale,
-        f"{prefix}_direct_prediction_relative_residual": residual_norm / closure_scale,
+        / max(rhs_norm, projection_norm, 1e-30),
+        f"{prefix}_direct_prediction_relative_residual": residual_norm
+        / max(direct_norm, predicted_norm, 1e-30),
     }
 
 
@@ -287,17 +357,23 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
         static.energy_scale_eV,
     )
     transform = np.asarray(static.metadata["local_projection_matrix"], dtype=float)
+    static_scale = float(longitudinal["static_kernel_real_scale"])
     kll_decomposition = _kll_decomposition_diagnostics(
         components,
         kernel,
         transform,
         static.energy_scale_eV,
-        float(longitudinal["static_kernel_real_scale"]),
+        static_scale,
+    )
+    collective_channels = _collective_channel_diagnostics(
+        kernel,
+        transform,
+        static.energy_scale_eV,
+        static_scale,
     )
     ward_left = _ward_side_diagnostics(ward.left, "ward_left")
     ward_right = _ward_side_diagnostics(ward.right, "ward_right")
 
-    # Keep all decompositions tied to the production aggregate definition.
     if not np.isclose(
         longitudinal["longitudinal_components_relative_norm"],
         static.validation.relative_longitudinal_gauge_residual,
@@ -312,6 +388,13 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
         atol=5e-15,
     ):
         raise RuntimeError("K_LL decomposition disagrees with longitudinal diagnostics")
+    if not np.isclose(
+        collective_channels["scaled_kll_channel_sum_real"],
+        kll_decomposition["scaled_kll_collective_correction_real"],
+        rtol=5e-13,
+        atol=5e-15,
+    ):
+        raise RuntimeError("collective channel sum disagrees with K_LL Schur correction")
 
     total_seconds = time.perf_counter() - total_start
     cpu_seconds = time.process_time() - cpu_start
@@ -350,6 +433,7 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
         ),
         **longitudinal,
         **kll_decomposition,
+        **collective_channels,
         "relative_density_transverse_mixing": (
             static.validation.relative_density_transverse_mixing
         ),
@@ -389,16 +473,15 @@ def _write_outputs(rows: list[dict[str, Any]], output: Path, args: argparse.Name
             )
         },
         "diagnostic_definitions": {
-            "scaled_abs_k0l": "|scaled K_0L|",
-            "scaled_abs_kl0": "|scaled K_L0|",
-            "scaled_abs_kll": "|scaled K_LL|",
-            "scaled_abs_klt": "|scaled K_LT|",
-            "scaled_abs_ktl": "|scaled K_TL|",
             "relative_kxy": "scaled_abs_kxy / max(||Re K_scaled||_F, 1)",
             "kll_sign_convention": (
                 "K_SS = K_bubble + K_direct; "
                 "K_eff = K_SS - K_collective_correction"
             ),
+            "collective_channel_formula": (
+                "term_ab = K_Leta[a] * inv(K_etaeta)[a,b] * K_etaL[b] / E0"
+            ),
+            "collective_order": list(_COLLECTIVE_LABELS),
             "kll_bubble_direct_cancellation_ratio": (
                 "|K_LL^SS| / max(|K_LL^bubble|, |K_LL^direct|, 1e-30)"
             ),
@@ -469,6 +552,27 @@ def _print_summary(rows: list[dict[str, Any]]) -> None:
             f"{row['kll_schur_cancellation_ratio']:13.3e}"
         )
 
+    print("\nCollective-channel K_LL correction (eta1=amplitude, eta2=phase)")
+    header = (
+        " nk       Re(11)        Re(12)        Re(21)        Re(22)      "
+        "Re(sum)    dominant       s_min       s_max       cond"
+    )
+    print(header)
+    print("-" * len(header))
+    for row in rows:
+        print(
+            f"{row['nk']:3d} "
+            f"{row['scaled_kll_channel_eta1_amplitude_eta1_amplitude_real']:13.5e} "
+            f"{row['scaled_kll_channel_eta1_amplitude_eta2_phase_real']:13.5e} "
+            f"{row['scaled_kll_channel_eta2_phase_eta1_amplitude_real']:13.5e} "
+            f"{row['scaled_kll_channel_eta2_phase_eta2_phase_real']:13.5e} "
+            f"{row['scaled_kll_channel_sum_real']:13.5e} "
+            f"{row['dominant_collective_channel']:>14s} "
+            f"{row['collective_singular_value_min']:10.3e} "
+            f"{row['collective_singular_value_max']:10.3e} "
+            f"{row['collective_condition_from_svd']:9.3e}"
+        )
+
     print("\nWard RHS--collective cancellation")
     header = (
         " nk     L:||R||      L:||P||   L:cancel     "
@@ -499,11 +603,7 @@ def main() -> None:
     parser.add_argument("--delta0-eV", type=float, default=0.1)
     parser.add_argument("--eta-eV", type=float, default=1e-8)
     parser.add_argument("--ward-tolerance", type=float, default=1e-7)
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=DEFAULT_OUTPUT,
-    )
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
 
     if any(nk <= 0 for nk in args.nks):
