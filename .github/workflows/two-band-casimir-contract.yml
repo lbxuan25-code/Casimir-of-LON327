@@ -54,6 +54,7 @@ jobs:
             tests/test_electrodynamics_conventions_regression.py \
             tests/test_finite_q_validation_model_adapter.py \
             tests/test_repository_layout_contract.py \
+            tests/test_static_nk_scan_diagnostics.py \
             > pytest-output.txt 2>&1
           status=$?
           cat pytest-output.txt
