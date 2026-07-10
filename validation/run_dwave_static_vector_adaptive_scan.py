@@ -51,7 +51,12 @@ def _evaluate_many(
     if not cells:
         return []
     if int(workers) <= 1:
-        return [evaluate_cubature_cell(config, cell) for cell in cells]
+        results = []
+        for cell in cells:
+            result = evaluate_cubature_cell(config, cell)
+            result["workspace"] = None
+            results.append(result)
+        return results
     results: list[dict[str, Any] | None] = [None] * len(cells)
     with ProcessPoolExecutor(max_workers=int(workers)) as executor:
         futures = {
@@ -64,6 +69,13 @@ def _evaluate_many(
     if any(item is None for item in results):
         raise RuntimeError("not all cubature cells completed")
     return list(results)
+
+
+def _json_safe_options(args: argparse.Namespace) -> dict[str, Any]:
+    return {
+        name: str(value) if isinstance(value, Path) else value
+        for name, value in vars(args).items()
+    }
 
 
 def _write(rows: list[dict[str, Any]], output: Path, metadata: dict[str, Any]) -> None:
@@ -185,6 +197,12 @@ def main() -> None:
 
     started = time.perf_counter()
     cells = initial_cubature_cells(args.coarse_grid)
+    initial_points = len(cells) * (int(args.low_order) ** 2 + int(args.high_order) ** 2)
+    if len(cells) > int(args.max_cells):
+        raise RuntimeError("initial partition exceeds max_cells")
+    if initial_points > int(args.max_evaluation_points):
+        raise RuntimeError("initial low/high rules exceed max_evaluation_points")
+
     first = evaluate_cubature_cell(config, cells[0])
     template_workspace = first.pop("workspace")
     remaining = _evaluate_many(config, cells[1:], args.workers)
@@ -262,13 +280,13 @@ def main() -> None:
         previous = row
         print(
             f"iteration={iteration} cells={row['num_cells']} "
-            f"eval_points={cumulative_points} stop={stop_reason}"
+            f"evaluated={row['cumulative_evaluation_points']} stop={stop_reason}"
         )
         if stop_reason != "continue":
             break
 
     metadata = {
-        "options": vars(args),
+        "options": _json_safe_options(args),
         "wall_seconds": time.perf_counter() - started,
         "template_workspace_source": "first high-rule cell; metadata only",
         "per_cell_low_high_primitives_computed_once": True,
