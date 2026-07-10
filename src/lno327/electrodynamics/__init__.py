@@ -42,8 +42,11 @@ from lno327.electrodynamics.materials import (
     InPlaneLatticeConvention,
 )
 from lno327.electrodynamics.reflection import (
+    LAB_LT_TANGENTIAL_E_BASIS,
+    SheetReflection,
     model_q_to_si_wavevector,
     omega_eV_to_xi_si,
+    positive_matsubara_sheet_response_to_reflection,
     reflection_input_metadata,
     rotate_sigma_tilde_xy_to_lt,
     sigma_tilde_xy_to_te_tm_reflection_matrix,
@@ -116,6 +119,9 @@ __all__ = [
     "si_sheet_to_dimensionless_conductivity",
     "model_to_dimensionless_sheet_conductivity",
     "conductivity_unit_conversion_metadata",
+    "LAB_LT_TANGENTIAL_E_BASIS",
+    "SheetReflection",
+    "positive_matsubara_sheet_response_to_reflection",
     "model_q_to_si_wavevector",
     "omega_eV_to_xi_si",
     "vacuum_kappa",
