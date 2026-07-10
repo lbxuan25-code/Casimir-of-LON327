@@ -8,6 +8,7 @@ from validation.run_static_nk_scan import (
     _collective_channel_diagnostics,
     _kll_decomposition_diagnostics,
     _longitudinal_component_diagnostics,
+    _phase_channel_factor_diagnostics,
     _run_one,
     _ward_side_diagnostics,
 )
@@ -121,6 +122,48 @@ def test_collective_channel_decomposition_reconstructs_correction_and_spectrum()
     assert diagnostics["dominant_collective_channel"] == "eta2_phase_eta2_phase"
 
 
+def test_phase_factor_diagnostics_resolve_couplings_kernel_and_counterterm():
+    collective_bubble = np.diag([2.0, -3.0]).astype(complex)
+    collective_counterterm = np.diag([0.0, 7.0]).astype(complex)
+    collective_total = collective_bubble + collective_counterterm
+    components = SimpleNamespace(
+        collective_bubble=collective_bubble,
+        collective_counterterm=collective_counterterm,
+        collective_total=collective_total,
+    )
+    kernel = SimpleNamespace(
+        k_seta=np.asarray(
+            [[0.0, 0.0], [0.0, 3.0], [0.0, 0.0]],
+            dtype=complex,
+        ),
+        k_etaeta=collective_total,
+        k_etas=np.asarray(
+            [[0.0, 0.0, 0.0], [0.0, 7.0, 0.0]],
+            dtype=complex,
+        ),
+        schur_inverse_method="inv",
+    )
+
+    diagnostics = _phase_channel_factor_diagnostics(
+        components,
+        kernel,
+        np.eye(3),
+        1.0,
+        5.25,
+    )
+
+    assert np.isclose(diagnostics["raw_phase_left_coupling_abs"], 3.0)
+    assert np.isclose(diagnostics["raw_phase_right_coupling_abs"], 7.0)
+    assert np.isclose(diagnostics["raw_phase_collective_bubble_real"], -3.0)
+    assert np.isclose(diagnostics["raw_phase_collective_counterterm_real"], 7.0)
+    assert np.isclose(diagnostics["raw_phase_collective_total_real"], 4.0)
+    assert np.isclose(diagnostics["raw_phase_inverse_22_real"], 0.25)
+    assert np.isclose(diagnostics["scaled_phase_factorized_correction_real"], 5.25)
+    assert np.isclose(diagnostics["phase_bubble_counterterm_cancellation_ratio"], 4.0 / 7.0)
+    assert diagnostics["phase_collective_total_closure_abs"] < 1e-14
+    assert diagnostics["phase_inverse_scalar_mismatch_relative"] < 1e-14
+
+
 def test_ward_side_diagnostics_reports_rhs_projection_cancellation():
     side = SimpleNamespace(
         primitive_rhs=np.asarray([3.0, 0.0, 0.0], dtype=complex),
@@ -188,6 +231,14 @@ def test_static_scan_row_contains_resolved_collective_fields():
         "scaled_kll_channel_eta2_phase_eta2_phase_real",
         "scaled_kll_channel_sum_real",
         "dominant_collective_channel",
+        "raw_phase_left_coupling_abs",
+        "raw_phase_right_coupling_abs",
+        "raw_phase_collective_bubble_real",
+        "raw_phase_collective_counterterm_real",
+        "raw_phase_collective_total_real",
+        "raw_phase_inverse_22_real",
+        "scaled_phase_factorized_correction_real",
+        "phase_bubble_counterterm_cancellation_ratio",
     ):
         assert field in row
 
@@ -202,4 +253,8 @@ def test_static_scan_row_contains_resolved_collective_fields():
     assert np.isclose(
         row["scaled_kll_channel_sum_real"],
         row["scaled_kll_collective_correction_real"],
+    )
+    assert np.isclose(
+        row["scaled_phase_factorized_correction_real"],
+        row["scaled_kll_channel_eta2_phase_eta2_phase_real"],
     )
