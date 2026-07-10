@@ -20,6 +20,7 @@ from lno327.response.finite_q_bdg import finite_q_bdg_response_from_model_ansatz
 from lno327.response.ward_validation import (
     PrimitiveWardRHS,
     primitive_ward_rhs_from_model_ansatz,
+    primitive_ward_vectors_xy,
     validate_effective_ward_xy,
 )
 from validation.lib.finite_q_validation_models import get_finite_q_validation_model
@@ -54,13 +55,14 @@ def _synthetic_static_contract(
         schur_inverse_method="inv",
         metadata={"basis": "crystal_A0_xy"},
     )
+    u_left, u_right, _, _ = primitive_ward_vectors_xy(0.0, q, 0.0)
     rhs = PrimitiveWardRHS(
-        left=np.zeros(3, dtype=complex),
-        right=np.zeros(3, dtype=complex),
+        left=u_left @ kernel_xy,
+        right=kernel_xy @ u_right,
         q_model=q,
         xi_eV=0.0,
         delta0_eV=0.0,
-        metadata={"formula": "synthetic static transverse kernel"},
+        metadata={"formula": "synthetic exact static contraction"},
     )
     ward = validate_effective_ward_xy(kernel, rhs, residual_tolerance=1e-13)
     assert ward.passed is True
