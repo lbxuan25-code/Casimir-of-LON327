@@ -1,5 +1,18 @@
 """Electrodynamics tensor helpers."""
 
+from lno327.electrodynamics.basis import (
+    CRYSTAL_XY_BASIS,
+    LAB_LT_BASIS,
+    LAB_XY_BASIS,
+    q_crystal_to_lab,
+    q_lab_to_crystal,
+    rotation_matrix,
+    tensor_crystal_to_lab,
+    tensor_crystal_to_lab_lt,
+    tensor_lab_to_crystal,
+    tensor_lt_to_xy,
+    tensor_xy_to_lt,
+)
 from lno327.electrodynamics.conductivity import (
     ConductivityTensor,
     anisotropy_delta,
@@ -54,6 +67,17 @@ from lno327.electrodynamics.units import (
 )
 
 __all__ = [
+    "CRYSTAL_XY_BASIS",
+    "LAB_XY_BASIS",
+    "LAB_LT_BASIS",
+    "rotation_matrix",
+    "q_lab_to_crystal",
+    "q_crystal_to_lab",
+    "tensor_crystal_to_lab",
+    "tensor_lab_to_crystal",
+    "tensor_xy_to_lt",
+    "tensor_lt_to_xy",
+    "tensor_crystal_to_lab_lt",
     "ConductivityTensor",
     "rotate_conductivity",
     "anisotropy_delta",
