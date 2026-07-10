@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Any
 
 import numpy as np
@@ -18,7 +18,8 @@ from lno327.electrodynamics.static_sheet import (
     static_sheet_response_to_reflection,
 )
 from lno327.response.effective_kernel import effective_em_kernel_from_components
-from lno327.response.ward_validation import validate_effective_ward_xy
+from lno327.response.finite_q import BdGFiniteQResponseComponents
+from lno327.response.ward_validation import PrimitiveWardRHS, validate_effective_ward_xy
 from lno327.response.workspace import (
     finite_q_bdg_response_from_q_workspace,
     precompute_finite_q_material_workspace_from_model_ansatz,
@@ -77,6 +78,77 @@ def evaluate_one_shift(config: ShiftBatchConfig, index: int, shift: np.ndarray) 
         "components": finite_q_bdg_response_from_q_workspace(workspace, 0.0),
         "rhs": primitive_ward_rhs_from_q_workspace(workspace, 0.0),
         "workspace": workspace if int(index) == 0 else None,
+    }
+
+
+def _portable_component_payload(components: BdGFiniteQResponseComponents) -> dict[str, Any]:
+    """Strip non-pickleable nested metadata from one worker result.
+
+    ``BdGFiniteQResponseComponents.metadata`` may contain ``MappingProxyType``
+    values inherited from immutable model metadata.  ProcessPool workers must
+    therefore return a deliberately small plain-dict metadata contract.  Every
+    numerical dataclass field is retained exactly; only unused audit metadata is
+    omitted during inter-process transfer.
+    """
+
+    payload: dict[str, Any] = {}
+    for field in fields(BdGFiniteQResponseComponents):
+        if field.name == "metadata":
+            payload[field.name] = {
+                "phase_phase_direct_plus_convention": complex(
+                    components.metadata["phase_phase_direct_plus_convention"]
+                ),
+                "phase_phase_direct_minus_convention": complex(
+                    components.metadata["phase_phase_direct_minus_convention"]
+                ),
+                "worker_transfer": "portable_numeric_payload",
+            }
+        else:
+            payload[field.name] = getattr(components, field.name)
+    return payload
+
+
+def portable_shift_result(result: dict[str, Any]) -> dict[str, Any]:
+    """Return a ProcessPool-safe representation of ``evaluate_one_shift`` output."""
+
+    rhs: PrimitiveWardRHS = result["rhs"]
+    return {
+        "index": int(result["index"]),
+        "shift": np.asarray(result["shift"], dtype=float),
+        "components": _portable_component_payload(result["components"]),
+        "rhs": {
+            "left": np.asarray(rhs.left, dtype=complex),
+            "right": np.asarray(rhs.right, dtype=complex),
+            "q_model": np.asarray(rhs.q_model, dtype=float),
+            "xi_eV": float(rhs.xi_eV),
+            "delta0_eV": float(rhs.delta0_eV),
+            "metadata": {
+                "convention": rhs.metadata.get("convention"),
+                "basis": rhs.metadata.get("basis"),
+                "source": "portable worker payload",
+            },
+        },
+    }
+
+
+def evaluate_one_shift_portable(
+    config: ShiftBatchConfig, index: int, shift: np.ndarray
+) -> dict[str, Any]:
+    """Worker entry point returning only pickle-safe arrays, scalars and dicts."""
+
+    return portable_shift_result(evaluate_one_shift(config, index, shift))
+
+
+def restore_portable_shift_result(payload: dict[str, Any]) -> dict[str, Any]:
+    """Reconstruct typed response objects in the parent process."""
+
+    rhs_payload = dict(payload["rhs"])
+    return {
+        "index": int(payload["index"]),
+        "shift": np.asarray(payload["shift"], dtype=float),
+        "components": BdGFiniteQResponseComponents(**dict(payload["components"])),
+        "rhs": PrimitiveWardRHS(**rhs_payload),
+        "workspace": None,
     }
 
 
