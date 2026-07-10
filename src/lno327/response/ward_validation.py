@@ -34,6 +34,7 @@ from lno327.response.validation import validate_finite_q_inputs
 
 WARD_CONVENTION = "primitive_xy_rhs_aware_v1"
 DEFAULT_RESIDUAL_TOLERANCE = 1e-9
+DEFAULT_ABSOLUTE_RESIDUAL_TOLERANCE = 1e-12
 DEFAULT_CONDITION_MAX = 1e12
 
 
@@ -61,9 +62,45 @@ def _norm(value: np.ndarray) -> float:
     return float(np.linalg.norm(np.asarray(value, dtype=complex)))
 
 
+def _reference_scale(*references: np.ndarray) -> float:
+    return max((_norm(reference) for reference in references), default=0.0)
+
+
 def _relative_residual(residual: np.ndarray, *references: np.ndarray) -> float:
-    scale = max((_norm(reference) for reference in references), default=0.0)
-    return _norm(residual) / max(scale, 1e-30)
+    return _norm(residual) / max(_reference_scale(*references), 1e-30)
+
+
+@dataclass(frozen=True)
+class _ResidualMetrics:
+    absolute_residual: float
+    reference_scale: float
+    relative_residual: float
+    mixed_threshold: float
+    mixed_ratio: float
+    mixed_passed: bool
+    denominator_collapsed: bool
+
+
+def _residual_metrics(
+    residual: np.ndarray,
+    references: tuple[np.ndarray, ...],
+    *,
+    relative_tolerance: float,
+    absolute_tolerance: float,
+) -> _ResidualMetrics:
+    absolute = _norm(residual)
+    scale = _reference_scale(*references)
+    relative = absolute / max(scale, 1e-30)
+    threshold = float(absolute_tolerance) + float(relative_tolerance) * scale
+    return _ResidualMetrics(
+        absolute_residual=absolute,
+        reference_scale=scale,
+        relative_residual=relative,
+        mixed_threshold=threshold,
+        mixed_ratio=absolute / max(threshold, 1e-30),
+        mixed_passed=bool(absolute <= threshold),
+        denominator_collapsed=bool(float(relative_tolerance) * scale <= float(absolute_tolerance)),
+    )
 
 
 @dataclass(frozen=True)
@@ -104,8 +141,21 @@ class WardSideValidation:
     effective_direct: np.ndarray
     effective_predicted: np.ndarray
     effective_residual: np.ndarray
+
+    primitive_absolute_residual: float
+    effective_absolute_residual: float
+    primitive_reference_scale: float
+    effective_reference_scale: float
     primitive_relative_residual: float
     effective_relative_residual: float
+    primitive_mixed_threshold: float
+    effective_mixed_threshold: float
+    primitive_mixed_ratio: float
+    effective_mixed_ratio: float
+    primitive_mixed_passed: bool
+    effective_mixed_passed: bool
+    primitive_denominator_collapsed: bool
+    effective_denominator_collapsed: bool
 
     def __post_init__(self) -> None:
         for name in (
@@ -123,11 +173,29 @@ class WardSideValidation:
             "collective_residual",
             _readonly_complex_vector(self.collective_residual, 2, "collective_residual"),
         )
-        for name in ("primitive_relative_residual", "effective_relative_residual"):
+        for name in (
+            "primitive_absolute_residual",
+            "effective_absolute_residual",
+            "primitive_reference_scale",
+            "effective_reference_scale",
+            "primitive_relative_residual",
+            "effective_relative_residual",
+            "primitive_mixed_threshold",
+            "effective_mixed_threshold",
+            "primitive_mixed_ratio",
+            "effective_mixed_ratio",
+        ):
             value = float(getattr(self, name))
             if not np.isfinite(value) or value < 0.0:
                 raise ValueError(f"{name} must be finite and non-negative")
             object.__setattr__(self, name, value)
+        for name in (
+            "primitive_mixed_passed",
+            "effective_mixed_passed",
+            "primitive_denominator_collapsed",
+            "effective_denominator_collapsed",
+        ):
+            object.__setattr__(self, name, bool(getattr(self, name)))
 
 
 @dataclass(frozen=True)
@@ -146,6 +214,7 @@ class EffectiveWardValidation:
     schur_condition_number: float
     schur_inverse_method: str
     residual_tolerance: float
+    absolute_residual_tolerance: float
     condition_max: float
     metadata: Mapping[str, Any]
 
@@ -160,6 +229,7 @@ class EffectiveWardValidation:
             "delta0_eV",
             "schur_condition_number",
             "residual_tolerance",
+            "absolute_residual_tolerance",
             "condition_max",
         ):
             value = float(getattr(self, name))
@@ -170,6 +240,12 @@ class EffectiveWardValidation:
         object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
 
     @property
+    def relative_residual_tolerance(self) -> float:
+        """Explicit alias for the backward-compatible ``residual_tolerance`` name."""
+
+        return self.residual_tolerance
+
+    @property
     def condition_ok(self) -> bool:
         return bool(
             self.schur_inverse_method == "inv"
@@ -178,16 +254,19 @@ class EffectiveWardValidation:
 
     @property
     def primitive_closed(self) -> bool:
-        return bool(
-            self.left.primitive_relative_residual <= self.residual_tolerance
-            and self.right.primitive_relative_residual <= self.residual_tolerance
-        )
+        return bool(self.left.primitive_mixed_passed and self.right.primitive_mixed_passed)
 
     @property
     def effective_closed(self) -> bool:
+        return bool(self.left.effective_mixed_passed and self.right.effective_mixed_passed)
+
+    @property
+    def denominator_collapse_detected(self) -> bool:
         return bool(
-            self.left.effective_relative_residual <= self.residual_tolerance
-            and self.right.effective_relative_residual <= self.residual_tolerance
+            self.left.primitive_denominator_collapsed
+            or self.right.primitive_denominator_collapsed
+            or self.left.effective_denominator_collapsed
+            or self.right.effective_denominator_collapsed
         )
 
     @property
@@ -197,11 +276,18 @@ class EffectiveWardValidation:
     def require_passed(self) -> None:
         if not self.passed:
             raise ValueError(
-                "primitive-xy RHS-aware Ward validation failed: "
-                f"primitive=({self.left.primitive_relative_residual:.3e}, "
+                "primitive-xy RHS-aware Ward validation failed under mixed "
+                "absolute-relative criterion: "
+                f"primitive_mixed_ratio=({self.left.primitive_mixed_ratio:.3e}, "
+                f"{self.right.primitive_mixed_ratio:.3e}), "
+                f"effective_mixed_ratio=({self.left.effective_mixed_ratio:.3e}, "
+                f"{self.right.effective_mixed_ratio:.3e}), "
+                f"primitive_relative=({self.left.primitive_relative_residual:.3e}, "
                 f"{self.right.primitive_relative_residual:.3e}), "
-                f"effective=({self.left.effective_relative_residual:.3e}, "
+                f"effective_relative=({self.left.effective_relative_residual:.3e}, "
                 f"{self.right.effective_relative_residual:.3e}), "
+                f"relative_tolerance={self.residual_tolerance:.3e}, "
+                f"absolute_tolerance={self.absolute_residual_tolerance:.3e}, "
                 f"condition={self.schur_condition_number:.3e}, "
                 f"inverse_method={self.schur_inverse_method}"
             )
@@ -310,12 +396,8 @@ def primitive_ward_rhs_from_model_ansatz(
             bands_plus.energies, config.fermi_level_eV, config.temperature_eV
         )
 
-        vx = bdg_vector_vertex_from_spec(
-            spec, kx, ky, qx, qy, "x", current_vertex
-        )
-        vy = bdg_vector_vertex_from_spec(
-            spec, kx, ky, qx, qy, "y", current_vertex
-        )
+        vx = bdg_vector_vertex_from_spec(spec, kx, ky, qx, qy, "x", current_vertex)
+        vy = bdg_vector_vertex_from_spec(spec, kx, ky, qx, qy, "y", current_vertex)
         source_vertices = (rho, vx, vy)
         source_band = tuple(
             vertex_band(bands_minus.states, vertex, bands_plus.states)
@@ -418,23 +500,86 @@ def _kernel_inverse(kernel: EffectiveEMKernel) -> np.ndarray:
     )
 
 
+def _side_validation(
+    *,
+    primitive_total: np.ndarray,
+    primitive_rhs: np.ndarray,
+    primitive_residual: np.ndarray,
+    collective_residual: np.ndarray,
+    collective_projection: np.ndarray,
+    effective_direct: np.ndarray,
+    effective_predicted: np.ndarray,
+    effective_residual: np.ndarray,
+    relative_tolerance: float,
+    absolute_tolerance: float,
+) -> WardSideValidation:
+    primitive_metrics = _residual_metrics(
+        primitive_residual,
+        (primitive_total, primitive_rhs),
+        relative_tolerance=relative_tolerance,
+        absolute_tolerance=absolute_tolerance,
+    )
+    effective_metrics = _residual_metrics(
+        effective_residual,
+        (effective_direct, effective_predicted, primitive_rhs),
+        relative_tolerance=relative_tolerance,
+        absolute_tolerance=absolute_tolerance,
+    )
+    return WardSideValidation(
+        primitive_total=primitive_total,
+        primitive_rhs=primitive_rhs,
+        primitive_residual=primitive_residual,
+        collective_residual=collective_residual,
+        collective_projection=collective_projection,
+        effective_direct=effective_direct,
+        effective_predicted=effective_predicted,
+        effective_residual=effective_residual,
+        primitive_absolute_residual=primitive_metrics.absolute_residual,
+        effective_absolute_residual=effective_metrics.absolute_residual,
+        primitive_reference_scale=primitive_metrics.reference_scale,
+        effective_reference_scale=effective_metrics.reference_scale,
+        primitive_relative_residual=primitive_metrics.relative_residual,
+        effective_relative_residual=effective_metrics.relative_residual,
+        primitive_mixed_threshold=primitive_metrics.mixed_threshold,
+        effective_mixed_threshold=effective_metrics.mixed_threshold,
+        primitive_mixed_ratio=primitive_metrics.mixed_ratio,
+        effective_mixed_ratio=effective_metrics.mixed_ratio,
+        primitive_mixed_passed=primitive_metrics.mixed_passed,
+        effective_mixed_passed=effective_metrics.mixed_passed,
+        primitive_denominator_collapsed=primitive_metrics.denominator_collapsed,
+        effective_denominator_collapsed=effective_metrics.denominator_collapsed,
+    )
+
+
 def validate_effective_ward_xy(
     kernel: EffectiveEMKernel,
     rhs: PrimitiveWardRHS,
     *,
     residual_tolerance: float = DEFAULT_RESIDUAL_TOLERANCE,
+    absolute_residual_tolerance: float = DEFAULT_ABSOLUTE_RESIDUAL_TOLERANCE,
     condition_max: float = DEFAULT_CONDITION_MAX,
 ) -> EffectiveWardValidation:
-    """Validate primitive and Schur-effective Ward identities directly in xy."""
+    """Validate primitive and Schur-effective Ward identities directly in xy.
+
+    Closure uses a mixed absolute-relative criterion
+
+    ``||residual|| <= absolute_tolerance + relative_tolerance * reference_scale``.
+
+    ``residual_tolerance`` is retained as the backward-compatible name of the
+    relative tolerance.  Pure relative residuals remain available as diagnostics.
+    """
 
     if not np.allclose(kernel.q_model, rhs.q_model, rtol=0.0, atol=1e-14):
         raise ValueError("kernel and Ward RHS q_model do not match")
     if not np.isclose(kernel.xi_eV, rhs.xi_eV, rtol=1e-12, atol=1e-14):
         raise ValueError("kernel and Ward RHS xi_eV do not match")
     tolerance = float(residual_tolerance)
+    absolute_tolerance = float(absolute_residual_tolerance)
     maximum_condition = float(condition_max)
     if tolerance < 0.0 or not np.isfinite(tolerance):
         raise ValueError("residual_tolerance must be finite and non-negative")
+    if absolute_tolerance < 0.0 or not np.isfinite(absolute_tolerance):
+        raise ValueError("absolute_residual_tolerance must be finite and non-negative")
     if maximum_condition <= 0.0 or not np.isfinite(maximum_condition):
         raise ValueError("condition_max must be finite and positive")
 
@@ -459,7 +604,7 @@ def validate_effective_ward_xy(
     right_primitive_residual = right_primitive_total - rhs.right
     right_effective_residual = right_effective_direct - right_effective_predicted
 
-    left = WardSideValidation(
+    left = _side_validation(
         primitive_total=left_primitive_total,
         primitive_rhs=rhs.left,
         primitive_residual=left_primitive_residual,
@@ -468,17 +613,10 @@ def validate_effective_ward_xy(
         effective_direct=left_effective_direct,
         effective_predicted=left_effective_predicted,
         effective_residual=left_effective_residual,
-        primitive_relative_residual=_relative_residual(
-            left_primitive_residual, left_primitive_total, rhs.left
-        ),
-        effective_relative_residual=_relative_residual(
-            left_effective_residual,
-            left_effective_direct,
-            left_effective_predicted,
-            rhs.left,
-        ),
+        relative_tolerance=tolerance,
+        absolute_tolerance=absolute_tolerance,
     )
-    right = WardSideValidation(
+    right = _side_validation(
         primitive_total=right_primitive_total,
         primitive_rhs=rhs.right,
         primitive_residual=right_primitive_residual,
@@ -487,15 +625,8 @@ def validate_effective_ward_xy(
         effective_direct=right_effective_direct,
         effective_predicted=right_effective_predicted,
         effective_residual=right_effective_residual,
-        primitive_relative_residual=_relative_residual(
-            right_primitive_residual, right_primitive_total, rhs.right
-        ),
-        effective_relative_residual=_relative_residual(
-            right_effective_residual,
-            right_effective_direct,
-            right_effective_predicted,
-            rhs.right,
-        ),
+        relative_tolerance=tolerance,
+        absolute_tolerance=absolute_tolerance,
     )
     condition = (
         float(kernel.schur_condition_number)
@@ -515,6 +646,7 @@ def validate_effective_ward_xy(
         schur_condition_number=condition,
         schur_inverse_method=kernel.schur_inverse_method,
         residual_tolerance=tolerance,
+        absolute_residual_tolerance=absolute_tolerance,
         condition_max=maximum_condition,
         metadata={
             "convention": WARD_CONVENTION,
@@ -523,6 +655,17 @@ def validate_effective_ward_xy(
             "collective_order": AMPLITUDE_PHASE_ORDER,
             "zero_rhs_check_is_invalid_at_finite_q": True,
             "lt_projection_is_diagnostic_only": True,
+            "residual_criterion": "mixed_absolute_relative_v1",
+            "residual_criterion_formula": (
+                "||residual|| <= absolute_residual_tolerance + "
+                "residual_tolerance * reference_scale"
+            ),
+            "relative_residual_retained_as_diagnostic": True,
+            "relative_residual_tolerance": tolerance,
+            "absolute_residual_tolerance": absolute_tolerance,
+            "denominator_collapse_definition": (
+                "residual_tolerance * reference_scale <= absolute_residual_tolerance"
+            ),
         },
     )
 
@@ -572,6 +715,7 @@ def project_ward_validation_xy_to_lt(
 
 
 __all__ = [
+    "DEFAULT_ABSOLUTE_RESIDUAL_TOLERANCE",
     "DEFAULT_CONDITION_MAX",
     "DEFAULT_RESIDUAL_TOLERANCE",
     "EffectiveWardValidation",
