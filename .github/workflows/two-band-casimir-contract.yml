@@ -35,6 +35,7 @@ jobs:
             tests/test_zero_matsubara_static_sheet.py \
             tests/test_two_band_casimir_contract_integration.py \
             tests/test_finite_q_optimized_workspace.py \
+            tests/test_finite_q_material_cache.py \
             tests/test_sheet_reflection_contract.py \
             tests/test_passive_sheet_logdet.py \
             tests/test_primitive_xy_ward_validation.py \
