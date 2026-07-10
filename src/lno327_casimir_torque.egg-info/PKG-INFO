@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: lno327-casimir-torque
+Version: 0.1.0
+Summary: Foundational LNO327 superconducting pairing and Casimir-torque utilities.
+Requires-Python: >=3.10
+Requires-Dist: numpy>=1.23
+Requires-Dist: scipy>=1.9
+Provides-Extra: dev
+Requires-Dist: pytest>=7; extra == "dev"
+Requires-Dist: matplotlib>=3.6; extra == "dev"
+Provides-Extra: plot
+Requires-Dist: matplotlib>=3.6; extra == "plot"
