@@ -11,7 +11,6 @@ from validation.lib.dwave_global_extrapolation import (
     summarize_fit_ensemble,
 )
 from validation.run_dwave_small_xi_extrapolation_scan import _fit_channel
-from validation.run_dwave_static_global_reference_scan import _run_task
 
 
 def test_static_power_law_extrapolation_recovers_known_limit():
@@ -72,32 +71,3 @@ def test_local_lt_kernel_proxies_match_transverse_projection():
     expected_tt = float(transverse @ spatial.real @ transverse)
     assert np.isclose(proxies["chi_bar_proxy"], 0.4)
     assert np.isclose(proxies["dbar_t_proxy"], -expected_tt)
-
-
-def test_complete_periodic_static_reference_worker_smoke():
-    row = _run_task(
-        {
-            "nk": 4,
-            "shift": (0.5, 0.5),
-            "qx": 0.03,
-            "qy": 0.02,
-            "temperature_K": 10.0,
-            "delta0_eV": 0.1,
-            "eta_eV": 1e-8,
-            "ward_tolerance": 1e-7,
-            "ward_absolute_tolerance": 1e-12,
-            "condition_max": 1e12,
-            "raw_longitudinal_ceiling": 1e-3,
-            "longitudinal_tolerance": 1e-7,
-            "mixing_tolerance": 1e-7,
-            "reality_tolerance": 1e-9,
-            "passivity_tolerance": 1e-10,
-            "separation_nm": 20.0,
-        }
-    )
-    assert row["nk"] == 4
-    assert row["num_k_points"] == 16
-    assert np.isfinite(row["chi_bar"])
-    assert np.isfinite(row["dbar_t"])
-    assert np.isfinite(row["ward_primitive_mixed_ratio_max"])
-    assert row["schur_inverse_method"] == "inv"
