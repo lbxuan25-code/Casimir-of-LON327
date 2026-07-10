@@ -11,13 +11,27 @@
 - imaginary residual；
 - aggregate longitudinal gauge leakage；
 - 分解后的 `K_0L`、`K_L0`、`K_LL`、`K_LT`、`K_TL` scaled absolute/relative entries，以及主导分量；
+- `K_LL` 的 bubble、direct/contact、裸 `K_SS`、collective Schur correction 和最终 `K_eff` 分解；
+- bubble/direct 与 Schur 两级 cancellation ratio；
 - 左右 Ward RHS、collective projection、effective direct/predicted norms 与 RHS-projection cancellation ratio；
 - density-transverse mixing；
 - `chi_bar` 与 `Dbar_T`；
 - material cache、q workspace、response 和后处理耗时；
 - peak RSS。
 
-五个 longitudinal relative entries 使用与 `StaticSheetValidation` 相同的 mixed-unit scaling 和总尺度；其二范数必须复现 `relative_longitudinal_gauge_residual`。`rhs_projection_cancellation_ratio` 定义为
+五个 longitudinal relative entries 使用与 `StaticSheetValidation` 相同的 mixed-unit scaling 和总尺度；其二范数必须复现 `relative_longitudinal_gauge_residual`。
+
+`K_LL` 使用固定符号约定：
+
+```text
+K_SS  = K_bubble + K_direct
+K_eff = K_SS - K_collective_correction
+```
+
+扫描入口会按实际 inverse policy 独立重算
+`K_collective_correction = K_Seta @ inv(K_etaeta) @ K_etaS`，并对两条重构关系执行 fail-closed 检查。
+
+`rhs_projection_cancellation_ratio` 定义为
 
 ```text
 ||effective_predicted|| / max(||primitive_rhs||, ||collective_projection||, 1e-30)
