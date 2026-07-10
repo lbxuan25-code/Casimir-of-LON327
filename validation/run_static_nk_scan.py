@@ -38,6 +38,11 @@ from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 from validation.lib.finite_q_validation_models import get_finite_q_validation_model
 
 
+DEFAULT_OUTPUT = Path(
+    "validation/outputs/zero_matsubara/static_nk_convergence/raw/static_nk_scan.csv"
+)
+
+
 def _peak_rss_mb() -> float:
     # Linux reports ru_maxrss in KiB.  This validation CLI targets the project's
     # Linux/WSL environment.
@@ -209,7 +214,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("results/static_nk_scan.csv"),
+        default=DEFAULT_OUTPUT,
     )
     args = parser.parse_args()
 
