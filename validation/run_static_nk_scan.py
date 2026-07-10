@@ -1,9 +1,13 @@
 """Timed zero-Matsubara k-grid convergence scan using optimized workspaces.
 
-The scan parallelizes independent ``nk`` values only.  Each worker keeps BLAS
+The scan parallelizes independent ``nk`` values only. Each worker keeps BLAS
 threading external to this module so callers can avoid process/thread
 oversubscription with OMP_NUM_THREADS=1, OPENBLAS_NUM_THREADS=1, and related
 environment variables.
+
+Besides aggregate static validation fields, the CSV/JSON output resolves the
+five longitudinal entries in the scaled local ``(A0,L,T)`` kernel and records
+the left/right Ward RHS--collective-projection cancellation.
 """
 
 from __future__ import annotations
@@ -41,12 +45,84 @@ from validation.lib.finite_q_validation_models import get_finite_q_validation_mo
 DEFAULT_OUTPUT = Path(
     "validation/outputs/zero_matsubara/static_nk_convergence/raw/static_nk_scan.csv"
 )
+_LONGITUDINAL_COMPONENTS = {
+    "k0l": (0, 1),
+    "kl0": (1, 0),
+    "kll": (1, 1),
+    "klt": (1, 2),
+    "ktl": (2, 1),
+}
 
 
 def _peak_rss_mb() -> float:
-    # Linux reports ru_maxrss in KiB.  This validation CLI targets the project's
+    # Linux reports ru_maxrss in KiB. This validation CLI targets the project's
     # Linux/WSL environment.
     return float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss) / 1024.0
+
+
+def _norm(value: np.ndarray) -> float:
+    return float(np.linalg.norm(np.asarray(value, dtype=complex)))
+
+
+def _scaled_static_kernel(kernel_lt: np.ndarray, energy_scale_eV: float) -> np.ndarray:
+    """Mirror the mixed-unit scaling used by the static sheet validation."""
+
+    matrix = np.array(kernel_lt, dtype=complex, copy=True)
+    if matrix.shape != (3, 3):
+        raise ValueError(f"kernel_lt must have shape (3, 3), got {matrix.shape}")
+    energy = float(energy_scale_eV)
+    if not np.isfinite(energy) or energy <= 0.0:
+        raise ValueError("energy_scale_eV must be finite and positive")
+    matrix[0, 0] *= energy
+    matrix[1:3, 1:3] /= energy
+    return matrix
+
+
+def _longitudinal_component_diagnostics(
+    kernel_lt: np.ndarray,
+    energy_scale_eV: float,
+) -> dict[str, float | str]:
+    """Resolve the aggregate longitudinal norm into its five entries."""
+
+    scaled = _scaled_static_kernel(kernel_lt, energy_scale_eV)
+    scale = max(float(np.linalg.norm(scaled.real)), 1.0)
+    result: dict[str, float | str] = {"static_kernel_real_scale": scale}
+    relative_values: dict[str, float] = {}
+    for name, (row, col) in _LONGITUDINAL_COMPONENTS.items():
+        absolute = float(abs(scaled[row, col]))
+        relative = absolute / scale
+        result[f"scaled_abs_{name}"] = absolute
+        result[f"relative_{name}"] = relative
+        relative_values[name] = relative
+
+    combined = float(np.linalg.norm(np.fromiter(relative_values.values(), dtype=float)))
+    dominant = max(relative_values, key=relative_values.__getitem__)
+    result["longitudinal_components_relative_norm"] = combined
+    result["dominant_longitudinal_component"] = dominant.upper()
+    result["dominant_longitudinal_relative"] = relative_values[dominant]
+    return result
+
+
+def _ward_side_diagnostics(side: object, prefix: str) -> dict[str, float]:
+    """Record absolute norms and the physical RHS/projection cancellation ratio."""
+
+    rhs_norm = _norm(getattr(side, "primitive_rhs"))
+    projection_norm = _norm(getattr(side, "collective_projection"))
+    direct_norm = _norm(getattr(side, "effective_direct"))
+    predicted_norm = _norm(getattr(side, "effective_predicted"))
+    residual_norm = _norm(getattr(side, "effective_residual"))
+    cancellation_scale = max(rhs_norm, projection_norm, 1e-30)
+    closure_scale = max(direct_norm, predicted_norm, 1e-30)
+    return {
+        f"{prefix}_rhs_norm": rhs_norm,
+        f"{prefix}_collective_projection_norm": projection_norm,
+        f"{prefix}_effective_direct_norm": direct_norm,
+        f"{prefix}_effective_predicted_norm": predicted_norm,
+        f"{prefix}_effective_residual_norm": residual_norm,
+        f"{prefix}_rhs_projection_cancellation_ratio": predicted_norm
+        / cancellation_scale,
+        f"{prefix}_direct_prediction_relative_residual": residual_norm / closure_scale,
+    }
 
 
 def _run_one(task: dict[str, Any]) -> dict[str, Any]:
@@ -101,6 +177,22 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
     static = static_matsubara_kernel_to_sheet_response(kernel, ward)
     postprocess_seconds = time.perf_counter() - start
 
+    longitudinal = _longitudinal_component_diagnostics(
+        static.kernel_lt,
+        static.energy_scale_eV,
+    )
+    ward_left = _ward_side_diagnostics(ward.left, "ward_left")
+    ward_right = _ward_side_diagnostics(ward.right, "ward_right")
+
+    # Keep the decomposition tied to the production aggregate definition.
+    if not np.isclose(
+        longitudinal["longitudinal_components_relative_norm"],
+        static.validation.relative_longitudinal_gauge_residual,
+        rtol=5e-13,
+        atol=5e-15,
+    ):
+        raise RuntimeError("longitudinal component decomposition disagrees with static validation")
+
     total_seconds = time.perf_counter() - total_start
     cpu_seconds = time.process_time() - cpu_start
     warning_messages = [str(item.message) for item in caught]
@@ -130,10 +222,13 @@ def _run_one(task: dict[str, Any]) -> dict[str, Any]:
         "ward_right_effective": ward.right.effective_relative_residual,
         "schur_condition_number": ward.schur_condition_number,
         "ward_passed": bool(ward.passed),
+        **ward_left,
+        **ward_right,
         "relative_imaginary_norm": static.validation.relative_imaginary_norm,
         "relative_longitudinal_gauge_residual": (
             static.validation.relative_longitudinal_gauge_residual
         ),
+        **longitudinal,
         "relative_density_transverse_mixing": (
             static.validation.relative_density_transverse_mixing
         ),
@@ -172,6 +267,18 @@ def _write_outputs(rows: list[dict[str, Any]], output: Path, args: argparse.Name
                 "VECLIB_MAXIMUM_THREADS",
             )
         },
+        "diagnostic_definitions": {
+            "scaled_abs_k0l": "|scaled K_0L|",
+            "scaled_abs_kl0": "|scaled K_L0|",
+            "scaled_abs_kll": "|scaled K_LL|",
+            "scaled_abs_klt": "|scaled K_LT|",
+            "scaled_abs_ktl": "|scaled K_TL|",
+            "relative_kxy": "scaled_abs_kxy / max(||Re K_scaled||_F, 1)",
+            "rhs_projection_cancellation_ratio": (
+                "||effective_predicted|| / max(||primitive_rhs||, "
+                "||collective_projection||, 1e-30)"
+            ),
+        },
         "rows": rows,
     }
     metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
@@ -179,8 +286,8 @@ def _write_outputs(rows: list[dict[str, Any]], output: Path, args: argparse.Name
 
 def _print_summary(rows: list[dict[str, Any]]) -> None:
     header = (
-        " nk    Nk      total[s]  material[s]  q-cache[s]  response[s]  "
-        "Ward-eff(max)  longitudinal  mixing       chi_bar      Dbar_T"
+        " nk    Nk      total[s]  q-cache[s]  Ward-eff(max)  longitudinal  "
+        "L-dominant   rel(L-dom)    chi_bar      Dbar_T"
     )
     print(header)
     print("-" * len(header))
@@ -189,14 +296,45 @@ def _print_summary(rows: list[dict[str, Any]]) -> None:
         print(
             f"{row['nk']:3d} {row['num_k_points']:6d} "
             f"{row['total_wall_seconds']:11.4f} "
-            f"{row['material_seconds']:12.4f} "
             f"{row['q_workspace_seconds']:10.4f} "
-            f"{row['response_seconds']:11.4f} "
             f"{ward_eff:13.3e} "
             f"{row['relative_longitudinal_gauge_residual']:12.3e} "
-            f"{row['relative_density_transverse_mixing']:10.3e} "
+            f"{row['dominant_longitudinal_component']:>10s} "
+            f"{row['dominant_longitudinal_relative']:12.3e} "
             f"{row['chi_bar']:12.5e} "
             f"{row['dbar_t']:12.5e}"
+        )
+
+    print("\nLongitudinal decomposition (each entry uses the aggregate static scale)")
+    header = " nk      rel(K0L)     rel(KL0)     rel(KLL)     rel(KLT)     rel(KTL)"
+    print(header)
+    print("-" * len(header))
+    for row in rows:
+        print(
+            f"{row['nk']:3d} "
+            f"{row['relative_k0l']:13.3e} "
+            f"{row['relative_kl0']:13.3e} "
+            f"{row['relative_kll']:13.3e} "
+            f"{row['relative_klt']:13.3e} "
+            f"{row['relative_ktl']:13.3e}"
+        )
+
+    print("\nWard RHS--collective cancellation")
+    header = (
+        " nk     L:||R||      L:||P||   L:cancel     "
+        "R:||R||      R:||P||   R:cancel"
+    )
+    print(header)
+    print("-" * len(header))
+    for row in rows:
+        print(
+            f"{row['nk']:3d} "
+            f"{row['ward_left_rhs_norm']:12.3e} "
+            f"{row['ward_left_collective_projection_norm']:12.3e} "
+            f"{row['ward_left_rhs_projection_cancellation_ratio']:10.3e} "
+            f"{row['ward_right_rhs_norm']:12.3e} "
+            f"{row['ward_right_collective_projection_norm']:12.3e} "
+            f"{row['ward_right_rhs_projection_cancellation_ratio']:10.3e}"
         )
 
 
