@@ -66,6 +66,36 @@ def _synthetic_closed_contract() -> tuple[EffectiveEMKernel, PrimitiveWardRHS]:
     return kernel, rhs
 
 
+def _near_zero_contract(rhs_scale: float = 5e-13) -> tuple[EffectiveEMKernel, PrimitiveWardRHS]:
+    q = np.array([0.03, 0.02])
+    zeros_33 = np.zeros((3, 3), dtype=complex)
+    zeros_32 = np.zeros((3, 2), dtype=complex)
+    zeros_23 = np.zeros((2, 3), dtype=complex)
+    k_etaeta = np.eye(2, dtype=complex)
+    kernel = EffectiveEMKernel(
+        k_ss=zeros_33,
+        k_seta=zeros_32,
+        k_etas=zeros_23,
+        k_etaeta=k_etaeta,
+        k_eff=zeros_33,
+        q_model=q,
+        xi_eV=0.0,
+        schur_condition_number=1.0,
+        schur_inverse_method="inv",
+        metadata={"basis": "crystal_A0_xy"},
+    )
+    rhs_vector = np.asarray([rhs_scale, 0.0, 0.0], dtype=complex)
+    rhs = PrimitiveWardRHS(
+        left=rhs_vector,
+        right=rhs_vector.copy(),
+        q_model=q,
+        xi_eV=0.0,
+        delta0_eV=0.0,
+        metadata={"formula": "near-zero tolerance regression"},
+    )
+    return kernel, rhs
+
+
 def test_arbitrary_q_xy_validator_closes_exact_schur_identity():
     kernel, rhs = _synthetic_closed_contract()
     report = validate_effective_ward_xy(kernel, rhs, residual_tolerance=1e-12)
@@ -77,8 +107,48 @@ def test_arbitrary_q_xy_validator_closes_exact_schur_identity():
     assert report.right.primitive_relative_residual < 1e-13
     assert report.left.effective_relative_residual < 1e-13
     assert report.right.effective_relative_residual < 1e-13
+    assert report.left.primitive_mixed_passed is True
+    assert report.left.effective_mixed_passed is True
+    assert report.metadata["residual_criterion"] == "mixed_absolute_relative_v1"
     np.testing.assert_allclose(report.u_left, [0.02j, 0.03, -0.04])
     np.testing.assert_allclose(report.u_right, [-0.02j, 0.03, -0.04])
+
+
+def test_mixed_tolerance_passes_machine_scale_residual_when_relative_scale_collapses():
+    kernel, rhs = _near_zero_contract()
+    report = validate_effective_ward_xy(
+        kernel,
+        rhs,
+        residual_tolerance=1e-7,
+        absolute_residual_tolerance=1e-12,
+    )
+
+    assert report.passed is True
+    assert report.denominator_collapse_detected is True
+    assert report.left.primitive_relative_residual == 1.0
+    assert report.left.effective_relative_residual == 1.0
+    assert report.left.primitive_absolute_residual == 5e-13
+    assert report.left.effective_absolute_residual == 5e-13
+    assert report.left.primitive_mixed_threshold > 1e-12
+    assert report.left.effective_mixed_threshold > 1e-12
+    assert report.left.primitive_mixed_ratio < 1.0
+    assert report.left.effective_mixed_ratio < 1.0
+
+
+def test_zero_absolute_tolerance_recovers_relative_only_failure_near_zero():
+    kernel, rhs = _near_zero_contract()
+    report = validate_effective_ward_xy(
+        kernel,
+        rhs,
+        residual_tolerance=1e-7,
+        absolute_residual_tolerance=0.0,
+    )
+
+    assert report.passed is False
+    assert report.left.primitive_mixed_passed is False
+    assert report.left.effective_mixed_passed is False
+    assert report.left.primitive_mixed_ratio > 1.0
+    assert report.left.effective_mixed_ratio > 1.0
 
 
 def test_xy_to_lt_is_only_an_orthogonal_residual_projection():
@@ -151,7 +221,7 @@ def test_rhs_builder_closes_real_two_band_response_for_nonzero_qy():
     assert report.right.effective_relative_residual < 1e-7
 
 
-def test_validator_rejects_mismatched_q_or_frequency():
+def test_validator_rejects_mismatched_q_or_frequency_and_invalid_absolute_tolerance():
     kernel, rhs = _synthetic_closed_contract()
     wrong_q = PrimitiveWardRHS(
         left=rhs.left,
@@ -174,3 +244,6 @@ def test_validator_rejects_mismatched_q_or_frequency():
     )
     with np.testing.assert_raises_regex(ValueError, "xi_eV"):
         validate_effective_ward_xy(kernel, wrong_xi)
+
+    with np.testing.assert_raises_regex(ValueError, "absolute_residual_tolerance"):
+        validate_effective_ward_xy(kernel, rhs, absolute_residual_tolerance=-1.0)
