@@ -4,13 +4,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Mapping, TypeAlias
 
 import numpy as np
 
 from lno327.electrodynamics.reflection import LAB_LT_TANGENTIAL_E_BASIS, SheetReflection
+from lno327.electrodynamics.static_sheet import StaticSheetReflection
 
 from .readiness import round_trip_factor, trace_log_integrand, trace_log_matrix
+
+ReflectionOperator: TypeAlias = SheetReflection | StaticSheetReflection
 
 
 def _readonly_complex_matrix(value: np.ndarray, name: str) -> np.ndarray:
@@ -35,7 +38,7 @@ def _readonly_real_vector(value: np.ndarray, name: str) -> np.ndarray:
 
 @dataclass(frozen=True)
 class LifshitzPoint:
-    """Signed real trace-log result for two passive positive-frequency sheets."""
+    """Signed real trace-log result for two passive sheet reflections."""
 
     logdet: float
     trace_log_matrix: np.ndarray
@@ -81,15 +84,23 @@ class LifshitzPoint:
         object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
 
 
+def _frequency_sector(reflection: ReflectionOperator) -> str:
+    return str(reflection.metadata.get("frequency_sector", "unknown"))
+
+
 def _compatible_reflections(
-    reflection_1: SheetReflection,
-    reflection_2: SheetReflection,
+    reflection_1: ReflectionOperator,
+    reflection_2: ReflectionOperator,
     tolerance: float,
 ) -> None:
     if reflection_1.basis != LAB_LT_TANGENTIAL_E_BASIS or reflection_2.basis != LAB_LT_TANGENTIAL_E_BASIS:
         raise ValueError("both reflections must use the common lab LT tangential-E basis")
     if not reflection_1.sheet_validation.passed or not reflection_2.sheet_validation.passed:
         raise ValueError("passive signed logdet requires both sheet validations to pass")
+    sector_1 = _frequency_sector(reflection_1)
+    sector_2 = _frequency_sector(reflection_2)
+    if sector_1 != sector_2:
+        raise ValueError("reflection frequency sectors do not match")
     if not np.allclose(
         reflection_1.q_lab_si_m_inv,
         reflection_2.q_lab_si_m_inv,
@@ -104,8 +115,8 @@ def _compatible_reflections(
 
 
 def passive_sheet_logdet(
-    reflection_1: SheetReflection,
-    reflection_2: SheetReflection,
+    reflection_1: ReflectionOperator,
+    reflection_2: ReflectionOperator,
     *,
     separation_m: float,
     compatibility_tolerance: float = 1e-11,
@@ -113,6 +124,11 @@ def passive_sheet_logdet(
     eigenvalue_lower_tolerance: float = 1e-10,
 ) -> LifshitzPoint:
     """Return the signed real LT trace-log for reciprocal passive sheets.
+
+    The same algebra applies to positive Matsubara and exact zero-Matsubara
+    reflections.  Static inputs carry ``xi_si_s_inv=0`` and ``kappa=Q`` and are
+    produced directly from density and stiffness susceptibilities rather than a
+    conductivity extrapolation.
 
     For the admitted passive-sheet domain the two eigenvalues of ``R1 @ R2``
     must be real and non-negative.  The propagated round-trip eigenvalues must
@@ -165,6 +181,7 @@ def passive_sheet_logdet(
     if value > max(1e-12, lower_tolerance):
         raise ValueError("passive-sheet logdet must be non-positive")
 
+    sector = _frequency_sector(reflection_1)
     return LifshitzPoint(
         logdet=value,
         trace_log_matrix=matrix,
@@ -178,6 +195,8 @@ def passive_sheet_logdet(
             "formula": "sum_alpha log1p(-exp(-2 kappa d) lambda_alpha(R1 R2))",
             "signed_real_logdet": True,
             "uses_tangential_E_LT_basis": True,
+            "frequency_sector": sector,
+            "zero_matsubara_prime_weight": 0.5 if sector == "zero_matsubara" else 1.0,
             "silent_real_part_discard_forbidden": True,
             "absolute_determinant_forbidden": True,
             "maximum_product_eigenvalue_imaginary_abs": maximum_imaginary,
@@ -215,6 +234,7 @@ def lifshitz_integrand_metadata() -> dict[str, Any]:
         "used_by_main_pipeline_after_external_grid_sum": True,
         "formula": "log det[I - exp(-2*kappa*d) R1 @ R2]",
         "round_trip_factor_formula": "exp(-2*kappa*d)",
-        "production_positive_frequency_function": "passive_sheet_logdet",
+        "production_function": "passive_sheet_logdet",
+        "positive_and_zero_matsubara_supported": True,
         "legacy_complex_function": "trace_log_point",
     }
