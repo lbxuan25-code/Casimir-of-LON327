@@ -52,6 +52,15 @@ from lno327.response.finite_q_bdg import (
     finite_q_bdg_response_from_model_ansatz,
     require_peierls_finite_q_support,
 )
+from lno327.response.finite_q_optimized import (
+    FiniteQMaterialWorkspace,
+    FiniteQQWorkspace,
+    finite_q_bdg_response_from_q_workspace,
+    finite_q_bdg_responses_from_q_workspace,
+    precompute_finite_q_material_workspace_from_model_ansatz,
+    precompute_finite_q_q_workspace,
+    primitive_ward_rhs_from_q_workspace,
+)
 from lno327.response.nonlocal_normal import (
     c4_covariance_error,
     midpoint_velocity_vertex_from_model,
@@ -109,6 +118,8 @@ __all__ = [
     "BdGLocalWorkspace",
     "BdGNonlocalWorkspace",
     "FiniteQBdGWorkspace",
+    "FiniteQMaterialWorkspace",
+    "FiniteQQWorkspace",
     "NormalLocalWorkspace",
     "NormalDensityCurrentWorkspace",
     "NormalNonlocalWorkspace",
@@ -126,6 +137,11 @@ __all__ = [
     "bdg_vector_vertex_from_spec",
     "bdg_contact_vertex_from_spec",
     "finite_q_bdg_response_from_model_ansatz",
+    "finite_q_bdg_response_from_q_workspace",
+    "finite_q_bdg_responses_from_q_workspace",
+    "precompute_finite_q_material_workspace_from_model_ansatz",
+    "precompute_finite_q_q_workspace",
+    "primitive_ward_rhs_from_q_workspace",
     "response_factor_imag_axis",
     "band_basis_bubble_imag_axis",
     "two_sided_response_factor_imag_axis",
