@@ -48,6 +48,18 @@ jobs:
           cat pytest-output.txt
           exit $status
 
+      - name: Smoke test timed static scan CLI
+        env:
+          OMP_NUM_THREADS: "1"
+          OPENBLAS_NUM_THREADS: "1"
+          MKL_NUM_THREADS: "1"
+          NUMEXPR_NUM_THREADS: "1"
+        run: >-
+          python validation/run_static_nk_scan.py
+          --nks 2 3
+          --workers 2
+          --output /tmp/static-nk-smoke.csv
+
       - name: Upload pytest report
         if: always()
         uses: actions/upload-artifact@v4
