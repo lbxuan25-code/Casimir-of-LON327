@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 
 from lno327.constants import C0, EV_TO_J, HBAR
+from lno327.electrodynamics.basis import tensor_xy_to_lt, xy_to_lt_rotation
 
 
 def model_q_to_si_wavevector(
@@ -37,17 +38,6 @@ def vacuum_kappa(Q_m_inv: float, xi_si: float) -> float:
     return float(np.sqrt(Q_m_inv**2 + (xi_si / C0) ** 2))
 
 
-def xy_to_lt_rotation(Q_x_m_inv: float, Q_y_m_inv: float, *, allow_q_zero: bool = False) -> np.ndarray:
-    q = float(np.hypot(Q_x_m_inv, Q_y_m_inv))
-    if q == 0.0:
-        if allow_q_zero:
-            return np.eye(2, dtype=float)
-        raise ValueError("Q must be nonzero to define the LT basis")
-    qx_hat = float(Q_x_m_inv) / q
-    qy_hat = float(Q_y_m_inv) / q
-    return np.array([[qx_hat, qy_hat], [-qy_hat, qx_hat]], dtype=float)
-
-
 def _as_2x2_complex(matrix: np.ndarray) -> np.ndarray:
     array = np.asarray(matrix)
     if array.shape != (2, 2):
@@ -62,8 +52,14 @@ def rotate_sigma_tilde_xy_to_lt(
     *,
     allow_q_zero: bool = False,
 ) -> np.ndarray:
-    rotation = xy_to_lt_rotation(Q_x_m_inv, Q_y_m_inv, allow_q_zero=allow_q_zero)
-    return rotation @ _as_2x2_complex(sigma_tilde_xy) @ rotation.T
+    """Backward-compatible conductivity-specific wrapper around ``tensor_xy_to_lt``."""
+
+    return tensor_xy_to_lt(
+        _as_2x2_complex(sigma_tilde_xy),
+        Q_x_m_inv,
+        Q_y_m_inv,
+        allow_q_zero=allow_q_zero,
+    )
 
 
 def vacuum_admittance_LT(xi_si: float, kappa_m_inv: float) -> np.ndarray:
