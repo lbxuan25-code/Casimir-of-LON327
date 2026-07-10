@@ -52,12 +52,14 @@ from lno327.response.finite_q_bdg import (
     finite_q_bdg_response_from_model_ansatz,
     require_peierls_finite_q_support,
 )
+from lno327.response.finite_q_material import (
+    precompute_finite_q_material_workspace_from_model_ansatz,
+)
 from lno327.response.finite_q_optimized import (
     FiniteQMaterialWorkspace,
     FiniteQQWorkspace,
     finite_q_bdg_response_from_q_workspace,
     finite_q_bdg_responses_from_q_workspace,
-    precompute_finite_q_material_workspace_from_model_ansatz,
     precompute_finite_q_q_workspace,
     primitive_ward_rhs_from_q_workspace,
 )
