@@ -25,7 +25,13 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
 
       - name: Verify test collection after cleanup
-        run: python -m pytest --collect-only -q
+        shell: bash
+        run: |
+          set +e
+          python -m pytest --collect-only -q > collect-output.txt 2>&1
+          status=$?
+          cat collect-output.txt
+          exit $status
 
       - name: Run contract and compatibility tests
         shell: bash
@@ -65,10 +71,13 @@ jobs:
           --workers 2
           --output /tmp/static-nk-smoke.csv
 
-      - name: Upload pytest report
+      - name: Upload validation reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: two-band-casimir-pytest-report
-          path: pytest-output.txt
+          name: two-band-casimir-test-reports
+          path: |
+            collect-output.txt
+            pytest-output.txt
+          if-no-files-found: ignore
           retention-days: 7
