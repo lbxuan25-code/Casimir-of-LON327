@@ -213,6 +213,8 @@ def test_static_contract_rejects_positive_frequency_kernel():
 
 
 def test_real_two_band_arbitrary_q_zero_mode_is_finite_and_ward_closed():
+    """Smoke-test exact xi=0; strict static physics gates need converged local runs."""
+
     model = get_finite_q_validation_model("symmetry_bdg_2band")
     ansatz = model.build_ansatz("spm", phase_vertex="bond_endpoint_gauge")
     pairing_params = model.build_pairing_params(0.1)
