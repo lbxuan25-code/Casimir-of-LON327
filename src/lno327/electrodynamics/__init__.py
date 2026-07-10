@@ -58,6 +58,14 @@ from lno327.electrodynamics.reflection import (
     vacuum_kappa,
     xy_to_lt_rotation,
 )
+from lno327.electrodynamics.static_gauge_projection import (
+    DEFAULT_PROJECTION_RAW_LONGITUDINAL_CEILING,
+    PROJECT_AFTER_VALIDATED_WARD,
+    RAW_FAIL_CLOSED,
+    StaticLongitudinalPolicy,
+    static_longitudinal_gauge_projector_lt,
+    static_matsubara_kernel_to_sheet_response_with_policy,
+)
 from lno327.electrodynamics.static_sheet import (
     STATIC_LOCAL_BASIS,
     ZERO_MATSUBARA_SECTOR,
@@ -150,4 +158,10 @@ __all__ = [
     "StaticSheetValidation",
     "static_matsubara_kernel_to_sheet_response",
     "static_sheet_response_to_reflection",
+    "DEFAULT_PROJECTION_RAW_LONGITUDINAL_CEILING",
+    "PROJECT_AFTER_VALIDATED_WARD",
+    "RAW_FAIL_CLOSED",
+    "StaticLongitudinalPolicy",
+    "static_longitudinal_gauge_projector_lt",
+    "static_matsubara_kernel_to_sheet_response_with_policy",
 ]
