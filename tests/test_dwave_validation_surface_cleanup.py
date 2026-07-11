@@ -27,6 +27,7 @@ def test_active_dwave_n0_runners_are_present():
         "validation/run_dwave_static_shift_ensemble_reference_scan.py",
         "validation/run_dwave_static_shift_budget_scan.py",
         "validation/run_dwave_small_xi_extrapolation_scan.py",
+        "validation/run_dwave_static_iterated_adaptive_scan.py",
     )
     missing = [path for path in active if not (ROOT / path).is_file()]
     assert not missing
