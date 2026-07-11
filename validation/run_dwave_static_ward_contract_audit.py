@@ -2,12 +2,14 @@
 
 The runner uses the bounded-cost fixed-Gauss-outer/adaptive-inner quadrature and
 integrates all primitive response, collective, counterterm, and Ward-RHS terms on
-shared nodes.  It then reports the diagnostic identity
+shared nodes. It audits, on both sides,
 
-    u K_eff = R_S - C_eta K_etaeta^{-1} K_etaS + r_primitive
+    u K_eff = R_S - C_eta K_etaeta^{-1} K_etaS + r_primitive.
 
-on both sides, together with the corresponding LT longitudinal row and column.
-No projection is applied and no run can establish a production reference.
+It additionally splits ``r_primitive`` into bubble/translation and direct/contact
+parts, and splits the collective defect into EM-mixed, fermionic collective-bubble,
+and Goldstone-counterterm sources. No projection is applied and no run can
+establish a production reference.
 """
 
 from __future__ import annotations
@@ -36,7 +38,9 @@ from validation.lib.dwave_iterated_adaptive import (
 from validation.lib.finite_q_validation_models import get_finite_q_validation_model
 from validation.lib.gauss_outer_adaptive import gauss_outer_adaptive_integral
 from validation.lib.iterated_adaptive import EvaluationBudgetExceeded, IteratedAdaptiveOptions
-from validation.lib.static_ward_contract_audit import audit_static_ward_contract
+from validation.lib.static_ward_component_sources import (
+    audit_static_ward_contract_with_components,
+)
 
 
 _BZ_NORMALIZATION = 1.0 / (2.0 * np.pi) ** 2
@@ -52,8 +56,8 @@ def _relative_difference(a: float, b: float) -> float:
 
 def _jsonable(value: Any) -> Any:
     if isinstance(value, complex | np.complexfloating):
-        scalar = complex(value)
-        return {"real": float(scalar.real), "imag": float(scalar.imag)}
+        z = complex(value)
+        return {"real": float(z.real), "imag": float(z.imag)}
     if isinstance(value, np.ndarray):
         return _jsonable(value.tolist())
     if isinstance(value, np.generic):
@@ -80,8 +84,28 @@ def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         writer.writerows(rows)
 
 
-def _max_side_scalar(audit: dict[str, Any], section: str, key: str) -> float:
-    return max(float(audit["left"][section][key]), float(audit["right"][section][key]))
+def _max_side(audit: dict[str, Any], section: str, key: str) -> float:
+    return max(
+        float(audit["component_sources"]["left"][section][key]),
+        float(audit["component_sources"]["right"][section][key]),
+    )
+
+
+def _max_component_norm_over_q(audit: dict[str, Any], section: str, key: str) -> float:
+    return max(
+        float(
+            audit["component_sources"]["left"][section][key]
+        ),
+        float(
+            audit["component_sources"]["right"][section][key]
+        ),
+    )
+
+
+def _rhs_piece_over_q(audit: dict[str, Any], name: str) -> float:
+    q_norm = float(audit["q_norm"])
+    value = np.asarray(audit["left"]["rhs_pieces"][name], dtype=complex)
+    return float(np.linalg.norm(value)) / q_norm
 
 
 def _projection_channel_over_q(audit: dict[str, Any], channel: int) -> float:
@@ -89,12 +113,6 @@ def _projection_channel_over_q(audit: dict[str, Any], channel: int) -> float:
     left = np.asarray(audit["left"]["collective_projection_by_channel"], dtype=complex)
     right = np.asarray(audit["right"]["collective_projection_by_channel"], dtype=complex)
     return max(float(np.linalg.norm(left[channel])), float(np.linalg.norm(right[channel]))) / q_norm
-
-
-def _rhs_piece_over_q(audit: dict[str, Any], name: str) -> float:
-    q_norm = float(audit["q_norm"])
-    value = np.asarray(audit["left"]["rhs_pieces"][name], dtype=complex)
-    return float(np.linalg.norm(value)) / q_norm
 
 
 def _row_from_result(
@@ -107,10 +125,11 @@ def _row_from_result(
     audit: dict[str, Any],
 ) -> dict[str, Any]:
     entries = np.asarray(audit["longitudinal_entries"], dtype=complex)
-    left_class = str(audit["left"]["source_classification"])
-    right_class = str(audit["right"]["source_classification"])
-    external_left = str(audit["left"]["external_collective_classification"])
-    external_right = str(audit["right"]["external_collective_classification"])
+    left_components = audit["component_sources"]["left"]
+    right_components = audit["component_sources"]["right"]
+    left_effective_sources = left_components["effective_predicted_sources"]
+    right_effective_sources = right_components["effective_predicted_sources"]
+
     return {
         "order": order,
         "outer_order": int(outer_order),
@@ -125,10 +144,12 @@ def _row_from_result(
         "raw_longitudinal": float(audit["relative_longitudinal_gauge_residual"]),
         "ward_passed": bool(ward.passed),
         "ward_primitive_mixed_ratio_max": max(
-            float(ward.left.primitive_mixed_ratio), float(ward.right.primitive_mixed_ratio)
+            float(ward.left.primitive_mixed_ratio),
+            float(ward.right.primitive_mixed_ratio),
         ),
         "ward_effective_mixed_ratio_max": max(
-            float(ward.left.effective_mixed_ratio), float(ward.right.effective_mixed_ratio)
+            float(ward.left.effective_mixed_ratio),
+            float(ward.right.effective_mixed_ratio),
         ),
         "schur_condition_number": float(audit["schur_condition_number"]),
         "schur_inverse_method": str(audit["schur_inverse_method"]),
@@ -151,21 +172,59 @@ def _row_from_result(
             audit["max_primitive_residual_over_q"]
         ),
         "effective_direct_over_q_max": float(audit["max_effective_direct_over_q"]),
-        "left_source_classification": left_class,
-        "right_source_classification": right_class,
-        "left_external_collective_classification": external_left,
-        "right_external_collective_classification": external_right,
-        "left_external_collective_cancellation_ratio": float(
-            audit["left"]["external_collective_cancellation_ratio"]
+        "primitive_bubble_translation_residual_over_q_max": max(
+            float(left_components["bubble_translation_residual_norm_over_q"]),
+            float(right_components["bubble_translation_residual_norm_over_q"]),
         ),
-        "right_external_collective_cancellation_ratio": float(
-            audit["right"]["external_collective_cancellation_ratio"]
+        "primitive_contact_residual_over_q_max": max(
+            float(left_components["contact_residual_norm_over_q"]),
+            float(right_components["contact_residual_norm_over_q"]),
         ),
-        "left_projection_over_collective_defect": float(
-            audit["left"]["projection_over_collective_defect"]
+        "collective_em_contraction_over_q_max": _max_component_norm_over_q(
+            audit,
+            "collective_defect_part_norms_over_q",
+            "em_collective_contraction",
         ),
-        "right_projection_over_collective_defect": float(
-            audit["right"]["projection_over_collective_defect"]
+        "collective_rotation_bubble_over_q_max": _max_component_norm_over_q(
+            audit,
+            "collective_defect_part_norms_over_q",
+            "phase_rotation_bubble",
+        ),
+        "collective_rotation_counterterm_over_q_max": _max_component_norm_over_q(
+            audit,
+            "collective_defect_part_norms_over_q",
+            "phase_rotation_counterterm",
+        ),
+        "projection_from_em_contraction_over_q_max": _max_component_norm_over_q(
+            audit,
+            "collective_projection_part_norms_over_q",
+            "em_collective_contraction",
+        ),
+        "projection_from_phase_bubble_over_q_max": _max_component_norm_over_q(
+            audit,
+            "collective_projection_part_norms_over_q",
+            "phase_rotation_bubble",
+        ),
+        "projection_from_phase_counterterm_over_q_max": _max_component_norm_over_q(
+            audit,
+            "collective_projection_part_norms_over_q",
+            "phase_rotation_counterterm",
+        ),
+        "left_largest_effective_source": str(left_effective_sources["largest_source"]),
+        "right_largest_effective_source": str(right_effective_sources["largest_source"]),
+        "left_effective_source_cancellation_ratio": float(
+            left_effective_sources["cancellation_ratio"]
+        ),
+        "right_effective_source_cancellation_ratio": float(
+            right_effective_sources["cancellation_ratio"]
+        ),
+        "left_source_classification": str(audit["left"]["source_classification"]),
+        "right_source_classification": str(audit["right"]["source_classification"]),
+        "left_external_collective_classification": str(
+            audit["left"]["external_collective_classification"]
+        ),
+        "right_external_collective_classification": str(
+            audit["right"]["external_collective_classification"]
         ),
         "K_0L_abs": float(abs(entries[0])),
         "K_L0_abs": float(abs(entries[1])),
@@ -174,17 +233,14 @@ def _row_from_result(
         "K_TL_abs": float(abs(entries[4])),
         "rhs_metadata_error_norm": float(audit["rhs_metadata_error_norm"]),
         "lt_mapping_error_norm": float(audit["lt_contraction_mapping_error_norm"]),
+        "component_source_consistency_max": float(
+            audit["component_source_consistency_max"]
+        ),
         "left_reconstruction_error_norm": float(
             audit["left"]["norms"]["reconstruction_error"]
         ),
         "right_reconstruction_error_norm": float(
             audit["right"]["norms"]["reconstruction_error"]
-        ),
-        "left_residual_identity_error_norm": float(
-            audit["left"]["norms"]["residual_identity_error"]
-        ),
-        "right_residual_identity_error_norm": float(
-            audit["right"]["norms"]["residual_identity_error"]
         ),
         "production_reference_established": False,
         "projection_eligible": False,
@@ -214,77 +270,61 @@ def _comparisons(rows: list[dict[str, Any]]) -> dict[str, Any]:
     orientation: list[dict[str, Any]] = []
     outer_step: list[dict[str, Any]] = []
 
-    outer_orders = sorted({int(row["outer_order"]) for row in successful})
-    for outer in outer_orders:
+    for outer in sorted({int(row["outer_order"]) for row in successful}):
         by_order = {
             str(row["order"]): row
             for row in successful
             if int(row["outer_order"]) == outer
         }
-        if "xy" not in by_order or "yx" not in by_order:
-            continue
-        xy, yx = by_order["xy"], by_order["yx"]
-        orientation.append(
-            {
-                "outer_order": outer,
-                "relative_chi": _relative_difference(xy["chi_bar"], yx["chi_bar"]),
-                "relative_dbar_t": _relative_difference(xy["dbar_t"], yx["dbar_t"]),
-                "relative_raw_longitudinal": _relative_difference(
-                    xy["raw_longitudinal"], yx["raw_longitudinal"]
-                ),
-                "relative_effective_direct_over_q": _relative_difference(
-                    xy["effective_direct_over_q_max"],
-                    yx["effective_direct_over_q_max"],
-                ),
-                "relative_effective_predicted_over_q": _relative_difference(
-                    xy["effective_predicted_over_q_max"],
-                    yx["effective_predicted_over_q_max"],
-                ),
-            }
-        )
+        if "xy" in by_order and "yx" in by_order:
+            xy, yx = by_order["xy"], by_order["yx"]
+            orientation.append(
+                {
+                    "outer_order": outer,
+                    "relative_chi": _relative_difference(xy["chi_bar"], yx["chi_bar"]),
+                    "relative_dbar_t": _relative_difference(
+                        xy["dbar_t"], yx["dbar_t"]
+                    ),
+                    "relative_raw_longitudinal": _relative_difference(
+                        xy["raw_longitudinal"], yx["raw_longitudinal"]
+                    ),
+                    "relative_effective_predicted_over_q": _relative_difference(
+                        xy["effective_predicted_over_q_max"],
+                        yx["effective_predicted_over_q_max"],
+                    ),
+                    "relative_effective_direct_over_q": _relative_difference(
+                        xy["effective_direct_over_q_max"],
+                        yx["effective_direct_over_q_max"],
+                    ),
+                }
+            )
 
+    tracked = (
+        "external_rhs_over_q_max",
+        "collective_projection_over_q_max",
+        "effective_predicted_over_q_max",
+        "primitive_residual_over_q_max",
+        "effective_direct_over_q_max",
+        "raw_longitudinal",
+        "chi_bar",
+        "dbar_t",
+    )
     for order in ("xy", "yx"):
         order_rows = sorted(
             [row for row in successful if str(row["order"]) == order],
             key=lambda row: int(row["outer_order"]),
         )
         for previous, current in zip(order_rows, order_rows[1:], strict=False):
-            outer_step.append(
-                {
-                    "order": order,
-                    "outer_from": int(previous["outer_order"]),
-                    "outer_to": int(current["outer_order"]),
-                    "relative_chi": _relative_difference(
-                        previous["chi_bar"], current["chi_bar"]
-                    ),
-                    "relative_dbar_t": _relative_difference(
-                        previous["dbar_t"], current["dbar_t"]
-                    ),
-                    "relative_raw_longitudinal": _relative_difference(
-                        previous["raw_longitudinal"], current["raw_longitudinal"]
-                    ),
-                    "relative_external_rhs_over_q": _relative_difference(
-                        previous["external_rhs_over_q_max"],
-                        current["external_rhs_over_q_max"],
-                    ),
-                    "relative_collective_projection_over_q": _relative_difference(
-                        previous["collective_projection_over_q_max"],
-                        current["collective_projection_over_q_max"],
-                    ),
-                    "relative_effective_predicted_over_q": _relative_difference(
-                        previous["effective_predicted_over_q_max"],
-                        current["effective_predicted_over_q_max"],
-                    ),
-                    "relative_primitive_residual_over_q": _relative_difference(
-                        previous["primitive_residual_over_q_max"],
-                        current["primitive_residual_over_q_max"],
-                    ),
-                    "relative_effective_direct_over_q": _relative_difference(
-                        previous["effective_direct_over_q_max"],
-                        current["effective_direct_over_q_max"],
-                    ),
-                }
-            )
+            item: dict[str, Any] = {
+                "order": order,
+                "outer_from": int(previous["outer_order"]),
+                "outer_to": int(current["outer_order"]),
+            }
+            for name in tracked:
+                item[f"relative_{name}"] = _relative_difference(
+                    previous[name], current[name]
+                )
+            outer_step.append(item)
     return {"orientation": orientation, "outer_step": outer_step}
 
 
@@ -333,9 +373,20 @@ def _summary_text(
             f"{float(row['effective_direct_over_q_max']):10.3e}"
         )
         lines.append(
-            "      classification: "
-            f"L={row['left_source_classification']}; "
-            f"R={row['right_source_classification']}"
+            "      primitive split: bubble/translation="
+            f"{float(row['primitive_bubble_translation_residual_over_q_max']):.3e}, "
+            f"direct/contact={float(row['primitive_contact_residual_over_q_max']):.3e}"
+        )
+        lines.append(
+            "      collective projection sources: EM="
+            f"{float(row['projection_from_em_contraction_over_q_max']):.3e}, "
+            f"bubble={float(row['projection_from_phase_bubble_over_q_max']):.3e}, "
+            f"counterterm={float(row['projection_from_phase_counterterm_over_q_max']):.3e}"
+        )
+        lines.append(
+            "      largest effective sources: "
+            f"L={row['left_largest_effective_source']}, "
+            f"R={row['right_largest_effective_source']}"
         )
 
     lines.extend(["", "Orientation comparisons", "-----------------------"])
@@ -345,25 +396,27 @@ def _summary_text(
                 f" outer={item['outer_order']}: chi={item['relative_chi']:.3e}, "
                 f"D_T={item['relative_dbar_t']:.3e}, "
                 f"raw-long={item['relative_raw_longitudinal']:.3e}, "
-                f"uKeff/q={item['relative_effective_direct_over_q']:.3e}, "
-                f"R_eff/q={item['relative_effective_predicted_over_q']:.3e}"
+                f"R_eff/q={item['relative_effective_predicted_over_q']:.3e}, "
+                f"uKeff/q={item['relative_effective_direct_over_q']:.3e}"
             )
     else:
         lines.append(" unavailable")
 
-    lines.extend(["", "Fail-closed status", "------------------"])
     lines.extend(
         [
+            "",
+            "Fail-closed status",
+            "------------------",
             "diagnostic_only = True",
             "projection_applied = False",
             "production_reference_established = False",
             "valid_for_casimir_input = False",
             "",
-            "Interpretation: effective_predicted isolates the mismatch between the "
-            "external translation/contact RHS and the Schur-projected collective "
-            "defect. primitive_residual is the already-tested RHS-aware closure "
-            "error. Their vector sum reconstructs the observed longitudinal row or "
-            "column exactly up to floating-point algebra.",
+            "Interpretation: R_eff isolates the mismatch between the external "
+            "translation/contact defect and the Schur-projected collective defect. "
+            "r_primitive is split into bubble/translation and direct/contact closure "
+            "errors. The JSON additionally records every complex source vector in "
+            "xy and LT/q form.",
         ]
     )
     return "\n".join(lines) + "\n"
@@ -438,7 +491,7 @@ def main() -> None:
     )
 
     rows: list[dict[str, Any]] = []
-    full_results: list[dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     for outer_order in args.outer_orders:
         for order in args.orders:
             print(
@@ -455,10 +508,13 @@ def main() -> None:
                 )
             except EvaluationBudgetExceeded as exc:
                 row = _failed_row(
-                    order, int(outer_order), str(exc), time.perf_counter() - run_started
+                    order,
+                    int(outer_order),
+                    str(exc),
+                    time.perf_counter() - run_started,
                 )
                 rows.append(row)
-                full_results.append({"row": row, "audit": None})
+                results.append({"row": row, "audit": None})
                 print(f"budget exceeded: {exc}", flush=True)
                 continue
 
@@ -493,7 +549,9 @@ def main() -> None:
                 reality_tolerance=1.0,
                 passivity_tolerance=1.0,
             )
-            audit = audit_static_ward_contract(kernel, rhs)
+            audit = audit_static_ward_contract_with_components(
+                kernel, rhs, components
+            )
             row = _row_from_result(
                 order=order,
                 outer_order=int(outer_order),
@@ -503,7 +561,7 @@ def main() -> None:
                 audit=audit,
             )
             rows.append(row)
-            full_results.append(
+            results.append(
                 {
                     "row": row,
                     "audit": audit,
@@ -543,7 +601,7 @@ def main() -> None:
         _summary_text(args, rows, comparisons, total_wall), encoding="utf-8"
     )
     payload = {
-        "schema": "dwave_static_ward_contract_audit_v1",
+        "schema": "dwave_static_ward_contract_audit_v2",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "environment": {
             "python": platform.python_version(),
@@ -559,7 +617,7 @@ def main() -> None:
         },
         "rows": rows,
         "comparisons": comparisons,
-        "results": full_results,
+        "results": results,
         "status": {
             "diagnostic_run_completed": bool(rows),
             "all_requested_runs_succeeded": bool(rows)
