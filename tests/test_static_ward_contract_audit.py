@@ -178,3 +178,9 @@ def test_static_ward_contract_audit_requires_separate_rhs_pieces():
     )
     with pytest.raises(ValueError, match="equal_forward"):
         audit_static_ward_contract(kernel, rhs)
+
+
+def test_dwave_static_ward_contract_audit_runner_imports():
+    import validation.run_dwave_static_ward_contract_audit as runner
+
+    assert callable(runner.main)
