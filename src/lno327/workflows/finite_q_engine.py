@@ -15,6 +15,7 @@ from lno327.collective.schur import (
 )
 from lno327.response.config import KuboConfig
 from lno327.response.finite_q import BdGFiniteQResponseComponents
+from lno327.response.finite_q_bdg import finite_q_bdg_response_from_model_ansatz
 from lno327.response.finite_q_bdg import (
     FiniteQBdGWorkspace,
     finite_q_bdg_response_from_workspace,
@@ -23,7 +24,6 @@ from lno327.response.finite_q_bdg import (
 from lno327.response.phase_hessian import (
     PhaseHessianPolicy,
     apply_phase_hessian_policy_to_components,
-    finite_q_bdg_response_from_model_ansatz_with_phase_hessian,
     phase_hessian_policy_from_options,
 )
 from lno327.response.validation import validate_finite_q_inputs
@@ -162,7 +162,7 @@ def finite_q_bdg_response_from_ansatz(
 
     amp = pairing_params or PairingAmplitudes()
     opts = options or FiniteQEngineOptions()
-    return finite_q_bdg_response_from_model_ansatz_with_phase_hessian(
+    base = finite_q_bdg_response_from_model_ansatz(
         LNO327FourOrbitalSpec(pairing_amplitudes=amp),
         ansatz,
         omega_eV,
@@ -173,6 +173,13 @@ def finite_q_bdg_response_from_ansatz(
         amp,
         opts,
     )
+    corrected, _ = apply_phase_hessian_policy_to_components(
+        base,
+        ansatz,
+        q_model,
+        phase_hessian_policy_from_options(opts),
+    )
+    return corrected
 
 
 def precompute_finite_q_engine_workspace(
