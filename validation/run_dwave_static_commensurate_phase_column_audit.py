@@ -87,6 +87,20 @@ def main() -> None:
         f"q=({q[0]:.12g},{q[1]:.12g}), points={grid.num_points}",
         flush=True,
     )
+    print(
+        "q/2 translation permutation exact = "
+        f"{grid.half_translation_permutation_exact}",
+        flush=True,
+    )
+    if not grid.half_translation_permutation_exact:
+        print(
+            "WARNING: k +/- q/2 lie on a complementary half-step sublattice; "
+            "a single-origin comparison with the q=0 counterterm can contain an "
+            "odd/even grid-origin alias. Use even integer shifts or average the "
+            "required complementary grid origins before interpreting a residual.",
+            flush=True,
+        )
+
     integral = integrate_commensurate_periodic_vector(
         grid, context.evaluate_complex, chunk_size=args.chunk_size
     )
@@ -106,7 +120,14 @@ def main() -> None:
             "chunk_size": integral.chunk_size,
             "wall_seconds": integral.wall_seconds,
             "summation_method": integral.summation_method,
-            "translation_permutation_exact": True,
+            "translation_by_q_is_exact_index_permutation": True,
+            "translation_by_half_q_is_exact_index_permutation": (
+                grid.half_translation_permutation_exact
+            ),
+            "half_q_sublattice_offset": grid.half_translation_sublattice_offset,
+            "single_origin_half_q_alias_risk": (
+                not grid.half_translation_permutation_exact
+            ),
             "full_48_channel_integral_repeated": False,
         },
     )
@@ -128,6 +149,10 @@ def main() -> None:
     print(f"q = ({q[0]:.12g}, {q[1]:.12g}); |q| = {q_norm:.12g}")
     print(f"points = {integral.point_evaluations}; chunks = {integral.chunks}")
     print(f"wall time = {integral.wall_seconds:.3f} s")
+    print(
+        "q/2 translation permutation exact = "
+        f"{grid.half_translation_permutation_exact}"
+    )
     print("")
     print(f"current phase defect / |q| = {max(abs(result.left_phase_defect), abs(result.right_phase_defect)) / q_norm:.12e}")
     print(f"required multiplier        = {required.real:+.12e}{required.imag:+.12e}j")
@@ -138,6 +163,7 @@ def main() -> None:
     print("")
     print("Fail-closed status")
     print("------------------")
+    print(f"half_q_grid_compatible = {grid.half_translation_permutation_exact}")
     print("reduced_phase_column_only = True")
     print("diagnostic_only = True")
     print("projection_applied = False")
