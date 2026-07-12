@@ -1,18 +1,13 @@
 """Classify the small-q scaling of d-wave phase-Hessian candidates.
 
-Each input is an existing commensurate periodic Ward-audit JSON payload.  The
-expensive Brillouin-zone integral is not repeated here.  The family analysis keeps
-the momentum direction fixed and compares
+Each input is an existing full or reduced commensurate periodic phase-column JSON
+payload.  The analysis keeps the momentum direction fixed and compares the
+counterterm shift required by the collective phase-column identity with the
+nearest-neighbour scalar bond metric.
 
-* the counterterm shift required by the collective phase-column identity;
-* the nearest-neighbour bond metric shift; and
-* the residual difference between those two quantities.
-
-If the required and bond shifts scale as q^2 while their difference scales as
-q^4, the bond metric has the correct leading geometry and the remaining defect is
-a higher-order/bond-mode effect.  If the difference itself scales as q^2, the
-scalar bond metric misses the leading finite-q Hessian and a bond-resolved
-collective basis is required.  This module is diagnostic only.
+A classification is issued only when the required shift itself shows a stable
+quadratic small-q law.  This fail-closed rule prevents a formally acceptable global
+fit from hiding an unstable pairwise exponent at the largest q point.
 """
 
 from __future__ import annotations
@@ -37,9 +32,12 @@ class PhaseHessianScalingPoint:
     required_multiplier: complex
     left_right_required_mismatch: float
     required_shift_abs: float
+    required_shift_over_q2: float
     bond_metric_multiplier: float
     bond_shift_abs: float
+    bond_shift_over_q2: float
     bond_multiplier_error_abs: float
+    bond_multiplier_error_over_q2: float
     current_phase_defect_over_q: float
     bond_phase_defect_over_q: float
     phase_direct_phase_defect_over_q: float | None
@@ -57,6 +55,10 @@ class DWavePhaseHessianScalingAnalysis:
     bond_defect_over_q_exponent: float | None
     required_shift_pairwise_exponents: tuple[float, ...]
     bond_error_pairwise_exponents: tuple[float, ...]
+    smallest_two_required_q2_coefficient: float | None
+    smallest_two_required_q4_coefficient: float | None
+    smallest_two_bond_error_q2_coefficient: float | None
+    smallest_two_bond_error_q4_coefficient: float | None
     classification: str
     interpretation: str
     diagnostic_only: bool = True
@@ -91,6 +93,22 @@ def _pairwise_powers(q_values: Sequence[float], values: Sequence[float]) -> tupl
     return tuple(output)
 
 
+def _smallest_two_even_fit(
+    q_values: Sequence[float], values: Sequence[float]
+) -> tuple[float | None, float | None]:
+    if len(q_values) < 2:
+        return None, None
+    q = np.asarray(q_values[:2], dtype=float)
+    y = np.asarray(values[:2], dtype=float)
+    if not np.isfinite(q).all() or not np.isfinite(y).all() or np.any(q <= 0.0):
+        return None, None
+    matrix = np.column_stack((q**2, q**4))
+    if abs(float(np.linalg.det(matrix))) <= 1e-30:
+        return None, None
+    coefficients = np.linalg.solve(matrix, y)
+    return float(coefficients[0]), float(coefficients[1])
+
+
 def _point_from_analysis(
     analysis: DWavePhaseHessianAnalysis,
     *,
@@ -98,6 +116,7 @@ def _point_from_analysis(
 ) -> PhaseHessianScalingPoint:
     q = np.asarray(analysis.q_model, dtype=float)
     q_norm = float(analysis.q_norm)
+    q2 = q_norm * q_norm
     direction = q / q_norm
     left_required = complex(analysis.left.required_counterterm_multiplier)
     right_required = complex(analysis.right.required_counterterm_multiplier)
@@ -120,6 +139,9 @@ def _point_from_analysis(
     else:
         direct_over_q = max(abs(complex(value)) / q_norm for value in direct_values)
     bond = float(analysis.bond_metric_multiplier)
+    required_shift = float(abs(1.0 - required))
+    bond_shift = float(abs(1.0 - bond))
+    bond_error = float(abs(complex(bond) - required))
     return PhaseHessianScalingPoint(
         label=str(label),
         q_model=(float(q[0]), float(q[1])),
@@ -127,13 +149,26 @@ def _point_from_analysis(
         direction=(float(direction[0]), float(direction[1])),
         required_multiplier=required,
         left_right_required_mismatch=float(abs(left_required - right_required)),
-        required_shift_abs=float(abs(1.0 - required)),
+        required_shift_abs=required_shift,
+        required_shift_over_q2=required_shift / q2,
         bond_metric_multiplier=bond,
-        bond_shift_abs=float(abs(1.0 - bond)),
-        bond_multiplier_error_abs=float(abs(complex(bond) - required)),
+        bond_shift_abs=bond_shift,
+        bond_shift_over_q2=bond_shift / q2,
+        bond_multiplier_error_abs=bond_error,
+        bond_multiplier_error_over_q2=bond_error / q2,
         current_phase_defect_over_q=float(current_over_q),
         bond_phase_defect_over_q=float(bond_over_q),
         phase_direct_phase_defect_over_q=direct_over_q,
+    )
+
+
+def _finite_in_range(values: Sequence[float], low: float, high: float) -> bool:
+    array = np.asarray(values, dtype=float)
+    return bool(
+        array.size > 0
+        and np.isfinite(array).all()
+        and np.all(array >= low)
+        and np.all(array <= high)
     )
 
 
@@ -141,26 +176,37 @@ def _classify(
     required_exponent: float | None,
     bond_exponent: float | None,
     error_exponent: float | None,
+    required_pairwise: Sequence[float],
+    error_pairwise: Sequence[float],
 ) -> tuple[str, str]:
     if required_exponent is None or bond_exponent is None or error_exponent is None:
         return (
             "insufficient_scaling_data",
             "At least two nonzero points are required for each fitted quantity.",
         )
-    if not (1.5 <= required_exponent <= 2.5 and 1.5 <= bond_exponent <= 2.5):
+
+    required_clean = (
+        1.8 <= required_exponent <= 2.2
+        and _finite_in_range(required_pairwise, 1.6, 2.4)
+    )
+    bond_clean = 1.8 <= bond_exponent <= 2.2
+    if not required_clean or not bond_clean:
         return (
             "not_in_clean_small_q_regime",
-            "The required or geometric shift is not approximately quadratic in q; "
-            "the selected q range or finite-grid convergence must be reconsidered.",
+            "The required counterterm shift does not show a stable quadratic law "
+            "across both the global and adjacent-point fits.  Do not infer a finite-q "
+            "Hessian from this family; add a smaller-q commensurate point or improve "
+            "grid convergence.",
         )
-    if error_exponent >= 3.2:
+
+    if error_exponent >= 3.5 and _finite_in_range(error_pairwise, 3.0, 5.0):
         return (
             "bond_metric_matches_leading_q2_geometry",
-            "The bond metric captures the leading q^2 counterterm geometry.  The "
-            "remaining defect is higher order and should be resolved with an exact "
-            "bond-resolved Hessian rather than a fitted scalar multiplier.",
+            "The scalar bond metric captures the leading q^2 counterterm geometry.  "
+            "The remaining defect is higher order and should be resolved with an "
+            "exact bond-resolved Hessian rather than a fitted scalar multiplier.",
         )
-    if 1.5 <= error_exponent <= 2.5:
+    if 1.5 <= error_exponent <= 2.5 and _finite_in_range(error_pairwise, 1.3, 2.7):
         return (
             "bond_metric_misses_leading_q2_curvature",
             "The residual mismatch is itself quadratic in q.  A scalar finite-q "
@@ -169,8 +215,9 @@ def _classify(
         )
     return (
         "scaling_inconclusive",
-        "The residual exponent is neither clearly q^2 nor q^4.  Add a smaller-q "
-        "commensurate point or improve grid convergence before changing the kernel.",
+        "The required shift is quadratic, but the residual exponent is neither "
+        "stably q^2 nor stably q^4.  Add a smaller-q commensurate point before "
+        "changing the collective kernel.",
     )
 
 
@@ -191,19 +238,19 @@ def analyze_dwave_phase_hessian_family(
         raise ValueError("labels and payloads must have the same length")
 
     analyses = [analyze_dwave_phase_hessian_payload(payload) for payload in payloads]
+    paired = sorted(
+        zip(analyses, labels, strict=True),
+        key=lambda item: item[0].q_norm,
+    )
+    analyses = [item[0] for item in paired]
     points = [
         _point_from_analysis(analysis, label=str(label))
-        for analysis, label in zip(analyses, labels, strict=True)
+        for analysis, label in paired
     ]
-    points.sort(key=lambda item: item.q_norm)
 
     reference_direction = np.asarray(points[0].direction, dtype=float)
     reference_delta0 = float(analyses[0].delta0_eV)
-    for point, analysis in zip(
-        points,
-        sorted(analyses, key=lambda item: item.q_norm),
-        strict=True,
-    ):
+    for point, analysis in zip(points, analyses, strict=True):
         if not np.allclose(
             np.asarray(point.direction, dtype=float),
             reference_direction,
@@ -231,8 +278,16 @@ def analyze_dwave_phase_hessian_family(
     error_exponent = _fit_power(q_values, error_values)
     current_exponent = _fit_power(q_values, current_values)
     bond_defect_exponent = _fit_power(q_values, bond_defect_values)
+    required_pairwise = _pairwise_powers(q_values, required_values)
+    error_pairwise = _pairwise_powers(q_values, error_values)
+    required_q2, required_q4 = _smallest_two_even_fit(q_values, required_values)
+    error_q2, error_q4 = _smallest_two_even_fit(q_values, error_values)
     classification, interpretation = _classify(
-        required_exponent, bond_exponent, error_exponent
+        required_exponent,
+        bond_exponent,
+        error_exponent,
+        required_pairwise,
+        error_pairwise,
     )
 
     return DWavePhaseHessianScalingAnalysis(
@@ -244,8 +299,12 @@ def analyze_dwave_phase_hessian_family(
         bond_error_exponent=error_exponent,
         current_defect_over_q_exponent=current_exponent,
         bond_defect_over_q_exponent=bond_defect_exponent,
-        required_shift_pairwise_exponents=_pairwise_powers(q_values, required_values),
-        bond_error_pairwise_exponents=_pairwise_powers(q_values, error_values),
+        required_shift_pairwise_exponents=required_pairwise,
+        bond_error_pairwise_exponents=error_pairwise,
+        smallest_two_required_q2_coefficient=required_q2,
+        smallest_two_required_q4_coefficient=required_q4,
+        smallest_two_bond_error_q2_coefficient=error_q2,
+        smallest_two_bond_error_q4_coefficient=error_q4,
         classification=classification,
         interpretation=interpretation,
     )
