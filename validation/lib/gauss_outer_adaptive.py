@@ -1,35 +1,91 @@
 """Fixed Gauss-Legendre outer rule with adaptive vector inner integration.
 
-This is a bounded-cost alternative to fully nested ``quad_vec``.  The outer
-Brillouin-zone coordinate is integrated by a global Gauss-Legendre rule, while
-for every outer node the orthogonal coordinate is integrated by one shared
-vector-valued ``quad_vec`` rule.  All primitive response channels therefore
-share the same inner adaptive nodes and weights.
+This is the canonical d-wave Brillouin-zone quadrature used by the static
+validation path.  The outer coordinate is integrated by one deterministic global
+Gauss-Legendre rule.  At each outer node the orthogonal coordinate is integrated
+by one vector-valued ``quad_vec`` call, so every primitive response and Ward-RHS
+channel shares the same inner nodes and weights.
 
-The returned error estimate contains the weighted inner ``quad_vec`` errors
-only.  Outer discretization must be assessed independently by changing
-``outer_order`` and by comparing the ``xy`` and ``yx`` orientations.
+The returned error estimate contains weighted inner errors only.  Outer
+convergence must be assessed by increasing ``outer_order`` and by comparing the
+``xy`` and ``yx`` orientations.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import time
-from typing import Callable
+from typing import Callable, Literal
 
 import numpy as np
 from scipy.integrate import quad_vec
 
-from validation.lib.iterated_adaptive import (
-    EvaluationBudgetExceeded,
-    IntegrationOrder,
-    IteratedAdaptiveOptions,
-    IteratedAdaptiveResult,
-)
-
+IntegrationOrder = Literal["xy", "yx"]
 VectorIntegrand2D = Callable[[float, float], np.ndarray]
 
 
-def _interior_points(points: tuple[float, ...], lower: float, upper: float) -> list[float] | None:
+class EvaluationBudgetExceeded(RuntimeError):
+    """Raised when a Gauss-outer run exceeds its microscopic point budget."""
+
+    def __init__(self, maximum: int, attempted: int):
+        super().__init__(
+            "Gauss-outer adaptive integration exceeded max_point_evaluations: "
+            f"maximum={int(maximum)}, attempted={int(attempted)}"
+        )
+        self.maximum = int(maximum)
+        self.attempted = int(attempted)
+
+
+@dataclass(frozen=True)
+class GaussAdaptiveOptions:
+    """Numerical controls for the adaptive inner integral."""
+
+    epsabs: float = 2e-4
+    epsrel: float = 2e-2
+    inner_limit: int = 60
+    max_point_evaluations: int = 100_000
+    cache_size_bytes: int = 64_000_000
+    quadrature: Literal["gk15", "gk21", "trapezoid"] = "gk15"
+    norm: Literal["max", "2"] = "max"
+    split_points: tuple[float, ...] = (0.0,)
+
+    def __post_init__(self) -> None:
+        for name in ("epsabs", "epsrel"):
+            value = float(getattr(self, name))
+            if not np.isfinite(value) or value <= 0.0:
+                raise ValueError(f"{name} must be finite and positive")
+        for name in (
+            "inner_limit",
+            "max_point_evaluations",
+            "cache_size_bytes",
+        ):
+            if int(getattr(self, name)) <= 0:
+                raise ValueError(f"{name} must be positive")
+        points = np.asarray(self.split_points, dtype=float)
+        if points.ndim != 1 or not np.isfinite(points).all():
+            raise ValueError("split_points must be a finite one-dimensional sequence")
+
+
+@dataclass(frozen=True)
+class GaussAdaptiveResult:
+    """One fixed-outer orientation result and its audit diagnostics."""
+
+    value: np.ndarray
+    error_estimate: float
+    order: IntegrationOrder
+    success: bool
+    message: str
+    point_evaluations: int
+    outer_evaluations: int
+    inner_integrals: int
+    max_inner_error: float
+    sum_inner_error: float
+    wall_seconds: float
+
+
+def _interior_points(
+    points: tuple[float, ...], lower: float, upper: float
+) -> list[float] | None:
     selected = sorted({float(value) for value in points if lower < float(value) < upper})
     return selected or None
 
@@ -39,10 +95,10 @@ def gauss_outer_adaptive_integral(
     *,
     order: IntegrationOrder,
     outer_order: int,
-    options: IteratedAdaptiveOptions,
+    options: GaussAdaptiveOptions,
     x_bounds: tuple[float, float] = (-np.pi, np.pi),
     y_bounds: tuple[float, float] = (-np.pi, np.pi),
-) -> IteratedAdaptiveResult:
+) -> GaussAdaptiveResult:
     """Integrate a real vector function with fixed outer and adaptive inner rules."""
 
     if order not in {"xy", "yx"}:
@@ -92,17 +148,20 @@ def gauss_outer_adaptive_integral(
         else:
             value = np.asarray(integrand(float(inner_value), float(outer_value)), dtype=float)
         if value.ndim != 1 or not np.isfinite(value).all():
-            raise ValueError("adaptive integrand must return a finite one-dimensional real vector")
+            raise ValueError(
+                "Gauss-outer adaptive integrand must return a finite one-dimensional vector"
+            )
         if expected_shape is None:
             expected_shape = value.shape
         elif value.shape != expected_shape:
             raise ValueError(
-                "adaptive integrand changed vector shape: "
+                "Gauss-outer adaptive integrand changed vector shape: "
                 f"expected {expected_shape}, got {value.shape}"
             )
         return value
 
     for outer_value, outer_weight in zip(outer_nodes, outer_weights, strict=True):
+
         def inner_integrand(inner_value: float) -> np.ndarray:
             return microscopic_value(float(outer_value), float(inner_value))
 
@@ -138,7 +197,7 @@ def gauss_outer_adaptive_integral(
         0,
         "fixed Gauss-Legendre outer rule; reported error excludes outer discretization",
     )
-    return IteratedAdaptiveResult(
+    return GaussAdaptiveResult(
         value=np.asarray(total, dtype=float),
         error_estimate=float(weighted_inner_error),
         order=order,
@@ -153,4 +212,10 @@ def gauss_outer_adaptive_integral(
     )
 
 
-__all__ = ["gauss_outer_adaptive_integral"]
+__all__ = [
+    "EvaluationBudgetExceeded",
+    "GaussAdaptiveOptions",
+    "GaussAdaptiveResult",
+    "IntegrationOrder",
+    "gauss_outer_adaptive_integral",
+]
