@@ -30,6 +30,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("static", "dwave-shift-reference"): "validation.commands.static.dwave_shift_reference",
     ("matsubara", "positive-point"): "validation.commands.matsubara.positive_point",
     ("matsubara", "dwave-small-xi"): "validation.commands.matsubara.dwave_small_xi",
+    ("matsubara", "bond-metric-positive"): (
+        "validation.commands.matsubara.bond_metric_positive"
+    ),
 }
 
 
