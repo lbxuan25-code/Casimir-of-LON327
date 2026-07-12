@@ -26,6 +26,7 @@ def test_validation_cli_exposes_grouped_commands():
         ("static", "dwave-shift-reference"),
         ("matsubara", "positive-point"),
         ("matsubara", "dwave-small-xi"),
+        ("matsubara", "bond-metric-positive"),
     }
     assert set(available_commands()) == expected
 
