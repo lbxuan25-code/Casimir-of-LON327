@@ -55,6 +55,7 @@ jobs:
             tests/test_finite_q_validation_model_adapter.py \
             tests/test_repository_layout_contract.py \
             tests/test_static_nk_scan_diagnostics.py \
+            tests/test_validation_cli.py \
             > pytest-output.txt 2>&1
           status=$?
           cat pytest-output.txt
@@ -69,6 +70,9 @@ jobs:
           cat full-pytest-output.txt
           exit $status
 
+      - name: Smoke test validation CLI routing
+        run: python -m validation --help
+
       - name: Smoke test timed static scan CLI
         env:
           OMP_NUM_THREADS: "1"
@@ -76,7 +80,7 @@ jobs:
           MKL_NUM_THREADS: "1"
           NUMEXPR_NUM_THREADS: "1"
         run: >-
-          python -m validation.run_static_nk_scan
+          python -m validation static nk-scan
           --nks 2 3
           --workers 2
           --output /tmp/static-nk-smoke.csv
