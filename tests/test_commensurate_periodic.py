@@ -70,7 +70,7 @@ def test_commensurate_grid_fails_closed_on_budget_and_invalid_q():
         CommensuratePeriodicGrid(nk=8, mx=5, my=0, max_points=64)
 
 
-def test_commensurate_periodic_audit_runner_imports():
-    import validation.run_dwave_static_commensurate_periodic_audit as runner
+def test_commensurate_periodic_audit_command_imports():
+    import validation.commands.ward.commensurate as command
 
-    assert callable(runner.main)
+    assert callable(command.main)
