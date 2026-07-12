@@ -4,13 +4,13 @@ from types import SimpleNamespace
 
 import numpy as np
 
+from validation.commands.matsubara.dwave_small_xi import _fit_channel
 from validation.lib.dwave_global_extrapolation import (
     local_lt_kernel_proxies,
     small_xi_fits,
     static_power_law_fits,
     summarize_fit_ensemble,
 )
-from validation.run_dwave_small_xi_extrapolation_scan import _fit_channel
 
 
 def test_static_power_law_extrapolation_recovers_known_limit():
