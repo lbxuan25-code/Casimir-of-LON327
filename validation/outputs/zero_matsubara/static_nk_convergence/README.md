@@ -31,8 +31,7 @@ K_SS  = K_bubble + K_direct
 K_eff = K_SS - K_collective_correction
 ```
 
-扫描入口会按实际 inverse policy 独立重算
-`K_collective_correction = K_Seta @ inv(K_etaeta) @ K_etaS`，并对两条重构关系执行 fail-closed 检查。
+扫描入口会按实际 inverse policy 独立重算 `K_collective_correction = K_Seta @ inv(K_etaeta) @ K_etaS`，并对两条重构关系执行 fail-closed 检查。
 
 collective channel 采用固定顺序：
 
@@ -49,17 +48,23 @@ term_ab = K_Leta[a] * inv(K_etaeta)[a,b] * K_etaL[b] / E0
 
 四项之和必须复现 scaled local `K_LL` collective correction；不一致时扫描直接失败。
 
+## Commands
+
+```bash
+python -m validation static nk-scan --help
+python -m validation static quadrature-compare --help
+```
+
 ## Equal-cost quadrature comparison
 
-`validation.run_static_quadrature_compare` 比较相同总采样点数下的两种规则：
+`python -m validation static quadrature-compare` 比较相同总采样点数下的两种规则：
 
 ```text
 midpoint:      cell_nk = 2 * base_nk, 1 shift,  N = 4 * base_nk^2
 gauss2_shift4: cell_nk = base_nk,     4 shifts, N = 4 * base_nk^2
 ```
 
-`gauss2_shift4` 使用每个均匀基元胞内的二维二点 Gauss-Legendre 节点，即四个对称周期偏移
-`1/2 +/- 1/(2*sqrt(3))` 的笛卡尔积。它不是 `2*base_nk` midpoint 网格的重排。
+`gauss2_shift4` 使用每个均匀基元胞内的二维二点 Gauss-Legendre 节点，即四个对称周期偏移 `1/2 +/- 1/(2*sqrt(3))` 的笛卡尔积。它不是 `2*base_nk` midpoint 网格的重排。
 
 四个偏移网格的点和归一化权重会先合并，再构造一次 material/q workspace。由此 bubble、direct/contact、EM-collective mixed blocks、collective bubble 和 Goldstone counterterm 都先完成同一个 quadrature 积分，最后只执行一次 Schur complement。禁止分别计算四个 effective kernel 后再平均。
 
