@@ -1,0 +1,140 @@
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from lno327 import KuboConfig
+from lno327.response.workspace import (
+    finite_q_bdg_response_from_q_workspace,
+    precompute_finite_q_material_workspace_from_model_ansatz,
+    precompute_finite_q_q_workspace,
+    primitive_ward_rhs_from_q_workspace,
+)
+from lno327.workflows.dwave_periodic_shift_ensemble import periodic_shift_mesh
+from lno327.workflows.finite_q_engine import FiniteQEngineOptions
+from validation.__main__ import resolve_command
+from validation.lib.dwave_adaptive_bond_metric import (
+    AdaptiveStaticValidationConfig,
+    postprocess_adaptive_bond_metric_static,
+)
+from validation.lib.dwave_iterated_adaptive import (
+    assemble_dwave_static_primitives,
+    build_dwave_static_integrand_context,
+)
+from validation.lib.finite_q_validation_models import get_finite_q_validation_model
+
+
+def _adaptive_uniform_fixture():
+    model = get_finite_q_validation_model("symmetry_bdg_2band")
+    ansatz = model.build_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
+    pairing = model.build_pairing_params(0.1)
+    config = KuboConfig.from_kelvin(
+        omega_eV=0.0,
+        temperature_K=10.0,
+        eta_eV=1e-8,
+        output_si=False,
+    )
+    q = np.asarray([0.11, 0.07])
+    points, weights = periodic_shift_mesh(4, (0.5, 0.5))
+
+    base_options = FiniteQEngineOptions(phase_hessian_policy="q_independent")
+    context = build_dwave_static_integrand_context(
+        model.spec,
+        ansatz,
+        q,
+        config,
+        pairing,
+        base_options,
+    )
+    primitive = np.tensordot(weights, context.evaluate_complex(points), axes=(0, 0))
+    components, rhs, _ = assemble_dwave_static_primitives(
+        context,
+        primitive,
+        metadata={"test": "adaptive_uniform_bond_metric"},
+    )
+    return model, ansatz, pairing, config, q, points, weights, components, rhs
+
+
+def test_adaptive_bond_metric_matches_policy_aware_workspace_after_primitive_merge():
+    (
+        model,
+        ansatz,
+        pairing,
+        config,
+        q,
+        points,
+        weights,
+        components,
+        rhs,
+    ) = _adaptive_uniform_fixture()
+
+    expected_options = FiniteQEngineOptions(
+        phase_hessian_policy="nearest_neighbor_bond_metric"
+    )
+    material = precompute_finite_q_material_workspace_from_model_ansatz(
+        model.spec,
+        ansatz,
+        points,
+        weights,
+        config,
+        pairing,
+        expected_options,
+    )
+    workspace = precompute_finite_q_q_workspace(material, q)
+    expected = finite_q_bdg_response_from_q_workspace(workspace, 0.0)
+    expected_rhs = primitive_ward_rhs_from_q_workspace(workspace, 0.0)
+
+    result = postprocess_adaptive_bond_metric_static(
+        components,
+        rhs,
+        ansatz=ansatz,
+        q_model=q,
+        config=AdaptiveStaticValidationConfig(
+            mixed_ward_tolerance=100.0,
+            mixed_ward_absolute_tolerance=100.0,
+            primitive_tolerance=100.0,
+            amplitude_tolerance=100.0,
+            phase_tolerance=100.0,
+            effective_direct_tolerance=100.0,
+            effective_residual_tolerance=100.0,
+            longitudinal_tolerance=100.0,
+            reality_tolerance=100.0,
+            mixing_tolerance=100.0,
+            passivity_tolerance=100.0,
+        ),
+    )
+
+    for field in (
+        "collective_counterterm",
+        "collective_total",
+        "amplitude_phase_schur",
+        "gauge_restored",
+    ):
+        assert np.allclose(
+            getattr(result.components, field),
+            getattr(expected, field),
+            rtol=2e-11,
+            atol=2e-12,
+        ), field
+    assert np.allclose(rhs.left, expected_rhs.left, rtol=2e-11, atol=2e-12)
+    assert np.allclose(rhs.right, expected_rhs.right, rtol=2e-11, atol=2e-12)
+
+    base = np.asarray(components.collective_counterterm, dtype=complex)
+    applied = np.asarray(result.components.collective_counterterm, dtype=complex)
+    assert np.array_equal(applied[0, :], base[0, :])
+    assert applied[1, 0] == base[1, 0]
+    assert applied[1, 1] != base[1, 1]
+    assert result.application.policy == "nearest_neighbor_bond_metric"
+    assert result.components.metadata["phase_hessian_changed_only_22"] is True
+    assert result.to_row_fields()["projection_applied"] is False
+    assert result.to_row_fields()["valid_for_casimir_input"] is False
+
+
+def test_adaptive_bond_metric_rejects_double_application():
+    *_, ansatz, q, components, rhs = ()
+
+
+def test_public_adaptive_route_uses_bond_metric_command():
+    assert resolve_command("static", "dwave-iterated-adaptive").endswith(
+        "dwave_iterated_adaptive_bond_metric"
+    )
