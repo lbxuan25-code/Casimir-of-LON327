@@ -8,7 +8,7 @@ from validation.lib.commensurate_periodic import (
     CommensuratePeriodicGrid,
     integrate_commensurate_periodic_vector,
 )
-from validation.lib.dwave_iterated_adaptive import (
+from validation.lib.dwave_static_primitives import (
     assemble_dwave_static_primitives,
     build_dwave_static_integrand_context,
 )
