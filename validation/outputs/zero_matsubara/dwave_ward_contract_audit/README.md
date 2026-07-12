@@ -134,6 +134,57 @@ the saved quadrature. These alternatives remain diagnostics: the postprocessor
 does not rewrite `K_etaeta`, apply a longitudinal projection, or establish a
 production counterterm policy.
 
+## Fixed-direction q-scaling discriminator
+
+One commensurate point cannot determine whether the bond metric has the correct
+quadratic small-q term. Reuse `(m_x,m_y)=(3,2)` and change `N`, so every q vector
+has exactly the same direction. The two additional runs below contain fewer total
+points than the original `N=628` run:
+
+```bash
+for NK in 471 314; do
+  env \
+    PYTHONUNBUFFERED=1 \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1 \
+    python -m validation.run_dwave_static_commensurate_periodic_audit \
+      --nk "$NK" \
+      --mx 3 \
+      --my 2 \
+      --shift-x 0.5 \
+      --shift-y 0.5 \
+      --chunk-size 1024 \
+      --max-points 500000 \
+      --temperature-K 10 \
+      --delta0-eV 0.1 \
+      --eta-eV 1e-8 \
+      --output "$OUT/dwave_commensurate_n${NK}_m3_2_T10.csv"
+done
+```
+
+Fit the saved family without any further integration:
+
+```bash
+python -m validation.analyze_dwave_commensurate_phase_hessian_family \
+  "$OUT/dwave_commensurate_n628_m3_2_T10.json" \
+  "$OUT/dwave_commensurate_n471_m3_2_T10.json" \
+  "$OUT/dwave_commensurate_n314_m3_2_T10.json" \
+  --output "$OUT/dwave_commensurate_m3_2_T10.phase_hessian_scaling.json"
+```
+
+The decisive fitted exponent is the power `p` in
+`|bond_metric - required_multiplier| ~ |q|^p`:
+
+- `p` near 4, while both counterterm shifts scale as `q^2`, means the bond metric
+  captures the leading geometry and the remainder is a higher-order or omitted
+  bond-mode effect;
+- `p` near 2 means the scalar bond metric misses the leading Hessian curvature and
+  the next audit must retain independent x/y bond collective channels;
+- failure of the required shift itself to scale approximately as `q^2` means the
+  selected q range or finite-grid convergence is not yet a clean small-q test.
+
 The CSV files contain scalar convergence diagnostics. The JSON files contain the
 full complex vectors and component-level decompositions. Generated raw outputs
 remain diagnostic artifacts and are not production references or valid Casimir
