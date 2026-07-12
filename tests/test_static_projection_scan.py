@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from validation.run_static_projection_scan import _run_task
+from validation.commands.static.projection_scan import _run_task
 
 
 def test_focused_static_projection_scan_reports_raw_and_projected_contracts():
