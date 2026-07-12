@@ -14,9 +14,11 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("ward", "phase-hessian-family"): "validation.commands.ward.phase_hessian_family",
     ("ward", "average-subgrids"): "validation.commands.ward.average_subgrids",
     ("ward", "bond-metric-full-kernel"): (
-        "validation.commands.ward.bond_metric_full_kernel"
+        "validation.commands.ward.bond_metric_full_kernel_fast"
     ),
-    ("ward", "bond-metric-family"): "validation.commands.ward.bond_metric_family",
+    ("ward", "bond-metric-family"): (
+        "validation.commands.ward.bond_metric_family_fast"
+    ),
     ("static", "nk-scan"): "validation.commands.static.nk_scan",
     ("static", "bond-metric-nk-convergence"): (
         "validation.commands.static.bond_metric_nk_convergence"
