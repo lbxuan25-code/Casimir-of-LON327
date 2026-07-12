@@ -111,6 +111,29 @@ by `|q|`:
 - a stable `1e-4`--`1e-3` value requires a phase-Hessian/counterterm convention
   audit.
 
+## Phase-Hessian post-analysis without reintegration
+
+After the commensurate run, analyze the existing JSON directly:
+
+```bash
+python -m validation.analyze_dwave_commensurate_phase_hessian \
+  --input "$OUT/dwave_commensurate_n628_m3_2_T10.json" \
+  --output "$OUT/dwave_commensurate_n628_m3_2_T10.phase_hessian.json"
+```
+
+The postprocessor compares the observed phase-column defect with:
+
+1. the current q-independent Goldstone counterterm;
+2. the nearest-neighbour bond metric
+   `(cos(qx/2)^2 + cos(qy/2)^2) / 2`;
+3. the effective curvature inferred from the already-integrated phase-angle direct
+   term.
+
+It also reports the exact scalar multiplier that would cancel the phase column on
+the saved quadrature. These alternatives remain diagnostics: the postprocessor
+does not rewrite `K_etaeta`, apply a longitudinal projection, or establish a
+production counterterm policy.
+
 The CSV files contain scalar convergence diagnostics. The JSON files contain the
 full complex vectors and component-level decompositions. Generated raw outputs
 remain diagnostic artifacts and are not production references or valid Casimir
