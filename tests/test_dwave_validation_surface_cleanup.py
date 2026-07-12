@@ -21,16 +21,17 @@ def test_retired_dwave_n0_runners_stay_absent():
     assert not [path for path in retired if (ROOT / path).exists()]
 
 
-def test_active_dwave_n0_runners_are_present():
+def test_active_dwave_n0_commands_are_grouped():
     active = (
-        "validation/run_dwave_static_shift_batch_scan.py",
-        "validation/run_dwave_static_shift_ensemble_reference_scan.py",
-        "validation/run_dwave_static_shift_budget_scan.py",
-        "validation/run_dwave_small_xi_extrapolation_scan.py",
-        "validation/run_dwave_static_iterated_adaptive_scan.py",
-        "validation/run_dwave_static_gauss_outer_adaptive_scan.py",
-        "validation/run_dwave_static_ward_contract_audit.py",
-        "validation/run_dwave_static_commensurate_periodic_audit.py",
+        "validation/commands/static/dwave_shift_batch.py",
+        "validation/commands/static/dwave_shift_reference.py",
+        "validation/commands/static/dwave_shift_budget.py",
+        "validation/commands/matsubara/dwave_small_xi.py",
+        "validation/commands/static/dwave_iterated_adaptive.py",
+        "validation/commands/static/dwave_gauss_outer.py",
+        "validation/commands/ward/contract_audit.py",
+        "validation/commands/ward/commensurate.py",
+        "validation/commands/ward/phase_column.py",
     )
     missing = [path for path in active if not (ROOT / path).is_file()]
     assert not missing
