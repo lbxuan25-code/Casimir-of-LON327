@@ -37,18 +37,18 @@ def main() -> None:
     print(f"delta0_eV = {analysis.delta0_eV:.12g}")
     print("")
     print(
-        "q_norm          required_shift   bond_shift       |bond-required| "
-        "current_defect/q bond_defect/q"
+        "q_norm          required_shift   required/q^2     bond_shift       "
+        "bond_error      bond_error/q^2"
     )
-    print("-" * 104)
+    print("-" * 116)
     for point in analysis.points:
         print(
             f"{point.q_norm: .12e} "
             f"{point.required_shift_abs: .12e} "
+            f"{point.required_shift_over_q2: .12e} "
             f"{point.bond_shift_abs: .12e} "
             f"{point.bond_multiplier_error_abs: .12e} "
-            f"{point.current_phase_defect_over_q: .12e} "
-            f"{point.bond_phase_defect_over_q: .12e}"
+            f"{point.bond_multiplier_error_over_q2: .12e}"
         )
         print(f"  {point.label}")
 
@@ -76,6 +76,26 @@ def main() -> None:
     print(
         "bond-error pairwise p        = "
         + ", ".join(f"{value:.8f}" for value in analysis.bond_error_pairwise_exponents)
+    )
+
+    print("")
+    print("Smallest-two-point even-power fit y = a2 q^2 + a4 q^4")
+    print("------------------------------------------------------")
+    print(
+        "required shift a2 = "
+        f"{_format_optional(analysis.smallest_two_required_q2_coefficient)}"
+    )
+    print(
+        "required shift a4 = "
+        f"{_format_optional(analysis.smallest_two_required_q4_coefficient)}"
+    )
+    print(
+        "bond error a2     = "
+        f"{_format_optional(analysis.smallest_two_bond_error_q2_coefficient)}"
+    )
+    print(
+        "bond error a4     = "
+        f"{_format_optional(analysis.smallest_two_bond_error_q4_coefficient)}"
     )
 
     print("")
