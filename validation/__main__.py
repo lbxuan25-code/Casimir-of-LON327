@@ -8,10 +8,6 @@ from collections.abc import Sequence
 
 _COMMANDS: dict[tuple[str, str], str] = {
     ("ward", "commensurate"): "validation.commands.ward.commensurate",
-    ("ward", "phase-column"): "validation.commands.ward.phase_column",
-    ("ward", "phase-hessian"): "validation.commands.ward.phase_hessian",
-    ("ward", "phase-hessian-family"): "validation.commands.ward.phase_hessian_family",
-    ("ward", "average-subgrids"): "validation.commands.ward.average_subgrids",
     ("ward", "bond-metric-full-kernel"): (
         "validation.commands.ward.bond_metric_full_kernel"
     ),
