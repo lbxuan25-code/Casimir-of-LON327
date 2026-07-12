@@ -180,7 +180,7 @@ def test_static_ward_contract_audit_requires_separate_rhs_pieces():
         audit_static_ward_contract(kernel, rhs)
 
 
-def test_dwave_static_ward_contract_audit_runner_imports():
-    import validation.run_dwave_static_ward_contract_audit as runner
+def test_dwave_static_ward_contract_audit_command_imports():
+    import validation.commands.ward.contract_audit as command
 
-    assert callable(runner.main)
+    assert callable(command.main)
