@@ -45,11 +45,11 @@ def test_phase_hessian_postprocessor_infers_required_and_direct_multipliers():
 
     analysis = analyze_dwave_phase_hessian_payload(payload)
 
-    assert analysis.q_norm == np.hypot(0.03, 0.02)
-    assert analysis.counterterm_curvature == 2.5
-    assert analysis.phase_direct_counterterm_multiplier == required
-    assert analysis.left.required_counterterm_multiplier == required
-    assert analysis.right.required_counterterm_multiplier == required
+    assert np.isclose(analysis.q_norm, np.hypot(0.03, 0.02))
+    assert np.isclose(analysis.counterterm_curvature, 2.5)
+    assert np.isclose(analysis.phase_direct_counterterm_multiplier, required)
+    assert np.isclose(analysis.left.required_counterterm_multiplier, required)
+    assert np.isclose(analysis.right.required_counterterm_multiplier, required)
     assert abs(analysis.left.phase_direct_phase_defect) < 1e-15
     assert abs(analysis.right.phase_direct_phase_defect) < 1e-15
     assert analysis.diagnostic_only
