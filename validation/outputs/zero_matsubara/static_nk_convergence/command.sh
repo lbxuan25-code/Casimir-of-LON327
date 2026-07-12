@@ -15,7 +15,7 @@ set -o pipefail
   MKL_NUM_THREADS=1 \
   NUMEXPR_NUM_THREADS=1 \
   VECLIB_MAXIMUM_THREADS=1 \
-  python -m validation.run_static_nk_scan \
+  python -m validation static nk-scan \
     --nks 8 12 16 24 \
     --workers 1 \
     --pairing spm \
