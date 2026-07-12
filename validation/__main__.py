@@ -23,6 +23,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("static", "bond-metric-nk-convergence"): (
         "validation.commands.static.bond_metric_nk_convergence"
     ),
+    ("static", "bond-metric-shift-convergence"): (
+        "validation.commands.static.bond_metric_shift_convergence"
+    ),
     ("static", "projection-scan"): "validation.commands.static.projection_scan",
     ("static", "quadrature-compare"): "validation.commands.static.quadrature_compare",
     ("static", "dwave-gauss-outer"): "validation.commands.static.dwave_gauss_outer",
