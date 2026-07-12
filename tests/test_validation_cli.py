@@ -20,6 +20,7 @@ def test_validation_cli_exposes_grouped_commands():
         ("static", "bond-metric-shift-convergence"),
         ("static", "projection-scan"),
         ("static", "quadrature-compare"),
+        ("static", "dwave-adaptive-convergence"),
         ("static", "dwave-gauss-outer"),
         ("static", "dwave-iterated-adaptive"),
         ("static", "dwave-shift-batch"),
