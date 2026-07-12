@@ -1,14 +1,9 @@
 """Fast chunk evaluator for the exact-static d-wave primitive contract.
 
-This module preserves the 48-component primitive definition from
-``validation.lib.dwave_iterated_adaptive`` while removing repeated small-matrix
-setup inside the point loop.  It batches the three BdG diagonalization passes for
-one chunk, constructs the midpoint thermal density matrix once per point, and
-uses fixed matrix contractions instead of repeatedly asking ``einsum`` to plan a
-path.
-
-The evaluator is validation-only.  It does not change the quadrature, counterterm,
-Schur complement, Ward convention, or fail-closed status.
+The 48-component primitive definition is unchanged.  This evaluator batches the
+three BdG diagonalization passes for each chunk, reuses one midpoint thermal
+density matrix per point, and replaces repeated dynamic ``einsum`` planning with
+fixed matrix contractions.
 """
 
 from __future__ import annotations
@@ -46,8 +41,6 @@ def _batched_eigensystems(
     pairing_params: object,
     points: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Build and diagonalize all BdG Hamiltonians in one NumPy batch."""
-
     matrices = np.stack(
         [
             bdg_hamiltonian_from_model_pairing(
@@ -65,8 +58,6 @@ def _batched_eigensystems(
 
 
 def _thermal_density(states: np.ndarray, occupations: np.ndarray) -> np.ndarray:
-    """Return ``0.5 U f(E) U^dagger`` in the original BdG basis."""
-
     vectors = np.asarray(states, dtype=complex)
     weights = np.asarray(occupations, dtype=float)
     return 0.5 * (vectors * weights[np.newaxis, :]) @ vectors.conjugate().T
@@ -76,11 +67,12 @@ def _thermal_expectation_from_density(
     thermal_density: np.ndarray,
     vertex: np.ndarray,
 ) -> complex:
-    """Evaluate ``Tr(rho_T V)`` without another band-basis transformation."""
-
-    density = np.asarray(thermal_density, dtype=complex)
-    operator = np.asarray(vertex, dtype=complex)
-    return complex(np.sum(density * operator.T))
+    return complex(
+        np.sum(
+            np.asarray(thermal_density, dtype=complex)
+            * np.asarray(vertex, dtype=complex).T
+        )
+    )
 
 
 def _band_transform_stack(
@@ -88,12 +80,20 @@ def _band_transform_stack(
     vertices: np.ndarray,
     states_plus: np.ndarray,
 ) -> np.ndarray:
-    """Transform a stack of vertices with two broadcasted matrix products."""
+    """Match ``vertex_band`` minus-plus storage for a stack of vertices.
 
-    left = np.asarray(states_minus, dtype=complex).conjugate().T[np.newaxis, :, :]
+    ``vertex_band`` stores ``(U_plus^dagger V U_minus).T`` so loop indices remain
+    ordered by minus-band then plus-band energies.  Preserving this transpose is
+    essential for imaginary amplitude/phase cross channels.
+    """
+
+    plus_left = np.asarray(states_plus, dtype=complex).conjugate().T[
+        np.newaxis, :, :
+    ]
     middle = np.asarray(vertices, dtype=complex)
-    right = np.asarray(states_plus, dtype=complex)[np.newaxis, :, :]
-    return np.asarray((left @ middle) @ right, dtype=complex)
+    minus_right = np.asarray(states_minus, dtype=complex)[np.newaxis, :, :]
+    forward = (plus_left @ middle) @ minus_right
+    return np.asarray(np.swapaxes(forward, -1, -2), dtype=complex)
 
 
 def _unified_contraction(
@@ -101,8 +101,6 @@ def _unified_contraction(
     left_band: np.ndarray,
     right_band: np.ndarray,
 ) -> np.ndarray:
-    """Contract the unified 5-channel bubble with a fixed GEMM layout."""
-
     left = np.asarray(left_band, dtype=complex).reshape(left_band.shape[0], -1)
     right = np.asarray(right_band, dtype=complex).reshape(right_band.shape[0], -1)
     weighted_left = left * np.asarray(factor, dtype=complex).reshape(1, -1)
@@ -113,8 +111,6 @@ def _ward_equal_contraction(
     occupation_difference: np.ndarray,
     source_band: np.ndarray,
 ) -> np.ndarray:
-    """Contract the equal-time Ward term without dynamic einsum planning."""
-
     source = np.asarray(source_band, dtype=complex)
     weighted_density = (
         np.asarray(occupation_difference, dtype=float) * source[0]
@@ -136,36 +132,25 @@ class FastDWaveStaticIntegrandContext(DWaveStaticIntegrandContext):
             raise ValueError("k_points must have shape (n, 2) with finite values")
 
         qx, qy = float(self.q_model[0]), float(self.q_model[1])
+        q_half = 0.5 * np.asarray([qx, qy], dtype=float)
         spec, ansatz = self.spec, self.ansatz
         amp, opts = self.pairing_params, self.options
 
-        midpoint_points = points
-        minus_points = points - 0.5 * np.asarray([qx, qy], dtype=float)
-        plus_points = points + 0.5 * np.asarray([qx, qy], dtype=float)
-
-        energies_mid, states_mid = _batched_eigensystems(
-            spec, ansatz, amp, midpoint_points
-        )
+        energies_mid, states_mid = _batched_eigensystems(spec, ansatz, amp, points)
         energies_minus, states_minus = _batched_eigensystems(
-            spec, ansatz, amp, minus_points
+            spec, ansatz, amp, points - q_half
         )
         energies_plus, states_plus = _batched_eigensystems(
-            spec, ansatz, amp, plus_points
+            spec, ansatz, amp, points + q_half
         )
         occupations_mid = fermi_function(
-            energies_mid,
-            self.config.fermi_level_eV,
-            self.config.temperature_eV,
+            energies_mid, self.config.fermi_level_eV, self.config.temperature_eV
         )
         occupations_minus = fermi_function(
-            energies_minus,
-            self.config.fermi_level_eV,
-            self.config.temperature_eV,
+            energies_minus, self.config.fermi_level_eV, self.config.temperature_eV
         )
         occupations_plus = fermi_function(
-            energies_plus,
-            self.config.fermi_level_eV,
-            self.config.temperature_eV,
+            energies_plus, self.config.fermi_level_eV, self.config.temperature_eV
         )
 
         result = np.zeros((points.shape[0], _COMPLEX_WIDTH), dtype=complex)
@@ -231,8 +216,7 @@ class FastDWaveStaticIntegrandContext(DWaveStaticIntegrandContext):
 
             delta_theta = ansatz.phase_pairing_matrix(kx, ky, qx, qy, amp)
             phase_direct_plus = _thermal_expectation_from_density(
-                thermal_density,
-                phase_phase_direct_vertex(delta_theta),
+                thermal_density, phase_phase_direct_vertex(delta_theta)
             )
 
             collective_zero = tuple(
@@ -317,15 +301,8 @@ def build_dwave_static_integrand_context(
     pairing_params: object | None = None,
     options: object | None = None,
 ) -> FastDWaveStaticIntegrandContext:
-    """Build the optimized drop-in context after reference validation checks."""
-
     reference = _build_reference_context(
-        spec,
-        ansatz,
-        q_model,
-        config,
-        pairing_params,
-        options,
+        spec, ansatz, q_model, config, pairing_params, options
     )
     return FastDWaveStaticIntegrandContext(
         spec=reference.spec,
