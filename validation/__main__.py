@@ -20,24 +20,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
         "validation.commands.ward.bond_metric_family_fast"
     ),
     ("static", "nk-scan"): "validation.commands.static.nk_scan",
-    ("static", "bond-metric-nk-convergence"): (
-        "validation.commands.static.bond_metric_nk_convergence"
-    ),
-    ("static", "bond-metric-shift-convergence"): (
-        "validation.commands.static.bond_metric_shift_convergence"
-    ),
+    ("static", "dwave"): "validation.commands.static.dwave_gauss_outer",
     ("static", "projection-scan"): "validation.commands.static.projection_scan",
     ("static", "quadrature-compare"): "validation.commands.static.quadrature_compare",
-    ("static", "dwave-adaptive-convergence"): (
-        "validation.commands.static.dwave_adaptive_convergence"
-    ),
-    ("static", "dwave-gauss-outer"): "validation.commands.static.dwave_gauss_outer",
-    ("static", "dwave-iterated-adaptive"): (
-        "validation.commands.static.dwave_iterated_adaptive_bond_metric"
-    ),
-    ("static", "dwave-shift-batch"): "validation.commands.static.dwave_shift_batch",
-    ("static", "dwave-shift-budget"): "validation.commands.static.dwave_shift_budget",
-    ("static", "dwave-shift-reference"): "validation.commands.static.dwave_shift_reference",
     ("matsubara", "positive-point"): "validation.commands.matsubara.positive_point",
     ("matsubara", "dwave-small-xi"): "validation.commands.matsubara.dwave_small_xi",
     ("matsubara", "bond-metric-positive"): (
