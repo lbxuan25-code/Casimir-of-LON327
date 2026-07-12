@@ -5,7 +5,7 @@ import importlib
 from validation.__main__ import available_commands, resolve_command
 
 
-def test_validation_cli_exposes_grouped_ward_commands():
+def test_validation_cli_exposes_grouped_commands():
     expected = {
         ("ward", "contract-audit"),
         ("ward", "commensurate"),
@@ -13,6 +13,16 @@ def test_validation_cli_exposes_grouped_ward_commands():
         ("ward", "phase-hessian"),
         ("ward", "phase-hessian-family"),
         ("ward", "average-subgrids"),
+        ("static", "nk-scan"),
+        ("static", "projection-scan"),
+        ("static", "quadrature-compare"),
+        ("static", "dwave-gauss-outer"),
+        ("static", "dwave-iterated-adaptive"),
+        ("static", "dwave-shift-batch"),
+        ("static", "dwave-shift-budget"),
+        ("static", "dwave-shift-reference"),
+        ("matsubara", "positive-point"),
+        ("matsubara", "dwave-small-xi"),
     }
     assert set(available_commands()) == expected
 

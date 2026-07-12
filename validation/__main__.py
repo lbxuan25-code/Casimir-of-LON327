@@ -13,6 +13,16 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("ward", "phase-hessian"): "validation.commands.ward.phase_hessian",
     ("ward", "phase-hessian-family"): "validation.commands.ward.phase_hessian_family",
     ("ward", "average-subgrids"): "validation.commands.ward.average_subgrids",
+    ("static", "nk-scan"): "validation.commands.static.nk_scan",
+    ("static", "projection-scan"): "validation.commands.static.projection_scan",
+    ("static", "quadrature-compare"): "validation.commands.static.quadrature_compare",
+    ("static", "dwave-gauss-outer"): "validation.commands.static.dwave_gauss_outer",
+    ("static", "dwave-iterated-adaptive"): "validation.commands.static.dwave_iterated_adaptive",
+    ("static", "dwave-shift-batch"): "validation.commands.static.dwave_shift_batch",
+    ("static", "dwave-shift-budget"): "validation.commands.static.dwave_shift_budget",
+    ("static", "dwave-shift-reference"): "validation.commands.static.dwave_shift_reference",
+    ("matsubara", "positive-point"): "validation.commands.matsubara.positive_point",
+    ("matsubara", "dwave-small-xi"): "validation.commands.matsubara.dwave_small_xi",
 }
 
 
