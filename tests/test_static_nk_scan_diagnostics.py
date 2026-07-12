@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from validation.run_static_nk_scan import (
+from validation.commands.static.nk_scan import (
     _collective_channel_diagnostics,
     _kll_decomposition_diagnostics,
     _longitudinal_component_diagnostics,
