@@ -6,9 +6,15 @@ For a grid with ``nk`` points per reciprocal direction and integer shift vector
     q = (2 pi / nk) * m.
 
 Translation by q therefore permutes the complete tensor lattice exactly at the
-index level.  The implementation streams lexicographic point chunks and applies
-one compensated complex-vector sum, so large diagnostic grids do not require a
-full finite-q workspace in memory.
+index level.  Finite-q BdG bubbles also use the endpoint momenta ``k +/- q/2``.
+Those half translations stay on the same shifted tensor sublattice only when both
+integer components of ``m`` are even.  Odd components move the endpoints to the
+complementary half-step sublattice and can alias comparisons with a q=0 quantity
+sampled on the original grid.
+
+The implementation streams lexicographic point chunks and applies one compensated
+complex-vector sum, so large diagnostic grids do not require a full finite-q
+workspace in memory.
 """
 
 from __future__ import annotations
@@ -75,9 +81,26 @@ class CommensuratePeriodicGrid:
 
     @property
     def translation_permutation_exact(self) -> bool:
-        """The integer index map is a bijection for every integer shift."""
+        """Translation by q is an exact integer index permutation."""
 
         return True
+
+    @property
+    def half_translation_permutation_exact(self) -> bool:
+        """Return whether both ``k +/- q/2`` stay on this grid sublattice.
+
+        With ``q = step * (mx,my)``, a half translation changes the grid offsets by
+        ``(mx/2,my/2)``.  This is an integer index shift exactly when both components
+        are even.  Otherwise the endpoints lie on a complementary half-step grid.
+        """
+
+        return bool(self.mx % 2 == 0 and self.my % 2 == 0)
+
+    @property
+    def half_translation_sublattice_offset(self) -> tuple[float, float]:
+        """Fractional grid-offset change induced by ``q/2``, modulo one."""
+
+        return (0.5 * float(self.mx % 2), 0.5 * float(self.my % 2))
 
     def shifted_index(self, ix: int, iy: int) -> tuple[int, int]:
         """Return the periodic index reached by translation by ``q``."""
