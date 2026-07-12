@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from lno327.constants import KB_EV_PER_K
-from validation.run_positive_matsubara_point_scan import (
+from validation.commands.matsubara.positive_point import (
     _annotate_convergence,
     _run_task,
     matsubara_energy_eV,
