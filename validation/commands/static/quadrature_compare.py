@@ -43,14 +43,14 @@ from lno327.response.workspace import (
     primitive_ward_rhs_from_q_workspace,
 )
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
-from validation.lib.finite_q_validation_models import get_finite_q_validation_model
-from validation.run_static_nk_scan import (
+from validation.commands.static.nk_scan import (
     _collective_channel_diagnostics,
     _kll_decomposition_diagnostics,
     _longitudinal_component_diagnostics,
     _phase_channel_factor_diagnostics,
     _ward_side_diagnostics,
 )
+from validation.lib.finite_q_validation_models import get_finite_q_validation_model
 
 QuadratureRule = Literal["midpoint", "gauss2_shift4"]
 DEFAULT_OUTPUT = Path(
