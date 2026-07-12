@@ -1,16 +1,10 @@
-"""Compare the baseline and bond-metric d-wave full collective kernels.
+"""Canonical commensurate d-wave full-kernel bond-metric Ward audit.
 
-The command integrates the complete 48-component exact-static primitive vector.
-For odd commensurate integer shifts it can average the required complementary
-half-step sublattices componentwise before either Schur complement is formed.
-The same integrated primitive blocks then produce
-
-1. the current q-independent Goldstone-counterterm baseline; and
-2. a diagnostic kernel in which only ``K_eta2_eta2^HS`` is multiplied by the
-   nearest-neighbour bond metric.
-
-No longitudinal projection is applied and neither result is promoted to a
-Casimir input.
+The complete 48-component exact-static primitive vector is integrated on one or
+more complementary periodic subgrids.  Primitive vectors are averaged before any
+Schur complement.  The same integrated response is then evaluated with the q=0
+Goldstone counterterm and with the diagnosed nearest-neighbour bond metric applied
+only to the phase-phase HS entry.  No longitudinal projection is performed.
 """
 
 from __future__ import annotations
@@ -23,7 +17,6 @@ import json
 from itertools import product
 from pathlib import Path
 import platform
-import time
 from typing import Any
 
 import numpy as np
@@ -41,7 +34,7 @@ from validation.lib.commensurate_periodic import (
 from validation.lib.dwave_bond_phase_counterterm import (
     apply_nearest_neighbor_dwave_phase_counterterm,
 )
-from validation.lib.dwave_iterated_adaptive import (
+from validation.lib.dwave_static_primitives import (
     assemble_dwave_static_primitives,
     build_dwave_static_integrand_context,
 )
@@ -50,10 +43,9 @@ from validation.lib.static_ward_component_sources import (
     audit_static_ward_contract_with_components,
 )
 
-
 DEFAULT_OUTPUT = Path(
     "validation/outputs/zero_matsubara/dwave_ward_contract_audit/raw/"
-    "dwave_bond_metric_full_kernel_n628_m3_2_T10.csv"
+    "dwave_bond_metric_full_kernel.csv"
 )
 
 
@@ -72,10 +64,9 @@ def complementary_subgrid_origins(
     shift_x: float,
     shift_y: float,
 ) -> tuple[tuple[float, float], ...]:
-    """Return all half-step origins required by odd components of ``m``."""
+    """Return half-step partner origins required by odd integer q components."""
 
-    sx = float(shift_x)
-    sy = float(shift_y)
+    sx, sy = float(shift_x), float(shift_y)
     if not np.isfinite([sx, sy]).all() or not (0.0 <= sx < 1.0 and 0.0 <= sy < 1.0):
         raise ValueError("grid shifts must be finite and lie in [0, 1)")
     xs = (sx,) if int(mx) % 2 == 0 else (sx, (sx + 0.5) % 1.0)
@@ -109,7 +100,9 @@ def _evaluate_components(
     return kernel, ward, sheet, audit
 
 
-def _max_collective_channel_defect_over_q(audit: dict[str, Any], channel: int) -> float:
+def _max_collective_channel_defect_over_q(
+    audit: dict[str, Any], channel: int
+) -> float:
     q_norm = float(audit["q_norm"])
     return max(
         abs(complex(np.asarray(audit[side]["collective_defect"], dtype=complex)[channel]))
@@ -119,7 +112,10 @@ def _max_collective_channel_defect_over_q(audit: dict[str, Any], channel: int) -
 
 
 def _max_ward_effective_mixed_ratio(ward: Any) -> float:
-    return max(float(ward.left.effective_mixed_ratio), float(ward.right.effective_mixed_ratio))
+    return max(
+        float(ward.left.effective_mixed_ratio),
+        float(ward.right.effective_mixed_ratio),
+    )
 
 
 def _write_csv(path: Path, row: dict[str, Any]) -> None:
@@ -131,50 +127,36 @@ def _write_csv(path: Path, row: dict[str, Any]) -> None:
 
 
 def _summary_text(row: dict[str, Any]) -> str:
-    origins = row["subgrid_origins"]
-    lines = [
-        "d-wave full-kernel bond phase metric audit",
-        "=" * 52,
-        f"grid = {row['nk']} x {row['nk']}; m = ({row['mx']}, {row['my']})",
-        f"q = ({row['qx']:.12g}, {row['qy']:.12g}); |q| = {row['q_norm']:.12g}",
-        f"subgrid origins = {origins}",
-        f"componentwise subgrid average = {row['subgrid_averaged']}",
-        f"points evaluated = {row['point_evaluations']}; wall time = {row['integration_wall_seconds']:.3f} s",
-        "",
-        "Phase counterterm",
-        "-----------------",
-        f"bond metric multiplier = {row['bond_metric_multiplier']:.15e}",
-        f"base K22 counterterm    = {row['base_counterterm_22_real']:+.15e}{row['base_counterterm_22_imag']:+.3e}j",
-        f"applied K22 counterterm = {row['applied_counterterm_22_real']:+.15e}{row['applied_counterterm_22_imag']:+.3e}j",
-        f"only phase diagonal changed = {row['counterterm_changed_only_22']}",
-        "",
-        "Ward comparison",
-        "---------------",
-        f"baseline phase defect / |q|  = {row['baseline_phase_defect_over_q']:.12e}",
-        f"corrected phase defect / |q| = {row['corrected_phase_defect_over_q']:.12e}",
-        f"baseline amplitude defect / |q|  = {row['baseline_amplitude_defect_over_q']:.12e}",
-        f"corrected amplitude defect / |q| = {row['corrected_amplitude_defect_over_q']:.12e}",
-        f"baseline effective direct / |q|  = {row['baseline_effective_direct_over_q']:.12e}",
-        f"corrected effective direct / |q| = {row['corrected_effective_direct_over_q']:.12e}",
-        f"baseline raw longitudinal  = {row['baseline_raw_longitudinal']:.12e}",
-        f"corrected raw longitudinal = {row['corrected_raw_longitudinal']:.12e}",
-        f"baseline Ward passed  = {row['baseline_ward_passed']}",
-        f"corrected Ward passed = {row['corrected_ward_passed']}",
-        "",
-        "Physical-channel comparison",
-        "---------------------------",
-        f"chi_bar: baseline={row['baseline_chi_bar']:.12e}, corrected={row['corrected_chi_bar']:.12e}, delta={row['chi_bar_delta']:.12e}",
-        f"Dbar_T:  baseline={row['baseline_dbar_t']:.12e}, corrected={row['corrected_dbar_t']:.12e}, delta={row['dbar_t_delta']:.12e}",
-        f"collective condition: baseline={row['baseline_collective_condition']:.12e}, corrected={row['corrected_collective_condition']:.12e}",
-        "",
-        "Fail-closed status",
-        "------------------",
-        "diagnostic_only = True",
-        "projection_applied = False",
-        "production_reference_established = False",
-        "valid_for_casimir_input = False",
-    ]
-    return "\n".join(lines) + "\n"
+    return "\n".join(
+        [
+            "d-wave full-kernel bond phase metric audit",
+            "=" * 45,
+            f"grid = {row['nk']} x {row['nk']}; m = ({row['mx']}, {row['my']})",
+            f"q = ({row['qx']:.12g}, {row['qy']:.12g}); |q| = {row['q_norm']:.12g}",
+            f"subgrid origins = {row['subgrid_origins']}",
+            f"points evaluated = {row['point_evaluations']}",
+            "",
+            f"bond metric multiplier = {row['bond_metric_multiplier']:.15e}",
+            f"only phase diagonal changed = {row['counterterm_changed_only_22']}",
+            "",
+            f"baseline phase/q = {row['baseline_phase_defect_over_q']:.12e}",
+            f"corrected phase/q = {row['corrected_phase_defect_over_q']:.12e}",
+            f"baseline effective-direct/q = {row['baseline_effective_direct_over_q']:.12e}",
+            f"corrected effective-direct/q = {row['corrected_effective_direct_over_q']:.12e}",
+            f"baseline longitudinal = {row['baseline_raw_longitudinal']:.12e}",
+            f"corrected longitudinal = {row['corrected_raw_longitudinal']:.12e}",
+            f"baseline chi_bar = {row['baseline_chi_bar']:.12e}",
+            f"corrected chi_bar = {row['corrected_chi_bar']:.12e}",
+            f"baseline Dbar_T = {row['baseline_dbar_t']:.12e}",
+            f"corrected Dbar_T = {row['corrected_dbar_t']:.12e}",
+            "",
+            "diagnostic_only = True",
+            "projection_applied = False",
+            "production_reference_established = False",
+            "valid_for_casimir_input = False",
+            "",
+        ]
+    )
 
 
 def _parse_args() -> argparse.Namespace:
@@ -188,7 +170,6 @@ def _parse_args() -> argparse.Namespace:
         "--subgrid-average",
         choices=("auto", "none"),
         default="auto",
-        help="auto averages complementary half-step origins for odd mx/my",
     )
     parser.add_argument("--chunk-size", type=int, default=1024)
     parser.add_argument("--max-points", type=int, default=500_000)
@@ -200,8 +181,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--condition-max", type=float, default=1e12)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
-    if args.chunk_size <= 0:
-        parser.error("--chunk-size must be positive")
+    if args.nk <= 0 or args.chunk_size <= 0 or args.max_points <= 0:
+        parser.error("--nk, --chunk-size, and --max-points must be positive")
     return args
 
 
@@ -215,7 +196,7 @@ def main() -> None:
         shift_y=args.shift_y,
         max_points=args.max_points,
     )
-    q = base_grid.q_model
+    q = np.asarray(base_grid.q_model, dtype=float)
     origins = (
         complementary_subgrid_origins(args.mx, args.my, args.shift_x, args.shift_y)
         if args.subgrid_average == "auto"
@@ -237,7 +218,7 @@ def main() -> None:
         q,
         kubo,
         pairing,
-        FiniteQEngineOptions(),
+        FiniteQEngineOptions(phase_hessian_policy="q_independent"),
     )
 
     values: list[np.ndarray] = []
@@ -257,7 +238,9 @@ def main() -> None:
             flush=True,
         )
         integral = integrate_commensurate_periodic_vector(
-            grid, context.evaluate_complex, chunk_size=args.chunk_size
+            grid,
+            context.evaluate_complex,
+            chunk_size=args.chunk_size,
         )
         values.append(np.asarray(integral.value, dtype=complex))
         integrals.append(integral)
@@ -266,7 +249,7 @@ def main() -> None:
     integration = SubgridAverageSummary(
         point_evaluations=sum(int(item.point_evaluations) for item in integrals),
         chunks=sum(int(item.chunks) for item in integrals),
-        chunk_size=args.chunk_size,
+        chunk_size=int(args.chunk_size),
         wall_seconds=sum(float(item.wall_seconds) for item in integrals),
         summation_method=(
             "componentwise_equal_average_of_complementary_subgrids_after_"
@@ -274,10 +257,9 @@ def main() -> None:
         ),
     )
     common_metadata = {
-        "integration_strategy": "commensurate_complete_periodic_tensor_subgrid_average",
+        "integration_strategy": "commensurate_complete_periodic_subgrid_average",
         "nk": int(args.nk),
         "integer_q_shift": (int(args.mx), int(args.my)),
-        "q_constructed_from_integer_grid_shift": True,
         "translation_by_q_is_exact_index_permutation": True,
         "half_q_single_subgrid_compatible": bool(
             base_grid.half_translation_permutation_exact
@@ -285,7 +267,6 @@ def main() -> None:
         "complementary_subgrid_origins": origins,
         "componentwise_subgrid_average_before_schur": bool(len(origins) > 1),
         "subgrid_count": len(origins),
-        "all_primitive_channels_share_each_periodic_grid": True,
         "primitive_vector_averaged_before_schur": True,
         "summation_method": integration.summation_method,
     }
@@ -378,8 +359,12 @@ def main() -> None:
         "corrected_collective_condition": float(
             corrected_kernel.schur_condition_number
         ),
-        "baseline_collective_inverse_method": baseline_kernel.schur_inverse_method,
-        "corrected_collective_inverse_method": corrected_kernel.schur_inverse_method,
+        "baseline_collective_inverse_method": str(
+            baseline_kernel.schur_inverse_method
+        ),
+        "corrected_collective_inverse_method": str(
+            corrected_kernel.schur_inverse_method
+        ),
         "baseline_chi_bar": float(baseline_sheet.chi_bar),
         "corrected_chi_bar": float(corrected_sheet.chi_bar),
         "chi_bar_delta": float(corrected_sheet.chi_bar - baseline_sheet.chi_bar),
@@ -394,9 +379,7 @@ def main() -> None:
 
     output = args.output
     _write_csv(output, row)
-    summary_path = output.with_suffix(".summary.txt")
-    json_path = output.with_suffix(".json")
-    summary_path.write_text(_summary_text(row), encoding="utf-8")
+    output.with_suffix(".summary.txt").write_text(_summary_text(row), encoding="utf-8")
     payload = {
         "schema": "dwave_bond_metric_full_kernel_audit_v1",
         "created_utc": datetime.now(timezone.utc).isoformat(),
@@ -423,12 +406,13 @@ def main() -> None:
             "valid_for_casimir_input": False,
         },
     }
-    json_path.write_text(json.dumps(_jsonable(payload), indent=2), encoding="utf-8")
-
+    output.with_suffix(".json").write_text(
+        json.dumps(_jsonable(payload), indent=2), encoding="utf-8"
+    )
     print(_summary_text(row), end="")
     print(f"CSV:     {output}")
-    print(f"JSON:    {json_path}")
-    print(f"summary: {summary_path}")
+    print(f"JSON:    {output.with_suffix('.json')}")
+    print(f"summary: {output.with_suffix('.summary.txt')}")
 
 
 if __name__ == "__main__":
