@@ -7,7 +7,6 @@ import sys
 from collections.abc import Sequence
 
 _COMMANDS: dict[tuple[str, str], str] = {
-    ("ward", "contract-audit"): "validation.commands.ward.contract_audit",
     ("ward", "commensurate"): "validation.commands.ward.commensurate",
     ("ward", "phase-column"): "validation.commands.ward.phase_column",
     ("ward", "phase-hessian"): "validation.commands.ward.phase_hessian",
