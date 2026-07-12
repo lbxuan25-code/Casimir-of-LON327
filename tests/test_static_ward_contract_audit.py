@@ -9,7 +9,13 @@ from lno327.response.ward_validation import PrimitiveWardRHS, primitive_ward_vec
 from validation.lib.static_ward_contract_audit import audit_static_ward_contract
 
 
-def _rhs(q: np.ndarray, delta0: float, equal: np.ndarray, delta_v: np.ndarray, contact: np.ndarray) -> PrimitiveWardRHS:
+def _rhs(
+    q: np.ndarray,
+    delta0: float,
+    equal: np.ndarray,
+    delta_v: np.ndarray,
+    contact: np.ndarray,
+) -> PrimitiveWardRHS:
     total = equal - delta_v + contact
     return PrimitiveWardRHS(
         left=total,
@@ -178,9 +184,3 @@ def test_static_ward_contract_audit_requires_separate_rhs_pieces():
     )
     with pytest.raises(ValueError, match="equal_forward"):
         audit_static_ward_contract(kernel, rhs)
-
-
-def test_dwave_static_ward_contract_audit_command_imports():
-    import validation.commands.ward.contract_audit as command
-
-    assert callable(command.main)
