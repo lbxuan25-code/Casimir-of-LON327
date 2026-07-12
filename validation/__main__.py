@@ -24,6 +24,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("matsubara", "bond-metric-positive"): (
         "validation.commands.matsubara.bond_metric_positive"
     ),
+    ("matsubara", "dwave-orbit-adaptive"): (
+        "validation.commands.matsubara.dwave_orbit_adaptive"
+    ),
 }
 
 
