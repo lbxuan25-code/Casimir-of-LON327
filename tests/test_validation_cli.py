@@ -17,6 +17,7 @@ def test_validation_cli_exposes_grouped_commands():
         ("ward", "bond-metric-family"),
         ("static", "nk-scan"),
         ("static", "bond-metric-nk-convergence"),
+        ("static", "bond-metric-shift-convergence"),
         ("static", "projection-scan"),
         ("static", "quadrature-compare"),
         ("static", "dwave-gauss-outer"),
