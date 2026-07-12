@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from validation.run_static_quadrature_compare import _quadrature_points, _run_one
+from validation.commands.static.quadrature_compare import _quadrature_points, _run_one
 
 
 def test_gauss2_shift4_has_equal_cost_and_normalized_positive_weights():
