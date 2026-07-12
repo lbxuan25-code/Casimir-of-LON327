@@ -53,10 +53,11 @@ def test_subgrid_average_forms_multiplier_after_component_average():
     counterterm_a = -0.5j
     counterterm_b = -0.7j
     required_a = bond - 2.0e-5
-    required_b = float(
-        (bond * (counterterm_a + counterterm_b) - required_a * counterterm_a)
-        / counterterm_b
-    )
+    required_b_complex = (
+        bond * (counterterm_a + counterterm_b) - required_a * counterterm_a
+    ) / counterterm_b
+    assert abs(required_b_complex.imag) < 1e-15
+    required_b = float(required_b_complex.real)
 
     first = _payload(
         qx,
