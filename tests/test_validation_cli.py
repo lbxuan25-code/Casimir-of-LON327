@@ -12,6 +12,7 @@ def test_validation_cli_exposes_grouped_commands():
         ("ward", "bond-metric-family"),
         ("static", "nk-scan"),
         ("static", "dwave"),
+        ("static", "dwave-orbit"),
         ("static", "projection-scan"),
         ("static", "quadrature-compare"),
         ("matsubara", "positive-point"),
