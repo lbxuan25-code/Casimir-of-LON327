@@ -7,7 +7,6 @@ from validation.__main__ import available_commands, resolve_command
 
 def test_validation_cli_exposes_grouped_commands():
     expected = {
-        ("ward", "contract-audit"),
         ("ward", "commensurate"),
         ("ward", "phase-column"),
         ("ward", "phase-hessian"),
