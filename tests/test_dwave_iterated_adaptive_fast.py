@@ -44,7 +44,14 @@ def test_fast_primitive_chunk_matches_reference_pointwise_contract():
     ).evaluate_complex(points)
 
     assert reference.shape == fast.shape == (4, 48)
-    assert np.allclose(fast, reference, rtol=3e-12, atol=3e-13)
+    difference = np.abs(fast - reference)
+    flat_index = int(np.argmax(difference))
+    index = np.unravel_index(flat_index, difference.shape)
+    assert np.allclose(fast, reference, rtol=3e-12, atol=3e-13), (
+        f"largest primitive mismatch at point={index[0]}, component={index[1]}: "
+        f"fast={fast[index]!r}, reference={reference[index]!r}, "
+        f"abs_difference={difference[index]:.16e}"
+    )
 
 
 def test_public_ward_routes_use_optimized_modules():
