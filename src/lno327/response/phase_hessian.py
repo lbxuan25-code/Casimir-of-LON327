@@ -15,7 +15,7 @@ is completed.
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import Any, Literal, Mapping
+from typing import Any, Literal
 
 import numpy as np
 
@@ -130,7 +130,7 @@ def _require_collective_blocks(components: BdGFiniteQResponseComponents) -> None
     metadata = components.metadata
     if metadata.get("collective_mode") != "amplitude_phase":
         raise ValueError(
-            "phase-Hessian policies require collective_mode='amplitude_phase'"
+            "nearest_neighbor_bond_metric requires collective_mode='amplitude_phase'"
         )
     base = np.asarray(components.collective_counterterm, dtype=complex)
     bubble = np.asarray(components.collective_bubble, dtype=complex)
@@ -143,6 +143,26 @@ def _require_collective_blocks(components: BdGFiniteQResponseComponents) -> None
             raise ValueError(f"{name} must be finite")
 
 
+def _base_application(
+    components: BdGFiniteQResponseComponents,
+    policy: PhaseHessianPolicy,
+) -> PhaseHessianApplication:
+    base = np.asarray(components.collective_counterterm, dtype=complex)
+    return PhaseHessianApplication(
+        policy=policy,
+        multiplier=1.0,
+        base_counterterm=base,
+        applied_counterterm=base,
+        phase_counterterm_delta=0.0 + 0.0j,
+        schur_condition_number=components.metadata.get(
+            "collective_total_condition_number"
+        ),
+        schur_inverse_method=str(
+            components.metadata.get("collective_inverse_method", "not_used")
+        ),
+    )
+
+
 def apply_phase_hessian_policy_to_components(
     components: BdGFiniteQResponseComponents,
     ansatz: object,
@@ -153,9 +173,10 @@ def apply_phase_hessian_policy_to_components(
 ) -> tuple[BdGFiniteQResponseComponents, PhaseHessianApplication]:
     """Apply one phase-Hessian policy and rebuild the full collective Schur kernel.
 
-    ``q_independent`` is a numerical no-op.  ``nearest_neighbor_bond_metric``
-    changes only the phase diagonal ``K_eta2_eta2^HS``.  The amplitude diagonal
-    and both amplitude--phase counterterm entries are preserved exactly.
+    ``q_independent`` is an exact numerical no-op and only records explicit
+    policy metadata.  ``nearest_neighbor_bond_metric`` changes only the phase
+    diagonal ``K_eta2_eta2^HS``.  The amplitude diagonal and both
+    amplitude--phase counterterm entries are preserved exactly.
     """
 
     selected = validate_phase_hessian_policy(policy)
@@ -163,16 +184,27 @@ def apply_phase_hessian_policy_to_components(
     if not np.isfinite(threshold) or threshold <= 0.0:
         raise ValueError("condition_threshold must be finite and positive")
 
+    if selected == "q_independent":
+        metadata = dict(components.metadata)
+        metadata.update(
+            {
+                "phase_hessian_policy": selected,
+                "phase_hessian_policy_opt_in": False,
+                "phase_hessian_multiplier": 1.0,
+                "phase_hessian_counterterm_delta_22": 0.0 + 0.0j,
+                "phase_hessian_source": "q_independent_goldstone_scalar",
+            }
+        )
+        return replace(components, metadata=metadata), _base_application(
+            components, selected
+        )
+
+    _require_supported_bond_metric_ansatz(ansatz)
     _require_collective_blocks(components)
     base = np.asarray(components.collective_counterterm, dtype=complex)
     applied = np.array(base, dtype=complex, copy=True)
-
-    if selected == "q_independent":
-        multiplier = 1.0
-    else:
-        _require_supported_bond_metric_ansatz(ansatz)
-        multiplier = nearest_neighbor_dwave_bond_metric(q_model)
-        applied[1, 1] = multiplier * base[1, 1]
+    multiplier = nearest_neighbor_dwave_bond_metric(q_model)
+    applied[1, 1] = multiplier * base[1, 1]
 
     collective_total = np.asarray(components.collective_bubble, dtype=complex) + applied
     schur = apply_amplitude_phase_schur(
@@ -198,16 +230,14 @@ def apply_phase_hessian_policy_to_components(
     metadata.update(
         {
             "phase_hessian_policy": selected,
-            "phase_hessian_policy_opt_in": selected != "q_independent",
+            "phase_hessian_policy_opt_in": True,
             "phase_hessian_multiplier": multiplier,
             "phase_hessian_base_counterterm_22": complex(base[1, 1]),
             "phase_hessian_applied_counterterm_22": complex(applied[1, 1]),
             "phase_hessian_counterterm_delta_22": phase_delta,
             "phase_hessian_changed_only_22": changed_only_22,
             "phase_hessian_source": (
-                "q_independent_goldstone_scalar"
-                if selected == "q_independent"
-                else "pullback_of_isotropic_nearest_neighbor_xy_bond_metric"
+                "pullback_of_isotropic_nearest_neighbor_xy_bond_metric"
             ),
             "collective_total_condition_number": schur.condition_number,
             "collective_inverse_method": schur.inverse_method,
@@ -219,11 +249,6 @@ def apply_phase_hessian_policy_to_components(
             "valid_for_casimir_input": False,
             "casimir_gating_status": (
                 "diagnostic_finite_q_phase_hessian_policy_not_production_validated"
-                if selected != "q_independent"
-                else metadata.get(
-                    "casimir_gating_status",
-                    "diagnostic_finite_q_response_not_unit_converted_or_ward_validated",
-                )
             ),
         }
     )
