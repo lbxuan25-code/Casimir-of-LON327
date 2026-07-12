@@ -55,6 +55,22 @@ def _adaptive_uniform_fixture():
     return model, ansatz, pairing, config, q, points, weights, components, rhs
 
 
+def _permissive_validation_config() -> AdaptiveStaticValidationConfig:
+    return AdaptiveStaticValidationConfig(
+        mixed_ward_tolerance=100.0,
+        mixed_ward_absolute_tolerance=100.0,
+        primitive_tolerance=100.0,
+        amplitude_tolerance=100.0,
+        phase_tolerance=100.0,
+        effective_direct_tolerance=100.0,
+        effective_residual_tolerance=100.0,
+        longitudinal_tolerance=100.0,
+        reality_tolerance=100.0,
+        mixing_tolerance=100.0,
+        passivity_tolerance=100.0,
+    )
+
+
 def test_adaptive_bond_metric_matches_policy_aware_workspace_after_primitive_merge():
     (
         model,
@@ -89,19 +105,7 @@ def test_adaptive_bond_metric_matches_policy_aware_workspace_after_primitive_mer
         rhs,
         ansatz=ansatz,
         q_model=q,
-        config=AdaptiveStaticValidationConfig(
-            mixed_ward_tolerance=100.0,
-            mixed_ward_absolute_tolerance=100.0,
-            primitive_tolerance=100.0,
-            amplitude_tolerance=100.0,
-            phase_tolerance=100.0,
-            effective_direct_tolerance=100.0,
-            effective_residual_tolerance=100.0,
-            longitudinal_tolerance=100.0,
-            reality_tolerance=100.0,
-            mixing_tolerance=100.0,
-            passivity_tolerance=100.0,
-        ),
+        config=_permissive_validation_config(),
     )
 
     for field in (
@@ -131,7 +135,32 @@ def test_adaptive_bond_metric_matches_policy_aware_workspace_after_primitive_mer
 
 
 def test_adaptive_bond_metric_rejects_double_application():
-    *_, ansatz, q, components, rhs = ()
+    (
+        _model,
+        ansatz,
+        _pairing,
+        _config,
+        q,
+        _points,
+        _weights,
+        components,
+        rhs,
+    ) = _adaptive_uniform_fixture()
+    first = postprocess_adaptive_bond_metric_static(
+        components,
+        rhs,
+        ansatz=ansatz,
+        q_model=q,
+        config=_permissive_validation_config(),
+    )
+    with pytest.raises(ValueError, match="already have the bond metric applied"):
+        postprocess_adaptive_bond_metric_static(
+            first.components,
+            rhs,
+            ansatz=ansatz,
+            q_model=q,
+            config=_permissive_validation_config(),
+        )
 
 
 def test_public_adaptive_route_uses_bond_metric_command():
