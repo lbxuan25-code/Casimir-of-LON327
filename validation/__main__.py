@@ -16,6 +16,7 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ),
     ("static", "nk-scan"): "validation.commands.static.nk_scan",
     ("static", "dwave"): "validation.commands.static.dwave_gauss_outer",
+    ("static", "dwave-orbit"): "validation.commands.static.dwave_orbit_gauss",
     ("static", "projection-scan"): "validation.commands.static.projection_scan",
     ("static", "quadrature-compare"): "validation.commands.static.quadrature_compare",
     ("matsubara", "positive-point"): "validation.commands.matsubara.positive_point",
