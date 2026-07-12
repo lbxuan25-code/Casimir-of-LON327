@@ -1,17 +1,9 @@
-"""Reduced exact-static d-wave phase-column integrand.
+"""Reduced commensurate d-wave phase-column diagnostic.
 
-The full commensurate Ward audit integrates 48 complex primitive channels.  For the
-small-q phase-Hessian discriminator only four averaged quantities are required:
-
-* the left electromagnetic--eta2 contraction;
-* the right eta2--electromagnetic contraction;
-* the finite-q eta2 bubble; and
-* the q=0 eta2 bubble fixing the Goldstone counterterm.
-
-This module evaluates only those quantities while preserving the same midpoint and
-shifted BdG eigensystems, exact-zero Matsubara divided difference, finite-q Peierls
-vertices, endpoint-average eta2 vertex, complete periodic grid, and compensated
-summation used by the full audit.  It is diagnostic only.
+Only the four integrated quantities needed to audit the finite-q phase Hessian are
+computed.  The model context and exact-static divided difference are shared with
+the canonical d-wave primitive evaluator.  This module remains a Ward diagnostic,
+not a production integration path.
 """
 
 from __future__ import annotations
@@ -27,7 +19,7 @@ from lno327.response.finite_q_bdg import (
     bdg_vector_vertex_from_spec,
 )
 from lno327.response.occupations import fermi_function
-from validation.lib.dwave_iterated_adaptive import (
+from validation.lib.dwave_static_primitives import (
     DWaveStaticIntegrandContext,
     _static_factor_matrix,
 )
@@ -62,7 +54,7 @@ class DWavePhaseColumnResult:
 
 @dataclass(frozen=True)
 class DWavePhaseColumnContext:
-    """Thin wrapper around the full exact-static model context."""
+    """Reduced evaluator backed by the canonical static primitive context."""
 
     full: DWaveStaticIntegrandContext
 
@@ -74,7 +66,7 @@ class DWavePhaseColumnContext:
             raise ValueError("k_points must have shape (n, 2) with finite values")
 
         result = np.zeros((points.shape[0], _PHASE_COLUMN_WIDTH), dtype=complex)
-        qx, qy = (float(self.full.q_model[0]), float(self.full.q_model[1]))
+        qx, qy = map(float, self.full.q_model)
         spec = self.full.spec
         ansatz = self.full.ansatz
         amp = self.full.pairing_params
@@ -83,13 +75,8 @@ class DWavePhaseColumnContext:
 
         for index, (kx_value, ky_value) in enumerate(points):
             kx, ky = float(kx_value), float(ky_value)
-
-            pairing_minus = ansatz.mean_pairing(
-                kx - 0.5 * qx, ky - 0.5 * qy, amp
-            )
-            pairing_plus = ansatz.mean_pairing(
-                kx + 0.5 * qx, ky + 0.5 * qy, amp
-            )
+            pairing_minus = ansatz.mean_pairing(kx - 0.5 * qx, ky - 0.5 * qy, amp)
+            pairing_plus = ansatz.mean_pairing(kx + 0.5 * qx, ky + 0.5 * qy, amp)
             bands_minus = bdg_eigensystem_from_model_pairing(
                 spec, kx - 0.5 * qx, ky - 0.5 * qy, pairing_minus
             )
@@ -124,11 +111,9 @@ class DWavePhaseColumnContext:
                 bands_minus.states, vx, bands_plus.states
             ) + qy * vertex_band(bands_minus.states, vy, bands_plus.states)
             observable_longitudinal = -source_longitudinal
-
             eta2 = ansatz.collective_vertices(kx, ky, qx, qy, amp)[1]
-            eta2_band = vertex_band(
-                bands_minus.states, eta2, bands_plus.states
-            )
+            eta2_band = vertex_band(bands_minus.states, eta2, bands_plus.states)
+
             left_em = 0.5 * np.sum(
                 factor * observable_longitudinal * np.conjugate(eta2_band)
             )
@@ -140,9 +125,7 @@ class DWavePhaseColumnContext:
             )
 
             pairing_mid = ansatz.mean_pairing(kx, ky, amp)
-            bands_mid = bdg_eigensystem_from_model_pairing(
-                spec, kx, ky, pairing_mid
-            )
+            bands_mid = bdg_eigensystem_from_model_pairing(spec, kx, ky, pairing_mid)
             occupations_mid = fermi_function(
                 bands_mid.energies,
                 config.fermi_level_eV,
@@ -166,14 +149,12 @@ class DWavePhaseColumnContext:
                 * eta2_zero_band
                 * np.conjugate(eta2_zero_band)
             )
-
             result[index] = (
                 left_em,
                 right_em,
                 finite_q_eta2_bubble,
                 q0_eta2_bubble,
             )
-
         return result
 
 
@@ -198,8 +179,7 @@ def assemble_phase_column_result(
 
     w_phase = complex(-2j * delta0)
     phase_rotation_bubble = w_phase * finite_bubble
-    counterterm_curvature = -q0_bubble
-    phase_rotation_counterterm = w_phase * counterterm_curvature
+    phase_rotation_counterterm = w_phase * (-q0_bubble)
     if abs(phase_rotation_counterterm) <= 1e-30:
         raise ValueError("phase counterterm rotation is at the absolute floor")
 
@@ -210,9 +190,6 @@ def assemble_phase_column_result(
     bond_metric = float(
         0.5 * (np.cos(0.5 * q[0]) ** 2 + np.cos(0.5 * q[1]) ** 2)
     )
-    left_bond = left_em + phase_rotation_bubble + bond_metric * phase_rotation_counterterm
-    right_bond = right_em + phase_rotation_bubble + bond_metric * phase_rotation_counterterm
-
     return DWavePhaseColumnResult(
         q_model=(float(q[0]), float(q[1])),
         q_norm=q_norm,
@@ -226,8 +203,12 @@ def assemble_phase_column_result(
         left_required_counterterm_multiplier=complex(left_required),
         right_required_counterterm_multiplier=complex(right_required),
         bond_metric_multiplier=bond_metric,
-        left_bond_metric_defect=complex(left_bond),
-        right_bond_metric_defect=complex(right_bond),
+        left_bond_metric_defect=complex(
+            left_em + phase_rotation_bubble + bond_metric * phase_rotation_counterterm
+        ),
+        right_bond_metric_defect=complex(
+            right_em + phase_rotation_bubble + bond_metric * phase_rotation_counterterm
+        ),
     )
 
 
@@ -236,7 +217,7 @@ def phase_column_result_as_audit_payload(
     *,
     metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Return the compact result in the structure consumed by family analysis."""
+    """Return the compact structure consumed by phase-Hessian family analysis."""
 
     w_phase = complex(-2j * result.delta0_eV)
     zero = 0.0 + 0.0j
@@ -249,11 +230,13 @@ def phase_column_result_as_audit_payload(
             "w_left": (zero, w_phase),
             "w_right": (zero, w_phase),
             "component_sources": {
-                "left": {
+                side: {
                     "collective_defect_parts": {
                         "em_collective_contraction": (
                             zero,
-                            result.left_em_collective_phase,
+                            result.left_em_collective_phase
+                            if side == "left"
+                            else result.right_collective_em_phase,
                         ),
                         "phase_rotation_bubble": (
                             zero,
@@ -264,23 +247,8 @@ def phase_column_result_as_audit_payload(
                             result.phase_rotation_counterterm,
                         ),
                     }
-                },
-                "right": {
-                    "collective_defect_parts": {
-                        "em_collective_contraction": (
-                            zero,
-                            result.right_collective_em_phase,
-                        ),
-                        "phase_rotation_bubble": (
-                            zero,
-                            result.phase_rotation_bubble,
-                        ),
-                        "phase_rotation_counterterm": (
-                            zero,
-                            result.phase_rotation_counterterm,
-                        ),
-                    }
-                },
+                }
+                for side in ("left", "right")
             },
         },
         "primitive_metadata": {},
