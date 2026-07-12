@@ -28,6 +28,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ),
     ("static", "projection-scan"): "validation.commands.static.projection_scan",
     ("static", "quadrature-compare"): "validation.commands.static.quadrature_compare",
+    ("static", "dwave-adaptive-convergence"): (
+        "validation.commands.static.dwave_adaptive_convergence"
+    ),
     ("static", "dwave-gauss-outer"): "validation.commands.static.dwave_gauss_outer",
     ("static", "dwave-iterated-adaptive"): (
         "validation.commands.static.dwave_iterated_adaptive_bond_metric"
