@@ -13,6 +13,7 @@ def test_validation_cli_exposes_grouped_commands():
         ("ward", "phase-hessian"),
         ("ward", "phase-hessian-family"),
         ("ward", "average-subgrids"),
+        ("ward", "bond-metric-full-kernel"),
         ("static", "nk-scan"),
         ("static", "projection-scan"),
         ("static", "quadrature-compare"),
