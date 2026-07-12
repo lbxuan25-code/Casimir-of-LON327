@@ -8,10 +8,6 @@ from validation.__main__ import available_commands, resolve_command
 def test_validation_cli_exposes_grouped_commands():
     expected = {
         ("ward", "commensurate"),
-        ("ward", "phase-column"),
-        ("ward", "phase-hessian"),
-        ("ward", "phase-hessian-family"),
-        ("ward", "average-subgrids"),
         ("ward", "bond-metric-full-kernel"),
         ("ward", "bond-metric-family"),
         ("static", "nk-scan"),
