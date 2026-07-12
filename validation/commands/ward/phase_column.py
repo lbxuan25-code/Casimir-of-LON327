@@ -12,6 +12,7 @@ import numpy as np
 
 from lno327 import KuboConfig
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
+from validation.commands.ward.commensurate import _jsonable
 from validation.lib.commensurate_periodic import (
     CommensuratePeriodicGrid,
     integrate_commensurate_periodic_vector,
@@ -23,7 +24,6 @@ from validation.lib.dwave_phase_column_commensurate import (
     phase_column_result_as_audit_payload,
 )
 from validation.lib.finite_q_validation_models import get_finite_q_validation_model
-from validation.run_dwave_static_commensurate_periodic_audit import _jsonable
 
 
 DEFAULT_OUTPUT = Path(
