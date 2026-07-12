@@ -8,7 +8,7 @@ counterterm remain unchanged.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from typing import Any, Mapping
 
 import numpy as np
@@ -17,16 +17,56 @@ from lno327.collective.schur import apply_amplitude_phase_schur
 from lno327.response.finite_q import BdGFiniteQResponseComponents
 
 
-@dataclass(frozen=True)
-class DWaveBondPhaseCountertermApplication:
-    """Audit record for one diagnostic phase-counterterm replacement."""
+class DWaveBondPhaseCountertermApplication(dict[str, Any]):
+    """JSON-serializable audit record with attribute-style accessors."""
 
-    multiplier: float
-    base_counterterm: np.ndarray
-    applied_counterterm: np.ndarray
-    phase_counterterm_delta: complex
-    schur_condition_number: float | None
-    schur_inverse_method: str
+    def __init__(
+        self,
+        *,
+        multiplier: float,
+        base_counterterm: np.ndarray,
+        applied_counterterm: np.ndarray,
+        phase_counterterm_delta: complex,
+        schur_condition_number: float | None,
+        schur_inverse_method: str,
+    ) -> None:
+        super().__init__(
+            multiplier=float(multiplier),
+            base_counterterm=np.array(base_counterterm, dtype=complex, copy=True),
+            applied_counterterm=np.array(applied_counterterm, dtype=complex, copy=True),
+            phase_counterterm_delta=complex(phase_counterterm_delta),
+            schur_condition_number=(
+                None
+                if schur_condition_number is None
+                else float(schur_condition_number)
+            ),
+            schur_inverse_method=str(schur_inverse_method),
+        )
+
+    @property
+    def multiplier(self) -> float:
+        return float(self["multiplier"])
+
+    @property
+    def base_counterterm(self) -> np.ndarray:
+        return np.asarray(self["base_counterterm"], dtype=complex)
+
+    @property
+    def applied_counterterm(self) -> np.ndarray:
+        return np.asarray(self["applied_counterterm"], dtype=complex)
+
+    @property
+    def phase_counterterm_delta(self) -> complex:
+        return complex(self["phase_counterterm_delta"])
+
+    @property
+    def schur_condition_number(self) -> float | None:
+        value = self["schur_condition_number"]
+        return None if value is None else float(value)
+
+    @property
+    def schur_inverse_method(self) -> str:
+        return str(self["schur_inverse_method"])
 
 
 def nearest_neighbor_dwave_bond_metric(q_model: np.ndarray) -> float:
@@ -137,8 +177,8 @@ def apply_nearest_neighbor_dwave_phase_counterterm(
     )
     application = DWaveBondPhaseCountertermApplication(
         multiplier=multiplier,
-        base_counterterm=np.array(base, copy=True),
-        applied_counterterm=np.array(applied, copy=True),
+        base_counterterm=base,
+        applied_counterterm=applied,
         phase_counterterm_delta=phase_delta,
         schur_condition_number=schur.condition_number,
         schur_inverse_method=schur.inverse_method,
