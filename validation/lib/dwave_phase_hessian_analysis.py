@@ -9,8 +9,9 @@ three scalar counterterm hypotheses:
    ``(cos(qx/2)^2 + cos(qy/2)^2) / 2``;
 3. the curvature inferred from the already-integrated phase-angle direct term.
 
-This is diagnostic only.  It does not alter the response kernel or establish a
-production counterterm policy.
+The same parser also accepts the reduced phase-column-only commensurate payload,
+which preserves exactly the collective pieces needed by this analysis while omitting
+unrelated electromagnetic and Ward channels.  All outputs remain diagnostic only.
 """
 
 from __future__ import annotations
@@ -19,6 +20,11 @@ from dataclasses import asdict, dataclass
 from typing import Any, Mapping
 
 import numpy as np
+
+_ACCEPTED_SCHEMAS = {
+    "dwave_static_commensurate_periodic_ward_audit_v1",
+    "dwave_static_commensurate_phase_column_audit_v1",
+}
 
 
 @dataclass(frozen=True)
@@ -134,10 +140,12 @@ def _side_analysis(
 def analyze_dwave_phase_hessian_payload(
     payload: Mapping[str, Any],
 ) -> DWavePhaseHessianAnalysis:
-    """Analyze one ``dwave_static_commensurate_periodic_ward_audit_v1`` payload."""
+    """Analyze one full or reduced commensurate d-wave phase-column payload."""
 
-    if payload.get("schema") != "dwave_static_commensurate_periodic_ward_audit_v1":
-        raise ValueError("input is not a commensurate d-wave Ward audit v1 payload")
+    schema = payload.get("schema")
+    if schema not in _ACCEPTED_SCHEMAS:
+        choices = ", ".join(sorted(_ACCEPTED_SCHEMAS))
+        raise ValueError(f"input schema must be one of: {choices}")
     audit = payload.get("audit")
     if not isinstance(audit, Mapping):
         raise ValueError("payload is missing the audit mapping")
