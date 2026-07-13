@@ -1,10 +1,10 @@
 """Positive-Matsubara d-wave response with fixed transverse Gauss quadrature.
 
-The microscopic evaluator and primitive packing are intentionally shared with
-``dwave_positive_orbit_adaptive``.  The independent part of this reference is
-the nonuniform fixed Gauss-Legendre transverse rule and its summation path.
-Bond-metric correction and the amplitude/phase Schur complement are still
-applied only after the complete Brillouin-zone primitive integral.
+The microscopic evaluator and primitive packing are intentionally shared with the
+panel-adaptive path.  The independent reference backend is a fixed Gauss-Legendre
+rule that may be global or split into equal panels.  Bond-metric correction and the
+amplitude/phase Schur complement are applied only after the complete Brillouin-zone
+primitive integral.
 """
 
 from __future__ import annotations
@@ -83,10 +83,18 @@ def _replace_gauss_metadata(
         "matsubara_batch_shared_adaptive_nodes": False,
         "matsubara_batch_shared_gauss_nodes": True,
         "fixed_gauss_transverse_order": int(quadrature.transverse_order),
+        "fixed_gauss_panel_count": int(quadrature.panel_count),
+        "fixed_gauss_panel_order": int(quadrature.panel_order),
+        "fixed_gauss_integration_start": float(quadrature.integration_start),
         "fixed_gauss_quadrature": str(quadrature.quadrature),
         "fixed_gauss_success": bool(quadrature.success),
         "fixed_gauss_status": int(quadrature.status),
         "fixed_gauss_message": str(quadrature.message),
+        "full_transverse_period_integrated": bool(
+            quadrature.full_transverse_period_integrated
+        ),
+        "symmetry_reduction_applied": bool(quadrature.symmetry_reduction_applied),
+        "q_direction_special_case": bool(quadrature.q_direction_special_case),
         "transverse_evaluations": int(quadrature.transverse_evaluations),
         "point_evaluations": int(quadrature.point_evaluations),
         "diagnostic_only": True,
@@ -101,9 +109,7 @@ def _replace_gauss_metadata(
             for key, value in dict(component.metadata).items()
             if not key.startswith("adaptive_")
         }
-        corrected_components.append(
-            replace(component, metadata={**metadata, **common})
-        )
+        corrected_components.append(replace(component, metadata={**metadata, **common}))
 
     corrected_rhs: list[PrimitiveWardRHS] = []
     for rhs in rhs_values:
@@ -141,11 +147,13 @@ def integrate_dwave_positive_orbit_gauss(
     mx: int,
     my: int,
     transverse_order: int,
+    panel_count: int = 1,
+    integration_start: float = -np.pi,
     shift_s: float = 0.5,
     subgrid_average: str = "auto",
     max_point_evaluations: int = 500_000,
 ) -> DWavePositiveOrbitGaussResult:
-    """Evaluate one positive-Matsubara batch with exact orbit and fixed Gauss t."""
+    """Evaluate one positive-Matsubara batch with global or composite Gauss t."""
 
     xi_values = np.asarray(xi_eV_values, dtype=float)
     if xi_values.ndim != 1 or xi_values.size == 0:
@@ -198,6 +206,8 @@ def integrate_dwave_positive_orbit_gauss(
         mx=mx,
         my=my,
         transverse_order=transverse_order,
+        panel_count=panel_count,
+        integration_start=integration_start,
         shift_s=shift_s,
         subgrid_average=subgrid_average,
         max_point_evaluations=max_point_evaluations,
@@ -208,7 +218,7 @@ def integrate_dwave_positive_orbit_gauss(
         transverse_direction=gauss.transverse_direction,
         orbit_shift_steps=int(gauss.orbit_shift_steps),
         orbit_origins=gauss.orbit_origins,
-        pilot_order=int(gauss.transverse_order),
+        pilot_order=int(gauss.panel_order),
         epsabs=0.0,
         epsrel=0.0,
         limit=int(gauss.transverse_order),
