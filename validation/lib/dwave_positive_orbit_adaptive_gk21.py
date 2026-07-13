@@ -7,21 +7,17 @@ from typing import Sequence
 
 import numpy as np
 
-from lno327 import KuboConfig
 from lno327.response.finite_q import BdGFiniteQResponseComponents
-from lno327.response.finite_q_optimized import (
-    _vectorized_kubo_factors,
-    precompute_finite_q_material_workspace_from_model_ansatz,
-    precompute_finite_q_q_workspace,
-)
 from lno327.response.ward_validation import PrimitiveWardRHS
-from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 from validation.lib.commensurate_orbit_adaptive_gk21 import (
     AdaptiveGK21Result,
     integrate_commensurate_orbit_adaptive_gk21,
 )
+from validation.lib.dwave_orbit_primitive_evaluator import (
+    DWaveOrbitEvaluatorProfile,
+    DWaveOrbitPrimitiveEvaluator,
+)
 from validation.lib.dwave_positive_orbit_adaptive import (
-    _pack_orbit_primitives,
     _unpack_integrated_primitives,
 )
 
@@ -36,6 +32,7 @@ class DWavePositiveOrbitAdaptiveGK21Result:
     audit_rhs: tuple[PrimitiveWardRHS, ...]
     xi_eV_values: np.ndarray
     quadrature: AdaptiveGK21Result
+    evaluator_profile: DWaveOrbitEvaluatorProfile
 
     def __post_init__(self) -> None:
         xi = np.array(self.xi_eV_values, dtype=float, copy=True)
@@ -87,52 +84,20 @@ def integrate_dwave_positive_orbit_adaptive_gk21(
     """Evaluate one positive-Matsubara batch with complete-orbit adaptive GK21."""
 
     xi_values = np.asarray(xi_eV_values, dtype=float)
-    if xi_values.ndim != 1 or xi_values.size == 0:
-        raise ValueError("xi_eV_values must be a nonempty one-dimensional array")
-    if not np.isfinite(xi_values).all() or np.any(xi_values <= 0.0):
-        raise ValueError("all xi_eV_values must be finite and positive")
-    if getattr(ansatz, "name", None) != "dwave":
-        raise ValueError("positive orbit-adaptive integration is currently d-wave only")
-    if getattr(ansatz, "phase_vertex", None) != "bond_endpoint_gauge":
-        raise ValueError("d-wave orbit-adaptive integration requires bond_endpoint_gauge")
-
-    q_model = (2.0 * np.pi / float(nk)) * np.asarray([mx, my], dtype=float)
-    base_config = KuboConfig.from_kelvin(
-        omega_eV=float(xi_values[0]),
-        temperature_K=float(temperature_K),
-        eta_eV=float(eta_eV),
-        output_si=False,
+    primitive_evaluator = DWaveOrbitPrimitiveEvaluator(
+        spec=spec,
+        ansatz=ansatz,
+        pairing=pairing,
+        xi_eV_values=xi_values,
+        temperature_K=temperature_K,
+        eta_eV=eta_eV,
+        nk=nk,
+        mx=mx,
+        my=my,
     )
-    options = FiniteQEngineOptions(phase_hessian_policy="q_independent")
-
-    def orbit_evaluator(points: np.ndarray, weights: np.ndarray) -> np.ndarray:
-        material = precompute_finite_q_material_workspace_from_model_ansatz(
-            spec,
-            ansatz,
-            points,
-            weights,
-            base_config,
-            pairing,
-            options,
-        )
-        workspace = precompute_finite_q_q_workspace(material, q_model)
-        raw_factors = _vectorized_kubo_factors(workspace, xi_values)
-        weighted = (
-            0.5
-            * workspace.material.k_weights[None, :, None, None]
-            * raw_factors
-        )
-        blocks = np.einsum(
-            "xkmn,kamn,kbmn->xab",
-            weighted,
-            workspace.left_vertices_band,
-            np.conjugate(workspace.right_vertices_band),
-            optimize=True,
-        )
-        return _pack_orbit_primitives(workspace=workspace, blocks=blocks)
 
     quadrature = integrate_commensurate_orbit_adaptive_gk21(
-        orbit_evaluator,
+        primitive_evaluator,
         nk=nk,
         mx=mx,
         my=my,
@@ -158,9 +123,9 @@ def integrate_dwave_positive_orbit_adaptive_gk21(
             xi_values=xi_values,
             ansatz=ansatz,
             pairing=pairing,
-            base_config=base_config,
-            q_model=q_model,
-            options=options,
+            base_config=primitive_evaluator.base_config,
+            q_model=primitive_evaluator.q_model,
+            options=primitive_evaluator.options,
             quadrature=quadrature,
         )
     if quadrature.audit is not None and quadrature.audit.value is not None:
@@ -169,9 +134,9 @@ def integrate_dwave_positive_orbit_adaptive_gk21(
             xi_values=xi_values,
             ansatz=ansatz,
             pairing=pairing,
-            base_config=base_config,
-            q_model=q_model,
-            options=options,
+            base_config=primitive_evaluator.base_config,
+            q_model=primitive_evaluator.q_model,
+            options=primitive_evaluator.options,
             quadrature=quadrature,
         )
 
@@ -182,6 +147,7 @@ def integrate_dwave_positive_orbit_adaptive_gk21(
         audit_rhs=audit_rhs,
         xi_eV_values=xi_values,
         quadrature=quadrature,
+        evaluator_profile=primitive_evaluator.profile_snapshot(),
     )
 
 
