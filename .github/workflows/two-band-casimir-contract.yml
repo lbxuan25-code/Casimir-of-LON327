@@ -55,6 +55,7 @@ jobs:
             tests/test_finite_q_validation_model_adapter.py \
             tests/test_repository_layout_contract.py \
             tests/test_static_nk_scan_diagnostics.py \
+            tests/test_commensurate_orbit_adaptive_gk21.py \
             tests/test_validation_cli.py \
             > pytest-output.txt 2>&1
           status=$?
