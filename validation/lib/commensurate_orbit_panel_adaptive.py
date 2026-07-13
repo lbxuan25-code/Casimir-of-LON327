@@ -2,11 +2,13 @@
 
 Every sampled transverse coordinate evaluates one complete exact commensurate q
 orbit through :class:`CompleteOrbitAggregateWorkspace`.  This module controls the
-panel partition explicitly, uses nested Clenshaw-Curtis rules, computes errors per
-physical primitive group, and checks the unique-node budget before every complete
-p- or h-refinement operation.
+full-period panel partition explicitly, uses nested Clenshaw-Curtis rules, computes
+errors per physical primitive group, and checks the unique-node budget before every
+complete p- or h-refinement operation.
 
-No metric, Schur, sheet, reflection, or logdet operation is performed here.
+No metric, Schur, sheet, reflection, or logdet operation is performed here.  The
+controller uses periodicity only to choose a numerically smooth cut for the full
+``2*pi`` interval; it never assumes evenness, C4 symmetry, or q-direction equivalence.
 """
 
 from __future__ import annotations
@@ -25,11 +27,19 @@ from validation.lib.commensurate_orbit_groups import group_layout, vector_norm
 
 OrbitAggregateEvaluator = Callable[[np.ndarray, np.ndarray], np.ndarray]
 
+_CC_ESTIMATE_ORDER = 5
 _CC_LOW_ORDER = 9
 _CC_BASE_ORDER = 17
 _CC_HIGH_ORDER = 33
-_CC_ORDERS = (_CC_LOW_ORDER, _CC_BASE_ORDER, _CC_HIGH_ORDER)
-_INITIAL_PANEL_COUNT = 4
+_CC_ORDERS = (
+    _CC_ESTIMATE_ORDER,
+    _CC_LOW_ORDER,
+    _CC_BASE_ORDER,
+    _CC_HIGH_ORDER,
+)
+_ACTIVE_CC_ORDERS = (_CC_LOW_ORDER, _CC_BASE_ORDER, _CC_HIGH_ORDER)
+_INITIAL_PANEL_COUNT = 8
+_PILOT_COUNT = 16
 _MAX_PANEL_COUNT = 128
 _MAX_PANEL_DEPTH = 20
 _ERROR_SAFETY = 2.0
@@ -46,8 +56,9 @@ def _readonly(value: np.ndarray, *, dtype=None) -> np.ndarray:
 def clenshaw_curtis_rule(order: int) -> tuple[np.ndarray, np.ndarray]:
     """Return nested Clenshaw-Curtis nodes and weights on ``[-1, 1]``.
 
-    Only the production-candidate orders 9, 17, and 33 are accepted.  The
-    implementation is the even-degree form of Trefethen's ``clencurt`` rule.
+    Orders 9, 17, and 33 are active panel states.  Order 5 is accepted only as
+    the nested lower-order estimator for a CC9 panel.  The implementation is the
+    even-degree form of Trefethen's ``clencurt`` rule.
     """
 
     order_value = int(order)
@@ -132,8 +143,8 @@ class PanelState:
             raise ValueError("panel bounds must be finite")
         if not self.left < self.right:
             raise ValueError("panel left bound must be smaller than right bound")
-        if self.order not in (_CC_BASE_ORDER, _CC_HIGH_ORDER):
-            raise ValueError("panel order must be 17 or 33")
+        if self.order not in _ACTIVE_CC_ORDERS:
+            raise ValueError("panel order must be 9, 17, or 33")
         object.__setattr__(self, "value", _readonly(self.value, dtype=complex))
         object.__setattr__(
             self,
@@ -145,6 +156,21 @@ class PanelState:
             "group_point_scales",
             _readonly(self.group_point_scales, dtype=float),
         )
+
+
+@dataclass(frozen=True)
+class RefinementTraceEntry:
+    step: int
+    stage: str
+    panel: tuple[float, float]
+    old_order: int
+    operation: str
+    required_new_nodes: int
+    unique_evaluations_after: int
+    worst_group_before: str
+    worst_group_after: str
+    global_error_ratio_before: float
+    global_error_ratio_after: float
 
 
 @dataclass(frozen=True)
@@ -216,21 +242,30 @@ class PanelAdaptiveResult:
     message: str
     failure_reason: str
     norm: str
+    integration_start: float
+    refinement_trace: tuple[RefinementTraceEntry, ...]
     initial_panel_count: int = _INITIAL_PANEL_COUNT
+    pilot_count: int = _PILOT_COUNT
     maximum_panel_count: int = _MAX_PANEL_COUNT
     maximum_panel_depth: int = _MAX_PANEL_DEPTH
     strategy: str = "deterministic_panel_adaptive"
-    quadrature: str = "nested_clenshaw_curtis_9_17_33"
-    pilot_order: int = _CC_BASE_ORDER
-    summation_method: str = "complete_q_orbit_groupwise_panel_adaptive_shared_state_audit"
+    quadrature: str = "nested_clenshaw_curtis_5_9_17_33"
+    pilot_order: int = _CC_LOW_ORDER
+    summation_method: str = (
+        "complete_q_orbit_groupwise_budget_aware_panel_adaptive_shared_state_audit"
+    )
+    symmetry_reduction_applied: bool = False
+    full_transverse_period_integrated: bool = True
+    q_direction_special_case: bool = False
 
     def __post_init__(self) -> None:
         for name in ("q_model", "primitive_direction", "transverse_direction"):
             object.__setattr__(self, name, _readonly(getattr(self, name)))
+        object.__setattr__(self, "refinement_trace", tuple(self.refinement_trace))
 
     @property
     def value(self) -> np.ndarray | None:
-        if self.audit is not None and self.audit.value is not None:
+        if self.audit is not None and self.audit.success and self.audit.value is not None:
             return self.audit.value
         return self.primary.value
 
@@ -285,6 +320,16 @@ class PanelAdaptiveResult:
         return ()
 
 
+@dataclass(frozen=True)
+class _OperationCandidate:
+    panel_index: int
+    operation: str
+    new_order: int
+    required_new_nodes: int
+    local_score: float
+    benefit_per_node: float
+
+
 @dataclass
 class _ControllerState:
     workspace: CompleteOrbitAggregateWorkspace
@@ -297,7 +342,9 @@ class _ControllerState:
     epsrel: float
     scale_floor_relative: float
     scale_floor_absolute: float
+    integration_start: float
     refinement_steps: int = 0
+    trace: list[RefinementTraceEntry] = field(default_factory=list)
 
 
 def _panel_state(
@@ -310,13 +357,19 @@ def _panel_state(
     group_ids: np.ndarray,
     norm: str,
 ) -> PanelState:
-    nodes, weights = clenshaw_curtis_rule(order)
+    if order not in _ACTIVE_CC_ORDERS:
+        raise ValueError("active panel order must be 9, 17, or 33")
+    _, weights = clenshaw_curtis_rule(order)
     t_values = _mapped_panel_nodes(left, right, order)
     values = np.stack([workspace.evaluate_t(value) for value in t_values], axis=0)
     half_width = 0.5 * (float(right) - float(left))
     high = half_width * np.tensordot(weights, values, axes=(0, 0)) / (2.0 * np.pi)
 
-    lower_order = _CC_LOW_ORDER if order == _CC_BASE_ORDER else _CC_BASE_ORDER
+    lower_order = {
+        _CC_LOW_ORDER: _CC_ESTIMATE_ORDER,
+        _CC_BASE_ORDER: _CC_LOW_ORDER,
+        _CC_HIGH_ORDER: _CC_BASE_ORDER,
+    }[order]
     _, lower_weights = clenshaw_curtis_rule(lower_order)
     lower_values = values[::2]
     low = (
@@ -326,15 +379,19 @@ def _panel_state(
     )
     current_errors = _group_norms(high - low, group_ids, norm)
 
-    if order == _CC_HIGH_ORDER:
-        _, lowest_weights = clenshaw_curtis_rule(_CC_LOW_ORDER)
-        lowest_values = values[::4]
-        lowest = (
+    if order in (_CC_BASE_ORDER, _CC_HIGH_ORDER):
+        history_order = {
+            _CC_BASE_ORDER: _CC_ESTIMATE_ORDER,
+            _CC_HIGH_ORDER: _CC_LOW_ORDER,
+        }[order]
+        _, history_weights = clenshaw_curtis_rule(history_order)
+        history_values = values[::4]
+        history = (
             half_width
-            * np.tensordot(lowest_weights, lowest_values, axes=(0, 0))
+            * np.tensordot(history_weights, history_values, axes=(0, 0))
             / (2.0 * np.pi)
         )
-        history_errors = _group_norms(low - lowest, group_ids, norm)
+        history_errors = _group_norms(low - history, group_ids, norm)
         current_errors = np.maximum(
             current_errors,
             _SPECTRAL_HISTORY_FLOOR * history_errors,
@@ -438,71 +495,137 @@ def _snapshot(
     )
 
 
-def _refinement_target(
+def _local_panel_score(
     state: _ControllerState,
+    panel: PanelState,
     tolerance_factor: float,
-) -> int:
+) -> float:
     _, _, tolerances, _, scales = _global_metrics(state, tolerance_factor)
     control = state.group_control_weights > 0.0
-    scores = np.full(len(state.panels), -np.inf, dtype=float)
-    for index, panel in enumerate(state.panels):
-        local = np.zeros_like(panel.group_errors)
-        local[control] = (
-            state.group_control_weights[control]
-            * panel.group_errors[control]
-            / scales[control]
-            / np.maximum(tolerances[control], np.finfo(float).tiny)
-        )
-        scores[index] = float(np.max(local[control]))
-    return int(np.argmax(scores))
-
-
-def _operation_nodes(panel: PanelState) -> np.ndarray:
-    if panel.order == _CC_BASE_ORDER:
-        return _mapped_panel_nodes(panel.left, panel.right, _CC_HIGH_ORDER)
-    midpoint = 0.5 * (panel.left + panel.right)
-    return np.concatenate(
-        (
-            _mapped_panel_nodes(panel.left, midpoint, _CC_BASE_ORDER),
-            _mapped_panel_nodes(midpoint, panel.right, _CC_BASE_ORDER),
-        )
+    local = np.zeros_like(panel.group_errors)
+    local[control] = (
+        state.group_control_weights[control]
+        * panel.group_errors[control]
+        / scales[control]
+        / np.maximum(tolerances[control], np.finfo(float).tiny)
     )
+    return float(np.max(local[control]))
+
+
+def _operation_nodes(panel: PanelState) -> tuple[str, int, np.ndarray]:
+    if panel.order == _CC_LOW_ORDER:
+        return (
+            "p_refine",
+            _CC_BASE_ORDER,
+            _mapped_panel_nodes(panel.left, panel.right, _CC_BASE_ORDER),
+        )
+    if panel.order == _CC_BASE_ORDER:
+        return (
+            "p_refine",
+            _CC_HIGH_ORDER,
+            _mapped_panel_nodes(panel.left, panel.right, _CC_HIGH_ORDER),
+        )
+    midpoint = 0.5 * (panel.left + panel.right)
+    return (
+        "split",
+        _CC_LOW_ORDER,
+        np.concatenate(
+            (
+                _mapped_panel_nodes(panel.left, midpoint, _CC_LOW_ORDER),
+                _mapped_panel_nodes(midpoint, panel.right, _CC_LOW_ORDER),
+            )
+        ),
+    )
+
+
+def _candidate_operations(
+    state: _ControllerState,
+    tolerance_factor: float,
+) -> tuple[list[_OperationCandidate], str]:
+    current = state.workspace.transverse_evaluations_unique
+    maximum = state.workspace.max_unique_transverse_evaluations
+    remaining = maximum - current
+    feasible: list[_OperationCandidate] = []
+    blocked_costs: list[int] = []
+    structural_reasons: list[str] = []
+
+    for index, panel in enumerate(state.panels):
+        if panel.order == _CC_HIGH_ORDER:
+            if panel.depth >= _MAX_PANEL_DEPTH:
+                structural_reasons.append("maximum_panel_depth_reached")
+                continue
+            if len(state.panels) + 1 > _MAX_PANEL_COUNT:
+                structural_reasons.append("maximum_panel_count_reached")
+                continue
+        operation, new_order, nodes = _operation_nodes(panel)
+        missing = _missing_node_count(state.workspace, nodes)
+        local_score = _local_panel_score(state, panel, tolerance_factor)
+        candidate = _OperationCandidate(
+            panel_index=index,
+            operation=operation,
+            new_order=new_order,
+            required_new_nodes=missing,
+            local_score=local_score,
+            benefit_per_node=local_score / max(missing, 1),
+        )
+        if missing <= remaining:
+            feasible.append(candidate)
+        else:
+            blocked_costs.append(missing)
+
+    if feasible:
+        return feasible, ""
+    if blocked_costs:
+        return [], (
+            "panel_boundary_transverse_budget_exceeded: "
+            f"current={current}, minimum_required_new={min(blocked_costs)}, "
+            f"maximum={maximum}"
+        )
+    if structural_reasons:
+        return [], sorted(structural_reasons)[0]
+    return [], "no_refinement_operation_available"
 
 
 def _refine_once(
     state: _ControllerState,
     *,
     tolerance_factor: float,
+    stage: str,
 ) -> tuple[bool, str]:
-    panel_index = _refinement_target(state, tolerance_factor)
-    panel = state.panels[panel_index]
-    if panel.order == _CC_HIGH_ORDER:
-        if panel.depth >= _MAX_PANEL_DEPTH:
-            return False, "maximum_panel_depth_reached"
-        if len(state.panels) + 1 > _MAX_PANEL_COUNT:
-            return False, "maximum_panel_count_reached"
+    before = _snapshot(
+        state,
+        tolerance_factor=tolerance_factor,
+        success=False,
+        message="",
+    )
+    candidates, reason = _candidate_operations(state, tolerance_factor)
+    if not candidates:
+        return False, reason
 
-    required_nodes = _operation_nodes(panel)
-    missing = _missing_node_count(state.workspace, required_nodes)
-    current = state.workspace.transverse_evaluations_unique
-    maximum = state.workspace.max_unique_transverse_evaluations
-    if current + missing > maximum:
-        return False, (
-            "panel_boundary_transverse_budget_exceeded: "
-            f"current={current}, required_new={missing}, maximum={maximum}"
-        )
+    selected = max(
+        candidates,
+        key=lambda item: (
+            item.benefit_per_node,
+            item.local_score,
+            -item.required_new_nodes,
+            -item.panel_index,
+        ),
+    )
+    panel = state.panels[selected.panel_index]
+    panel_bounds = (float(panel.left), float(panel.right))
+    old_order = int(panel.order)
 
-    if panel.order == _CC_BASE_ORDER:
+    if selected.operation == "p_refine":
         replacement = _panel_state(
             state.workspace,
             left=panel.left,
             right=panel.right,
             depth=panel.depth,
-            order=_CC_HIGH_ORDER,
+            order=selected.new_order,
             group_ids=state.group_ids,
             norm=state.norm,
         )
-        state.panels[panel_index] = replacement
+        state.panels[selected.panel_index] = replacement
     else:
         midpoint = 0.5 * (panel.left + panel.right)
         left_child = _panel_state(
@@ -510,7 +633,7 @@ def _refine_once(
             left=panel.left,
             right=midpoint,
             depth=panel.depth + 1,
-            order=_CC_BASE_ORDER,
+            order=_CC_LOW_ORDER,
             group_ids=state.group_ids,
             norm=state.norm,
         )
@@ -519,12 +642,37 @@ def _refine_once(
             left=midpoint,
             right=panel.right,
             depth=panel.depth + 1,
-            order=_CC_BASE_ORDER,
+            order=_CC_LOW_ORDER,
             group_ids=state.group_ids,
             norm=state.norm,
         )
-        state.panels[panel_index : panel_index + 1] = [left_child, right_child]
+        state.panels[selected.panel_index : selected.panel_index + 1] = [
+            left_child,
+            right_child,
+        ]
+
     state.refinement_steps += 1
+    after = _snapshot(
+        state,
+        tolerance_factor=tolerance_factor,
+        success=False,
+        message="",
+    )
+    state.trace.append(
+        RefinementTraceEntry(
+            step=state.refinement_steps,
+            stage=str(stage),
+            panel=panel_bounds,
+            old_order=old_order,
+            operation=selected.operation,
+            required_new_nodes=selected.required_new_nodes,
+            unique_evaluations_after=state.workspace.transverse_evaluations_unique,
+            worst_group_before=before.worst_group_name,
+            worst_group_after=after.worst_group_name,
+            global_error_ratio_before=before.integral_error_ratio,
+            global_error_ratio_after=after.integral_error_ratio,
+        )
+    )
     return True, ""
 
 
@@ -532,6 +680,7 @@ def _advance_to_tolerance(
     state: _ControllerState,
     *,
     tolerance_factor: float,
+    stage: str,
 ) -> tuple[PanelAdaptiveSnapshot, str]:
     while True:
         current = _snapshot(
@@ -554,6 +703,7 @@ def _advance_to_tolerance(
         advanced, reason = _refine_once(
             state,
             tolerance_factor=tolerance_factor,
+            stage=stage,
         )
         if not advanced:
             return (
@@ -595,6 +745,63 @@ def _audit_group_ratios(
             / max(tolerance, np.finfo(float).tiny)
         )
     return ratios
+
+
+def _pilot_grid() -> np.ndarray:
+    return -np.pi + 2.0 * np.pi * np.arange(_PILOT_COUNT, dtype=float) / _PILOT_COUNT
+
+
+def _select_periodic_cut(
+    pilot_t: np.ndarray,
+    pilot_values: np.ndarray,
+    norm: str,
+    group_ids: np.ndarray,
+    control_weights: np.ndarray,
+) -> float:
+    """Choose a smooth full-period cut using control groups only.
+
+    The candidate cut points are the 16 pilot nodes that later reappear as the
+    boundaries and midpoints of the eight initial CC9 panels.  Ward/monitor
+    groups have zero weight and therefore cannot affect the cut.
+    """
+
+    group_scales = _group_point_scales(pilot_values, group_ids, norm)
+    group_scales = np.maximum(group_scales, np.finfo(float).tiny)
+    control = control_weights > 0.0
+    scores = np.zeros(_PILOT_COUNT, dtype=float)
+    for index in range(_PILOT_COUNT):
+        previous = pilot_values[(index - 1) % _PILOT_COUNT]
+        current = pilot_values[index]
+        following = pilot_values[(index + 1) % _PILOT_COUNT]
+        left = _group_norms(current - previous, group_ids, norm) / group_scales
+        right = _group_norms(following - current, group_ids, norm) / group_scales
+        weighted = control_weights * (left + right)
+        scores[index] = float(np.max(weighted[control]))
+    return float(pilot_t[int(np.argmin(scores))])
+
+
+def _empty_snapshot(message: str) -> PanelAdaptiveSnapshot:
+    empty = np.empty(0, dtype=float)
+    return PanelAdaptiveSnapshot(
+        value=None,
+        group_errors=empty,
+        group_tolerances=empty,
+        group_ratios=empty,
+        group_scales=empty,
+        success=False,
+        tolerance_factor=1.0,
+        unique_evaluations=0,
+        cache_hits=0,
+        panel_count=0,
+        maximum_depth=0,
+        refinement_steps=0,
+        worst_group_index=-1,
+        worst_group_name="none",
+        worst_panel=(float("nan"), float("nan")),
+        worst_panel_order=0,
+        worst_local_ratio=float("inf"),
+        message=message,
+    )
 
 
 def integrate_commensurate_orbit_panel_adaptive(
@@ -641,36 +848,9 @@ def integrate_commensurate_orbit_panel_adaptive(
         subgrid_average=subgrid_average,
         max_unique_transverse_evaluations=max_unique_transverse_evaluations,
     )
-    boundaries = np.linspace(-np.pi, np.pi, _INITIAL_PANEL_COUNT + 1)
-    initial_nodes = np.concatenate(
-        [
-            _mapped_panel_nodes(boundaries[index], boundaries[index + 1], _CC_BASE_ORDER)
-            for index in range(_INITIAL_PANEL_COUNT)
-        ]
-    )
-    required = _missing_node_count(workspace, initial_nodes)
-    if required > max_unique_transverse_evaluations:
-        empty = np.empty(0, dtype=float)
-        primary = PanelAdaptiveSnapshot(
-            value=None,
-            group_errors=empty,
-            group_tolerances=empty,
-            group_ratios=empty,
-            group_scales=empty,
-            success=False,
-            tolerance_factor=1.0,
-            unique_evaluations=0,
-            cache_hits=0,
-            panel_count=0,
-            maximum_depth=0,
-            refinement_steps=0,
-            worst_group_index=-1,
-            worst_group_name="none",
-            worst_panel=(float("nan"), float("nan")),
-            worst_panel_order=0,
-            worst_local_ratio=float("inf"),
-            message="initial_panel_budget_exceeded",
-        )
+
+    def early_failure(reason: str, message: str) -> PanelAdaptiveResult:
+        primary = _empty_snapshot(reason)
         return PanelAdaptiveResult(
             primary=primary,
             audit=None,
@@ -684,13 +864,13 @@ def integrate_commensurate_orbit_panel_adaptive(
             epsrel=epsrel,
             audit_tolerance_factor=audit_tolerance_factor,
             max_unique_transverse_evaluations=max_unique_transverse_evaluations,
-            transverse_evaluations=0,
-            cache_hits=0,
-            point_evaluations=0,
+            transverse_evaluations=workspace.transverse_evaluations_unique,
+            cache_hits=workspace.cache_hits,
+            point_evaluations=workspace.point_evaluations,
             chunk_size=workspace.points_per_t,
             wall_seconds=time.perf_counter() - started,
-            geometry_wall_seconds=0.0,
-            evaluator_wall_seconds=0.0,
+            geometry_wall_seconds=workspace.geometry_wall_seconds,
+            evaluator_wall_seconds=workspace.evaluator_wall_seconds,
             group_names=(),
             control_group_names=(),
             monitor_group_names=(),
@@ -698,25 +878,62 @@ def integrate_commensurate_orbit_panel_adaptive(
             primitive_group_agreement_passed=False,
             success=False,
             status=2,
-            message="initial panel set exceeds transverse budget",
-            failure_reason="initial_panel_budget_exceeded",
+            message=message,
+            failure_reason=reason,
             norm=norm,
+            integration_start=float("nan"),
+            refinement_trace=(),
         )
 
-    first_value = workspace.evaluate_t(initial_nodes[0])
+    pilot_t = _pilot_grid()
+    if _missing_node_count(workspace, pilot_t) > max_unique_transverse_evaluations:
+        return early_failure(
+            "pilot_budget_exceeded",
+            "periodic cut pilot exceeds transverse budget",
+        )
+    pilot_values = np.stack([workspace.evaluate_t(value) for value in pilot_t], axis=0)
     ids, names, control_weights = group_layout(
-        int(first_value.size),
+        int(pilot_values.shape[1]),
         component_group_ids=component_group_ids,
         group_names=group_names,
         group_control_weights=group_control_weights,
     )
+    integration_start = _select_periodic_cut(
+        pilot_t,
+        pilot_values,
+        norm,
+        ids,
+        control_weights,
+    )
+    boundaries = integration_start + np.linspace(
+        0.0,
+        2.0 * np.pi,
+        _INITIAL_PANEL_COUNT + 1,
+    )
+    initial_nodes = np.concatenate(
+        [
+            _mapped_panel_nodes(
+                boundaries[index],
+                boundaries[index + 1],
+                _CC_LOW_ORDER,
+            )
+            for index in range(_INITIAL_PANEL_COUNT)
+        ]
+    )
+    required = _missing_node_count(workspace, initial_nodes)
+    if workspace.transverse_evaluations_unique + required > max_unique_transverse_evaluations:
+        return early_failure(
+            "initial_panel_budget_exceeded",
+            "initial CC9 panel set exceeds transverse budget",
+        )
+
     panels = [
         _panel_state(
             workspace,
             left=float(boundaries[index]),
             right=float(boundaries[index + 1]),
             depth=0,
-            order=_CC_BASE_ORDER,
+            order=_CC_LOW_ORDER,
             group_ids=ids,
             norm=norm,
         )
@@ -733,15 +950,21 @@ def integrate_commensurate_orbit_panel_adaptive(
         epsrel=epsrel,
         scale_floor_relative=scale_floor_relative,
         scale_floor_absolute=scale_floor_absolute,
+        integration_start=integration_start,
     )
 
-    primary, primary_reason = _advance_to_tolerance(state, tolerance_factor=1.0)
+    primary, primary_reason = _advance_to_tolerance(
+        state,
+        tolerance_factor=1.0,
+        stage="primary",
+    )
     audit = None
     audit_reason = ""
     if primary.success:
         audit, audit_reason = _advance_to_tolerance(
             state,
             tolerance_factor=float(audit_tolerance_factor),
+            stage="audit",
         )
 
     agreement_ratios = np.full(control_weights.size, np.inf)
@@ -813,6 +1036,8 @@ def integrate_commensurate_orbit_panel_adaptive(
         message=message,
         failure_reason=failure_reason,
         norm=norm,
+        integration_start=integration_start,
+        refinement_trace=tuple(state.trace),
     )
 
 
@@ -820,6 +1045,7 @@ __all__ = [
     "PanelAdaptiveResult",
     "PanelAdaptiveSnapshot",
     "PanelState",
+    "RefinementTraceEntry",
     "clenshaw_curtis_rule",
     "integrate_commensurate_orbit_panel_adaptive",
 ]
