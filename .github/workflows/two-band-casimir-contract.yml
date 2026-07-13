@@ -124,8 +124,15 @@ jobs:
 
           payload = json.loads(Path('/tmp/dwave-panel-smoke.json').read_text())
           quadrature = payload['quadrature']
+          assert payload['schema'] == 'dwave_positive_commensurate_orbit_panel_adaptive_v2'
           assert quadrature['strategy'] == 'deterministic_panel_adaptive'
-          assert quadrature['quadrature'] == 'nested_clenshaw_curtis_9_17_33'
+          assert quadrature['quadrature'] == 'nested_clenshaw_curtis_5_9_17_33'
+          assert quadrature['initial_panel_count'] == 8
+          assert quadrature['pilot_count'] == 16
+          assert quadrature['full_transverse_period_integrated'] is True
+          assert quadrature['symmetry_reduction_applied'] is False
+          assert quadrature['q_direction_special_case'] is False
+          assert isinstance(quadrature['refinement_trace'], list)
           assert quadrature['transverse_evaluations_unique'] <= 128
           assert payload['status']['diagnostic_only'] is True
           assert payload['status']['valid_for_casimir_input'] is False
