@@ -33,6 +33,8 @@ def test_complete_orbit_workspace_caches_and_enforces_unique_budget() -> None:
         my=1,
         max_unique_transverse_evaluations=1,
     )
+    assert len(workspace.orbit_origins) == 2
+    assert workspace.points_per_t == 2 * workspace.nk
     first = workspace.evaluate_phase(0.125)
     cached = workspace.evaluate_phase(0.125)
     assert np.array_equal(first, cached)
