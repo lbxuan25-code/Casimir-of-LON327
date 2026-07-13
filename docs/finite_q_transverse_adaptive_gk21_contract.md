@@ -70,6 +70,30 @@ Node-cap failure and wall-time failure are distinct:
 - `unique_t <= cap` but wall time is too high: profile and optimize the microscopic
   evaluator while preserving exact arithmetic and orbit coverage.
 
+## Complete-orbit evaluator profiling
+
+The primitive evaluator is a single reusable callable shared by the GK21 wrapper
+and the profiling command.  It records cumulative time in these stages:
+
+- material midpoint workspace;
+- q-dependent shifted workspace;
+- Matsubara Kubo-factor construction;
+- batched five-channel Kubo contraction;
+- primitive-vector packing.
+
+Orbit geometry/wrapping is timed separately by the complete-orbit workspace.  A
+single callback can be profiled with:
+
+```bash
+python -m validation matsubara dwave-orbit-evaluator-profile \
+  --nk 1256 --mx 6 --my 4 --matsubara-indices 1 2 4 8
+```
+
+The profiler is diagnostic only.  It does not perform a transverse integral or
+produce a Casimir-valid point.  Profile at least one normal reference direction and
+both difficult diagonal origin classes before choosing any deeper vectorization
+work.
+
 ## Point gate
 
 A point can pass only when all of the following are true:
@@ -100,6 +124,7 @@ No condition may be removed or weakened to force acceptance.
 - primary/audit sigma, reflection, and logdet differences;
 - worst reported intervals;
 - geometry, evaluator, quadrature, and total wall times;
+- separate complete-orbit evaluator profile output;
 - structured failure reason;
 - global diagnostic/readiness flags.
 
