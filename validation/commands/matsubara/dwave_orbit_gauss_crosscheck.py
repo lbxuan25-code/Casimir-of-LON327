@@ -1,8 +1,9 @@
 """Cross-check positive d-wave periodic-orbit results with fixed Gauss quadrature.
 
-The command recomputes the same primitive response payload on nonuniform fixed
-Gauss-Legendre transverse nodes and compares the resulting sheet response,
-reflection matrix, and passive logdet with an existing periodic-reference CSV.
+The command supports both the historical one-panel global Gauss-Legendre rule and
+an equal-panel composite rule.  ``--gauss-orders`` always denotes total transverse
+nodes.  Multiple explicit periodic cuts may be supplied; every run still covers one
+complete interval of length ``2*pi`` without even, C4, or q-direction reduction.
 """
 
 from __future__ import annotations
@@ -18,19 +19,15 @@ from typing import Any
 
 import numpy as np
 
-from lno327.casimir.lifshitz_integrand import passive_sheet_logdet
-from lno327.electrodynamics.conventions import (
-    positive_matsubara_kernel_to_sheet_response,
-    validate_positive_matsubara_sheet_response,
-)
-from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE
-from lno327.electrodynamics.reflection import (
-    positive_matsubara_sheet_response_to_reflection,
-)
-from lno327.response.effective_kernel import effective_em_kernel_from_components
-from lno327.response.ward_validation import validate_effective_ward_xy
 from validation.commands.matsubara.dwave_orbit_adaptive import matsubara_energy_eV
 from validation.lib.dwave_commensurate_orbit_gauss import OrbitEvaluationBudgetExceeded
+from validation.lib.dwave_orbit_acceptance import (
+    OrbitAcceptancePhysicsConfig,
+    evaluate_positive_matsubara_pipeline,
+    matrix_fields,
+    mixed_matrix_gate,
+    mixed_scalar_gate,
+)
 from validation.lib.dwave_positive_orbit_gauss import (
     integrate_dwave_positive_orbit_gauss,
 )
@@ -53,6 +50,22 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--my", type=int, default=4)
     parser.add_argument("--matsubara-indices", nargs="+", type=int, default=[1, 2, 4, 8])
     parser.add_argument("--gauss-orders", nargs="+", type=int, default=[160, 192, 224])
+    parser.add_argument(
+        "--panel-count",
+        type=int,
+        default=1,
+        help="equal transverse panels; gauss orders remain total node counts",
+    )
+    parser.add_argument(
+        "--integration-start",
+        action="append",
+        type=float,
+        dest="integration_starts",
+        help=(
+            "periodic cut t0 for [t0,t0+2*pi]; repeat for cut-consistency checks; "
+            "default is -pi"
+        ),
+    )
     parser.add_argument("--shift-s", type=float, default=0.5)
     parser.add_argument("--subgrid-average", choices=("auto", "none"), default="auto")
     parser.add_argument("--max-point-evaluations", type=int, default=500_000)
@@ -65,23 +78,37 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--ward-absolute-tolerance", type=float, default=1e-12)
     parser.add_argument("--condition-max", type=float, default=1e12)
     parser.add_argument("--reference-matrix-rtol", type=float, default=1e-3)
+    parser.add_argument("--reference-matrix-atol", type=float, default=1e-12)
     parser.add_argument("--reference-logdet-rtol", type=float, default=1e-3)
+    parser.add_argument("--reference-logdet-atol", type=float, default=1e-12)
     parser.add_argument("--reference-csv", type=Path, default=DEFAULT_REFERENCE)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
 
-    if args.nk <= 0 or args.max_point_evaluations <= 0:
-        parser.error("--nk and --max-point-evaluations must be positive")
+    if args.nk <= 0 or args.panel_count <= 0 or args.max_point_evaluations <= 0:
+        parser.error("--nk, --panel-count, and --max-point-evaluations must be positive")
     if args.mx == 0 and args.my == 0:
         parser.error("at least one of --mx,--my must be nonzero")
     if any(index <= 0 for index in args.matsubara_indices):
         parser.error("all Matsubara indices must be positive")
     if any(order <= 0 for order in args.gauss_orders):
         parser.error("all Gauss orders must be positive")
-    if args.reference_matrix_rtol < 0.0 or args.reference_logdet_rtol < 0.0:
-        parser.error("reference tolerances must be non-negative")
+    if any(order % args.panel_count != 0 for order in args.gauss_orders):
+        parser.error("every --gauss-orders value must be divisible by --panel-count")
+    starts = args.integration_starts or [-np.pi]
+    if not np.isfinite(np.asarray(starts, dtype=float)).all():
+        parser.error("all --integration-start values must be finite")
+    for name in (
+        "reference_matrix_rtol",
+        "reference_matrix_atol",
+        "reference_logdet_rtol",
+        "reference_logdet_atol",
+    ):
+        if getattr(args, name) < 0.0:
+            parser.error(f"--{name.replace('_', '-')} must be non-negative")
     if not args.reference_csv.is_file():
         parser.error(f"reference CSV does not exist: {args.reference_csv}")
+    args.integration_starts = tuple(float(value) for value in starts)
     return args
 
 
@@ -112,57 +139,40 @@ def _matrix_from_row(row: dict[str, Any], prefix: str) -> np.ndarray:
     )
 
 
-def _matrix_fields(prefix: str, matrix: np.ndarray) -> dict[str, float]:
-    value = np.asarray(matrix, dtype=complex)
-    fields = {f"{prefix}_frobenius_norm": float(np.linalg.norm(value))}
-    for label, row, col in (
-        ("xx", 0, 0),
-        ("xy", 0, 1),
-        ("yx", 1, 0),
-        ("yy", 1, 1),
-    ):
-        scalar = complex(value[row, col])
-        fields[f"{prefix}_{label}_real"] = float(scalar.real)
-        fields[f"{prefix}_{label}_imag"] = float(scalar.imag)
-    return fields
-
-
-def _matrix_relative_difference(a: np.ndarray, b: np.ndarray) -> float:
-    left = np.asarray(a, dtype=complex)
-    right = np.asarray(b, dtype=complex)
-    denominator = max(float(np.linalg.norm(left)), float(np.linalg.norm(right)), 1e-30)
-    return float(np.linalg.norm(left - right) / denominator)
-
-
-def _scalar_relative_difference(a: float, b: float) -> float:
-    left, right = float(a), float(b)
-    return abs(left - right) / max(abs(left), abs(right), 1e-30)
+def _unavailable_gate() -> tuple[float, float, float, bool]:
+    return float("inf"), float("inf"), float("inf"), False
 
 
 def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
     lines = [
-        "positive-Matsubara d-wave fixed-Gauss cross-check",
-        "=" * 78,
+        "positive-Matsubara d-wave fixed/composite-Gauss cross-check",
+        "=" * 94,
         f"reference = {args.reference_csv}",
         f"grid: nk={args.nk}, m=({args.mx},{args.my})",
-        f"Gauss orders = {tuple(sorted(set(args.gauss_orders)))}",
-        f"matrix tolerance = {args.reference_matrix_rtol:.3e}; "
-        f"logdet tolerance = {args.reference_logdet_rtol:.3e}",
+        f"total Gauss orders = {tuple(sorted(set(args.gauss_orders)))}",
+        f"panel count = {args.panel_count}; cuts = {args.integration_starts}",
+        f"matrix atol/rtol = {args.reference_matrix_atol:.3e}/"
+        f"{args.reference_matrix_rtol:.3e}; logdet atol/rtol = "
+        f"{args.reference_logdet_atol:.3e}/{args.reference_logdet_rtol:.3e}",
         "",
-        " order  n    sigma-ref       R-ref       logdet-ref    Ward   point   cross",
-        "-" * 88,
+        " cut total local  n   sigma-ref  sigma-prev  sigma-cut   Ward  physical",
+        "-" * 94,
     ]
     for row in rows:
         lines.append(
-            f"{int(row['gauss_order']):6d} "
+            f"{int(row['cut_index']):4d} "
+            f"{int(row['gauss_order']):5d} "
+            f"{int(row['panel_order']):5d} "
             f"{int(row['matsubara_index']):2d} "
-            f"{float(row['reference_sigma_matrix_relative']):12.3e} "
-            f"{float(row['reference_reflection_matrix_relative']):12.3e} "
-            f"{float(row['reference_logdet_relative']):14.3e} "
-            f"{str(bool(row['ward_passed'])):>7s} "
-            f"{str(bool(row['point_pipeline_passed'])):>7s} "
-            f"{str(bool(row['crosscheck_passed'])):>7s}"
+            f"{float(row['reference_sigma_matrix_ratio']):11.3e} "
+            f"{float(row['previous_gauss_sigma_matrix_ratio']):11.3e} "
+            f"{float(row['baseline_cut_sigma_matrix_ratio']):10.3e} "
+            f"{str(bool(row['ward_passed'])):>6s} "
+            f"{str(bool(row['point_pipeline_passed'])):>9s}"
         )
+
+    previous = [row for row in rows if bool(row["previous_order_available"])]
+    cuts = [row for row in rows if bool(row["cut_comparison_available"])]
     lines.extend(
         [
             "",
@@ -170,6 +180,10 @@ def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
             f"{all(bool(row['point_pipeline_passed']) for row in rows)}",
             f"all reference cross-checks passed = "
             f"{all(bool(row['crosscheck_passed']) for row in rows)}",
+            f"all consecutive-order checks passed = "
+            f"{bool(previous) and all(bool(row['previous_gauss_comparison_passed']) for row in previous)}",
+            f"all periodic-cut checks passed = "
+            f"{(len(args.integration_starts) == 1) or (bool(cuts) and all(bool(row['cut_comparison_passed']) for row in cuts))}",
             "diagnostic_only = True",
             "production_reference_established = False",
             "valid_for_casimir_input = False",
@@ -183,6 +197,7 @@ def main() -> None:
     args = _parse_args()
     indices = tuple(sorted(set(int(value) for value in args.matsubara_indices)))
     orders = tuple(sorted(set(int(value) for value in args.gauss_orders)))
+    starts = tuple(args.integration_starts)
     reference_rows = _load_rows(args.reference_csv)
     missing = [index for index in indices if index not in reference_rows]
     if missing:
@@ -195,190 +210,269 @@ def main() -> None:
     model = get_finite_q_validation_model("symmetry_bdg_2band")
     ansatz = model.build_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
     pairing = model.build_pairing_params(args.delta0_eV)
-    lattice = LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_x_m
-    separation_m = float(args.separation_nm) * 1e-9
+    physics_config = OrbitAcceptancePhysicsConfig(
+        degeneracy=args.degeneracy,
+        separation_nm=args.separation_nm,
+        ward_tolerance=args.ward_tolerance,
+        ward_absolute_tolerance=args.ward_absolute_tolerance,
+        condition_max=args.condition_max,
+    )
 
     output_rows: list[dict[str, Any]] = []
-    previous_by_index: dict[int, tuple[np.ndarray, np.ndarray, float]] = {}
+    baseline_by_order_index: dict[
+        tuple[int, int], tuple[np.ndarray, np.ndarray, float]
+    ] = {}
     started_all = time.perf_counter()
 
-    for order in orders:
-        print(
-            "starting positive d-wave fixed-Gauss cross-check: "
-            f"nk={args.nk}, m=({args.mx},{args.my}), order={order}, indices={indices}",
-            flush=True,
-        )
-        try:
-            integrated = integrate_dwave_positive_orbit_gauss(
-                spec=model.spec,
-                ansatz=ansatz,
-                pairing=pairing,
-                xi_eV_values=xi_values,
-                temperature_K=args.temperature_K,
-                eta_eV=args.eta_eV,
-                nk=args.nk,
-                mx=args.mx,
-                my=args.my,
-                transverse_order=order,
-                shift_s=args.shift_s,
-                subgrid_average=args.subgrid_average,
-                max_point_evaluations=args.max_point_evaluations,
+    for cut_index, integration_start in enumerate(starts):
+        previous_by_index: dict[int, tuple[np.ndarray, np.ndarray, float]] = {}
+        for order in orders:
+            print(
+                "starting positive d-wave fixed-Gauss cross-check: "
+                f"nk={args.nk}, m=({args.mx},{args.my}), total_order={order}, "
+                f"panels={args.panel_count}, cut={integration_start:.12f}, "
+                f"indices={indices}",
+                flush=True,
             )
-        except OrbitEvaluationBudgetExceeded as exc:
-            raise SystemExit(str(exc)) from exc
-
-        quadrature = integrated.quadrature
-        q = np.asarray(quadrature.q_model, dtype=float)
-        for index, xi, components, rhs in zip(
-            indices,
-            integrated.xi_eV_values,
-            integrated.components,
-            integrated.rhs,
-            strict=True,
-        ):
-            kernel = effective_em_kernel_from_components(
-                components,
-                q_model=q,
-                xi_eV=float(xi),
-            )
-            ward = validate_effective_ward_xy(
-                kernel,
-                rhs,
-                residual_tolerance=args.ward_tolerance,
-                absolute_residual_tolerance=args.ward_absolute_tolerance,
-                condition_max=args.condition_max,
-            )
-            sheet = positive_matsubara_kernel_to_sheet_response(
-                kernel,
-                degeneracy=args.degeneracy,
-            )
-            sheet_validation = validate_positive_matsubara_sheet_response(sheet)
-            reflection_constructed = False
-            logdet_passed = False
-            reflection_error = ""
-            logdet_error = ""
-            reflection_matrix = np.full((2, 2), np.nan + 1j * np.nan, dtype=complex)
-            logdet = float("nan")
             try:
-                reflection = positive_matsubara_sheet_response_to_reflection(
-                    sheet,
-                    q_lab_model=q,
-                    theta_rad=0.0,
-                    lattice_constant_m=lattice,
-                    require_physical=True,
+                integrated = integrate_dwave_positive_orbit_gauss(
+                    spec=model.spec,
+                    ansatz=ansatz,
+                    pairing=pairing,
+                    xi_eV_values=xi_values,
+                    temperature_K=args.temperature_K,
+                    eta_eV=args.eta_eV,
+                    nk=args.nk,
+                    mx=args.mx,
+                    my=args.my,
+                    transverse_order=order,
+                    panel_count=args.panel_count,
+                    integration_start=integration_start,
+                    shift_s=args.shift_s,
+                    subgrid_average=args.subgrid_average,
+                    max_point_evaluations=args.max_point_evaluations,
                 )
-            except (ValueError, np.linalg.LinAlgError) as exc:
-                reflection_error = str(exc)
-            else:
-                reflection_constructed = True
-                reflection_matrix = np.asarray(reflection.matrix_lt, dtype=complex)
-                try:
-                    point = passive_sheet_logdet(
-                        reflection,
-                        reflection,
-                        separation_m=separation_m,
-                    )
-                except (ValueError, np.linalg.LinAlgError) as exc:
-                    logdet_error = str(exc)
-                else:
-                    logdet_passed = True
-                    logdet = float(point.logdet)
+            except OrbitEvaluationBudgetExceeded as exc:
+                raise SystemExit(str(exc)) from exc
 
-            sigma_matrix = np.asarray(sheet.matrix_tilde, dtype=complex)
-            reference = reference_rows[index]
-            reference_sigma = _matrix_from_row(reference, "sigma_tilde")
-            reference_reflection = _matrix_from_row(reference, "reflection")
-            reference_logdet = float(reference["logdet"])
-            sigma_reference_relative = _matrix_relative_difference(
-                sigma_matrix,
-                reference_sigma,
-            )
-            reflection_reference_relative = _matrix_relative_difference(
-                reflection_matrix,
-                reference_reflection,
-            )
-            logdet_reference_relative = _scalar_relative_difference(
-                logdet,
-                reference_logdet,
-            )
+            quadrature = integrated.quadrature
+            q = np.asarray(quadrature.q_model, dtype=float)
+            for index, xi, components, rhs in zip(
+                indices,
+                integrated.xi_eV_values,
+                integrated.components,
+                integrated.rhs,
+                strict=True,
+            ):
+                physical = evaluate_positive_matsubara_pipeline(
+                    components=components,
+                    rhs=rhs,
+                    q_model=q,
+                    xi_eV=float(xi),
+                    config=physics_config,
+                )
+                sigma_matrix = np.asarray(physical["sigma"], dtype=complex)
+                reflection_matrix = np.asarray(physical["reflection"], dtype=complex)
+                logdet = float(physical["logdet"])
 
-            previous = previous_by_index.get(index)
-            if previous is None:
-                previous_sigma_relative = float("nan")
-                previous_reflection_relative = float("nan")
-                previous_logdet_relative = float("nan")
-            else:
-                previous_sigma_relative = _matrix_relative_difference(
+                reference = reference_rows[index]
+                reference_sigma = _matrix_from_row(reference, "sigma_tilde")
+                reference_reflection = _matrix_from_row(reference, "reflection")
+                reference_logdet = float(reference["logdet"])
+                sigma_reference = mixed_matrix_gate(
+                    reference_sigma,
                     sigma_matrix,
-                    previous[0],
+                    atol=args.reference_matrix_atol,
+                    rtol=args.reference_matrix_rtol,
                 )
-                previous_reflection_relative = _matrix_relative_difference(
+                reflection_reference = mixed_matrix_gate(
+                    reference_reflection,
                     reflection_matrix,
-                    previous[1],
+                    atol=args.reference_matrix_atol,
+                    rtol=args.reference_matrix_rtol,
                 )
-                previous_logdet_relative = _scalar_relative_difference(
+                logdet_reference = mixed_scalar_gate(
+                    reference_logdet,
                     logdet,
-                    previous[2],
+                    atol=args.reference_logdet_atol,
+                    rtol=args.reference_logdet_rtol,
                 )
-            previous_by_index[index] = (
-                sigma_matrix.copy(),
-                reflection_matrix.copy(),
-                float(logdet),
-            )
 
-            point_pipeline_passed = bool(
-                quadrature.success
-                and ward.passed
-                and sheet_validation.passed
-                and reflection_constructed
-                and logdet_passed
-            )
-            crosscheck_passed = bool(
-                point_pipeline_passed
-                and sigma_reference_relative <= args.reference_matrix_rtol
-                and reflection_reference_relative <= args.reference_matrix_rtol
-                and logdet_reference_relative <= args.reference_logdet_rtol
-            )
-            row: dict[str, Any] = {
-                "nk": int(args.nk),
-                "mx": int(args.mx),
-                "my": int(args.my),
-                "qx": float(q[0]),
-                "qy": float(q[1]),
-                "q_norm": float(np.linalg.norm(q)),
-                "temperature_K": float(args.temperature_K),
-                "matsubara_index": int(index),
-                "xi_eV": float(xi),
-                "gauss_order": int(order),
-                "point_evaluations": int(quadrature.point_evaluations),
-                "quadrature_wall_seconds": float(quadrature.wall_seconds),
-                "ward_passed": bool(ward.passed),
-                "ward_effective_mixed_ratio_max": max(
-                    ward.left.effective_mixed_ratio,
-                    ward.right.effective_mixed_ratio,
-                ),
-                "schur_condition_number": float(ward.schur_condition_number),
-                "sheet_validation_passed": bool(sheet_validation.passed),
-                "reflection_constructed": reflection_constructed,
-                "logdet_passed": logdet_passed,
-                "logdet": logdet,
-                "point_pipeline_passed": point_pipeline_passed,
-                "reference_sigma_matrix_relative": sigma_reference_relative,
-                "reference_reflection_matrix_relative": reflection_reference_relative,
-                "reference_logdet_relative": logdet_reference_relative,
-                "previous_gauss_sigma_matrix_relative": previous_sigma_relative,
-                "previous_gauss_reflection_matrix_relative": previous_reflection_relative,
-                "previous_gauss_logdet_relative": previous_logdet_relative,
-                "crosscheck_passed": crosscheck_passed,
-                "reflection_error": reflection_error,
-                "logdet_error": logdet_error,
-                "diagnostic_only": True,
-                "production_reference_established": False,
-                "valid_for_casimir_input": False,
-            }
-            row.update(_matrix_fields("sigma_tilde", sigma_matrix))
-            row.update(_matrix_fields("reflection", reflection_matrix))
-            output_rows.append(row)
+                previous = previous_by_index.get(index)
+                previous_available = previous is not None
+                if previous is None:
+                    sigma_previous = _unavailable_gate()
+                    reflection_previous = _unavailable_gate()
+                    logdet_previous = _unavailable_gate()
+                else:
+                    sigma_previous = mixed_matrix_gate(
+                        previous[0],
+                        sigma_matrix,
+                        atol=args.reference_matrix_atol,
+                        rtol=args.reference_matrix_rtol,
+                    )
+                    reflection_previous = mixed_matrix_gate(
+                        previous[1],
+                        reflection_matrix,
+                        atol=args.reference_matrix_atol,
+                        rtol=args.reference_matrix_rtol,
+                    )
+                    logdet_previous = mixed_scalar_gate(
+                        previous[2],
+                        logdet,
+                        atol=args.reference_logdet_atol,
+                        rtol=args.reference_logdet_rtol,
+                    )
+                previous_by_index[index] = (
+                    sigma_matrix.copy(),
+                    reflection_matrix.copy(),
+                    logdet,
+                )
+
+                baseline_key = (order, index)
+                baseline = baseline_by_order_index.get(baseline_key)
+                cut_available = cut_index > 0 and baseline is not None
+                if cut_index == 0:
+                    baseline_by_order_index[baseline_key] = (
+                        sigma_matrix.copy(),
+                        reflection_matrix.copy(),
+                        logdet,
+                    )
+                if not cut_available:
+                    sigma_cut = _unavailable_gate()
+                    reflection_cut = _unavailable_gate()
+                    logdet_cut = _unavailable_gate()
+                else:
+                    assert baseline is not None
+                    sigma_cut = mixed_matrix_gate(
+                        baseline[0],
+                        sigma_matrix,
+                        atol=args.reference_matrix_atol,
+                        rtol=args.reference_matrix_rtol,
+                    )
+                    reflection_cut = mixed_matrix_gate(
+                        baseline[1],
+                        reflection_matrix,
+                        atol=args.reference_matrix_atol,
+                        rtol=args.reference_matrix_rtol,
+                    )
+                    logdet_cut = mixed_scalar_gate(
+                        baseline[2],
+                        logdet,
+                        atol=args.reference_logdet_atol,
+                        rtol=args.reference_logdet_rtol,
+                    )
+
+                point_pipeline_passed = bool(
+                    quadrature.success and physical["physical_passed"]
+                )
+                crosscheck_passed = bool(
+                    point_pipeline_passed
+                    and sigma_reference[3]
+                    and reflection_reference[3]
+                    and logdet_reference[3]
+                )
+                previous_comparison_passed = bool(
+                    previous_available
+                    and point_pipeline_passed
+                    and sigma_previous[3]
+                    and reflection_previous[3]
+                    and logdet_previous[3]
+                )
+                cut_comparison_passed = bool(
+                    cut_available
+                    and point_pipeline_passed
+                    and sigma_cut[3]
+                    and reflection_cut[3]
+                    and logdet_cut[3]
+                )
+
+                row: dict[str, Any] = {
+                    "nk": int(args.nk),
+                    "mx": int(args.mx),
+                    "my": int(args.my),
+                    "qx": float(q[0]),
+                    "qy": float(q[1]),
+                    "q_norm": float(np.linalg.norm(q)),
+                    "temperature_K": float(args.temperature_K),
+                    "matsubara_index": int(index),
+                    "xi_eV": float(xi),
+                    "gauss_order": int(order),
+                    "panel_count": int(quadrature.panel_count),
+                    "panel_order": int(quadrature.panel_order),
+                    "cut_index": int(cut_index),
+                    "integration_start": float(quadrature.integration_start),
+                    "quadrature": str(quadrature.quadrature),
+                    "full_transverse_period_integrated": bool(
+                        quadrature.full_transverse_period_integrated
+                    ),
+                    "symmetry_reduction_applied": bool(
+                        quadrature.symmetry_reduction_applied
+                    ),
+                    "q_direction_special_case": bool(
+                        quadrature.q_direction_special_case
+                    ),
+                    "point_evaluations": int(quadrature.point_evaluations),
+                    "quadrature_wall_seconds": float(quadrature.wall_seconds),
+                    "ward_passed": bool(physical["ward_passed"]),
+                    "ward_effective_mixed_ratio_max": float(
+                        physical["ward_effective_mixed_ratio_max"]
+                    ),
+                    "schur_condition_number": float(
+                        physical["schur_condition_number"]
+                    ),
+                    "sheet_validation_passed": bool(
+                        physical["sheet_validation_passed"]
+                    ),
+                    "reflection_constructed": bool(
+                        physical["reflection_constructed"]
+                    ),
+                    "logdet_passed": bool(physical["logdet_passed"]),
+                    "logdet": logdet,
+                    "point_pipeline_passed": point_pipeline_passed,
+                    "reference_sigma_matrix_absolute": sigma_reference[0],
+                    "reference_sigma_matrix_relative": sigma_reference[1],
+                    "reference_sigma_matrix_ratio": sigma_reference[2],
+                    "reference_sigma_matrix_passed": sigma_reference[3],
+                    "reference_reflection_matrix_absolute": reflection_reference[0],
+                    "reference_reflection_matrix_relative": reflection_reference[1],
+                    "reference_reflection_matrix_ratio": reflection_reference[2],
+                    "reference_reflection_matrix_passed": reflection_reference[3],
+                    "reference_logdet_absolute": logdet_reference[0],
+                    "reference_logdet_relative": logdet_reference[1],
+                    "reference_logdet_ratio": logdet_reference[2],
+                    "reference_logdet_passed": logdet_reference[3],
+                    "previous_order_available": previous_available,
+                    "previous_gauss_sigma_matrix_absolute": sigma_previous[0],
+                    "previous_gauss_sigma_matrix_relative": sigma_previous[1],
+                    "previous_gauss_sigma_matrix_ratio": sigma_previous[2],
+                    "previous_gauss_reflection_matrix_absolute": reflection_previous[0],
+                    "previous_gauss_reflection_matrix_relative": reflection_previous[1],
+                    "previous_gauss_reflection_matrix_ratio": reflection_previous[2],
+                    "previous_gauss_logdet_absolute": logdet_previous[0],
+                    "previous_gauss_logdet_relative": logdet_previous[1],
+                    "previous_gauss_logdet_ratio": logdet_previous[2],
+                    "previous_gauss_comparison_passed": previous_comparison_passed,
+                    "cut_comparison_available": cut_available,
+                    "baseline_cut_sigma_matrix_absolute": sigma_cut[0],
+                    "baseline_cut_sigma_matrix_relative": sigma_cut[1],
+                    "baseline_cut_sigma_matrix_ratio": sigma_cut[2],
+                    "baseline_cut_reflection_matrix_absolute": reflection_cut[0],
+                    "baseline_cut_reflection_matrix_relative": reflection_cut[1],
+                    "baseline_cut_reflection_matrix_ratio": reflection_cut[2],
+                    "baseline_cut_logdet_absolute": logdet_cut[0],
+                    "baseline_cut_logdet_relative": logdet_cut[1],
+                    "baseline_cut_logdet_ratio": logdet_cut[2],
+                    "cut_comparison_passed": cut_comparison_passed,
+                    "crosscheck_passed": crosscheck_passed,
+                    "physical_error": str(physical["error"]),
+                    "diagnostic_only": True,
+                    "production_reference_established": False,
+                    "valid_for_casimir_input": False,
+                }
+                row.update(matrix_fields("sigma_tilde", sigma_matrix))
+                row.update(matrix_fields("reflection", reflection_matrix))
+                output_rows.append(row)
 
     total_wall = float(time.perf_counter() - started_all)
     output = args.output
@@ -388,10 +482,16 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(output_rows)
 
+    previous_rows = [
+        row for row in output_rows if bool(row["previous_order_available"])
+    ]
+    cut_rows = [
+        row for row in output_rows if bool(row["cut_comparison_available"])
+    ]
     summary = _summary(output_rows, args)
     output.with_suffix(".summary.txt").write_text(summary, encoding="utf-8")
     payload = {
-        "schema": "dwave_positive_commensurate_orbit_fixed_gauss_crosscheck_v1",
+        "schema": "dwave_positive_commensurate_orbit_fixed_gauss_crosscheck_v2",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "platform": platform.platform(),
         "python": platform.python_version(),
@@ -405,8 +505,20 @@ def main() -> None:
             "all_physical_pipelines_passed": all(
                 bool(row["point_pipeline_passed"]) for row in output_rows
             ),
-            "all_crosschecks_passed": all(
+            "all_reference_crosschecks_passed": all(
                 bool(row["crosscheck_passed"]) for row in output_rows
+            ),
+            "all_consecutive_order_checks_passed": bool(previous_rows)
+            and all(
+                bool(row["previous_gauss_comparison_passed"])
+                for row in previous_rows
+            ),
+            "all_periodic_cut_checks_passed": (
+                len(starts) == 1
+                or (
+                    bool(cut_rows)
+                    and all(bool(row["cut_comparison_passed"]) for row in cut_rows)
+                )
             ),
             "diagnostic_only": True,
             "production_reference_established": False,
