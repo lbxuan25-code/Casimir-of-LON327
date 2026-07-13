@@ -3,7 +3,7 @@
 ## Status
 
 `adaptive_gk21` is the only transverse integration candidate being advanced toward
-production.  It remains diagnostic until the decisive numerical acceptance suite
+production. It remains diagnostic until the decisive numerical acceptance suite
 and the complete representative-q scan pass.
 
 ```text
@@ -13,16 +13,16 @@ valid_for_casimir_input = False
 ```
 
 The historical periodic-nested and fixed-Gauss implementations remain available
-only as offline references.  They are not runtime fallbacks for this candidate.
+only as offline references. They are not runtime fallbacks for this candidate.
 
 ## Physical invariants
 
 At every transverse coordinate `t`, the callback must evaluate the complete exact
-commensurate q orbit, including required complementary origins.  It returns one
+commensurate q orbit, including required complementary origins. It returns one
 packed primitive vector containing electromagnetic, collective, mixed, and Ward
 RHS blocks for the full Matsubara batch.
 
-The transverse integrator may change only the `t` nodes and weights.  The following
+The transverse integrator may change only the `t` nodes and weights. The following
 operations are forbidden at a node or panel level:
 
 - nearest-neighbour bond metric application;
@@ -32,7 +32,7 @@ operations are forbidden at a node or panel level:
 - reflection construction;
 - passive logdet evaluation.
 
-Each complete global primitive integral is postprocessed once.  The primary and
+Each complete global primitive integral is postprocessed once. The primary and
 tightened-audit estimates are postprocessed independently and then compared.
 
 ## Numerical contract
@@ -47,20 +47,47 @@ The candidate uses one fixed rule: SciPy adaptive GK21 on `[-pi, pi]`.
 5. Ward RHS components share all nodes but do not independently drive refinement;
    the final Ward validation remains authoritative.
 6. Scales are not enlarged or restarted during this first production-candidate
-   implementation.  Observed-to-frozen scale ratios are diagnostic outputs.
+   implementation. Observed-to-frozen scale ratios are diagnostic outputs.
 
-For a final BZ average, `epsabs` is defined after division by `2*pi`.  The raw
+For a final BZ average, `epsabs` is defined after division by `2*pi`. The raw
 `quad_vec` absolute tolerance and error estimate are therefore converted by the
 same `2*pi` factor.
+
+## Microscopic evaluator contract
+
+The active d-wave GK21 callback uses one common batched two-band q-workspace. The
+batch implementation changes execution order only:
+
+- shifted BdG Hamiltonians are assembled over the complete k batch;
+- the two shifted eigensystems use stacked `numpy.linalg.eigh`;
+- Peierls vector/contact vertices are generated from cached hopping arrays;
+- all five `(rho,Jx,Jy,eta1,eta2)` band rotations are batched;
+- direct/contact terms and all Ward-RHS pieces are reduced over k in NumPy.
+
+There is no q-direction dispatch and no scalar runtime fallback. The scalar
+q-workspace remains temporarily available only as a numerical equivalence
+reference while real-`nk` performance is measured. Its retention or deletion is a
+separate maintenance decision after the profile comparison.
+
+The batch path must remain equivalent to the scalar reference for:
+
+- shifted energies and occupations;
+- left/right five-channel band vertices;
+- direct contact contribution and phase direct term;
+- `equal_forward`, `delta_v_mid`, `qM_mid`, and the final Ward RHS;
+- complete response components at zero and positive Matsubara frequency.
+
+No tolerance in those equivalence tests may be weakened to hide an algebraic or
+storage-convention difference.
 
 ## Hard budget and failure semantics
 
 The primary and audit passes share one hard cap on unique transverse evaluations,
-defaulting to 256.  Cache hits do not consume the cap.  Complete microscopic orbit
+defaulting to 256. Cache hits do not consume the cap. Complete microscopic orbit
 points are counted separately.
 
-A budget exception during a pass invalidates that pass.  No partially accumulated
-SciPy integral is exposed as a trusted estimate.  If the audit exhausts the budget,
+A budget exception during a pass invalidates that pass. No partially accumulated
+SciPy integral is exposed as a trusted estimate. If the audit exhausts the budget,
 a completed primary estimate may be retained only as `diagnostic_only`.
 
 Node-cap failure and wall-time failure are distinct:
@@ -73,7 +100,7 @@ Node-cap failure and wall-time failure are distinct:
 ## Complete-orbit evaluator profiling
 
 The primitive evaluator is a single reusable callable shared by the GK21 wrapper
-and the profiling command.  It records cumulative time in these stages:
+and the profiling command. It records cumulative time in these stages:
 
 - material midpoint workspace;
 - q-dependent shifted workspace;
@@ -81,7 +108,7 @@ and the profiling command.  It records cumulative time in these stages:
 - batched five-channel Kubo contraction;
 - primitive-vector packing.
 
-Orbit geometry/wrapping is timed separately by the complete-orbit workspace.  A
+Orbit geometry/wrapping is timed separately by the complete-orbit workspace. A
 single callback can be profiled with:
 
 ```bash
@@ -89,10 +116,8 @@ python -m validation matsubara dwave-orbit-evaluator-profile \
   --nk 1256 --mx 6 --my 4 --matsubara-indices 1 2 4 8
 ```
 
-The profiler is diagnostic only.  It does not perform a transverse integral or
-produce a Casimir-valid point.  Profile at least one normal reference direction and
-both difficult diagonal origin classes before choosing any deeper vectorization
-work.
+The profiler serializes the q-workspace implementation identifier. It is diagnostic
+only: it does not perform a transverse integral or produce a Casimir-valid point.
 
 ## Point gate
 
@@ -117,14 +142,15 @@ No condition may be removed or weakened to force acceptance.
 ## Diagnostics that must be serialized
 
 - strategy and SciPy version;
+- q-workspace implementation identifier;
 - unique transverse evaluations, cache hits, and microscopic point evaluations;
 - primary/audit error estimates, tolerances, ratios, status, and subinterval count;
 - frozen group scales and observed-to-frozen ratios;
 - primary/audit primitive-group differences;
 - primary/audit sigma, reflection, and logdet differences;
 - worst reported intervals;
-- geometry, evaluator, quadrature, and total wall times;
-- separate complete-orbit evaluator profile output;
+- geometry, material-workspace, q-workspace, Kubo, packing, quadrature, and total
+  wall times;
 - structured failure reason;
 - global diagnostic/readiness flags.
 
@@ -139,6 +165,6 @@ suite, not a method sweep:
 4. `diagonal_mid` fixed Gauss G192/G224 offline comparison;
 5. `diagonal_min` fixed Gauss G192/G224 offline comparison.
 
-Failure at a q point must not create a q-specific integration rule.  The outcome is
+Failure at a q point must not create a q-specific integration rule. The outcome is
 either acceptance of this common contract or a separately scoped redesign of the
 common transverse/BZ representation.
