@@ -123,7 +123,13 @@ def integrate_dwave_positive_orbit_panel_adaptive(
             options=primitive_evaluator.options,
             quadrature=quadrature,
         )
-    if quadrature.audit is not None and quadrature.audit.value is not None:
+    # A failed tightened snapshot remains a numerical diagnostic only.  Do not
+    # postprocess it into sigma/reflection/logdet or compare it to the primary.
+    if (
+        quadrature.audit is not None
+        and quadrature.audit.success
+        and quadrature.audit.value is not None
+    ):
         audit_components, audit_rhs = _unpack_integrated_primitives(
             quadrature.audit.value,
             xi_values=xi_values,
