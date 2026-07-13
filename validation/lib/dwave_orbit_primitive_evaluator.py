@@ -12,7 +12,9 @@ from lno327 import KuboConfig
 from lno327.response.finite_q_optimized import (
     _vectorized_kubo_factors,
     precompute_finite_q_material_workspace_from_model_ansatz,
-    precompute_finite_q_q_workspace,
+)
+from lno327.response.finite_q_q_workspace_batched import (
+    precompute_finite_q_q_workspace_batched,
 )
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 from validation.lib.dwave_positive_orbit_adaptive import _pack_orbit_primitives
@@ -22,6 +24,7 @@ from validation.lib.dwave_positive_orbit_adaptive import _pack_orbit_primitives
 class DWaveOrbitEvaluatorProfile:
     callbacks: int
     complete_orbit_points: int
+    q_workspace_implementation: str
     material_workspace_seconds: float
     q_workspace_seconds: float
     kubo_factor_seconds: float
@@ -42,10 +45,11 @@ class DWaveOrbitEvaluatorProfile:
     def seconds_per_callback(self) -> float:
         return self.total_seconds / max(int(self.callbacks), 1)
 
-    def as_dict(self) -> dict[str, float | int]:
+    def as_dict(self) -> dict[str, float | int | str]:
         return {
             "callbacks": int(self.callbacks),
             "complete_orbit_points": int(self.complete_orbit_points),
+            "q_workspace_implementation": str(self.q_workspace_implementation),
             "material_workspace_seconds": float(self.material_workspace_seconds),
             "q_workspace_seconds": float(self.q_workspace_seconds),
             "kubo_factor_seconds": float(self.kubo_factor_seconds),
@@ -102,6 +106,7 @@ class DWaveOrbitPrimitiveEvaluator:
 
         self._callbacks = 0
         self._complete_orbit_points = 0
+        self._q_workspace_implementation = "not_evaluated"
         self._material_workspace_seconds = 0.0
         self._q_workspace_seconds = 0.0
         self._kubo_factor_seconds = 0.0
@@ -129,8 +134,23 @@ class DWaveOrbitPrimitiveEvaluator:
         self._material_workspace_seconds += time.perf_counter() - started
 
         started = time.perf_counter()
-        workspace = precompute_finite_q_q_workspace(material, self.q_model)
+        workspace = precompute_finite_q_q_workspace_batched(
+            material,
+            self.q_model,
+        )
         self._q_workspace_seconds += time.perf_counter() - started
+        implementation = str(
+            workspace.metadata.get(
+                "q_workspace_implementation",
+                "unknown",
+            )
+        )
+        if self._q_workspace_implementation not in {
+            "not_evaluated",
+            implementation,
+        }:
+            raise RuntimeError("q workspace implementation changed across callbacks")
+        self._q_workspace_implementation = implementation
 
         started = time.perf_counter()
         raw_factors = _vectorized_kubo_factors(workspace, self.xi_values)
@@ -163,6 +183,7 @@ class DWaveOrbitPrimitiveEvaluator:
         return DWaveOrbitEvaluatorProfile(
             callbacks=int(self._callbacks),
             complete_orbit_points=int(self._complete_orbit_points),
+            q_workspace_implementation=str(self._q_workspace_implementation),
             material_workspace_seconds=float(self._material_workspace_seconds),
             q_workspace_seconds=float(self._q_workspace_seconds),
             kubo_factor_seconds=float(self._kubo_factor_seconds),
