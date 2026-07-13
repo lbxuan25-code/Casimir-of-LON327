@@ -33,44 +33,83 @@ are forbidden at a point or panel level:
 - reflection construction;
 - passive logdet evaluation.
 
-Primary and audit snapshots are complete global primitive integrals. Each is
-postprocessed exactly once and the resulting primitive groups, conductivity,
-reflection, and logdet are compared.
+Primary and successful-audit snapshots are complete global primitive integrals. Each
+is postprocessed exactly once and the resulting primitive groups, conductivity,
+reflection, and logdet are compared. A failed audit snapshot remains a quadrature
+diagnostic and is not postprocessed into electrodynamic observables.
+
+## Full-period and symmetry contract
+
+The controller always integrates one complete interval of length `2*pi`. It may move
+the periodic cut, but it does not fold the domain or replace one side by a symmetry-
+related copy.
+
+```text
+full_transverse_period_integrated = True
+symmetry_reduction_applied = False
+q_direction_special_case = False
+```
+
+In particular, the implementation does not assume:
+
+- `f(t) = f(-t)`;
+- C4 equivalence between q directions;
+- axis/diagonal equivalence;
+- any relation that would cease to hold after explicit C4 breaking.
+
+This contract is required so that the same transverse integrator can later be used
+for anisotropic response and Casimir torque calculations.
+
+## Periodic cut and initial state
+
+Sixteen equally spaced pilot coordinates are evaluated on the full period. These
+pilot coordinates are exactly the boundary and midpoint coordinates reused by the
+eight initial CC9 panels.
+
+The cut is selected from those 16 candidates using the smallest local normalized
+variation of the positive-weight physical control groups. Ward RHS and other
+zero-weight monitor groups do not influence the cut.
+
+After choosing `t0`, the full interval is
+
+```text
+[t0, t0 + 2*pi]
+```
+
+and begins as eight equal CC9 panels. The initial complete state contains 64 unique
+periodic transverse coordinates, the same approximate initial cost as the earlier
+four-panel CC17 prototype but with twice the spatial localization.
 
 ## Common deterministic rule
 
-The interval `[-pi, pi]` begins as four equal panels. Every panel uses nested
-Clenshaw-Curtis rules:
+Every active panel uses one of the nested states
 
 ```text
 CC9 subset CC17 subset CC33
 ```
 
-The initial complete state is CC17 on all four panels. Refinement is uniform in
-algorithm, not in q direction:
+CC5 is used only as the lower-order estimator for a CC9 panel. The allowed complete
+operations are:
 
-1. compute physical-group errors from the nested high/low panel estimates;
-2. select the panel with the largest normalized contribution to the worst control
-   group;
-3. upgrade `CC17 -> CC33` first;
-4. if a CC33 panel remains dominant, bisect it and initialize both children at
-   CC17;
-5. repeat until the primary groupwise tolerance is satisfied;
-6. save the primary snapshot;
-7. continue from the same panel state until the tolerance multiplied by
-   `audit_tolerance_factor` is satisfied;
-8. save the tightened audit snapshot.
+```text
+CC9  -> CC17             approximately 8 new nodes
+CC17 -> CC33             approximately 16 new nodes
+CC33 -> two CC9 children approximately 14 new nodes
+```
 
-No direction label, q magnitude, or point name enters this decision tree.
+The exact cost is computed from the shared periodic cache before an operation begins.
+No direction label, q magnitude, point name, or symmetry tag enters this decision
+process.
 
 ## Groupwise error contract
 
-For panel `p` and physical group `g`, the local error estimate is based on the
-nested-rule difference:
+For panel `p` and physical group `g`, the local error estimate is based on nested-rule
+differences:
 
 ```text
-CC17 panel:  ||I17 - I9||
-CC33 panel:  max(||I33 - I17||, 0.25 ||I17 - I9||)
+CC9 panel:  ||I9  - I5||
+CC17 panel: max(||I17 - I9||,  0.25 ||I9  - I5||)
+CC33 panel: max(||I33 - I17||, 0.25 ||I17 - I9||)
 ```
 
 A fixed safety factor of two is applied. The global group error is the conservative
@@ -78,58 +117,83 @@ sum over active panels.
 
 Group scales are recomputed from all values in the current complete panel state.
 This is safe in the explicit controller because all panel estimates and errors are
-retained and all normalized ratios are recalculated whenever a larger amplitude is
-discovered. The controller does not silently rescale an opaque external error.
+retained and every normalized ratio is recalculated when a larger amplitude is
+discovered.
 
 For control group `g`:
 
 ```text
-T_g = epsabs + epsrel * ||I_g|| / scale_g
-R_g = (sum_p E_p,g / scale_g) / T_g
+T_g = factor * (epsabs + epsrel * ||I_g|| / scale_g)
+R_g = weight_g * (sum_p E_p,g / scale_g) / T_g
 ```
 
-The primary or audit snapshot passes only when every control-group ratio is at most
-one. Ward RHS is sampled on every node but has zero refinement weight; final
-RHS-aware Ward validation remains authoritative.
+The primary uses `factor = 1`; the tightened audit uses
+`factor = audit_tolerance_factor`. A snapshot passes only when every positive-weight
+control-group ratio is at most one. Ward RHS is sampled on every node but has zero
+refinement weight; final RHS-aware Ward validation remains authoritative.
 
-## Budget and failure semantics
+## Budget-aware refinement scheduling
 
-The primary and tightened audit share one hard cap on unique transverse
-coordinates. Cache hits do not consume the cap. Complete microscopic orbit points
-are counted separately.
+At each step the controller enumerates the next complete operation for every active
+panel. For each candidate it records:
 
-Before any complete operation, the controller computes the exact number of missing
-nodes for:
+- operation type and target order;
+- exact number of missing unique nodes;
+- normalized local physical-group error contribution;
+- local contribution per required new node.
 
-- one `CC17 -> CC33` panel upgrade; or
-- both CC17 child panels created by a split.
+Candidates that do not fit the remaining hard budget are excluded. The feasible
+candidate with the largest deterministic error-benefit score is executed. Thus a
+16-node operation on the nominal worst panel cannot block a useful 8-node operation
+elsewhere when only eight nodes remain.
 
-The operation begins only when:
+The primary and tightened audit share one hard cap on unique transverse coordinates.
+Cache hits do not consume the cap. Complete microscopic orbit points are counted
+separately.
+
+Before every p-refinement or split:
 
 ```text
 current_unique + required_new <= hard_cap
 ```
 
-If the operation would exceed the cap, it is not started. The result retains the
-last complete global estimate, finite group errors and ratios, panel partition,
-worst group, and worst panel. It fails closed with a structured panel-boundary
-budget reason.
-
-This differs from the rejected GK21 driver, which could exhaust the budget midway
-through an opaque SciPy subdivision and lose the last complete global estimate.
+If no complete operation fits, the controller retains the last complete global
+estimate, finite group errors and ratios, panel partition, worst group, and worst
+panel. It fails closed with a structured panel-boundary budget reason containing the
+minimum additional complete-operation cost.
 
 ## Primary/audit semantics
 
-The tightened audit is not a second independent adaptive run. It is a strict
-continuation of the primary panel state:
+The tightened audit is not an independent adaptive run. It is a strict continuation
+of the primary panel state:
 
 ```text
-initial state -> primary snapshot -> more refinement -> audit snapshot
+initial state -> primary snapshot -> more refinement -> successful audit snapshot
 ```
 
-All nodes, panel estimates, errors, and cache entries are reused. The two complete
-snapshots are then compared using the original physical-group, conductivity,
-reflection, and logdet gates.
+All nodes, panels, errors, scales, and cache entries are reused. If the audit cannot
+reach the tightened tolerance, its finite panel diagnostics are serialized, but it
+is not converted into sigma, reflection, or logdet. Therefore a failed unchanged
+audit can no longer produce misleading zero primary/audit differences.
+
+## Refinement trace
+
+Every completed operation is serialized with:
+
+```text
+step
+stage = primary | audit
+selected panel bounds
+old CC order
+operation = p_refine | split
+required new unique nodes
+unique nodes after operation
+worst physical group before and after
+global error ratio before and after
+```
+
+This trace is part of the numerical contract. It distinguishes genuine node-budget
+failure from inefficient operation ordering or a conservative local error estimator.
 
 ## Point gate
 
@@ -156,11 +220,13 @@ No gate may be weakened to force acceptance.
 The JSON result must serialize:
 
 - strategy and nested quadrature rule;
+- full-period cut, pilot count, initial panel count, and symmetry flags;
 - unique transverse evaluations, cache hits, and microscopic point evaluations;
 - primary and audit group errors, tolerances, ratios, and dynamic scales;
 - primary and audit panel counts, maximum depth, and refinement steps;
 - worst physical group, worst panel bounds, panel order, and local ratio;
-- primary/audit primitive-group differences;
+- the complete refinement trace;
+- primary/audit primitive-group differences when the audit succeeds;
 - Matsubara-resolved Ward, conductivity, reflection, and logdet gates;
 - geometry, evaluator, quadrature, and total wall times;
 - structured failure reason;
@@ -170,16 +236,18 @@ The JSON result must serialize:
 
 The controller is tested independently of the d-wave model for:
 
-- CC9/17/33 nesting and normalization;
+- CC5/9/17/33 nesting and normalization;
 - constants and polynomial moments;
 - complex-vector BZ averages;
 - a localized periodic analytic integrand;
 - shared primary/audit panel state;
-- zero-weight monitor groups;
-- exact panel-boundary budget stopping with a finite retained snapshot.
+- a full-period asymmetric integrand with no even/C4 reduction;
+- zero-weight monitor independence of cut and refinement sequence;
+- exact panel-boundary budget stopping with a finite retained snapshot;
+- use of a final feasible eight-node operation under a 72-node cap.
 
 A reduced real d-wave CLI smoke verifies complete-orbit construction, batched
-microscopic evaluation, primitive unpacking, global postprocessing, and result
+microscopic evaluation, primitive unpacking, global postprocessing, and v2 result
 serialization.
 
 ## Decisive acceptance suite
