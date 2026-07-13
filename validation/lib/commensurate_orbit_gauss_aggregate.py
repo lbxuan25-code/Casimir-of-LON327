@@ -1,10 +1,13 @@
-"""Fixed Gauss-Legendre transverse integration of complete commensurate q orbits.
+"""Fixed or composite Gauss-Legendre integration of complete commensurate q orbits.
 
-Unlike the pointwise helper in :mod:`dwave_commensurate_orbit_gauss`, this
-module calls the supplied evaluator once per complete orbit.  Workspace-based
-finite-q response engines therefore see the same complete orbit, normalized
-weights, contact terms, and Ward RHS as the periodic adaptive path.  Only the
-transverse quadrature nodes and weights differ.
+The supplied evaluator is called once per transverse node with one complete exact
+commensurate q orbit.  ``transverse_order`` always means the total number of
+transverse nodes.  ``panel_count=1`` preserves the historical global Gauss rule;
+``panel_count>1`` partitions one full interval of length ``2*pi`` into equal panels
+and applies an independent Gauss-Legendre rule on each panel.
+
+Only periodicity is used.  Moving ``integration_start`` is an exact change of the
+periodic cut, not an even, C4, axis/diagonal, or q-direction symmetry reduction.
 """
 
 from __future__ import annotations
@@ -40,6 +43,47 @@ def _compensated_add(
     return updated, (updated - total) - corrected
 
 
+def _composite_gauss_rule(
+    *,
+    total_order: int,
+    panel_count: int,
+    integration_start: float,
+) -> tuple[np.ndarray, np.ndarray, int]:
+    """Return one full-period equal-panel Gauss rule.
+
+    The result contains exactly ``total_order`` nodes.  Panel boundaries are not
+    sampled, so adjacent panels do not create duplicated transverse evaluations.
+    """
+
+    order = int(total_order)
+    panels = int(panel_count)
+    start = float(integration_start)
+    if order <= 0 or panels <= 0:
+        raise ValueError("total_order and panel_count must be positive")
+    if order % panels != 0:
+        raise ValueError("transverse_order must be divisible by panel_count")
+    if not np.isfinite(start):
+        raise ValueError("integration_start must be finite")
+
+    panel_order = order // panels
+    local_nodes, local_weights = np.polynomial.legendre.leggauss(panel_order)
+    boundaries = start + np.linspace(0.0, 2.0 * np.pi, panels + 1)
+
+    node_blocks: list[np.ndarray] = []
+    weight_blocks: list[np.ndarray] = []
+    for left, right in zip(boundaries[:-1], boundaries[1:], strict=True):
+        midpoint = 0.5 * (float(left) + float(right))
+        half_width = 0.5 * (float(right) - float(left))
+        node_blocks.append(midpoint + half_width * local_nodes)
+        weight_blocks.append(half_width * local_weights)
+
+    nodes = np.concatenate(node_blocks)
+    weights = np.concatenate(weight_blocks)
+    if nodes.size != order or weights.size != order:
+        raise RuntimeError("internal composite Gauss rule size mismatch")
+    return nodes, weights, panel_order
+
+
 @dataclass(frozen=True)
 class CommensurateOrbitGaussAggregateResult:
     """Complete q-orbit aggregate followed by fixed transverse Gauss quadrature."""
@@ -52,6 +96,9 @@ class CommensurateOrbitGaussAggregateResult:
     orbit_origins: tuple[float, ...]
     nk: int
     transverse_order: int
+    panel_count: int
+    panel_order: int
+    integration_start: float
     transverse_evaluations: int
     point_evaluations: int
     chunks: int
@@ -62,6 +109,9 @@ class CommensurateOrbitGaussAggregateResult:
     message: str
     quadrature: str
     summation_method: str
+    full_transverse_period_integrated: bool = True
+    symmetry_reduction_applied: bool = False
+    q_direction_special_case: bool = False
 
     def __post_init__(self) -> None:
         for name in (
@@ -82,22 +132,32 @@ def integrate_commensurate_orbit_gauss_aggregate(
     mx: int,
     my: int,
     transverse_order: int,
+    panel_count: int = 1,
+    integration_start: float = -np.pi,
     shift_s: float = 0.5,
     subgrid_average: SubgridAverageMode = "auto",
     max_point_evaluations: int = 500_000,
 ) -> CommensurateOrbitGaussAggregateResult:
-    """Integrate a complete-orbit complex vector with fixed Gauss-Legendre nodes.
+    """Integrate a complete-orbit complex vector with a full-period Gauss rule.
 
-    The evaluator receives all orbit points and normalized weights at once.  No
-    nonlinear response operation is performed inside the integrator.
+    ``transverse_order`` is the total node count across all panels.  No nonlinear
+    response operation is performed inside the integrator.
     """
 
     nk_value = int(nk)
     mx_value, my_value = int(mx), int(my)
     order = int(transverse_order)
+    panels = int(panel_count)
+    start = float(integration_start)
     maximum = int(max_point_evaluations)
-    if nk_value <= 0 or order <= 0 or maximum <= 0:
-        raise ValueError("nk, transverse_order, and budget must be positive")
+    if nk_value <= 0 or order <= 0 or panels <= 0 or maximum <= 0:
+        raise ValueError(
+            "nk, transverse_order, panel_count, and budget must be positive"
+        )
+    if order % panels != 0:
+        raise ValueError("transverse_order must be divisible by panel_count")
+    if not np.isfinite(start):
+        raise ValueError("integration_start must be finite")
     if mx_value == 0 and my_value == 0:
         raise ValueError("at least one of mx,my must be nonzero")
     if abs(mx_value) > nk_value // 2 or abs(my_value) > nk_value // 2:
@@ -118,9 +178,11 @@ def integrate_commensurate_orbit_gauss_aggregate(
 
     step = 2.0 * np.pi / float(nk_value)
     q_model = step * np.asarray([mx_value, my_value], dtype=float)
-    nodes, weights = np.polynomial.legendre.leggauss(order)
-    transverse_nodes = np.pi * np.asarray(nodes, dtype=float)
-    transverse_weights = np.pi * np.asarray(weights, dtype=float)
+    transverse_nodes, transverse_weights, panel_order = _composite_gauss_rule(
+        total_order=order,
+        panel_count=panels,
+        integration_start=start,
+    )
 
     total: np.ndarray | None = None
     compensation: np.ndarray | None = None
@@ -173,6 +235,20 @@ def integrate_commensurate_orbit_gauss_aggregate(
             f"seen={points_seen}, expected={expected_points}"
         )
 
+    quadrature = (
+        "fixed_gauss_legendre"
+        if panels == 1
+        else "composite_fixed_gauss_legendre"
+    )
+    summation = (
+        "equal_complete_q_orbit_aggregate_with_complementary_half_step_if_needed_"
+        "plus_complex_kahan_"
+        + (
+            "global_fixed_gauss_legendre_transverse"
+            if panels == 1
+            else "equal_panel_composite_fixed_gauss_legendre_transverse"
+        )
+    )
     return CommensurateOrbitGaussAggregateResult(
         value=np.asarray(total, dtype=complex),
         q_model=q_model,
@@ -182,6 +258,9 @@ def integrate_commensurate_orbit_gauss_aggregate(
         orbit_origins=origins,
         nk=nk_value,
         transverse_order=order,
+        panel_count=panels,
+        panel_order=panel_order,
+        integration_start=start,
         transverse_evaluations=order,
         point_evaluations=points_seen,
         chunks=order,
@@ -189,12 +268,13 @@ def integrate_commensurate_orbit_gauss_aggregate(
         wall_seconds=float(time.perf_counter() - started),
         success=True,
         status=0,
-        message="fixed Gauss-Legendre transverse integration completed",
-        quadrature="fixed_gauss_legendre",
-        summation_method=(
-            "equal_complete_q_orbit_aggregate_with_complementary_half_step_if_needed_"
-            "plus_complex_kahan_fixed_gauss_legendre_transverse"
+        message=(
+            "global fixed Gauss-Legendre transverse integration completed"
+            if panels == 1
+            else "composite fixed Gauss-Legendre transverse integration completed"
         ),
+        quadrature=quadrature,
+        summation_method=summation,
     )
 
 
