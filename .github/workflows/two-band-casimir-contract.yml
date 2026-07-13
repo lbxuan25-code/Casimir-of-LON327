@@ -100,6 +100,29 @@ jobs:
           assert payload['status']['valid_for_casimir_input'] is False
           PY
 
+      - name: Smoke test complete-orbit evaluator profiler
+        env:
+          OMP_NUM_THREADS: "1"
+          OPENBLAS_NUM_THREADS: "1"
+          MKL_NUM_THREADS: "1"
+          NUMEXPR_NUM_THREADS: "1"
+        run: |
+          python -m validation matsubara dwave-orbit-evaluator-profile \
+            --nk 4 \
+            --mx 1 \
+            --my 0 \
+            --matsubara-indices 1 \
+            --output /tmp/dwave-orbit-profile.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path('/tmp/dwave-orbit-profile.json').read_text())
+          assert payload['evaluator_profile']['callbacks'] == 1
+          assert payload['points_per_t'] == 8
+          assert payload['status']['valid_for_casimir_input'] is False
+          PY
+
       - name: Smoke test timed static scan CLI
         env:
           OMP_NUM_THREADS: "1"
