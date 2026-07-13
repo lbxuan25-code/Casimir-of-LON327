@@ -27,6 +27,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("matsubara", "dwave-orbit-adaptive"): (
         "validation.commands.matsubara.dwave_orbit_adaptive"
     ),
+    ("matsubara", "dwave-orbit-gauss-crosscheck"): (
+        "validation.commands.matsubara.dwave_orbit_gauss_crosscheck"
+    ),
 }
 
 
