@@ -113,7 +113,7 @@ def _band_vertices_batch(
     vertices: np.ndarray,
     states_plus: np.ndarray,
 ) -> np.ndarray:
-    """Return U_minus^dagger Gamma U_plus for every k and channel."""
+    """Return scalar ``vertex_band`` values for every k and channel."""
 
     minus = np.asarray(states_minus, dtype=complex)
     plus = np.asarray(states_plus, dtype=complex)
@@ -130,10 +130,10 @@ def _band_vertices_batch(
     ):
         raise ValueError("vertex batch must have shape (nk, channels, nb, nb)")
     return np.einsum(
-        "kpm,kapq,kqn->kamn",
-        np.conjugate(minus),
+        "kpn,kapq,kqm->kamn",
+        np.conjugate(plus),
         operators,
-        plus,
+        minus,
         optimize=True,
     )
 
