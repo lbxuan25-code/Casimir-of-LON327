@@ -9,7 +9,7 @@ import numpy as np
 
 from lno327.response.finite_q import BdGFiniteQResponseComponents
 from lno327.response.ward_validation import PrimitiveWardRHS
-from validation.lib.commensurate_orbit_panel_adaptive import (
+from validation.lib.commensurate_orbit_panel_adaptive_v3 import (
     PanelAdaptiveResult,
     integrate_commensurate_orbit_panel_adaptive,
 )
@@ -78,7 +78,7 @@ def integrate_dwave_positive_orbit_panel_adaptive(
     scale_floor_relative: float = 1e-8,
     scale_floor_absolute: float = 1e-14,
 ) -> DWavePositiveOrbitPanelAdaptiveResult:
-    """Evaluate one positive-Matsubara batch with nested panel adaptation."""
+    """Evaluate one positive-Matsubara batch with split-history panel adaptation."""
 
     xi_values = np.asarray(xi_eV_values, dtype=float)
     primitive_evaluator = DWaveOrbitPrimitiveEvaluator(
