@@ -106,15 +106,36 @@ def _snapshot_payload(snapshot: object | None) -> dict[str, Any] | None:
     }
 
 
+def _trace_payload(entry: object) -> dict[str, Any]:
+    return {
+        "step": int(entry.step),
+        "stage": str(entry.stage),
+        "panel": tuple(float(value) for value in entry.panel),
+        "old_order": int(entry.old_order),
+        "operation": str(entry.operation),
+        "required_new_nodes": int(entry.required_new_nodes),
+        "unique_evaluations_after": int(entry.unique_evaluations_after),
+        "worst_group_before": str(entry.worst_group_before),
+        "worst_group_after": str(entry.worst_group_after),
+        "global_error_ratio_before": float(entry.global_error_ratio_before),
+        "global_error_ratio_after": float(entry.global_error_ratio_after),
+    }
+
+
 def _summary(rows: list[dict[str, Any]], shared: dict[str, Any]) -> str:
     primary = shared["primary"]
     audit = shared["audit"]
+    trace = shared["refinement_trace"]
     lines = [
         "positive-Matsubara d-wave deterministic panel-adaptive validation",
         "=" * 82,
         f"grid q = (2 pi/{shared['nk']}) ({shared['mx']}, {shared['my']})",
         f"orbit origins = {shared['orbit_origins']}",
         f"strategy = {shared['strategy']}; quadrature = {shared['quadrature']}",
+        f"full-period start = {shared['integration_start']:.12f}; "
+        f"initial panels = {shared['initial_panel_count']}; pilots = {shared['pilot_count']}",
+        f"symmetry reduction = {shared['symmetry_reduction_applied']}; "
+        f"q-direction special case = {shared['q_direction_special_case']}",
         f"primary error ratio = {primary['error_ratio']:.6e}; success = {primary['success']}",
         (
             "audit error ratio = unavailable; success = False"
@@ -129,6 +150,7 @@ def _summary(rows: list[dict[str, Any]], shared: dict[str, Any]) -> str:
             else f"audit worst = {audit['worst_group_name']} on {audit['worst_panel']} "
             f"CC{audit['worst_panel_order']}"
         ),
+        f"refinement trace steps = {len(trace)}",
         f"primitive group audit passed = {shared['primitive_group_agreement_passed']}",
         f"unique transverse evaluations = {shared['transverse_evaluations_unique']} / "
         f"{shared['max_transverse_evaluations']}; cache hits = {shared['cache_hits']}",
@@ -137,6 +159,20 @@ def _summary(rows: list[dict[str, Any]], shared: dict[str, Any]) -> str:
         f"evaluator wall = {shared['evaluator_wall_seconds']:.3f} s",
         "",
     ]
+    if trace:
+        last = trace[-1]
+        lines.extend(
+            [
+                "last refinement:",
+                f"  step={last['step']} stage={last['stage']} operation={last['operation']} "
+                f"panel={last['panel']} CC{last['old_order']} "
+                f"new_nodes={last['required_new_nodes']}",
+                f"  ratio {last['global_error_ratio_before']:.6e} -> "
+                f"{last['global_error_ratio_after']:.6e}; "
+                f"worst {last['worst_group_before']} -> {last['worst_group_after']}",
+                "",
+            ]
+        )
     if rows:
         lines.extend(
             [
@@ -279,7 +315,9 @@ def main() -> None:
             "audit_physical_passed": bool(audit and audit["physical_passed"]),
             "primary_ward_passed": bool(primary["ward_passed"]),
             "audit_ward_passed": bool(audit and audit["ward_passed"]),
-            "primary_ward_effective_mixed_ratio_max": float(primary["ward_effective_mixed_ratio_max"]),
+            "primary_ward_effective_mixed_ratio_max": float(
+                primary["ward_effective_mixed_ratio_max"]
+            ),
             "audit_ward_effective_mixed_ratio_max": float(
                 audit["ward_effective_mixed_ratio_max"] if audit else np.nan
             ),
@@ -336,6 +374,7 @@ def main() -> None:
     primary_payload = _snapshot_payload(quadrature.primary)
     audit_payload = _snapshot_payload(quadrature.audit)
     assert primary_payload is not None
+    trace_payload = tuple(_trace_payload(entry) for entry in quadrature.refinement_trace)
     shared = {
         "strategy": quadrature.strategy,
         "quadrature": quadrature.quadrature,
@@ -352,6 +391,12 @@ def main() -> None:
         "epsrel": quadrature.epsrel,
         "audit_tolerance_factor": quadrature.audit_tolerance_factor,
         "norm": quadrature.norm,
+        "integration_start": quadrature.integration_start,
+        "initial_panel_count": quadrature.initial_panel_count,
+        "pilot_count": quadrature.pilot_count,
+        "full_transverse_period_integrated": quadrature.full_transverse_period_integrated,
+        "symmetry_reduction_applied": quadrature.symmetry_reduction_applied,
+        "q_direction_special_case": quadrature.q_direction_special_case,
         "max_transverse_evaluations": quadrature.max_unique_transverse_evaluations,
         "transverse_evaluations_unique": quadrature.transverse_evaluations,
         "cache_hits": quadrature.cache_hits,
@@ -363,6 +408,7 @@ def main() -> None:
         "monitor_group_names": quadrature.monitor_group_names,
         "primary_audit_group_ratios": quadrature.primary_audit_group_ratios,
         "primitive_group_agreement_passed": quadrature.primitive_group_agreement_passed,
+        "refinement_trace": trace_payload,
         "geometry_wall_seconds": quadrature.geometry_wall_seconds,
         "evaluator_wall_seconds": quadrature.evaluator_wall_seconds,
         "quadrature_wall_seconds": quadrature.wall_seconds,
@@ -386,7 +432,7 @@ def main() -> None:
     summary = _summary(rows, shared)
     output.with_suffix(".summary.txt").write_text(summary, encoding="utf-8")
     payload = {
-        "schema": "dwave_positive_commensurate_orbit_panel_adaptive_v1",
+        "schema": "dwave_positive_commensurate_orbit_panel_adaptive_v2",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "platform": platform.platform(),
         "python": platform.python_version(),
