@@ -58,6 +58,7 @@ jobs:
             tests/test_static_nk_scan_diagnostics.py \
             tests/test_commensurate_orbit_adaptive_gk21.py \
             tests/test_commensurate_orbit_panel_adaptive.py \
+            tests/test_commensurate_orbit_panel_adaptive_v3.py \
             tests/test_validation_cli.py \
             > pytest-output.txt 2>&1
           status=$?
@@ -126,7 +127,7 @@ jobs:
           quadrature = payload['quadrature']
           assert payload['schema'] == 'dwave_positive_commensurate_orbit_panel_adaptive_v2'
           assert quadrature['strategy'] == 'deterministic_panel_adaptive'
-          assert quadrature['quadrature'] == 'nested_clenshaw_curtis_5_9_17_33'
+          assert quadrature['quadrature'] == 'nested_clenshaw_curtis_5_9_17_33_split_history'
           assert quadrature['initial_panel_count'] == 8
           assert quadrature['pilot_count'] == 16
           assert quadrature['full_transverse_period_integrated'] is True
