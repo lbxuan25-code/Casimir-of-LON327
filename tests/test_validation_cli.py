@@ -20,6 +20,7 @@ def test_validation_cli_exposes_grouped_commands():
         ("matsubara", "bond-metric-positive"),
         ("matsubara", "dwave-orbit-adaptive"),
         ("matsubara", "dwave-orbit-gauss-crosscheck"),
+        ("matsubara", "dwave-orbit-certification-scan"),
     }
     assert set(available_commands()) == expected
 
