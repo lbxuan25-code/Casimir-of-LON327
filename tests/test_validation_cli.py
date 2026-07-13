@@ -19,6 +19,7 @@ def test_validation_cli_exposes_grouped_commands():
         ("matsubara", "dwave-small-xi"),
         ("matsubara", "bond-metric-positive"),
         ("matsubara", "dwave-orbit-adaptive"),
+        ("matsubara", "dwave-orbit-adaptive-gk21"),
         ("matsubara", "dwave-orbit-gauss-crosscheck"),
         ("matsubara", "dwave-orbit-certification-scan"),
     }
