@@ -44,6 +44,7 @@ jobs:
             tests/test_zero_matsubara_static_sheet.py \
             tests/test_two_band_casimir_contract_integration.py \
             tests/test_finite_q_optimized_workspace.py \
+            tests/test_finite_q_two_band_batch.py \
             tests/test_finite_q_material_cache.py \
             tests/test_sheet_reflection_contract.py \
             tests/test_passive_sheet_logdet.py \
@@ -118,7 +119,9 @@ jobs:
           from pathlib import Path
 
           payload = json.loads(Path('/tmp/dwave-orbit-profile.json').read_text())
-          assert payload['evaluator_profile']['callbacks'] == 1
+          profile = payload['evaluator_profile']
+          assert profile['callbacks'] == 1
+          assert profile['q_workspace_implementation'] == 'batched_model_capability'
           assert payload['points_per_t'] == 8
           assert payload['status']['valid_for_casimir_input'] is False
           PY
