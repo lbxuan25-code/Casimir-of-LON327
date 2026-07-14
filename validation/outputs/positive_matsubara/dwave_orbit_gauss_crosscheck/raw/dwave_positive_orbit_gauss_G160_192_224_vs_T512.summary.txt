@@ -1,0 +1,27 @@
+positive-Matsubara d-wave fixed-Gauss cross-check
+==============================================================================
+reference = validation/outputs/positive_matsubara/dwave_orbit_adaptive/raw/dwave_positive_orbit_nested_n1_2_4_8_tight_t512.csv
+grid: nk=1256, m=(6,4)
+Gauss orders = (160, 192, 224)
+matrix tolerance = 1.000e-03; logdet tolerance = 1.000e-03
+
+ order  n    sigma-ref       R-ref       logdet-ref    Ward   point   cross
+----------------------------------------------------------------------------------------
+   160  1    4.039e-04    4.040e-04      6.234e-08    True    True    True
+   160  2    2.255e-04    1.946e-04      8.525e-08    True    True    True
+   160  4    4.637e-05    1.299e-05      1.647e-07    True    True    True
+   160  8    3.352e-05    3.336e-05      9.220e-07    True    True    True
+   192  1    6.757e-05    1.109e-04      7.806e-08    True    True    True
+   192  2    6.538e-05    6.829e-05      4.336e-08    True    True    True
+   192  4    3.631e-05    6.198e-05      4.328e-07    True    True    True
+   192  8    5.654e-05    5.973e-05      1.630e-06    True    True    True
+   224  1    1.508e-05    8.171e-05      1.243e-07    True    True    True
+   224  2    8.232e-06    8.685e-05      1.761e-07    True    True    True
+   224  4    2.720e-05    8.849e-05      5.343e-07    True    True    True
+   224  8    5.351e-05    6.477e-05      1.440e-06    True    True    True
+
+all fixed-Gauss physical pipelines passed = True
+all reference cross-checks passed = True
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False

@@ -1,0 +1,23 @@
+positive-Matsubara d-wave fixed-Gauss cross-check
+==============================================================================
+reference = validation/outputs/positive_matsubara/dwave_orbit_gauss_crosscheck/g192_g224/diagonal_min_1_1_v3_primary_reference.csv
+grid: nk=1256, m=(1,1)
+Gauss orders = (192, 224)
+matrix tolerance = 1.000e-03; logdet tolerance = 1.000e-03
+
+ order  n    sigma-ref       R-ref       logdet-ref    Ward   point   cross
+----------------------------------------------------------------------------------------
+   192  1    1.960e-03    7.375e-06      1.931e-05    True    True   False
+   192  2    1.612e-03    5.921e-06      1.531e-05    True    True   False
+   192  4    4.015e-04    3.329e-06      7.815e-06    True    True    True
+   192  8    1.639e-04    2.602e-06      5.579e-06    True    True    True
+   224  1    5.063e-03    1.764e-05      4.888e-05    True    True   False
+   224  2    3.355e-03    1.151e-05      3.186e-05    True    True   False
+   224  4    6.287e-04    4.833e-06      1.330e-05    True    True    True
+   224  8    6.670e-05    1.100e-06      2.450e-06    True    True    True
+
+all fixed-Gauss physical pipelines passed = True
+all reference cross-checks passed = False
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False

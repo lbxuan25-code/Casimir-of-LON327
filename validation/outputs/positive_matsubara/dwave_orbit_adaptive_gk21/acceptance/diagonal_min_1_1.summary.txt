@@ -1,0 +1,20 @@
+positive-Matsubara d-wave complete-orbit adaptive GK21 validation
+==============================================================================
+grid q = (2 pi/1256) (1, 1)
+orbit origins = (0.5, 0.0)
+strategy = adaptive_gk21; scipy = 1.17.1
+primary error ratio = inf; success = False
+audit error ratio = inf; success = False
+primitive group audit passed = False
+unique transverse evaluations = 256 / 256; cache hits = 21
+microscopic point evaluations = 643072
+quadrature wall = 123.465 s; evaluator wall = 123.420 s
+
+no complete primary primitive integral was available
+
+quadrature success = False
+failure reason = transverse_evaluation_budget_exceeded
+all point pipelines passed = False
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False

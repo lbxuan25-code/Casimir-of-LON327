@@ -1,0 +1,22 @@
+positive-Matsubara d-wave fixed/composite-Gauss cross-check
+==============================================================================================
+reference = validation/outputs/positive_matsubara/dwave_orbit_gauss_crosscheck/composite_batched_speedcheck/no_external_reference_placeholder.csv
+grid: nk=1256, m=(1,1)
+total Gauss orders = (224, 256)
+panel count = 16; cuts = (-3.141592653589793,)
+matrix atol/rtol = 1.000e-12/1.000e-03; logdet atol/rtol = 1.000e-12/1.000e-03
+
+ cut total local  n   sigma-ref  sigma-prev  sigma-cut   Ward  physical
+----------------------------------------------------------------------------------------------
+   0   224    14  1   1.000e+03         inf        inf   True      True
+   0   224    14  2   1.000e+03         inf        inf   True      True
+   0   256    16  1   1.000e+03   7.375e+00        inf   True      True
+   0   256    16  2   1.000e+03   5.773e+00        inf   True      True
+
+all fixed-Gauss physical pipelines passed = True
+all reference cross-checks passed = False
+all consecutive-order checks passed = False
+all periodic-cut checks passed = True
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False

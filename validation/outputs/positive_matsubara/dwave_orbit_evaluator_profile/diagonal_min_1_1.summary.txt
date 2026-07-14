@@ -1,0 +1,17 @@
+d-wave exact complete-orbit primitive evaluator profile
+========================================================================
+nk = 1256; m = (1, 1)
+phase = 0.5; origins = (0.5, 0.0)
+points per t = 2512
+
+orbit geometry / wrap           0.000054 s     0.00%
+material workspace              0.407798 s    12.13%
+q workspace                     2.940636 s    87.46%
+Kubo factors                    0.000749 s     0.02%
+Kubo contraction                0.012980 s     0.39%
+primitive packing               0.000068 s     0.00%
+------------------------------------------------------------------------
+complete callback total         3.362285 s
+
+diagnostic_only = True
+valid_for_casimir_input = False

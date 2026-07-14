@@ -1,0 +1,34 @@
+total Matsubara complete-orbit timing profile
+========================================================================================
+nk=1256; m=(1,1); order=64; panels=16; n=(0, 1, 2)
+stage percentages are fractions of summed evaluator worker-seconds
+quadrature wall includes orbit geometry, dispatch/wait, and ordered Kahan reduction
+
+[spm]
+serial wall=20.408198s; parallel wall=3.103756s; speedup=6.575x; CPU/wall=7.689
+quadrature wall=3.069572s; pool startup + postprocess=0.034184s
+  material_workspace          19.813232 worker-s    83.95%
+  q_workspace                  3.035123 worker-s    12.86%
+  kubo_factors                 0.050475 worker-s     0.21%
+  kubo_contraction             0.700260 worker-s     2.97%
+  primitive_packing            0.003247 worker-s     0.01%
+  callbacks=64; frequencies=3; shared=True
+  exact serial/process equality=True; relative=0.000e+00
+  optimization sufficient=True
+
+[dwave]
+serial wall=20.771748s; parallel wall=3.136591s; speedup=6.622x; CPU/wall=7.706
+quadrature wall=3.102728s; pool startup + postprocess=0.033863s
+  material_workspace          20.054285 worker-s    83.87%
+  q_workspace                  3.137617 worker-s    13.12%
+  kubo_factors                 0.052480 worker-s     0.22%
+  kubo_contraction             0.662376 worker-s     2.77%
+  primitive_packing            0.003426 worker-s     0.01%
+  callbacks=64; frequencies=3; shared=True
+  exact serial/process equality=True; relative=0.000e+00
+  optimization sufficient=True
+
+all optimization checks passed = True
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False
