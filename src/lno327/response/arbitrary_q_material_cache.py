@@ -10,11 +10,22 @@ from typing import Any, Mapping
 
 import numpy as np
 
+from lno327.response.arbitrary_q_formal_policy import MATERIAL_CACHE_SCHEMA
 from lno327.response.finite_q_material_workspace_batched import (
     precompute_finite_q_material_workspace_batched,
 )
 from lno327.response.finite_q_optimized import FiniteQMaterialWorkspace
 from lno327.response.periodic_bz_grid import PeriodicBZGrid
+
+
+def _public_state(value: Any) -> dict[str, Any]:
+    if not hasattr(value, "__dict__"):
+        return {}
+    return {
+        key: item
+        for key, item in vars(value).items()
+        if not key.startswith("_")
+    }
 
 
 def _stable_value(value: Any) -> Any:
@@ -56,24 +67,27 @@ def _stable_value(value: Any) -> Any:
         }
     if isinstance(value, (tuple, list)):
         return [_stable_value(item) for item in value]
+
+    explicit = getattr(value, "cache_fingerprint_payload", None)
+    if callable(explicit):
+        return {
+            "object": f"{type(value).__module__}.{type(value).__qualname__}",
+            "explicit_cache_fingerprint_payload": _stable_value(explicit()),
+        }
+
     metadata = getattr(value, "metadata", None)
-    if callable(metadata):
-        return {
-            "object": f"{type(value).__module__}.{type(value).__qualname__}",
-            "metadata": _stable_value(metadata()),
-        }
-    if hasattr(value, "__dict__"):
-        public = {
-            key: item
-            for key, item in vars(value).items()
-            if not key.startswith("_")
-        }
-        return {
-            "object": f"{type(value).__module__}.{type(value).__qualname__}",
-            "state": _stable_value(public),
-        }
-    return {
+    payload: dict[str, Any] = {
         "object": f"{type(value).__module__}.{type(value).__qualname__}",
+    }
+    if callable(metadata):
+        payload["metadata"] = _stable_value(metadata())
+    public = _public_state(value)
+    if public:
+        payload["public_state"] = _stable_value(public)
+    if len(payload) > 1:
+        return payload
+    return {
+        **payload,
         "repr": repr(value),
     }
 
@@ -88,7 +102,7 @@ def material_cache_fingerprint(
     grid: PeriodicBZGrid,
 ) -> str:
     payload = {
-        "schema": "MaterialGridCache-v1",
+        "schema": MATERIAL_CACHE_SCHEMA,
         "spec": _stable_value(spec),
         "ansatz": _stable_value(ansatz),
         "pairing": _stable_value(pairing),
@@ -151,7 +165,7 @@ class MaterialGridCache:
     build_count: int = 1
 
     def __post_init__(self) -> None:
-        if self.schema_version != "MaterialGridCache-v1":
+        if self.schema_version != MATERIAL_CACHE_SCHEMA:
             raise ValueError("unsupported material cache schema")
         if self.workspace.nk != self.grid.point_count:
             raise ValueError("material cache workspace/grid point counts differ")
@@ -245,7 +259,7 @@ def build_material_grid_cache(
     )
     build_seconds = perf_counter() - started
     return MaterialGridCache(
-        schema_version="MaterialGridCache-v1",
+        schema_version=MATERIAL_CACHE_SCHEMA,
         fingerprint=fingerprint,
         grid=grid,
         workspace=workspace,
