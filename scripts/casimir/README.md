@@ -30,14 +30,20 @@ docs/arbitrary_q_periodic_bz_design.md
 validation/README.md
 ```
 
-Blocking commands are:
+The required order is:
 
 ```bash
-python -m validation matsubara arbitrary-q-performance-preflight
-python -m validation matsubara arbitrary-q-periodic-bz-qualification
+python -m validation matsubara arbitrary-q-performance-preflight \
+  --output validation/outputs/matsubara/arbitrary_q_performance_preflight/real_head.json
+
+python -m validation matsubara arbitrary-q-periodic-bz-qualification \
+  --performance-manifest \
+    validation/outputs/matsubara/arbitrary_q_performance_preflight/real_head.json
 ```
 
-The first command must produce a same-head real-hardware performance manifest before the expensive `N=256,384,512` numerical qualification is accepted. CI only establishes small deterministic architecture and regression contracts.
+The public qualification route rejects a missing, failed, or stale performance manifest before starting any expensive numerical work. Its manifest must have the exact current git head.
+
+The performance command must produce a same-head real-hardware manifest before the expensive `N=256,384,512` numerical qualification is accepted. CI only establishes small deterministic architecture and regression contracts.
 
 ## Future full outer layer
 
