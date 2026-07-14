@@ -8,7 +8,7 @@ from typing import Sequence
 import numpy as np
 
 from lno327.response.arbitrary_q_material_cache import MaterialGridCache
-from lno327.response.primitive_kernel import (
+from lno327.response.primitive_kernel_v2 import (
     OperatorWardReport,
     counterterm_primitive_vector,
     evaluate_primitive_batch_from_material,
@@ -72,6 +72,9 @@ class ArbitraryQAccumulationProfile:
             "shifted_eigensystem_build_count": int(
                 self.shifted_eigensystem_build_count
             ),
+            "shifted_eigensystem_counter_source": (
+                "actual_np_linalg_eigh_calls_reported_by_q_workspace"
+            ),
             "q_workspace_seconds": float(self.q_workspace_seconds),
             "kubo_factor_seconds": float(self.kubo_factor_seconds),
             "kubo_contraction_seconds": float(self.kubo_contraction_seconds),
@@ -96,22 +99,25 @@ class ArbitraryQAccumulationResult:
         object.__setattr__(self, "packed", array)
 
 
-def _combine_operator_reports(reports: list[OperatorWardReport]) -> OperatorWardReport:
-    if not reports:
+def combine_operator_ward_reports(
+    reports: Sequence[OperatorWardReport],
+) -> OperatorWardReport:
+    values = tuple(reports)
+    if not values:
         raise ValueError("at least one operator Ward report is required")
-    atol = reports[0].atol
-    rtol = reports[0].rtol
-    if any(report.atol != atol or report.rtol != rtol for report in reports):
-        raise ValueError("operator Ward tolerances changed across blocks")
+    atol = values[0].atol
+    rtol = values[0].rtol
+    if any(report.atol != atol or report.rtol != rtol for report in values):
+        raise ValueError("operator Ward tolerances changed across reports")
     return OperatorWardReport(
-        point_count=sum(report.point_count for report in reports),
-        max_absolute_error=max(report.max_absolute_error for report in reports),
-        max_relative_error=max(report.max_relative_error for report in reports),
-        max_mixed_ratio=max(report.max_mixed_ratio for report in reports),
-        failed_points=sum(report.failed_points for report in reports),
+        point_count=sum(report.point_count for report in values),
+        max_absolute_error=max(report.max_absolute_error for report in values),
+        max_relative_error=max(report.max_relative_error for report in values),
+        max_mixed_ratio=max(report.max_mixed_ratio for report in values),
+        failed_points=sum(report.failed_points for report in values),
         atol=atol,
         rtol=rtol,
-        passed=all(report.passed for report in reports),
+        passed=all(report.passed for report in values),
     )
 
 
@@ -197,8 +203,6 @@ def accumulate_arbitrary_q_primitives(
             accumulation_seconds += perf_counter() - started
             canonical_block_count += 1
 
-    # The full-BZ Goldstone/HS counterterm is q independent and is added exactly
-    # once after every streamed linear contribution has been accumulated.
     accumulator.add(
         counterterm_primitive_vector(
             cache.counterterm,
@@ -226,7 +230,7 @@ def accumulate_arbitrary_q_primitives(
     )
     return ArbitraryQAccumulationResult(
         packed=accumulator.value(),
-        operator_ward=_combine_operator_reports(reports),
+        operator_ward=combine_operator_ward_reports(reports),
         profile=profile,
     )
 
@@ -236,4 +240,5 @@ __all__ = [
     "ArbitraryQAccumulationResult",
     "ComplexKahanVector",
     "accumulate_arbitrary_q_primitives",
+    "combine_operator_ward_reports",
 ]
