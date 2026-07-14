@@ -1,4 +1,4 @@
-"""Cross-check positive spm/d-wave complete-orbit results with one Gauss method."""
+"""Cross-check zero/positive spm/d-wave complete-orbit results with one Gauss method."""
 from __future__ import annotations
 
 import argparse
@@ -16,17 +16,17 @@ from validation.commands.matsubara.positive_point import matsubara_energy_eV
 from validation.lib.dwave_commensurate_orbit_gauss import OrbitEvaluationBudgetExceeded
 from validation.lib.dwave_orbit_acceptance import (
     OrbitAcceptancePhysicsConfig,
-    evaluate_positive_matsubara_pipeline,
+    evaluate_matsubara_pipeline,
     matrix_fields,
     mixed_matrix_gate,
     mixed_scalar_gate,
 )
 from validation.lib.finite_q_validation_models import get_finite_q_validation_model
-from validation.lib.positive_orbit_gauss import integrate_positive_orbit_gauss
+from validation.lib.positive_orbit_gauss import integrate_matsubara_orbit_gauss
 
 DEFAULT_OUTPUT = Path(
-    "validation/outputs/positive_matsubara/positive_orbit_gauss_crosscheck/raw/"
-    "positive_orbit_gauss_crosscheck.csv"
+    "validation/outputs/matsubara/orbit_gauss_crosscheck/raw/"
+    "matsubara_orbit_gauss_crosscheck.csv"
 )
 
 
@@ -36,7 +36,9 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--nk", type=int, default=1256)
     parser.add_argument("--mx", type=int, default=1)
     parser.add_argument("--my", type=int, default=1)
-    parser.add_argument("--matsubara-indices", nargs="+", type=int, default=[1, 2, 4, 8])
+    parser.add_argument(
+        "--matsubara-indices", nargs="+", type=int, default=[0, 1, 2, 4, 8]
+    )
     parser.add_argument("--gauss-orders", nargs="+", type=int, default=[160, 192])
     parser.add_argument("--panel-count", type=int, default=16)
     parser.add_argument(
@@ -78,8 +80,8 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         parser.error("nk, panel count, budget, workers and task size must be positive")
     if args.mx == 0 and args.my == 0:
         parser.error("at least one of --mx,--my must be nonzero")
-    if any(index <= 0 for index in args.matsubara_indices):
-        parser.error("positive-Matsubara indices must be positive; exact n=0 is separate")
+    if any(index < 0 for index in args.matsubara_indices):
+        parser.error("Matsubara indices must be non-negative")
     if any(order <= 0 or order % args.panel_count != 0 for order in args.gauss_orders):
         parser.error("every Gauss order must be positive and divisible by panel count")
     starts = args.integration_starts or [-np.pi]
@@ -123,6 +125,12 @@ def _matrix_from_row(row: dict[str, Any], prefix: str) -> np.ndarray:
     )
 
 
+def _primary_from_row(row: dict[str, Any]) -> np.ndarray:
+    if "primary_response_xx_real" in row:
+        return _matrix_from_row(row, "primary_response")
+    return _matrix_from_row(row, "sigma_tilde")
+
+
 def _unavailable() -> tuple[float, float, float, bool]:
     return float("inf"), float("inf"), float("inf"), False
 
@@ -133,33 +141,39 @@ def _format_ratio(value: float, available: bool) -> str:
 
 def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
     lines = [
-        "positive-Matsubara complete-orbit fixed/composite-Gauss cross-check",
-        "=" * 110,
+        "zero/positive Matsubara complete-orbit fixed/composite-Gauss cross-check",
+        "=" * 116,
         f"pairing={args.pairing}; nk={args.nk}; m=({args.mx},{args.my})",
         f"orders={tuple(sorted(set(args.gauss_orders)))}; panels={args.panel_count}; cuts={args.integration_starts}",
         f"workers/task={args.transverse_workers}/{args.transverse_task_size}",
+        "n=0 uses exact static divided differences and density/stiffness postprocessing",
         "",
-        " cut total local  n   sigma-ref  sigma-prev  sigma-cut   Ward  physical  wall(s)",
-        "-" * 110,
+        " cut total local  n sector     primary-ref primary-prev primary-cut Ward strict0 physical wall(s)",
+        "-" * 116,
     ]
     for row in rows:
         lines.append(
             f"{int(row['cut_index']):4d} {int(row['gauss_order']):5d} "
             f"{int(row['panel_order']):5d} {int(row['matsubara_index']):2d} "
-            f"{_format_ratio(float(row['reference_sigma_matrix_ratio']), bool(row['reference_available']))} "
-            f"{_format_ratio(float(row['previous_gauss_sigma_matrix_ratio']), bool(row['previous_order_available']))} "
-            f"{_format_ratio(float(row['baseline_cut_sigma_matrix_ratio']), bool(row['cut_comparison_available']))} "
-            f"{str(bool(row['ward_passed'])):>6s} "
-            f"{str(bool(row['point_pipeline_passed'])):>9s} "
-            f"{float(row['quadrature_wall_seconds']):8.3f}"
+            f"{str(row['response_sector']):>8s} "
+            f"{_format_ratio(float(row['reference_primary_response_ratio']), bool(row['reference_available']))} "
+            f"{_format_ratio(float(row['previous_gauss_primary_response_ratio']), bool(row['previous_order_available']))} "
+            f"{_format_ratio(float(row['baseline_cut_primary_response_ratio']), bool(row['cut_comparison_available']))} "
+            f"{str(bool(row['ward_passed'])):>5s} "
+            f"{str(bool(row['strict_static_ward_passed'])):>7s} "
+            f"{str(bool(row['point_pipeline_passed'])):>8s} "
+            f"{float(row['quadrature_wall_seconds']):7.3f}"
         )
     references = [row for row in rows if bool(row["reference_available"])]
     previous = [row for row in rows if bool(row["previous_order_available"])]
     cuts = [row for row in rows if bool(row["cut_comparison_available"])]
+    zero_rows = [row for row in rows if int(row["matsubara_index"]) == 0]
     lines.extend(
         [
             "",
+            f"zero Matsubara included = {bool(zero_rows)}",
             f"all physical pipelines passed = {all(bool(row['point_pipeline_passed']) for row in rows)}",
+            f"all exact-static strict Ward gates passed = {bool(zero_rows) and all(bool(row['strict_static_ward_passed']) for row in zero_rows)}",
             f"all available reference checks passed = {bool(references) and all(bool(row['crosscheck_passed']) for row in references)}",
             f"all consecutive-order checks passed = {bool(previous) and all(bool(row['previous_gauss_comparison_passed']) for row in previous)}",
             f"all periodic-cut checks passed = {(len(args.integration_starts) == 1) or (bool(cuts) and all(bool(row['cut_comparison_passed']) for row in cuts))}",
@@ -184,7 +198,7 @@ def main() -> None:
             raise SystemExit(f"reference CSV is missing Matsubara indices: {missing}")
 
     xi_values = np.asarray(
-        [matsubara_energy_eV(index, args.temperature_K) for index in indices],
+        [0.0 if index == 0 else matsubara_energy_eV(index, args.temperature_K) for index in indices],
         dtype=float,
     )
     model = get_finite_q_validation_model("symmetry_bdg_2band")
@@ -206,14 +220,13 @@ def main() -> None:
         previous_by_index: dict[int, tuple[np.ndarray, np.ndarray, float]] = {}
         for order in orders:
             print(
-                f"starting {args.pairing} fixed-Gauss cross-check: nk={args.nk}, "
+                f"starting {args.pairing} Matsubara fixed-Gauss cross-check: nk={args.nk}, "
                 f"m=({args.mx},{args.my}), order={order}, panels={args.panel_count}, "
-                f"cut={integration_start:.12f}, indices={indices}, "
-                f"workers={args.transverse_workers}",
+                f"cut={integration_start:.12f}, indices={indices}, workers={args.transverse_workers}",
                 flush=True,
             )
             try:
-                integrated = integrate_positive_orbit_gauss(
+                integrated = integrate_matsubara_orbit_gauss(
                     spec=model.spec,
                     ansatz=ansatz,
                     pairing=pairing,
@@ -245,24 +258,25 @@ def main() -> None:
                 integrated.rhs,
                 strict=True,
             ):
-                physical = evaluate_positive_matsubara_pipeline(
+                physical = evaluate_matsubara_pipeline(
                     components=components,
                     rhs=rhs,
                     q_model=q,
                     xi_eV=float(xi),
                     config=physics_config,
                 )
+                primary = np.asarray(physical["primary_response"], dtype=complex)
                 sigma = np.asarray(physical["sigma"], dtype=complex)
                 reflection = np.asarray(physical["reflection"], dtype=complex)
                 logdet = float(physical["logdet"])
 
                 if reference_rows is None:
-                    sigma_reference = reflection_reference = logdet_reference = _unavailable()
+                    primary_reference = reflection_reference = logdet_reference = _unavailable()
                     reference_available = False
                 else:
                     reference = reference_rows[index]
-                    sigma_reference = mixed_matrix_gate(
-                        _matrix_from_row(reference, "sigma_tilde"), sigma,
+                    primary_reference = mixed_matrix_gate(
+                        _primary_from_row(reference), primary,
                         atol=args.reference_matrix_atol, rtol=args.reference_matrix_rtol,
                     )
                     reflection_reference = mixed_matrix_gate(
@@ -278,10 +292,10 @@ def main() -> None:
                 previous_value = previous_by_index.get(index)
                 previous_available = previous_value is not None
                 if previous_value is None:
-                    sigma_previous = reflection_previous = logdet_previous = _unavailable()
+                    primary_previous = reflection_previous = logdet_previous = _unavailable()
                 else:
-                    sigma_previous = mixed_matrix_gate(
-                        previous_value[0], sigma,
+                    primary_previous = mixed_matrix_gate(
+                        previous_value[0], primary,
                         atol=args.reference_matrix_atol, rtol=args.reference_matrix_rtol,
                     )
                     reflection_previous = mixed_matrix_gate(
@@ -292,21 +306,21 @@ def main() -> None:
                         previous_value[2], logdet,
                         atol=args.reference_logdet_atol, rtol=args.reference_logdet_rtol,
                     )
-                previous_by_index[index] = (sigma.copy(), reflection.copy(), logdet)
+                previous_by_index[index] = (primary.copy(), reflection.copy(), logdet)
 
                 baseline_key = (order, index)
                 baseline = baseline_by_order_index.get(baseline_key)
                 cut_available = cut_index > 0 and baseline is not None
                 if cut_index == 0:
                     baseline_by_order_index[baseline_key] = (
-                        sigma.copy(), reflection.copy(), logdet
+                        primary.copy(), reflection.copy(), logdet
                     )
                 if not cut_available:
-                    sigma_cut = reflection_cut = logdet_cut = _unavailable()
+                    primary_cut = reflection_cut = logdet_cut = _unavailable()
                 else:
                     assert baseline is not None
-                    sigma_cut = mixed_matrix_gate(
-                        baseline[0], sigma,
+                    primary_cut = mixed_matrix_gate(
+                        baseline[0], primary,
                         atol=args.reference_matrix_atol, rtol=args.reference_matrix_rtol,
                     )
                     reflection_cut = mixed_matrix_gate(
@@ -321,20 +335,22 @@ def main() -> None:
                 point_passed = bool(quadrature.success and physical["physical_passed"])
                 crosscheck_passed = bool(
                     reference_available and point_passed
-                    and sigma_reference[3] and reflection_reference[3] and logdet_reference[3]
+                    and primary_reference[3] and reflection_reference[3] and logdet_reference[3]
                 )
                 previous_passed = bool(
                     previous_available and point_passed
-                    and sigma_previous[3] and reflection_previous[3] and logdet_previous[3]
+                    and primary_previous[3] and reflection_previous[3] and logdet_previous[3]
                 )
                 cut_passed = bool(
                     cut_available and point_passed
-                    and sigma_cut[3] and reflection_cut[3] and logdet_cut[3]
+                    and primary_cut[3] and reflection_cut[3] and logdet_cut[3]
                 )
 
                 row: dict[str, Any] = {
                     "pairing": args.pairing,
                     "phase_hessian_policy": integrated.phase_hessian_policy,
+                    "response_sector": str(physical["response_sector"]),
+                    "matsubara_prime_weight": float(physical["matsubara_prime_weight"]),
                     "nk": args.nk,
                     "mx": args.mx,
                     "my": args.my,
@@ -356,26 +372,38 @@ def main() -> None:
                     "execution_strategy": str(quadrature.execution_strategy),
                     "material_workspace_implementation": profile.material_workspace_implementation,
                     "q_workspace_implementation": profile.q_workspace_implementation,
+                    "evaluator_callbacks": int(profile.callbacks),
                     "evaluator_worker_seconds": float(profile.total_seconds),
                     "evaluator_seconds_per_callback": float(profile.seconds_per_callback),
+                    "parallel_cpu_wall_ratio": float(
+                        profile.total_seconds / max(quadrature.wall_seconds, np.finfo(float).tiny)
+                    ),
                     "full_transverse_period_integrated": bool(quadrature.full_transverse_period_integrated),
                     "symmetry_reduction_applied": bool(quadrature.symmetry_reduction_applied),
                     "q_direction_special_case": bool(quadrature.q_direction_special_case),
                     "point_evaluations": int(quadrature.point_evaluations),
                     "quadrature_wall_seconds": float(quadrature.wall_seconds),
                     "ward_passed": bool(physical["ward_passed"]),
+                    "strict_static_ward_passed": bool(physical["strict_static_ward_passed"]),
                     "ward_effective_mixed_ratio_max": float(physical["ward_effective_mixed_ratio_max"]),
                     "schur_condition_number": float(physical["schur_condition_number"]),
                     "sheet_validation_passed": bool(physical["sheet_validation_passed"]),
                     "reflection_constructed": bool(physical["reflection_constructed"]),
                     "logdet_passed": bool(physical["logdet_passed"]),
+                    "chi_bar": float(physical["chi_bar"]),
+                    "dbar_t": float(physical["dbar_t"]),
                     "logdet": logdet,
                     "point_pipeline_passed": point_passed,
                     "reference_available": reference_available,
-                    "reference_sigma_matrix_absolute": sigma_reference[0],
-                    "reference_sigma_matrix_relative": sigma_reference[1],
-                    "reference_sigma_matrix_ratio": sigma_reference[2],
-                    "reference_sigma_matrix_passed": sigma_reference[3],
+                    "reference_primary_response_absolute": primary_reference[0],
+                    "reference_primary_response_relative": primary_reference[1],
+                    "reference_primary_response_ratio": primary_reference[2],
+                    "reference_primary_response_passed": primary_reference[3],
+                    # Compatibility aliases: positive rows are sigma; zero rows are chi/D_T.
+                    "reference_sigma_matrix_absolute": primary_reference[0],
+                    "reference_sigma_matrix_relative": primary_reference[1],
+                    "reference_sigma_matrix_ratio": primary_reference[2],
+                    "reference_sigma_matrix_passed": primary_reference[3],
                     "reference_reflection_matrix_absolute": reflection_reference[0],
                     "reference_reflection_matrix_relative": reflection_reference[1],
                     "reference_reflection_matrix_ratio": reflection_reference[2],
@@ -385,9 +413,12 @@ def main() -> None:
                     "reference_logdet_ratio": logdet_reference[2],
                     "reference_logdet_passed": logdet_reference[3],
                     "previous_order_available": previous_available,
-                    "previous_gauss_sigma_matrix_absolute": sigma_previous[0],
-                    "previous_gauss_sigma_matrix_relative": sigma_previous[1],
-                    "previous_gauss_sigma_matrix_ratio": sigma_previous[2],
+                    "previous_gauss_primary_response_absolute": primary_previous[0],
+                    "previous_gauss_primary_response_relative": primary_previous[1],
+                    "previous_gauss_primary_response_ratio": primary_previous[2],
+                    "previous_gauss_sigma_matrix_absolute": primary_previous[0],
+                    "previous_gauss_sigma_matrix_relative": primary_previous[1],
+                    "previous_gauss_sigma_matrix_ratio": primary_previous[2],
                     "previous_gauss_reflection_matrix_absolute": reflection_previous[0],
                     "previous_gauss_reflection_matrix_relative": reflection_previous[1],
                     "previous_gauss_reflection_matrix_ratio": reflection_previous[2],
@@ -396,9 +427,12 @@ def main() -> None:
                     "previous_gauss_logdet_ratio": logdet_previous[2],
                     "previous_gauss_comparison_passed": previous_passed,
                     "cut_comparison_available": cut_available,
-                    "baseline_cut_sigma_matrix_absolute": sigma_cut[0],
-                    "baseline_cut_sigma_matrix_relative": sigma_cut[1],
-                    "baseline_cut_sigma_matrix_ratio": sigma_cut[2],
+                    "baseline_cut_primary_response_absolute": primary_cut[0],
+                    "baseline_cut_primary_response_relative": primary_cut[1],
+                    "baseline_cut_primary_response_ratio": primary_cut[2],
+                    "baseline_cut_sigma_matrix_absolute": primary_cut[0],
+                    "baseline_cut_sigma_matrix_relative": primary_cut[1],
+                    "baseline_cut_sigma_matrix_ratio": primary_cut[2],
                     "baseline_cut_reflection_matrix_absolute": reflection_cut[0],
                     "baseline_cut_reflection_matrix_relative": reflection_cut[1],
                     "baseline_cut_reflection_matrix_ratio": reflection_cut[2],
@@ -412,6 +446,7 @@ def main() -> None:
                     "production_reference_established": False,
                     "valid_for_casimir_input": False,
                 }
+                row.update(matrix_fields("primary_response", primary))
                 row.update(matrix_fields("sigma_tilde", sigma))
                 row.update(matrix_fields("reflection", reflection))
                 output_rows.append(row)
@@ -429,10 +464,11 @@ def main() -> None:
     references = [row for row in output_rows if bool(row["reference_available"])]
     previous = [row for row in output_rows if bool(row["previous_order_available"])]
     cuts = [row for row in output_rows if bool(row["cut_comparison_available"])]
+    zero_rows = [row for row in output_rows if int(row["matsubara_index"]) == 0]
     summary = _summary(output_rows, args)
     output.with_suffix(".summary.txt").write_text(summary, encoding="utf-8")
     payload = {
-        "schema": "positive_commensurate_orbit_fixed_gauss_crosscheck_v1",
+        "schema": "zero_positive_commensurate_orbit_fixed_gauss_crosscheck_v1",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "platform": platform.platform(),
         "python": platform.python_version(),
@@ -443,7 +479,11 @@ def main() -> None:
         "total_wall_seconds": total_wall,
         "rows": output_rows,
         "status": {
+            "zero_matsubara_included": bool(zero_rows),
+            "zero_uses_exact_static_divided_difference": bool(zero_rows),
+            "zero_conductivity_division_used": False,
             "all_physical_pipelines_passed": all(bool(row["point_pipeline_passed"]) for row in output_rows),
+            "all_exact_static_strict_ward_passed": bool(zero_rows) and all(bool(row["strict_static_ward_passed"]) for row in zero_rows),
             "external_reference_provided": args.reference_csv is not None,
             "all_reference_crosschecks_passed": bool(references) and all(bool(row["crosscheck_passed"]) for row in references),
             "all_consecutive_order_checks_passed": bool(previous) and all(bool(row["previous_gauss_comparison_passed"]) for row in previous),
