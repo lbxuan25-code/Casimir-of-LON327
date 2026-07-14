@@ -1,17 +1,17 @@
 """Staged total Matsubara spm/d-wave scan using one composite Gauss method.
 
 Every q case uses the same full-period equal-panel composite Gauss-Legendre rule.
-Only transverse order and point budget change.  Exact ``n=0`` and all positive
+Only transverse order and point budget change. Exact ``n=0`` and all positive
 Matsubara frequencies are evaluated in one batched microscopic call so eigensystems
 are shared; postprocessing then branches to static density/stiffness or positive
-conductivity as required.  A successful performance/correctness preflight manifest
+conductivity as required. A successful performance/correctness preflight manifest
 for the current git head is mandatory before a formal run.
 """
 from __future__ import annotations
 
 import argparse
 import csv
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -206,8 +206,25 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return args
 
 
+def _jsonable(value: Any) -> Any:
+    if isinstance(value, Path):
+        return str(value)
+    if is_dataclass(value) and not isinstance(value, type):
+        return {key: _jsonable(item) for key, item in asdict(value).items()}
+    if isinstance(value, dict):
+        return {str(key): _jsonable(item) for key, item in value.items()}
+    if isinstance(value, (tuple, list)):
+        return [_jsonable(item) for item in value]
+    return value
+
+
 def _canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return json.dumps(
+        _jsonable(value),
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
 
 
 def _fingerprint(payload: dict[str, Any]) -> str:
@@ -255,7 +272,9 @@ def _validate_preflight(args: argparse.Namespace) -> dict[str, Any]:
     covered_pairings = set(manifest_args.get("pairings", []))
     if not set(args.pairings).issubset(covered_pairings):
         raise SystemExit("preflight did not cover every requested pairing")
-    preflight_indices = {int(value) for value in manifest_args.get("matsubara_indices", [])}
+    preflight_indices = {
+        int(value) for value in manifest_args.get("matsubara_indices", [])
+    }
     if 0 not in preflight_indices or not any(value > 0 for value in preflight_indices):
         raise SystemExit("preflight did not exercise a combined zero/positive batch")
     current_head = _git_head()
@@ -288,7 +307,11 @@ def _budget(args: argparse.Namespace, case: CaseSpec, order: int) -> int:
 
 def _output_matches(path: Path, fingerprint: str) -> bool:
     manifest = path.with_suffix(".task.json")
-    if not path.is_file() or not path.with_suffix(".json").is_file() or not manifest.is_file():
+    if (
+        not path.is_file()
+        or not path.with_suffix(".json").is_file()
+        or not manifest.is_file()
+    ):
         return False
     try:
         payload = json.loads(manifest.read_text(encoding="utf-8"))
@@ -303,7 +326,10 @@ def _output_matches(path: Path, fingerprint: str) -> bool:
 def _write_manifest(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    temporary.write_text(
+        json.dumps(_jsonable(payload), indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     temporary.replace(path)
 
 
@@ -417,7 +443,9 @@ def _run_command(
         returncode = int(process.wait())
     wall = float(time.perf_counter() - started)
     completed = bool(
-        returncode == 0 and output.is_file() and output.with_suffix(".json").is_file()
+        returncode == 0
+        and output.is_file()
+        and output.with_suffix(".json").is_file()
     )
     _write_manifest(
         manifest,
@@ -432,7 +460,8 @@ def _run_command(
     )
     if not completed:
         raise RuntimeError(
-            f"child failed for {pairing}/{case.label}/{stage}/C{order}; see {log_path}"
+            f"child failed for {pairing}/{case.label}/{stage}/C{order}; "
+            f"see {log_path}"
         )
 
 
@@ -483,7 +512,8 @@ def _metrics(
         if int(row["matsubara_index"]) > 0
     )
     reflection_values = tuple(
-        _finite_float(row["reference_reflection_matrix_relative"]) for row in rows
+        _finite_float(row["reference_reflection_matrix_relative"])
+        for row in rows
     )
     logdet_values = tuple(
         _finite_float(row["reference_logdet_relative"]) for row in rows
@@ -554,25 +584,45 @@ def _final_rows(
                 "classification": classification,
                 "point_pipeline_passed": _as_bool(row["point_pipeline_passed"]),
                 "ward_passed": _as_bool(row["ward_passed"]),
-                "strict_static_ward_passed": _as_bool(row["strict_static_ward_passed"]),
+                "strict_static_ward_passed": _as_bool(
+                    row["strict_static_ward_passed"]
+                ),
                 "primary_response_relative": primary_relative,
-                "static_response_relative": primary_relative if index == 0 else float("nan"),
-                "sigma_relative": primary_relative if index > 0 else float("nan"),
-                "reflection_relative": float(row["reference_reflection_matrix_relative"]),
+                "static_response_relative": (
+                    primary_relative if index == 0 else float("nan")
+                ),
+                "sigma_relative": (
+                    primary_relative if index > 0 else float("nan")
+                ),
+                "reflection_relative": float(
+                    row["reference_reflection_matrix_relative"]
+                ),
                 "logdet_relative": float(row["reference_logdet_relative"]),
-                "material_workspace_implementation": row["material_workspace_implementation"],
-                "q_workspace_implementation": row["q_workspace_implementation"],
+                "material_workspace_implementation": row[
+                    "material_workspace_implementation"
+                ],
+                "q_workspace_implementation": row[
+                    "q_workspace_implementation"
+                ],
                 "execution_strategy": row["execution_strategy"],
                 "cut_audit_performed": cut_audit is not None,
-                "cut_audit_soft_passed": bool(cut_audit is not None and cut_audit.soft_all),
+                "cut_audit_soft_passed": bool(
+                    cut_audit is not None and cut_audit.soft_all
+                ),
                 "cut_primary_relative_max": (
-                    float("nan") if cut_audit is None else cut_audit.max_primary_relative
+                    float("nan")
+                    if cut_audit is None
+                    else cut_audit.max_primary_relative
                 ),
                 "cut_reflection_relative_max": (
-                    float("nan") if cut_audit is None else cut_audit.max_reflection_relative
+                    float("nan")
+                    if cut_audit is None
+                    else cut_audit.max_reflection_relative
                 ),
                 "cut_logdet_relative_max": (
-                    float("nan") if cut_audit is None else cut_audit.max_logdet_relative
+                    float("nan")
+                    if cut_audit is None
+                    else cut_audit.max_logdet_relative
                 ),
             }
         )
@@ -586,7 +636,10 @@ def main() -> None:
         preflight_payload = _validate_preflight(args)
 
     print("single-method total Matsubara orbit staged scan", flush=True)
-    print(f"pairings={args.pairings}; cases={[case.label for case in args.cases]}", flush=True)
+    print(
+        f"pairings={args.pairings}; cases={[case.label for case in args.cases]}",
+        flush=True,
+    )
     print(
         f"Gauss stage pairs={args.gauss_stages}; Matsubara n={args.matsubara_indices}",
         flush=True,
@@ -672,7 +725,9 @@ def main() -> None:
                     break
 
             if final_metrics is None:
-                raise RuntimeError(f"no comparable order pair for {pairing}/{case.label}")
+                raise RuntimeError(
+                    f"no comparable order pair for {pairing}/{case.label}"
+                )
             if classification == "unresolved":
                 if final_metrics.soft_all:
                     classification = "soft_at_max_order"
@@ -741,7 +796,9 @@ def main() -> None:
                     "strict_all": final_metrics.strict_all,
                     "soft_all": final_metrics.soft_all,
                     "cut_audit_performed": cut_metrics is not None,
-                    "cut_audit_soft_passed": bool(cut_metrics is not None and cut_metrics.soft_all),
+                    "cut_audit_soft_passed": bool(
+                        cut_metrics is not None and cut_metrics.soft_all
+                    ),
                 }
             )
             print(
@@ -759,7 +816,9 @@ def main() -> None:
                 "observable_failure",
                 "cut_audit_failure",
             }:
-                raise SystemExit(f"stopping on {pairing}/{case.label}: {classification}")
+                raise SystemExit(
+                    f"stopping on {pairing}/{case.label}: {classification}"
+                )
 
     if not final_rows or not case_records:
         raise RuntimeError("staged scan produced no final rows")
@@ -828,19 +887,24 @@ def main() -> None:
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "git_head": _git_head(),
         "arguments": {
-            key: str(value) if isinstance(value, Path) else value
-            for key, value in vars(args).items()
+            key: _jsonable(value) for key, value in vars(args).items()
         },
         "preflight": {
             "manifest": str(args.preflight_manifest),
             "required": bool(args.require_preflight),
             "accepted": preflight_payload is not None,
-            "git_head": None if preflight_payload is None else preflight_payload.get("git_head"),
+            "git_head": (
+                None
+                if preflight_payload is None
+                else preflight_payload.get("git_head")
+            ),
         },
         "total_wall_seconds": total_wall,
         "cases": case_records,
         "status": {
-            "single_transverse_method": "full_period_equal_panel_composite_gauss_legendre",
+            "single_transverse_method": (
+                "full_period_equal_panel_composite_gauss_legendre"
+            ),
             "gauss_stage_pairs": [list(stage) for stage in args.gauss_stages],
             "zero_matsubara_included": bool(zero_rows),
             "zero_uses_exact_static_divided_difference": True,
@@ -861,10 +925,15 @@ def main() -> None:
         },
     }
     summary_json = output_root / "scan_summary.json"
-    summary_json.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    summary_json.write_text(
+        json.dumps(_jsonable(payload), indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     print(
-        f"scan complete: closure={all_closure}, observables={all_observables}, "
-        f"static_strict={all_static_strict}, strict_fraction={strict_fraction:.3f}, "
+        f"scan complete: closure={all_closure}, "
+        f"observables={all_observables}, "
+        f"static_strict={all_static_strict}, "
+        f"strict_fraction={strict_fraction:.3f}, "
         f"accepted_fraction={accepted_fraction:.3f}, "
         f"outer_integral_candidate={outer_candidate}",
         flush=True,
