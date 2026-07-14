@@ -99,9 +99,12 @@ def test_adaptive_metadata_records_stage4_15_semantics() -> None:
     assert metadata["parent_child_double_counting"] is False
 
 
-def test_main_pipeline_and_quadrature_do_not_import_validation_scripts() -> None:
+def test_outer_handoff_removes_retired_pipeline_and_validation_script_imports() -> None:
+    retired = Path("scripts/casimir/finite_q_bdg_casimir_pipeline.py")
+    assert not retired.exists()
+
     for relative in (
-        "scripts/casimir/finite_q_bdg_casimir_pipeline.py",
+        "scripts/casimir/README.md",
         "src/lno327/workflows/finite_q_quadrature.py",
     ):
         text = Path(relative).read_text(encoding="utf-8")

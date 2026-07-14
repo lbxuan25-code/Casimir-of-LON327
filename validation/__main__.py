@@ -6,9 +6,7 @@ import sys
 from collections.abc import Sequence
 
 
-# Public surface used by the pre-outer-integration main flow.  Historical positive-only
-# aliases and superseded d-wave quadrature experiments are intentionally not exposed
-# here; their implementation modules remain importable for tests and forensic work.
+# Public surface used by the pre-outer-integration main flow.
 _COMMANDS: dict[tuple[str, str], str] = {
     ("ward", "commensurate"): "validation.commands.ward.commensurate",
     ("ward", "bond-metric-full-kernel"): (
@@ -36,8 +34,7 @@ _COMMANDS: dict[tuple[str, str], str] = {
         "validation.commands.matsubara.orbit_gauss_preflight"
     ),
     # Diagnostic-only routes are deliberately separated from the outer-integration
-    # intake surface.  They may localize or reproduce a blocker but never authorize
-    # production input by themselves.
+    # intake surface. They never authorize production input by themselves.
     ("diagnostic", "dwave-small-xi"): (
         "validation.commands.matsubara.dwave_small_xi"
     ),
@@ -67,6 +64,39 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ),
 }
 
+# Hidden compatibility routes keep internal subprocess orchestration and older direct
+# callers working without advertising superseded names to the next implementation
+# window. They must not appear in ``available_commands`` or help output.
+_INTERNAL_ALIASES: dict[tuple[str, str], str] = {
+    ("matsubara", "positive-orbit-gauss-crosscheck"): (
+        "validation.commands.matsubara.positive_orbit_gauss_crosscheck"
+    ),
+    ("matsubara", "positive-orbit-gauss-scan"): (
+        "validation.commands.matsubara.total_orbit_gauss_scan"
+    ),
+    ("matsubara", "dwave-orbit-gauss-crosscheck"): (
+        "validation.commands.matsubara.dwave_orbit_gauss_crosscheck"
+    ),
+    ("matsubara", "dwave-orbit-certification-scan"): (
+        "validation.commands.matsubara.dwave_orbit_certification_scan_parallel"
+    ),
+    ("matsubara", "dwave-orbit-adaptive"): (
+        "validation.commands.matsubara.dwave_orbit_adaptive"
+    ),
+    ("matsubara", "dwave-orbit-panel-adaptive"): (
+        "validation.commands.matsubara.dwave_orbit_panel_adaptive"
+    ),
+    ("matsubara", "dwave-orbit-evaluator-profile"): (
+        "validation.commands.matsubara.dwave_orbit_evaluator_profile"
+    ),
+    ("matsubara", "dwave-orbit-integrand-profile"): (
+        "validation.commands.matsubara.dwave_orbit_integrand_profile"
+    ),
+    ("matsubara", "dwave-diagonal-width-scan"): (
+        "validation.commands.matsubara.dwave_diagonal_width_scan"
+    ),
+}
+
 
 def available_commands() -> tuple[tuple[str, str], ...]:
     """Return the stable public command names exposed by ``python -m validation``."""
@@ -75,12 +105,14 @@ def available_commands() -> tuple[tuple[str, str], ...]:
 
 
 def resolve_command(group: str, command: str) -> str:
-    """Resolve one public command pair to its implementation module."""
+    """Resolve a public command or a hidden compatibility route."""
 
-    try:
-        return _COMMANDS[(str(group), str(command))]
-    except KeyError as exc:
-        raise ValueError(f"unknown validation command: {group} {command}") from exc
+    key = (str(group), str(command))
+    if key in _COMMANDS:
+        return _COMMANDS[key]
+    if key in _INTERNAL_ALIASES:
+        return _INTERNAL_ALIASES[key]
+    raise ValueError(f"unknown validation command: {group} {command}")
 
 
 def _print_help(group: str | None = None) -> None:
