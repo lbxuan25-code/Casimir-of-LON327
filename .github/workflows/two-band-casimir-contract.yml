@@ -63,6 +63,7 @@ jobs:
             tests/test_positive_orbit_gauss.py \
             tests/test_dwave_orbit_gauss_crosscheck_command.py \
             tests/test_positive_orbit_gauss_scan.py \
+            tests/test_total_orbit_gauss_scan.py \
             tests/test_total_matsubara_orbit_preflight.py \
             tests/test_commensurate_orbit_panel_adaptive.py \
             tests/test_commensurate_orbit_panel_adaptive_v3.py \
@@ -240,10 +241,12 @@ jobs:
           from pathlib import Path
 
           payload = json.loads(Path('/tmp/total-scan-smoke/scan_summary.json').read_text())
-          assert payload['schema'] == 'total_matsubara_pointwise_gauss_scan_v1'
+          assert payload['schema'] == 'total_matsubara_pointwise_gauss_scan_v2'
           assert payload['status']['zero_matsubara_included'] is True
           assert payload['status']['zero_uses_exact_static_divided_difference'] is True
           assert payload['status']['zero_conductivity_division_used'] is False
+          assert payload['status']['static_physics_contract_softened'] is False
+          assert payload['status']['static_numerical_soft_acceptance_enabled'] is True
           assert payload['status']['preflight_passed'] is True
           assert payload['preflight']['accepted'] is True
           assert payload['status']['valid_for_casimir_input'] is False
