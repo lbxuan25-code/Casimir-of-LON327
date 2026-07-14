@@ -12,7 +12,9 @@ from typing import Sequence
 import numpy as np
 
 from lno327.response.arbitrary_q_material_cache import MaterialGridCache
+from lno327.response.ward_validation import PrimitiveWardRHS
 from lno327.workflows.arbitrary_q_matsubara import (
+    ArbitraryQPeriodicBZResult,
     CrystalResponseCache,
     TwoPlateAngleBatchResult,
     integrate_two_plate_angle_batch,
@@ -52,6 +54,90 @@ def validate_single_thread_blas_environment() -> None:
         )
 
 
+def _response_payload(response: ArbitraryQPeriodicBZResult) -> tuple[object, ...]:
+    """Return a pickle-safe compact response payload for parent reconstruction."""
+    rhs_payloads = tuple(
+        (
+            np.asarray(item.left),
+            np.asarray(item.right),
+            np.asarray(item.q_model),
+            float(item.xi_eV),
+            float(item.delta0_eV),
+            dict(item.metadata),
+        )
+        for item in response.rhs
+    )
+    return (
+        np.asarray(response.q_model),
+        np.asarray(response.xi_eV_values),
+        response.components,
+        rhs_payloads,
+        response.operator_ward,
+        response.profile,
+        response.material_cache_fingerprint,
+        dict(response.metadata),
+    )
+
+
+def _restore_response(payload: tuple[object, ...]) -> ArbitraryQPeriodicBZResult:
+    (
+        q_model,
+        xi_values,
+        components,
+        rhs_payloads,
+        operator_ward,
+        profile,
+        fingerprint,
+        metadata,
+    ) = payload
+    rhs = tuple(
+        PrimitiveWardRHS(
+            left=item[0],
+            right=item[1],
+            q_model=item[2],
+            xi_eV=item[3],
+            delta0_eV=item[4],
+            metadata=item[5],
+        )
+        for item in rhs_payloads
+    )
+    return ArbitraryQPeriodicBZResult(
+        q_model=q_model,
+        xi_eV_values=xi_values,
+        components=components,
+        rhs=rhs,
+        operator_ward=operator_ward,
+        profile=profile,
+        material_cache_fingerprint=fingerprint,
+        metadata=metadata,
+    )
+
+
+def _restore_task_result(
+    index: int,
+    q_lab: np.ndarray,
+    theta_1: float,
+    theta_2: np.ndarray,
+    plate_1_payload: tuple[object, ...],
+    plate_2_payloads: tuple[tuple[object, ...], ...],
+    cache_metadata: dict[str, int | str],
+    worker_seconds: float,
+) -> "QLabAngleTaskResult":
+    batch = TwoPlateAngleBatchResult(
+        q_lab=q_lab,
+        theta_1_rad=theta_1,
+        theta_2_rad_values=theta_2,
+        plate_1=_restore_response(plate_1_payload),
+        plate_2=tuple(_restore_response(item) for item in plate_2_payloads),
+        response_cache_metadata=cache_metadata,
+    )
+    return QLabAngleTaskResult(
+        index=index,
+        result=batch,
+        worker_seconds=worker_seconds,
+    )
+
+
 @dataclass(frozen=True)
 class QLabAngleTask:
     index: int
@@ -77,6 +163,23 @@ class QLabAngleTaskResult:
     index: int
     result: TwoPlateAngleBatchResult
     worker_seconds: float
+
+    def __reduce__(self):
+        # PrimitiveWardRHS stores MappingProxyType metadata.  Workers return an
+        # explicit reconstruction payload rather than attempting to pickle it.
+        return (
+            _restore_task_result,
+            (
+                int(self.index),
+                np.asarray(self.result.q_lab),
+                float(self.result.theta_1_rad),
+                np.asarray(self.result.theta_2_rad_values),
+                _response_payload(self.result.plate_1),
+                tuple(_response_payload(item) for item in self.result.plate_2),
+                dict(self.result.response_cache_metadata),
+                float(self.worker_seconds),
+            ),
+        )
 
 
 _FORK_GUARD = Lock()
@@ -155,8 +258,7 @@ class ArbitraryQParallelEvaluator:
 
     def _evaluate_local(self, task: QLabAngleTask) -> QLabAngleTaskResult:
         started = perf_counter()
-        # Cache lifetime is deliberately task-local for exact-q response payloads.
-        # Plate 1 is reused across the full angle batch inside the task.
+        # Cache lifetime is task-local. Plate 1 is reused for the full angle batch.
         response_cache = CrystalResponseCache()
         result = integrate_two_plate_angle_batch(
             q_lab=task.q_lab,
