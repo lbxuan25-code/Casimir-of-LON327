@@ -20,7 +20,7 @@ from validation.lib.dwave_orbit_acceptance import (
 from validation.lib.source_tree_provenance import source_tree_provenance
 
 DEFAULT_OUTPUT = Path(
-    "validation/outputs/matsubara/arbitrary_q_staged_flow/stage2_physics_smoke.json"
+    "validation/outputs/matsubara/arbitrary_q_validation/physics_smoke.json"
 )
 _STATIC_METRICS = (
     "primitive_residual_over_q",
@@ -34,11 +34,18 @@ _STATIC_METRICS = (
 
 def _args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--pairings", nargs="+", choices=("spm", "dwave"), default=["spm", "dwave"])
+    parser.add_argument(
+        "--pairings",
+        nargs="+",
+        choices=("spm", "dwave"),
+        default=["spm", "dwave"],
+    )
     parser.add_argument("--N-values", nargs="+", type=int, default=[128, 192])
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--reference-nk", type=int, default=1256)
-    parser.add_argument("--matsubara-indices", nargs="+", type=int, default=[0, 1, 8])
+    parser.add_argument(
+        "--matsubara-indices", nargs="+", type=int, default=[0, 1, 8]
+    )
     parser.add_argument("--canonical-block-size", type=int, default=4096)
     parser.add_argument("--runtime-chunk-size", type=int, default=16384)
     parser.add_argument("--temperature-K", type=float, default=10.0)
@@ -51,14 +58,18 @@ def _args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     args = parser.parse_args(argv)
     args.pairings = tuple(dict.fromkeys(args.pairings))
     args.N_values = tuple(sorted(set(int(v) for v in args.N_values)))
-    args.matsubara_indices = tuple(sorted(set(int(v) for v in args.matsubara_indices)))
+    args.matsubara_indices = tuple(
+        sorted(set(int(v) for v in args.matsubara_indices))
+    )
     if any(v <= 0 or v % 2 for v in args.N_values):
         parser.error("positive even N values are required")
     if args.reference_nk <= 0:
         parser.error("reference nk must be positive")
     if args.workers <= 0:
         parser.error("workers must be positive")
-    if 0 not in args.matsubara_indices or not any(v > 0 for v in args.matsubara_indices):
+    if 0 not in args.matsubara_indices or not any(
+        v > 0 for v in args.matsubara_indices
+    ):
         parser.error("exact zero and at least one positive Matsubara index are required")
     if args.runtime_chunk_size < args.canonical_block_size:
         parser.error("runtime chunk must be at least the canonical block")
@@ -116,7 +127,10 @@ def _state(
         xi_eV=float(xi_eV),
         config=config,
     )
-    ward_ratio = max(ward.left.effective_mixed_ratio, ward.right.effective_mixed_ratio)
+    ward_ratio = max(
+        ward.left.effective_mixed_ratio,
+        ward.right.effective_mixed_ratio,
+    )
     return {
         "xi_eV": float(xi_eV),
         "response_sector": str(pipeline["response_sector"]),
@@ -127,8 +141,12 @@ def _state(
         "pipeline": {
             "physical_passed": bool(pipeline["physical_passed"]),
             "ward_passed": bool(pipeline["ward_passed"]),
-            "strict_static_ward_passed": bool(pipeline["strict_static_ward_passed"]),
-            "sheet_validation_passed": bool(pipeline["sheet_validation_passed"]),
+            "strict_static_ward_passed": bool(
+                pipeline["strict_static_ward_passed"]
+            ),
+            "sheet_validation_passed": bool(
+                pipeline["sheet_validation_passed"]
+            ),
             "reflection_constructed": bool(pipeline["reflection_constructed"]),
             "logdet_passed": bool(pipeline["logdet_passed"]),
             "logdet": float(pipeline["logdet"]),
@@ -137,7 +155,9 @@ def _state(
     }
 
 
-def _response_states(args: argparse.Namespace, response: object) -> list[dict[str, Any]]:
+def _response_states(
+    args: argparse.Namespace, response: object
+) -> list[dict[str, Any]]:
     config = _physics_config(args)
     return [
         {
@@ -168,7 +188,8 @@ def _trend(rows_by_n: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         values = [float(row["strict_static"][metric]) for row in rows_by_n]
         result[metric] = {
             "values_by_N": values,
-            "last_over_first": values[-1] / max(values[0], np.finfo(float).tiny),
+            "last_over_first": values[-1]
+            / max(values[0], np.finfo(float).tiny),
             "nonincreasing": bool(values[-1] <= values[0]),
         }
     return result
@@ -202,22 +223,33 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
                 "frequencies": states,
             }
             operator_all = operator_all and bool(response.operator_ward.passed)
-            ward_all = ward_all and all(row["integrated_ward_passed"] for row in states)
+            ward_all = ward_all and all(
+                row["integrated_ward_passed"] for row in states
+            )
             positive_all = positive_all and all(
                 row["pipeline"]["physical_passed"]
                 for row in states
                 if row["response_sector"] == "positive"
             )
-            zero_rows = [row for row in states if row["response_sector"] == "zero"]
+            zero_rows = [
+                row for row in states if row["response_sector"] == "zero"
+            ]
             for row in zero_rows:
-                strict = row["strict_static"]
+                strict_static = row["strict_static"]
                 finite_zero_metrics = finite_zero_metrics and bool(
-                    strict is not None
-                    and all(np.isfinite(float(strict[key])) for key in _STATIC_METRICS)
+                    strict_static is not None
+                    and all(
+                        np.isfinite(float(strict_static[key]))
+                        for key in _STATIC_METRICS
+                    )
                 )
-                zero_strict_all = zero_strict_all and bool(strict and strict["passed"])
+                zero_strict_all = zero_strict_all and bool(
+                    strict_static and strict_static["passed"]
+                )
         if context.two_plate_batch is None:
-            raise RuntimeError("physics smoke context did not retain its two-plate batch")
+            raise RuntimeError(
+                "physics smoke context did not retain its two-plate batch"
+            )
         plate_2 = qualification._rotated_plate(context.two_plate_batch)
         two_plate = qualification._two_plate_states(
             args,
@@ -228,7 +260,9 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
             if int(row["n"]) == 0:
                 two_plate_zero_all = two_plate_zero_all and bool(row["passed"])
             else:
-                two_plate_positive_all = two_plate_positive_all and bool(row["passed"])
+                two_plate_positive_all = two_plate_positive_all and bool(
+                    row["passed"]
+                )
         context_rows.append(
             {
                 "N": int(context.n),
@@ -245,7 +279,13 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
         zero_rows = []
         for context_row in context_rows:
             frequencies = context_row["cases"][case_name]["frequencies"]
-            zero_rows.append(next(row for row in frequencies if row["response_sector"] == "zero"))
+            zero_rows.append(
+                next(
+                    row
+                    for row in frequencies
+                    if row["response_sector"] == "zero"
+                )
+            )
         zero_trends[case_name] = _trend(zero_rows)
 
     smoke_passed = bool(
@@ -276,7 +316,9 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
 def _write(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    temporary.write_text(
+        json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8"
+    )
     temporary.replace(path)
 
 
@@ -285,7 +327,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     rows = [_run_pairing(args, pairing) for pairing in args.pairings]
     passed = all(row["passed"] for row in rows)
     payload = {
-        "schema": "arbitrary-q-physics-smoke-v1",
+        "schema": "arbitrary-q-physics-smoke-v2",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         **source_tree_provenance().as_dict(),
         "config": {
@@ -307,7 +349,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             "convergence_claimed": False,
             "zero_strict_static_required_for_smoke_pass": False,
             "positive_pipeline_and_integrated_ward_required": True,
-            "next_stage_if_passed": "real_hardware_formal_performance_preflight",
+            "next_check_if_passed": "real_hardware_formal_performance_preflight",
         },
         "pairings": rows,
         "smoke_passed_without_convergence_claim": bool(passed),
@@ -320,7 +362,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     _write(args.output, payload)
     print(json.dumps({"output": str(args.output), "passed": passed}, indent=2))
     if not passed:
-        raise SystemExit("arbitrary-q physics smoke found an algebraic or positive-pipeline failure")
+        raise SystemExit(
+            "arbitrary-q physics smoke found an algebraic or positive-pipeline failure"
+        )
 
 
 if __name__ == "__main__":
