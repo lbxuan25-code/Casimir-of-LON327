@@ -21,6 +21,7 @@ def test_validation_cli_exposes_grouped_commands():
         ("matsubara", "dwave-orbit-adaptive"),
         ("matsubara", "dwave-orbit-panel-adaptive"),
         ("matsubara", "dwave-orbit-evaluator-profile"),
+        ("matsubara", "total-orbit-timing-profile"),
         ("matsubara", "dwave-orbit-gauss-crosscheck"),
         ("matsubara", "positive-orbit-gauss-crosscheck"),
         ("matsubara", "matsubara-orbit-gauss-crosscheck"),
