@@ -5,8 +5,13 @@ Summary: Foundational LNO327 superconducting pairing and Casimir-torque utilitie
 Requires-Python: >=3.10
 Requires-Dist: numpy>=1.23
 Requires-Dist: scipy>=1.9
+Provides-Extra: validation
+Requires-Dist: threadpoolctl>=3; extra == "validation"
+Requires-Dist: psutil>=5; extra == "validation"
 Provides-Extra: dev
 Requires-Dist: pytest>=7; extra == "dev"
 Requires-Dist: matplotlib>=3.6; extra == "dev"
+Requires-Dist: threadpoolctl>=3; extra == "dev"
+Requires-Dist: psutil>=5; extra == "dev"
 Provides-Extra: plot
 Requires-Dist: matplotlib>=3.6; extra == "plot"
