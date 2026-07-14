@@ -1,9 +1,11 @@
-"""Common positive-Matsubara response with fixed/composite transverse Gauss.
+"""Common zero/positive Matsubara response with fixed/composite transverse Gauss.
 
 Both supported superconducting ansatzes use the same complete commensurate orbit,
 the same full transverse period, the same Gauss nodes and weights, and the same
-parent-side complex Kahan reduction.  Pairing-specific physics enters only through
-the model ansatz and the post-integral phase-Hessian policy.
+parent-side complex Kahan reduction.  The frequency batch may contain exact
+``xi=0`` together with positive Matsubara energies; zero uses the optimized static
+divided-difference factor and is postprocessed as density/stiffness rather than a
+conductivity limit.
 """
 from __future__ import annotations
 
@@ -48,7 +50,7 @@ class _AdaptiveCompatibleGaussView:
 
 @dataclass(frozen=True)
 class PositiveOrbitGaussResult:
-    """Fixed-Gauss primitive responses and Ward RHS for one q and xi batch."""
+    """Fixed-Gauss primitive responses and Ward RHS for one q and frequency batch."""
 
     pairing_name: str
     phase_hessian_policy: str
@@ -66,6 +68,9 @@ class PositiveOrbitGaussResult:
             raise ValueError("components, rhs, and xi_eV_values must have equal lengths")
 
 
+MatsubaraOrbitGaussResult = PositiveOrbitGaussResult
+
+
 def _replace_gauss_metadata(
     components: tuple[BdGFiniteQResponseComponents, ...],
     rhs_values: tuple[PrimitiveWardRHS, ...],
@@ -74,6 +79,7 @@ def _replace_gauss_metadata(
     *,
     pairing_name: str,
     phase_hessian_policy: str,
+    contains_zero_matsubara: bool,
 ) -> tuple[tuple[BdGFiniteQResponseComponents, ...], tuple[PrimitiveWardRHS, ...]]:
     common = {
         "pairing": str(pairing_name),
@@ -81,6 +87,11 @@ def _replace_gauss_metadata(
         "post_integral_phase_hessian_policy": str(phase_hessian_policy),
         "matsubara_batch_shared_adaptive_nodes": False,
         "matsubara_batch_shared_gauss_nodes": True,
+        "zero_and_positive_frequencies_share_eigensystems": bool(
+            contains_zero_matsubara
+        ),
+        "exact_zero_uses_divided_difference": bool(contains_zero_matsubara),
+        "conductivity_division_for_zero_forbidden": True,
         "fixed_gauss_transverse_order": int(quadrature.transverse_order),
         "fixed_gauss_panel_count": int(quadrature.panel_count),
         "fixed_gauss_panel_order": int(quadrature.panel_order),
@@ -164,18 +175,20 @@ def integrate_positive_orbit_gauss(
     transverse_workers: int = 1,
     transverse_task_size: int = 1,
 ) -> PositiveOrbitGaussResult:
-    """Evaluate one spm/d-wave positive-Matsubara batch with one Gauss method."""
+    """Evaluate one spm/d-wave zero/positive Matsubara batch with one Gauss method."""
 
     xi_values = np.asarray(xi_eV_values, dtype=float)
     if xi_values.ndim != 1 or xi_values.size == 0:
         raise ValueError("xi_eV_values must be a nonempty one-dimensional array")
-    if not np.isfinite(xi_values).all() or np.any(xi_values <= 0.0):
-        raise ValueError("all xi_eV_values must be finite and positive")
+    if not np.isfinite(xi_values).all() or np.any(xi_values < 0.0):
+        raise ValueError("all xi_eV_values must be finite and non-negative")
+    if np.count_nonzero(xi_values == 0.0) > 1:
+        raise ValueError("the exact zero-Matsubara value may appear at most once")
     pairing_name = str(getattr(ansatz, "name", ""))
     if pairing_name not in {"spm", "dwave"}:
-        raise ValueError("positive orbit fixed-Gauss supports spm and dwave")
+        raise ValueError("orbit fixed-Gauss supports spm and dwave")
     if getattr(ansatz, "phase_vertex", None) != "bond_endpoint_gauge":
-        raise ValueError("positive orbit fixed-Gauss requires bond_endpoint_gauge")
+        raise ValueError("orbit fixed-Gauss requires bond_endpoint_gauge")
 
     with PositiveOrbitPrimitiveEvaluator(
         spec=spec,
@@ -251,6 +264,7 @@ def integrate_positive_orbit_gauss(
         quadrature=view,
         phase_hessian_policy=phase_hessian_policy,
     )
+    contains_zero = bool(np.any(xi_values == 0.0))
     components, rhs_values = _replace_gauss_metadata(
         components,
         rhs_values,
@@ -258,6 +272,7 @@ def integrate_positive_orbit_gauss(
         evaluator_profile,
         pairing_name=pairing_name,
         phase_hessian_policy=phase_hessian_policy,
+        contains_zero_matsubara=contains_zero,
     )
     return PositiveOrbitGaussResult(
         pairing_name=pairing_name,
@@ -270,4 +285,12 @@ def integrate_positive_orbit_gauss(
     )
 
 
-__all__ = ["PositiveOrbitGaussResult", "integrate_positive_orbit_gauss"]
+integrate_matsubara_orbit_gauss = integrate_positive_orbit_gauss
+
+
+__all__ = [
+    "MatsubaraOrbitGaussResult",
+    "PositiveOrbitGaussResult",
+    "integrate_matsubara_orbit_gauss",
+    "integrate_positive_orbit_gauss",
+]
