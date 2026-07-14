@@ -1,8 +1,8 @@
 """Deterministic vector-adaptive cubature for exact arbitrary-q Matsubara response.
 
 The backend shares the established arbitrary-q q-workspace and primitive packing
-kernel.  It changes only Brillouin-zone quadrature: rectangular cells are
-integrated with nested low/high tensor-Gauss rules, all Matsubara frequencies and
+kernel. It changes only Brillouin-zone quadrature: rectangular cells are
+integrated with paired low/high tensor-Gauss rules, all Matsubara frequencies and
 all linear response/Ward primitives share one refinement tree, and the single
 Schur/phase-Hessian post-processing step is applied only after accepted high-rule
 cell primitives have been summed over the full BZ.
@@ -66,9 +66,9 @@ from lno327.workflows.dwave_vector_adaptive_cubature import (
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 
 _FLOAT_EPS = np.finfo(float).eps
-_ADAPTIVE_CONTRACT = "ArbitraryQVectorAdaptiveContract-v1"
-_NODE_CACHE_SCHEMA = "HierarchicalMaterialNodeCache-v1"
-_RESPONSE_CACHE_SCHEMA = "ArbitraryQVectorAdaptiveResponseCache-v1"
+_ADAPTIVE_CONTRACT = "ArbitraryQVectorAdaptiveContract-v2"
+_NODE_CACHE_SCHEMA = "HierarchicalMaterialNodeCache-v2"
+_RESPONSE_CACHE_SCHEMA = "ArbitraryQVectorAdaptiveResponseCache-v2"
 
 
 def _readonly(value: np.ndarray, dtype: Any) -> np.ndarray:
@@ -133,6 +133,7 @@ class ArbitraryQVectorAdaptiveOptions:
             "coarse_grid": int(self.coarse_grid),
             "low_order": int(self.low_order),
             "high_order": int(self.high_order),
+            "rule_relation": "paired_nonembedded_tensor_gauss",
             "relative_tolerance": float(self.relative_tolerance).hex(),
             "absolute_tolerance": float(self.absolute_tolerance).hex(),
             "ward_error_tolerance": float(self.ward_error_tolerance).hex(),
@@ -170,7 +171,7 @@ class _NodeValue:
 
 
 class HierarchicalMaterialNodeCache:
-    """Lazy q-independent midpoint cache keyed by exact hierarchical Gauss nodes."""
+    """Lazy q-independent midpoint cache keyed by exact adaptive Gauss nodes."""
 
     def __init__(
         self,
@@ -363,6 +364,47 @@ class HierarchicalMaterialNodeCache:
         }
 
 
+_CACHE_COUNTER_KEYS = (
+    "entries",
+    "node_hits",
+    "node_misses",
+    "material_batch_build_count",
+    "midpoint_eigh_call_count",
+    "counterterm_entries",
+    "counterterm_hits",
+    "counterterm_misses",
+    "counterterm_node_entries",
+    "counterterm_node_hits",
+    "counterterm_node_misses",
+    "counterterm_q0_workspace_build_count",
+    "counterterm_shifted_eigh_call_count",
+)
+_CACHE_TIME_KEYS = ("counterterm_q0_workspace_seconds",)
+
+
+def material_node_cache_snapshot(cache: HierarchicalMaterialNodeCache) -> dict[str, float | int]:
+    """Return stable numeric cache counters for per-call and worker telemetry."""
+
+    metadata = cache.metadata()
+    result: dict[str, float | int] = {}
+    for key in _CACHE_COUNTER_KEYS:
+        result[key] = int(metadata.get(key, 0))
+    for key in _CACHE_TIME_KEYS:
+        result[key] = float(metadata.get(key, 0.0))
+    return result
+
+
+def material_node_cache_delta(
+    before: Mapping[str, float | int], after: Mapping[str, float | int]
+) -> dict[str, float | int]:
+    result: dict[str, float | int] = {}
+    for key in _CACHE_COUNTER_KEYS:
+        result[key] = int(after.get(key, 0)) - int(before.get(key, 0))
+    for key in _CACHE_TIME_KEYS:
+        result[key] = float(after.get(key, 0.0)) - float(before.get(key, 0.0))
+    return result
+
+
 @dataclass(frozen=True)
 class _PartitionedPrimitiveResult:
     packed_partitions: tuple[np.ndarray, ...]
@@ -396,13 +438,18 @@ def _evaluate_partitioned_primitives(
     q_model: np.ndarray,
     xi_values: np.ndarray,
     *,
-    partition_size: int,
+    partitions: Sequence[tuple[int, int]],
     operator_ward_atol: float,
     operator_ward_rtol: float,
 ) -> _PartitionedPrimitiveResult:
-    size = int(partition_size)
-    if size <= 0 or material.nk % size != 0:
-        raise ValueError("adaptive partition size must exactly divide material point count")
+    normalized = tuple((int(start), int(stop)) for start, stop in partitions)
+    if not normalized or normalized[0][0] != 0 or normalized[-1][1] != material.nk:
+        raise ValueError("adaptive partitions must cover the complete material batch")
+    previous = 0
+    for start, stop in normalized:
+        if start != previous or stop <= start:
+            raise ValueError("adaptive partitions must be contiguous and nonempty")
+        previous = stop
     started = perf_counter()
     workspace = precompute_finite_q_q_workspace_batched(
         material, q_model, operator_diagnostics=True
@@ -418,8 +465,7 @@ def _evaluate_partitioned_primitives(
     contraction_seconds = 0.0
     pack_seconds = 0.0
     weights = np.asarray(material.k_weights, dtype=float)
-    for start in range(0, material.nk, size):
-        stop = start + size
+    for start, stop in normalized:
         timer = perf_counter()
         weighted = 0.5 * weights[None, start:stop, None, None] * raw_factors[:, start:stop]
         blocks = np.einsum(
@@ -524,6 +570,8 @@ class ArbitraryQVectorAdaptiveProfile:
     kubo_factor_seconds: float
     kubo_contraction_seconds: float
     primitive_pack_seconds: float
+    primitive_integration_seconds: float
+    postprocess_seconds: float
     total_seconds: float
     conservative_error_ratio_max: float
     signed_error_ratio_max: float
@@ -532,6 +580,9 @@ class ArbitraryQVectorAdaptiveProfile:
     material_cache_fingerprint: str
     node_cache_hits: int
     node_cache_misses: int
+    cache_delta: Mapping[str, float | int]
+    cache_totals_after_call: Mapping[str, float | int]
+    iteration_history: tuple[Mapping[str, object], ...]
 
     @property
     def k_point_count(self) -> int:
@@ -539,7 +590,7 @@ class ArbitraryQVectorAdaptiveProfile:
 
     def as_dict(self) -> dict[str, object]:
         return {
-            "profile_schema": "ArbitraryQVectorAdaptiveProfile-v1",
+            "profile_schema": "ArbitraryQVectorAdaptiveProfile-v2",
             "frequency_count": int(self.frequency_count),
             "iterations": int(self.iterations),
             "converged": bool(self.converged),
@@ -557,6 +608,8 @@ class ArbitraryQVectorAdaptiveProfile:
             "kubo_factor_seconds": float(self.kubo_factor_seconds),
             "kubo_contraction_seconds": float(self.kubo_contraction_seconds),
             "primitive_pack_seconds": float(self.primitive_pack_seconds),
+            "primitive_integration_seconds": float(self.primitive_integration_seconds),
+            "postprocess_seconds": float(self.postprocess_seconds),
             "total_seconds": float(self.total_seconds),
             "conservative_error_ratio_max": float(self.conservative_error_ratio_max),
             "signed_error_ratio_max": float(self.signed_error_ratio_max),
@@ -566,6 +619,9 @@ class ArbitraryQVectorAdaptiveProfile:
             "material_cache_fingerprint": self.material_cache_fingerprint,
             "node_cache_hits": int(self.node_cache_hits),
             "node_cache_misses": int(self.node_cache_misses),
+            "cache_delta": dict(self.cache_delta),
+            "cache_totals_after_call": dict(self.cache_totals_after_call),
+            "iteration_history": [dict(row) for row in self.iteration_history],
         }
 
 
@@ -601,25 +657,38 @@ class _AdaptiveEvaluator:
         self.contraction_seconds = 0.0
         self.pack_seconds = 0.0
 
-    def _evaluate_rule(
-        self, cells: Sequence[DWaveCubatureCell], order: int
-    ) -> dict[DWaveCubatureCell, np.ndarray]:
-        output: dict[DWaveCubatureCell, np.ndarray] = {}
-        per_cell = int(order) ** 2
+    def evaluate_cells(
+        self, cells: Sequence[DWaveCubatureCell]
+    ) -> dict[DWaveCubatureCell, _CellEvaluation]:
+        ordered = tuple(sorted(cells))
+        output: dict[DWaveCubatureCell, _CellEvaluation] = {}
         batch_size = int(self.options.cell_batch_size)
-        for batch_start in range(0, len(cells), batch_size):
-            batch = tuple(cells[batch_start : batch_start + batch_size])
-            rules = [cubature_cell_gauss_rule(cell, int(order)) for cell in batch]
-            points = np.concatenate([item[0] for item in rules], axis=0)
-            weights = np.concatenate([item[1] for item in rules], axis=0)
+        low_order = int(self.options.low_order)
+        high_order = int(self.options.high_order)
+        delta0 = float(getattr(self.node_cache.pairing_params, "delta0_eV")) if self.node_cache._pairing_params is not None else None
+        for batch_start in range(0, len(ordered), batch_size):
+            batch = tuple(ordered[batch_start : batch_start + batch_size])
+            low_rules = [cubature_cell_gauss_rule(cell, low_order) for cell in batch]
+            high_rules = [cubature_cell_gauss_rule(cell, high_order) for cell in batch]
+            all_rules = [*low_rules, *high_rules]
+            points = np.concatenate([item[0] for item in all_rules], axis=0)
+            weights = np.concatenate([item[1] for item in all_rules], axis=0)
+            partitions: list[tuple[int, int]] = []
+            cursor = 0
+            for rule in all_rules:
+                stop = cursor + int(rule[0].shape[0])
+                partitions.append((cursor, stop))
+                cursor = stop
             material = self.node_cache.material_workspace(
                 points, weights, include_counterterm=False
             )
+            if delta0 is None:
+                delta0 = float(getattr(self.node_cache.pairing_params, "delta0_eV"))
             result = _evaluate_partitioned_primitives(
                 material,
                 self.q,
                 self.xi,
-                partition_size=per_cell,
+                partitions=partitions,
                 operator_ward_atol=self.operator_ward_atol,
                 operator_ward_rtol=self.operator_ward_rtol,
             )
@@ -630,39 +699,40 @@ class _AdaptiveEvaluator:
             self.factor_seconds += result.kubo_factor_seconds
             self.contraction_seconds += result.kubo_contraction_seconds
             self.pack_seconds += result.primitive_pack_seconds
-            for cell, rule, packed in zip(
-                batch, rules, result.packed_partitions, strict=True
+            split = len(batch)
+            low_packed = result.packed_partitions[:split]
+            high_packed = result.packed_partitions[split:]
+            for cell, low_rule, high_rule, low_value, high_value in zip(
+                batch,
+                low_rules,
+                high_rules,
+                low_packed,
+                high_packed,
+                strict=True,
             ):
-                counterterm = self.node_cache.counterterm(rule[0], rule[1])
-                output[cell] = np.asarray(packed, dtype=complex) + counterterm_primitive_vector(
-                    counterterm, frequency_count=int(self.xi.size)
+                low = np.asarray(low_value, dtype=complex) + counterterm_primitive_vector(
+                    self.node_cache.counterterm(low_rule[0], low_rule[1]),
+                    frequency_count=int(self.xi.size),
                 )
-        return output
-
-    def evaluate_cells(
-        self, cells: Sequence[DWaveCubatureCell]
-    ) -> dict[DWaveCubatureCell, _CellEvaluation]:
-        ordered = tuple(sorted(cells))
-        low = self._evaluate_rule(ordered, int(self.options.low_order))
-        high = self._evaluate_rule(ordered, int(self.options.high_order))
+                high = np.asarray(high_value, dtype=complex) + counterterm_primitive_vector(
+                    self.node_cache.counterterm(high_rule[0], high_rule[1]),
+                    frequency_count=int(self.xi.size),
+                )
+                output[cell] = _CellEvaluation(
+                    cell=cell,
+                    low=low,
+                    high=high,
+                    low_ward=primitive_ward_residual_from_packed(
+                        low, xi_values=self.xi, q_model=self.q, delta0_eV=float(delta0)
+                    ),
+                    high_ward=primitive_ward_residual_from_packed(
+                        high, xi_values=self.xi, q_model=self.q, delta0_eV=float(delta0)
+                    ),
+                )
         self.total_cells += len(ordered)
-        self.low_points += len(ordered) * int(self.options.low_order) ** 2
-        self.high_points += len(ordered) * int(self.options.high_order) ** 2
-        delta0 = float(getattr(self.node_cache.pairing_params, "delta0_eV"))
-        return {
-            cell: _CellEvaluation(
-                cell=cell,
-                low=low[cell],
-                high=high[cell],
-                low_ward=primitive_ward_residual_from_packed(
-                    low[cell], xi_values=self.xi, q_model=self.q, delta0_eV=delta0
-                ),
-                high_ward=primitive_ward_residual_from_packed(
-                    high[cell], xi_values=self.xi, q_model=self.q, delta0_eV=delta0
-                ),
-            )
-            for cell in ordered
-        }
+        self.low_points += len(ordered) * low_order**2
+        self.high_points += len(ordered) * high_order**2
+        return output
 
 
 def _error_state(
@@ -834,6 +904,45 @@ def build_hierarchical_material_node_cache(
     )
 
 
+def prewarm_initial_adaptive_nodes(
+    node_cache: HierarchicalMaterialNodeCache,
+    options: ArbitraryQVectorAdaptiveOptions,
+) -> dict[str, object]:
+    """Build the deterministic initial low/high node union before POSIX fork."""
+
+    options.validate()
+    cells = tuple(initial_cubature_cells(int(options.coarse_grid)))
+    rules = [
+        cubature_cell_gauss_rule(cell, order)
+        for order in (int(options.low_order), int(options.high_order))
+        for cell in cells
+    ]
+    points = np.concatenate([rule[0] for rule in rules], axis=0)
+    weights = np.concatenate([rule[1] for rule in rules], axis=0)
+    before = material_node_cache_snapshot(node_cache)
+    started = perf_counter()
+    node_cache.material_workspace(points, weights, include_counterterm=False)
+    seconds = perf_counter() - started
+    after = material_node_cache_snapshot(node_cache)
+    return {
+        "seconds": float(seconds),
+        "point_requests": int(points.shape[0]),
+        "unique_nodes_after": int(after["entries"]),
+        "cache_delta": material_node_cache_delta(before, after),
+        "cache_snapshot_after": after,
+    }
+
+
+def _nonconvergence_message(profile: ArbitraryQVectorAdaptiveProfile) -> str:
+    return (
+        "vector-adaptive cubature did not converge: "
+        f"stop_reason={profile.stop_reason}, cells={profile.accepted_cell_count}, "
+        f"points={profile.total_point_evaluations}, contract_ratio="
+        f"{profile.conservative_error_ratio_max:.3e}, ward_ratio="
+        f"{profile.ward_error_ratio_conservative:.3e}"
+    )
+
+
 def integrate_arbitrary_q_vector_adaptive(
     *,
     spec: object,
@@ -894,9 +1003,12 @@ def integrate_arbitrary_q_vector_adaptive(
             operator_ward_rtol=operator_ward_rtol,
         )
         if cached is not None:
+            if require_converged and not bool(cached.profile.converged):
+                raise AdaptiveConvergenceError(_nonconvergence_message(cached.profile))
             return cached
 
-    started = perf_counter()
+    call_started = perf_counter()
+    cache_before = material_node_cache_snapshot(cache)
     evaluator = _AdaptiveEvaluator(
         node_cache=cache,
         q_model=q,
@@ -913,16 +1025,40 @@ def integrate_arbitrary_q_vector_adaptive(
         settings.max_evaluation_points
     ):
         raise ValueError("adaptive resource limits are smaller than the initial grid")
+
+    primitive_started = perf_counter()
     active = evaluator.evaluate_cells(initial)
     evaluated_points = evaluator.low_points + evaluator.high_points
     metrics = _error_state(active, settings)
     iterations = 0
     stop_reason = "converged"
-    while not _converged(metrics):
+    history: list[dict[str, object]] = []
+    while True:
+        scores = np.asarray(metrics["cell_scores"], dtype=float)
+        history_row: dict[str, object] = {
+            "iteration": int(iterations),
+            "active_cells": len(active),
+            "selected_cells": 0,
+            "max_cell_score": float(np.max(scores)) if scores.size else 0.0,
+            "median_cell_score": float(np.median(scores)) if scores.size else 0.0,
+            "p90_cell_score": float(np.quantile(scores, 0.9)) if scores.size else 0.0,
+            "conservative_error_ratio_max": float(
+                metrics["conservative_error_ratio_max"]
+            ),
+            "ward_error_ratio_conservative": float(
+                metrics["ward_error_ratio_conservative"]
+            ),
+            "evaluated_points": int(evaluated_points),
+        }
+        history.append(history_row)
+        if _converged(metrics):
+            stop_reason = "converged"
+            break
         if iterations >= int(settings.max_iterations):
             stop_reason = "max_iterations"
             break
         selected = _refinement_selection(active, metrics, settings, evaluated_points)
+        history_row["selected_cells"] = len(selected)
         if not selected:
             if len(active) >= int(settings.max_cells):
                 stop_reason = "max_cells"
@@ -932,46 +1068,23 @@ def integrate_arbitrary_q_vector_adaptive(
                 stop_reason = "max_level_or_no_refinable_cells"
             break
         children: list[DWaveCubatureCell] = []
+        before_points = evaluated_points
         for parent in selected:
             children.extend(subdivide_cubature_cell(parent))
             del active[parent]
         active.update(evaluator.evaluate_cells(children))
         evaluated_points = evaluator.low_points + evaluator.high_points
+        history_row["new_points"] = int(evaluated_points - before_points)
         iterations += 1
         metrics = _error_state(active, settings)
+
     converged = _converged(metrics)
-    if converged:
-        stop_reason = "converged"
     packed = _sum_high_primitives(active, int(xi.size))
     operator = combine_operator_ward_reports(evaluator.operator_reports)
-    total_seconds = perf_counter() - started
-    profile = ArbitraryQVectorAdaptiveProfile(
-        frequency_count=int(xi.size),
-        iterations=int(iterations),
-        converged=bool(converged),
-        stop_reason=stop_reason,
-        accepted_cell_count=len(active),
-        max_cell_level=max((int(cell.level) for cell in active), default=0),
-        total_cell_evaluations=int(evaluator.total_cells),
-        total_point_evaluations=int(evaluated_points),
-        low_rule_point_evaluations=int(evaluator.low_points),
-        high_rule_point_evaluations=int(evaluator.high_points),
-        q_workspace_build_count=int(evaluator.q_builds),
-        shifted_eigensystem_build_count=int(evaluator.shifted_builds),
-        midpoint_eigensystem_build_count=int(cache.midpoint_eigh_call_count),
-        q_workspace_seconds=float(evaluator.q_seconds),
-        kubo_factor_seconds=float(evaluator.factor_seconds),
-        kubo_contraction_seconds=float(evaluator.contraction_seconds),
-        primitive_pack_seconds=float(evaluator.pack_seconds),
-        total_seconds=float(total_seconds),
-        conservative_error_ratio_max=float(metrics["conservative_error_ratio_max"]),
-        signed_error_ratio_max=float(metrics["signed_error_ratio_max"]),
-        ward_error_ratio_conservative=float(metrics["ward_error_ratio_conservative"]),
-        counterterm_add_count=1,
-        material_cache_fingerprint=cache.fingerprint,
-        node_cache_hits=int(cache.node_hits),
-        node_cache_misses=int(cache.node_misses),
-    )
+    primitive_seconds = perf_counter() - primitive_started
+    cache_after_primitive = material_node_cache_snapshot(cache)
+    cache_delta = material_node_cache_delta(cache_before, cache_after_primitive)
+
     integration_metadata: dict[str, object] = {
         "integration_strategy": "arbitrary_q_vector_adaptive_hierarchical_cubature",
         "arbitrary_q_contract": _ADAPTIVE_CONTRACT,
@@ -984,6 +1097,8 @@ def integrate_arbitrary_q_vector_adaptive(
         "translation_by_q_is_exact_orbit_permutation": False,
         "matsubara_batch_shared_nodes": True,
         "all_frequencies_share_one_adaptive_tree": True,
+        "low_high_rules_share_one_q_workspace_per_cell_batch": True,
+        "low_high_rule_relation": "paired_nonembedded_tensor_gauss",
         "zero_and_positive_frequencies_share_eigensystems": bool(
             np.any(xi == 0.0) and np.any(xi > 0.0)
         ),
@@ -1002,19 +1117,21 @@ def integrate_arbitrary_q_vector_adaptive(
             "grid_contract": _ADAPTIVE_CONTRACT,
             "coarse_grid": int(settings.coarse_grid),
             "accepted_cells": len(active),
-            "max_level": profile.max_cell_level,
+            "max_level": max((int(cell.level) for cell in active), default=0),
             "weights_equal": False,
             "full_bz_covered_by_disjoint_cells": True,
         },
         "node_cache": cache.metadata(),
+        "cache_delta": cache_delta,
+        "iteration_history": history,
         "counterterm_add_count": 1,
         "counterterm_integrated_per_accepted_cell_before_full_sum": True,
         "operator_ward": operator.as_dict(),
-        "accumulation_profile": profile.as_dict(),
         "diagnostic_only": True,
         "production_reference_established": False,
         "valid_for_casimir_input": False,
     }
+    post_started = perf_counter()
     components, rhs = unpack_integrated_primitives(
         packed,
         xi_values=xi,
@@ -1027,6 +1144,45 @@ def integrate_arbitrary_q_vector_adaptive(
         integration_metadata=integration_metadata,
         rhs_source="arbitrary_q_vector_adaptive_full_bz_integral",
     )
+    postprocess_seconds = perf_counter() - post_started
+    total_seconds = perf_counter() - call_started
+    cache_after = material_node_cache_snapshot(cache)
+    profile = ArbitraryQVectorAdaptiveProfile(
+        frequency_count=int(xi.size),
+        iterations=int(iterations),
+        converged=bool(converged),
+        stop_reason=stop_reason,
+        accepted_cell_count=len(active),
+        max_cell_level=max((int(cell.level) for cell in active), default=0),
+        total_cell_evaluations=int(evaluator.total_cells),
+        total_point_evaluations=int(evaluated_points),
+        low_rule_point_evaluations=int(evaluator.low_points),
+        high_rule_point_evaluations=int(evaluator.high_points),
+        q_workspace_build_count=int(evaluator.q_builds),
+        shifted_eigensystem_build_count=int(evaluator.shifted_builds),
+        midpoint_eigensystem_build_count=int(
+            cache_delta.get("midpoint_eigh_call_count", 0)
+        ),
+        q_workspace_seconds=float(evaluator.q_seconds),
+        kubo_factor_seconds=float(evaluator.factor_seconds),
+        kubo_contraction_seconds=float(evaluator.contraction_seconds),
+        primitive_pack_seconds=float(evaluator.pack_seconds),
+        primitive_integration_seconds=float(primitive_seconds),
+        postprocess_seconds=float(postprocess_seconds),
+        total_seconds=float(total_seconds),
+        conservative_error_ratio_max=float(metrics["conservative_error_ratio_max"]),
+        signed_error_ratio_max=float(metrics["signed_error_ratio_max"]),
+        ward_error_ratio_conservative=float(metrics["ward_error_ratio_conservative"]),
+        counterterm_add_count=1,
+        material_cache_fingerprint=cache.fingerprint,
+        node_cache_hits=int(cache_delta.get("node_hits", 0)),
+        node_cache_misses=int(cache_delta.get("node_misses", 0)),
+        cache_delta=cache_delta,
+        cache_totals_after_call=cache_after,
+        iteration_history=tuple(history),
+    )
+    integration_metadata["accumulation_profile"] = profile.as_dict()
+    integration_metadata["node_cache"] = cache.metadata()
     result = ArbitraryQPeriodicBZResult(
         q_model=q,
         xi_eV_values=xi,
@@ -1038,16 +1194,10 @@ def integrate_arbitrary_q_vector_adaptive(
         material_cache_fingerprint=cache.fingerprint,
         metadata=integration_metadata,
     )
+    if require_converged and not converged:
+        raise AdaptiveConvergenceError(_nonconvergence_message(profile))
     if response_cache is not None:
         response_cache.put(result, settings)
-    if require_converged and not converged:
-        raise AdaptiveConvergenceError(
-            "vector-adaptive cubature did not converge: "
-            f"stop_reason={stop_reason}, cells={len(active)}, "
-            f"points={evaluated_points}, contract_ratio="
-            f"{profile.conservative_error_ratio_max:.3e}, ward_ratio="
-            f"{profile.ward_error_ratio_conservative:.3e}"
-        )
     return result
 
 
@@ -1118,5 +1268,8 @@ __all__ = [
     "build_hierarchical_material_node_cache",
     "integrate_arbitrary_q_vector_adaptive",
     "integrate_two_plate_angle_batch_vector_adaptive",
+    "material_node_cache_delta",
+    "material_node_cache_snapshot",
+    "prewarm_initial_adaptive_nodes",
     "primitive_ward_residual_from_packed",
 ]
