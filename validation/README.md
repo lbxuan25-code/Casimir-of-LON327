@@ -74,6 +74,8 @@ env \
 - 实际 wall-time speedup 与 worker CPU/wall ratio；
 - d-wave `n=0` response components 对独立旧 exact-static primitive 路径的等价。
 
+preflight 是代码正确性、执行路径与速度的前置门，不代替正式阶数收敛扫描。可用 `--no-require-physical` 避免让较低 preflight order 的局部收敛性阻断后端验证；Ward、static strict gate、reflection、logdet 和阶数收敛仍由正式总扫描逐点硬性判定。
+
 preflight 写出带当前 Git head 和运行参数的 manifest。正式 scanner 默认拒绝缺失、失败、参数不匹配或 Git head 已变化的 manifest。
 
 ## 单一方法的逐点分级参数
