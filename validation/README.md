@@ -22,21 +22,21 @@ python -m validation <group> <command> [options]
 ```bash
 python -m validation static nk-scan --nks 8 12 16
 python -m validation matsubara positive-point --help
-python -m validation matsubara dwave-orbit-panel-adaptive --help
-python -m validation matsubara dwave-orbit-gauss-crosscheck --help
+python -m validation matsubara positive-orbit-gauss-crosscheck --help
+python -m validation matsubara positive-orbit-gauss-scan --help
 python -m validation ward commensurate --help
 ```
 
 ## Fixed/composite Gauss 并行约定
 
-`dwave-orbit-gauss-crosscheck` 支持对独立 transverse nodes 做确定性 POSIX-fork 进程并行：
+`positive-orbit-gauss-crosscheck` 与兼容的 d-wave 入口支持对独立 transverse nodes 做确定性 POSIX-fork 进程并行：
 
 ```text
 --transverse-workers N
 --transverse-task-size M
 ```
 
-每个子进程继承同一只读 model/evaluator 配置，并计算一个完整 commensurate q orbit。进程内不执行 bond metric、Schur、sheet、reflection 或 logdet。父进程中的提交线程只负责把节点交给预先启动的 fork workers；所有节点结果返回父进程后，仍严格按原 Gauss 节点顺序进行 complex Kahan summation。因此 worker 数和 task size 只改变执行调度，不改变积分节点、权重或归并顺序。
+每个子进程继承同一只读 model/evaluator 配置，并计算一个完整 commensurate q orbit。进程内不执行 phase-Hessian pullback、Schur、sheet、reflection 或 logdet。所有节点结果返回父进程后，仍严格按原 Gauss 节点顺序进行 complex Kahan summation。因此 worker 数和 task size 只改变执行调度，不改变积分节点、权重或归并顺序。
 
 进程模式要求操作系统提供 POSIX `fork`。不支持 `fork` 的平台必须使用 `--transverse-workers 1`。启用多个 workers 时，必须把每个子进程中的底层数值库线程数固定为一：
 
@@ -46,21 +46,33 @@ env \
   OPENBLAS_NUM_THREADS=1 \
   MKL_NUM_THREADS=1 \
   NUMEXPR_NUM_THREADS=1 \
-  python -m validation matsubara dwave-orbit-gauss-crosscheck \
-    --transverse-workers 4 \
+  python -m validation matsubara positive-orbit-gauss-crosscheck \
+    --transverse-workers 8 \
     --transverse-task-size 4 \
     ...
 ```
 
-不要仅凭小尺寸等价测试推断性能。正式高阶计算前，先在真实 `nk` 上用较小 Gauss order 做串行/进程 A/B，并同时检查墙钟时间和 shell `time` 的总 CPU 时间。只有 CPU/wall 比明显大于一且墙钟显著下降时才扩大 worker 数。建议先试 4 workers，再试 8；内存带宽饱和、温度过高或持续降频时应降低 workers。不要同时对多个 q case 再做外层并行。
+不要仅凭小尺寸等价测试推断性能。正式高阶计算前，应在真实 `nk` 上用较小 Gauss order 做串行/进程 A/B，并同时检查墙钟时间和 shell `time` 的总 CPU 时间。不要同时对多个 q case 再做外层并行。
 
-外部 reference CSV 是可选的。省略 `--reference-csv` 时，命令仍会完成：
+外部 reference CSV 是可选的。省略 `--reference-csv` 时，命令仍会完成相邻阶数、周期切口、Ward、sheet、reflection 和 passive-logdet 检查。
 
-- 同一切口下相邻总阶数比较；
-- 同一阶数下周期切口一致性比较；
-- Ward、sheet、reflection 和 passive-logdet 物理管线验证。
+## 单一方法的逐点分级参数
 
-只有需要与一个独立已保存结果比较时才传入 `--reference-csv`。
+`positive-orbit-gauss-scan` 同时覆盖 `spm` 与 `dwave` 的正 Matsubara 扇区。所有点始终使用同一个 16-panel composite Gauss-Legendre 方法；不同点只允许改变总 transverse order 和相应预算。
+
+默认阶数按照独立 low/high stage pairs 解释：
+
+```text
+screen: C64 / C96
+medium: C160 / C192
+hard:   C320 / C384
+```
+
+每一级只比较同级高低阶。严格通过的点立即停止；reflection/logdet 已收敛且 sigma 仅轻微超过严格阈值的点，需要满足 soft 门禁和趋势要求，并进行 shifted-periodic-cut 审计。只有困难点才进入后续阶数对。不同 Matsubara 正频共享同一个 microscopic eigensystem batch，因此按 q 选择阶数，而不为了高频点拆分主要计算。
+
+真正的 Matsubara `n=0` 不属于该命令。静态项必须继续使用 exact-static density/stiffness formulation，不能由 `sigma=-K/xi` 外推。
+
+扫描只可能给出 `outer_integral_candidate=True`。它不建立 production response reference，也不代表最终 Casimir energy/torque 已经收敛。
 
 ## 目录边界
 
