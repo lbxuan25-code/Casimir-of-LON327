@@ -11,6 +11,15 @@ jobs:
   contract-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+      BLIS_NUM_THREADS: "1"
+      VECLIB_MAXIMUM_THREADS: "1"
+      OMP_DYNAMIC: "FALSE"
+      MKL_DYNAMIC: "FALSE"
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -49,15 +58,6 @@ jobs:
           python -m validation diagnostic --help
 
       - name: Smoke test total zero-positive Gauss preflight and scan
-        env:
-          OMP_NUM_THREADS: "1"
-          OPENBLAS_NUM_THREADS: "1"
-          MKL_NUM_THREADS: "1"
-          NUMEXPR_NUM_THREADS: "1"
-          BLIS_NUM_THREADS: "1"
-          VECLIB_MAXIMUM_THREADS: "1"
-          OMP_DYNAMIC: "FALSE"
-          MKL_DYNAMIC: "FALSE"
         run: |
           python -m validation matsubara matsubara-orbit-gauss-crosscheck \
             --pairing spm \
