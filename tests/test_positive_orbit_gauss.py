@@ -15,7 +15,7 @@ from validation.lib.positive_orbit_gauss import integrate_positive_orbit_gauss
         ("dwave", "nearest_neighbor_bond_metric"),
     ],
 )
-def test_positive_orbit_gauss_uses_one_batched_backend_with_pairing_policy(
+def test_orbit_gauss_uses_one_batched_backend_with_pairing_policy(
     pairing_name: str,
     expected_policy: str,
 ) -> None:
@@ -23,7 +23,7 @@ def test_positive_orbit_gauss_uses_one_batched_backend_with_pairing_policy(
     ansatz = model.build_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
     pairing = model.build_pairing_params(0.1)
     temperature = 10.0
-    xi = np.asarray([2.0 * np.pi * KB_EV_PER_K * temperature])
+    xi = np.asarray([0.0, 2.0 * np.pi * KB_EV_PER_K * temperature])
 
     result = integrate_positive_orbit_gauss(
         spec=model.spec,
@@ -44,6 +44,7 @@ def test_positive_orbit_gauss_uses_one_batched_backend_with_pairing_policy(
 
     assert result.pairing_name == pairing_name
     assert result.phase_hessian_policy == expected_policy
+    assert len(result.components) == 2
     assert result.evaluator_profile.callbacks == 4
     assert result.evaluator_profile.complete_orbit_points == 32
     assert result.evaluator_profile.material_workspace_implementation == (
@@ -58,14 +59,27 @@ def test_positive_orbit_gauss_uses_one_batched_backend_with_pairing_policy(
     assert result.components[0].metadata["post_integral_phase_hessian_policy"] == (
         expected_policy
     )
+    assert result.components[0].metadata[
+        "zero_and_positive_frequencies_share_eigensystems"
+    ] is True
+    assert result.components[0].metadata["exact_zero_uses_divided_difference"] is True
+    assert result.components[0].metadata[
+        "conductivity_division_for_zero_forbidden"
+    ] is True
 
 
-def test_spm_fork_process_gauss_matches_serial() -> None:
+def test_spm_fork_process_zero_positive_batch_matches_serial() -> None:
     model = get_finite_q_validation_model("symmetry_bdg_2band")
     ansatz = model.build_ansatz("spm", phase_vertex="bond_endpoint_gauge")
     pairing = model.build_pairing_params(0.1)
     temperature = 10.0
-    xi = np.asarray([2.0 * np.pi * KB_EV_PER_K * temperature])
+    xi = np.asarray(
+        [
+            0.0,
+            2.0 * np.pi * KB_EV_PER_K * temperature,
+            4.0 * np.pi * KB_EV_PER_K * temperature,
+        ]
+    )
 
     common = dict(
         spec=model.spec,
@@ -86,6 +100,8 @@ def test_spm_fork_process_gauss_matches_serial() -> None:
     parallel = integrate_positive_orbit_gauss(**common, transverse_workers=2)
 
     np.testing.assert_array_equal(parallel.quadrature.value, serial.quadrature.value)
+    assert serial.evaluator_profile.callbacks == 4
+    assert parallel.evaluator_profile.callbacks == 4
     assert parallel.quadrature.execution_strategy == (
         "fork_process_transverse_nodes_ordered_parent_reduction"
     )
