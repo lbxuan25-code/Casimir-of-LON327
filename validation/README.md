@@ -123,6 +123,6 @@ git clean -fdX validation/outputs
 
 ## 当前验证
 
-GitHub Actions run `29304830203` 在 head `7416483277da8e993afa5deb96b229dbbbc8646d` 上完整通过，包括 targeted contracts、全仓测试、总零频/正频 crosscheck、真实 preflight→manifest→scanner 子进程链和旧入口 smoke。
+完整 CI 已覆盖 targeted contracts、全仓测试、总零频/正频 crosscheck、真实 preflight→manifest→scanner 子进程链和旧入口 smoke。具体 run 与 head 由 PR 验证记录维护，避免文档中的移动 head 产生无意义提交。
 
 当前 validation 只证明相应数值门禁；在总 Matsubara reference、完整外层积分与最终 energy/torque 报告完成前，不宣称 finite-q Casimir production-ready。
