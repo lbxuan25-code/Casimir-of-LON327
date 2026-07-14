@@ -130,10 +130,12 @@ def test_total_matsubara_preflight_allows_matching_scan(tmp_path: Path) -> None:
     payload = json.loads(
         (output_root / "scan_summary.json").read_text(encoding="utf-8")
     )
-    assert payload["schema"] == "total_matsubara_pointwise_gauss_scan_v1"
+    assert payload["schema"] == "total_matsubara_pointwise_gauss_scan_v2"
     assert payload["status"]["zero_matsubara_included"] is True
     assert payload["status"]["zero_uses_exact_static_divided_difference"] is True
     assert payload["status"]["zero_conductivity_division_used"] is False
+    assert payload["status"]["static_physics_contract_softened"] is False
+    assert payload["status"]["static_numerical_soft_acceptance_enabled"] is True
     assert payload["status"]["preflight_passed"] is True
     assert payload["preflight"]["accepted"] is True
     assert payload["status"]["valid_for_casimir_input"] is False
