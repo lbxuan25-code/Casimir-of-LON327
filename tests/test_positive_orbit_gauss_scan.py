@@ -33,7 +33,7 @@ def _write_rows(path: Path, *, sigma: float, reflection: float, logdet: float) -
         writer.writerows(rows)
 
 
-def test_scan_parser_keeps_one_method_order_ladder() -> None:
+def test_scan_parser_keeps_one_method_paired_stages() -> None:
     args = _parse_args(
         [
             "--pairings",
@@ -44,16 +44,23 @@ def test_scan_parser_keeps_one_method_order_ladder() -> None:
             "--gauss-orders",
             "64",
             "96",
-            "128",
+            "160",
+            "192",
             "--panel-count",
             "16",
         ]
     )
     assert args.pairings == ("spm", "dwave")
-    assert args.gauss_orders == (64, 96, 128)
+    assert args.gauss_orders == (64, 96, 160, 192)
+    assert args.gauss_stages == ((64, 96), (160, 192))
     assert args.panel_count == 16
     assert args.cases[0].label == "small"
     assert (args.cases[0].mx, args.cases[0].my) == (1, 1)
+
+
+def test_scan_parser_rejects_unpaired_order_ladder() -> None:
+    with pytest.raises(SystemExit):
+        _parse_args(["--gauss-orders", "64", "96", "128"])
 
 
 def test_scan_parser_rejects_exact_zero_matsubara() -> None:
