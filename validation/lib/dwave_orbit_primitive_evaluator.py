@@ -14,7 +14,9 @@ from lno327 import KuboConfig
 from lno327.response.finite_q_material_workspace_batched import (
     precompute_finite_q_material_workspace_batched,
 )
-from lno327.response.primitive_kernel import evaluate_primitive_batch_from_material
+from lno327.response.primitive_kernel_v2 import (
+    evaluate_primitive_batch_from_material,
+)
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 
 
@@ -92,9 +94,9 @@ def _fork_process_evaluate(
 class DWaveOrbitPrimitiveEvaluator:
     """Evaluate complete orbits and aggregate stage profiling.
 
-    The qualified complete-orbit wrapper now delegates q-dependent work,
-    Matsubara contraction and primitive packing to the same quadrature-independent
-    kernel used by the arbitrary-q periodic-BZ backend.
+    The qualified complete-orbit wrapper delegates q-dependent work,
+    Matsubara contraction, integrated operator diagnostics and primitive packing
+    to the same quadrature-independent v2 kernel used by arbitrary-q periodic BZ.
     """
 
     def __init__(
