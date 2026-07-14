@@ -20,6 +20,8 @@ def test_validation_cli_exposes_tight_main_and_diagnostic_surfaces():
         ("matsubara", "matsubara-orbit-gauss-crosscheck"),
         ("matsubara", "total-orbit-gauss-scan"),
         ("matsubara", "orbit-gauss-preflight"),
+        ("matsubara", "arbitrary-q-performance-preflight"),
+        ("matsubara", "arbitrary-q-periodic-bz-qualification"),
         ("diagnostic", "dwave-small-xi"),
         ("diagnostic", "bond-metric-positive"),
         ("diagnostic", "dwave-orbit-adaptive"),
