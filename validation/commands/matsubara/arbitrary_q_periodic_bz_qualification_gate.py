@@ -38,20 +38,168 @@ def _provenance_mapping(payload: Mapping[str, Any]) -> dict[str, object]:
     }
 
 
-def _workload_records(payload: Mapping[str, Any]) -> dict[str, list[dict[str, Any]]]:
-    result: dict[str, list[dict[str, Any]]] = {}
-    for pairing in payload.get("pairings", ()):  # type: ignore[assignment]
+def _workload_matrix(
+    payload: Mapping[str, Any],
+) -> dict[tuple[str, int, str], list[dict[str, Any]]]:
+    """Index workload evidence without losing pairing or runtime-chunk identity."""
+
+    result: dict[tuple[str, int, str], list[dict[str, Any]]] = {}
+    pairings = payload.get("pairings", ())
+    if not isinstance(pairings, (list, tuple)):
+        return result
+    for pairing in pairings:
         if not isinstance(pairing, Mapping):
             continue
-        for record in pairing.get("records", ()):  # type: ignore[assignment]
+        pairing_name = str(pairing.get("pairing", ""))
+        records = pairing.get("records", ())
+        if not isinstance(records, (list, tuple)):
+            continue
+        for record in records:
             if not isinstance(record, Mapping):
                 continue
-            for workload in record.get("workloads", ()):  # type: ignore[assignment]
+            try:
+                runtime_chunk = int(record.get("runtime_chunk_size", -1))
+            except (TypeError, ValueError):
+                runtime_chunk = -1
+            workloads = record.get("workloads", ())
+            if not isinstance(workloads, (list, tuple)):
+                continue
+            for workload in workloads:
                 if not isinstance(workload, Mapping):
                     continue
                 identifier = str(workload.get("workload_id", ""))
-                result.setdefault(identifier, []).append(dict(workload))
+                row = dict(workload)
+                row["_pairing"] = pairing_name
+                row["_runtime_chunk_size"] = runtime_chunk
+                result.setdefault(
+                    (pairing_name, runtime_chunk, identifier), []
+                ).append(row)
     return result
+
+
+def _expected_workload_shape(
+    identifier: str,
+    config: Mapping[str, Any],
+) -> tuple[int, int]:
+    if identifier == OUTER_Q_BATCH_WORKLOAD_ID:
+        return int(config["q_tasks"]), int(config["workers"])
+    if identifier == QUALIFICATION_PRIMARY_WORKLOAD_ID:
+        return (
+            int(config["qualification_primary_tasks"]),
+            int(config["qualification_primary_workers"]),
+        )
+    if identifier == QUALIFICATION_AUDIT_WORKLOAD_ID:
+        return (
+            int(config["qualification_audit_tasks"]),
+            int(config["qualification_audit_workers"]),
+        )
+    raise ValueError(f"unknown workload id: {identifier!r}")
+
+
+def _validate_workload_matrix(
+    payload: Mapping[str, Any],
+    manifest_config: Mapping[str, Any],
+) -> dict[tuple[str, int, str], dict[str, Any]]:
+    matrix = _workload_matrix(payload)
+    pairings = {str(value) for value in manifest_config.get("pairings", ())}
+    runtime_chunks = {
+        int(value) for value in manifest_config.get("runtime_chunk_sizes", ())
+    }
+    workload_ids = {
+        OUTER_Q_BATCH_WORKLOAD_ID,
+        QUALIFICATION_PRIMARY_WORKLOAD_ID,
+        QUALIFICATION_AUDIT_WORKLOAD_ID,
+    }
+    expected = {
+        (pairing, runtime_chunk, identifier)
+        for pairing in pairings
+        for runtime_chunk in runtime_chunks
+        for identifier in workload_ids
+    }
+    actual = set(matrix)
+    missing = expected.difference(actual)
+    extra = actual.difference(expected)
+    if missing:
+        formatted = ", ".join(
+            f"{pairing}/{runtime}/{identifier}"
+            for pairing, runtime, identifier in sorted(missing)
+        )
+        raise SystemExit(
+            "performance manifest lacks required workload evidence: " + formatted
+        )
+    if extra:
+        formatted = ", ".join(
+            f"{pairing}/{runtime}/{identifier}"
+            for pairing, runtime, identifier in sorted(extra)
+        )
+        raise SystemExit(
+            "performance manifest contains unexpected workload evidence: " + formatted
+        )
+
+    validated: dict[tuple[str, int, str], dict[str, Any]] = {}
+    for key in sorted(expected):
+        rows = matrix[key]
+        if len(rows) != 1:
+            raise SystemExit(
+                "performance manifest has duplicate workload evidence for "
+                f"{key[0]}/{key[1]}/{key[2]}"
+            )
+        pairing, runtime_chunk, identifier = key
+        row = rows[0]
+        if row.get("passed") is not True:
+            raise SystemExit(
+                f"performance workload {identifier!r} did not pass for "
+                f"{pairing} runtime_chunk={runtime_chunk}"
+            )
+        if int(row.get("runtime_chunk_size", -1)) != runtime_chunk:
+            raise SystemExit(
+                f"performance workload {identifier!r} runtime chunk is inconsistent"
+            )
+        expected_tasks, expected_workers = _expected_workload_shape(
+            identifier, manifest_config
+        )
+        if int(row.get("task_count", -1)) != expected_tasks:
+            raise SystemExit(
+                f"performance workload {identifier!r} has the wrong task count"
+            )
+        if int(row.get("workers", -1)) != expected_workers:
+            raise SystemExit(
+                f"performance workload {identifier!r} has the wrong worker count"
+            )
+        architecture = row.get("architecture")
+        if not isinstance(architecture, Mapping) or architecture.get("passed") is not True:
+            raise SystemExit(
+                f"performance workload {identifier!r} lacks a passed architecture audit"
+            )
+        if architecture.get("response_cache_hit_count_matches_expected") is not True:
+            raise SystemExit(
+                f"performance workload {identifier!r} has inconsistent response-cache evidence"
+            )
+        if architecture.get("shifted_eigh_counts_exact") is not True:
+            raise SystemExit(
+                f"performance workload {identifier!r} has inconsistent eigensystem counts"
+            )
+        parallel = row.get("parallel_metadata")
+        if not isinstance(parallel, Mapping):
+            raise SystemExit(
+                f"performance workload {identifier!r} lacks parallel metadata"
+            )
+        process_workers = int(parallel.get("process_workers", -1))
+        if process_workers != expected_workers:
+            raise SystemExit(
+                f"performance workload {identifier!r} parallel worker metadata differs"
+            )
+        if process_workers > 1:
+            if float(parallel.get("pool_shutdown_seconds", 0.0)) <= 0.0:
+                raise SystemExit(
+                    f"performance workload {identifier!r} did not measure pool shutdown"
+                )
+            if parallel.get("worker_actual_threadpool_all_passed") is not True:
+                raise SystemExit(
+                    f"performance workload {identifier!r} did not verify worker threadpools"
+                )
+        validated[key] = row
+    return validated
 
 
 def _load_manifest(
@@ -111,33 +259,7 @@ def _load_manifest(
     if payload.get("config_fingerprint") != config_fingerprint(manifest_config):
         raise SystemExit("performance manifest config fingerprint is invalid")
 
-    workloads = _workload_records(payload)
-    required = {
-        OUTER_Q_BATCH_WORKLOAD_ID,
-        QUALIFICATION_PRIMARY_WORKLOAD_ID,
-        QUALIFICATION_AUDIT_WORKLOAD_ID,
-    }
-    missing = required.difference(workloads)
-    if missing:
-        raise SystemExit(
-            "performance manifest lacks required workload evidence: "
-            + ", ".join(sorted(missing))
-        )
-    for identifier in required:
-        rows = workloads[identifier]
-        if not rows or not all(row.get("passed") is True for row in rows):
-            raise SystemExit(f"performance workload {identifier!r} did not pass")
-        if any(
-            int(row.get("parallel_metadata", {}).get("process_workers", -1)) > 1
-            and float(
-                row.get("parallel_metadata", {}).get("pool_shutdown_seconds", 0.0)
-            ) <= 0.0
-            for row in rows
-        ):
-            raise SystemExit(
-                f"performance workload {identifier!r} did not measure pool shutdown"
-            )
-
+    workloads = _validate_workload_matrix(payload, manifest_config)
     compatibility = validate_performance_manifest_compatibility(
         manifest_config=manifest_config,
         qualification_config=qualification_config,
@@ -147,6 +269,12 @@ def _load_manifest(
             "performance manifest is incompatible with qualification: "
             + "; ".join(compatibility)
         )
+
+    required_ids = {
+        OUTER_Q_BATCH_WORKLOAD_ID,
+        QUALIFICATION_PRIMARY_WORKLOAD_ID,
+        QUALIFICATION_AUDIT_WORKLOAD_ID,
+    }
     return {
         "path": str(manifest_path),
         "schema": payload["schema"],
@@ -163,16 +291,20 @@ def _load_manifest(
         "workload_evidence": {
             identifier: [
                 {
-                    "pairing_record_count": len(workloads[identifier]),
+                    "pairing": pairing,
+                    "runtime_chunk_size": runtime_chunk,
                     "task_count": row.get("task_count"),
                     "workers": row.get("workers"),
                     "speedup": row.get("speedup"),
                     "pool_overhead_fraction": row.get("pool_overhead_fraction"),
                     "passed": row.get("passed"),
                 }
-                for row in workloads[identifier]
+                for (pairing, runtime_chunk, observed_id), row in sorted(
+                    workloads.items()
+                )
+                if observed_id == identifier
             ]
-            for identifier in sorted(required)
+            for identifier in sorted(required_ids)
         },
         "passed": True,
     }
