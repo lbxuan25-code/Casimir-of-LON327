@@ -70,19 +70,22 @@ jobs:
             --canonical-block-size 64 \
             --runtime-chunk-sizes 64 256 \
             --output /tmp/arbitrary-q-performance-smoke.json \
-            > staged-performance-output.txt 2>&1
+            > performance-smoke-output.txt 2>&1
           status=$?
-          cp /tmp/arbitrary-q-performance-smoke.json staged-performance-result.json 2>/dev/null || true
-          cat staged-performance-output.txt
+          cp /tmp/arbitrary-q-performance-smoke.json performance-smoke-result.json 2>/dev/null || true
+          cat performance-smoke-output.txt
           if [[ $status -ne 0 ]]; then exit $status; fi
           python - <<'PY'
           import json
           from pathlib import Path
 
           payload = json.loads(Path('/tmp/arbitrary-q-performance-smoke.json').read_text())
-          assert payload['schema'] == 'arbitrary-q-performance-smoke-v1'
+          assert payload['schema'] == 'arbitrary-q-performance-smoke-v2'
           assert payload['optimization_structure_passed'] is True
           assert payload['formal_performance_evidence'] is False
+          timing = payload['pairings'][0]['records'][0]['serial_timing_breakdown']
+          assert 'timing_seconds' in timing
+          assert 'timing_fraction_of_reported_total' in timing
           PY
 
       - name: Execute fail-closed tiny arbitrary-q physics diagnostic
@@ -98,18 +101,19 @@ jobs:
             --canonical-block-size 64 \
             --runtime-chunk-size 256 \
             --output /tmp/arbitrary-q-physics-smoke.json \
-            > staged-physics-output.txt 2>&1
+            > physics-smoke-output.txt 2>&1
           status=$?
-          cp /tmp/arbitrary-q-physics-smoke.json staged-physics-result.json 2>/dev/null || true
-          cat staged-physics-output.txt
+          cp /tmp/arbitrary-q-physics-smoke.json physics-smoke-result.json 2>/dev/null || true
+          cat physics-smoke-output.txt
           python - <<'PY'
           import json
           from pathlib import Path
 
           payload = json.loads(Path('/tmp/arbitrary-q-physics-smoke.json').read_text())
-          assert payload['schema'] == 'arbitrary-q-physics-smoke-v1'
+          assert payload['schema'] == 'arbitrary-q-physics-smoke-v2'
           assert payload['formal_numerical_evidence'] is False
           assert payload['interpretation']['convergence_claimed'] is False
+          assert 'next_check_if_passed' in payload['interpretation']
           summary = payload['pairings'][0]['summary']
           assert summary['operator_identity_all_passed'] is True
           assert summary['integrated_ward_all_passed'] is True
@@ -206,9 +210,9 @@ jobs:
           path: |
             collect-output.txt
             full-pytest-output.txt
-            staged-performance-output.txt
-            staged-performance-result.json
-            staged-physics-output.txt
-            staged-physics-result.json
+            performance-smoke-output.txt
+            performance-smoke-result.json
+            physics-smoke-output.txt
+            physics-smoke-result.json
           if-no-files-found: ignore
           retention-days: 7
