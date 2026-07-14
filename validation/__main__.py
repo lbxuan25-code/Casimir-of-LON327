@@ -1,5 +1,4 @@
 """Unified command-line entry point for active validation workflows."""
-
 from __future__ import annotations
 
 import importlib
@@ -35,6 +34,12 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ),
     ("matsubara", "dwave-orbit-gauss-crosscheck"): (
         "validation.commands.matsubara.dwave_orbit_gauss_crosscheck"
+    ),
+    ("matsubara", "positive-orbit-gauss-crosscheck"): (
+        "validation.commands.matsubara.positive_orbit_gauss_crosscheck"
+    ),
+    ("matsubara", "positive-orbit-gauss-scan"): (
+        "validation.commands.matsubara.positive_orbit_gauss_scan"
     ),
     ("matsubara", "dwave-orbit-certification-scan"): (
         "validation.commands.matsubara.dwave_orbit_certification_scan_parallel"
