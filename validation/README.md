@@ -21,6 +21,7 @@ python -m validation <group> <command> [options]
 
 ```bash
 python -m validation static nk-scan --nks 8 12 16
+python -m validation matsubara total-orbit-timing-profile --help
 python -m validation matsubara orbit-gauss-preflight --help
 python -m validation matsubara matsubara-orbit-gauss-crosscheck --help
 python -m validation matsubara total-orbit-gauss-scan --help
@@ -74,9 +75,11 @@ env \
 - 实际 wall-time speedup 与 worker CPU/wall ratio；
 - d-wave `n=0` response components 对独立旧 exact-static primitive 路径的等价。
 
-preflight 是代码正确性、执行路径与速度的前置门，不代替正式阶数收敛扫描。可用 `--no-require-physical` 避免让较低 preflight order 的局部收敛性阻断后端验证；Ward、static strict gate、reflection、logdet 和阶数收敛仍由正式总扫描逐点硬性判定。
+preflight 是代码正确性、执行路径与速度的前置门，不代替正式阶数收敛扫描。可用 `--no-require-physical` 避免让较低 preflight order 的局部收敛性阻断后端验证；Ward、static strict gate、reflection、logdet 和阶数收敛仍由正式总扫描逐点判定。
 
 preflight 写出带当前 Git head 和运行参数的 manifest。正式 scanner 默认拒绝缺失、失败、参数不匹配或 Git head 已变化的 manifest。
+
+`total-orbit-timing-profile` 使用同一总后端做 serial/process A/B，并拆分累计 worker-seconds：material workspace、q workspace、Kubo factors、Kubo contraction 与 primitive packing；同时分别记录 quadrature wall、进程池启动/后处理 wall、每节点耗时、CPU/wall 和 speedup。worker-seconds 与 wall time 不可混为一谈。
 
 ## 单一方法的逐点分级参数
 
@@ -90,19 +93,29 @@ medium: C160 / C192
 hard:   C320 / C384
 ```
 
-每一级只比较同级高低阶。严格通过的 q case 立即停止。正频 reflection/logdet 已收敛且 sigma 仅轻微超过严格阈值时，可按 soft 门禁和趋势要求接受，并执行 shifted-periodic-cut 审计。真正的 `n=0` 不允许 soft 放宽：static response、strict static Ward、reflection 与 logdet 必须达到严格门禁。只有困难 q case 才进入后续阶数对。
+每一级只比较同级高低阶。严格通过的 q case 立即停止。默认 response 门禁为：
 
-阶数按 q case 而不是单个 Matsubara index 选择，因为同一 q 的全部频率共享主要 eigensystem 成本。扫描只可能给出 `outer_integral_candidate=True`；它不建立 production response reference，也不代表最终 Casimir energy/torque 已经收敛。
+```text
+n=0 primary response: strict <= 1e-3, soft <= 2e-3
+n>0 sigma:            strict <= 1e-3, soft <= 2e-3
+reflection/logdet:    <= 1e-3
+```
+
+静态 soft 只放宽相邻阶数的 numerical drift；以下 static physics contract 始终是硬门：exact divided difference、strict static Ward、sheet validation、reflection construction 与 signed-real logdet。对应参数为 `--strict-static-rtol` 和 `--soft-static-rtol`。
+
+任一频率扇区需要 soft 时，static 与 positive 的最大 drift 都必须在 successive stage pairs 上不恶化，满足 confirmation 要求或到达最终 hard pair，并执行 shifted-periodic-cut 审计。只有困难 q case 才进入后续阶数对。
+
+阶数按 q case 而不是单个 Matsubara index 选择，因为同一 q 的全部频率共享主要 eigensystem 成本。外层积分候选要求 100% closure、100% observable acceptance、100% static strict-or-soft acceptance、100% case acceptance，并达到设置的 minimum strict-point fraction。扫描只可能给出 `outer_integral_candidate=True`；它不建立 production response reference，也不代表最终 Casimir energy/torque 已经收敛。
 
 ## 目录边界
 
-- `commands/`：CLI 参数、文件读写和终端输出；不承载新的物理公式；
+- `commands/`：CLI 参数、文件读写和终端输出；不承载新的 microscopic 物理公式；
 - `lib/`：可测试的数值算法、诊断分解和 validation model adapters；
 - `outputs/`：每个验证对象的复现命令、README 和轻量 summary；
 - `reports/`：跨验证对象的当前状态与 artifact policy；
 - `__main__.py`：稳定的公共命令路由。
 
-新增诊断时，应优先扩展现有 group 和 backend，而不是新增版本化平行实现，或在 `validation/` 根目录新增 `run_*.py`、`analyze_*.py`、`average_*.py`。
+新增诊断时，应优先扩展现有 group 和 backend，而不是新增版本化平行数值实现，或在 `validation/` 根目录新增 `run_*.py`、`analyze_*.py`、`average_*.py`。
 
 ## 输出约定
 
@@ -123,6 +136,6 @@ git clean -fdX validation/outputs
 
 ## 当前验证
 
-完整 CI 已覆盖 targeted contracts、全仓测试、总零频/正频 crosscheck、真实 preflight→manifest→scanner 子进程链和旧入口 smoke。具体 run 与 head 由 PR 验证记录维护，避免文档中的移动 head 产生无意义提交。
+完整 CI 已覆盖 targeted contracts、全仓测试、总零频/正频 crosscheck、真实 preflight→manifest→scanner 子进程链、static-soft policy 和旧入口 smoke。具体 run 与 head 由 PR 验证记录维护，避免文档中的移动 head 产生无意义提交。
 
 当前 validation 只证明相应数值门禁；在总 Matsubara reference、完整外层积分与最终 energy/torque 报告完成前，不宣称 finite-q Casimir production-ready。
