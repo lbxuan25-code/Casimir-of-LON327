@@ -4,17 +4,58 @@ This directory intentionally contains no executable full outer-integration pipel
 
 The retired monolithic `finite_q_bdg_casimir_pipeline.py` was removed before the outer-integration handoff because it encoded superseded zero-RHS Ward, positive-frequency-to-zero extrapolation, and legacy TE/TM conventions. Git history remains the audit trail; do not restore or copy that implementation.
 
-The next implementation must start from `docs/full_outer_integration_handoff.md` and remain a thin orchestration layer over the typed two-band library:
+## Microscopic intake now available
+
+The typed library now contains an implementation of `ArbitraryQPeriodicBZContract-v1` for the microscopic response needed by a future full outer integrator:
+
+```text
+fixed shifted N x N periodic BZ lattice
+exact real q_crystal = R(-theta) q_lab
+shared quadrature-independent primitive kernel
+readonly q-independent material cache
+streamed canonical reduction blocks
+exact zero + positive Matsubara shared q eigensystems
+normal Peierls operator-identity diagnostics
+integrated RHS-aware Ward validation
+q_lab + angle-batch persistent-fork execution
+```
+
+The qualified complete-orbit backend remains the commensurate-q reference and regression authority. It is not forced onto arbitrary q.
+
+Implementation and validation contracts are documented in:
+
+```text
+docs/full_outer_integration_handoff.md
+docs/arbitrary_q_periodic_bz_design.md
+validation/README.md
+```
+
+Blocking commands are:
+
+```bash
+python -m validation matsubara arbitrary-q-performance-preflight
+python -m validation matsubara arbitrary-q-periodic-bz-qualification
+```
+
+The first command must produce a same-head real-hardware performance manifest before the expensive `N=256,384,512` numerical qualification is accepted. CI only establishes small deterministic architecture and regression contracts.
+
+## Future full outer layer
+
+After both arbitrary-q microscopic gates pass, the outer layer must remain thin orchestration over the typed library and provide:
 
 - exact zero-Matsubara density/stiffness sheet response;
 - positive-Matsubara conductivity sheet response;
 - common lab LT tangential-electric reflection basis;
 - `lno327.casimir.lifshitz_integrand.passive_sheet_logdet`;
-- explicit Matsubara prime weight, q/angle quadrature, convergence and sensitivity reports.
+- explicit Matsubara prime weight, q/angle quadrature, restartable caches, convergence and sensitivity reports;
+- energy convergence before torque differentiation.
 
-Until the handoff acceptance gates are completed:
+No full outer result may be treated as production input until the microscopic performance and numerical qualification manifests and the subsequent q/angle/Matsubara energy/torque convergence reports pass.
 
 ```text
+arbitrary_q_performance_contract = not_yet_qualified
+arbitrary_q_microscopic_contract = not_yet_qualified
+
 diagnostic_only = True
 production_reference_established = False
 valid_for_casimir_input = False
