@@ -2,58 +2,44 @@
 
 ## 1. Repository state
 
-Repository: `lbxuan25-code/Casimir-of-LON327`
+```text
+repository = lbxuan25-code/Casimir-of-LON327
+branch = refactor/two-band-casimir-contract
+PR = #2, draft, unmerged
+```
 
-Branch: `refactor/two-band-casimir-contract`
-
-Draft PR: `#2`
-
-Use the current branch head as the source of truth. Any preflight manifest generated on an older head is invalid and must be regenerated before a formal scan.
-
-Hard state at handoff:
+Current hard state:
 
 ```text
+arbitrary_q_performance_contract = not_yet_qualified
+arbitrary_q_microscopic_contract = not_yet_qualified
+qualified_outer_q_envelope_established = False
+
 diagnostic_only = True
 production_reference_established = False
 valid_for_casimir_input = False
 ```
 
-A diagnostic full outer-integration trial is allowed. No production or final-Casimir claim is allowed yet.
+A full outer-integration trial is **not yet authorized**. The next work is target-machine formal microscopic evidence, followed by a q-envelope contract derived from the intended outer separation/tail range.
 
-## 2. What is ready
+## 2. Retained physical chain
 
-The retained two-band finite-q path provides:
+The typed two-band path provides:
 
-- typed primitive crystal blocks `K_SS`, `K_Seta`, `K_etaS`, `K_etaeta` and Schur-corrected `K_eff`;
-- RHS-aware finite-q Ward validation on the same microscopic quadrature;
-- exact zero-Matsubara divided differences;
-- static density/stiffness sheet response and static reflection;
+- primitive crystal blocks `K_SS`, `K_Seta`, `K_etaS`, `K_etaeta`;
+- post-integral amplitude/phase Schur correction and `K_eff`;
+- RHS-aware finite-q Ward validation;
+- exact zero-Matsubara thermodynamic divided differences;
+- zero-mode density/stiffness sheet response and static reflection;
 - positive-Matsubara conductivity sheet response and reflection;
 - common lab LT tangential-electric reflection basis;
-- signed-real passive trace-log through `lno327.casimir.lifshitz_integrand.passive_sheet_logdet`;
-- one total-Matsubara complete-orbit callback sharing eigensystems across `n=0` and positive frequencies;
-- deterministic POSIX-fork transverse-node execution with ordered parent Kahan reduction.
+- signed-real passive trace-log through `lno327.casimir.lifshitz_integrand.passive_sheet_logdet`.
 
 Zero frequency must never use `sigma=-K/xi`.
 
-## 3. Qualified validation entry points
+## 3. Retained commensurate reference
 
-Only these public commands belong to the pre-outer main path:
-
-```bash
-python -m validation matsubara total-orbit-timing-profile --help
-python -m validation matsubara matsubara-orbit-gauss-crosscheck --help
-python -m validation matsubara orbit-gauss-preflight --help
-python -m validation matsubara total-orbit-gauss-scan --help
-```
-
-Ward and independent static checks remain available under `ward` and `static`.
-
-Historical positive-only aliases are no longer public. D-wave adaptive, integrand-profile and angular-width tools live under `python -m validation diagnostic ...`; they are forensic tools and must not become runtime dependencies of the outer integrator.
-
-## 4. Retained microscopic quadrature contract
-
-The qualified main path uses a full-period equal-panel composite Gauss-Legendre transverse integral.
+The complete-orbit reference remains:
 
 ```text
 screen: C64 / C96
@@ -62,230 +48,233 @@ hard:   C320 / C384
 panel_count = 16
 ```
 
-No even, C4, axis, diagonal or q-direction symmetry reduction is allowed inside this microscopic integral. A child evaluates one full commensurate q orbit; the parent reduces original node order with complex Kahan summation.
+It integrates a full transverse period with no even, C4, axis, diagonal or q-direction symmetry reduction. Exact zero and positive Matsubara values share eigensystems. Child processes evaluate full q orbits and the parent performs ordered complex Kahan reduction.
 
-For process parallelism set all BLAS/OpenMP thread counts to one.
+The complete-orbit and arbitrary-q paths use one primitive kernel and one q-workspace implementation. The operator-enabled interface is a thin wrapper, eliminating a common copied-physics path.
 
-## 5. Last formal total-Matsubara evidence
+## 4. Arbitrary-q microscopic implementation
 
-The last complete scan used:
-
-```text
-pairings = spm, dwave
-nk = 1256
-Matsubara indices = 0,1,2,4,8,16,32
-Gauss stages = 64/96, 160/192, 320/384
-q cases = (1,0), (1,1), (2,1), (3,2), (6,4), (6,0), (6,6), (9,6)
-```
-
-Result:
+`ArbitraryQPeriodicBZContract-v3` supplies:
 
 ```text
-all closure checks passed = True
-all observable checks passed = True
-spm strict cases = 8/8
-dwave strict cases = 6/8
+exact q_crystal = R(-theta_plate) q_lab
+fixed shifted even-N, N x N full periodic BZ lattice
+MaterialGridCache-v3
+CrystalResponseCache-v3
+runtime-sized shifted Hamiltonian/eigensystem/vertex/Kubo batches
+canonical deterministic primitive reduction blocks
+operator identity from existing q-workspace intermediates
+exact zero + positive Matsubara shared q workspace
+q_lab + angle-batch persistent POSIX-fork tasks
+actual child BLAS threadpool checks
 ```
 
-The only response-level unresolved cases were exact d-wave diagonal directions `(1,1)` and `(6,6)`. Their Ward, exact-static Ward, sheet, reflection and logdet pipelines passed.
+`runtime_chunk_size` now controls real compute width. `canonical_reduction_block_size` alone controls floating-point grouping.
 
-Do not reuse the old preflight manifest after this handoff commit. Regenerate it on the current head.
+## 5. Formal evidence boundary
 
-## 6. Exact-diagonal d-wave finding
-
-A two-cut C384 angular-width screen evaluated `n=0,1` at:
+Only `ArbitraryQFormalPolicyV2` can establish formal evidence. It freezes all parameters affecting workload, physical point or pass/fail, including:
 
 ```text
-(6,6), (12,12), (24,24),
-(25,24),
-(13,12), (12,13),
-(13,11), (11,13),
-(14,10), (10,14)
+absolute and relative comparison tolerances
+Ward tolerances
+T, delta0, eta and separation
+reference panel/order/workers/task size
+runtime and canonical block policy
+outer, qualification-primary and qualification-audit workload identities
 ```
 
-Exact diagonal results:
+Formal runs require a clean source tree. Evidence records:
 
 ```text
-(6,6):   static 1.482e-2, positive 4.434e-3, R 8.743e-5, logdet 1.738e-4
-(12,12): static 2.102e-2, positive 1.551e-2, R 1.586e-4, logdet 3.159e-4
-(24,24): static 4.249e-2, positive 4.727e-2, R 2.551e-4, logdet 5.092e-4
+git_head
+git_tree_sha
+tracked_index_fingerprint
+source_tree_fingerprint
+worktree_clean = True
 ```
 
-Nearest tested off-diagonal direction:
+The public gate requires identical provenance across performance, current checkout, numerical core output and post-run checkout.
+
+The numerical core itself can emit only:
 
 ```text
-(25,24)
-angular offset from 45 degrees = 1.1691393279 degrees
-static cut drift = 1.528e-6
-positive cut drift = 1.841e-6
-R cut drift = 5.804e-6
-logdet cut drift = 9.364e-9
-classification = response_strict
+diagnostic_result_passed
+diagnostic_result_failed
 ```
 
-Mirror directions agree. All observables in the screen are stable below `1e-3`.
-
-Interpretation:
-
-- the integrand is periodic to machine precision;
-- panel-boundary left/right probes are continuous at approximately `1e-6` for a `2e-7` probe separation;
-- the response instability is consistent with an exact-diagonal commensurate/nodal sampling anomaly rather than a finite-width angular wedge at tested resolution;
-- the local response reference remains unresolved, but observable sensitivity is strongly suppressed.
-
-This issue must not block the first diagnostic outer integral.
-
-## 7. Outer integral to construct
-
-The target free energy per area is
+Only the public clean-source gate may promote a passed result to:
 
 ```text
-F/A = k_B T * sum_n' integral[d^2 Q / (2 pi)^2] L_n(Q, theta, d)
+qualified_for_diagnostic_outer_integration
 ```
 
-where `L_n` is the signed-real logdet returned from two compatible lab-basis reflections. The `n=0` prime weight is exactly `1/2` and belongs to the Matsubara quadrature layer, not to the microscopic response evaluator.
-
-The first implementation should support:
-
-- plate separation `d`;
-- relative crystal angle `theta`;
-- `spm` and `dwave` pairing;
-- exact `n=0` plus positive Matsubara sum;
-- q magnitude and q direction integration or a fully documented Cartesian alternative;
-- free energy and torque;
-- restartable cache and atomic outputs;
-- convergence and sensitivity variants.
-
-## 8. Recommended architecture
-
-Keep the new runtime thin. Suggested layers:
-
-1. `OuterIntegrationConfig`: temperature, separation, angles, pairing, q quadrature, Matsubara cutoff and tolerances.
-2. `MicroscopicResponseProvider`: calls the retained total-Matsubara complete-orbit backend and returns validated reflection operators or signed logdet points.
-3. `QQuadrature`: owns q magnitude/direction nodes and weights only.
-4. `MatsubaraQuadrature`: owns prime weight, cutoff and tail diagnostics only.
-5. `OuterAccumulator`: deterministic weighted summation, preferably compensated.
-6. `SensitivityVariants`: exact-diagonal treatment and independent outer-grid variants.
-7. `ReportWriter`: atomic metadata, compact summaries and local raw artifacts.
-
-Do not place microscopic formulas in the CLI or outer quadrature classes.
-
-## 9. Coordinate and basis rules
-
-- The outer q variable is a lab-frame in-plane wavevector.
-- Each plate receives `q_crystal = R(-theta_plate) q_lab` through the central basis convention.
-- Both final reflection matrices must be represented in the same lab LT tangential-electric basis before multiplication.
-- Do not revive old TE/TM-amplitude adapters or use the legacy complex trace-log diagnostic.
-- Preserve model-q to SI-q conversion metadata at every point.
-- Plate 1 and plate 2 reflections must have matching q, Matsubara frequency and vacuum kappa.
-
-## 10. Exact-diagonal sensitivity variants
-
-The first full trial must produce at least three variants:
-
-### A. Native
-
-Use the normal inner result at every outer node.
-
-### B. Shifted-cut diagonal
-
-At exact d-wave `qx=qy` nodes, use an independently shifted microscopic periodic cut.
-
-### C. Symmetric observable interpolation
-
-At exact d-wave diagonal nodes, replace only the final logdet by a symmetric interpolation from neighboring directions at the same q magnitude when the outer grid supports it.
-
-Do not interpolate primitive response tensors unless a separate physical justification is established.
-
-Compare pairwise free energy and torque differences. If the outer angular quadrature avoids exact diagonal nodes, retain a deliberate node-shift or alternative quadrature variant as the sensitivity comparison.
-
-## 11. Convergence program
-
-The minimum diagnostic convergence matrix is:
-
-- q radial order/cutoff;
-- q angular order or Cartesian grid spacing;
-- Matsubara cutoff;
-- angle grid used for torque;
-- microscopic stage at representative high-weight points;
-- native/shifted/interpolated exact-diagonal treatment;
-- serial/process deterministic equality on a small outer grid.
-
-Report both absolute and relative differences. Torque comparisons need a documented floor because torque vanishes at symmetry angles.
-
-## 12. Suggested acceptance gates
-
-For a diagnostic outer result:
+This promotion still leaves:
 
 ```text
-all pointwise physical pipelines passed = True
-all signed-real logdet constructions passed = True
-outer q-grid convergence <= target tolerance
-Matsubara truncation/tail <= target tolerance
-angle/torque discretization <= target tolerance
-exact-diagonal variant sensitivity <= target tolerance
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False
 ```
 
-A reasonable initial target is `1e-3`, but the final tolerance must be stated explicitly in the outer integration config and reports.
+## 6. Required target-machine order
 
-Only after the complete convergence report may the project consider changing:
+Set BLAS/OpenMP variables to one before Python starts, then:
+
+1. Run the retained complete-orbit timing evidence on the current clean head.
+2. Run `matsubara arbitrary-q-performance-preflight` on the same clean head.
+3. Confirm the worktree remains clean and do not modify source.
+4. Run the public `matsubara arbitrary-q-periodic-bz-qualification` gate with the performance manifest.
+5. Inspect the formal manifest and discrete q-coverage record.
+
+Exact commands are maintained in `scripts/casimir/README.md`.
+
+## 7. What formal microscopic qualification checks
+
+For each pairing it evaluates:
+
+```text
+primary N=256
+primary N=384
+primary N=512
+audit A=(1/4,3/4) at N=512
+audit B=(3/4,1/4) at N=512
+```
+
+Each complete-orbit reference, primary N, audit shift and paired result must independently pass the applicable operator, integrated Ward, strict-static, sheet, reflection and passive-logdet gates.
+
+### Paired shifts
+
+Each plate is paired at the linear primitive level:
+
+```text
+paired_packed = 0.5 * (packed_A + packed_B)
+```
+
+The API verifies identical material state, compatible grid identity and inversion-related formal shifts. `PairedShiftProfile-v1` sums both source evaluations while retaining one effective counterterm.
+
+### Final two-plate observable
+
+Qualification directly gates the nonlinear quantity consumed by future outer integration:
+
+```text
+plate 1 theta = 0 degrees
+plate 2 theta = 17 degrees
+common lab LT basis
+logdet(I - R1 R2 exp(-2 kappa d))
+```
+
+For every Matsubara index it requires:
+
+```text
+N=256,384,512 two-plate values
+N refinement
+audit A and B two-plate values
+primitive-paired plate 1 and plate 2
+paired two-plate value
+A/B sensitivity
+primary N512/paired sensitivity
+all source and paired plate physical gates
+```
+
+Single-plate convergence cannot substitute for this final-observable gate.
+
+## 8. Momentum support is not an outer envelope
+
+The implementation accepts only:
+
+```text
+|q_x| <= pi
+|q_y| <= pi
+```
+
+without wrapping. This is a syntactic principal-domain support boundary, not a numerically qualified outer domain.
+
+The current matrix covers discrete axis, generic, near-diagonal, exact-diagonal and 17-degree-rotated vectors. Its manifest explicitly keeps:
+
+```text
+qualified_outer_q_envelope_established = False
+continuous_angle_coverage_established = False
+outer_tail_requirement_bound = False
+```
+
+Before outer implementation, define the intended:
+
+```text
+separation range
+angle range
+q quadrature family
+q cutoff rule
+tail tolerance
+```
+
+Then derive the required `q_max` and qualify multiple radii/directions through that range. The resulting envelope manifest must contain maximum norm/component and angle coverage. A future outer builder must reject nodes outside it.
+
+## 9. Exact-diagonal d-wave status
+
+The retained complete-orbit evidence found response-level cut sensitivity on exact `qx=qy` d-wave directions, while neighboring off-diagonal directions were strict and tested reflection/logdet sensitivity stayed below `1e-3`.
+
+This remains a sensitivity issue rather than permission to bypass physical gates. Exact-diagonal primitive response may be reported unresolved only when operator, integrated Ward, strict-static, reflection, logdet and shift-sensitivity gates pass.
+
+No full outer trial should be started until the q-envelope design specifies how diagonal directions and neighboring-angle sensitivity are sampled.
+
+## 10. Future outer architecture
+
+After the clean-source microscopic manifest and q-envelope manifest exist, the outer layer should remain thin:
+
+1. `OuterIntegrationConfig`: temperature, separations, angles, q quadrature/cutoff/tail and Matsubara tolerances.
+2. `MicroscopicResponseProvider`: exact q/angle requests into the typed arbitrary-q backend.
+3. `QQuadrature`: lab-frame q nodes/weights and envelope enforcement.
+4. `MatsubaraQuadrature`: prime weight, cutoff and tail diagnostics.
+5. `OuterAccumulator`: deterministic compensated summation.
+6. `SensitivityVariants`: diagonal/node/outer-grid alternatives.
+7. `ReportWriter`: atomic manifests and compact summaries.
+
+The outer variable is `q_lab`. Each plate receives `q_crystal = R(-theta_plate) q_lab`; both reflections must return to the same lab LT basis before multiplication.
+
+## 11. Required outer convergence after authorization
+
+A diagnostic energy result will still require:
+
+```text
+all microscopic point pipelines passed
+all signed-real logdet constructions passed
+q radial/angular convergence
+q cutoff and omitted-tail convergence
+Matsubara cutoff/tail convergence
+angle-grid convergence
+energy convergence before torque differentiation
+diagonal/shift sensitivity
+serial/process deterministic equality
+```
+
+Torque needs its own absolute floor near symmetry angles.
+
+Only the complete microscopic + q-envelope + outer convergence chain may eventually support changing:
 
 ```text
 production_reference_established = True
 valid_for_casimir_input = True
 ```
 
-No individual local-response threshold may change those flags by itself.
+No local threshold or single manifest can change those flags by itself.
 
-## 13. Forbidden shortcuts
+## 12. Forbidden shortcuts
 
 Do not:
 
-- construct zero frequency by dividing by Matsubara frequency;
-- use bare or phase-only electromagnetic kernels;
-- use local-q0 response as a finite-q fallback;
-- silently take `real(logdet)` or `log(abs(det))`;
-- mix reflection bases between plates;
-- apply unvalidated q-direction symmetry reduction inside the microscopic integral;
-- let diagnostic adaptive/profile routes become the production backend;
-- commit raw outer grids, caches, full CSV tables or figures before a production reference exists;
-- restore the retired monolithic Casimir script from Git history.
+- divide by Matsubara frequency at `n=0`;
+- use bare or phase-only kernels;
+- substitute local-q0 response at finite q;
+- silently wrap or nearest-grid-round q;
+- average nonlinear reflections/logdets as a quadrature reference;
+- mix plate reflection bases;
+- claim `[-pi,pi]^2` is numerically qualified from the current discrete matrix;
+- run formal commands on a dirty tree;
+- reuse a performance manifest after any source change;
+- open idle eight-worker pools for one-task audit contexts;
+- restore the retired monolithic Casimir script.
 
-## 14. Output policy
+## 13. Output policy
 
-Before production reference establishment, Git may retain only:
-
-- `README.md`;
-- exact reproduction command;
-- run config;
-- compact `summary` and `status` artifacts;
-- handoff/convergence reports.
-
-Raw arrays, full grids, caches, figures and logs remain local and are ignored by `.gitignore`.
-
-## 15. First actions in the new window
-
-1. Read this document and `validation/README.md`.
-2. Confirm branch and head with `git status -sb` and `git rev-parse HEAD`.
-3. Run the full test suite.
-4. Regenerate a real-`nk` `orbit-gauss-preflight` manifest on the current head.
-5. Design the outer config/schema and a tiny synthetic/small-grid end-to-end test before any expensive run.
-6. Implement energy first; implement torque only after energy quadrature and angle conventions are tested.
-7. Run native/shifted/interpolated diagonal sensitivity on a small full grid.
-8. Expand q and Matsubara convergence only after atomic restart and reporting work.
-
-## 16. Final handoff status
-
-```text
-microscopic two-band contract = ready for diagnostic outer construction
-exact n=0 contract = ready
-positive Matsubara contract = ready
-signed-real single-point Lifshitz observable = ready
-exact d-wave diagonal response reference = unresolved
-exact d-wave diagonal observable sensitivity = locally below 1e-3
-full q/angle/Matsubara convergence = not yet built
-energy/torque production reference = not established
-
-diagnostic_only = True
-production_reference_established = False
-valid_for_casimir_input = False
-```
+Before a production reference exists, retain only exact commands, configs, source/hardware fingerprints and compact summary/status artifacts. Raw grids, caches, full tables and figures remain local and ignored.
