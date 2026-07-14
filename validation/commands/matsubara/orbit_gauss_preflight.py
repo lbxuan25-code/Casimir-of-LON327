@@ -1,7 +1,7 @@
 """Blocking correctness and performance preflight for the total Matsubara scan.
 
 The preflight exercises the exact production-facing orchestration path rather than a
-mock evaluator.  It requires one combined ``[0, positive...]`` batch, verifies exact
+mock evaluator. It requires one combined ``[0, positive...]`` batch, verifies exact
 zero-frequency physical postprocessing, compares serial and POSIX-fork primitive
 integrals, checks batched workspace metadata and callback counts, measures real wall
 speedup, and cross-checks d-wave ``n=0`` against the independent legacy exact-static
@@ -184,9 +184,7 @@ def _run_combined(
     selected_nk = int(args.nk if nk is None else nk)
     selected_order = int(args.transverse_order if order is None else order)
     selected_panels = int(args.panel_count if panel_count is None else panel_count)
-    selected_indices = (
-        args.matsubara_indices if indices is None else tuple(indices)
-    )
+    selected_indices = args.matsubara_indices if indices is None else tuple(indices)
     xi_values = _xi_values(selected_indices, args.temperature_K)
     started = time.perf_counter()
     integrated = integrate_matsubara_orbit_gauss(
@@ -266,29 +264,29 @@ def _physical_rows(
     return rows
 
 
-def _max_relative(left: np.ndarray, right: np.ndarray) -> float:
-    a = np.asarray(left, dtype=complex)
-    b = np.asarray(right, dtype=complex)
-    return float(
-        np.linalg.norm(a - b)
-        / max(
-            float(np.linalg.norm(a)),
-            float(np.linalg.norm(b)),
-            np.finfo(float).tiny,
-        )
-    )
-
-
-def _relative_comparison_passed(
-    value: float,
+def _comparison_metrics(
+    left: np.ndarray,
+    right: np.ndarray,
     *,
     rtol: float,
     atol: float,
-) -> bool:
-    return bool(
-        np.isfinite(value)
-        and value <= float(rtol) + float(atol)
-    )
+) -> dict[str, float | bool]:
+    a = np.asarray(left, dtype=complex)
+    b = np.asarray(right, dtype=complex)
+    absolute = float(np.linalg.norm(a - b))
+    scale = max(float(np.linalg.norm(a)), float(np.linalg.norm(b)))
+    relative = absolute / max(scale, np.finfo(float).tiny)
+    threshold = float(atol) + float(rtol) * scale
+    mixed_ratio = absolute / max(threshold, np.finfo(float).tiny)
+    return {
+        "absolute": absolute,
+        "scale": scale,
+        "relative": relative,
+        "threshold": threshold,
+        "mixed_ratio": mixed_ratio,
+        "passed": bool(np.isfinite(mixed_ratio) and mixed_ratio <= 1.0),
+        "denominator_collapsed": bool(float(rtol) * scale <= float(atol)),
+    }
 
 
 def _serial_parallel_record(
@@ -305,9 +303,11 @@ def _serial_parallel_record(
         pairing_name=pairing_name,
         workers=args.transverse_workers,
     )
-    primitive_relative = _max_relative(
+    primitive_comparison = _comparison_metrics(
         serial.quadrature.value,
         parallel.quadrature.value,
+        rtol=args.comparison_rtol,
+        atol=args.comparison_atol,
     )
     profile = parallel.evaluator_profile
     speedup = serial_wall / max(parallel_wall, np.finfo(float).tiny)
@@ -315,36 +315,24 @@ def _serial_parallel_record(
         parallel.quadrature.wall_seconds,
         np.finfo(float).tiny,
     )
-    execution_expected = (
-        "fork_process_transverse_nodes_ordered_parent_reduction"
-    )
+    execution_expected = "fork_process_transverse_nodes_ordered_parent_reduction"
     metadata = parallel.components[0].metadata
     physical_rows = _physical_rows(args, parallel)
-    numerical_match = _relative_comparison_passed(
-        primitive_relative,
-        rtol=args.comparison_rtol,
-        atol=args.comparison_atol,
-    )
     correctness = bool(
-        numerical_match
+        primitive_comparison["passed"]
         and (
             not args.require_physical
             or all(row["physical_passed"] for row in physical_rows)
         )
     )
     optimization = bool(
-        profile.material_workspace_implementation
-        == "batched_model_capability"
-        and profile.q_workspace_implementation
-        == "batched_model_capability"
+        profile.material_workspace_implementation == "batched_model_capability"
+        and profile.q_workspace_implementation == "batched_model_capability"
         and parallel.quadrature.execution_strategy == execution_expected
         and profile.callbacks == parallel.quadrature.transverse_evaluations
         and profile.callbacks == args.transverse_order
-        and profile.complete_orbit_points
-        == parallel.quadrature.point_evaluations
-        and bool(
-            metadata.get("zero_and_positive_frequencies_share_eigensystems")
-        )
+        and profile.complete_orbit_points == parallel.quadrature.point_evaluations
+        and bool(metadata.get("zero_and_positive_frequencies_share_eigensystems"))
         and bool(metadata.get("exact_zero_uses_divided_difference"))
         and not bool(metadata.get("symmetry_reduction_applied"))
         and bool(metadata.get("full_transverse_period_integrated"))
@@ -359,16 +347,18 @@ def _serial_parallel_record(
         "parallel_cpu_wall_ratio": cpu_wall_ratio,
         "serial_seconds_per_node": serial_wall / args.transverse_order,
         "parallel_seconds_per_node": parallel_wall / args.transverse_order,
-        "primitive_serial_parallel_relative": primitive_relative,
-        "material_workspace_implementation": (
-            profile.material_workspace_implementation
-        ),
+        "primitive_serial_parallel_absolute": primitive_comparison["absolute"],
+        "primitive_serial_parallel_scale": primitive_comparison["scale"],
+        "primitive_serial_parallel_relative": primitive_comparison["relative"],
+        "primitive_serial_parallel_mixed_ratio": primitive_comparison["mixed_ratio"],
+        "primitive_serial_parallel_denominator_collapsed": primitive_comparison[
+            "denominator_collapsed"
+        ],
+        "material_workspace_implementation": profile.material_workspace_implementation,
         "q_workspace_implementation": profile.q_workspace_implementation,
         "execution_strategy": parallel.quadrature.execution_strategy,
         "evaluator_callbacks": int(profile.callbacks),
-        "transverse_evaluations": int(
-            parallel.quadrature.transverse_evaluations
-        ),
+        "transverse_evaluations": int(parallel.quadrature.transverse_evaluations),
         "point_evaluations": int(parallel.quadrature.point_evaluations),
         "frequency_count": len(args.matsubara_indices),
         "callbacks_not_multiplied_by_frequency_count": bool(
@@ -405,16 +395,12 @@ def _component_fields(component: object) -> tuple[np.ndarray, ...]:
 
 def _legacy_static_record(args: argparse.Namespace) -> dict[str, Any]:
     model = get_finite_q_validation_model("symmetry_bdg_2band")
-    ansatz = model.build_ansatz(
-        "dwave",
-        phase_vertex="bond_endpoint_gauge",
-    )
+    ansatz = model.build_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
     pairing = model.build_pairing_params(args.delta0_eV)
     nk = int(args.legacy_static_nk)
     order = int(args.legacy_static_order)
     q = (2.0 * np.pi / float(nk)) * np.asarray(
-        [args.mx, args.my],
-        dtype=float,
+        [args.mx, args.my], dtype=float
     )
     kubo = KuboConfig.from_kelvin(
         omega_eV=0.0,
@@ -440,11 +426,7 @@ def _legacy_static_record(args: argparse.Namespace) -> dict[str, Any]:
         subgrid_average=args.subgrid_average,
         chunk_size=1024,
         max_point_evaluations=_budget(
-            nk,
-            args.mx,
-            args.my,
-            args.subgrid_average,
-            order,
+            nk, args.mx, args.my, args.subgrid_average, order
         ),
     )
     legacy_components, legacy_rhs, _ = assemble_dwave_static_primitives(
@@ -473,34 +455,70 @@ def _legacy_static_record(args: argparse.Namespace) -> dict[str, Any]:
         panel_count=1,
         indices=(0,),
     )
-    component_relatives = [
-        _max_relative(left, right)
+    component_comparisons = [
+        _comparison_metrics(
+            left,
+            right,
+            rtol=args.comparison_rtol,
+            atol=args.comparison_atol,
+        )
         for left, right in zip(
             _component_fields(processed.components),
             _component_fields(generic.components[0]),
             strict=True,
         )
     ]
-    rhs_relative = max(
-        _max_relative(legacy_rhs.left, generic.rhs[0].left),
-        _max_relative(legacy_rhs.right, generic.rhs[0].right),
-    )
-    maximum = max(component_relatives + [rhs_relative])
-    passed = _relative_comparison_passed(
-        maximum,
+    rhs_left = _comparison_metrics(
+        legacy_rhs.left,
+        generic.rhs[0].left,
         rtol=args.comparison_rtol,
         atol=args.comparison_atol,
+    )
+    rhs_right = _comparison_metrics(
+        legacy_rhs.right,
+        generic.rhs[0].right,
+        rtol=args.comparison_rtol,
+        atol=args.comparison_atol,
+    )
+    rhs_mixed_ratio = max(
+        float(rhs_left["mixed_ratio"]),
+        float(rhs_right["mixed_ratio"]),
+    )
+    maximum_component_relative = max(
+        float(value["relative"]) for value in component_comparisons
+    )
+    maximum_component_mixed_ratio = max(
+        float(value["mixed_ratio"]) for value in component_comparisons
+    )
+    passed = bool(
+        all(bool(value["passed"]) for value in component_comparisons)
+        and bool(rhs_left["passed"])
+        and bool(rhs_right["passed"])
     )
     return {
         "nk": nk,
         "order": order,
-        "maximum_component_relative": max(component_relatives),
-        "rhs_relative": rhs_relative,
-        "maximum_relative": maximum,
-        "legacy_strict_static_passed": bool(processed.strict.passed),
-        "legacy_sheet_validation_passed": bool(
-            processed.sheet.validation.passed
+        "maximum_component_relative": maximum_component_relative,
+        "maximum_component_mixed_ratio": maximum_component_mixed_ratio,
+        "rhs_absolute_max": max(
+            float(rhs_left["absolute"]),
+            float(rhs_right["absolute"]),
         ),
+        "rhs_scale_max": max(
+            float(rhs_left["scale"]),
+            float(rhs_right["scale"]),
+        ),
+        "rhs_relative": max(
+            float(rhs_left["relative"]),
+            float(rhs_right["relative"]),
+        ),
+        "rhs_mixed_ratio": rhs_mixed_ratio,
+        "rhs_denominator_collapsed": bool(
+            rhs_left["denominator_collapsed"]
+            or rhs_right["denominator_collapsed"]
+        ),
+        "legacy_strict_static_passed": bool(processed.strict.passed),
+        "legacy_sheet_validation_passed": bool(processed.sheet.validation.passed),
         "passed": passed,
     }
 
@@ -514,10 +532,7 @@ def main() -> None:
         f"workers={args.transverse_workers}, n={args.matsubara_indices}",
         flush=True,
     )
-    records = [
-        _serial_parallel_record(args, pairing)
-        for pairing in args.pairings
-    ]
+    records = [_serial_parallel_record(args, pairing) for pairing in args.pairings]
     legacy = _legacy_static_record(args)
     correctness_passed = bool(
         all(record["correctness_passed"] for record in records)
@@ -530,19 +545,22 @@ def main() -> None:
 
     for record in records:
         print(
-            f"{record['pairing']}: "
-            f"serial={record['serial_wall_seconds']:.3f}s, "
+            f"{record['pairing']}: serial={record['serial_wall_seconds']:.3f}s, "
             f"parallel={record['parallel_wall_seconds']:.3f}s, "
             f"speedup={record['speedup']:.2f}x, "
             f"CPU/wall={record['parallel_cpu_wall_ratio']:.2f}, "
-            f"relative={record['primitive_serial_parallel_relative']:.3e}, "
+            f"mixed={record['primitive_serial_parallel_mixed_ratio']:.3e}, "
             f"correct={record['correctness_passed']}, "
             f"optimized={record['optimization_passed']}",
             flush=True,
         )
     print(
-        "legacy exact-static d-wave agreement: max relative="
-        f"{legacy['maximum_relative']:.3e}; passed={legacy['passed']}",
+        "legacy exact-static d-wave agreement: component mixed="
+        f"{legacy['maximum_component_mixed_ratio']:.3e}; "
+        f"RHS mixed={legacy['rhs_mixed_ratio']:.3e}; "
+        f"RHS relative={legacy['rhs_relative']:.3e}; "
+        f"denominator_collapsed={legacy['rhs_denominator_collapsed']}; "
+        f"passed={legacy['passed']}",
         flush=True,
     )
 
@@ -576,8 +594,7 @@ def main() -> None:
         },
     }
     output.write_text(
-        json.dumps(payload, indent=2, sort_keys=True),
-        encoding="utf-8",
+        json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8"
     )
     print(f"preflight manifest: {output}")
     if not passed:
