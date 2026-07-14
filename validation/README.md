@@ -4,13 +4,11 @@
 
 ## Public command surface
 
-All commands use:
-
 ```bash
 python -m validation <group> <command> [options]
 ```
 
-### Main contract commands
+Main retained and blocking commands:
 
 ```text
 ward commensurate
@@ -32,27 +30,13 @@ matsubara arbitrary-q-performance-preflight
 matsubara arbitrary-q-periodic-bz-qualification
 ```
 
-The complete-orbit routes retain the qualified commensurate reference. The arbitrary-q routes implement a blocking formal preflight and a same-head formal qualification gate for the fixed periodic-BZ backend. Their existence does not establish a production reference.
+The complete-orbit routes retain the qualified commensurate reference. The arbitrary-q routes implement a target-machine performance preflight and a clean-source public qualification gate. Their existence does not establish production readiness.
 
-### Diagnostic-only commands
-
-```text
-diagnostic dwave-small-xi
-diagnostic bond-metric-positive
-diagnostic dwave-orbit-adaptive
-diagnostic dwave-orbit-panel-adaptive
-diagnostic dwave-orbit-evaluator-profile
-diagnostic dwave-orbit-integrand-profile
-diagnostic dwave-diagonal-width-scan
-diagnostic dwave-orbit-gauss-crosscheck
-diagnostic dwave-orbit-certification-scan
-```
-
-These routes localize numerical behavior or preserve forensic reproducibility. They never authorize production input.
+Diagnostic routes remain forensic tools and cannot authorize outer input.
 
 ## Retained complete-orbit reference
 
-The qualified commensurate backend uses one full-period equal-panel composite Gauss-Legendre rule with no even, C4, axis, diagonal or q-direction symmetry reduction:
+The commensurate backend uses full-period equal-panel composite Gauss-Legendre integration without even, C4, axis, diagonal or q-direction symmetry reduction:
 
 ```text
 screen: C64 / C96
@@ -60,125 +44,178 @@ medium: C160 / C192
 hard:   C320 / C384
 ```
 
-Exact `n=0` and positive Matsubara frequencies share eigensystems. Primitive blocks are integrated before phase-Hessian pullback, Schur reduction, sheet conversion, reflection or logdet. Zero frequency is never constructed from `sigma=-K/xi`.
+Exact `n=0` and positive Matsubara values share eigensystems. Primitive blocks are integrated before phase-Hessian pullback, Schur reduction, sheet conversion, reflection or logdet. Zero frequency is never constructed from `sigma=-K/xi`.
 
-The complete-orbit evaluator and the arbitrary-q backend now use the same quadrature-independent primitive kernel. The stable complete-orbit profiling contract remains unchanged, while its operator identity audit reuses q-workspace Hamiltonians and vertices instead of repeating them.
+The retained reference and arbitrary-q backend share the same primitive kernel and the same single q-workspace implementation. The operator-enabled entry point is a thin wrapper, so no copied shifted-Hamiltonian/vertex implementation remains.
 
 ## Arbitrary-q periodic BZ backend
 
-`ArbitraryQPeriodicBZContract-v2` provides:
+`ArbitraryQPeriodicBZContract-v3` provides:
 
 ```text
 exact q_crystal = R(-theta) q_lab
-no rounding, wrapping, nearest-commensurate replacement or interpolation
-fixed shifted N x N full periodic midpoint lattice
-readonly q-independent MaterialGridCache-v2
-streamed canonical reduction blocks with ordered complex Kahan accumulation
-exact n=0 + positive Matsubara shared q workspace
-Goldstone/HS counterterm added exactly once
+no q rounding, wrapping, nearest-grid substitution or interpolation
+fixed shifted even-N, N x N full periodic midpoint lattice
+readonly MaterialGridCache-v3
+material-state fingerprint separate from grid fingerprint
+CrystalResponseCache-v3 with complete numerical-policy identity
+one established q-workspace implementation with optional operator diagnostics
+runtime-sized q workspace and eigensystem batches
+canonical-block deterministic Kahan reduction
+exact zero + positive Matsubara shared q workspace
+Goldstone/HS counterterm added once
 q_lab + angle-batch persistent POSIX-fork tasks
 ordered streaming result collection
-CrystalResponseCache-v2 with complete numerical-policy identity
+actual child BLAS threadpool verification
 ```
 
-When a material cache is supplied, the entry point uses `material_cache.grid`; it does not rebuild or traverse a second `N^2` grid before a response-cache lookup.
+When a material cache is supplied, the entry point uses `material_cache.grid`; it does not build a second `N^2` grid before response-cache lookup.
+
+### Runtime versus canonical blocks
+
+```text
+runtime_chunk_size:
+  actual shifted Hamiltonian/eigensystem/vertex/Kubo batch
+
+canonical_reduction_block_size:
+  fixed linear contribution and Kahan addition boundary
+```
+
+At nonzero q each runtime chunk performs two batched eigensystem calls. Changing runtime 4096 to 16384 changes q-workspace/eigensystem call counts and memory width, while canonical boundaries and packed output remain invariant.
 
 ### Ward layers
 
-- The machine-level pointwise gate is the normal Peierls operator identity only.
-- The operator audit is computed from Hamiltonians and vertices already constructed by the q workspace.
-- The integrated response uses the existing RHS-aware Ward validation.
-- Exact zero additionally keeps the strict-static longitudinal gate fail-closed.
+- Machine-scale pointwise checks apply only to the normal Peierls operator identity.
+- Operator diagnostics reuse q-workspace Hamiltonians and Peierls vertices.
+- Integrated response uses RHS-aware Ward validation.
+- Exact zero retains the strict-static longitudinal gate.
+- Tiny grids prove algebra and positive-frequency plumbing, not converged zero-mode physics.
 
-Tiny unit grids prove operator and integrated algebraic closure and the positive-frequency sheet/reflection/logdet path. They are not allowed to impersonate converged zero-mode phase or longitudinal physics. Those gates belong to formal `N=256/384/512` qualification.
+## Paired-shift audit
 
-### Paired shift audit
-
-Audit shifts are:
+Formal audit shifts are:
 
 ```text
 A = (1/4,3/4)
 B = (3/4,1/4)
 ```
 
-The paired estimate is defined only at the linear primitive level:
+The primary paired estimate is:
 
 ```text
 paired_packed = 0.5 * (packed_A + packed_B)
 ```
 
-Exactly one phase-Hessian, Schur, sheet, reflection and logdet pipeline is applied to `paired_packed`. `A/B` reflection and logdet differences are reported as independent spreads; their nonlinear averages are not quadrature references.
+One nonlinear postprocessing pipeline follows. `A/B` reflection and logdet differences remain spread diagnostics only.
 
-Every complete-orbit reference, primary `N`, audit shift and paired-primitive result must independently pass the relevant operator, integrated Ward, strict-static, sheet, reflection and passive-logdet gates.
+Pairing is rejected unless material state, N, BZ convention, point count, q/frequency/policy identity and inversion-related formal shifts match. `PairedShiftProfile-v1` sums both source evaluations and reports one effective counterterm after averaging.
 
 ## Frozen formal policy
 
-Only `ArbitraryQFormalPolicyV1` can establish a formal pass. CLI values may be stricter but cannot be looser.
+Only `ArbitraryQFormalPolicyV2` can establish formal evidence.
 
-Performance policy freezes at least:
+### Performance contract
+
+`ArbitraryQPerformanceWorkloadV2` includes:
 
 ```text
-pairings include spm,dwave
+pairings spm,dwave
 N >= 128
-q tasks >= 8
-workers >= 4
 Matsubara includes 0,1,2,4,8
 canonical block = 4096
 runtime chunks include 4096,16384
-minimum speedup >= 4
-minimum CPU/wall >= 4
-pool overhead <= 0.05
+comparison atol <= 2e-12
+comparison rtol <= 2e-11
+T = 10 K, delta0 = 0.1 eV, eta = 1e-8 eV
+outer_q_batch_v2: >=8 tasks, >=4 workers
+qualification_primary_v2: 4 tasks, 4 workers
+qualification_audit_v2: 1 task, 1 worker
+outer speedup >= 4
+outer CPU/wall >= 4
+pool startup+shutdown overhead <= 0.05
 ```
 
-Numerical policy freezes at least:
+### Numerical contract
+
+`ArbitraryQQualificationMatrixV2` includes:
 
 ```text
-pairings include spm,dwave
-N values include 256,384,512
+pairings spm,dwave
+N includes 256,384,512
 reference nk = 1256
 reference order >= 384
+reference panel count = 16
+reference workers/task size = 8/4
 Matsubara includes 0,1,8
-primitive rtol <= 1e-3
-reflection/logdet rtol <= 3e-4
-diagonal observable rtol <= 1e-3
+primitive rtol/atol <= 1e-3/1e-12
+reflection rtol/atol <= 3e-4/1e-12
+logdet rtol/atol <= 3e-4/1e-14
+diagonal observable rtol/atol <= 1e-3/1e-12
+Ward tolerance/absolute tolerance <= 1e-7/1e-12
+T = 10 K, delta0 = 0.1 eV, eta = 1e-8 eV
+separation = 20 nm
+canonical/runtime = 4096/16384
+primary/audit workers = 4/1
 ```
 
-A formal performance manifest contains:
+All quantities that affect workload, physical point or pass/fail are part of the formal config fingerprint.
+
+## Clean-source gate
+
+`git rev-parse HEAD` alone is insufficient. Formal commands require:
+
+```bash
+git status --porcelain --untracked-files=all
+```
+
+to be empty and bind evidence to:
 
 ```text
-formal policy id and pass state
-config fingerprint
-exact command
-git head
-hardware fingerprint
-execution/worker/thread policy
-actual BLAS threadpool report
-actual eigensystem call counters
-RSS/PSS and IPC payload metrics
-cache-on/off comparison
-parent collection overhead
+git_head
+git_tree_sha
+tracked_index_fingerprint
+source_tree_fingerprint
+worktree_clean = True
 ```
 
-The public qualification route rejects missing, stale, forged, nonformal or execution-incompatible manifests before any large calculation begins.
+The public gate compares the performance manifest, current source tree, numerical-core output and post-run source tree. Dirty or changed trees can run only with `--diagnostic-nonformal` and cannot authorize anything.
 
-The underlying numerical core can only emit:
+The numerical core emits only:
 
 ```text
 diagnostic_result_passed
 diagnostic_result_failed
 ```
 
-Only the public same-head gate may promote a passed result to:
+Only the public gate can promote it to:
 
 ```text
 qualified_for_diagnostic_outer_integration
 ```
 
-## Qualification execution path
+## Performance evidence
 
-The large-N qualification uses the same cached persistent q-task backend measured by the performance preflight.
+The formal preflight measures:
 
-For each pairing it builds only:
+```text
+outer, qualification-primary and qualification-audit workloads
+serial/process equality
+runtime 4096/16384 equality
+real q-workspace and batched-eigh call counts
+short/full Matsubara eigensystem equality
+cache-on/off equality and timing
+actual parent and child BLAS threadpool counts
+worker RSS/PSS
+IPC payload bytes
+parent collection overhead
+pool startup and shutdown measured after close/join
+```
+
+BLAS/OpenMP variables must be exported before Python starts.
+
+## Large-N qualification
+
+For each pairing, qualification builds only:
 
 ```text
 primary N=256 cache
@@ -188,38 +225,55 @@ audit-A N=512 cache
 audit-B N=512 cache
 ```
 
-Each primary cache evaluates axis, generic, near-diagonal, exact-diagonal and rotated-q cases through one shared q-task batch. The two-plate `0/17 degree` common-lab-LT path reuses the same final primary context.
+Primary contexts use four workers for four q tasks. Audit contexts use one worker for one task, matching measured workloads rather than opening eight idle workers.
 
-## Microscopic q domain
+Every complete-orbit reference, every primary N, both audit shifts and paired results must independently pass their operator, integrated Ward, strict-static, sheet, reflection and passive-logdet gates.
 
-The current backend explicitly rejects:
+### Final consumed two-plate observable
 
-```text
-|q_x| > pi
-|q_y| > pi
-```
-
-It never silently wraps q. Before a production outer integral is allowed, the outer `Q` cutoff and tail convergence must show that all rotated crystal momenta remain within the validated domain and that the neglected tail is small before a BZ boundary is reached.
-
-## Exact-diagonal d-wave policy
-
-The retained reference established that response-level cut sensitivity is confined, at tested resolution, to exact `qx=qy` d-wave directions, while nearby off-diagonal directions are strict and reflection/logdet sensitivity remains below `1e-3`.
-
-The arbitrary-q qualification preserves that policy: exact-diagonal primitive response may remain explicitly unresolved, but operator, integrated Ward, strict-static, reflection, logdet and shift-sensitivity gates remain hard.
-
-## Output and readiness boundary
-
-Raw CSV/JSON, figures, caches and arrays remain local and ignored. Only compact summaries and metadata may be committed.
-
-Authoritative documents:
+The common-lab result consumed by future Casimir integration is directly gated:
 
 ```text
-docs/full_outer_integration_handoff.md
-docs/arbitrary_q_periodic_bz_design.md
-scripts/casimir/README.md
+plate 1 theta = 0 degrees
+plate 2 theta = 17 degrees
+logdet(I - R1 R2 exp(-2 kappa d))
 ```
 
-Current hard state:
+For each Matsubara index qualification requires:
+
+```text
+N=256/384/512 two-plate logdet
+N refinement
+A and B two-plate logdet
+primitive-paired plate 1 and plate 2
+paired two-plate logdet
+A vs B sensitivity
+primary N512 vs paired sensitivity
+all source and paired plate physical gates
+```
+
+Single-plate convergence cannot substitute for this nonlinear final-observable gate.
+
+## Momentum support versus qualification
+
+The implementation rejects components outside:
+
+```text
+|q_x| <= pi
+|q_y| <= pi
+```
+
+This is the syntactically supported principal domain, not a qualified outer envelope. The current matrix reports only its discrete tested q vectors and maximum tested norm/component, with:
+
+```text
+qualified_outer_q_envelope_established = False
+continuous_angle_coverage_established = False
+outer_tail_requirement_bound = False
+```
+
+A later outer configuration must determine the q range required by separation, angle range and tail tolerance, then establish a separate numerical envelope manifest. An outer builder must reject nodes beyond that envelope.
+
+## Current state
 
 ```text
 arbitrary_q_performance_contract = not_yet_qualified
@@ -228,4 +282,12 @@ arbitrary_q_microscopic_contract = not_yet_qualified
 diagnostic_only = True
 production_reference_established = False
 valid_for_casimir_input = False
+```
+
+Authoritative handoff documents:
+
+```text
+docs/full_outer_integration_handoff.md
+docs/arbitrary_q_periodic_bz_design.md
+scripts/casimir/README.md
 ```
