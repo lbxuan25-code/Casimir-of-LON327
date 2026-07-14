@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from multiprocessing import get_all_start_methods, get_context
+from multiprocessing.pool import Pool
 from threading import Lock
 import time
 from typing import Sequence
@@ -35,7 +37,7 @@ class DWaveOrbitEvaluatorProfile:
 
     @property
     def total_seconds(self) -> float:
-        """Return summed worker CPU-seconds across all callbacks."""
+        """Return summed worker-seconds across all callbacks."""
 
         return float(
             self.material_workspace_seconds
@@ -67,12 +69,41 @@ class DWaveOrbitEvaluatorProfile:
         }
 
 
-class DWaveOrbitPrimitiveEvaluator:
-    """Evaluate complete orbits with thread-safe aggregate stage profiling.
+@dataclass(frozen=True)
+class _DWaveOrbitEvaluationMetrics:
+    complete_orbit_points: int
+    material_workspace_implementation: str
+    q_workspace_implementation: str
+    material_workspace_seconds: float
+    q_workspace_seconds: float
+    kubo_factor_seconds: float
+    kubo_contraction_seconds: float
+    primitive_packing_seconds: float
 
-    The model, ansatz, pairing parameters, q vector, and Matsubara batch are immutable
-    after construction. Independent complete-orbit callbacks may therefore run in
-    separate threads. Only the lightweight profile counters are protected by a lock.
+
+_FORK_PROCESS_GUARD = Lock()
+_FORK_PROCESS_EVALUATOR: DWaveOrbitPrimitiveEvaluator | None = None
+
+
+def _fork_process_evaluate(
+    points: np.ndarray,
+    weights: np.ndarray,
+) -> tuple[np.ndarray, _DWaveOrbitEvaluationMetrics]:
+    evaluator = _FORK_PROCESS_EVALUATOR
+    if evaluator is None:
+        raise RuntimeError("forked orbit worker has no inherited evaluator")
+    return evaluator._evaluate_local(points, weights)
+
+
+class DWaveOrbitPrimitiveEvaluator:
+    """Evaluate complete orbits and aggregate stage profiling.
+
+    Serial calls execute directly.  With ``process_workers > 1``, a POSIX-fork pool
+    is created before the transverse submission threads start.  Each child therefore
+    inherits the immutable model/evaluator configuration by copy-on-write and returns
+    only the packed primitive vector plus lightweight timing metadata.  The parent
+    remains responsible for profile aggregation and the Gauss integrator remains
+    responsible for original-node-order Kahan reduction.
     """
 
     def __init__(
@@ -87,6 +118,7 @@ class DWaveOrbitPrimitiveEvaluator:
         nk: int,
         mx: int,
         my: int,
+        process_workers: int = 1,
     ) -> None:
         xi_values = np.asarray(xi_eV_values, dtype=float)
         if xi_values.ndim != 1 or xi_values.size == 0:
@@ -99,6 +131,9 @@ class DWaveOrbitPrimitiveEvaluator:
             raise ValueError("d-wave primitive evaluator requires bond_endpoint_gauge")
         if int(nk) <= 0 or (int(mx) == 0 and int(my) == 0):
             raise ValueError("nk must be positive and q grid indices must be nonzero")
+        workers = int(process_workers)
+        if workers <= 0:
+            raise ValueError("process_workers must be positive")
 
         self.spec = spec
         self.ansatz = ansatz
@@ -116,8 +151,10 @@ class DWaveOrbitPrimitiveEvaluator:
             output_si=False,
         )
         self.options = FiniteQEngineOptions(phase_hessian_policy="q_independent")
+        self.process_workers = workers
 
         self._profile_lock = Lock()
+        self._submit_lock = Lock()
         self._callbacks = 0
         self._complete_orbit_points = 0
         self._material_workspace_implementation = "not_evaluated"
@@ -127,8 +164,52 @@ class DWaveOrbitPrimitiveEvaluator:
         self._kubo_factor_seconds = 0.0
         self._kubo_contraction_seconds = 0.0
         self._primitive_packing_seconds = 0.0
+        self._process_pool: Pool | None = None
+        self._fork_guard_held = False
+        self._closed = False
 
-    def __call__(self, points: np.ndarray, weights: np.ndarray) -> np.ndarray:
+        if workers > 1:
+            self._start_process_pool()
+
+    @property
+    def parallel_execution_strategy(self) -> str:
+        if self.process_workers > 1:
+            return "fork_process_transverse_nodes_ordered_parent_reduction"
+        return "serial_transverse_nodes"
+
+    def _start_process_pool(self) -> None:
+        if "fork" not in get_all_start_methods():
+            raise RuntimeError(
+                "multi-process d-wave orbit evaluation requires POSIX fork; "
+                "use process_workers=1 on this platform"
+            )
+
+        _FORK_PROCESS_GUARD.acquire()
+        self._fork_guard_held = True
+        global _FORK_PROCESS_EVALUATOR
+        if _FORK_PROCESS_EVALUATOR is not None:
+            self._fork_guard_held = False
+            _FORK_PROCESS_GUARD.release()
+            raise RuntimeError("another forked orbit evaluator is already active")
+        _FORK_PROCESS_EVALUATOR = self
+
+        try:
+            # multiprocessing.Pool starts all fork workers eagerly, before the generic
+            # transverse ThreadPoolExecutor is created by the Gauss integrator.
+            self._process_pool = get_context("fork").Pool(
+                processes=self.process_workers
+            )
+        except BaseException:
+            _FORK_PROCESS_EVALUATOR = None
+            self._fork_guard_held = False
+            _FORK_PROCESS_GUARD.release()
+            raise
+
+    def _evaluate_local(
+        self,
+        points: np.ndarray,
+        weights: np.ndarray,
+    ) -> tuple[np.ndarray, _DWaveOrbitEvaluationMetrics]:
         point_array = np.asarray(points, dtype=float)
         weight_array = np.asarray(weights, dtype=float)
         if point_array.ndim != 2 or point_array.shape[1] != 2:
@@ -181,30 +262,92 @@ class DWaveOrbitPrimitiveEvaluator:
         packed = _pack_orbit_primitives(workspace=workspace, blocks=blocks)
         primitive_packing_seconds = time.perf_counter() - started
 
+        metrics = _DWaveOrbitEvaluationMetrics(
+            complete_orbit_points=int(point_array.shape[0]),
+            material_workspace_implementation=material_implementation,
+            q_workspace_implementation=q_implementation,
+            material_workspace_seconds=float(material_seconds),
+            q_workspace_seconds=float(q_workspace_seconds),
+            kubo_factor_seconds=float(kubo_factor_seconds),
+            kubo_contraction_seconds=float(kubo_contraction_seconds),
+            primitive_packing_seconds=float(primitive_packing_seconds),
+        )
+        return np.asarray(packed, dtype=complex), metrics
+
+    def _record_metrics(self, metrics: _DWaveOrbitEvaluationMetrics) -> None:
         with self._profile_lock:
             if self._material_workspace_implementation not in {
                 "not_evaluated",
-                material_implementation,
+                metrics.material_workspace_implementation,
             }:
                 raise RuntimeError(
                     "material workspace implementation changed across callbacks"
                 )
             if self._q_workspace_implementation not in {
                 "not_evaluated",
-                q_implementation,
+                metrics.q_workspace_implementation,
             }:
                 raise RuntimeError("q workspace implementation changed across callbacks")
-            self._material_workspace_implementation = material_implementation
-            self._q_workspace_implementation = q_implementation
-            self._material_workspace_seconds += material_seconds
-            self._q_workspace_seconds += q_workspace_seconds
-            self._kubo_factor_seconds += kubo_factor_seconds
-            self._kubo_contraction_seconds += kubo_contraction_seconds
-            self._primitive_packing_seconds += primitive_packing_seconds
+            self._material_workspace_implementation = (
+                metrics.material_workspace_implementation
+            )
+            self._q_workspace_implementation = metrics.q_workspace_implementation
+            self._material_workspace_seconds += metrics.material_workspace_seconds
+            self._q_workspace_seconds += metrics.q_workspace_seconds
+            self._kubo_factor_seconds += metrics.kubo_factor_seconds
+            self._kubo_contraction_seconds += metrics.kubo_contraction_seconds
+            self._primitive_packing_seconds += metrics.primitive_packing_seconds
             self._callbacks += 1
-            self._complete_orbit_points += int(point_array.shape[0])
+            self._complete_orbit_points += metrics.complete_orbit_points
 
+    def __call__(self, points: np.ndarray, weights: np.ndarray) -> np.ndarray:
+        if self._closed:
+            raise RuntimeError("orbit evaluator is closed")
+
+        point_array = np.asarray(points, dtype=float)
+        weight_array = np.asarray(weights, dtype=float)
+        pool = self._process_pool
+        if pool is None:
+            packed, metrics = self._evaluate_local(point_array, weight_array)
+        else:
+            # Pool submission is serialized only for the queue operation.  Worker
+            # execution and waiting remain concurrent across transverse submitters.
+            with self._submit_lock:
+                pending = pool.apply_async(
+                    _fork_process_evaluate,
+                    (point_array, weight_array),
+                )
+            packed, metrics = pending.get()
+
+        self._record_metrics(metrics)
         return packed
+
+    def close(self, *, terminate: bool = False) -> None:
+        if self._closed:
+            return
+        self._closed = True
+
+        pool = self._process_pool
+        self._process_pool = None
+        if pool is not None:
+            if terminate:
+                pool.terminate()
+            else:
+                pool.close()
+            pool.join()
+
+        global _FORK_PROCESS_EVALUATOR
+        if _FORK_PROCESS_EVALUATOR is self:
+            _FORK_PROCESS_EVALUATOR = None
+        if self._fork_guard_held:
+            self._fork_guard_held = False
+            _FORK_PROCESS_GUARD.release()
+
+    def __enter__(self) -> DWaveOrbitPrimitiveEvaluator:
+        return self
+
+    def __exit__(self, exc_type, exc, traceback) -> None:
+        self.close(terminate=exc_type is not None)
 
     def profile_snapshot(self) -> DWaveOrbitEvaluatorProfile:
         with self._profile_lock:
