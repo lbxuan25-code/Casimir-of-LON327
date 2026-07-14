@@ -1,8 +1,10 @@
 """Persistent q-level POSIX-fork execution for vector-adaptive arbitrary-q response."""
 from __future__ import annotations
 
+from dataclasses import replace
 from multiprocessing import get_all_start_methods, get_context
 from multiprocessing.pool import Pool
+import os
 import pickle
 from threading import Lock
 from time import perf_counter
@@ -23,6 +25,9 @@ from lno327.workflows.arbitrary_q_vector_adaptive import (
     ArbitraryQVectorAdaptiveResponseCache,
     HierarchicalMaterialNodeCache,
     integrate_two_plate_angle_batch_vector_adaptive,
+    material_node_cache_delta,
+    material_node_cache_snapshot,
+    prewarm_initial_adaptive_nodes,
 )
 
 _ADAPTIVE_FORK_GUARD = Lock()
@@ -37,7 +42,7 @@ def _fork_evaluate_adaptive_task(task: QLabAngleTask) -> QLabAngleTaskResult:
 
 
 class ArbitraryQVectorAdaptiveParallelEvaluator:
-    """Persistent q-task pool with one hierarchical material-node cache per worker."""
+    """Persistent q-task pool with prewarmed copy-on-write material nodes."""
 
     def __init__(
         self,
@@ -53,6 +58,7 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
         process_workers: int = 1,
         require_thread_environment: bool = True,
         require_converged: bool = True,
+        prewarm_before_fork: bool = True,
     ) -> None:
         self.node_cache = node_cache
         self.spec = spec
@@ -65,6 +71,7 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
         self.adaptive_options.validate()
         self.process_workers = int(process_workers)
         self.require_converged = bool(require_converged)
+        self.prewarm_before_fork = bool(prewarm_before_fork)
         self._pool: Pool | None = None
         self._guard_held = False
         self._closed = False
@@ -75,11 +82,26 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
         self.last_payload_bytes = 0
         self.last_worker_threadpool_all_passed = False
         self.last_worker_threadpool_records: tuple[tuple[dict[str, object], ...], ...] = ()
+        self.parent_prewarm: dict[str, object] = {
+            "enabled": False,
+            "seconds": 0.0,
+            "point_requests": 0,
+            "unique_nodes_after": int(node_cache.metadata().get("entries", 0)),
+        }
+        self.last_worker_cache_telemetry: tuple[dict[str, object], ...] = ()
+        self.last_worker_cache_final_by_pid: dict[str, dict[str, object]] = {}
         if self.process_workers <= 0:
             raise ValueError("process_workers must be positive")
         if self.process_workers > 1:
             if require_thread_environment:
                 validate_single_thread_blas_environment()
+            if self.prewarm_before_fork:
+                self.parent_prewarm = {
+                    "enabled": True,
+                    **prewarm_initial_adaptive_nodes(
+                        self.node_cache, self.adaptive_options
+                    ),
+                }
             self._start_pool()
 
     def _start_pool(self) -> None:
@@ -110,6 +132,7 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
                 "vector-adaptive worker has a non-single-thread BLAS runtime: "
                 f"{threadpools}"
             )
+        cache_before = material_node_cache_snapshot(self.node_cache)
         started = perf_counter()
         response_cache = ArbitraryQVectorAdaptiveResponseCache()
         result = integrate_two_plate_angle_batch_vector_adaptive(
@@ -128,6 +151,20 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
             require_converged=self.require_converged,
         )
         worker_seconds = float(perf_counter() - started)
+        cache_after = material_node_cache_snapshot(self.node_cache)
+        telemetry = {
+            "worker_pid": int(os.getpid()),
+            "task_index": int(task.index),
+            "cache_delta": material_node_cache_delta(cache_before, cache_after),
+            "cache_snapshot_after_task": cache_after,
+        }
+        result = replace(
+            result,
+            response_cache_metadata={
+                **dict(result.response_cache_metadata),
+                "worker_cache_telemetry": telemetry,
+            },
+        )
         rss, pss = _memory_snapshot()
         provisional = QLabAngleTaskResult(
             index=int(task.index),
@@ -173,6 +210,7 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
         payload_bytes = 0
         threadpool_records: list[tuple[dict[str, object], ...]] = []
         threadpool_passed: list[bool] = []
+        cache_rows: list[dict[str, object]] = []
         for expected_index, result in zip(indices, iterator, strict=True):
             if result.index != expected_index:
                 raise RuntimeError("ordered vector-adaptive q-task result index mismatch")
@@ -180,6 +218,9 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
             payload_bytes += int(result.payload_bytes)
             threadpool_records.append(tuple(result.worker_threadpools))
             threadpool_passed.append(bool(result.worker_threadpool_passed))
+            row = result.result.response_cache_metadata.get("worker_cache_telemetry")
+            if isinstance(row, dict):
+                cache_rows.append(dict(row))
             yield result
         wall = float(perf_counter() - started)
         self.last_evaluate_wall_seconds = wall
@@ -190,6 +231,17 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
         self.last_worker_threadpool_all_passed = bool(threadpool_passed) and all(
             threadpool_passed
         )
+        self.last_worker_cache_telemetry = tuple(cache_rows)
+        final_by_pid: dict[str, dict[str, object]] = {}
+        for row in cache_rows:
+            pid = str(int(row["worker_pid"]))
+            snapshot = dict(row["cache_snapshot_after_task"])
+            current = final_by_pid.get(pid)
+            if current is None or int(snapshot.get("entries", 0)) >= int(
+                current.get("entries", 0)
+            ):
+                final_by_pid[pid] = snapshot
+        self.last_worker_cache_final_by_pid = final_by_pid
 
     def evaluate(self, tasks: Sequence[QLabAngleTask]) -> tuple[QLabAngleTaskResult, ...]:
         return tuple(self.evaluate_iter(tasks))
@@ -232,6 +284,7 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
             "process_workers": int(self.process_workers),
             "pool_startup_seconds": float(self.pool_startup_seconds),
             "pool_shutdown_seconds": float(self.pool_shutdown_seconds),
+            "parent_prewarm": dict(self.parent_prewarm),
             "last_evaluate_wall_seconds": float(self.last_evaluate_wall_seconds),
             "parent_collection_overhead_seconds": float(
                 self.last_parent_collection_overhead_seconds
@@ -245,7 +298,14 @@ class ArbitraryQVectorAdaptiveParallelEvaluator:
                 [dict(item) for item in record]
                 for record in self.last_worker_threadpool_records
             ],
-            "material_node_cache": self.node_cache.metadata(),
+            "worker_cache_telemetry": [
+                dict(row) for row in self.last_worker_cache_telemetry
+            ],
+            "worker_cache_final_by_pid": {
+                pid: dict(snapshot)
+                for pid, snapshot in self.last_worker_cache_final_by_pid.items()
+            },
+            "material_node_cache_parent": self.node_cache.metadata(),
             "adaptive_options": self.adaptive_options.as_dict(),
         }
 
