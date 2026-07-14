@@ -23,7 +23,10 @@ def test_validation_cli_exposes_grouped_commands():
         ("matsubara", "dwave-orbit-evaluator-profile"),
         ("matsubara", "dwave-orbit-gauss-crosscheck"),
         ("matsubara", "positive-orbit-gauss-crosscheck"),
+        ("matsubara", "matsubara-orbit-gauss-crosscheck"),
         ("matsubara", "positive-orbit-gauss-scan"),
+        ("matsubara", "total-orbit-gauss-scan"),
+        ("matsubara", "orbit-gauss-preflight"),
         ("matsubara", "dwave-orbit-certification-scan"),
     }
     assert set(available_commands()) == expected
