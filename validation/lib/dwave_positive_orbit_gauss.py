@@ -163,7 +163,11 @@ def integrate_dwave_positive_orbit_gauss(
     transverse_workers: int = 1,
     transverse_task_size: int = 1,
 ) -> DWavePositiveOrbitGaussResult:
-    """Evaluate one positive-Matsubara batch with global or composite Gauss t."""
+    """Evaluate one positive-Matsubara batch with global or composite Gauss t.
+
+    ``transverse_workers > 1`` uses forked evaluator processes.  The common Gauss
+    integrator still owns task ordering and parent-side Kahan reduction.
+    """
 
     xi_values = np.asarray(xi_eV_values, dtype=float)
     if xi_values.ndim != 1 or xi_values.size == 0:
@@ -175,7 +179,7 @@ def integrate_dwave_positive_orbit_gauss(
     if getattr(ansatz, "phase_vertex", None) != "bond_endpoint_gauge":
         raise ValueError("d-wave fixed-Gauss integration requires bond_endpoint_gauge")
 
-    primitive_evaluator = DWaveOrbitPrimitiveEvaluator(
+    with DWaveOrbitPrimitiveEvaluator(
         spec=spec,
         ansatz=ansatz,
         pairing=pairing,
@@ -185,23 +189,31 @@ def integrate_dwave_positive_orbit_gauss(
         nk=nk,
         mx=mx,
         my=my,
-    )
+        process_workers=transverse_workers,
+    ) as primitive_evaluator:
+        gauss = integrate_commensurate_orbit_gauss_aggregate(
+            primitive_evaluator,
+            nk=nk,
+            mx=mx,
+            my=my,
+            transverse_order=transverse_order,
+            panel_count=panel_count,
+            integration_start=integration_start,
+            shift_s=shift_s,
+            subgrid_average=subgrid_average,
+            max_point_evaluations=max_point_evaluations,
+            transverse_workers=transverse_workers,
+            transverse_task_size=transverse_task_size,
+        )
+        evaluator_profile = primitive_evaluator.profile_snapshot()
+        execution_strategy = primitive_evaluator.parallel_execution_strategy
+        base_config = primitive_evaluator.base_config
+        q_model = np.asarray(primitive_evaluator.q_model, dtype=float)
+        options = primitive_evaluator.options
 
-    gauss = integrate_commensurate_orbit_gauss_aggregate(
-        primitive_evaluator,
-        nk=nk,
-        mx=mx,
-        my=my,
-        transverse_order=transverse_order,
-        panel_count=panel_count,
-        integration_start=integration_start,
-        shift_s=shift_s,
-        subgrid_average=subgrid_average,
-        max_point_evaluations=max_point_evaluations,
-        transverse_workers=transverse_workers,
-        transverse_task_size=transverse_task_size,
-    )
-    evaluator_profile = primitive_evaluator.profile_snapshot()
+    if gauss.execution_strategy != execution_strategy:
+        gauss = replace(gauss, execution_strategy=execution_strategy)
+
     if evaluator_profile.material_workspace_implementation != "batched_model_capability":
         raise RuntimeError(
             "fixed/composite Gauss did not use the required batched material workspace"
@@ -239,9 +251,9 @@ def integrate_dwave_positive_orbit_gauss(
         xi_values=xi_values,
         ansatz=ansatz,
         pairing=pairing,
-        base_config=primitive_evaluator.base_config,
-        q_model=primitive_evaluator.q_model,
-        options=primitive_evaluator.options,
+        base_config=base_config,
+        q_model=q_model,
+        options=options,
         quadrature=view,
     )
     components, rhs_values = _replace_gauss_metadata(
