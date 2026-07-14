@@ -1,16 +1,15 @@
 """Shared-cell vector cubature primitives for exact-static d-wave response.
 
-The adaptive controller evaluates two tensor Gauss rules on every Brillouin-zone
-cell.  All electromagnetic, collective, contact and Ward-RHS quantities are
-kept as one complex primitive vector.  Cell refinement is therefore driven by
-an error estimate on the complete microscopic contract, not by a spectral
-proxy.  Accepted cell primitives are summed before the single amplitude/phase
-Schur complement.
+The adaptive controller evaluates paired, non-embedded tensor-Gauss rules on
+every Brillouin-zone cell. All electromagnetic, collective, contact and Ward-RHS
+quantities are kept as one complex primitive vector. Cell refinement is driven
+by the complete microscopic contract, and accepted cell primitives are summed
+before the single amplitude/phase Schur complement.
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from functools import lru_cache
 from typing import Any, Sequence
 
 import numpy as np
@@ -38,8 +37,6 @@ class DWaveCubatureCell:
 
 @dataclass(frozen=True)
 class DWaveVectorAdaptiveOptions:
-    """Controls for vector-valued adaptive cubature."""
-
     coarse_grid: int = 6
     low_order: int = 2
     high_order: int = 3
@@ -79,11 +76,8 @@ def initial_cubature_cells(coarse_grid: int) -> list[DWaveCubatureCell]:
     edges = np.linspace(-np.pi, np.pi, count + 1, dtype=float)
     return [
         DWaveCubatureCell(
-            float(edges[ix]),
-            float(edges[ix + 1]),
-            float(edges[iy]),
-            float(edges[iy + 1]),
-            0,
+            float(edges[ix]), float(edges[ix + 1]),
+            float(edges[iy]), float(edges[iy + 1]), 0,
         )
         for ix in range(count)
         for iy in range(count)
@@ -102,35 +96,49 @@ def subdivide_cubature_cell(cell: DWaveCubatureCell) -> tuple[DWaveCubatureCell,
     )
 
 
+@lru_cache(maxsize=None)
+def _tensor_gauss_reference(order: int) -> tuple[np.ndarray, np.ndarray]:
+    """Return readonly reference-square points and product weights for one order."""
+
+    count = int(order)
+    if count <= 0:
+        raise ValueError("order must be positive")
+    nodes, one_d_weights = np.polynomial.legendre.leggauss(count)
+    gx, gy = np.meshgrid(nodes, nodes, indexing="ij")
+    wx, wy = np.meshgrid(one_d_weights, one_d_weights, indexing="ij")
+    points = np.column_stack([gx.ravel(), gy.ravel()])
+    weights = (wx * wy).ravel()
+    points.setflags(write=False)
+    weights.setflags(write=False)
+    return points, weights
+
+
 def cubature_cell_gauss_rule(
     cell: DWaveCubatureCell,
     order: int,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return points and full-BZ-normalized tensor-Gauss weights for one cell."""
 
-    count = int(order)
-    if count <= 0:
-        raise ValueError("order must be positive")
-    nodes, one_d_weights = np.polynomial.legendre.leggauss(count)
+    reference_points, reference_weights = _tensor_gauss_reference(int(order))
     xm = 0.5 * (cell.x0 + cell.x1)
     ym = 0.5 * (cell.y0 + cell.y1)
     xh = 0.5 * (cell.x1 - cell.x0)
     yh = 0.5 * (cell.y1 - cell.y0)
-    gx, gy = np.meshgrid(xm + xh * nodes, ym + yh * nodes, indexing="ij")
-    wx, wy = np.meshgrid(one_d_weights, one_d_weights, indexing="ij")
-    points = np.column_stack([gx.ravel(), gy.ravel()])
-    weights = (wx * wy * xh * yh / (2.0 * np.pi) ** 2).ravel()
+    points = np.empty_like(reference_points)
+    points[:, 0] = xm + xh * reference_points[:, 0]
+    points[:, 1] = ym + yh * reference_points[:, 1]
+    weights = np.asarray(
+        reference_weights * xh * yh / (2.0 * np.pi) ** 2, dtype=float
+    )
     if not np.isclose(np.sum(weights), cell.area_fraction, rtol=0.0, atol=2e-15):
         raise RuntimeError("cell Gauss weights do not reproduce the cell area")
-    return points, np.asarray(weights, dtype=float)
+    return points, weights
 
 
 def primitive_component_vector(
     components: BdGFiniteQResponseComponents,
     rhs: PrimitiveWardRHS,
 ) -> np.ndarray:
-    """Flatten every linear primitive needed by Schur and Ward validation."""
-
     phase_plus = complex(components.metadata["phase_phase_direct_plus_convention"])
     phase_minus = complex(components.metadata["phase_phase_direct_minus_convention"])
     fields = (
@@ -151,8 +159,6 @@ def primitive_ward_residual_vector(
     components: BdGFiniteQResponseComponents,
     rhs: PrimitiveWardRHS,
 ) -> np.ndarray:
-    """Return left/right primitive Ward defects before any Schur complement."""
-
     u_left, u_right, w_left, w_right = primitive_ward_vectors_xy(
         rhs.xi_eV, rhs.q_model, rhs.delta0_eV
     )
@@ -171,8 +177,6 @@ def merge_cell_components_before_schur(
     *,
     omega_eV: float = 0.0,
 ) -> tuple[BdGFiniteQResponseComponents, PrimitiveWardRHS]:
-    """Sum accepted cell primitives and perform exactly one Schur complement."""
-
     if not components or len(components) != len(rhs_values):
         raise ValueError("components and rhs_values must be nonempty and have equal length")
 
@@ -261,8 +265,6 @@ def vector_error_metrics(
     high_ward_vectors: Sequence[np.ndarray] | None = None,
     ward_threshold: float | None = None,
 ) -> dict[str, Any]:
-    """Return conservative global error ratios and per-cell refinement scores."""
-
     if not low_vectors or len(low_vectors) != len(high_vectors):
         raise ValueError("low_vectors and high_vectors must be nonempty and aligned")
     low = np.stack([np.asarray(value, dtype=complex) for value in low_vectors])
@@ -300,6 +302,7 @@ def vector_error_metrics(
 __all__ = [
     "DWaveCubatureCell",
     "DWaveVectorAdaptiveOptions",
+    "_tensor_gauss_reference",
     "cubature_cell_gauss_rule",
     "initial_cubature_cells",
     "merge_cell_components_before_schur",
