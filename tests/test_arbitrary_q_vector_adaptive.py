@@ -10,30 +10,41 @@ from lno327.workflows.arbitrary_q_parallel import QLabAngleTask
 from lno327.workflows.arbitrary_q_vector_adaptive import (
     AdaptiveConvergenceError,
     ArbitraryQVectorAdaptiveOptions,
+    ArbitraryQVectorAdaptiveResponseCache,
     build_hierarchical_material_node_cache,
     integrate_arbitrary_q_vector_adaptive,
     integrate_two_plate_angle_batch_vector_adaptive,
+)
+from lno327.workflows.arbitrary_q_vector_adaptive_cached import (
+    build_reusable_hierarchical_material_node_cache,
 )
 from lno327.workflows.arbitrary_q_vector_adaptive_parallel import (
     ArbitraryQVectorAdaptiveParallelEvaluator,
 )
 from lno327.workflows.dwave_vector_adaptive_cubature import (
+    _tensor_gauss_reference,
     cubature_cell_gauss_rule,
     initial_cubature_cells,
 )
 from validation.lib.finite_q_validation_models import get_finite_q_validation_model
 
 
-def _state(pairing_name: str = "spm"):
+def _state(pairing_name: str = "spm", *, reusable: bool = False, **cache_kwargs):
     model = get_finite_q_validation_model("symmetry_bdg_2band")
     ansatz = model.build_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
     pairing = model.build_pairing_params(0.1)
-    cache = build_hierarchical_material_node_cache(
+    builder = (
+        build_reusable_hierarchical_material_node_cache
+        if reusable
+        else build_hierarchical_material_node_cache
+    )
+    cache = builder(
         spec=model.spec,
         ansatz=ansatz,
         pairing=pairing,
         temperature_K=10.0,
         eta_eV=1e-8,
+        **cache_kwargs,
     )
     return model, ansatz, pairing, cache
 
@@ -53,6 +64,23 @@ def _loose_options(*, cell_batch_size: int = 8) -> ArbitraryQVectorAdaptiveOptio
         max_cells=64,
         max_evaluation_points=2000,
         cell_batch_size=cell_batch_size,
+    )
+
+
+def _strict_nonconverged_options() -> ArbitraryQVectorAdaptiveOptions:
+    return ArbitraryQVectorAdaptiveOptions(
+        coarse_grid=2,
+        low_order=2,
+        high_order=3,
+        relative_tolerance=0.0,
+        absolute_tolerance=0.0,
+        ward_error_tolerance=0.0,
+        max_level=0,
+        max_iterations=0,
+        min_refine_cells=1,
+        max_cells=4,
+        max_evaluation_points=100,
+        cell_batch_size=4,
     )
 
 
@@ -87,12 +115,30 @@ def test_initial_high_rule_matches_one_shot_shared_kernel(pairing_name: str) -> 
     assert adaptive.profile.converged
     assert adaptive.profile.counterterm_add_count == 1
     assert adaptive.metadata["primitive_vector_integrated_before_schur"] is True
-    assert adaptive.metadata["all_frequencies_share_one_adaptive_tree"] is True
+    assert adaptive.metadata["low_high_rules_share_one_q_workspace_per_cell_batch"] is True
     assert adaptive.operator_ward.passed
 
 
+def test_low_high_rules_share_one_q_workspace_per_cell_batch() -> None:
+    model, ansatz, pairing, cache = _state("spm", reusable=True)
+    result = integrate_arbitrary_q_vector_adaptive(
+        spec=model.spec,
+        ansatz=ansatz,
+        pairing=pairing,
+        xi_eV_values=np.asarray([0.0, 0.02]),
+        temperature_K=10.0,
+        eta_eV=1e-8,
+        q_model=np.asarray([0.071, 0.037]),
+        adaptive_options=_loose_options(cell_batch_size=8),
+        node_cache=cache,
+    )
+    assert result.profile.q_workspace_build_count == 1
+    assert result.profile.shifted_eigensystem_build_count == 2
+    assert result.profile.total_point_evaluations == 4 * (2**2 + 3**2)
+
+
 def test_hierarchical_node_cache_reuses_midpoint_eigensystems_across_q() -> None:
-    model, ansatz, pairing, cache = _state("spm")
+    model, ansatz, pairing, cache = _state("spm", reusable=True)
     common = dict(
         spec=model.spec,
         ansatz=ansatz,
@@ -103,24 +149,22 @@ def test_hierarchical_node_cache_reuses_midpoint_eigensystems_across_q() -> None
         adaptive_options=_loose_options(),
         node_cache=cache,
     )
-    integrate_arbitrary_q_vector_adaptive(q_model=np.asarray([0.071, 0.037]), **common)
-    misses = cache.node_misses
-    builds = cache.midpoint_eigh_call_count
-    integrate_arbitrary_q_vector_adaptive(q_model=np.asarray([0.043, -0.061]), **common)
-    assert cache.node_misses == misses
-    assert cache.midpoint_eigh_call_count == builds
-    assert cache.node_hits > 0
+    first = integrate_arbitrary_q_vector_adaptive(
+        q_model=np.asarray([0.071, 0.037]), **common
+    )
+    second = integrate_arbitrary_q_vector_adaptive(
+        q_model=np.asarray([0.043, -0.061]), **common
+    )
+    assert first.profile.midpoint_eigensystem_build_count > 0
+    assert second.profile.midpoint_eigensystem_build_count == 0
+    assert second.profile.node_cache_misses == 0
+    assert second.profile.node_cache_hits > 0
+    assert second.profile.cache_totals_after_call["entries"] == first.profile.cache_totals_after_call["entries"]
 
 
 def test_refinement_is_deterministic_across_cell_batch_sizes() -> None:
-    model, ansatz, pairing, first_cache = _state("dwave")
-    second_cache = build_hierarchical_material_node_cache(
-        spec=model.spec,
-        ansatz=ansatz,
-        pairing=pairing,
-        temperature_K=10.0,
-        eta_eV=1e-8,
-    )
+    model, ansatz, pairing, first_cache = _state("dwave", reusable=True)
+    _, _, _, second_cache = _state("dwave", reusable=True)
     base = dict(
         coarse_grid=2,
         low_order=2,
@@ -164,22 +208,9 @@ def test_refinement_is_deterministic_across_cell_batch_sizes() -> None:
     assert first.profile.q_workspace_build_count > second.profile.q_workspace_build_count
 
 
-def test_nonconverged_adaptive_result_fails_closed() -> None:
-    model, ansatz, pairing, cache = _state("dwave")
-    options = ArbitraryQVectorAdaptiveOptions(
-        coarse_grid=2,
-        low_order=2,
-        high_order=3,
-        relative_tolerance=0.0,
-        absolute_tolerance=0.0,
-        ward_error_tolerance=0.0,
-        max_level=0,
-        max_iterations=0,
-        min_refine_cells=1,
-        max_cells=4,
-        max_evaluation_points=100,
-        cell_batch_size=4,
-    )
+def test_nonconverged_strict_call_does_not_pollute_response_cache() -> None:
+    model, ansatz, pairing, cache = _state("dwave", reusable=True)
+    response_cache = ArbitraryQVectorAdaptiveResponseCache()
     with pytest.raises(AdaptiveConvergenceError):
         integrate_arbitrary_q_vector_adaptive(
             spec=model.spec,
@@ -189,13 +220,40 @@ def test_nonconverged_adaptive_result_fails_closed() -> None:
             temperature_K=10.0,
             eta_eV=1e-8,
             q_model=np.asarray([0.071, 0.037]),
-            adaptive_options=options,
+            adaptive_options=_strict_nonconverged_options(),
             node_cache=cache,
+            response_cache=response_cache,
+            require_converged=True,
         )
+    assert response_cache.metadata()["entries"] == 0
+
+
+def test_cached_nonconverged_diagnostic_cannot_bypass_strict_request() -> None:
+    model, ansatz, pairing, cache = _state("dwave", reusable=True)
+    response_cache = ArbitraryQVectorAdaptiveResponseCache()
+    common = dict(
+        spec=model.spec,
+        ansatz=ansatz,
+        pairing=pairing,
+        xi_eV_values=np.asarray([0.0, 0.02]),
+        temperature_K=10.0,
+        eta_eV=1e-8,
+        q_model=np.asarray([0.071, 0.037]),
+        adaptive_options=_strict_nonconverged_options(),
+        node_cache=cache,
+        response_cache=response_cache,
+    )
+    diagnostic = integrate_arbitrary_q_vector_adaptive(
+        require_converged=False, **common
+    )
+    assert not diagnostic.profile.converged
+    assert response_cache.metadata()["entries"] == 1
+    with pytest.raises(AdaptiveConvergenceError):
+        integrate_arbitrary_q_vector_adaptive(require_converged=True, **common)
 
 
 def test_two_plate_batch_reuses_exact_q_response() -> None:
-    model, ansatz, pairing, cache = _state("spm")
+    model, ansatz, pairing, cache = _state("spm", reusable=True)
     result = integrate_two_plate_angle_batch_vector_adaptive(
         q_lab=np.asarray([0.071, 0.037]),
         theta_1_rad=0.0,
@@ -214,27 +272,48 @@ def test_two_plate_batch_reuses_exact_q_response() -> None:
     assert not np.array_equal(result.plate_2[1].q_model, result.plate_1.q_model)
 
 
+def test_tensor_gauss_reference_is_cached_and_rules_are_nonembedded() -> None:
+    _tensor_gauss_reference.cache_clear()
+    cell = initial_cubature_cells(2)[0]
+    cubature_cell_gauss_rule(cell, 2)
+    cubature_cell_gauss_rule(cell, 2)
+    info = _tensor_gauss_reference.cache_info()
+    assert info.misses == 1
+    assert info.hits >= 1
+    low, _ = _tensor_gauss_reference(2)
+    high, _ = _tensor_gauss_reference(3)
+    assert not set(map(tuple, low)).issubset(set(map(tuple, high)))
+
+
+def test_cache_node_budget_fails_closed() -> None:
+    model, ansatz, pairing, cache = _state(
+        "spm", reusable=True, max_cache_nodes=4
+    )
+    with pytest.raises(MemoryError):
+        integrate_arbitrary_q_vector_adaptive(
+            spec=model.spec,
+            ansatz=ansatz,
+            pairing=pairing,
+            xi_eV_values=np.asarray([0.0, 0.02]),
+            temperature_K=10.0,
+            eta_eV=1e-8,
+            q_model=np.asarray([0.071, 0.037]),
+            adaptive_options=_loose_options(),
+            node_cache=cache,
+        )
+
+
 @pytest.mark.skipif("fork" not in get_all_start_methods(), reason="requires POSIX fork")
-def test_vector_adaptive_parallel_matches_serial(monkeypatch) -> None:
+def test_vector_adaptive_parallel_matches_serial_and_reports_prewarm(monkeypatch) -> None:
     for name in (
-        "OMP_NUM_THREADS",
-        "OPENBLAS_NUM_THREADS",
-        "MKL_NUM_THREADS",
-        "NUMEXPR_NUM_THREADS",
-        "BLIS_NUM_THREADS",
-        "VECLIB_MAXIMUM_THREADS",
+        "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS", "BLIS_NUM_THREADS", "VECLIB_MAXIMUM_THREADS",
     ):
         monkeypatch.setenv(name, "1")
     monkeypatch.setenv("OMP_DYNAMIC", "FALSE")
     monkeypatch.setenv("MKL_DYNAMIC", "FALSE")
-    model, ansatz, pairing, serial_cache = _state("spm")
-    parallel_cache = build_hierarchical_material_node_cache(
-        spec=model.spec,
-        ansatz=ansatz,
-        pairing=pairing,
-        temperature_K=10.0,
-        eta_eV=1e-8,
-    )
+    model, ansatz, pairing, serial_cache = _state("spm", reusable=True)
+    _, _, _, parallel_cache = _state("spm", reusable=True)
     tasks = (
         QLabAngleTask(0, np.asarray([0.071, 0.037]), 0.0, np.asarray([0.0, 0.2])),
         QLabAngleTask(1, np.asarray([0.043, -0.061]), 0.0, np.asarray([0.0, 0.2])),
@@ -252,10 +331,20 @@ def test_vector_adaptive_parallel_matches_serial(monkeypatch) -> None:
         node_cache=serial_cache, process_workers=1, **common
     ) as evaluator:
         serial = evaluator.evaluate(tasks)
-    with ArbitraryQVectorAdaptiveParallelEvaluator(
+    evaluator = ArbitraryQVectorAdaptiveParallelEvaluator(
         node_cache=parallel_cache, process_workers=2, **common
-    ) as evaluator:
+    )
+    try:
         parallel = evaluator.evaluate(tasks)
+    finally:
+        evaluator.close()
+    metadata = evaluator.metadata()
+    assert metadata["parent_prewarm"]["enabled"] is True
+    assert metadata["parent_prewarm"]["unique_nodes_after"] > 0
+    assert len(metadata["worker_cache_telemetry"]) == len(tasks)
+    assert metadata["worker_cache_final_by_pid"]
+    for row in metadata["worker_cache_telemetry"]:
+        assert row["cache_delta"]["node_misses"] == 0
     for left, right in zip(serial, parallel, strict=True):
         np.testing.assert_allclose(
             left.result.plate_1.packed_primitives,
@@ -263,12 +352,8 @@ def test_vector_adaptive_parallel_matches_serial(monkeypatch) -> None:
             atol=5e-12,
             rtol=5e-11,
         )
-        for l_plate, r_plate in zip(
-            left.result.plate_2, right.result.plate_2, strict=True
-        ):
+        for l_plate, r_plate in zip(left.result.plate_2, right.result.plate_2, strict=True):
             np.testing.assert_allclose(
-                l_plate.packed_primitives,
-                r_plate.packed_primitives,
-                atol=5e-12,
-                rtol=5e-11,
+                l_plate.packed_primitives, r_plate.packed_primitives,
+                atol=5e-12, rtol=5e-11,
             )
