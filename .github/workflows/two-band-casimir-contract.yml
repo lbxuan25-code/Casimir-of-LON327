@@ -57,6 +57,43 @@ jobs:
           python -m validation matsubara --help
           python -m validation diagnostic --help
 
+      - name: Execute reduced staged arbitrary-q diagnostics
+        run: |
+          python -m validation diagnostic arbitrary-q-performance-smoke \
+            --pairings spm \
+            --N 16 \
+            --q-tasks 2 \
+            --workers 2 \
+            --matsubara-indices 0 1 \
+            --canonical-block-size 64 \
+            --runtime-chunk-sizes 64 256 \
+            --output /tmp/arbitrary-q-performance-smoke.json
+
+          python -m validation diagnostic arbitrary-q-physics-smoke \
+            --pairings spm \
+            --N-values 16 \
+            --workers 1 \
+            --reference-nk 1256 \
+            --matsubara-indices 0 1 \
+            --canonical-block-size 64 \
+            --runtime-chunk-size 256 \
+            --output /tmp/arbitrary-q-physics-smoke.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          performance = json.loads(Path('/tmp/arbitrary-q-performance-smoke.json').read_text())
+          assert performance['schema'] == 'arbitrary-q-performance-smoke-v1'
+          assert performance['optimization_structure_passed'] is True
+          assert performance['formal_performance_evidence'] is False
+
+          physics = json.loads(Path('/tmp/arbitrary-q-physics-smoke.json').read_text())
+          assert physics['schema'] == 'arbitrary-q-physics-smoke-v1'
+          assert physics['smoke_passed_without_convergence_claim'] is True
+          assert physics['formal_numerical_evidence'] is False
+          PY
+
       - name: Smoke test total zero-positive Gauss preflight and scan
         run: |
           python -m validation matsubara matsubara-orbit-gauss-crosscheck \
