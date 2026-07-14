@@ -33,6 +33,12 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("matsubara", "orbit-gauss-preflight"): (
         "validation.commands.matsubara.orbit_gauss_preflight"
     ),
+    ("matsubara", "arbitrary-q-performance-preflight"): (
+        "validation.commands.matsubara.arbitrary_q_performance_preflight"
+    ),
+    ("matsubara", "arbitrary-q-periodic-bz-qualification"): (
+        "validation.commands.matsubara.arbitrary_q_periodic_bz_qualification"
+    ),
     # Diagnostic-only routes are deliberately separated from the outer-integration
     # intake surface. They never authorize production input by themselves.
     ("diagnostic", "dwave-small-xi"): (
@@ -100,13 +106,11 @@ _INTERNAL_ALIASES: dict[tuple[str, str], str] = {
 
 def available_commands() -> tuple[tuple[str, str], ...]:
     """Return the stable public command names exposed by ``python -m validation``."""
-
     return tuple(sorted(_COMMANDS))
 
 
 def resolve_command(group: str, command: str) -> str:
     """Resolve a public command or a hidden compatibility route."""
-
     key = (str(group), str(command))
     if key in _COMMANDS:
         return _COMMANDS[key]
