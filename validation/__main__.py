@@ -45,11 +45,12 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("matsubara", "matsubara-orbit-gauss-crosscheck"): (
         "validation.commands.matsubara.positive_orbit_gauss_crosscheck"
     ),
+    # Both public staged-scan names resolve to the same total-Matsubara policy.
     ("matsubara", "positive-orbit-gauss-scan"): (
-        "validation.commands.matsubara.positive_orbit_gauss_scan"
+        "validation.commands.matsubara.total_orbit_gauss_scan"
     ),
     ("matsubara", "total-orbit-gauss-scan"): (
-        "validation.commands.matsubara.positive_orbit_gauss_scan"
+        "validation.commands.matsubara.total_orbit_gauss_scan"
     ),
     ("matsubara", "orbit-gauss-preflight"): (
         "validation.commands.matsubara.orbit_gauss_preflight"
