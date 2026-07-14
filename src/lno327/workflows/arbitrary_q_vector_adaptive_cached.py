@@ -1,9 +1,9 @@
 """Reusable hierarchical material cache for arbitrary-q vector-adaptive cubature.
 
 The adaptive controller lives in :mod:`arbitrary_q_vector_adaptive`. This module
-supplies the production-shaped cache used with it: q-independent midpoint
-Hamiltonians/eigensystems and the q=0 Goldstone counterterm integrand are built
-once per exact hierarchical node and reused across q, angle and Matsubara tasks.
+adds production-shaped reuse: q-independent midpoint eigensystems and the q=0
+Goldstone counterterm integrand are built once per exact adaptive node and reused
+across q, angle and Matsubara tasks.
 """
 from __future__ import annotations
 
@@ -28,24 +28,56 @@ from lno327.workflows.arbitrary_q_vector_adaptive import (
 
 
 class ReusableHierarchicalMaterialNodeCache(HierarchicalMaterialNodeCache):
-    """Hierarchical cache with a reusable per-node Goldstone integrand.
+    """Hierarchical cache with reusable Goldstone integrands and hard budgets."""
 
-    The base adaptive cache already reuses midpoint eigensystems. This extension
-    also avoids calling ``ansatz.hs_counterterm`` separately for every cell,
-    which would otherwise repeat midpoint diagonalization. A batched q=0
-    workspace is formed once for newly encountered nodes, performs zero shifted
-    eigensystem builds, and stores the unweighted eta2-eta2 static-bubble
-    integrand. Cell counterterms then reduce to deterministic weighted sums.
-    """
-
-    def __init__(self, **kwargs) -> None:
+    def __init__(
+        self,
+        *,
+        max_cache_nodes: int | None = None,
+        max_cache_bytes: int | None = None,
+        **kwargs,
+    ) -> None:
         super().__init__(**kwargs)
+        if max_cache_nodes is not None and int(max_cache_nodes) <= 0:
+            raise ValueError("max_cache_nodes must be positive when provided")
+        if max_cache_bytes is not None and int(max_cache_bytes) <= 0:
+            raise ValueError("max_cache_bytes must be positive when provided")
+        self.max_cache_nodes = None if max_cache_nodes is None else int(max_cache_nodes)
+        self.max_cache_bytes = None if max_cache_bytes is None else int(max_cache_bytes)
         self._phase_bubble_integrands: dict[str, complex] = {}
         self.counterterm_node_hits = 0
         self.counterterm_node_misses = 0
         self.counterterm_q0_workspace_build_count = 0
         self.counterterm_shifted_eigh_call_count = 0
         self.counterterm_q0_workspace_seconds = 0.0
+
+    def estimated_cache_bytes(self) -> int:
+        node_bytes = sum(
+            int(value.energies.nbytes + value.states.nbytes + value.occupations.nbytes)
+            for value in self._nodes.values()
+        )
+        counterterm_bytes = len(self._phase_bubble_integrands) * np.dtype(complex).itemsize
+        return int(node_bytes + counterterm_bytes)
+
+    def _missing_node_count(self, points: np.ndarray) -> int:
+        keys = {self._point_key(point) for point in np.asarray(points, dtype=float)}
+        return sum(key not in self._nodes for key in keys)
+
+    def _check_node_budget_before_build(self, points: np.ndarray) -> None:
+        missing = self._missing_node_count(points)
+        if self.max_cache_nodes is not None and len(self._nodes) + missing > self.max_cache_nodes:
+            raise MemoryError(
+                "adaptive material-node cache would exceed max_cache_nodes: "
+                f"current={len(self._nodes)}, missing={missing}, limit={self.max_cache_nodes}"
+            )
+
+    def _check_byte_budget_after_build(self) -> None:
+        estimated = self.estimated_cache_bytes()
+        if self.max_cache_bytes is not None and estimated > self.max_cache_bytes:
+            raise MemoryError(
+                "adaptive material-node cache exceeded max_cache_bytes: "
+                f"estimated={estimated}, limit={self.max_cache_bytes}"
+            )
 
     def _ensure_phase_bubble_integrands(
         self,
@@ -94,9 +126,7 @@ class ReusableHierarchicalMaterialNodeCache(HierarchicalMaterialNodeCache):
         if shifted != 0:
             raise RuntimeError("q=0 counterterm cache rebuilt shifted eigensystems")
 
-        factors = _vectorized_kubo_factors(
-            q0_workspace, np.asarray([0.0], dtype=float)
-        )[0]
+        factors = _vectorized_kubo_factors(q0_workspace, np.asarray([0.0], dtype=float))[0]
         phase_left = np.asarray(q0_workspace.left_vertices_band)[:, 4]
         phase_right = np.asarray(q0_workspace.right_vertices_band)[:, 4]
         local = 0.5 * np.einsum(
@@ -112,6 +142,7 @@ class ReusableHierarchicalMaterialNodeCache(HierarchicalMaterialNodeCache):
             ] = complex(local[local_index])
         self.counterterm_node_misses += len(missing_indices)
         self.counterterm_node_hits += int(point_array.shape[0] - len(missing_indices))
+        self._check_byte_budget_after_build()
 
     def material_workspace(
         self,
@@ -120,11 +151,9 @@ class ReusableHierarchicalMaterialNodeCache(HierarchicalMaterialNodeCache):
         *,
         include_counterterm: bool = False,
     ):
-        workspace = super().material_workspace(
-            points,
-            weights,
-            include_counterterm=False,
-        )
+        self._check_node_budget_before_build(points)
+        workspace = super().material_workspace(points, weights, include_counterterm=False)
+        self._check_byte_budget_after_build()
         self._ensure_phase_bubble_integrands(points, workspace)
         counterterm = (
             self.counterterm(points, weights)
@@ -152,10 +181,9 @@ class ReusableHierarchicalMaterialNodeCache(HierarchicalMaterialNodeCache):
         keys = [self._point_key(point) for point in point_array]
         missing = [key for key in keys if key not in self._phase_bubble_integrands]
         if missing:
+            self._check_node_budget_before_build(point_array)
             workspace = super().material_workspace(
-                point_array,
-                weight_array,
-                include_counterterm=False,
+                point_array, weight_array, include_counterterm=False
             )
             self._ensure_phase_bubble_integrands(point_array, workspace)
         phase_bubble = sum(
@@ -167,7 +195,7 @@ class ReusableHierarchicalMaterialNodeCache(HierarchicalMaterialNodeCache):
     def metadata(self) -> dict[str, object]:
         return {
             **super().metadata(),
-            "cache_extension": "ReusableHierarchicalMaterialNodeCache-v1",
+            "cache_extension": "ReusableHierarchicalMaterialNodeCache-v2",
             "counterterm_node_entries": len(self._phase_bubble_integrands),
             "counterterm_node_hits": int(self.counterterm_node_hits),
             "counterterm_node_misses": int(self.counterterm_node_misses),
@@ -181,6 +209,10 @@ class ReusableHierarchicalMaterialNodeCache(HierarchicalMaterialNodeCache):
                 self.counterterm_q0_workspace_seconds
             ),
             "counterterm_uses_cached_midpoint_eigensystems": True,
+            "estimated_cache_bytes": self.estimated_cache_bytes(),
+            "max_cache_nodes": self.max_cache_nodes,
+            "max_cache_bytes": self.max_cache_bytes,
+            "cache_budget_policy": "fail_closed_no_eviction",
         }
 
 
@@ -191,6 +223,8 @@ def build_reusable_hierarchical_material_node_cache(
     pairing: object,
     temperature_K: float,
     eta_eV: float,
+    max_cache_nodes: int | None = None,
+    max_cache_bytes: int | None = None,
 ) -> ReusableHierarchicalMaterialNodeCache:
     base = build_hierarchical_material_node_cache(
         spec=spec,
@@ -205,6 +239,8 @@ def build_reusable_hierarchical_material_node_cache(
         pairing=base.pairing,
         config=base.config,
         options=base.options,
+        max_cache_nodes=max_cache_nodes,
+        max_cache_bytes=max_cache_bytes,
     )
 
 
@@ -223,6 +259,8 @@ def integrate_arbitrary_q_vector_adaptive_cached(
     operator_ward_atol: float = 512.0 * np.finfo(float).eps,
     operator_ward_rtol: float = 512.0 * np.finfo(float).eps,
     require_converged: bool = True,
+    max_cache_nodes: int | None = None,
+    max_cache_bytes: int | None = None,
 ):
     cache = node_cache or build_reusable_hierarchical_material_node_cache(
         spec=spec,
@@ -230,6 +268,8 @@ def integrate_arbitrary_q_vector_adaptive_cached(
         pairing=pairing,
         temperature_K=temperature_K,
         eta_eV=eta_eV,
+        max_cache_nodes=max_cache_nodes,
+        max_cache_bytes=max_cache_bytes,
     )
     return integrate_arbitrary_q_vector_adaptive(
         spec=spec,
