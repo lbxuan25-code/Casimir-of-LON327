@@ -1,22 +1,46 @@
-# 当前 validation 状态
+# Validation summary
 
-## 已在代码 contract 中闭合
+## Current readiness
 
-| 模块 | 状态 | 说明 |
-|---|---|---|
-| finite-q microscopic response | implemented | two-band BdG、amplitude/phase Schur、primitive `(A0,Ax,Ay)` |
-| finite-q Ward | contract tests pass | arbitrary-q、analytic nonzero RHS、crystal-xy validation |
-| positive Matsubara sheet | contract tests pass | `sigma=-K_eff/xi`，仅 `xi>0` |
-| exact zero Matsubara | contract tests pass | thermodynamic static Kubo、`chi_bar`、`Dbar_T`、独立静态反射 |
-| reflection/logdet | contract tests pass | common lab-LT tangential-E basis、signed real logdet |
-| performance workspace | contract tests pass | material/q 两层 cache、cached RHS、batched xi、vectorized contraction |
+```text
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False
+```
 
-## 尚待本地数值验证
+The finite-q microscopic response, amplitude/phase Schur contract, RHS-aware Ward validation, positive-Matsubara sheet construction, exact zero-Matsubara path, and reflection/logdet contracts are implemented and covered by tests. The unresolved blocker remains the common transverse/BZ integration reference for the full positive-Matsubara conductivity tensor.
 
-1. 固定非零 q 的 k-grid 收敛；
-2. strict static longitudinal、mixing、reality 和 positivity gates；
-3. normal 与 superconducting 的 q→0 transverse 行为；
-4. 固定 q 下 exact n=0 与 xi→0+ reflection 匹配；
-5. 后续 q、phi、Matsubara quadrature 与 cutoff/tail 收敛。
+## Active numerical paths
 
-当前 active 入口是 `python -m validation.run_static_nk_scan`。在上述本地验证完成前，PR 保持 draft，且没有正式 finite-q Casimir 输出。
+- deterministic full-period panel-adaptive controller with split-history error continuity;
+- one common fixed/composite Gauss backend used as an independent offline reference;
+- batched midpoint material and finite-q q workspaces;
+- optional POSIX-fork transverse-node execution with original-node-order parent Kahan reduction;
+- exact zero-Matsubara thermodynamic path and typed sheet/reflection contracts.
+
+Rejected quadrature implementations are removed rather than kept as runnable archive paths.
+
+## Difficult diagonal-point evidence
+
+All reported fixed/composite Gauss points passed Ward and the complete physical pipeline. Reflection and the current zero-angle, 20 nm logdet were substantially more stable than the upstream conductivity tensor.
+
+For composite `panel_count=16` at diagonal `(1,1)` and Matsubara indices `1,2`:
+
+```text
+C256-C224 sigma mixed ratios = 7.375, 5.773
+C384-C320 sigma mixed ratios = 1.668, 1.362
+C384-C320 reflection ratios  = 0.0060, 0.0048
+C384-C320 logdet ratios      = 0.0166, 0.0130
+```
+
+Thus higher local Gauss order substantially reduced the full-sigma discrepancy but did not pass the predeclared `ratio <= 1` gate. The fixed-cut composite reference is not established; diagonal-mid and smooth-cut expansion remain skipped under the fail-fast contract.
+
+## Performance evidence
+
+Batched material/q workspaces reduced the local `(1,1)` callback from about `3.56 s/node` to about `0.32-0.37 s/node`, an approximately eleven-fold per-node speedup.
+
+The first shared-thread transverse implementation did not accelerate the real `nk=1256` workload: C320+C384 used `237 s` wall and approximately one CPU core despite eight requested workers. It has therefore been replaced for d-wave Gauss evaluation by explicit POSIX-fork worker processes. Small tests prove serial/process primitive equality but are not treated as performance evidence; a real-`nk` serial/process A/B benchmark is required before another expensive scan.
+
+## Artifact and maintenance policy
+
+Raw CSV, JSON, txt, log, figures, arrays, and intermediate validation outputs are local reproducible artifacts and are ignored by Git. The tree retains only active code, tests, README/command files, compact summaries, and status records. No q-specific fallback, symmetry reduction, or production-readiness claim is permitted.
