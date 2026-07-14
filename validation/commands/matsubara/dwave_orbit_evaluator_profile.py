@@ -11,7 +11,7 @@ import platform
 import numpy as np
 
 from lno327.constants import KB_EV_PER_K
-from validation.lib.commensurate_orbit_adaptive_gk21 import (
+from validation.lib.commensurate_orbit_workspace import (
     CompleteOrbitAggregateWorkspace,
 )
 from validation.lib.dwave_orbit_primitive_evaluator import (
@@ -83,6 +83,10 @@ def _summary(payload: dict[str, object]) -> str:
         f"nk = {payload['nk']}; m = ({payload['mx']}, {payload['my']})",
         f"phase = {payload['phase']}; origins = {payload['orbit_origins']}",
         f"points per t = {payload['points_per_t']}",
+        (
+            "material workspace implementation = "
+            f"{profile['material_workspace_implementation']}"
+        ),
         (
             "q workspace implementation = "
             f"{profile['q_workspace_implementation']}"
@@ -156,7 +160,7 @@ def main() -> None:
     packed = workspace.evaluate_phase(args.phase)
     profile = evaluator.profile_snapshot()
     payload: dict[str, object] = {
-        "schema": "dwave_complete_orbit_evaluator_profile_v1",
+        "schema": "dwave_complete_orbit_evaluator_profile_v2",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "platform": platform.platform(),
         "python": platform.python_version(),
