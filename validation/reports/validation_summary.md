@@ -41,7 +41,7 @@ Batched material/q workspaces reduced the local `(1,1)` callback from about `3.5
 
 The first shared-thread transverse implementation did not accelerate the real `nk=1256` workload: C320+C384 used `237 s` wall and approximately one CPU core despite eight requested workers. It has therefore been replaced for d-wave Gauss evaluation by explicit POSIX-fork worker processes. Small tests prove serial/process primitive equality but are not treated as performance evidence; a real-`nk` serial/process A/B benchmark is required before another expensive scan.
 
-GitHub Actions run `29300905149` passed completely on head `e58163c1ee1e42ab10058d86abe144bed1b0f84b`, including the full repository suite and fork-process fixed-Gauss CLI smoke.
+The current branch passes the complete GitHub Actions workflow, including the full repository suite and fork-process fixed-Gauss CLI smoke.
 
 ## Artifact and maintenance policy
 
