@@ -191,7 +191,10 @@ jobs:
           assert payload['schema'] == 'positive_commensurate_orbit_fixed_gauss_crosscheck_v1'
           assert all(row['pairing'] == 'spm' for row in payload['rows'])
           assert all(row['phase_hessian_policy'] == 'q_independent' for row in payload['rows'])
-          assert payload['status']['all_physical_pipelines_passed'] is True
+          assert all(row['execution_strategy'] == 'fork_process_transverse_nodes_ordered_parent_reduction' for row in payload['rows'])
+          assert all(row['full_transverse_period_integrated'] is True for row in payload['rows'])
+          assert all(row['symmetry_reduction_applied'] is False for row in payload['rows'])
+          assert payload['status']['valid_for_casimir_input'] is False
           PY
           python -m validation matsubara positive-orbit-gauss-scan \
             --case smoke:1:0 \
