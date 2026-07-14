@@ -1,5 +1,4 @@
 """Reusable complete-orbit d-wave primitive evaluator with stage profiling."""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -15,12 +14,8 @@ from lno327 import KuboConfig
 from lno327.response.finite_q_material_workspace_batched import (
     precompute_finite_q_material_workspace_batched,
 )
-from lno327.response.finite_q_optimized import _vectorized_kubo_factors
-from lno327.response.finite_q_q_workspace_batched import (
-    precompute_finite_q_q_workspace_batched,
-)
+from lno327.response.primitive_kernel import evaluate_primitive_batch_from_material
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
-from validation.lib.dwave_positive_orbit_adaptive import _pack_orbit_primitives
 
 
 @dataclass(frozen=True)
@@ -38,7 +33,6 @@ class DWaveOrbitEvaluatorProfile:
     @property
     def total_seconds(self) -> float:
         """Return summed worker-seconds across all callbacks."""
-
         return float(
             self.material_workspace_seconds
             + self.q_workspace_seconds
@@ -82,7 +76,7 @@ class _DWaveOrbitEvaluationMetrics:
 
 
 _FORK_PROCESS_GUARD = Lock()
-_FORK_PROCESS_EVALUATOR: DWaveOrbitPrimitiveEvaluator | None = None
+_FORK_PROCESS_EVALUATOR: "DWaveOrbitPrimitiveEvaluator | None" = None
 
 
 def _fork_process_evaluate(
@@ -98,12 +92,9 @@ def _fork_process_evaluate(
 class DWaveOrbitPrimitiveEvaluator:
     """Evaluate complete orbits and aggregate stage profiling.
 
-    Serial calls execute directly.  With ``process_workers > 1``, a POSIX-fork pool
-    is created before the transverse submission threads start.  Each child therefore
-    inherits the immutable model/evaluator configuration by copy-on-write and returns
-    only the packed primitive vector plus lightweight timing metadata.  The parent
-    remains responsible for profile aggregation and the Gauss integrator remains
-    responsible for original-node-order Kahan reduction.
+    The qualified complete-orbit wrapper now delegates q-dependent work,
+    Matsubara contraction and primitive packing to the same quadrature-independent
+    kernel used by the arbitrary-q periodic-BZ backend.
     """
 
     def __init__(
@@ -194,8 +185,6 @@ class DWaveOrbitPrimitiveEvaluator:
         _FORK_PROCESS_EVALUATOR = self
 
         try:
-            # multiprocessing.Pool starts all fork workers eagerly, before the generic
-            # transverse ThreadPoolExecutor is created by the Gauss integrator.
             self._process_pool = get_context("fork").Pool(
                 processes=self.process_workers
             )
@@ -232,47 +221,31 @@ class DWaveOrbitPrimitiveEvaluator:
             material.metadata.get("material_workspace_implementation", "unknown")
         )
 
-        started = time.perf_counter()
-        workspace = precompute_finite_q_q_workspace_batched(material, self.q_model)
-        q_workspace_seconds = time.perf_counter() - started
-        q_implementation = str(
-            workspace.metadata.get("q_workspace_implementation", "unknown")
+        primitive = evaluate_primitive_batch_from_material(
+            material,
+            self.q_model,
+            self.xi_values,
+            include_counterterm=True,
         )
-
-        started = time.perf_counter()
-        raw_factors = _vectorized_kubo_factors(workspace, self.xi_values)
-        kubo_factor_seconds = time.perf_counter() - started
-
-        started = time.perf_counter()
-        weighted = (
-            0.5
-            * workspace.material.k_weights[None, :, None, None]
-            * raw_factors
-        )
-        blocks = np.einsum(
-            "xkmn,kamn,kbmn->xab",
-            weighted,
-            workspace.left_vertices_band,
-            np.conjugate(workspace.right_vertices_band),
-            optimize=True,
-        )
-        kubo_contraction_seconds = time.perf_counter() - started
-
-        started = time.perf_counter()
-        packed = _pack_orbit_primitives(workspace=workspace, blocks=blocks)
-        primitive_packing_seconds = time.perf_counter() - started
-
+        if not primitive.operator_ward.passed:
+            raise RuntimeError(
+                "complete-orbit shared primitive kernel failed the Peierls operator identity"
+            )
         metrics = _DWaveOrbitEvaluationMetrics(
             complete_orbit_points=int(point_array.shape[0]),
             material_workspace_implementation=material_implementation,
-            q_workspace_implementation=q_implementation,
+            q_workspace_implementation=primitive.metrics.q_workspace_implementation,
             material_workspace_seconds=float(material_seconds),
-            q_workspace_seconds=float(q_workspace_seconds),
-            kubo_factor_seconds=float(kubo_factor_seconds),
-            kubo_contraction_seconds=float(kubo_contraction_seconds),
-            primitive_packing_seconds=float(primitive_packing_seconds),
+            q_workspace_seconds=float(primitive.metrics.q_workspace_seconds),
+            kubo_factor_seconds=float(primitive.metrics.kubo_factor_seconds),
+            kubo_contraction_seconds=float(
+                primitive.metrics.kubo_contraction_seconds
+            ),
+            primitive_packing_seconds=float(
+                primitive.metrics.primitive_pack_seconds
+            ),
         )
-        return np.asarray(packed, dtype=complex), metrics
+        return np.asarray(primitive.packed, dtype=complex), metrics
 
     def _record_metrics(self, metrics: _DWaveOrbitEvaluationMetrics) -> None:
         with self._profile_lock:
@@ -310,8 +283,6 @@ class DWaveOrbitPrimitiveEvaluator:
         if pool is None:
             packed, metrics = self._evaluate_local(point_array, weight_array)
         else:
-            # Pool submission is serialized only for the queue operation.  Worker
-            # execution and waiting remain concurrent across transverse submitters.
             with self._submit_lock:
                 pending = pool.apply_async(
                     _fork_process_evaluate,
@@ -343,7 +314,7 @@ class DWaveOrbitPrimitiveEvaluator:
             self._fork_guard_held = False
             _FORK_PROCESS_GUARD.release()
 
-    def __enter__(self) -> DWaveOrbitPrimitiveEvaluator:
+    def __enter__(self) -> "DWaveOrbitPrimitiveEvaluator":
         return self
 
     def __exit__(self, exc_type, exc, traceback) -> None:
