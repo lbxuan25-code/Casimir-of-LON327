@@ -29,16 +29,16 @@ python -m validation ward commensurate --help
 
 ## Fixed/composite Gauss 并行约定
 
-`dwave-orbit-gauss-crosscheck` 支持对独立 transverse nodes 做确定性线程并行：
+`dwave-orbit-gauss-crosscheck` 支持对独立 transverse nodes 做确定性 POSIX-fork 进程并行：
 
 ```text
 --transverse-workers N
 --transverse-task-size M
 ```
 
-每个 worker 仍计算一个或一组完整 commensurate q orbit。worker 内不执行 bond metric、Schur、sheet、reflection 或 logdet。所有节点结果返回父线程后，严格按原 Gauss 节点顺序进行 complex Kahan summation。因此 worker 数和 task size 只改变执行调度，不改变积分节点、权重或归并顺序。
+每个子进程继承同一只读 model/evaluator 配置，并计算一个完整 commensurate q orbit。进程内不执行 bond metric、Schur、sheet、reflection 或 logdet。父进程中的提交线程只负责把节点交给预先启动的 fork workers；所有节点结果返回父进程后，仍严格按原 Gauss 节点顺序进行 complex Kahan summation。因此 worker 数和 task size 只改变执行调度，不改变积分节点、权重或归并顺序。
 
-启用多个 transverse workers 时，必须把底层数值库线程数固定为一，避免线程过度订阅：
+进程模式要求操作系统提供 POSIX `fork`。不支持 `fork` 的平台必须使用 `--transverse-workers 1`。启用多个 workers 时，必须把每个子进程中的底层数值库线程数固定为一：
 
 ```bash
 env \
@@ -47,12 +47,12 @@ env \
   MKL_NUM_THREADS=1 \
   NUMEXPR_NUM_THREADS=1 \
   python -m validation matsubara dwave-orbit-gauss-crosscheck \
-    --transverse-workers 8 \
+    --transverse-workers 4 \
     --transverse-task-size 4 \
     ...
 ```
 
-推荐先使用 `workers=8, task_size=4`。内存不足、温度过高或持续降频时降低 workers；任务数较少时 integrator 会自动把有效 worker 数限制为 task 数。不要同时对多个 q case 再做外层并行，否则容易发生 CPU 和内存带宽过度订阅。
+不要仅凭小尺寸等价测试推断性能。正式高阶计算前，先在真实 `nk` 上用较小 Gauss order 做串行/进程 A/B，并同时检查墙钟时间和 shell `time` 的总 CPU 时间。只有 CPU/wall 比明显大于一且墙钟显著下降时才扩大 worker 数。建议先试 4 workers，再试 8；内存带宽饱和、温度过高或持续降频时应降低 workers。不要同时对多个 q case 再做外层并行。
 
 外部 reference CSV 是可选的。省略 `--reference-csv` 时，命令仍会完成：
 
