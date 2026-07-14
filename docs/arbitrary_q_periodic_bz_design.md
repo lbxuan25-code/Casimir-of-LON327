@@ -1,6 +1,6 @@
 # Arbitrary-q periodic BZ implementation decision
 
-Status remains:
+Current hard state:
 
 ```text
 arbitrary_q_performance_contract = not_yet_qualified
@@ -13,141 +13,228 @@ valid_for_casimir_input = False
 
 ## Frozen architecture
 
-- Exact `q_crystal = R(-theta) q_lab`; no q/angle rounding, wrapping, nearest-commensurate substitution, or primitive interpolation.
-- Fixed shifted `N x N` periodic midpoint BZ lattice; even `N` only.
-- Primary shift `(1/2,1/2)` with explicit adjacent `k/-k` ordering.
-- Audit shifts `(1/4,3/4)` and `(3/4,1/4)` are evaluated independently. Their primary paired estimate is formed as `0.5 * (packed_A + packed_B)` at the linear primitive level, followed by exactly one phase-Hessian/Schur/sheet/reflection/logdet pipeline. Nonlinear reflection or logdet averages are diagnostic spreads only and are never called a quadrature reference.
-- One shared quadrature-independent primitive kernel for the retained complete-orbit path and the periodic-BZ path.
-- Full linear primitive accumulation precedes phase-Hessian, Schur, sheet, reflection, and logdet processing.
-- One readonly q-independent material cache per material/pairing/T/grid/config fingerprint.
-- Q-dependent arrays are generated in streamed canonical reduction blocks and released.
-- Goldstone/HS counterterm is added exactly once per full BZ result.
-- Exact zero and all positive Matsubara frequencies share each shifted q workspace.
-- Persistent POSIX-fork process parallelism uses `q_lab + angle_batch` tasks; BLAS/OpenMP threads are fixed to one.
-- When a material cache is supplied, the integration entry point uses `material_cache.grid` and performs no additional `O(N^2)` grid construction.
+- Exact `q_crystal = R(-theta) q_lab`; no q/angle rounding, wrapping, nearest-commensurate replacement or primitive interpolation.
+- Fixed shifted even-`N`, `N x N` full periodic midpoint BZ lattice.
+- Primary shift `(1/2,1/2)`; formal audit shifts `(1/4,3/4)` and `(3/4,1/4)`.
+- One physical batched q-workspace implementation. The operator-aware entry point is a thin wrapper over the established builder.
+- Operator diagnostics reuse the same shifted Hamiltonians and Peierls vertices as the response.
+- Exact zero and all positive Matsubara frequencies share each q workspace.
+- Full linear primitive accumulation precedes phase-Hessian pullback, Schur, sheet, reflection and logdet processing.
+- The Goldstone/HS counterterm is added exactly once after full-BZ accumulation.
+- Persistent POSIX-fork parallelism uses `q_lab + angle_batch` tasks and ordered parent collection.
+- A supplied material cache is used directly; no second `N^2` grid is built before response-cache lookup.
 
-## Accepted amendments and review corrections
+## Real runtime batching
 
-1. `pointwise Ward` means the exact normal-state Peierls operator identity only. Integrated response Ward closure remains a separate convergence and physical gate.
-2. The production parallel task is centered on one `q_lab` and an angle batch, so the fixed plate response is evaluated once per task.
-3. Runtime memory chunks do not define floating-point reduction. A fixed canonical reduction block controls numerical grouping; runtime chunks only group one or more canonical blocks.
-4. The Peierls operator identity is computed from Hamiltonians and vertices already owned by the q workspace; it does not trigger a duplicate Hamiltonian/vertex pass.
-5. Every complete-orbit reference, every primary `N`, both audit shifts, and the paired-primitive result must independently pass operator, integrated Ward, strict-static, sheet, reflection and passive-logdet gates.
-
-## Frozen formal policy
-
-Only `ArbitraryQFormalPolicyV1` may authorize a formal manifest. CLI values may be stricter, but values looser than the frozen limits cannot establish a formal pass.
-
-Performance policy includes:
+The numerical and compute batch sizes now have different jobs:
 
 ```text
+runtime chunk:
+  build shifted Hamiltonians, eigensystems, vertices and Kubo factors once
+
+canonical block:
+  slice linear ingredients and define deterministic Kahan reduction boundaries
+```
+
+For a nonzero q, one runtime chunk performs two batched `np.linalg.eigh` calls, regardless of how many canonical blocks it contains. For example at fixed canonical size 4096:
+
+```text
+runtime 4096  -> one q workspace per 4096 points
+runtime 16384 -> one q workspace per 16384 points
+```
+
+The packed result must remain invariant while q-workspace/eigensystem call counts change. `runtime_chunk_size` therefore controls actual throughput and peak q-dependent memory; it is still excluded from the response-cache numerical identity because canonical blocks define the floating-point contract.
+
+## Paired shift contract
+
+The paired estimate is formed only at the linear packed-primitive level:
+
+```text
+paired_packed = 0.5 * (packed_A + packed_B)
+```
+
+Then exactly one phase-Hessian, Schur, sheet, reflection and logdet pipeline is applied. Nonlinear averages of `R_A/R_B` or `logdet_A/logdet_B` are diagnostic spreads, not quadrature references.
+
+`paired_average_arbitrary_q_results` requires:
+
+```text
+same material_state_fingerprint
+same N, BZ convention and point count
+inversion-related audit grids
+formal shifts exactly (1/4,3/4) and (3/4,1/4)
+same q, Matsubara list, phase policy, block policy and Ward tolerances
+```
+
+A dedicated `PairedShiftProfile-v1` reports summed source point evaluations, q-workspace builds, eigensystem calls, block counts and stage timings. The two source counterterms average to one effective counterterm.
+
+## Complete formal policy
+
+Only `ArbitraryQFormalPolicyV2` may establish formal evidence. More stringent settings are allowed where the policy specifies upper/lower bounds; looser or different physical settings are diagnostic-only.
+
+### Performance workload
+
+`ArbitraryQPerformanceWorkloadV2` freezes:
+
+```text
+model workload: symmetry_bdg_2band_bond_endpoint_gauge_v1
 pairings: spm,dwave
 N >= 128
-q tasks >= 8
-workers >= 4
 Matsubara includes 0,1,2,4,8
-canonical reduction block = 4096
-runtime chunks include 4096 and 16384
-minimum speedup >= 4
-minimum CPU/wall >= 4
-maximum pool overhead <= 0.05
+canonical block = 4096
+runtime chunks include 4096,16384
+comparison atol <= 2e-12
+comparison rtol <= 2e-11
+T = 10 K
+delta0 = 0.1 eV
+eta = 1e-8 eV
+outer workload: >=8 tasks, >=4 workers
+qualification-primary workload: 4 tasks, 4 workers
+qualification-audit workload: 1 task, 1 worker
+outer speedup >= 4
+outer CPU/wall >= 4
+pool startup+shutdown overhead <= 0.05
 ```
 
-Numerical policy includes:
+The manifest must contain passed records for all three workload classes:
+
+```text
+outer_q_batch_v2
+qualification_primary_v2
+qualification_audit_v2
+```
+
+### Numerical matrix
+
+`ArbitraryQQualificationMatrixV2` freezes:
 
 ```text
 pairings: spm,dwave
-N values include 256,384,512
+N includes 256,384,512
 reference nk = 1256
 reference order >= 384
+reference panel count = 16
+reference workers = 8
+reference task size = 4
 Matsubara includes 0,1,8
-primitive rtol <= 1e-3
-reflection rtol <= 3e-4
-logdet rtol <= 3e-4
-diagonal observable rtol <= 1e-3
+primitive rtol <= 1e-3, atol <= 1e-12
+reflection rtol <= 3e-4, atol <= 1e-12
+logdet rtol <= 3e-4, atol <= 1e-14
+diagonal observable rtol <= 1e-3, atol <= 1e-12
+Ward tolerance <= 1e-7
+Ward absolute tolerance <= 1e-12
+T = 10 K
+delta0 = 0.1 eV
+eta = 1e-8 eV
+separation = 20 nm
+canonical block = 4096
+runtime chunk = 16384
+primary workers = 4
+audit workers = 1
 ```
 
-The formal performance manifest records the policy id, config fingerprint, exact command, hardware fingerprint, git head, execution strategy, worker/thread policy and actual BLAS threadpool report. The numerical gate requires a compatible same-head manifest.
+## Clean-source evidence
 
-The numerical core itself writes only:
+Formal evidence is not identified by `HEAD` alone. Before performance, before qualification and after qualification, the public commands require a clean worktree and record:
+
+```text
+git_head
+git_tree_sha
+tracked_index_fingerprint
+source_tree_fingerprint
+worktree_clean = True
+```
+
+The source fingerprint combines the commit, tree object and tracked index. Any tracked or untracked worktree change makes the run nonformal. The public gate requires identical source provenance across the performance manifest, current checkout, numerical core output and post-run checkout.
+
+The numerical core can emit only:
 
 ```text
 diagnostic_result_passed
 diagnostic_result_failed
 ```
 
-Only the public same-head formal gate may promote a passed result to:
+Only the clean-source public gate may promote it to:
 
 ```text
 qualified_for_diagnostic_outer_integration
 ```
 
-## Cache identity
-
-`MaterialGridCache-v2` includes:
-
-```text
-spec class and complete public/explicit numerical state
-all two-band model parameters
-hopping/basis/convention payload when provided
-ansatz name, phase vertex and form-factor state
-pairing amplitudes
-thermodynamic config and options
-grid fingerprint, N, shift and ordering
-```
-
-A generic `metadata()` value is not treated as a complete numerical identity.
-
-`CrystalResponseCache-v2` includes:
-
-```text
-material fingerprint
-exact q bytes
-exact Matsubara bytes
-phase-Hessian policy
-canonical reduction block
-operator-Ward atol/rtol
-primitive contract version
-```
-
-Runtime chunk size is deliberately excluded because it must not change the numerical definition. Signed zero is normalized; NaN/Inf are rejected; no decimal rounding is allowed.
-
 ## Performance evidence
 
-The formal performance preflight records and gates:
+The formal preflight records and gates:
 
 ```text
-actual q-workspace eigensystem-call counters
-short versus full Matsubara-batch eigensystem equality
-actual BLAS runtime threadpool counts
+actual child and parent BLAS threadpool counts
+actual q-workspace and batched-eigh call counts
+short/full Matsubara eigensystem equality
+runtime-chunk packed-result equality
+serial/process equality
+cache-on/off equality and timing
 worker RSS/PSS
 serialized IPC payload bytes
 parent collection overhead
-cache-on versus cache-off numerical equality and timing
-serial/process and runtime-chunk equality
-persistent-pool speedup and CPU/wall ratio
+pool startup and shutdown after close/join
+three workload classes and their actual worker utilization
 ```
 
-After the operator-audit integration change, both the retained complete-orbit timing preflight and the arbitrary-q performance preflight must be rerun on the target WSL/Linux machine.
+BLAS/OpenMP variables must be set before Python imports NumPy. Child workers verify the real runtime through `threadpoolctl`; environment strings alone are insufficient.
 
-## Validated microscopic momentum domain
+## Final two-plate qualification
 
-The microscopic backend currently rejects any component outside:
+Formal microscopic qualification gates the quantity consumed by a future Casimir outer integrator, not only isolated plate responses. For each pairing and Matsubara index it directly constructs:
+
+```text
+plate 1: theta = 0 degrees
+plate 2: theta = 17 degrees
+common lab LT tangential-electric basis
+logdet(I - R1 R2 exp(-2 kappa d))
+```
+
+It requires:
+
+```text
+two-plate logdet at N=256,384,512
+N256 -> N384 and N384 -> N512 convergence
+audit-A two-plate logdet
+audit-B two-plate logdet
+primitive-paired plate 1
+primitive-paired plate 2
+paired two-plate logdet
+A vs B two-plate sensitivity
+primary N512 vs paired two-plate sensitivity
+all plate/operator/Ward/static/sheet/reflection/passive gates at every source result
+```
+
+Single-plate convergence is retained but cannot substitute for this nonlinear final-observable gate.
+
+## Momentum support versus qualification
+
+The implementation syntactically supports the principal domain:
 
 ```text
 |q_x| <= pi
 |q_y| <= pi
 ```
 
-It never silently wraps q. Before an outer production calculation is allowed, its `Q` cutoff and tail convergence must demonstrate that every rotated `q_crystal` remains inside the validated microscopic domain and that the omitted tail is negligible before a BZ boundary is reached. Umklapp/local-field extensions are outside this contract.
+and rejects values outside it without wrapping. This is **not** a numerically qualified outer-integration envelope.
+
+The current formal matrix covers discrete axis, generic, near-diagonal, exact-diagonal and 17-degree-rotated vectors, and reports their maximum tested component/norm. It explicitly records:
+
+```text
+qualified_outer_q_envelope_established = False
+continuous_angle_coverage_established = False
+outer_tail_requirement_bound = False
+```
+
+After an outer separation range and tail tolerance are chosen, a separate envelope qualification must cover the required radii and angles up to the resulting `q_max`. A future outer builder must reject nodes outside that manifest envelope.
 
 ## Qualification order
 
-1. Shared-kernel complete-orbit regression and renewed real-hardware timing.
-2. Tiny one-shot/streamed, cache, key, q-domain, spm/dwave Ward and two-plate physical tests.
-3. Persistent-pool formal performance preflight.
-4. Same-head formal gate verification.
-5. Commensurate regression against complete-orbit.
-6. Arbitrary-q refinement `N=256,384,512` and paired-primitive shift audit.
-7. Two-plate `q_lab`, `theta=(0,17 deg)` common-lab-basis physical pipeline.
-8. Only after all gates pass may the backend be marked `qualified_for_diagnostic_outer_integration`.
+1. Complete-orbit regression and renewed target-machine timing.
+2. Tiny unified-builder, runtime-batch, cache, paired-shift, Ward and two-plate tests.
+3. Clean-head formal performance preflight covering all three workload classes.
+4. Without modifying source, run the clean-source public numerical gate at `N=256/384/512`.
+5. Inspect the discrete q-coverage record; do not claim an outer q envelope.
+6. Only after later outer q/angle/Matsubara/tail convergence may a full energy calculation begin.
+
+The current branch remains diagnostic-only until the target-machine manifests are produced.
