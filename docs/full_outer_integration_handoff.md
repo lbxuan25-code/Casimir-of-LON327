@@ -244,7 +244,7 @@ q cutoff and omitted-tail convergence
 Matsubara cutoff/tail convergence
 angle-grid convergence
 energy convergence before torque differentiation
-diagonal/shift sensitivity
+exact-diagonal variant sensitivity
 serial/process deterministic equality
 ```
 
