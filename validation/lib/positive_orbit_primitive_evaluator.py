@@ -1,8 +1,10 @@
-"""Common complete-orbit positive-Matsubara primitive evaluator.
+"""Common complete-orbit Matsubara primitive evaluator.
 
-The microscopic execution path is identical for ``spm`` and ``dwave``.  The only
-pairing-specific choice retained here is the post-integral phase-Hessian policy:
-``q_independent`` for ``spm`` and ``nearest_neighbor_bond_metric`` for ``dwave``.
+The microscopic execution path is identical for ``spm`` and ``dwave`` and accepts
+both the exact zero-Matsubara divided-difference factor and positive Matsubara
+frequencies in one shared batch.  Pairing-specific physics enters only through the
+post-integral phase-Hessian policy: ``q_independent`` for ``spm`` and
+``nearest_neighbor_bond_metric`` for ``dwave``.
 """
 from __future__ import annotations
 
@@ -24,10 +26,11 @@ PositiveOrbitEvaluatorProfile = DWaveOrbitEvaluatorProfile
 class PositiveOrbitPrimitiveEvaluator(DWaveOrbitPrimitiveEvaluator):
     """Evaluate complete commensurate orbits for spm or d-wave pairing.
 
-    All heavy local evaluation, fork-process execution, profiling aggregation, and
-    lifecycle handling are inherited from the established batched evaluator.  This
-    constructor only relaxes the historical d-wave-only validation and records the
-    correct post-integral phase-Hessian policy.
+    All heavy local evaluation, POSIX-fork execution, profiling aggregation, and
+    lifecycle handling are inherited from the established batched evaluator.  The
+    requested frequency batch may contain zero exactly once or may be positive-only.
+    The zero entry uses the optimized divided-difference branch in
+    ``_vectorized_kubo_factors`` and never implies a conductivity division.
     """
 
     def __init__(
@@ -47,14 +50,16 @@ class PositiveOrbitPrimitiveEvaluator(DWaveOrbitPrimitiveEvaluator):
         xi_values = np.asarray(xi_eV_values, dtype=float)
         if xi_values.ndim != 1 or xi_values.size == 0:
             raise ValueError("xi_eV_values must be a nonempty one-dimensional array")
-        if not np.isfinite(xi_values).all() or np.any(xi_values <= 0.0):
-            raise ValueError("all xi_eV_values must be finite and positive")
+        if not np.isfinite(xi_values).all() or np.any(xi_values < 0.0):
+            raise ValueError("all xi_eV_values must be finite and non-negative")
+        if np.count_nonzero(xi_values == 0.0) > 1:
+            raise ValueError("the exact zero-Matsubara value may appear at most once")
 
         pairing_name = str(getattr(ansatz, "name", ""))
         if pairing_name not in {"spm", "dwave"}:
-            raise ValueError("complete-orbit positive evaluator supports spm and dwave")
+            raise ValueError("complete-orbit Matsubara evaluator supports spm and dwave")
         if getattr(ansatz, "phase_vertex", None) != "bond_endpoint_gauge":
-            raise ValueError("positive orbit evaluator requires bond_endpoint_gauge")
+            raise ValueError("Matsubara orbit evaluator requires bond_endpoint_gauge")
         if int(nk) <= 0 or (int(mx) == 0 and int(my) == 0):
             raise ValueError("nk must be positive and q grid indices must be nonzero")
         workers = int(process_workers)
