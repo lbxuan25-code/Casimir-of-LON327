@@ -1,9 +1,10 @@
 """Staged spm/d-wave complete-orbit convergence scan using one Gauss method.
 
-Every q case follows the same equal-panel composite Gauss-Legendre rule.  Only the
-total transverse order and point budget change.  Each new order is evaluated once
-and compared with the immediately preceding saved order.  Easy cases stop early;
-difficult cases alone climb the configured order ladder.
+Every q case uses the same equal-panel composite Gauss-Legendre rule.  Only the
+transverse order and matching point budget change.  Orders are supplied as low/high
+stage pairs, for example ``64 96 160 192 320 384``.  Each stage estimates its error
+from the high-order result against the low-order result in that same stage.  Easy
+cases stop after the screen pair; only harder cases pay for later pairs.
 """
 from __future__ import annotations
 
@@ -70,7 +71,8 @@ def _parse_case(text: str) -> CaseSpec:
     if len(parts) != 3:
         raise ValueError("case must have form LABEL:MX:MY")
     label = parts[0].strip()
-    if not label or any(char not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-" for char in label):
+    allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-"
+    if not label or any(char not in allowed for char in label):
         raise ValueError(f"invalid case label: {label!r}")
     mx, my = int(parts[1]), int(parts[2])
     if mx == 0 and my == 0:
@@ -80,11 +82,30 @@ def _parse_case(text: str) -> CaseSpec:
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--pairings", nargs="+", choices=("spm", "dwave"), default=["spm", "dwave"])
+    parser.add_argument(
+        "--pairings",
+        nargs="+",
+        choices=("spm", "dwave"),
+        default=["spm", "dwave"],
+    )
     parser.add_argument("--case", action="append", default=None, metavar="LABEL:MX:MY")
     parser.add_argument("--nk", type=int, default=1256)
-    parser.add_argument("--matsubara-indices", nargs="+", type=int, default=[1, 2, 4, 8, 16, 32])
-    parser.add_argument("--gauss-orders", nargs="+", type=int, default=[64, 96, 128, 160, 192, 224, 256, 320, 384])
+    parser.add_argument(
+        "--matsubara-indices",
+        nargs="+",
+        type=int,
+        default=[1, 2, 4, 8, 16, 32],
+    )
+    parser.add_argument(
+        "--gauss-orders",
+        nargs="+",
+        type=int,
+        default=[64, 96, 160, 192, 320, 384],
+        help=(
+            "low/high stage pairs using one composite Gauss method; default pairs "
+            "are (64,96), (160,192), (320,384)"
+        ),
+    )
     parser.add_argument("--panel-count", type=int, default=16)
     parser.add_argument("--transverse-workers", type=int, default=8)
     parser.add_argument("--transverse-task-size", type=int, default=4)
@@ -110,7 +131,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--ward-tolerance", type=float, default=1e-7)
     parser.add_argument("--ward-absolute-tolerance", type=float, default=1e-12)
     parser.add_argument("--condition-max", type=float, default=1e12)
-    parser.add_argument("--resume", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--resume",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+    )
     parser.add_argument("--stop-on-error", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
@@ -134,15 +159,27 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     if args.soft_confirmations <= 0:
         parser.error("soft confirmations must be positive")
     if any(index <= 0 for index in args.matsubara_indices):
-        parser.error("this scan covers positive Matsubara indices only; exact n=0 is separate")
-    orders = tuple(sorted(set(int(value) for value in args.gauss_orders)))
-    if len(orders) < 2:
-        parser.error("at least two Gauss orders are required")
+        parser.error(
+            "this scan covers positive Matsubara indices only; exact n=0 is separate"
+        )
+
+    orders = tuple(int(value) for value in args.gauss_orders)
+    if len(orders) < 2 or len(orders) % 2 != 0:
+        parser.error("Gauss orders must contain one or more low/high pairs")
     if any(order <= 0 or order % args.panel_count != 0 for order in orders):
-        parser.error("every Gauss order must be positive and divisible by panel count")
+        parser.error(
+            "every Gauss order must be positive and divisible by panel count"
+        )
+    if any(right <= left for left, right in zip(orders[:-1], orders[1:])):
+        parser.error("Gauss orders must be strictly increasing")
+    stages = tuple((orders[index], orders[index + 1]) for index in range(0, len(orders), 2))
     args.gauss_orders = orders
-    args.matsubara_indices = tuple(sorted(set(int(value) for value in args.matsubara_indices)))
+    args.gauss_stages = stages
+    args.matsubara_indices = tuple(
+        sorted(set(int(value) for value in args.matsubara_indices))
+    )
     args.pairings = tuple(dict.fromkeys(args.pairings))
+
     if not (0.0 <= args.minimum_strict_fraction <= 1.0):
         parser.error("minimum strict fraction must lie in [0,1]")
     if not (0.0 <= args.strict_sigma_rtol <= args.soft_sigma_rtol):
@@ -183,19 +220,29 @@ def _budget(args: argparse.Namespace, case: CaseSpec, order: int) -> int:
 
 def _output_matches(path: Path, fingerprint: str) -> bool:
     manifest = path.with_suffix(".task.json")
-    if not path.is_file() or not path.with_suffix(".json").is_file() or not manifest.is_file():
+    if (
+        not path.is_file()
+        or not path.with_suffix(".json").is_file()
+        or not manifest.is_file()
+    ):
         return False
     try:
         payload = json.loads(manifest.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return False
-    return payload.get("state") == "completed" and payload.get("fingerprint") == fingerprint
+    return bool(
+        payload.get("state") == "completed"
+        and payload.get("fingerprint") == fingerprint
+    )
 
 
 def _write_manifest(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    temporary.write_text(
+        json.dumps(payload, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     temporary.replace(path)
 
 
@@ -211,34 +258,63 @@ def _run_command(
     stage: str,
 ) -> None:
     command = [
-        sys.executable, "-m", "validation", "matsubara", "positive-orbit-gauss-crosscheck",
-        "--pairing", pairing,
-        "--nk", str(args.nk),
-        "--mx", str(case.mx),
-        "--my", str(case.my),
-        "--matsubara-indices", *(str(value) for value in args.matsubara_indices),
-        "--gauss-orders", str(order),
-        "--panel-count", str(args.panel_count),
-        "--integration-start", str(float(integration_start)),
-        "--transverse-workers", str(args.transverse_workers),
-        "--transverse-task-size", str(args.transverse_task_size),
-        "--shift-s", str(args.shift_s),
-        "--subgrid-average", str(args.subgrid_average),
-        "--max-point-evaluations", str(_budget(args, case, order)),
-        "--temperature-K", str(args.temperature_K),
-        "--delta0-eV", str(args.delta0_eV),
-        "--eta-eV", str(args.eta_eV),
-        "--degeneracy", str(args.degeneracy),
-        "--separation-nm", str(args.separation_nm),
-        "--ward-tolerance", str(args.ward_tolerance),
-        "--ward-absolute-tolerance", str(args.ward_absolute_tolerance),
-        "--condition-max", str(args.condition_max),
-        "--reference-matrix-rtol", str(args.strict_sigma_rtol),
-        "--reference-logdet-rtol", str(args.observable_rtol),
-        "--output", str(output),
+        sys.executable,
+        "-m",
+        "validation",
+        "matsubara",
+        "positive-orbit-gauss-crosscheck",
+        "--pairing",
+        pairing,
+        "--nk",
+        str(args.nk),
+        "--mx",
+        str(case.mx),
+        "--my",
+        str(case.my),
+        "--matsubara-indices",
+        *(str(value) for value in args.matsubara_indices),
+        "--gauss-orders",
+        str(order),
+        "--panel-count",
+        str(args.panel_count),
+        "--integration-start",
+        str(float(integration_start)),
+        "--transverse-workers",
+        str(args.transverse_workers),
+        "--transverse-task-size",
+        str(args.transverse_task_size),
+        "--shift-s",
+        str(args.shift_s),
+        "--subgrid-average",
+        str(args.subgrid_average),
+        "--max-point-evaluations",
+        str(_budget(args, case, order)),
+        "--temperature-K",
+        str(args.temperature_K),
+        "--delta0-eV",
+        str(args.delta0_eV),
+        "--eta-eV",
+        str(args.eta_eV),
+        "--degeneracy",
+        str(args.degeneracy),
+        "--separation-nm",
+        str(args.separation_nm),
+        "--ward-tolerance",
+        str(args.ward_tolerance),
+        "--ward-absolute-tolerance",
+        str(args.ward_absolute_tolerance),
+        "--condition-max",
+        str(args.condition_max),
+        "--reference-matrix-rtol",
+        str(args.strict_sigma_rtol),
+        "--reference-logdet-rtol",
+        str(args.observable_rtol),
+        "--output",
+        str(output),
     ]
     if reference_csv is not None:
         command.extend(("--reference-csv", str(reference_csv)))
+
     fingerprint = _fingerprint({"stage": stage, "command": command[1:]})
     manifest = output.with_suffix(".task.json")
     if args.resume and _output_matches(output, fingerprint):
@@ -248,10 +324,16 @@ def _run_command(
     print("       " + " ".join(command), flush=True)
     if args.dry_run:
         return
+
     output.parent.mkdir(parents=True, exist_ok=True)
     _write_manifest(
         manifest,
-        {"state": "running", "fingerprint": fingerprint, "command": command, "updated_utc": datetime.now(timezone.utc).isoformat()},
+        {
+            "state": "running",
+            "fingerprint": fingerprint,
+            "command": command,
+            "updated_utc": datetime.now(timezone.utc).isoformat(),
+        },
     )
     started = time.perf_counter()
     log_path = output.with_suffix(".log")
@@ -271,7 +353,11 @@ def _run_command(
             print(f"[{pairing}/{case.label}] {line.rstrip()}", flush=True)
         returncode = int(process.wait())
     wall = float(time.perf_counter() - started)
-    completed = returncode == 0 and output.is_file() and output.with_suffix(".json").is_file()
+    completed = bool(
+        returncode == 0
+        and output.is_file()
+        and output.with_suffix(".json").is_file()
+    )
     _write_manifest(
         manifest,
         {
@@ -284,7 +370,10 @@ def _run_command(
         },
     )
     if not completed:
-        raise RuntimeError(f"child failed for {pairing}/{case.label}/{stage}/C{order}; see {log_path}")
+        raise RuntimeError(
+            f"child failed for {pairing}/{case.label}/{stage}/C{order}; "
+            f"see {log_path}"
+        )
 
 
 def _read_rows(path: Path) -> tuple[dict[str, Any], ...]:
@@ -319,18 +408,28 @@ def _metrics(
         and _as_bool(row["logdet_passed"])
         for row in rows
     )
-    sigma_values = tuple(_finite_float(row["reference_sigma_matrix_relative"]) for row in rows)
-    reflection_values = tuple(_finite_float(row["reference_reflection_matrix_relative"]) for row in rows)
-    logdet_values = tuple(_finite_float(row["reference_logdet_relative"]) for row in rows)
+    sigma_values = tuple(
+        _finite_float(row["reference_sigma_matrix_relative"]) for row in rows
+    )
+    reflection_values = tuple(
+        _finite_float(row["reference_reflection_matrix_relative"]) for row in rows
+    )
+    logdet_values = tuple(
+        _finite_float(row["reference_logdet_relative"]) for row in rows
+    )
     max_sigma = max(sigma_values, default=float("inf"))
     max_reflection = max(reflection_values, default=float("inf"))
     max_logdet = max(logdet_values, default=float("inf"))
-    observable_all = physical_all and max_reflection <= observable and max_logdet <= observable
+    observable_all = bool(
+        physical_all
+        and max_reflection <= observable
+        and max_logdet <= observable
+    )
     return StepMetrics(
         physical_all=physical_all,
         observable_all=observable_all,
-        strict_all=observable_all and max_sigma <= sigma_strict,
-        soft_all=observable_all and max_sigma <= sigma_soft,
+        strict_all=bool(observable_all and max_sigma <= sigma_strict),
+        soft_all=bool(observable_all and max_sigma <= sigma_soft),
         max_sigma_relative=max_sigma,
         max_reflection_relative=max_reflection,
         max_logdet_relative=max_logdet,
@@ -342,7 +441,8 @@ def _final_rows(
     *,
     pairing: str,
     case: CaseSpec,
-    order: int,
+    reference_order: int,
+    final_order: int,
     classification: str,
     metrics: StepMetrics,
     cut_audit: StepMetrics | None,
@@ -358,19 +458,36 @@ def _final_rows(
                 "q_norm": float(row["q_norm"]),
                 "matsubara_index": int(row["matsubara_index"]),
                 "xi_eV": float(row["xi_eV"]),
-                "final_gauss_order": order,
+                "reference_gauss_order": reference_order,
+                "final_gauss_order": final_order,
                 "panel_count": int(row["panel_count"]),
                 "classification": classification,
                 "point_pipeline_passed": _as_bool(row["point_pipeline_passed"]),
                 "ward_passed": _as_bool(row["ward_passed"]),
                 "sigma_relative": float(row["reference_sigma_matrix_relative"]),
-                "reflection_relative": float(row["reference_reflection_matrix_relative"]),
+                "reflection_relative": float(
+                    row["reference_reflection_matrix_relative"]
+                ),
                 "logdet_relative": float(row["reference_logdet_relative"]),
                 "cut_audit_performed": cut_audit is not None,
-                "cut_audit_soft_passed": bool(cut_audit is not None and cut_audit.soft_all),
-                "cut_sigma_relative_max": float("nan") if cut_audit is None else cut_audit.max_sigma_relative,
-                "cut_reflection_relative_max": float("nan") if cut_audit is None else cut_audit.max_reflection_relative,
-                "cut_logdet_relative_max": float("nan") if cut_audit is None else cut_audit.max_logdet_relative,
+                "cut_audit_soft_passed": bool(
+                    cut_audit is not None and cut_audit.soft_all
+                ),
+                "cut_sigma_relative_max": (
+                    float("nan")
+                    if cut_audit is None
+                    else cut_audit.max_sigma_relative
+                ),
+                "cut_reflection_relative_max": (
+                    float("nan")
+                    if cut_audit is None
+                    else cut_audit.max_reflection_relative
+                ),
+                "cut_logdet_relative_max": (
+                    float("nan")
+                    if cut_audit is None
+                    else cut_audit.max_logdet_relative
+                ),
             }
         )
     return result
@@ -379,14 +496,25 @@ def _final_rows(
 def main() -> None:
     args = _parse_args()
     print("single-method positive-orbit staged scan", flush=True)
-    print(f"pairings={args.pairings}; cases={[case.label for case in args.cases]}", flush=True)
-    print(f"orders={args.gauss_orders}; positive n={args.matsubara_indices}", flush=True)
-    print("exact n=0 is intentionally excluded and remains on the exact-static path", flush=True)
+    print(
+        f"pairings={args.pairings}; cases={[case.label for case in args.cases]}",
+        flush=True,
+    )
+    print(
+        f"Gauss stage pairs={args.gauss_stages}; positive n={args.matsubara_indices}",
+        flush=True,
+    )
+    print(
+        "exact n=0 is intentionally excluded and remains on the exact-static path",
+        flush=True,
+    )
 
     if args.dry_run:
         for pairing in args.pairings:
             for case in args.cases:
-                print(f"would scan {pairing}/{case.label}")
+                print(
+                    f"would scan {pairing}/{case.label} through {args.gauss_stages}"
+                )
         return
 
     final_rows: list[dict[str, Any]] = []
@@ -396,61 +524,76 @@ def main() -> None:
     for pairing in args.pairings:
         for case in args.cases:
             case_root = args.output_root / "raw" / pairing / case.label
-            previous_csv: Path | None = None
-            previous_soft_max = float("inf")
+            previous_stage_sigma = float("inf")
             soft_streak = 0
             classification = "unresolved"
-            final_order = int(args.gauss_orders[-1])
+            final_reference_order = int(args.gauss_stages[-1][0])
+            final_order = int(args.gauss_stages[-1][1])
             final_metrics: StepMetrics | None = None
 
-            for order in args.gauss_orders:
-                output = case_root / f"c{order}.csv"
+            for stage_index, (low_order, high_order) in enumerate(args.gauss_stages):
+                low_output = case_root / f"c{low_order}.csv"
+                high_output = case_root / f"c{high_order}.csv"
                 _run_command(
                     args=args,
                     pairing=pairing,
                     case=case,
-                    order=order,
-                    output=output,
-                    reference_csv=previous_csv,
-                    stage="order_ladder",
+                    order=low_order,
+                    output=low_output,
+                    reference_csv=None,
+                    stage=f"stage_{stage_index}_low",
                 )
-                if previous_csv is None:
-                    previous_csv = output
-                    continue
-
+                _run_command(
+                    args=args,
+                    pairing=pairing,
+                    case=case,
+                    order=high_order,
+                    output=high_output,
+                    reference_csv=low_output,
+                    stage=f"stage_{stage_index}_high",
+                )
                 metrics = _metrics(
-                    output,
+                    high_output,
                     sigma_strict=args.strict_sigma_rtol,
                     sigma_soft=args.soft_sigma_rtol,
                     observable=args.observable_rtol,
                 )
                 final_metrics = metrics
-                final_order = order
+                final_reference_order = low_order
+                final_order = high_order
+
                 if metrics.strict_all:
                     classification = "strict"
                     break
 
-                nonworsening = metrics.max_sigma_relative <= previous_soft_max * (1.0 + 1e-12)
+                nonworsening = bool(
+                    metrics.max_sigma_relative
+                    <= previous_stage_sigma * (1.0 + 1e-12)
+                )
                 if metrics.soft_all and nonworsening:
                     soft_streak += 1
                 elif metrics.soft_all:
                     soft_streak = 1
                 else:
                     soft_streak = 0
-                previous_soft_max = metrics.max_sigma_relative
+                previous_stage_sigma = metrics.max_sigma_relative
                 if metrics.soft_all and soft_streak >= args.soft_confirmations:
                     classification = "soft_confirmed"
                     break
-                previous_csv = output
 
             if final_metrics is None:
-                raise RuntimeError(f"no comparable order pair for {pairing}/{case.label}")
-            if classification == "unresolved" and final_metrics.soft_all:
-                classification = "soft_at_max_order"
-            elif classification == "unresolved" and not final_metrics.physical_all:
-                classification = "physical_failure"
-            elif classification == "unresolved" and not final_metrics.observable_all:
-                classification = "observable_failure"
+                raise RuntimeError(
+                    f"no comparable order pair for {pairing}/{case.label}"
+                )
+            if classification == "unresolved":
+                if final_metrics.soft_all:
+                    classification = "soft_at_max_order"
+                elif not final_metrics.physical_all:
+                    classification = "physical_failure"
+                elif not final_metrics.observable_all:
+                    classification = "observable_failure"
+                else:
+                    classification = "sigma_unresolved"
 
             cut_metrics: StepMetrics | None = None
             if args.soft_cut_audit and classification.startswith("soft"):
@@ -479,7 +622,8 @@ def main() -> None:
                 _final_rows(
                     pairing=pairing,
                     case=case,
-                    order=final_order,
+                    reference_order=final_reference_order,
+                    final_order=final_order,
                     classification=classification,
                     metrics=final_metrics,
                     cut_audit=cut_metrics,
@@ -492,6 +636,7 @@ def main() -> None:
                     "mx": case.mx,
                     "my": case.my,
                     "classification": classification,
+                    "reference_gauss_order": final_reference_order,
                     "final_gauss_order": final_order,
                     "max_sigma_relative": final_metrics.max_sigma_relative,
                     "max_reflection_relative": final_metrics.max_reflection_relative,
@@ -501,20 +646,30 @@ def main() -> None:
                     "strict_all": final_metrics.strict_all,
                     "soft_all": final_metrics.soft_all,
                     "cut_audit_performed": cut_metrics is not None,
-                    "cut_audit_soft_passed": bool(cut_metrics is not None and cut_metrics.soft_all),
+                    "cut_audit_soft_passed": bool(
+                        cut_metrics is not None and cut_metrics.soft_all
+                    ),
                 }
             )
             print(
-                f"[final] {pairing}/{case.label}: {classification}; C{final_order}; "
+                f"[final] {pairing}/{case.label}: {classification}; "
+                f"C{final_reference_order}/C{final_order}; "
                 f"sigma={final_metrics.max_sigma_relative:.3e}; "
                 f"R={final_metrics.max_reflection_relative:.3e}; "
                 f"logdet={final_metrics.max_logdet_relative:.3e}",
                 flush=True,
             )
             if args.stop_on_error and classification in {
-                "physical_failure", "observable_failure", "cut_audit_failure"
+                "physical_failure",
+                "observable_failure",
+                "cut_audit_failure",
             }:
-                raise SystemExit(f"stopping on {pairing}/{case.label}: {classification}")
+                raise SystemExit(
+                    f"stopping on {pairing}/{case.label}: {classification}"
+                )
+
+    if not final_rows or not case_records:
+        raise RuntimeError("staged scan produced no final rows")
 
     output_root = args.output_root
     output_root.mkdir(parents=True, exist_ok=True)
@@ -529,16 +684,24 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(case_records)
 
+    accepted_classes = {"strict", "soft_confirmed", "soft_at_max_order"}
     total_points = len(final_rows)
-    strict_points = sum(row["sigma_relative"] <= args.strict_sigma_rtol and row["classification"] == "strict" for row in final_rows)
-    soft_points = sum(
-        row["sigma_relative"] <= args.soft_sigma_rtol
-        and row["reflection_relative"] <= args.observable_rtol
-        and row["logdet_relative"] <= args.observable_rtol
-        and row["classification"] in {"strict", "soft_confirmed", "soft_at_max_order"}
+    strict_points = sum(
+        row["classification"] == "strict"
+        and float(row["sigma_relative"]) <= args.strict_sigma_rtol
         for row in final_rows
     )
-    all_closure = all(bool(row["point_pipeline_passed"]) and bool(row["ward_passed"]) for row in final_rows)
+    soft_points = sum(
+        row["classification"] in accepted_classes
+        and float(row["sigma_relative"]) <= args.soft_sigma_rtol
+        and float(row["reflection_relative"]) <= args.observable_rtol
+        and float(row["logdet_relative"]) <= args.observable_rtol
+        for row in final_rows
+    )
+    all_closure = all(
+        bool(row["point_pipeline_passed"]) and bool(row["ward_passed"])
+        for row in final_rows
+    )
     all_observables = all(
         float(row["reflection_relative"]) <= args.observable_rtol
         and float(row["logdet_relative"]) <= args.observable_rtol
@@ -551,16 +714,22 @@ def main() -> None:
         and all_observables
         and soft_points == total_points
         and strict_fraction >= args.minimum_strict_fraction
-        and all(record["classification"] != "cut_audit_failure" for record in case_records)
+        and all(
+            record["classification"] != "cut_audit_failure"
+            for record in case_records
+        )
     )
+
     payload = {
-        "schema": "positive_orbit_single_method_staged_scan_v1",
+        "schema": "positive_orbit_single_method_staged_scan_v2",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "arguments": {
             key: (
                 [case.__dict__ for case in value]
                 if key == "cases"
-                else str(value) if isinstance(value, Path) else value
+                else str(value)
+                if isinstance(value, Path)
+                else value
             )
             for key, value in vars(args).items()
         },
@@ -569,7 +738,10 @@ def main() -> None:
         "status": {
             "positive_matsubara_only": True,
             "exact_zero_matsubara_separate": True,
-            "single_transverse_method": "equal_panel_composite_fixed_gauss_legendre",
+            "single_transverse_method": (
+                "equal_panel_composite_fixed_gauss_legendre"
+            ),
+            "gauss_stage_pairs": args.gauss_stages,
             "all_closure_checks_passed": all_closure,
             "all_observable_checks_passed": all_observables,
             "strict_point_fraction": strict_fraction,
@@ -581,9 +753,12 @@ def main() -> None:
         },
     }
     json_path = output_root / "scan_summary.json"
-    json_path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    json_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     summary = (
-        "positive-orbit single-method staged scan\n"
+        "positive-orbit single-method paired-stage scan\n"
         f"points={total_points}; strict={strict_points} ({strict_fraction:.1%}); "
         f"soft-or-strict={soft_points} ({soft_fraction:.1%})\n"
         f"all closure={all_closure}; all observables={all_observables}\n"
