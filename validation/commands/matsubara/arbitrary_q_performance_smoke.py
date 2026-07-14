@@ -21,7 +21,7 @@ from validation.lib.finite_q_validation_models import get_finite_q_validation_mo
 from validation.lib.source_tree_provenance import source_tree_provenance
 
 DEFAULT_OUTPUT = Path(
-    "validation/outputs/matsubara/arbitrary_q_staged_flow/stage1_performance_smoke.json"
+    "validation/outputs/matsubara/arbitrary_q_validation/performance_smoke.json"
 )
 _TIMING_FIELDS = (
     "q_workspace_seconds",
@@ -35,13 +35,19 @@ _TIMING_FIELDS = (
 
 def _args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--pairings", nargs="+", choices=("spm", "dwave"), default=["spm"])
+    parser.add_argument(
+        "--pairings", nargs="+", choices=("spm", "dwave"), default=["spm"]
+    )
     parser.add_argument("--N", type=int, default=128)
     parser.add_argument("--q-tasks", type=int, default=4)
     parser.add_argument("--workers", type=int, default=4)
-    parser.add_argument("--matsubara-indices", nargs="+", type=int, default=[0, 1, 2, 4, 8])
+    parser.add_argument(
+        "--matsubara-indices", nargs="+", type=int, default=[0, 1, 2, 4, 8]
+    )
     parser.add_argument("--canonical-block-size", type=int, default=4096)
-    parser.add_argument("--runtime-chunk-sizes", nargs="+", type=int, default=[4096, 16384])
+    parser.add_argument(
+        "--runtime-chunk-sizes", nargs="+", type=int, default=[4096, 16384]
+    )
     parser.add_argument("--temperature-K", type=float, default=10.0)
     parser.add_argument("--delta0-eV", type=float, default=0.1)
     parser.add_argument("--eta-eV", type=float, default=1e-8)
@@ -50,27 +56,40 @@ def _args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args(argv)
     args.pairings = tuple(dict.fromkeys(args.pairings))
-    args.matsubara_indices = tuple(sorted(set(int(v) for v in args.matsubara_indices)))
-    args.runtime_chunk_sizes = tuple(dict.fromkeys(int(v) for v in args.runtime_chunk_sizes))
+    args.matsubara_indices = tuple(
+        sorted(set(int(v) for v in args.matsubara_indices))
+    )
+    args.runtime_chunk_sizes = tuple(
+        dict.fromkeys(int(v) for v in args.runtime_chunk_sizes)
+    )
     if args.N <= 0 or args.N % 2:
         parser.error("--N must be positive and even")
     if args.N * args.N < max(args.runtime_chunk_sizes):
-        parser.error("N^2 must be at least the largest runtime chunk for a meaningful smoke test")
+        parser.error(
+            "N^2 must be at least the largest runtime chunk for a meaningful smoke test"
+        )
     if args.workers <= 0 or args.q_tasks < args.workers:
         parser.error("require q_tasks >= workers >= 1")
-    if 0 not in args.matsubara_indices or not any(v > 0 for v in args.matsubara_indices):
+    if 0 not in args.matsubara_indices or not any(
+        v > 0 for v in args.matsubara_indices
+    ):
         parser.error("exact zero and at least one positive Matsubara index are required")
     if args.canonical_block_size <= 0 or args.canonical_block_size % 2:
         parser.error("canonical block size must be positive and even")
     for size in args.runtime_chunk_sizes:
         if size < args.canonical_block_size or size % args.canonical_block_size:
-            parser.error("runtime chunks must be integer multiples of canonical block size")
+            parser.error(
+                "runtime chunks must be integer multiples of canonical block size"
+            )
     return args
 
 
 def _xi(indices: Sequence[int], temperature_K: float) -> np.ndarray:
     return np.asarray(
-        [0.0 if n == 0 else matsubara_energy_eV(int(n), temperature_K) for n in indices],
+        [
+            0.0 if n == 0 else matsubara_energy_eV(int(n), temperature_K)
+            for n in indices
+        ],
         dtype=float,
     )
 
@@ -99,7 +118,9 @@ def _tasks(count: int) -> tuple[QLabAngleTask, ...]:
     return tuple(rows)
 
 
-def _mixed(left: np.ndarray, right: np.ndarray, *, atol: float, rtol: float) -> dict[str, Any]:
+def _mixed(
+    left: np.ndarray, right: np.ndarray, *, atol: float, rtol: float
+) -> dict[str, Any]:
     a = np.asarray(left, dtype=complex)
     b = np.asarray(right, dtype=complex)
     absolute = float(np.linalg.norm(a - b))
@@ -132,8 +153,8 @@ def _timing_breakdown(profiles: Iterable[object]) -> dict[str, Any]:
         "reported_total_seconds": reported_total,
         "attributed_seconds": attributed,
         "unattributed_seconds": unattributed,
-        "stage_seconds": seconds,
-        "stage_fraction_of_reported_total": fractions,
+        "timing_seconds": seconds,
+        "timing_fraction_of_reported_total": fractions,
     }
 
 
@@ -149,7 +170,9 @@ def _all_responses(results: Sequence[object]) -> tuple[object, ...]:
     return tuple(values)
 
 
-def _run_parallel(*, tasks: Sequence[QLabAngleTask], workers: int, common: dict[str, Any]) -> dict[str, Any]:
+def _run_parallel(
+    *, tasks: Sequence[QLabAngleTask], workers: int, common: dict[str, Any]
+) -> dict[str, Any]:
     started = perf_counter()
     evaluator = ArbitraryQParallelEvaluator(process_workers=int(workers), **common)
     try:
@@ -161,13 +184,28 @@ def _run_parallel(*, tasks: Sequence[QLabAngleTask], workers: int, common: dict[
     responses = _all_responses(results)
     return {
         "end_to_end_seconds": end_to_end,
-        "summed_worker_seconds": float(sum(float(item.worker_seconds) for item in results)),
+        "summed_worker_seconds": float(
+            sum(float(item.worker_seconds) for item in results)
+        ),
         "metadata": metadata,
-        "timing_breakdown": _timing_breakdown(response.profile for response in responses),
-        "operator_identity_all_passed": all(response.operator_ward.passed for response in responses),
-        "counterterm_add_counts": sorted({int(response.profile.counterterm_add_count) for response in responses}),
-        "q_workspace_build_count": int(sum(response.profile.q_workspace_build_count for response in responses)),
-        "shifted_eigh_call_count": int(sum(response.profile.shifted_eigensystem_build_count for response in responses)),
+        "timing_breakdown": _timing_breakdown(
+            response.profile for response in responses
+        ),
+        "operator_identity_all_passed": all(
+            response.operator_ward.passed for response in responses
+        ),
+        "counterterm_add_counts": sorted(
+            {int(response.profile.counterterm_add_count) for response in responses}
+        ),
+        "q_workspace_build_count": int(
+            sum(response.profile.q_workspace_build_count for response in responses)
+        ),
+        "shifted_eigh_call_count": int(
+            sum(
+                response.profile.shifted_eigensystem_build_count
+                for response in responses
+            )
+        ),
     }
 
 
@@ -225,18 +263,24 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
         count_passed = bool(
             response.profile.runtime_chunk_count == expected_chunks
             and response.profile.q_workspace_build_count == expected_chunks
-            and response.profile.shifted_eigensystem_build_count == 2 * expected_chunks
+            and response.profile.shifted_eigensystem_build_count
+            == 2 * expected_chunks
         )
         frequency_reuse = bool(
-            short.profile.q_workspace_build_count == response.profile.q_workspace_build_count
+            short.profile.q_workspace_build_count
+            == response.profile.q_workspace_build_count
             and short.profile.shifted_eigensystem_build_count
             == response.profile.shifted_eigensystem_build_count
         )
-        comparison = None if baseline is None else _mixed(
-            baseline,
-            response.packed_primitives,
-            atol=args.comparison_atol,
-            rtol=args.comparison_rtol,
+        comparison = (
+            None
+            if baseline is None
+            else _mixed(
+                baseline,
+                response.packed_primitives,
+                atol=args.comparison_atol,
+                rtol=args.comparison_rtol,
+            )
         )
         if baseline is None:
             baseline = np.asarray(response.packed_primitives, dtype=complex)
@@ -284,7 +328,9 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
 def _write(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    temporary.write_text(
+        json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8"
+    )
     temporary.replace(path)
 
 
@@ -293,7 +339,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     rows = [_run_pairing(args, pairing) for pairing in args.pairings]
     passed = all(row["optimization_structure_passed"] for row in rows)
     payload = {
-        "schema": "arbitrary-q-performance-smoke-v1",
+        "schema": "arbitrary-q-performance-smoke-v2",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         **source_tree_provenance().as_dict(),
         "config": {
@@ -319,7 +365,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     _write(args.output, payload)
     print(json.dumps({"output": str(args.output), "passed": passed}, indent=2))
     if not passed:
-        raise SystemExit("arbitrary-q performance smoke found a structural optimization failure")
+        raise SystemExit(
+            "arbitrary-q performance smoke found a structural optimization failure"
+        )
 
 
 if __name__ == "__main__":
