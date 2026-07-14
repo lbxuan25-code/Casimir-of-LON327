@@ -14,6 +14,9 @@ from lno327.response.arbitrary_q_material_cache import (
     build_material_grid_cache,
     material_cache_fingerprint,
 )
+from lno327.response.effective_kernel import effective_em_kernel_from_components
+from lno327.response.static_ward_gate import validate_strict_static_ward_closure
+from lno327.response.ward_validation import validate_effective_ward_xy
 from lno327.response.periodic_bz_grid import (
     audit_shift_pair,
     build_periodic_bz_grid,
@@ -318,7 +321,15 @@ def test_q_domain_rejects_unvalidated_momentum() -> None:
 
 
 @pytest.mark.parametrize("pairing_name", ["spm", "dwave"])
-def test_tiny_arbitrary_q_integrated_physical_pipeline(pairing_name: str) -> None:
+def test_tiny_arbitrary_q_integrated_ward_and_positive_pipeline(pairing_name: str) -> None:
+    """Tiny grids prove algebraic closure, not static-sheet convergence.
+
+    Exact zero is required to pass the operator, integrated Ward and strict-static
+    gates. The positive-frequency member additionally exercises sheet,
+    reflection and passive logdet. Formal static-sheet convergence remains a
+    large-N qualification requirement rather than being weakened in a unit test.
+    """
+
     model, ansatz, pairing, _config, _options, _grid, cache = _material(
         pairing_name,
         n=16,
@@ -343,20 +354,42 @@ def test_tiny_arbitrary_q_integrated_physical_pipeline(pairing_name: str) -> Non
         ward_absolute_tolerance=1e-12,
     )
     assert result.operator_ward.passed
-    for xi, component, rhs in zip(
-        result.xi_eV_values,
-        result.components,
-        result.rhs,
-        strict=True,
-    ):
-        physical = evaluate_matsubara_pipeline(
-            components=component,
-            rhs=rhs,
-            q_model=q,
-            xi_eV=float(xi),
-            config=config,
-        )
-        assert physical["physical_passed"], physical["error"]
+
+    zero_kernel = effective_em_kernel_from_components(
+        result.components[0],
+        q_model=q,
+        xi_eV=0.0,
+    )
+    zero_ward = validate_effective_ward_xy(
+        zero_kernel,
+        result.rhs[0],
+        residual_tolerance=config.ward_tolerance,
+        absolute_residual_tolerance=config.ward_absolute_tolerance,
+        condition_max=config.condition_max,
+    )
+    zero_strict = validate_strict_static_ward_closure(
+        zero_kernel,
+        zero_ward,
+        energy_scale_eV=config.static_energy_scale_eV,
+        primitive_tolerance=config.static_primitive_tolerance,
+        amplitude_tolerance=config.static_amplitude_tolerance,
+        phase_tolerance=config.static_phase_tolerance,
+        effective_direct_tolerance=config.static_effective_direct_tolerance,
+        effective_residual_tolerance=config.static_effective_residual_tolerance,
+        longitudinal_tolerance=config.static_longitudinal_tolerance,
+        condition_max=config.condition_max,
+    )
+    assert zero_ward.passed
+    assert zero_strict.passed
+
+    positive = evaluate_matsubara_pipeline(
+        components=result.components[1],
+        rhs=result.rhs[1],
+        q_model=q,
+        xi_eV=float(result.xi_eV_values[1]),
+        config=config,
+    )
+    assert positive["physical_passed"], positive["error"]
 
 
 def test_paired_shift_average_occurs_before_nonlinear_postprocessing() -> None:
@@ -419,7 +452,7 @@ def test_two_plate_common_lab_logdet_small_path() -> None:
         spec=model.spec,
         ansatz=ansatz,
         pairing=pairing,
-        xi_eV_values=np.asarray([0.0, 0.02]),
+        xi_eV_values=np.asarray([0.02]),
         temperature_K=10.0,
         eta_eV=1e-8,
         canonical_reduction_block_size=32,
