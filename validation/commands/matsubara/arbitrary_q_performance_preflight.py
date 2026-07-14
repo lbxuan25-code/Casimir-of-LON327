@@ -29,7 +29,10 @@ from lno327.response.arbitrary_q_formal_policy import (
     validate_performance_formal_config,
 )
 from lno327.response.arbitrary_q_material_cache import build_material_grid_cache
-from lno327.response.periodic_bz_grid import build_periodic_bz_grid
+from lno327.response.periodic_bz_grid import (
+    build_periodic_bz_grid,
+    exact_float64_key,
+)
 from lno327.workflows.arbitrary_q_matsubara import integrate_arbitrary_q_periodic_bz
 from lno327.workflows.arbitrary_q_parallel import (
     ArbitraryQParallelEvaluator,
@@ -68,7 +71,9 @@ def _formal_config(args: argparse.Namespace) -> dict[str, Any]:
         "runtime_chunk_sizes": list(args.runtime_chunk_sizes),
         "minimum_speedup": float(args.minimum_speedup),
         "minimum_cpu_wall_ratio": float(args.minimum_cpu_wall_ratio),
-        "maximum_pool_overhead_fraction": float(args.maximum_pool_overhead_fraction),
+        "maximum_pool_overhead_fraction": float(
+            args.maximum_pool_overhead_fraction
+        ),
         "comparison_rtol": float(args.comparison_rtol),
         "comparison_atol": float(args.comparison_atol),
         "temperature_K": float(args.temperature_K),
@@ -81,13 +86,22 @@ def _formal_config(args: argparse.Namespace) -> dict[str, Any]:
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--pairings", nargs="+", choices=("spm", "dwave"), default=["spm", "dwave"])
+    parser.add_argument(
+        "--pairings",
+        nargs="+",
+        choices=("spm", "dwave"),
+        default=["spm", "dwave"],
+    )
     parser.add_argument("--N", type=int, default=128)
     parser.add_argument("--q-tasks", type=int, default=8)
     parser.add_argument("--workers", type=int, default=8)
-    parser.add_argument("--matsubara-indices", nargs="+", type=int, default=[0, 1, 2, 4, 8])
+    parser.add_argument(
+        "--matsubara-indices", nargs="+", type=int, default=[0, 1, 2, 4, 8]
+    )
     parser.add_argument("--canonical-block-size", type=int, default=4096)
-    parser.add_argument("--runtime-chunk-sizes", nargs="+", type=int, default=[4096, 16384])
+    parser.add_argument(
+        "--runtime-chunk-sizes", nargs="+", type=int, default=[4096, 16384]
+    )
     parser.add_argument("--temperature-K", type=float, default=10.0)
     parser.add_argument("--delta0-eV", type=float, default=0.1)
     parser.add_argument("--eta-eV", type=float, default=1e-8)
@@ -108,20 +122,30 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     for value in args.runtime_chunk_sizes:
         if value < args.canonical_block_size or value % args.canonical_block_size:
             parser.error("runtime chunks must be multiples of canonical block size")
-    args.matsubara_indices = tuple(sorted(set(int(v) for v in args.matsubara_indices)))
-    if 0 not in args.matsubara_indices or not any(v > 0 for v in args.matsubara_indices):
+    args.matsubara_indices = tuple(
+        sorted(set(int(value) for value in args.matsubara_indices))
+    )
+    if 0 not in args.matsubara_indices or not any(
+        value > 0 for value in args.matsubara_indices
+    ):
         parser.error("preflight requires exact zero and at least one positive index")
     args.pairings = tuple(dict.fromkeys(args.pairings))
     formal = validate_performance_formal_config(_formal_config(args))
     if not formal.passed and not args.diagnostic_nonformal:
-        parser.error("configuration is looser than the frozen formal policy: " + "; ".join(formal.violations))
+        parser.error(
+            "configuration is looser than the frozen formal policy: "
+            + "; ".join(formal.violations)
+        )
     args.formal_policy = formal
     return args
 
 
 def _xi_values(indices: Sequence[int], temperature_K: float) -> np.ndarray:
     return np.asarray(
-        [0.0 if index == 0 else matsubara_energy_eV(index, temperature_K) for index in indices],
+        [
+            0.0 if index == 0 else matsubara_energy_eV(index, temperature_K)
+            for index in indices
+        ],
         dtype=float,
     )
 
@@ -132,10 +156,12 @@ def _base_q() -> np.ndarray:
 
 def _outer_tasks(count: int) -> tuple[QLabAngleTask, ...]:
     base = _base_q()
-    tasks = []
+    tasks: list[QLabAngleTask] = []
     for index in range(int(count)):
         angle = np.deg2rad(3.0 + 11.0 * index)
-        rotation = np.asarray([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+        rotation = np.asarray(
+            [[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]]
+        )
         tasks.append(
             QLabAngleTask(
                 index=index,
@@ -151,8 +177,15 @@ def _qualification_primary_tasks() -> tuple[QLabAngleTask, ...]:
     factor = 2.0 * np.pi / 1256.0
     return (
         QLabAngleTask(0, factor * np.asarray([1.0, 0.0]), 0.0, np.asarray([0.0])),
-        QLabAngleTask(1, factor * np.asarray([6.0, 4.0]), 0.0, np.asarray([0.0, np.deg2rad(17.0)])),
-        QLabAngleTask(2, factor * np.asarray([25.0, 24.0]), 0.0, np.asarray([0.0])),
+        QLabAngleTask(
+            1,
+            factor * np.asarray([6.0, 4.0]),
+            0.0,
+            np.asarray([0.0, np.deg2rad(17.0)]),
+        ),
+        QLabAngleTask(
+            2, factor * np.asarray([25.0, 24.0]), 0.0, np.asarray([0.0])
+        ),
         QLabAngleTask(3, factor * np.asarray([6.0, 6.0]), 0.0, np.asarray([0.0])),
     )
 
@@ -167,11 +200,18 @@ def _response_signature(response: object) -> np.ndarray:
     values = [np.asarray(response.packed_primitives, dtype=complex).reshape(-1)]
     for component, rhs in zip(response.components, response.rhs, strict=True):
         for field in (
-            "bare_bubble", "direct", "bare_total", "collective_bubble",
-            "collective_counterterm", "em_collective_left",
-            "collective_em_right", "gauge_restored",
+            "bare_bubble",
+            "direct",
+            "bare_total",
+            "collective_bubble",
+            "collective_counterterm",
+            "em_collective_left",
+            "collective_em_right",
+            "gauge_restored",
         ):
-            values.append(np.asarray(getattr(component, field), dtype=complex).reshape(-1))
+            values.append(
+                np.asarray(getattr(component, field), dtype=complex).reshape(-1)
+            )
         values.append(np.asarray(rhs.left, dtype=complex).reshape(-1))
         values.append(np.asarray(rhs.right, dtype=complex).reshape(-1))
     return np.concatenate(values)
@@ -184,8 +224,15 @@ def _signature(task_result: object) -> np.ndarray:
     )
 
 
-def _mixed(left: np.ndarray, right: np.ndarray, *, atol: float, rtol: float) -> dict[str, Any]:
-    a, b = np.asarray(left, dtype=complex), np.asarray(right, dtype=complex)
+def _mixed(
+    left: np.ndarray,
+    right: np.ndarray,
+    *,
+    atol: float,
+    rtol: float,
+) -> dict[str, Any]:
+    a = np.asarray(left, dtype=complex)
+    b = np.asarray(right, dtype=complex)
     absolute = float(np.linalg.norm(a - b))
     scale = max(float(np.linalg.norm(a)), float(np.linalg.norm(b)))
     threshold = float(atol) + float(rtol) * scale
@@ -227,14 +274,36 @@ def _hardware_record(threadpools: Sequence[dict[str, Any]]) -> dict[str, Any]:
     return record
 
 
+def _expected_response_cache_hits(results: Sequence[object]) -> int:
+    """Count exact duplicate response keys within each task-local cache."""
+
+    expected = 0
+    for task in results:
+        seen: set[str] = set()
+        for response in (task.result.plate_1, *task.result.plate_2):
+            key = exact_float64_key(np.asarray(response.q_model, dtype=float))
+            if key in seen:
+                expected += 1
+            else:
+                seen.add(key)
+    return expected
+
+
 def _architecture(results: Sequence[object]) -> dict[str, Any]:
-    profiles = [response.profile for task in results for response in (task.result.plate_1, *task.result.plate_2)]
+    profiles = [
+        response.profile
+        for task in results
+        for response in (task.result.plate_1, *task.result.plate_2)
+    ]
     operator_passed = all(
         response.operator_ward.passed
         for task in results
         for response in (task.result.plate_1, *task.result.plate_2)
     )
-    cache_hits = sum(int(task.result.response_cache_metadata["hits"]) for task in results)
+    cache_hits = sum(
+        int(task.result.response_cache_metadata["hits"]) for task in results
+    )
+    expected_cache_hits = _expected_response_cache_hits(results)
     payload_bytes = sum(int(task.payload_bytes) for task in results)
     rss = max((int(task.worker_rss_bytes) for task in results), default=0)
     pss = max((int(task.worker_pss_bytes) for task in results), default=0)
@@ -242,26 +311,44 @@ def _architecture(results: Sequence[object]) -> dict[str, Any]:
         (int(profile.runtime_chunk_count), int(profile.q_workspace_build_count))
         for profile in profiles
     }
+    shifted_counts_exact = all(
+        int(profile.shifted_eigensystem_build_count)
+        in {0, 2 * int(profile.q_workspace_build_count)}
+        for profile in profiles
+    )
     shifted_per_runtime = {
-        int(profile.shifted_eigensystem_build_count) // max(int(profile.runtime_chunk_count), 1)
+        int(profile.shifted_eigensystem_build_count)
+        // max(int(profile.runtime_chunk_count), 1)
         for profile in profiles
     }
     return {
         "response_count": len(profiles),
         "operator_ward_all_passed": bool(operator_passed),
-        "counterterm_add_counts": sorted({int(p.counterterm_add_count) for p in profiles}),
-        "runtime_chunk_q_workspace_counts": [list(v) for v in sorted(runtime_build_pairs)],
+        "counterterm_add_counts": sorted(
+            {int(profile.counterterm_add_count) for profile in profiles}
+        ),
+        "runtime_chunk_q_workspace_counts": [
+            list(value) for value in sorted(runtime_build_pairs)
+        ],
         "actual_eigh_calls_per_runtime_chunk": sorted(shifted_per_runtime),
+        "shifted_eigh_counts_exact": bool(shifted_counts_exact),
         "exact_response_cache_hits": cache_hits,
+        "expected_exact_response_cache_hits": expected_cache_hits,
+        "response_cache_hit_count_matches_expected": bool(
+            cache_hits == expected_cache_hits
+        ),
         "serialized_worker_payload_bytes": payload_bytes,
         "max_worker_rss_bytes": rss,
         "max_worker_pss_bytes": pss,
         "passed": bool(
             operator_passed
-            and all(a == b for a, b in runtime_build_pairs)
-            and shifted_per_runtime.issubset({0, 2})
-            and {int(p.counterterm_add_count) for p in profiles} == {1}
-            and cache_hits >= len(results)
+            and all(
+                runtime_count == build_count
+                for runtime_count, build_count in runtime_build_pairs
+            )
+            and shifted_counts_exact
+            and {int(profile.counterterm_add_count) for profile in profiles} == {1}
+            and cache_hits == expected_cache_hits
             and payload_bytes > 0
             and rss > 0
         ),
@@ -269,7 +356,10 @@ def _architecture(results: Sequence[object]) -> dict[str, Any]:
 
 
 def _run_evaluator(
-    *, tasks: Sequence[QLabAngleTask], workers: int, common: dict[str, Any]
+    *,
+    tasks: Sequence[QLabAngleTask],
+    workers: int,
+    common: dict[str, Any],
 ) -> tuple[tuple[object, ...], float, dict[str, Any]]:
     evaluator = ArbitraryQParallelEvaluator(process_workers=int(workers), **common)
     started = perf_counter()
@@ -291,14 +381,23 @@ def _workload_record(
     args: argparse.Namespace,
     require_outer_thresholds: bool,
 ) -> dict[str, Any]:
-    serial, serial_wall, serial_meta = _run_evaluator(tasks=tasks, workers=1, common=common)
+    serial, serial_wall, serial_meta = _run_evaluator(
+        tasks=tasks, workers=1, common=common
+    )
     if workers == 1:
         parallel, parallel_wall, parallel_meta = serial, serial_wall, serial_meta
     else:
-        parallel, parallel_wall, parallel_meta = _run_evaluator(tasks=tasks, workers=workers, common=common)
+        parallel, parallel_wall, parallel_meta = _run_evaluator(
+            tasks=tasks, workers=workers, common=common
+        )
     comparisons = [
-        _mixed(_signature(a), _signature(b), atol=args.comparison_atol, rtol=args.comparison_rtol)
-        for a, b in zip(serial, parallel, strict=True)
+        _mixed(
+            _signature(left),
+            _signature(right),
+            atol=args.comparison_atol,
+            rtol=args.comparison_rtol,
+        )
+        for left, right in zip(serial, parallel, strict=True)
     ]
     worker_seconds = sum(float(item.worker_seconds) for item in parallel)
     speedup = serial_wall / max(parallel_wall, np.finfo(float).tiny)
@@ -316,10 +415,18 @@ def _workload_record(
             and pool_overhead <= args.maximum_pool_overhead_fraction
         )
     elif workers > 1:
-        thresholds = bool(speedup >= 1.25 and cpu_wall >= 1.5 and pool_overhead <= 0.10)
-    passed = bool(architecture["passed"] and all(row["passed"] for row in comparisons) and thresholds)
+        thresholds = bool(
+            speedup >= 1.25 and cpu_wall >= 1.5 and pool_overhead <= 0.10
+        )
+    passed = bool(
+        architecture["passed"]
+        and all(row["passed"] for row in comparisons)
+        and thresholds
+    )
+    shutdown_seconds = float(parallel_meta["pool_shutdown_seconds"])
     return {
         "workload_id": workload_id,
+        "runtime_chunk_size": int(common["runtime_chunk_size"]),
         "task_count": len(tasks),
         "workers": int(workers),
         "serial_wall_seconds": serial_wall,
@@ -328,7 +435,9 @@ def _workload_record(
         "summed_worker_seconds": worker_seconds,
         "cpu_wall_ratio": cpu_wall,
         "pool_overhead_fraction": pool_overhead,
-        "pool_shutdown_measured_after_close": bool(float(parallel_meta["pool_shutdown_seconds"]) >= 0.0),
+        "pool_shutdown_measured_after_close": bool(
+            workers == 1 or shutdown_seconds > 0.0
+        ),
         "serial_process_comparisons": comparisons,
         "architecture": architecture,
         "serial_metadata": serial_meta,
@@ -337,8 +446,16 @@ def _workload_record(
     }
 
 
-def _frequency_audit(args: argparse.Namespace, material: object, model: object, ansatz: object, pairing: object, q: np.ndarray, runtime_chunk: int) -> dict[str, Any]:
-    positive = min(v for v in args.matsubara_indices if v > 0)
+def _frequency_audit(
+    args: argparse.Namespace,
+    material: object,
+    model: object,
+    ansatz: object,
+    pairing: object,
+    q: np.ndarray,
+    runtime_chunk: int,
+) -> dict[str, Any]:
+    positive = min(value for value in args.matsubara_indices if value > 0)
     common = dict(
         spec=model.spec,
         ansatz=ansatz,
@@ -353,21 +470,40 @@ def _frequency_audit(args: argparse.Namespace, material: object, model: object, 
         material_cache=material,
         response_cache=None,
     )
-    short = integrate_arbitrary_q_periodic_bz(xi_eV_values=_xi_values((0, positive), args.temperature_K), **common)
-    full = integrate_arbitrary_q_periodic_bz(xi_eV_values=_xi_values(args.matsubara_indices, args.temperature_K), **common)
+    short = integrate_arbitrary_q_periodic_bz(
+        xi_eV_values=_xi_values((0, positive), args.temperature_K), **common
+    )
+    full = integrate_arbitrary_q_periodic_bz(
+        xi_eV_values=_xi_values(args.matsubara_indices, args.temperature_K),
+        **common,
+    )
     return {
-        "short_actual_eigh_calls": int(short.profile.shifted_eigensystem_build_count),
-        "full_actual_eigh_calls": int(full.profile.shifted_eigensystem_build_count),
+        "short_actual_eigh_calls": int(
+            short.profile.shifted_eigensystem_build_count
+        ),
+        "full_actual_eigh_calls": int(
+            full.profile.shifted_eigensystem_build_count
+        ),
         "short_q_workspace_builds": int(short.profile.q_workspace_build_count),
         "full_q_workspace_builds": int(full.profile.q_workspace_build_count),
         "passed": bool(
-            short.profile.shifted_eigensystem_build_count == full.profile.shifted_eigensystem_build_count
-            and short.profile.q_workspace_build_count == full.profile.q_workspace_build_count
+            short.profile.shifted_eigensystem_build_count
+            == full.profile.shifted_eigensystem_build_count
+            and short.profile.q_workspace_build_count
+            == full.profile.q_workspace_build_count
         ),
     }
 
 
-def _cache_audit(args: argparse.Namespace, material: object, model: object, ansatz: object, pairing: object, q: np.ndarray, runtime_chunk: int) -> dict[str, Any]:
+def _cache_audit(
+    args: argparse.Namespace,
+    material: object,
+    model: object,
+    ansatz: object,
+    pairing: object,
+    q: np.ndarray,
+    runtime_chunk: int,
+) -> dict[str, Any]:
     common = dict(
         spec=model.spec,
         ansatz=ansatz,
@@ -388,7 +524,12 @@ def _cache_audit(args: argparse.Namespace, material: object, model: object, ansa
     started = perf_counter()
     uncached = integrate_arbitrary_q_periodic_bz(material_cache=None, **common)
     cache_off = float(perf_counter() - started)
-    comparison = _mixed(cached.packed_primitives, uncached.packed_primitives, atol=args.comparison_atol, rtol=args.comparison_rtol)
+    comparison = _mixed(
+        cached.packed_primitives,
+        uncached.packed_primitives,
+        atol=args.comparison_atol,
+        rtol=args.comparison_rtol,
+    )
     return {
         "cache_on_wall_seconds": cache_on,
         "cache_off_wall_seconds": cache_off,
@@ -402,13 +543,18 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
     model = get_finite_q_validation_model("symmetry_bdg_2band")
     ansatz = model.build_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
     pairing = model.build_pairing_params(args.delta0_eV)
-    xi = _xi_values(args.matsubara_indices, args.temperature_K)
+    xi_values = _xi_values(args.matsubara_indices, args.temperature_K)
     grid = build_periodic_bz_grid(args.N, (0.5, 0.5))
     material = build_material_grid_cache(
         spec=model.spec,
         ansatz=ansatz,
         pairing=pairing,
-        config=KuboConfig.from_kelvin(omega_eV=float(xi[0]), temperature_K=args.temperature_K, eta_eV=args.eta_eV, output_si=False),
+        config=KuboConfig.from_kelvin(
+            omega_eV=float(xi_values[0]),
+            temperature_K=args.temperature_K,
+            eta_eV=args.eta_eV,
+            output_si=False,
+        ),
         options=FiniteQEngineOptions(phase_hessian_policy="q_independent"),
         grid=grid,
     )
@@ -417,13 +563,13 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
         spec=model.spec,
         ansatz=ansatz,
         pairing=pairing,
-        xi_eV_values=xi,
+        xi_eV_values=xi_values,
         temperature_K=args.temperature_K,
         eta_eV=args.eta_eV,
         canonical_reduction_block_size=args.canonical_block_size,
     )
-    records = []
-    baseline = None
+    records: list[dict[str, Any]] = []
+    baseline: tuple[np.ndarray, ...] | None = None
     all_passed = True
     for runtime_chunk in args.runtime_chunk_sizes:
         common = {**common_base, "runtime_chunk_size": int(runtime_chunk)}
@@ -453,15 +599,43 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
                 require_outer_thresholds=False,
             ),
         ]
-        signatures = tuple(_signature(item) for item in _run_evaluator(tasks=_qualification_primary_tasks(), workers=1, common=common)[0])
-        chunk_comparisons = [] if baseline is None else [
-            _mixed(a, b, atol=args.comparison_atol, rtol=args.comparison_rtol)
-            for a, b in zip(baseline, signatures, strict=True)
-        ]
+        primary_serial, _wall, _metadata = _run_evaluator(
+            tasks=_qualification_primary_tasks(), workers=1, common=common
+        )
+        signatures = tuple(_signature(item) for item in primary_serial)
+        chunk_comparisons = (
+            []
+            if baseline is None
+            else [
+                _mixed(
+                    left,
+                    right,
+                    atol=args.comparison_atol,
+                    rtol=args.comparison_rtol,
+                )
+                for left, right in zip(baseline, signatures, strict=True)
+            ]
+        )
         if baseline is None:
             baseline = signatures
-        frequency = _frequency_audit(args, material, model, ansatz, pairing, _base_q(), runtime_chunk)
-        cache = _cache_audit(args, material, model, ansatz, pairing, _base_q(), runtime_chunk)
+        frequency = _frequency_audit(
+            args,
+            material,
+            model,
+            ansatz,
+            pairing,
+            _base_q(),
+            runtime_chunk,
+        )
+        cache = _cache_audit(
+            args,
+            material,
+            model,
+            ansatz,
+            pairing,
+            _base_q(),
+            runtime_chunk,
+        )
         passed = bool(
             all(row["passed"] for row in workloads)
             and all(row["passed"] for row in chunk_comparisons)
@@ -469,14 +643,16 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
             and cache["passed"]
         )
         all_passed = all_passed and passed
-        records.append({
-            "runtime_chunk_size": int(runtime_chunk),
-            "workloads": workloads,
-            "chunk_size_comparisons": chunk_comparisons,
-            "frequency_count_audit": frequency,
-            "cache_on_off_audit": cache,
-            "passed": passed,
-        })
+        records.append(
+            {
+                "runtime_chunk_size": int(runtime_chunk),
+                "workloads": workloads,
+                "chunk_size_comparisons": chunk_comparisons,
+                "frequency_count_audit": frequency,
+                "cache_on_off_audit": cache,
+                "passed": passed,
+            }
+        )
     return {
         "pairing": pairing_name,
         "material_cache": material.metadata(),
@@ -488,7 +664,9 @@ def _run_pairing(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
 def _atomic_write(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    temporary.write_text(
+        json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8"
+    )
     temporary.replace(path)
 
 
@@ -500,7 +678,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     threadpools = _threadpool_runtime()
     threadpool_passed = _threadpool_passed(threadpools)
     pairing_rows = [_run_pairing(args, name) for name in args.pairings]
-    metric_passed = bool(all(row["passed"] for row in pairing_rows) and threadpool_passed)
+    metric_passed = bool(
+        all(row["passed"] for row in pairing_rows) and threadpool_passed
+    )
     formal_passed = bool(
         args.formal_policy.passed
         and metric_passed
@@ -529,7 +709,11 @@ def main(argv: Sequence[str] | None = None) -> None:
         "arbitrary_q_performance_contract": (
             "formal_preflight_passed"
             if formal_passed
-            else ("diagnostic_preflight_passed_not_formal" if metric_passed else "preflight_failed")
+            else (
+                "diagnostic_preflight_passed_not_formal"
+                if metric_passed
+                else "preflight_failed"
+            )
         ),
         "diagnostic_only": True,
         "production_reference_established": False,
@@ -539,7 +723,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     _atomic_write(args.output, payload)
     print(json.dumps({"output": str(args.output), "passed": formal_passed}, indent=2))
     if not formal_passed:
-        raise SystemExit(f"arbitrary-q performance preflight did not establish {FORMAL_POLICY_ID}")
+        raise SystemExit(
+            f"arbitrary-q performance preflight did not establish {FORMAL_POLICY_ID}"
+        )
 
 
 if __name__ == "__main__":
