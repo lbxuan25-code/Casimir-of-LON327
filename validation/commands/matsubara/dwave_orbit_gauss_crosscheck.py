@@ -1,9 +1,12 @@
 """Cross-check positive d-wave periodic-orbit results with fixed Gauss quadrature.
 
 The command supports both the historical one-panel global Gauss-Legendre rule and
-an equal-panel composite rule.  ``--gauss-orders`` always denotes total transverse
-nodes.  Multiple explicit periodic cuts may be supplied; every run still covers one
+an equal-panel composite rule. ``--gauss-orders`` always denotes total transverse
+nodes. Multiple explicit periodic cuts may be supplied; every run still covers one
 complete interval of length ``2*pi`` without even, C4, or q-direction reduction.
+
+An external reference CSV is optional. Without it, the command remains a complete
+consecutive-order and periodic-cut convergence diagnostic.
 """
 
 from __future__ import annotations
@@ -12,10 +15,11 @@ import argparse
 import csv
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
 import platform
 import time
-from typing import Any
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -33,23 +37,29 @@ from validation.lib.dwave_positive_orbit_gauss import (
 )
 from validation.lib.finite_q_validation_models import get_finite_q_validation_model
 
-DEFAULT_REFERENCE = Path(
-    "validation/outputs/positive_matsubara/dwave_orbit_adaptive/raw/"
-    "dwave_positive_orbit_nested_n1_2_4_8_tight_t512.csv"
-)
 DEFAULT_OUTPUT = Path(
     "validation/outputs/positive_matsubara/dwave_orbit_gauss_crosscheck/raw/"
     "dwave_positive_orbit_gauss_crosscheck.csv"
 )
 
 
-def _parse_args() -> argparse.Namespace:
+def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--nk", type=int, default=1256)
     parser.add_argument("--mx", type=int, default=6)
     parser.add_argument("--my", type=int, default=4)
-    parser.add_argument("--matsubara-indices", nargs="+", type=int, default=[1, 2, 4, 8])
-    parser.add_argument("--gauss-orders", nargs="+", type=int, default=[160, 192, 224])
+    parser.add_argument(
+        "--matsubara-indices",
+        nargs="+",
+        type=int,
+        default=[1, 2, 4, 8],
+    )
+    parser.add_argument(
+        "--gauss-orders",
+        nargs="+",
+        type=int,
+        default=[160, 192, 224],
+    )
     parser.add_argument(
         "--panel-count",
         type=int,
@@ -67,8 +77,27 @@ def _parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--shift-s", type=float, default=0.5)
-    parser.add_argument("--subgrid-average", choices=("auto", "none"), default="auto")
+    parser.add_argument(
+        "--subgrid-average",
+        choices=("auto", "none"),
+        default="auto",
+    )
     parser.add_argument("--max-point-evaluations", type=int, default=500_000)
+    parser.add_argument(
+        "--transverse-workers",
+        type=int,
+        default=1,
+        help=(
+            "thread workers for independent transverse nodes; keep BLAS/OMP thread "
+            "counts at one when this is greater than one"
+        ),
+    )
+    parser.add_argument(
+        "--transverse-task-size",
+        type=int,
+        default=4,
+        help="contiguous transverse nodes per executor task",
+    )
     parser.add_argument("--temperature-K", type=float, default=10.0)
     parser.add_argument("--delta0-eV", type=float, default=0.1)
     parser.add_argument("--eta-eV", type=float, default=1e-8)
@@ -81,12 +110,27 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--reference-matrix-atol", type=float, default=1e-12)
     parser.add_argument("--reference-logdet-rtol", type=float, default=1e-3)
     parser.add_argument("--reference-logdet-atol", type=float, default=1e-12)
-    parser.add_argument("--reference-csv", type=Path, default=DEFAULT_REFERENCE)
+    parser.add_argument(
+        "--reference-csv",
+        type=Path,
+        default=None,
+        help="optional external sigma/reflection/logdet reference CSV",
+    )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
-    if args.nk <= 0 or args.panel_count <= 0 or args.max_point_evaluations <= 0:
-        parser.error("--nk, --panel-count, and --max-point-evaluations must be positive")
+    positive_names = (
+        "nk",
+        "panel_count",
+        "max_point_evaluations",
+        "transverse_workers",
+        "transverse_task_size",
+    )
+    if any(int(getattr(args, name)) <= 0 for name in positive_names):
+        parser.error(
+            "--nk, --panel-count, --max-point-evaluations, --transverse-workers, "
+            "and --transverse-task-size must be positive"
+        )
     if args.mx == 0 and args.my == 0:
         parser.error("at least one of --mx,--my must be nonzero")
     if any(index <= 0 for index in args.matsubara_indices):
@@ -106,7 +150,7 @@ def _parse_args() -> argparse.Namespace:
     ):
         if getattr(args, name) < 0.0:
             parser.error(f"--{name.replace('_', '-')} must be non-negative")
-    if not args.reference_csv.is_file():
+    if args.reference_csv is not None and not args.reference_csv.is_file():
         parser.error(f"reference CSV does not exist: {args.reference_csv}")
     args.integration_starts = tuple(float(value) for value in starts)
     return args
@@ -127,12 +171,24 @@ def _matrix_from_row(row: dict[str, Any], prefix: str) -> np.ndarray:
     return np.asarray(
         [
             [
-                complex(float(row[f"{prefix}_xx_real"]), float(row[f"{prefix}_xx_imag"])),
-                complex(float(row[f"{prefix}_xy_real"]), float(row[f"{prefix}_xy_imag"])),
+                complex(
+                    float(row[f"{prefix}_xx_real"]),
+                    float(row[f"{prefix}_xx_imag"]),
+                ),
+                complex(
+                    float(row[f"{prefix}_xy_real"]),
+                    float(row[f"{prefix}_xy_imag"]),
+                ),
             ],
             [
-                complex(float(row[f"{prefix}_yx_real"]), float(row[f"{prefix}_yx_imag"])),
-                complex(float(row[f"{prefix}_yy_real"]), float(row[f"{prefix}_yy_imag"])),
+                complex(
+                    float(row[f"{prefix}_yx_real"]),
+                    float(row[f"{prefix}_yx_imag"]),
+                ),
+                complex(
+                    float(row[f"{prefix}_yy_real"]),
+                    float(row[f"{prefix}_yy_imag"]),
+                ),
             ],
         ],
         dtype=complex,
@@ -143,20 +199,35 @@ def _unavailable_gate() -> tuple[float, float, float, bool]:
     return float("inf"), float("inf"), float("inf"), False
 
 
+def _format_ratio(row: dict[str, Any], available_key: str, value_key: str) -> str:
+    if not bool(row[available_key]):
+        return f"{'n/a':>11s}"
+    return f"{float(row[value_key]):11.3e}"
+
+
 def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
+    reference_label = (
+        str(args.reference_csv)
+        if args.reference_csv is not None
+        else "none (consecutive-order/cut-only mode)"
+    )
     lines = [
         "positive-Matsubara d-wave fixed/composite-Gauss cross-check",
-        "=" * 94,
-        f"reference = {args.reference_csv}",
+        "=" * 106,
+        f"reference = {reference_label}",
         f"grid: nk={args.nk}, m=({args.mx},{args.my})",
         f"total Gauss orders = {tuple(sorted(set(args.gauss_orders)))}",
         f"panel count = {args.panel_count}; cuts = {args.integration_starts}",
+        (
+            f"transverse workers/task size = {args.transverse_workers}/"
+            f"{args.transverse_task_size}"
+        ),
         f"matrix atol/rtol = {args.reference_matrix_atol:.3e}/"
         f"{args.reference_matrix_rtol:.3e}; logdet atol/rtol = "
         f"{args.reference_logdet_atol:.3e}/{args.reference_logdet_rtol:.3e}",
         "",
-        " cut total local  n   sigma-ref  sigma-prev  sigma-cut   Ward  physical",
-        "-" * 94,
+        " cut total local  n   sigma-ref  sigma-prev  sigma-cut   Ward  physical  wall(s)",
+        "-" * 106,
     ]
     for row in rows:
         lines.append(
@@ -164,22 +235,25 @@ def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
             f"{int(row['gauss_order']):5d} "
             f"{int(row['panel_order']):5d} "
             f"{int(row['matsubara_index']):2d} "
-            f"{float(row['reference_sigma_matrix_ratio']):11.3e} "
-            f"{float(row['previous_gauss_sigma_matrix_ratio']):11.3e} "
-            f"{float(row['baseline_cut_sigma_matrix_ratio']):10.3e} "
+            f"{_format_ratio(row, 'reference_available', 'reference_sigma_matrix_ratio')} "
+            f"{_format_ratio(row, 'previous_order_available', 'previous_gauss_sigma_matrix_ratio')} "
+            f"{_format_ratio(row, 'cut_comparison_available', 'baseline_cut_sigma_matrix_ratio')} "
             f"{str(bool(row['ward_passed'])):>6s} "
-            f"{str(bool(row['point_pipeline_passed'])):>9s}"
+            f"{str(bool(row['point_pipeline_passed'])):>9s} "
+            f"{float(row['quadrature_wall_seconds']):8.3f}"
         )
 
     previous = [row for row in rows if bool(row["previous_order_available"])]
     cuts = [row for row in rows if bool(row["cut_comparison_available"])]
+    reference = [row for row in rows if bool(row["reference_available"])]
     lines.extend(
         [
             "",
             f"all fixed-Gauss physical pipelines passed = "
             f"{all(bool(row['point_pipeline_passed']) for row in rows)}",
-            f"all reference cross-checks passed = "
-            f"{all(bool(row['crosscheck_passed']) for row in rows)}",
+            f"external reference available = {bool(reference)}",
+            f"all available reference cross-checks passed = "
+            f"{bool(reference) and all(bool(row['crosscheck_passed']) for row in reference)}",
             f"all consecutive-order checks passed = "
             f"{bool(previous) and all(bool(row['previous_gauss_comparison_passed']) for row in previous)}",
             f"all periodic-cut checks passed = "
@@ -193,15 +267,43 @@ def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
     return "\n".join(lines)
 
 
+def _warn_if_parallel_blas_may_oversubscribe(args: argparse.Namespace) -> None:
+    if int(args.transverse_workers) <= 1:
+        return
+    nonunit = {
+        name: os.environ.get(name)
+        for name in (
+            "OMP_NUM_THREADS",
+            "OPENBLAS_NUM_THREADS",
+            "MKL_NUM_THREADS",
+            "NUMEXPR_NUM_THREADS",
+        )
+        if os.environ.get(name) not in {"1"}
+    }
+    if nonunit:
+        print(
+            "warning: transverse workers are enabled; set OMP/OPENBLAS/MKL/NUMEXPR "
+            f"thread counts to 1 to avoid oversubscription (current: {nonunit})",
+            flush=True,
+        )
+
+
 def main() -> None:
     args = _parse_args()
+    _warn_if_parallel_blas_may_oversubscribe(args)
     indices = tuple(sorted(set(int(value) for value in args.matsubara_indices)))
     orders = tuple(sorted(set(int(value) for value in args.gauss_orders)))
     starts = tuple(args.integration_starts)
-    reference_rows = _load_rows(args.reference_csv)
-    missing = [index for index in indices if index not in reference_rows]
-    if missing:
-        raise SystemExit(f"reference CSV is missing Matsubara indices: {missing}")
+
+    reference_rows = (
+        _load_rows(args.reference_csv)
+        if args.reference_csv is not None
+        else None
+    )
+    if reference_rows is not None:
+        missing = [index for index in indices if index not in reference_rows]
+        if missing:
+            raise SystemExit(f"reference CSV is missing Matsubara indices: {missing}")
 
     xi_values = np.asarray(
         [matsubara_energy_eV(index, args.temperature_K) for index in indices],
@@ -231,7 +333,8 @@ def main() -> None:
                 "starting positive d-wave fixed-Gauss cross-check: "
                 f"nk={args.nk}, m=({args.mx},{args.my}), total_order={order}, "
                 f"panels={args.panel_count}, cut={integration_start:.12f}, "
-                f"indices={indices}",
+                f"indices={indices}, workers={args.transverse_workers}, "
+                f"task_size={args.transverse_task_size}",
                 flush=True,
             )
             try:
@@ -251,11 +354,14 @@ def main() -> None:
                     shift_s=args.shift_s,
                     subgrid_average=args.subgrid_average,
                     max_point_evaluations=args.max_point_evaluations,
+                    transverse_workers=args.transverse_workers,
+                    transverse_task_size=args.transverse_task_size,
                 )
             except OrbitEvaluationBudgetExceeded as exc:
                 raise SystemExit(str(exc)) from exc
 
             quadrature = integrated.quadrature
+            profile = integrated.evaluator_profile
             q = np.asarray(quadrature.q_model, dtype=float)
             for index, xi, components, rhs in zip(
                 indices,
@@ -275,28 +381,31 @@ def main() -> None:
                 reflection_matrix = np.asarray(physical["reflection"], dtype=complex)
                 logdet = float(physical["logdet"])
 
-                reference = reference_rows[index]
-                reference_sigma = _matrix_from_row(reference, "sigma_tilde")
-                reference_reflection = _matrix_from_row(reference, "reflection")
-                reference_logdet = float(reference["logdet"])
-                sigma_reference = mixed_matrix_gate(
-                    reference_sigma,
-                    sigma_matrix,
-                    atol=args.reference_matrix_atol,
-                    rtol=args.reference_matrix_rtol,
-                )
-                reflection_reference = mixed_matrix_gate(
-                    reference_reflection,
-                    reflection_matrix,
-                    atol=args.reference_matrix_atol,
-                    rtol=args.reference_matrix_rtol,
-                )
-                logdet_reference = mixed_scalar_gate(
-                    reference_logdet,
-                    logdet,
-                    atol=args.reference_logdet_atol,
-                    rtol=args.reference_logdet_rtol,
-                )
+                reference_available = reference_rows is not None
+                if reference_rows is None:
+                    sigma_reference = _unavailable_gate()
+                    reflection_reference = _unavailable_gate()
+                    logdet_reference = _unavailable_gate()
+                else:
+                    reference = reference_rows[index]
+                    sigma_reference = mixed_matrix_gate(
+                        _matrix_from_row(reference, "sigma_tilde"),
+                        sigma_matrix,
+                        atol=args.reference_matrix_atol,
+                        rtol=args.reference_matrix_rtol,
+                    )
+                    reflection_reference = mixed_matrix_gate(
+                        _matrix_from_row(reference, "reflection"),
+                        reflection_matrix,
+                        atol=args.reference_matrix_atol,
+                        rtol=args.reference_matrix_rtol,
+                    )
+                    logdet_reference = mixed_scalar_gate(
+                        float(reference["logdet"]),
+                        logdet,
+                        atol=args.reference_logdet_atol,
+                        rtol=args.reference_logdet_rtol,
+                    )
 
                 previous = previous_by_index.get(index)
                 previous_available = previous is not None
@@ -367,7 +476,8 @@ def main() -> None:
                     quadrature.success and physical["physical_passed"]
                 )
                 crosscheck_passed = bool(
-                    point_pipeline_passed
+                    reference_available
+                    and point_pipeline_passed
                     and sigma_reference[3]
                     and reflection_reference[3]
                     and logdet_reference[3]
@@ -403,6 +513,24 @@ def main() -> None:
                     "cut_index": int(cut_index),
                     "integration_start": float(quadrature.integration_start),
                     "quadrature": str(quadrature.quadrature),
+                    "transverse_workers": int(quadrature.transverse_workers),
+                    "transverse_task_size": int(quadrature.transverse_task_size),
+                    "transverse_task_count": int(quadrature.transverse_task_count),
+                    "execution_strategy": str(quadrature.execution_strategy),
+                    "material_workspace_implementation": str(
+                        profile.material_workspace_implementation
+                    ),
+                    "q_workspace_implementation": str(
+                        profile.q_workspace_implementation
+                    ),
+                    "evaluator_cpu_seconds": float(profile.total_seconds),
+                    "evaluator_seconds_per_callback": float(
+                        profile.seconds_per_callback
+                    ),
+                    "material_workspace_seconds": float(
+                        profile.material_workspace_seconds
+                    ),
+                    "q_workspace_seconds": float(profile.q_workspace_seconds),
                     "full_transverse_period_integrated": bool(
                         quadrature.full_transverse_period_integrated
                     ),
@@ -430,6 +558,7 @@ def main() -> None:
                     "logdet_passed": bool(physical["logdet_passed"]),
                     "logdet": logdet,
                     "point_pipeline_passed": point_pipeline_passed,
+                    "reference_available": reference_available,
                     "reference_sigma_matrix_absolute": sigma_reference[0],
                     "reference_sigma_matrix_relative": sigma_reference[1],
                     "reference_sigma_matrix_ratio": sigma_reference[2],
@@ -474,6 +603,9 @@ def main() -> None:
                 row.update(matrix_fields("reflection", reflection_matrix))
                 output_rows.append(row)
 
+    if not output_rows:
+        raise RuntimeError("fixed/composite Gauss cross-check produced no rows")
+
     total_wall = float(time.perf_counter() - started_all)
     output = args.output
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -488,10 +620,13 @@ def main() -> None:
     cut_rows = [
         row for row in output_rows if bool(row["cut_comparison_available"])
     ]
+    reference_output_rows = [
+        row for row in output_rows if bool(row["reference_available"])
+    ]
     summary = _summary(output_rows, args)
     output.with_suffix(".summary.txt").write_text(summary, encoding="utf-8")
     payload = {
-        "schema": "dwave_positive_commensurate_orbit_fixed_gauss_crosscheck_v2",
+        "schema": "dwave_positive_commensurate_orbit_fixed_gauss_crosscheck_v3",
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "platform": platform.platform(),
         "python": platform.python_version(),
@@ -505,8 +640,13 @@ def main() -> None:
             "all_physical_pipelines_passed": all(
                 bool(row["point_pipeline_passed"]) for row in output_rows
             ),
-            "all_reference_crosschecks_passed": all(
-                bool(row["crosscheck_passed"]) for row in output_rows
+            "external_reference_provided": bool(reference_output_rows),
+            "all_available_reference_crosschecks_passed": (
+                bool(reference_output_rows)
+                and all(
+                    bool(row["crosscheck_passed"])
+                    for row in reference_output_rows
+                )
             ),
             "all_consecutive_order_checks_passed": bool(previous_rows)
             and all(
