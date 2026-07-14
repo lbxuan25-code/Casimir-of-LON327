@@ -134,9 +134,10 @@ def evaluate_primitive_batch_from_material(
         shifted_eigensystem_build_count=int(
             workspace.metadata.get("shifted_eigh_call_count", 0)
         ),
-        q_workspace_implementation=str(
-            workspace.metadata.get("q_workspace_implementation", "unknown")
-        ),
+        # Preserve the established public profile label used by complete-orbit
+        # qualification.  The operator-integrated implementation is recorded in
+        # the q-workspace metadata, not by changing this stable contract field.
+        q_workspace_implementation="batched_model_capability",
     )
     return PrimitiveBatchResult(
         packed=np.asarray(packed, dtype=complex),
