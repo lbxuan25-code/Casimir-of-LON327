@@ -37,7 +37,7 @@ _COMMANDS: dict[tuple[str, str], str] = {
         "validation.commands.matsubara.arbitrary_q_performance_preflight"
     ),
     ("matsubara", "arbitrary-q-periodic-bz-qualification"): (
-        "validation.commands.matsubara.arbitrary_q_periodic_bz_qualification"
+        "validation.commands.matsubara.arbitrary_q_periodic_bz_qualification_gate"
     ),
     # Diagnostic-only routes are deliberately separated from the outer-integration
     # intake surface. They never authorize production input by themselves.
