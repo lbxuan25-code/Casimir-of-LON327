@@ -57,18 +57,21 @@ def test_fixed_gauss_reuses_batched_complete_orbit_evaluator() -> None:
     )
 
 
-def test_threaded_dwave_gauss_matches_serial_primitive_integral() -> None:
+def test_fork_process_dwave_gauss_matches_serial_primitive_integral() -> None:
     serial = _small_dwave_gauss(workers=1, task_size=1)
-    threaded = _small_dwave_gauss(workers=2, task_size=2)
+    parallel = _small_dwave_gauss(workers=2, task_size=2)
 
-    np.testing.assert_array_equal(threaded.quadrature.value, serial.quadrature.value)
-    assert threaded.evaluator_profile.callbacks == 4
-    assert threaded.evaluator_profile.complete_orbit_points == 32
-    assert threaded.quadrature.transverse_workers == 2
-    assert threaded.quadrature.transverse_task_size == 2
-    assert threaded.quadrature.transverse_task_count == 2
-    assert threaded.quadrature.execution_strategy == (
-        "threaded_transverse_nodes_ordered_parent_reduction"
+    np.testing.assert_array_equal(parallel.quadrature.value, serial.quadrature.value)
+    assert parallel.evaluator_profile.callbacks == 4
+    assert parallel.evaluator_profile.complete_orbit_points == 32
+    assert parallel.quadrature.transverse_workers == 2
+    assert parallel.quadrature.transverse_task_size == 2
+    assert parallel.quadrature.transverse_task_count == 2
+    assert parallel.quadrature.execution_strategy == (
+        "fork_process_transverse_nodes_ordered_parent_reduction"
     )
-    assert threaded.components[0].metadata["fixed_gauss_transverse_workers"] == 2
-    assert threaded.components[0].metadata["fixed_gauss_transverse_task_size"] == 2
+    assert parallel.components[0].metadata["fixed_gauss_transverse_workers"] == 2
+    assert parallel.components[0].metadata["fixed_gauss_transverse_task_size"] == 2
+    assert parallel.components[0].metadata["fixed_gauss_execution_strategy"] == (
+        "fork_process_transverse_nodes_ordered_parent_reduction"
+    )
