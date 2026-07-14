@@ -5,12 +5,15 @@ from dataclasses import dataclass
 from multiprocessing import get_all_start_methods, get_context
 from multiprocessing.pool import Pool
 import os
+import pickle
+import resource
 from threading import Lock
 from time import perf_counter
-from typing import Sequence
+from typing import Iterator, Sequence
 
 import numpy as np
 
+from lno327.response.arbitrary_q_formal_policy import EXECUTION_STRATEGY
 from lno327.response.arbitrary_q_material_cache import MaterialGridCache
 from lno327.response.ward_validation import PrimitiveWardRHS
 from lno327.workflows.arbitrary_q_matsubara import (
@@ -54,8 +57,25 @@ def validate_single_thread_blas_environment() -> None:
         )
 
 
+def _memory_snapshot() -> tuple[int, int]:
+    rss = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    if os.name == "posix":
+        rss *= 1024
+    pss = 0
+    try:
+        import psutil  # type: ignore
+
+        info = psutil.Process().memory_full_info()
+        rss = max(rss, int(info.rss))
+        pss = int(getattr(info, "pss", 0))
+    except (ImportError, OSError, AttributeError):
+        pass
+    return rss, pss
+
+
 def _response_payload(response: ArbitraryQPeriodicBZResult) -> tuple[object, ...]:
-    """Return a pickle-safe compact response payload for parent reconstruction."""
+    """Return a pickle-safe response payload for parent reconstruction."""
+
     rhs_payloads = tuple(
         (
             np.asarray(item.left),
@@ -70,6 +90,7 @@ def _response_payload(response: ArbitraryQPeriodicBZResult) -> tuple[object, ...
     return (
         np.asarray(response.q_model),
         np.asarray(response.xi_eV_values),
+        np.asarray(response.packed_primitives),
         response.components,
         rhs_payloads,
         response.operator_ward,
@@ -83,6 +104,7 @@ def _restore_response(payload: tuple[object, ...]) -> ArbitraryQPeriodicBZResult
     (
         q_model,
         xi_values,
+        packed,
         components,
         rhs_payloads,
         operator_ward,
@@ -104,6 +126,7 @@ def _restore_response(payload: tuple[object, ...]) -> ArbitraryQPeriodicBZResult
     return ArbitraryQPeriodicBZResult(
         q_model=q_model,
         xi_eV_values=xi_values,
+        packed_primitives=packed,
         components=components,
         rhs=rhs,
         operator_ward=operator_ward,
@@ -122,6 +145,9 @@ def _restore_task_result(
     plate_2_payloads: tuple[tuple[object, ...], ...],
     cache_metadata: dict[str, int | str],
     worker_seconds: float,
+    payload_bytes: int,
+    worker_rss_bytes: int,
+    worker_pss_bytes: int,
 ) -> "QLabAngleTaskResult":
     batch = TwoPlateAngleBatchResult(
         q_lab=q_lab,
@@ -135,6 +161,9 @@ def _restore_task_result(
         index=index,
         result=batch,
         worker_seconds=worker_seconds,
+        payload_bytes=payload_bytes,
+        worker_rss_bytes=worker_rss_bytes,
+        worker_pss_bytes=worker_pss_bytes,
     )
 
 
@@ -163,10 +192,11 @@ class QLabAngleTaskResult:
     index: int
     result: TwoPlateAngleBatchResult
     worker_seconds: float
+    payload_bytes: int = 0
+    worker_rss_bytes: int = 0
+    worker_pss_bytes: int = 0
 
     def __reduce__(self):
-        # PrimitiveWardRHS stores MappingProxyType metadata.  Workers return an
-        # explicit reconstruction payload rather than attempting to pickle it.
         return (
             _restore_task_result,
             (
@@ -178,6 +208,9 @@ class QLabAngleTaskResult:
                 tuple(_response_payload(item) for item in self.result.plate_2),
                 dict(self.result.response_cache_metadata),
                 float(self.worker_seconds),
+                int(self.payload_bytes),
+                int(self.worker_rss_bytes),
+                int(self.worker_pss_bytes),
             ),
         )
 
@@ -228,6 +261,9 @@ class ArbitraryQParallelEvaluator:
         self._closed = False
         self.pool_startup_seconds = 0.0
         self.pool_shutdown_seconds = 0.0
+        self.last_evaluate_wall_seconds = 0.0
+        self.last_parent_collection_overhead_seconds = 0.0
+        self.last_payload_bytes = 0
         if self.process_workers <= 0:
             raise ValueError("process_workers must be positive")
         if self.process_workers > 1:
@@ -258,7 +294,6 @@ class ArbitraryQParallelEvaluator:
 
     def _evaluate_local(self, task: QLabAngleTask) -> QLabAngleTaskResult:
         started = perf_counter()
-        # Cache lifetime is task-local. Plate 1 is reused for the full angle batch.
         response_cache = CrystalResponseCache()
         result = integrate_two_plate_angle_batch(
             q_lab=task.q_lab,
@@ -275,27 +310,61 @@ class ArbitraryQParallelEvaluator:
             runtime_chunk_size=self.runtime_chunk_size,
             response_cache=response_cache,
         )
-        return QLabAngleTaskResult(
+        worker_seconds = float(perf_counter() - started)
+        rss, pss = _memory_snapshot()
+        provisional = QLabAngleTaskResult(
             index=int(task.index),
             result=result,
-            worker_seconds=float(perf_counter() - started),
+            worker_seconds=worker_seconds,
+            worker_rss_bytes=rss,
+            worker_pss_bytes=pss,
+        )
+        payload_bytes = len(pickle.dumps(provisional, protocol=pickle.HIGHEST_PROTOCOL))
+        return QLabAngleTaskResult(
+            index=provisional.index,
+            result=provisional.result,
+            worker_seconds=provisional.worker_seconds,
+            payload_bytes=payload_bytes,
+            worker_rss_bytes=rss,
+            worker_pss_bytes=pss,
         )
 
-    def evaluate(self, tasks: Sequence[QLabAngleTask]) -> tuple[QLabAngleTaskResult, ...]:
+    def evaluate_iter(
+        self,
+        tasks: Sequence[QLabAngleTask],
+        *,
+        chunksize: int = 1,
+    ) -> Iterator[QLabAngleTaskResult]:
+        """Yield results in task order so callers may reduce and release incrementally."""
+
         if self._closed:
             raise RuntimeError("arbitrary-q evaluator is closed")
         ordered = tuple(tasks)
         indices = [task.index for task in ordered]
         if len(indices) != len(set(indices)):
             raise ValueError("q task indices must be unique")
+        started = perf_counter()
         pool = self._pool
         if pool is None:
-            results = [self._evaluate_local(task) for task in ordered]
+            iterator = (self._evaluate_local(task) for task in ordered)
         else:
-            # Pool.map preserves input order even though workers finish out of order.
-            results = pool.map(_fork_evaluate_task, ordered)
-        by_index = {result.index: result for result in results}
-        return tuple(by_index[index] for index in indices)
+            iterator = pool.imap(_fork_evaluate_task, ordered, chunksize=int(chunksize))
+        collected_worker_seconds = 0.0
+        payload_bytes = 0
+        for expected_index, result in zip(indices, iterator, strict=True):
+            if result.index != expected_index:
+                raise RuntimeError("ordered q-task result index mismatch")
+            collected_worker_seconds += float(result.worker_seconds)
+            payload_bytes += int(result.payload_bytes)
+            yield result
+        wall = float(perf_counter() - started)
+        self.last_evaluate_wall_seconds = wall
+        self.last_payload_bytes = payload_bytes
+        ideal_parallel = collected_worker_seconds / max(self.process_workers, 1)
+        self.last_parent_collection_overhead_seconds = max(wall - ideal_parallel, 0.0)
+
+    def evaluate(self, tasks: Sequence[QLabAngleTask]) -> tuple[QLabAngleTaskResult, ...]:
+        return tuple(self.evaluate_iter(tasks))
 
     def close(self, *, terminate: bool = False) -> None:
         if self._closed:
@@ -327,13 +396,22 @@ class ArbitraryQParallelEvaluator:
     def metadata(self) -> dict[str, object]:
         return {
             "execution_strategy": (
-                "persistent_fork_q_lab_angle_batch_tasks_ordered_parent_collection"
+                EXECUTION_STRATEGY
                 if self.process_workers > 1
                 else "serial_q_lab_angle_batch_tasks"
             ),
             "process_workers": int(self.process_workers),
             "pool_startup_seconds": float(self.pool_startup_seconds),
             "pool_shutdown_seconds": float(self.pool_shutdown_seconds),
+            "last_evaluate_wall_seconds": float(self.last_evaluate_wall_seconds),
+            "parent_collection_overhead_seconds": float(
+                self.last_parent_collection_overhead_seconds
+            ),
+            "parent_reduction_seconds": 0.0,
+            "parent_reduction_note": (
+                "primitive reduction occurs deterministically inside each q worker"
+            ),
+            "last_payload_bytes": int(self.last_payload_bytes),
             "thread_environment": thread_environment(),
             "material_cache_fingerprint": self.material_cache.fingerprint,
         }
