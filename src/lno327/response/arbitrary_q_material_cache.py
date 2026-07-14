@@ -22,9 +22,7 @@ def _public_state(value: Any) -> dict[str, Any]:
     if not hasattr(value, "__dict__"):
         return {}
     return {
-        key: item
-        for key, item in vars(value).items()
-        if not key.startswith("_")
+        key: item for key, item in vars(value).items() if not key.startswith("_")
     }
 
 
@@ -86,10 +84,37 @@ def _stable_value(value: Any) -> Any:
         payload["public_state"] = _stable_value(public)
     if len(payload) > 1:
         return payload
-    return {
-        **payload,
-        "repr": repr(value),
+    return {**payload, "repr": repr(value)}
+
+
+def _hash(payload: Mapping[str, Any]) -> str:
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode(
+        "utf-8"
+    )
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def material_state_fingerprint(
+    *, spec: object, ansatz: object, pairing: object, config: object, options: object
+) -> str:
+    """Fingerprint q-independent physical state, deliberately excluding the grid."""
+
+    payload = {
+        "schema": "ArbitraryQMaterialState-v1",
+        "spec": _stable_value(spec),
+        "ansatz": _stable_value(ansatz),
+        "pairing": _stable_value(pairing),
+        "config": {
+            "temperature_eV": _stable_value(float(getattr(config, "temperature_eV"))),
+            "fermi_level_eV": _stable_value(float(getattr(config, "fermi_level_eV"))),
+            "eta_eV": _stable_value(float(getattr(config, "eta_eV"))),
+            "output_si": bool(getattr(config, "output_si")),
+            "omega_excluded_because_material_cache_is_frequency_independent": True,
+        },
+        "options": _stable_value(options),
+        "phase_vertex": str(getattr(ansatz, "phase_vertex", "unknown")),
     }
+    return _hash(payload)
 
 
 def material_cache_fingerprint(
@@ -101,30 +126,20 @@ def material_cache_fingerprint(
     options: object,
     grid: PeriodicBZGrid,
 ) -> str:
-    payload = {
-        "schema": MATERIAL_CACHE_SCHEMA,
-        "spec": _stable_value(spec),
-        "ansatz": _stable_value(ansatz),
-        "pairing": _stable_value(pairing),
-        "config": {
-            "temperature_eV": _stable_value(
-                float(getattr(config, "temperature_eV"))
-            ),
-            "fermi_level_eV": _stable_value(
-                float(getattr(config, "fermi_level_eV"))
-            ),
-            "eta_eV": _stable_value(float(getattr(config, "eta_eV"))),
-            "output_si": bool(getattr(config, "output_si")),
-            "omega_excluded_because_material_cache_is_frequency_independent": True,
-        },
-        "options": _stable_value(options),
-        "grid_fingerprint": grid.fingerprint,
-        "phase_vertex": str(getattr(ansatz, "phase_vertex", "unknown")),
-    }
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode(
-        "utf-8"
+    state = material_state_fingerprint(
+        spec=spec,
+        ansatz=ansatz,
+        pairing=pairing,
+        config=config,
+        options=options,
     )
-    return hashlib.sha256(encoded).hexdigest()
+    return _hash(
+        {
+            "schema": MATERIAL_CACHE_SCHEMA,
+            "material_state_fingerprint": state,
+            "grid_fingerprint": grid.fingerprint,
+        }
+    )
 
 
 @dataclass(frozen=True)
@@ -159,6 +174,8 @@ class MaterialChunkView:
 class MaterialGridCache:
     schema_version: str
     fingerprint: str
+    material_state_fingerprint: str
+    grid_fingerprint: str
     grid: PeriodicBZGrid
     workspace: FiniteQMaterialWorkspace
     build_seconds: float
@@ -167,6 +184,8 @@ class MaterialGridCache:
     def __post_init__(self) -> None:
         if self.schema_version != MATERIAL_CACHE_SCHEMA:
             raise ValueError("unsupported material cache schema")
+        if self.grid_fingerprint != self.grid.fingerprint:
+            raise ValueError("material cache grid fingerprint is inconsistent")
         if self.workspace.nk != self.grid.point_count:
             raise ValueError("material cache workspace/grid point counts differ")
         for name in (
@@ -195,6 +214,8 @@ class MaterialGridCache:
                 **dict(self.workspace.metadata),
                 "workspace_kind": "arbitrary_q_material_chunk_view",
                 "parent_material_cache_fingerprint": self.fingerprint,
+                "parent_material_state_fingerprint": self.material_state_fingerprint,
+                "parent_grid_fingerprint": self.grid_fingerprint,
                 "chunk_start": first,
                 "chunk_stop": last,
                 "counterterm_omitted_from_chunk": True,
@@ -221,6 +242,8 @@ class MaterialGridCache:
         return {
             "schema_version": self.schema_version,
             "fingerprint": self.fingerprint,
+            "material_state_fingerprint": self.material_state_fingerprint,
+            "grid_fingerprint": self.grid_fingerprint,
             "build_seconds": float(self.build_seconds),
             "build_count": int(self.build_count),
             "readonly": True,
@@ -239,6 +262,13 @@ def build_material_grid_cache(
     options: object,
     grid: PeriodicBZGrid,
 ) -> MaterialGridCache:
+    state = material_state_fingerprint(
+        spec=spec,
+        ansatz=ansatz,
+        pairing=pairing,
+        config=config,
+        options=options,
+    )
     fingerprint = material_cache_fingerprint(
         spec=spec,
         ansatz=ansatz,
@@ -249,18 +279,14 @@ def build_material_grid_cache(
     )
     started = perf_counter()
     workspace = precompute_finite_q_material_workspace_batched(
-        spec,
-        ansatz,
-        grid.points,
-        grid.weights,
-        config,
-        pairing,
-        options,
+        spec, ansatz, grid.points, grid.weights, config, pairing, options
     )
     build_seconds = perf_counter() - started
     return MaterialGridCache(
         schema_version=MATERIAL_CACHE_SCHEMA,
         fingerprint=fingerprint,
+        material_state_fingerprint=state,
+        grid_fingerprint=grid.fingerprint,
         grid=grid,
         workspace=workspace,
         build_seconds=float(build_seconds),
@@ -272,4 +298,5 @@ __all__ = [
     "MaterialGridCache",
     "build_material_grid_cache",
     "material_cache_fingerprint",
+    "material_state_fingerprint",
 ]
