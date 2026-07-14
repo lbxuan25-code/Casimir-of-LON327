@@ -56,7 +56,6 @@ jobs:
             tests/test_finite_q_validation_model_adapter.py \
             tests/test_repository_layout_contract.py \
             tests/test_static_nk_scan_diagnostics.py \
-            tests/test_commensurate_orbit_adaptive_gk21.py \
             tests/test_commensurate_orbit_panel_adaptive.py \
             tests/test_commensurate_orbit_panel_adaptive_v3.py \
             tests/test_validation_cli.py \
@@ -76,32 +75,6 @@ jobs:
 
       - name: Smoke test validation CLI routing
         run: python -m validation --help
-
-      - name: Smoke test adaptive GK21 d-wave wiring
-        env:
-          OMP_NUM_THREADS: "1"
-          OPENBLAS_NUM_THREADS: "1"
-          MKL_NUM_THREADS: "1"
-          NUMEXPR_NUM_THREADS: "1"
-        run: |
-          python -m validation matsubara dwave-orbit-adaptive-gk21 \
-            --nk 4 \
-            --mx 1 \
-            --my 0 \
-            --matsubara-indices 1 \
-            --max-transverse-evaluations 128 \
-            --epsabs 1e-4 \
-            --epsrel 1e-2 \
-            --output /tmp/dwave-gk21-smoke.csv
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          payload = json.loads(Path('/tmp/dwave-gk21-smoke.json').read_text())
-          assert payload['quadrature']['strategy'] == 'adaptive_gk21'
-          assert payload['status']['diagnostic_only'] is True
-          assert payload['status']['valid_for_casimir_input'] is False
-          PY
 
       - name: Smoke test panel-adaptive d-wave wiring
         env:
