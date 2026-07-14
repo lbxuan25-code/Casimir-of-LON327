@@ -143,7 +143,7 @@ jobs:
           assert payload['status']['valid_for_casimir_input'] is False
           PY
 
-      - name: Smoke test threaded fixed-Gauss crosscheck without external reference
+      - name: Smoke test fork-process fixed-Gauss crosscheck without external reference
         env:
           OMP_NUM_THREADS: "1"
           OPENBLAS_NUM_THREADS: "1"
@@ -160,19 +160,19 @@ jobs:
             --transverse-workers 2 \
             --transverse-task-size 2 \
             --max-point-evaluations 128 \
-            --output /tmp/dwave-gauss-threaded-smoke.csv
+            --output /tmp/dwave-gauss-process-smoke.csv
           python - <<'PY'
           import json
           from pathlib import Path
 
-          payload = json.loads(Path('/tmp/dwave-gauss-threaded-smoke.json').read_text())
+          payload = json.loads(Path('/tmp/dwave-gauss-process-smoke.json').read_text())
           assert payload['schema'] == 'dwave_positive_commensurate_orbit_fixed_gauss_crosscheck_v3'
           assert payload['status']['external_reference_provided'] is False
           assert len(payload['rows']) == 2
           assert all(row['transverse_workers'] == 2 for row in payload['rows'])
           assert all(
-              row['execution_strategy'] == 'threaded_transverse_nodes_ordered_parent_reduction'
-              for row in payload['rows']
+            row['execution_strategy'] == 'fork_process_transverse_nodes_ordered_parent_reduction'
+            for row in payload['rows']
           )
           assert all(row['full_transverse_period_integrated'] is True for row in payload['rows'])
           assert all(row['symmetry_reduction_applied'] is False for row in payload['rows'])
