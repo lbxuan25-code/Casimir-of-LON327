@@ -35,6 +35,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("matsubara", "dwave-orbit-integrand-profile"): (
         "validation.commands.matsubara.dwave_orbit_integrand_profile"
     ),
+    ("matsubara", "dwave-diagonal-width-scan"): (
+        "validation.commands.matsubara.dwave_diagonal_width_scan"
+    ),
     ("matsubara", "total-orbit-timing-profile"): (
         "validation.commands.matsubara.orbit_gauss_timing_profile"
     ),
