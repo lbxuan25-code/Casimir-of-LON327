@@ -94,8 +94,8 @@ are ~3%. Process startup and postprocessing are about 1% of the C64 wall time.
 
 ## Verification
 
-GitHub Actions run `29306602070` passed completely on head
-`2770e60dde7d0297a51b3a38f3ce444cbeb8d1b5`, including targeted contracts, the full
+GitHub Actions run `29306734394` passed completely on head
+`fba40ce7ef30a3ea7fa3084e56de2e1a34518699`, including targeted contracts, the full
 repository suite, CLI routing, fork-process fixed-Gauss smoke, the blocking
 preflight-to-manifest-to-total-scan subprocess chain, static-soft schema v2, and legacy
 entry points.
