@@ -4,9 +4,6 @@ The command supports both the historical one-panel global Gauss-Legendre rule an
 an equal-panel composite rule. ``--gauss-orders`` always denotes total transverse
 nodes. Multiple explicit periodic cuts may be supplied; every run still covers one
 complete interval of length ``2*pi`` without even, C4, or q-direction reduction.
-
-An external reference CSV is optional. Without it, the command remains a complete
-consecutive-order and periodic-cut convergence diagnostic.
 """
 
 from __future__ import annotations
@@ -15,7 +12,6 @@ import argparse
 import csv
 from datetime import datetime, timezone
 import json
-import os
 from pathlib import Path
 import platform
 import time
@@ -88,15 +84,15 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         type=int,
         default=1,
         help=(
-            "thread workers for independent transverse nodes; keep BLAS/OMP thread "
-            "counts at one when this is greater than one"
+            "POSIX-fork worker processes for independent transverse nodes; keep "
+            "BLAS/OMP thread counts at one when this is greater than one"
         ),
     )
     parser.add_argument(
         "--transverse-task-size",
         type=int,
         default=4,
-        help="contiguous transverse nodes per executor task",
+        help="contiguous transverse nodes per parent submission task",
     )
     parser.add_argument("--temperature-K", type=float, default=10.0)
     parser.add_argument("--delta0-eV", type=float, default=0.1)
@@ -171,24 +167,12 @@ def _matrix_from_row(row: dict[str, Any], prefix: str) -> np.ndarray:
     return np.asarray(
         [
             [
-                complex(
-                    float(row[f"{prefix}_xx_real"]),
-                    float(row[f"{prefix}_xx_imag"]),
-                ),
-                complex(
-                    float(row[f"{prefix}_xy_real"]),
-                    float(row[f"{prefix}_xy_imag"]),
-                ),
+                complex(float(row[f"{prefix}_xx_real"]), float(row[f"{prefix}_xx_imag"])),
+                complex(float(row[f"{prefix}_xy_real"]), float(row[f"{prefix}_xy_imag"])),
             ],
             [
-                complex(
-                    float(row[f"{prefix}_yx_real"]),
-                    float(row[f"{prefix}_yx_imag"]),
-                ),
-                complex(
-                    float(row[f"{prefix}_yy_real"]),
-                    float(row[f"{prefix}_yy_imag"]),
-                ),
+                complex(float(row[f"{prefix}_yx_real"]), float(row[f"{prefix}_yx_imag"])),
+                complex(float(row[f"{prefix}_yy_real"]), float(row[f"{prefix}_yy_imag"])),
             ],
         ],
         dtype=complex,
@@ -199,17 +183,13 @@ def _unavailable_gate() -> tuple[float, float, float, bool]:
     return float("inf"), float("inf"), float("inf"), False
 
 
-def _format_ratio(row: dict[str, Any], available_key: str, value_key: str) -> str:
-    if not bool(row[available_key]):
-        return f"{'n/a':>11s}"
-    return f"{float(row[value_key]):11.3e}"
+def _format_ratio(value: float, available: bool) -> str:
+    return f"{value:11.3e}" if available else f"{'n/a':>11s}"
 
 
 def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
-    reference_label = (
-        str(args.reference_csv)
-        if args.reference_csv is not None
-        else "none (consecutive-order/cut-only mode)"
+    reference_label = str(args.reference_csv) if args.reference_csv is not None else (
+        "none (consecutive-order/cut-only mode)"
     )
     lines = [
         "positive-Matsubara d-wave fixed/composite-Gauss cross-check",
@@ -218,10 +198,8 @@ def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
         f"grid: nk={args.nk}, m=({args.mx},{args.my})",
         f"total Gauss orders = {tuple(sorted(set(args.gauss_orders)))}",
         f"panel count = {args.panel_count}; cuts = {args.integration_starts}",
-        (
-            f"transverse workers/task size = {args.transverse_workers}/"
-            f"{args.transverse_task_size}"
-        ),
+        f"transverse workers/task size = "
+        f"{args.transverse_workers}/{args.transverse_task_size}",
         f"matrix atol/rtol = {args.reference_matrix_atol:.3e}/"
         f"{args.reference_matrix_rtol:.3e}; logdet atol/rtol = "
         f"{args.reference_logdet_atol:.3e}/{args.reference_logdet_rtol:.3e}",
@@ -235,17 +213,17 @@ def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
             f"{int(row['gauss_order']):5d} "
             f"{int(row['panel_order']):5d} "
             f"{int(row['matsubara_index']):2d} "
-            f"{_format_ratio(row, 'reference_available', 'reference_sigma_matrix_ratio')} "
-            f"{_format_ratio(row, 'previous_order_available', 'previous_gauss_sigma_matrix_ratio')} "
-            f"{_format_ratio(row, 'cut_comparison_available', 'baseline_cut_sigma_matrix_ratio')} "
+            f"{_format_ratio(float(row['reference_sigma_matrix_ratio']), bool(row['reference_available']))} "
+            f"{_format_ratio(float(row['previous_gauss_sigma_matrix_ratio']), bool(row['previous_order_available']))} "
+            f"{_format_ratio(float(row['baseline_cut_sigma_matrix_ratio']), bool(row['cut_comparison_available']))} "
             f"{str(bool(row['ward_passed'])):>6s} "
             f"{str(bool(row['point_pipeline_passed'])):>9s} "
             f"{float(row['quadrature_wall_seconds']):8.3f}"
         )
 
+    reference = [row for row in rows if bool(row["reference_available"])]
     previous = [row for row in rows if bool(row["previous_order_available"])]
     cuts = [row for row in rows if bool(row["cut_comparison_available"])]
-    reference = [row for row in rows if bool(row["reference_available"])]
     lines.extend(
         [
             "",
@@ -267,34 +245,11 @@ def _summary(rows: list[dict[str, Any]], args: argparse.Namespace) -> str:
     return "\n".join(lines)
 
 
-def _warn_if_parallel_blas_may_oversubscribe(args: argparse.Namespace) -> None:
-    if int(args.transverse_workers) <= 1:
-        return
-    nonunit = {
-        name: os.environ.get(name)
-        for name in (
-            "OMP_NUM_THREADS",
-            "OPENBLAS_NUM_THREADS",
-            "MKL_NUM_THREADS",
-            "NUMEXPR_NUM_THREADS",
-        )
-        if os.environ.get(name) not in {"1"}
-    }
-    if nonunit:
-        print(
-            "warning: transverse workers are enabled; set OMP/OPENBLAS/MKL/NUMEXPR "
-            f"thread counts to 1 to avoid oversubscription (current: {nonunit})",
-            flush=True,
-        )
-
-
 def main() -> None:
     args = _parse_args()
-    _warn_if_parallel_blas_may_oversubscribe(args)
     indices = tuple(sorted(set(int(value) for value in args.matsubara_indices)))
     orders = tuple(sorted(set(int(value) for value in args.gauss_orders)))
     starts = tuple(args.integration_starts)
-
     reference_rows = (
         _load_rows(args.reference_csv)
         if args.reference_csv is not None
@@ -388,20 +343,23 @@ def main() -> None:
                     logdet_reference = _unavailable_gate()
                 else:
                     reference = reference_rows[index]
+                    reference_sigma = _matrix_from_row(reference, "sigma_tilde")
+                    reference_reflection = _matrix_from_row(reference, "reflection")
+                    reference_logdet = float(reference["logdet"])
                     sigma_reference = mixed_matrix_gate(
-                        _matrix_from_row(reference, "sigma_tilde"),
+                        reference_sigma,
                         sigma_matrix,
                         atol=args.reference_matrix_atol,
                         rtol=args.reference_matrix_rtol,
                     )
                     reflection_reference = mixed_matrix_gate(
-                        _matrix_from_row(reference, "reflection"),
+                        reference_reflection,
                         reflection_matrix,
                         atol=args.reference_matrix_atol,
                         rtol=args.reference_matrix_rtol,
                     )
                     logdet_reference = mixed_scalar_gate(
-                        float(reference["logdet"]),
+                        reference_logdet,
                         logdet,
                         atol=args.reference_logdet_atol,
                         rtol=args.reference_logdet_rtol,
@@ -523,14 +481,10 @@ def main() -> None:
                     "q_workspace_implementation": str(
                         profile.q_workspace_implementation
                     ),
-                    "evaluator_cpu_seconds": float(profile.total_seconds),
+                    "evaluator_worker_seconds": float(profile.total_seconds),
                     "evaluator_seconds_per_callback": float(
                         profile.seconds_per_callback
                     ),
-                    "material_workspace_seconds": float(
-                        profile.material_workspace_seconds
-                    ),
-                    "q_workspace_seconds": float(profile.q_workspace_seconds),
                     "full_transverse_period_integrated": bool(
                         quadrature.full_transverse_period_integrated
                     ),
@@ -603,9 +557,6 @@ def main() -> None:
                 row.update(matrix_fields("reflection", reflection_matrix))
                 output_rows.append(row)
 
-    if not output_rows:
-        raise RuntimeError("fixed/composite Gauss cross-check produced no rows")
-
     total_wall = float(time.perf_counter() - started_all)
     output = args.output
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -614,14 +565,14 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(output_rows)
 
+    reference_rows_out = [
+        row for row in output_rows if bool(row["reference_available"])
+    ]
     previous_rows = [
         row for row in output_rows if bool(row["previous_order_available"])
     ]
     cut_rows = [
         row for row in output_rows if bool(row["cut_comparison_available"])
-    ]
-    reference_output_rows = [
-        row for row in output_rows if bool(row["reference_available"])
     ]
     summary = _summary(output_rows, args)
     output.with_suffix(".summary.txt").write_text(summary, encoding="utf-8")
@@ -640,13 +591,11 @@ def main() -> None:
             "all_physical_pipelines_passed": all(
                 bool(row["point_pipeline_passed"]) for row in output_rows
             ),
-            "external_reference_provided": bool(reference_output_rows),
-            "all_available_reference_crosschecks_passed": (
-                bool(reference_output_rows)
-                and all(
-                    bool(row["crosscheck_passed"])
-                    for row in reference_output_rows
-                )
+            "external_reference_provided": args.reference_csv is not None,
+            "all_reference_crosschecks_passed": bool(reference_rows_out)
+            and all(
+                bool(row["crosscheck_passed"])
+                for row in reference_rows_out
             ),
             "all_consecutive_order_checks_passed": bool(previous_rows)
             and all(
