@@ -1,12 +1,9 @@
 """Positive-Matsubara d-wave response on an exact q orbit and adaptive transverse rule.
 
-The adaptive variable is only the transverse torus coordinate.  Every transverse
-sample contains a complete commensurate q orbit, all requested Matsubara energies
-share the same nodes, and only primitive electromagnetic/collective blocks are
-integrated.  The nearest-neighbour bond metric and amplitude/phase Schur are
-applied once after the full Brillouin-zone integral.
+The adaptive public path remains d-wave-only.  The primitive pack/unpack helpers are
+also reused by the fixed-Gauss path, where the phase-Hessian policy is selected by
+the pairing ansatz after the full Brillouin-zone primitive integral.
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
@@ -89,12 +86,23 @@ def _unpack_integrated_primitives(
     base_config: KuboConfig,
     q_model: np.ndarray,
     options: FiniteQEngineOptions,
-    quadrature: CommensurateOrbitAdaptiveResult,
+    quadrature: object,
+    phase_hessian_policy: str = "nearest_neighbor_bond_metric",
 ) -> tuple[tuple[BdGFiniteQResponseComponents, ...], tuple[PrimitiveWardRHS, ...]]:
+    """Rebuild finalized responses after one full primitive-vector integral.
+
+    ``phase_hessian_policy`` is deliberately applied only after the full orbit and
+    transverse integration.  The d-wave adaptive path keeps the historical nearest-
+    neighbour bond metric; the common fixed-Gauss path may select ``q_independent``
+    for onsite/interband s-pairing without changing the quadrature method.
+    """
+
     vector = np.asarray(packed, dtype=complex).reshape(-1)
     expected = _HEADER_WIDTH + _PER_FREQUENCY_WIDTH * int(xi_values.size)
     if vector.size != expected:
-        raise ValueError(f"packed primitive width {vector.size} does not match expected {expected}")
+        raise ValueError(
+            f"packed primitive width {vector.size} does not match expected {expected}"
+        )
 
     offset = 0
     direct = vector[offset : offset + 9].reshape(3, 3)
@@ -132,6 +140,7 @@ def _unpack_integrated_primitives(
         "adaptive_message": str(quadrature.message),
         "transverse_evaluations": int(quadrature.transverse_evaluations),
         "point_evaluations": int(quadrature.point_evaluations),
+        "post_integral_phase_hessian_policy": str(phase_hessian_policy),
         "projection_applied": False,
         "diagnostic_only": True,
         "production_reference_established": False,
@@ -180,7 +189,7 @@ def _unpack_integrated_primitives(
             base,
             ansatz,
             q_model,
-            "nearest_neighbor_bond_metric",
+            phase_hessian_policy,
         )
         corrected = replace(
             corrected,
@@ -198,7 +207,7 @@ def _unpack_integrated_primitives(
                     "convention": "primitive_crystal_xy_rhs_aware",
                     "basis": "crystal_A0_xy",
                     "formula": "R_S = equal_forward - delta_v_mid + qM_mid",
-                    "source": "commensurate_orbit_transverse_adaptive_integral",
+                    "source": "commensurate_orbit_transverse_integral",
                     "frequency_independent_rhs_reused": True,
                     **common_metadata,
                 },
@@ -306,6 +315,7 @@ def integrate_dwave_positive_orbit_adaptive(
         q_model=q_model,
         options=options,
         quadrature=adaptive,
+        phase_hessian_policy="nearest_neighbor_bond_metric",
     )
     return DWavePositiveOrbitAdaptiveResult(
         components=components,
@@ -317,5 +327,7 @@ def integrate_dwave_positive_orbit_adaptive(
 
 __all__ = [
     "DWavePositiveOrbitAdaptiveResult",
+    "_pack_orbit_primitives",
+    "_unpack_integrated_primitives",
     "integrate_dwave_positive_orbit_adaptive",
 ]
