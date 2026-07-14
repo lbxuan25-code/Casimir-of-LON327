@@ -11,7 +11,7 @@ from validation.lib.finite_q_validation_models import (
 )
 
 
-def test_fixed_gauss_reuses_batched_complete_orbit_evaluator() -> None:
+def _small_dwave_gauss(*, workers: int, task_size: int):
     model = get_finite_q_validation_model("symmetry_bdg_2band")
     ansatz = model.build_ansatz(
         "dwave",
@@ -21,7 +21,7 @@ def test_fixed_gauss_reuses_batched_complete_orbit_evaluator() -> None:
     temperature = 10.0
     xi = np.asarray([2.0 * np.pi * KB_EV_PER_K * temperature])
 
-    result = integrate_dwave_positive_orbit_gauss(
+    return integrate_dwave_positive_orbit_gauss(
         spec=model.spec,
         ansatz=ansatz,
         pairing=pairing,
@@ -33,7 +33,13 @@ def test_fixed_gauss_reuses_batched_complete_orbit_evaluator() -> None:
         my=0,
         transverse_order=4,
         max_point_evaluations=64,
+        transverse_workers=workers,
+        transverse_task_size=task_size,
     )
+
+
+def test_fixed_gauss_reuses_batched_complete_orbit_evaluator() -> None:
+    result = _small_dwave_gauss(workers=1, task_size=1)
 
     profile = result.evaluator_profile
     assert profile.callbacks == 4
@@ -46,3 +52,23 @@ def test_fixed_gauss_reuses_batched_complete_orbit_evaluator() -> None:
     assert result.components[0].metadata["q_workspace_implementation"] == (
         "batched_model_capability"
     )
+    assert result.components[0].metadata["material_workspace_implementation"] == (
+        "batched_model_capability"
+    )
+
+
+def test_threaded_dwave_gauss_matches_serial_primitive_integral() -> None:
+    serial = _small_dwave_gauss(workers=1, task_size=1)
+    threaded = _small_dwave_gauss(workers=2, task_size=2)
+
+    np.testing.assert_array_equal(threaded.quadrature.value, serial.quadrature.value)
+    assert threaded.evaluator_profile.callbacks == 4
+    assert threaded.evaluator_profile.complete_orbit_points == 32
+    assert threaded.quadrature.transverse_workers == 2
+    assert threaded.quadrature.transverse_task_size == 2
+    assert threaded.quadrature.transverse_task_count == 2
+    assert threaded.quadrature.execution_strategy == (
+        "threaded_transverse_nodes_ordered_parent_reduction"
+    )
+    assert threaded.components[0].metadata["fixed_gauss_transverse_workers"] == 2
+    assert threaded.components[0].metadata["fixed_gauss_transverse_task_size"] == 2
