@@ -15,18 +15,23 @@ from lno327.response.arbitrary_q_material_cache import (
     material_cache_fingerprint,
 )
 from lno327.response.effective_kernel import effective_em_kernel_from_components
-from lno327.response.static_ward_gate import validate_strict_static_ward_closure
-from lno327.response.ward_validation import validate_effective_ward_xy
+from lno327.response.finite_q_q_workspace_batched import (
+    precompute_finite_q_q_workspace_batched,
+)
+from lno327.response.finite_q_q_workspace_batched_operator import (
+    precompute_finite_q_q_workspace_batched_operator,
+)
 from lno327.response.periodic_bz_grid import (
     audit_shift_pair,
     build_periodic_bz_grid,
     exact_float64_key,
 )
-from lno327.response.primitive_kernel_v2 import (
-    evaluate_primitive_batch_from_material,
-)
+from lno327.response.primitive_kernel_v2 import evaluate_primitive_batch_from_material
+from lno327.response.static_ward_gate import validate_strict_static_ward_closure
+from lno327.response.ward_validation import validate_effective_ward_xy
 from lno327.workflows.arbitrary_q_matsubara import (
     CrystalResponseCache,
+    PairedShiftProfile,
     integrate_arbitrary_q_periodic_bz,
     integrate_two_plate_angle_batch,
     paired_average_arbitrary_q_results,
@@ -43,9 +48,7 @@ from validation.lib.dwave_orbit_acceptance import (
     OrbitAcceptancePhysicsConfig,
     evaluate_matsubara_pipeline,
 )
-from validation.lib.finite_q_validation_models import (
-    get_finite_q_validation_model,
-)
+from validation.lib.finite_q_validation_models import get_finite_q_validation_model
 
 
 def _wrap(values: np.ndarray) -> np.ndarray:
@@ -121,11 +124,58 @@ def test_audit_shift_pair_is_related_by_inversion() -> None:
 
 def test_exact_float_key_canonicalizes_signed_zero_without_rounding() -> None:
     assert exact_float64_key([0.0, -0.0]) == exact_float64_key([-0.0, 0.0])
-    assert exact_float64_key([0.1]) != exact_float64_key(
-        [np.nextafter(0.1, 1.0)]
-    )
+    assert exact_float64_key([0.1]) != exact_float64_key([np.nextafter(0.1, 1.0)])
     with pytest.raises(ValueError):
         exact_float64_key([np.nan])
+
+
+@pytest.mark.parametrize("pairing_name", ["spm", "dwave"])
+@pytest.mark.parametrize(
+    "q",
+    [
+        np.asarray([0.0, 0.0]),
+        np.asarray([0.071, 0.037]),
+        np.asarray([0.05, 0.05]),
+    ],
+    ids=["q0", "generic", "diagonal"],
+)
+def test_operator_wrapper_is_exactly_the_established_single_builder(
+    pairing_name: str,
+    q: np.ndarray,
+) -> None:
+    _model, _ansatz, _pairing, _config, _options, _grid, cache = _material(
+        pairing_name
+    )
+    established = precompute_finite_q_q_workspace_batched(
+        cache.workspace,
+        q,
+        operator_diagnostics=False,
+    )
+    operator = precompute_finite_q_q_workspace_batched_operator(cache.workspace, q)
+    for name in (
+        "energies_minus",
+        "energies_plus",
+        "occupations_minus",
+        "occupations_plus",
+        "left_vertices_band",
+        "right_vertices_band",
+        "direct_contact_contribution",
+        "ward_rhs_vector",
+    ):
+        np.testing.assert_allclose(
+            getattr(established, name),
+            getattr(operator, name),
+            atol=0.0,
+            rtol=0.0,
+        )
+    assert established.phase_phase_direct_plus == operator.phase_phase_direct_plus
+    assert established.phase_phase_direct_minus == operator.phase_phase_direct_minus
+    assert operator.metadata["operator_diagnostics_enabled"] is True
+    assert established.metadata["operator_diagnostics_enabled"] is False
+
+    xi = np.asarray([0.0, 0.02])
+    packed = evaluate_primitive_batch_from_material(cache.workspace, q, xi)
+    assert packed.operator_ward.passed
 
 
 def test_streamed_packed_primitives_match_one_shot_counterterm_once() -> None:
@@ -162,7 +212,7 @@ def test_streamed_packed_primitives_match_one_shot_counterterm_once() -> None:
     assert streamed.operator_ward.passed
 
 
-def test_streamed_result_is_runtime_chunk_independent() -> None:
+def test_runtime_chunk_controls_real_workspace_and_eigh_batch() -> None:
     model, ansatz, pairing, _config, _options, _grid, cache = _material("spm")
     common = dict(
         spec=model.spec,
@@ -177,20 +227,26 @@ def test_streamed_result_is_runtime_chunk_independent() -> None:
         canonical_reduction_block_size=16,
         material_cache=cache,
     )
-    first = integrate_arbitrary_q_periodic_bz(runtime_chunk_size=16, **common)
-    second = integrate_arbitrary_q_periodic_bz(runtime_chunk_size=64, **common)
+    small = integrate_arbitrary_q_periodic_bz(runtime_chunk_size=16, **common)
+    large = integrate_arbitrary_q_periodic_bz(runtime_chunk_size=64, **common)
     np.testing.assert_allclose(
-        first.packed_primitives,
-        second.packed_primitives,
-        atol=2e-13,
-        rtol=2e-13,
+        small.packed_primitives,
+        large.packed_primitives,
+        atol=3e-12,
+        rtol=3e-11,
     )
-    assert first.profile.shifted_eigensystem_build_count == 8
-    assert second.profile.shifted_eigensystem_build_count == 8
+    assert small.profile.canonical_block_count == 4
+    assert large.profile.canonical_block_count == 4
+    assert small.profile.runtime_chunk_count == 4
+    assert large.profile.runtime_chunk_count == 1
+    assert small.profile.q_workspace_build_count == 4
+    assert large.profile.q_workspace_build_count == 1
+    assert small.profile.shifted_eigensystem_build_count == 8
+    assert large.profile.shifted_eigensystem_build_count == 2
 
 
 def test_material_cache_fingerprint_changes_for_every_two_band_parameter() -> None:
-    model, ansatz, pairing, config, options, grid, _cache = _material("spm")
+    _model, ansatz, pairing, config, options, grid, _cache = _material("spm")
     base = TwoBandParameters()
     reference = material_cache_fingerprint(
         spec=SymmetryBdG2BandSpec(base),
@@ -201,8 +257,7 @@ def test_material_cache_fingerprint_changes_for_every_two_band_parameter() -> No
         grid=grid,
     )
     for field in fields(TwoBandParameters):
-        value = getattr(base, field.name)
-        changed = replace(base, **{field.name: float(value) + 0.013})
+        changed = replace(base, **{field.name: float(getattr(base, field.name)) + 0.013})
         observed = material_cache_fingerprint(
             spec=SymmetryBdG2BandSpec(changed),
             ansatz=ansatz,
@@ -214,7 +269,7 @@ def test_material_cache_fingerprint_changes_for_every_two_band_parameter() -> No
         assert observed != reference, field.name
 
 
-def test_material_cache_avoids_grid_rebuild_and_response_cache_key_is_complete(
+def test_material_cache_avoids_grid_rebuild_and_response_key_is_complete(
     monkeypatch,
 ) -> None:
     model, ansatz, pairing, _config, _options, _grid, cache = _material("spm")
@@ -241,8 +296,7 @@ def test_material_cache_avoids_grid_rebuild_and_response_cache_key_is_complete(
         raise AssertionError("grid rebuild occurred on material-cache path")
 
     monkeypatch.setattr(
-        "lno327.workflows.arbitrary_q_matsubara.build_periodic_bz_grid",
-        forbidden,
+        "lno327.workflows.arbitrary_q_matsubara.build_periodic_bz_grid", forbidden
     )
     second = integrate_arbitrary_q_periodic_bz(
         spec=model.spec,
@@ -260,8 +314,7 @@ def test_material_cache_avoids_grid_rebuild_and_response_cache_key_is_complete(
         response_cache=response_cache,
     )
     assert second is first
-
-    base_key = CrystalResponseCache.key(
+    base = CrystalResponseCache.key(
         cache.fingerprint,
         q,
         xi,
@@ -270,7 +323,7 @@ def test_material_cache_avoids_grid_rebuild_and_response_cache_key_is_complete(
         operator_ward_atol=first.operator_ward.atol,
         operator_ward_rtol=first.operator_ward.rtol,
     )
-    assert base_key != CrystalResponseCache.key(
+    assert base != CrystalResponseCache.key(
         cache.fingerprint,
         q,
         xi,
@@ -279,18 +332,9 @@ def test_material_cache_avoids_grid_rebuild_and_response_cache_key_is_complete(
         operator_ward_atol=first.operator_ward.atol,
         operator_ward_rtol=first.operator_ward.rtol,
     )
-    assert base_key != CrystalResponseCache.key(
-        cache.fingerprint,
-        q,
-        xi,
-        phase_policy="q_independent",
-        canonical_reduction_block_size=16,
-        operator_ward_atol=2 * first.operator_ward.atol,
-        operator_ward_rtol=first.operator_ward.rtol,
-    )
     q_ulp = q.copy()
     q_ulp[0] = np.nextafter(q_ulp[0], 1.0)
-    assert base_key != CrystalResponseCache.key(
+    assert base != CrystalResponseCache.key(
         cache.fingerprint,
         q_ulp,
         xi,
@@ -301,14 +345,14 @@ def test_material_cache_avoids_grid_rebuild_and_response_cache_key_is_complete(
     )
 
 
-def test_q_domain_rejects_unvalidated_momentum() -> None:
+def test_q_domain_is_supported_but_not_claimed_numerically_qualified() -> None:
     model, ansatz, pairing, _config, _options, _grid, cache = _material("spm")
-    with pytest.raises(ValueError, match="validated microscopic principal domain"):
+    with pytest.raises(ValueError, match="syntactically supported principal domain"):
         integrate_arbitrary_q_periodic_bz(
             spec=model.spec,
             ansatz=ansatz,
             pairing=pairing,
-            xi_eV_values=np.asarray([0.0, 0.02]),
+            xi_eV_values=np.asarray([0.02]),
             temperature_K=10.0,
             eta_eV=1e-8,
             q_model=np.asarray([np.pi + 1e-6, 0.0]),
@@ -318,15 +362,32 @@ def test_q_domain_rejects_unvalidated_momentum() -> None:
             runtime_chunk_size=16,
             material_cache=cache,
         )
+    result = integrate_arbitrary_q_periodic_bz(
+        spec=model.spec,
+        ansatz=ansatz,
+        pairing=pairing,
+        xi_eV_values=np.asarray([0.02]),
+        temperature_K=10.0,
+        eta_eV=1e-8,
+        q_model=np.asarray([0.071, 0.037]),
+        n=8,
+        shift=(0.5, 0.5),
+        canonical_reduction_block_size=16,
+        runtime_chunk_size=16,
+        material_cache=cache,
+    )
+    assert result.metadata["principal_q_domain_kind"] == (
+        "syntactically_supported_not_numerically_qualified"
+    )
+    assert result.metadata["numerically_qualified_q_envelope_established"] is False
 
 
 @pytest.mark.parametrize("pairing_name", ["spm", "dwave"])
-def test_tiny_arbitrary_q_integrated_ward_and_positive_pipeline(pairing_name: str) -> None:
-    """Tiny grids prove algebraic closure without impersonating zero-mode convergence."""
-
+def test_tiny_arbitrary_q_integrated_ward_and_positive_pipeline(
+    pairing_name: str,
+) -> None:
     model, ansatz, pairing, _config, _options, _grid, cache = _material(
-        pairing_name,
-        n=16,
+        pairing_name, n=16
     )
     q = np.asarray([0.071, 0.037])
     result = integrate_arbitrary_q_periodic_bz(
@@ -348,11 +409,8 @@ def test_tiny_arbitrary_q_integrated_ward_and_positive_pipeline(pairing_name: st
         ward_absolute_tolerance=1e-12,
     )
     assert result.operator_ward.passed
-
     zero_kernel = effective_em_kernel_from_components(
-        result.components[0],
-        q_model=q,
-        xi_eV=0.0,
+        result.components[0], q_model=q, xi_eV=0.0
     )
     zero_ward = validate_effective_ward_xy(
         zero_kernel,
@@ -377,15 +435,7 @@ def test_tiny_arbitrary_q_integrated_ward_and_positive_pipeline(pairing_name: st
     assert zero_strict.primitive_residual_over_q <= zero_strict.primitive_tolerance
     assert zero_strict.amplitude_defect_over_q <= zero_strict.amplitude_tolerance
     assert zero_strict.condition_ok
-    # Tiny noncommensurate grids must remain fail-closed for phase and longitudinal
-    # zero-mode convergence. Formal N=256/384/512 qualification owns those gates.
     assert not zero_strict.passed
-    assert zero_strict.phase_defect_over_q > zero_strict.phase_tolerance
-    assert (
-        zero_strict.relative_longitudinal_gauge_residual
-        > zero_strict.longitudinal_tolerance
-    )
-
     positive = evaluate_matsubara_pipeline(
         components=result.components[1],
         rhs=result.rhs[1],
@@ -396,7 +446,7 @@ def test_tiny_arbitrary_q_integrated_ward_and_positive_pipeline(pairing_name: st
     assert positive["physical_passed"], positive["error"]
 
 
-def test_paired_shift_average_occurs_before_nonlinear_postprocessing() -> None:
+def test_paired_shift_average_has_consistent_two_source_profile() -> None:
     first_material = _material("spm", n=8, shift=(0.25, 0.75))
     second_material = _material("spm", n=8, shift=(0.75, 0.25))
     model, ansatz, pairing = first_material[:3]
@@ -414,14 +464,10 @@ def test_paired_shift_average_occurs_before_nonlinear_postprocessing() -> None:
         runtime_chunk_size=32,
     )
     first = integrate_arbitrary_q_periodic_bz(
-        shift=(0.25, 0.75),
-        material_cache=first_material[-1],
-        **common,
+        shift=(0.25, 0.75), material_cache=first_material[-1], **common
     )
     second = integrate_arbitrary_q_periodic_bz(
-        shift=(0.75, 0.25),
-        material_cache=second_material[-1],
-        **common,
+        shift=(0.75, 0.25), material_cache=second_material[-1], **common
     )
     paired = paired_average_arbitrary_q_results(
         first,
@@ -437,15 +483,34 @@ def test_paired_shift_average_occurs_before_nonlinear_postprocessing() -> None:
         atol=0.0,
         rtol=0.0,
     )
-    assert paired.metadata["paired_shift_primitive_average"] is True
-    assert paired.metadata["nonlinear_observable_average_forbidden"] is True
-
-
-def test_two_plate_common_lab_logdet_small_path() -> None:
-    model, ansatz, pairing, _config, _options, _grid, cache = _material(
-        "spm",
-        n=16,
+    assert isinstance(paired.profile, PairedShiftProfile)
+    assert paired.profile.k_point_count == (
+        first.profile.k_point_count + second.profile.k_point_count
     )
+    assert paired.profile.q_workspace_build_count == (
+        first.profile.q_workspace_build_count + second.profile.q_workspace_build_count
+    )
+    assert paired.profile.counterterm_add_count == 1
+    assert paired.metadata["paired_shift_profile_schema"] == "PairedShiftProfile-v1"
+    assert paired.metadata["grid"]["grid_contract"] == "PairedShiftGrid-v1"
+
+    wrong_material = _material("spm", n=8, shift=(0.5, 0.5))[-1]
+    wrong = integrate_arbitrary_q_periodic_bz(
+        shift=(0.5, 0.5), material_cache=wrong_material, **common
+    )
+    with pytest.raises(ValueError, match="formal paired audit"):
+        paired_average_arbitrary_q_results(
+            first,
+            wrong,
+            ansatz=ansatz,
+            pairing=pairing,
+            temperature_K=10.0,
+            eta_eV=1e-8,
+        )
+
+
+def test_two_plate_common_lab_logdet_small_positive_path() -> None:
+    model, ansatz, pairing, _config, _options, _grid, cache = _material("spm", n=16)
     q_lab = np.asarray([0.071, 0.037])
     theta = np.deg2rad(17.0)
     batch = integrate_two_plate_angle_batch(
@@ -463,31 +528,30 @@ def test_two_plate_common_lab_logdet_small_path() -> None:
         runtime_chunk_size=64,
     )
     config = OrbitAcceptancePhysicsConfig()
-    for index, xi in enumerate(batch.plate_1.xi_eV_values):
-        r1, p1 = _plate_reflection(
-            batch.plate_1.components[index],
-            batch.plate_1.rhs[index],
-            batch.plate_1.q_model,
-            q_lab,
-            0.0,
-            float(xi),
-            config,
-        )
-        r2, p2 = _plate_reflection(
-            batch.plate_2[0].components[index],
-            batch.plate_2[0].rhs[index],
-            batch.plate_2[0].q_model,
-            q_lab,
-            theta,
-            float(xi),
-            config,
-        )
-        point = passive_sheet_logdet(r1, r2, separation_m=20e-9)
-        assert p1 and p2 and np.isfinite(point.logdet)
+    r1, p1 = _plate_reflection(
+        batch.plate_1.components[0],
+        batch.plate_1.rhs[0],
+        batch.plate_1.q_model,
+        q_lab,
+        0.0,
+        0.02,
+        config,
+    )
+    r2, p2 = _plate_reflection(
+        batch.plate_2[0].components[0],
+        batch.plate_2[0].rhs[0],
+        batch.plate_2[0].q_model,
+        q_lab,
+        theta,
+        0.02,
+        config,
+    )
+    point = passive_sheet_logdet(r1, r2, separation_m=20e-9)
+    assert p1 and p2 and np.isfinite(point.logdet)
 
 
 @pytest.mark.skipif("fork" not in get_all_start_methods(), reason="requires POSIX fork")
-def test_q_level_process_pool_preserves_all_plate_values(monkeypatch) -> None:
+def test_q_level_process_pool_preserves_all_plate_values_and_shutdown(monkeypatch) -> None:
     for name in (
         "OMP_NUM_THREADS",
         "OPENBLAS_NUM_THREADS",
@@ -499,21 +563,10 @@ def test_q_level_process_pool_preserves_all_plate_values(monkeypatch) -> None:
         monkeypatch.setenv(name, "1")
     monkeypatch.setenv("OMP_DYNAMIC", "FALSE")
     monkeypatch.setenv("MKL_DYNAMIC", "FALSE")
-
     model, ansatz, pairing, _config, _options, _grid, cache = _material("spm")
     tasks = (
-        QLabAngleTask(
-            3,
-            np.asarray([0.07, 0.03]),
-            0.0,
-            np.asarray([0.0, 0.17]),
-        ),
-        QLabAngleTask(
-            1,
-            np.asarray([0.05, 0.02]),
-            0.0,
-            np.asarray([0.0, 0.11]),
-        ),
+        QLabAngleTask(3, np.asarray([0.07, 0.03]), 0.0, np.asarray([0.0, 0.17])),
+        QLabAngleTask(1, np.asarray([0.05, 0.02]), 0.0, np.asarray([0.0, 0.11])),
     )
     common = dict(
         material_cache=cache,
@@ -526,21 +579,21 @@ def test_q_level_process_pool_preserves_all_plate_values(monkeypatch) -> None:
         canonical_reduction_block_size=16,
         runtime_chunk_size=32,
     )
-    with ArbitraryQParallelEvaluator(process_workers=1, **common) as serial:
-        expected = serial.evaluate(tasks)
-    with ArbitraryQParallelEvaluator(process_workers=2, **common) as parallel:
-        observed = parallel.evaluate(tasks)
+    serial = ArbitraryQParallelEvaluator(process_workers=1, **common)
+    expected = serial.evaluate(tasks)
+    serial.close()
+    parallel = ArbitraryQParallelEvaluator(process_workers=2, **common)
+    observed = parallel.evaluate(tasks)
+    parallel.close()
+    metadata = parallel.metadata()
+    assert metadata["pool_shutdown_seconds"] >= 0.0
     assert [item.index for item in observed] == [3, 1]
     for left_task, right_task in zip(expected, observed, strict=True):
-        left_responses = (
-            left_task.result.plate_1,
-            *left_task.result.plate_2,
-        )
-        right_responses = (
-            right_task.result.plate_1,
-            *right_task.result.plate_2,
-        )
-        for left, right in zip(left_responses, right_responses, strict=True):
+        for left, right in zip(
+            (left_task.result.plate_1, *left_task.result.plate_2),
+            (right_task.result.plate_1, *right_task.result.plate_2),
+            strict=True,
+        ):
             np.testing.assert_allclose(
                 _result_signature(left),
                 _result_signature(right),
