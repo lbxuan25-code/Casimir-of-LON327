@@ -11,7 +11,7 @@ from lno327.response.arbitrary_q_material_cache import MaterialGridCache
 from lno327.response.primitive_kernel_v2 import (
     OperatorWardReport,
     counterterm_primitive_vector,
-    evaluate_primitive_batch_from_material,
+    evaluate_runtime_chunk_canonical_primitives,
     primitive_vector_width,
 )
 
@@ -48,6 +48,7 @@ class ArbitraryQAccumulationProfile:
     runtime_chunk_size: int
     canonical_block_count: int
     runtime_chunk_count: int
+    q_workspace_build_count: int
     shifted_eigensystem_build_count: int
     q_workspace_seconds: float
     kubo_factor_seconds: float
@@ -63,18 +64,16 @@ class ArbitraryQAccumulationProfile:
         return {
             "k_point_count": int(self.k_point_count),
             "frequency_count": int(self.frequency_count),
-            "canonical_reduction_block_size": int(
-                self.canonical_reduction_block_size
-            ),
+            "canonical_reduction_block_size": int(self.canonical_reduction_block_size),
             "runtime_chunk_size": int(self.runtime_chunk_size),
             "canonical_block_count": int(self.canonical_block_count),
             "runtime_chunk_count": int(self.runtime_chunk_count),
-            "shifted_eigensystem_build_count": int(
-                self.shifted_eigensystem_build_count
-            ),
+            "q_workspace_build_count": int(self.q_workspace_build_count),
+            "shifted_eigensystem_build_count": int(self.shifted_eigensystem_build_count),
             "shifted_eigensystem_counter_source": (
-                "actual_np_linalg_eigh_calls_reported_by_q_workspace"
+                "actual_np_linalg_eigh_calls_reported_by_runtime_q_workspace"
             ),
+            "runtime_chunk_controls_q_workspace_batch": True,
             "q_workspace_seconds": float(self.q_workspace_seconds),
             "kubo_factor_seconds": float(self.kubo_factor_seconds),
             "kubo_contraction_seconds": float(self.kubo_contraction_seconds),
@@ -131,12 +130,12 @@ def accumulate_arbitrary_q_primitives(
     operator_ward_atol: float = 512.0 * np.finfo(float).eps,
     operator_ward_rtol: float = 512.0 * np.finfo(float).eps,
 ) -> ArbitraryQAccumulationResult:
-    """Integrate exact q on the cached full BZ using fixed reduction blocks.
+    """Integrate exact q with runtime compute batches and canonical reductions.
 
-    ``runtime_chunk_size`` groups work for scheduling/profile purposes only.  The
-    numerical reduction boundaries are fixed by
-    ``canonical_reduction_block_size`` and therefore do not change when runtime
-    memory tuning changes.
+    Each runtime chunk builds shifted Hamiltonians, eigensystems and vertices once.
+    Its linear contributions are then reduced through fixed canonical subblocks,
+    preserving deterministic floating-point grouping independently of the runtime
+    memory/throughput batch size.
     """
 
     xi_values = np.asarray(xi_eV_values, dtype=float)
@@ -159,12 +158,12 @@ def accumulate_arbitrary_q_primitives(
             "runtime_chunk_size must be an integer multiple of canonical block size"
         )
 
-    width = primitive_vector_width(int(xi_values.size))
-    accumulator = ComplexKahanVector(width)
+    accumulator = ComplexKahanVector(primitive_vector_width(int(xi_values.size)))
     reports: list[OperatorWardReport] = []
     point_count = cache.grid.point_count
     canonical_block_count = 0
     runtime_chunk_count = 0
+    q_workspace_build_count = 0
     shifted_builds = 0
     q_workspace_seconds = 0.0
     kubo_factor_seconds = 0.0
@@ -177,36 +176,34 @@ def accumulate_arbitrary_q_primitives(
     for runtime_start in range(0, point_count, runtime_size):
         runtime_chunk_count += 1
         runtime_stop = min(runtime_start + runtime_size, point_count)
-        for block_start in range(runtime_start, runtime_stop, block_size):
-            block_stop = min(block_start + block_size, runtime_stop)
-            material = cache.chunk_view(block_start, block_stop)
+        material = cache.chunk_view(runtime_start, runtime_stop)
+        started = perf_counter()
+        result = evaluate_runtime_chunk_canonical_primitives(
+            material,
+            q,
+            xi_values,
+            canonical_reduction_block_size=block_size,
+            operator_ward_atol=operator_ward_atol,
+            operator_ward_rtol=operator_ward_rtol,
+        )
+        elapsed = perf_counter() - started
+        operator_ward_seconds += max(float(elapsed - result.total_seconds), 0.0)
+        q_workspace_seconds += result.q_workspace_seconds
+        kubo_factor_seconds += result.kubo_factor_seconds
+        kubo_contraction_seconds += result.kubo_contraction_seconds
+        primitive_pack_seconds += result.primitive_pack_seconds
+        q_workspace_build_count += result.q_workspace_build_count
+        shifted_builds += result.shifted_eigh_call_count
+        reports.append(result.operator_ward)
+        for packed in result.packed_canonical_blocks:
             started = perf_counter()
-            result = evaluate_primitive_batch_from_material(
-                material,
-                q,
-                xi_values,
-                include_counterterm=False,
-                operator_ward_atol=operator_ward_atol,
-                operator_ward_rtol=operator_ward_rtol,
-            )
-            elapsed = perf_counter() - started
-            known = result.metrics.total_seconds
-            operator_ward_seconds += max(float(elapsed - known), 0.0)
-            q_workspace_seconds += result.metrics.q_workspace_seconds
-            kubo_factor_seconds += result.metrics.kubo_factor_seconds
-            kubo_contraction_seconds += result.metrics.kubo_contraction_seconds
-            primitive_pack_seconds += result.metrics.primitive_pack_seconds
-            shifted_builds += result.metrics.shifted_eigensystem_build_count
-            reports.append(result.operator_ward)
-            started = perf_counter()
-            accumulator.add(result.packed)
+            accumulator.add(packed)
             accumulation_seconds += perf_counter() - started
             canonical_block_count += 1
 
     accumulator.add(
         counterterm_primitive_vector(
-            cache.counterterm,
-            frequency_count=int(xi_values.size),
+            cache.counterterm, frequency_count=int(xi_values.size)
         )
     )
     total_seconds = perf_counter() - total_started
@@ -217,6 +214,7 @@ def accumulate_arbitrary_q_primitives(
         runtime_chunk_size=runtime_size,
         canonical_block_count=canonical_block_count,
         runtime_chunk_count=runtime_chunk_count,
+        q_workspace_build_count=q_workspace_build_count,
         shifted_eigensystem_build_count=shifted_builds,
         q_workspace_seconds=float(q_workspace_seconds),
         kubo_factor_seconds=float(kubo_factor_seconds),
