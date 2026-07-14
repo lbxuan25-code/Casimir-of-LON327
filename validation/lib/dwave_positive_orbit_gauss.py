@@ -1,8 +1,8 @@
 """Positive-Matsubara d-wave response with fixed transverse Gauss quadrature.
 
 The microscopic evaluator and primitive packing are intentionally shared with the
-panel-adaptive path.  The independent reference backend is a fixed Gauss-Legendre
-rule that may be global or split into equal panels.  Bond-metric correction and the
+panel-adaptive path. The independent reference backend is a fixed Gauss-Legendre
+rule that may be global or split into equal panels. Bond-metric correction and the
 amplitude/phase Schur complement are applied only after the complete Brillouin-zone
 primitive integral.
 """
@@ -88,6 +88,13 @@ def _replace_gauss_metadata(
         "fixed_gauss_success": bool(quadrature.success),
         "fixed_gauss_status": int(quadrature.status),
         "fixed_gauss_message": str(quadrature.message),
+        "fixed_gauss_transverse_workers": int(quadrature.transverse_workers),
+        "fixed_gauss_transverse_task_size": int(quadrature.transverse_task_size),
+        "fixed_gauss_transverse_task_count": int(quadrature.transverse_task_count),
+        "fixed_gauss_execution_strategy": str(quadrature.execution_strategy),
+        "material_workspace_implementation": str(
+            evaluator_profile.material_workspace_implementation
+        ),
         "q_workspace_implementation": str(
             evaluator_profile.q_workspace_implementation
         ),
@@ -153,6 +160,8 @@ def integrate_dwave_positive_orbit_gauss(
     shift_s: float = 0.5,
     subgrid_average: str = "auto",
     max_point_evaluations: int = 500_000,
+    transverse_workers: int = 1,
+    transverse_task_size: int = 1,
 ) -> DWavePositiveOrbitGaussResult:
     """Evaluate one positive-Matsubara batch with global or composite Gauss t."""
 
@@ -189,12 +198,22 @@ def integrate_dwave_positive_orbit_gauss(
         shift_s=shift_s,
         subgrid_average=subgrid_average,
         max_point_evaluations=max_point_evaluations,
+        transverse_workers=transverse_workers,
+        transverse_task_size=transverse_task_size,
     )
     evaluator_profile = primitive_evaluator.profile_snapshot()
+    if evaluator_profile.material_workspace_implementation != "batched_model_capability":
+        raise RuntimeError(
+            "fixed/composite Gauss did not use the required batched material workspace"
+        )
     if evaluator_profile.q_workspace_implementation != "batched_model_capability":
         raise RuntimeError(
             "fixed/composite Gauss did not use the required batched q workspace"
         )
+    if evaluator_profile.callbacks != gauss.transverse_evaluations:
+        raise RuntimeError("orbit evaluator callback count does not match Gauss nodes")
+    if evaluator_profile.complete_orbit_points != gauss.point_evaluations:
+        raise RuntimeError("orbit evaluator point count does not match Gauss budget")
 
     view = _AdaptiveCompatibleGaussView(
         nk=int(gauss.nk),
