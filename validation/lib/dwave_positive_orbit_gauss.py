@@ -14,21 +14,17 @@ from typing import Sequence
 
 import numpy as np
 
-from lno327 import KuboConfig
 from lno327.response.finite_q import BdGFiniteQResponseComponents
-from lno327.response.finite_q_optimized import (
-    _vectorized_kubo_factors,
-    precompute_finite_q_material_workspace_from_model_ansatz,
-    precompute_finite_q_q_workspace,
-)
 from lno327.response.ward_validation import PrimitiveWardRHS
-from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 from validation.lib.commensurate_orbit_gauss_aggregate import (
     CommensurateOrbitGaussAggregateResult,
     integrate_commensurate_orbit_gauss_aggregate,
 )
+from validation.lib.dwave_orbit_primitive_evaluator import (
+    DWaveOrbitEvaluatorProfile,
+    DWaveOrbitPrimitiveEvaluator,
+)
 from validation.lib.dwave_positive_orbit_adaptive import (
-    _pack_orbit_primitives,
     _unpack_integrated_primitives,
 )
 
@@ -64,6 +60,7 @@ class DWavePositiveOrbitGaussResult:
     rhs: tuple[PrimitiveWardRHS, ...]
     xi_eV_values: np.ndarray
     quadrature: CommensurateOrbitGaussAggregateResult
+    evaluator_profile: DWaveOrbitEvaluatorProfile
 
     def __post_init__(self) -> None:
         xi = np.array(self.xi_eV_values, dtype=float, copy=True)
@@ -77,6 +74,7 @@ def _replace_gauss_metadata(
     components: tuple[BdGFiniteQResponseComponents, ...],
     rhs_values: tuple[PrimitiveWardRHS, ...],
     quadrature: CommensurateOrbitGaussAggregateResult,
+    evaluator_profile: DWaveOrbitEvaluatorProfile,
 ) -> tuple[tuple[BdGFiniteQResponseComponents, ...], tuple[PrimitiveWardRHS, ...]]:
     common = {
         "integration_strategy": "commensurate_q_orbit_transverse_fixed_gauss",
@@ -90,6 +88,9 @@ def _replace_gauss_metadata(
         "fixed_gauss_success": bool(quadrature.success),
         "fixed_gauss_status": int(quadrature.status),
         "fixed_gauss_message": str(quadrature.message),
+        "q_workspace_implementation": str(
+            evaluator_profile.q_workspace_implementation
+        ),
         "full_transverse_period_integrated": bool(
             quadrature.full_transverse_period_integrated
         ),
@@ -165,43 +166,20 @@ def integrate_dwave_positive_orbit_gauss(
     if getattr(ansatz, "phase_vertex", None) != "bond_endpoint_gauge":
         raise ValueError("d-wave fixed-Gauss integration requires bond_endpoint_gauge")
 
-    q_model = (2.0 * np.pi / float(nk)) * np.asarray([mx, my], dtype=float)
-    base_config = KuboConfig.from_kelvin(
-        omega_eV=float(xi_values[0]),
-        temperature_K=float(temperature_K),
-        eta_eV=float(eta_eV),
-        output_si=False,
+    primitive_evaluator = DWaveOrbitPrimitiveEvaluator(
+        spec=spec,
+        ansatz=ansatz,
+        pairing=pairing,
+        xi_eV_values=xi_values,
+        temperature_K=temperature_K,
+        eta_eV=eta_eV,
+        nk=nk,
+        mx=mx,
+        my=my,
     )
-    options = FiniteQEngineOptions(phase_hessian_policy="q_independent")
-
-    def orbit_evaluator(points: np.ndarray, weights: np.ndarray) -> np.ndarray:
-        material = precompute_finite_q_material_workspace_from_model_ansatz(
-            spec,
-            ansatz,
-            points,
-            weights,
-            base_config,
-            pairing,
-            options,
-        )
-        workspace = precompute_finite_q_q_workspace(material, q_model)
-        raw_factors = _vectorized_kubo_factors(workspace, xi_values)
-        weighted = (
-            0.5
-            * workspace.material.k_weights[None, :, None, None]
-            * raw_factors
-        )
-        blocks = np.einsum(
-            "xkmn,kamn,kbmn->xab",
-            weighted,
-            workspace.left_vertices_band,
-            np.conjugate(workspace.right_vertices_band),
-            optimize=True,
-        )
-        return _pack_orbit_primitives(workspace=workspace, blocks=blocks)
 
     gauss = integrate_commensurate_orbit_gauss_aggregate(
-        orbit_evaluator,
+        primitive_evaluator,
         nk=nk,
         mx=mx,
         my=my,
@@ -212,6 +190,12 @@ def integrate_dwave_positive_orbit_gauss(
         subgrid_average=subgrid_average,
         max_point_evaluations=max_point_evaluations,
     )
+    evaluator_profile = primitive_evaluator.profile_snapshot()
+    if evaluator_profile.q_workspace_implementation != "batched_model_capability":
+        raise RuntimeError(
+            "fixed/composite Gauss did not use the required batched q workspace"
+        )
+
     view = _AdaptiveCompatibleGaussView(
         nk=int(gauss.nk),
         primitive_direction=gauss.primitive_direction,
@@ -236,21 +220,23 @@ def integrate_dwave_positive_orbit_gauss(
         xi_values=xi_values,
         ansatz=ansatz,
         pairing=pairing,
-        base_config=base_config,
-        q_model=q_model,
-        options=options,
+        base_config=primitive_evaluator.base_config,
+        q_model=primitive_evaluator.q_model,
+        options=primitive_evaluator.options,
         quadrature=view,
     )
     components, rhs_values = _replace_gauss_metadata(
         components,
         rhs_values,
         gauss,
+        evaluator_profile,
     )
     return DWavePositiveOrbitGaussResult(
         components=components,
         rhs=rhs_values,
         xi_eV_values=xi_values,
         quadrature=gauss,
+        evaluator_profile=evaluator_profile,
     )
 
 
