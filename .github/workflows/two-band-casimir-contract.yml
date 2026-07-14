@@ -57,8 +57,10 @@ jobs:
           python -m validation matsubara --help
           python -m validation diagnostic --help
 
-      - name: Execute reduced staged arbitrary-q diagnostics
+      - name: Execute reduced arbitrary-q performance smoke
+        shell: bash
         run: |
+          set +e
           python -m validation diagnostic arbitrary-q-performance-smoke \
             --pairings spm \
             --N 16 \
@@ -67,8 +69,25 @@ jobs:
             --matsubara-indices 0 1 \
             --canonical-block-size 64 \
             --runtime-chunk-sizes 64 256 \
-            --output /tmp/arbitrary-q-performance-smoke.json
+            --output /tmp/arbitrary-q-performance-smoke.json \
+            > staged-performance-output.txt 2>&1
+          status=$?
+          cat staged-performance-output.txt
+          if [[ $status -ne 0 ]]; then exit $status; fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
 
+          payload = json.loads(Path('/tmp/arbitrary-q-performance-smoke.json').read_text())
+          assert payload['schema'] == 'arbitrary-q-performance-smoke-v1'
+          assert payload['optimization_structure_passed'] is True
+          assert payload['formal_performance_evidence'] is False
+          PY
+
+      - name: Execute reduced arbitrary-q physics smoke
+        shell: bash
+        run: |
+          set +e
           python -m validation diagnostic arbitrary-q-physics-smoke \
             --pairings spm \
             --N-values 16 \
@@ -77,21 +96,19 @@ jobs:
             --matsubara-indices 0 1 \
             --canonical-block-size 64 \
             --runtime-chunk-size 256 \
-            --output /tmp/arbitrary-q-physics-smoke.json
-
+            --output /tmp/arbitrary-q-physics-smoke.json \
+            > staged-physics-output.txt 2>&1
+          status=$?
+          cat staged-physics-output.txt
+          if [[ $status -ne 0 ]]; then exit $status; fi
           python - <<'PY'
           import json
           from pathlib import Path
 
-          performance = json.loads(Path('/tmp/arbitrary-q-performance-smoke.json').read_text())
-          assert performance['schema'] == 'arbitrary-q-performance-smoke-v1'
-          assert performance['optimization_structure_passed'] is True
-          assert performance['formal_performance_evidence'] is False
-
-          physics = json.loads(Path('/tmp/arbitrary-q-physics-smoke.json').read_text())
-          assert physics['schema'] == 'arbitrary-q-physics-smoke-v1'
-          assert physics['smoke_passed_without_convergence_claim'] is True
-          assert physics['formal_numerical_evidence'] is False
+          payload = json.loads(Path('/tmp/arbitrary-q-physics-smoke.json').read_text())
+          assert payload['schema'] == 'arbitrary-q-physics-smoke-v1'
+          assert payload['smoke_passed_without_convergence_claim'] is True
+          assert payload['formal_numerical_evidence'] is False
           PY
 
       - name: Smoke test total zero-positive Gauss preflight and scan
@@ -182,5 +199,7 @@ jobs:
           path: |
             collect-output.txt
             full-pytest-output.txt
+            staged-performance-output.txt
+            staged-physics-output.txt
           if-no-files-found: ignore
           retention-days: 7
