@@ -72,6 +72,7 @@ jobs:
             --output /tmp/arbitrary-q-performance-smoke.json \
             > staged-performance-output.txt 2>&1
           status=$?
+          cp /tmp/arbitrary-q-performance-smoke.json staged-performance-result.json 2>/dev/null || true
           cat staged-performance-output.txt
           if [[ $status -ne 0 ]]; then exit $status; fi
           python - <<'PY'
@@ -99,6 +100,7 @@ jobs:
             --output /tmp/arbitrary-q-physics-smoke.json \
             > staged-physics-output.txt 2>&1
           status=$?
+          cp /tmp/arbitrary-q-physics-smoke.json staged-physics-result.json 2>/dev/null || true
           cat staged-physics-output.txt
           if [[ $status -ne 0 ]]; then exit $status; fi
           python - <<'PY'
@@ -200,6 +202,8 @@ jobs:
             collect-output.txt
             full-pytest-output.txt
             staged-performance-output.txt
+            staged-performance-result.json
             staged-physics-output.txt
+            staged-physics-result.json
           if-no-files-found: ignore
           retention-days: 7
