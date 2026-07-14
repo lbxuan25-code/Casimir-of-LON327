@@ -1,9 +1,15 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
 /results/
 
-# Root outputs: keep lightweight summaries and reproducibility metadata only.
+# Root outputs: keep only lightweight reproducibility metadata before a production
+# reference exists. Raw grids, figures, caches and full tables remain local.
 outputs/**/logs/**
 outputs/**/*.log
 outputs/**/*.jsonl
@@ -24,20 +30,21 @@ outputs/**/*.npy.gz
 outputs/**/*.npz.gz
 outputs/**/*.csv.gz
 outputs/**/*.json
+outputs/**/*.csv
+outputs/**/*.txt
+outputs/**/*.png
+outputs/**/*.pdf
+outputs/**/*.svg
 !outputs/**/summary*.json
+!outputs/**/summary*.csv
+!outputs/**/summary*.txt
+!outputs/**/summary*.md
 !outputs/**/status*.json
 !outputs/**/run_config.json
 !outputs/**/self_check.json
 !outputs/**/README.md
 !outputs/**/command.sh
 !outputs/**/.gitkeep
-!outputs/**/data/
-!outputs/**/data/**/
-!outputs/**/figures/
-!outputs/**/figures/**/
-!outputs/**/figures/**/*.png
-!outputs/**/figures/**/*.pdf
-!outputs/**/figures/**/*.svg
 
 # Validation artifacts are reproducible local data unless explicitly summarized.
 validation/cache/**

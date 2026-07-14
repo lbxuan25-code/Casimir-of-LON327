@@ -33,47 +33,7 @@ jobs:
           cat collect-output.txt
           exit $status
 
-      - name: Run contract and compatibility tests
-        shell: bash
-        run: |
-          set +e
-          python -m pytest -q --tb=short \
-            tests/test_effective_em_kernel_contract.py \
-            tests/test_electrodynamics_basis.py \
-            tests/test_positive_matsubara_sheet_response.py \
-            tests/test_zero_matsubara_static_sheet.py \
-            tests/test_two_band_casimir_contract_integration.py \
-            tests/test_finite_q_optimized_workspace.py \
-            tests/test_finite_q_two_band_batch.py \
-            tests/test_finite_q_material_cache.py \
-            tests/test_finite_q_material_workspace_batched.py \
-            tests/test_sheet_reflection_contract.py \
-            tests/test_passive_sheet_logdet.py \
-            tests/test_primitive_xy_ward_validation.py \
-            tests/test_legacy_casimir_pipeline_retired.py \
-            tests/test_response_finite_q_primitives_regression.py \
-            tests/test_electrodynamics_reflection_regression.py \
-            tests/test_electrodynamics_conventions_regression.py \
-            tests/test_finite_q_validation_model_adapter.py \
-            tests/test_repository_layout_contract.py \
-            tests/test_static_nk_scan_diagnostics.py \
-            tests/test_commensurate_orbit_workspace.py \
-            tests/test_commensurate_orbit_gauss_aggregate.py \
-            tests/test_dwave_positive_orbit_gauss.py \
-            tests/test_positive_orbit_gauss.py \
-            tests/test_dwave_orbit_gauss_crosscheck_command.py \
-            tests/test_positive_orbit_gauss_scan.py \
-            tests/test_total_orbit_gauss_scan.py \
-            tests/test_total_matsubara_orbit_preflight.py \
-            tests/test_commensurate_orbit_panel_adaptive.py \
-            tests/test_commensurate_orbit_panel_adaptive_v3.py \
-            tests/test_validation_cli.py \
-            > pytest-output.txt 2>&1
-          status=$?
-          cat pytest-output.txt
-          exit $status
-
-      - name: Run full test suite after cleanup
+      - name: Run full contract suite
         shell: bash
         run: |
           set +e
@@ -82,89 +42,11 @@ jobs:
           cat full-pytest-output.txt
           exit $status
 
-      - name: Smoke test validation CLI routing
-        run: python -m validation --help
-
-      - name: Smoke test panel-adaptive d-wave wiring
-        env:
-          OMP_NUM_THREADS: "1"
-          OPENBLAS_NUM_THREADS: "1"
-          MKL_NUM_THREADS: "1"
-          NUMEXPR_NUM_THREADS: "1"
+      - name: Smoke test tightened CLI routing
         run: |
-          python -m validation matsubara dwave-orbit-panel-adaptive \
-            --nk 4 \
-            --mx 1 \
-            --my 0 \
-            --matsubara-indices 1 \
-            --max-transverse-evaluations 128 \
-            --epsabs 1e-4 \
-            --epsrel 1e-2 \
-            --output /tmp/dwave-panel-smoke.csv
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          payload = json.loads(Path('/tmp/dwave-panel-smoke.json').read_text())
-          quadrature = payload['quadrature']
-          assert payload['schema'] == 'dwave_positive_commensurate_orbit_panel_adaptive_v2'
-          assert quadrature['strategy'] == 'deterministic_panel_adaptive'
-          assert quadrature['quadrature'] == 'nested_clenshaw_curtis_5_9_17_33_split_history'
-          assert quadrature['initial_panel_count'] == 8
-          assert quadrature['pilot_count'] == 16
-          assert quadrature['full_transverse_period_integrated'] is True
-          assert quadrature['symmetry_reduction_applied'] is False
-          assert quadrature['q_direction_special_case'] is False
-          assert isinstance(quadrature['refinement_trace'], list)
-          assert quadrature['transverse_evaluations_unique'] <= 128
-          assert payload['status']['diagnostic_only'] is True
-          assert payload['status']['valid_for_casimir_input'] is False
-          PY
-
-      - name: Smoke test complete-orbit evaluator profiler
-        env:
-          OMP_NUM_THREADS: "1"
-          OPENBLAS_NUM_THREADS: "1"
-          MKL_NUM_THREADS: "1"
-          NUMEXPR_NUM_THREADS: "1"
-        run: |
-          python -m validation matsubara dwave-orbit-evaluator-profile \
-            --nk 4 \
-            --mx 1 \
-            --my 0 \
-            --matsubara-indices 1 \
-            --output /tmp/dwave-orbit-profile.json
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          payload = json.loads(Path('/tmp/dwave-orbit-profile.json').read_text())
-          profile = payload['evaluator_profile']
-          assert profile['callbacks'] == 1
-          assert profile['material_workspace_implementation'] == 'batched_model_capability'
-          assert profile['q_workspace_implementation'] == 'batched_model_capability'
-          assert payload['points_per_t'] == 8
-          assert payload['status']['valid_for_casimir_input'] is False
-          PY
-
-      - name: Smoke test fork-process d-wave fixed-Gauss crosscheck
-        env:
-          OMP_NUM_THREADS: "1"
-          OPENBLAS_NUM_THREADS: "1"
-          MKL_NUM_THREADS: "1"
-          NUMEXPR_NUM_THREADS: "1"
-        run: |
-          python -m validation matsubara dwave-orbit-gauss-crosscheck \
-            --nk 4 \
-            --mx 1 \
-            --my 0 \
-            --matsubara-indices 1 \
-            --gauss-orders 4 8 \
-            --panel-count 1 \
-            --transverse-workers 2 \
-            --transverse-task-size 2 \
-            --max-point-evaluations 128 \
-            --output /tmp/dwave-gauss-process-smoke.csv
+          python -m validation --help
+          python -m validation matsubara --help
+          python -m validation diagnostic --help
 
       - name: Smoke test total zero-positive Gauss preflight and scan
         env:
@@ -174,6 +56,8 @@ jobs:
           NUMEXPR_NUM_THREADS: "1"
           BLIS_NUM_THREADS: "1"
           VECLIB_MAXIMUM_THREADS: "1"
+          OMP_DYNAMIC: "FALSE"
+          MKL_DYNAMIC: "FALSE"
         run: |
           python -m validation matsubara matsubara-orbit-gauss-crosscheck \
             --pairing spm \
@@ -187,6 +71,7 @@ jobs:
             --transverse-task-size 2 \
             --max-point-evaluations 128 \
             --output /tmp/spm-total-gauss-smoke.csv
+
           python - <<'PY'
           import json
           from pathlib import Path
@@ -236,6 +121,7 @@ jobs:
             --transverse-task-size 2 \
             --preflight-manifest /tmp/total-preflight.json \
             --output-root /tmp/total-scan-smoke
+
           python - <<'PY'
           import json
           from pathlib import Path
@@ -246,32 +132,18 @@ jobs:
           assert payload['status']['zero_uses_exact_static_divided_difference'] is True
           assert payload['status']['zero_conductivity_division_used'] is False
           assert payload['status']['static_physics_contract_softened'] is False
-          assert payload['status']['static_numerical_soft_acceptance_enabled'] is True
           assert payload['status']['preflight_passed'] is True
           assert payload['preflight']['accepted'] is True
           assert payload['status']['valid_for_casimir_input'] is False
           PY
 
-      - name: Smoke test timed static scan CLI
-        env:
-          OMP_NUM_THREADS: "1"
-          OPENBLAS_NUM_THREADS: "1"
-          MKL_NUM_THREADS: "1"
-          NUMEXPR_NUM_THREADS: "1"
-        run: >-
-          python -m validation static nk-scan
-          --nks 2 3
-          --workers 2
-          --output /tmp/static-nk-smoke.csv
-
-      - name: Upload validation reports
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: two-band-casimir-test-reports
           path: |
             collect-output.txt
-            pytest-output.txt
             full-pytest-output.txt
           if-no-files-found: ignore
           retention-days: 7

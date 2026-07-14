@@ -35,7 +35,7 @@ def test_dwave_diagonal_width_scan_writes_cut_comparisons(tmp_path: Path) -> Non
             sys.executable,
             "-m",
             "validation",
-            "matsubara",
+            "diagnostic",
             "dwave-diagonal-width-scan",
             "--nk",
             "4",

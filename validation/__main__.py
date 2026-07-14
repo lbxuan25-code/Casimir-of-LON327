@@ -5,6 +5,10 @@ import importlib
 import sys
 from collections.abc import Sequence
 
+
+# Public surface used by the pre-outer-integration main flow.  Historical positive-only
+# aliases and superseded d-wave quadrature experiments are intentionally not exposed
+# here; their implementation modules remain importable for tests and forensic work.
 _COMMANDS: dict[tuple[str, str], str] = {
     ("ward", "commensurate"): "validation.commands.ward.commensurate",
     ("ward", "bond-metric-full-kernel"): (
@@ -19,41 +23,11 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("static", "projection-scan"): "validation.commands.static.projection_scan",
     ("static", "quadrature-compare"): "validation.commands.static.quadrature_compare",
     ("matsubara", "positive-point"): "validation.commands.matsubara.positive_point",
-    ("matsubara", "dwave-small-xi"): "validation.commands.matsubara.dwave_small_xi",
-    ("matsubara", "bond-metric-positive"): (
-        "validation.commands.matsubara.bond_metric_positive"
-    ),
-    ("matsubara", "dwave-orbit-adaptive"): (
-        "validation.commands.matsubara.dwave_orbit_adaptive"
-    ),
-    ("matsubara", "dwave-orbit-panel-adaptive"): (
-        "validation.commands.matsubara.dwave_orbit_panel_adaptive"
-    ),
-    ("matsubara", "dwave-orbit-evaluator-profile"): (
-        "validation.commands.matsubara.dwave_orbit_evaluator_profile"
-    ),
-    ("matsubara", "dwave-orbit-integrand-profile"): (
-        "validation.commands.matsubara.dwave_orbit_integrand_profile"
-    ),
-    ("matsubara", "dwave-diagonal-width-scan"): (
-        "validation.commands.matsubara.dwave_diagonal_width_scan"
-    ),
     ("matsubara", "total-orbit-timing-profile"): (
         "validation.commands.matsubara.orbit_gauss_timing_profile"
     ),
-    ("matsubara", "dwave-orbit-gauss-crosscheck"): (
-        "validation.commands.matsubara.dwave_orbit_gauss_crosscheck"
-    ),
-    # Historical names remain stable; the implementation now supports exact n=0 too.
-    ("matsubara", "positive-orbit-gauss-crosscheck"): (
-        "validation.commands.matsubara.positive_orbit_gauss_crosscheck"
-    ),
     ("matsubara", "matsubara-orbit-gauss-crosscheck"): (
         "validation.commands.matsubara.positive_orbit_gauss_crosscheck"
-    ),
-    # Both public staged-scan names resolve to the same total-Matsubara policy.
-    ("matsubara", "positive-orbit-gauss-scan"): (
-        "validation.commands.matsubara.total_orbit_gauss_scan"
     ),
     ("matsubara", "total-orbit-gauss-scan"): (
         "validation.commands.matsubara.total_orbit_gauss_scan"
@@ -61,14 +35,41 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("matsubara", "orbit-gauss-preflight"): (
         "validation.commands.matsubara.orbit_gauss_preflight"
     ),
-    ("matsubara", "dwave-orbit-certification-scan"): (
+    # Diagnostic-only routes are deliberately separated from the outer-integration
+    # intake surface.  They may localize or reproduce a blocker but never authorize
+    # production input by themselves.
+    ("diagnostic", "dwave-small-xi"): (
+        "validation.commands.matsubara.dwave_small_xi"
+    ),
+    ("diagnostic", "bond-metric-positive"): (
+        "validation.commands.matsubara.bond_metric_positive"
+    ),
+    ("diagnostic", "dwave-orbit-adaptive"): (
+        "validation.commands.matsubara.dwave_orbit_adaptive"
+    ),
+    ("diagnostic", "dwave-orbit-panel-adaptive"): (
+        "validation.commands.matsubara.dwave_orbit_panel_adaptive"
+    ),
+    ("diagnostic", "dwave-orbit-evaluator-profile"): (
+        "validation.commands.matsubara.dwave_orbit_evaluator_profile"
+    ),
+    ("diagnostic", "dwave-orbit-integrand-profile"): (
+        "validation.commands.matsubara.dwave_orbit_integrand_profile"
+    ),
+    ("diagnostic", "dwave-diagonal-width-scan"): (
+        "validation.commands.matsubara.dwave_diagonal_width_scan"
+    ),
+    ("diagnostic", "dwave-orbit-gauss-crosscheck"): (
+        "validation.commands.matsubara.dwave_orbit_gauss_crosscheck"
+    ),
+    ("diagnostic", "dwave-orbit-certification-scan"): (
         "validation.commands.matsubara.dwave_orbit_certification_scan_parallel"
     ),
 }
 
 
 def available_commands() -> tuple[tuple[str, str], ...]:
-    """Return the stable command names exposed by ``python -m validation``."""
+    """Return the stable public command names exposed by ``python -m validation``."""
 
     return tuple(sorted(_COMMANDS))
 
@@ -85,7 +86,10 @@ def resolve_command(group: str, command: str) -> str:
 def _print_help(group: str | None = None) -> None:
     print("usage: python -m validation <group> <command> [options]")
     print("")
-    print("Active validation commands:")
+    if group == "diagnostic":
+        print("Diagnostic-only commands (never production authorization):")
+    else:
+        print("Active validation commands:")
     for current_group, command in available_commands():
         if group is None or current_group == group:
             print(f"  {current_group} {command}")

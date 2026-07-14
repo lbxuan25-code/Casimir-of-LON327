@@ -37,7 +37,7 @@ def test_dwave_integrand_profile_writes_node_boundary_panel_and_npz_outputs(
             sys.executable,
             "-m",
             "validation",
-            "matsubara",
+            "diagnostic",
             "dwave-orbit-integrand-profile",
             "--nk",
             "4",
