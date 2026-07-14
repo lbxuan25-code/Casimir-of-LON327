@@ -1,7 +1,7 @@
 """Exact arbitrary-q Matsubara response on a fixed periodic BZ lattice."""
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 import hashlib
 from typing import Sequence
 
@@ -16,7 +16,7 @@ from lno327.response.arbitrary_q_accumulator import (
 from lno327.response.arbitrary_q_formal_policy import (
     PRIMITIVE_CONTRACT_VERSION,
     RESPONSE_CACHE_SCHEMA,
-    VALIDATED_Q_COMPONENT_LIMIT,
+    SUPPORTED_Q_COMPONENT_LIMIT,
     validate_q_domain,
 )
 from lno327.response.arbitrary_q_material_cache import (
@@ -24,14 +24,8 @@ from lno327.response.arbitrary_q_material_cache import (
     build_material_grid_cache,
     material_cache_fingerprint,
 )
-from lno327.response.periodic_bz_grid import (
-    build_periodic_bz_grid,
-    exact_float64_key,
-)
-from lno327.response.primitive_kernel_v2 import (
-    OperatorWardReport,
-    unpack_integrated_primitives,
-)
+from lno327.response.periodic_bz_grid import build_periodic_bz_grid, exact_float64_key
+from lno327.response.primitive_kernel_v2 import OperatorWardReport, unpack_integrated_primitives
 from lno327.response.ward_validation import PrimitiveWardRHS
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 
@@ -44,7 +38,7 @@ class ArbitraryQPeriodicBZResult:
     components: tuple[object, ...]
     rhs: tuple[PrimitiveWardRHS, ...]
     operator_ward: OperatorWardReport
-    profile: ArbitraryQAccumulationProfile
+    profile: object
     material_cache_fingerprint: str
     metadata: dict[str, object]
 
@@ -62,6 +56,56 @@ class ArbitraryQPeriodicBZResult:
             raise ValueError("q_model must have shape (2,)")
         if len(self.components) != xi.size or len(self.rhs) != xi.size:
             raise ValueError("components/rhs/frequency lengths differ")
+
+
+@dataclass(frozen=True)
+class PairedShiftProfile:
+    k_point_count: int
+    frequency_count: int
+    canonical_reduction_block_size: int
+    runtime_chunk_size: int
+    canonical_block_count: int
+    runtime_chunk_count: int
+    q_workspace_build_count: int
+    shifted_eigensystem_build_count: int
+    q_workspace_seconds: float
+    kubo_factor_seconds: float
+    kubo_contraction_seconds: float
+    primitive_pack_seconds: float
+    operator_ward_seconds: float
+    accumulation_seconds: float
+    total_seconds: float
+    counterterm_add_count: int
+    material_cache_fingerprint: str
+    source_material_cache_fingerprints: tuple[str, str]
+    source_grid_fingerprints: tuple[str, str]
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "profile_schema": "PairedShiftProfile-v1",
+            "k_point_count": int(self.k_point_count),
+            "total_point_evaluations": int(self.k_point_count),
+            "frequency_count": int(self.frequency_count),
+            "canonical_reduction_block_size": int(self.canonical_reduction_block_size),
+            "runtime_chunk_size": int(self.runtime_chunk_size),
+            "canonical_block_count": int(self.canonical_block_count),
+            "runtime_chunk_count": int(self.runtime_chunk_count),
+            "q_workspace_build_count": int(self.q_workspace_build_count),
+            "shifted_eigensystem_build_count": int(self.shifted_eigensystem_build_count),
+            "q_workspace_seconds": float(self.q_workspace_seconds),
+            "kubo_factor_seconds": float(self.kubo_factor_seconds),
+            "kubo_contraction_seconds": float(self.kubo_contraction_seconds),
+            "primitive_pack_seconds": float(self.primitive_pack_seconds),
+            "operator_ward_seconds": float(self.operator_ward_seconds),
+            "accumulation_seconds": float(self.accumulation_seconds),
+            "total_seconds": float(self.total_seconds),
+            "counterterm_add_count": int(self.counterterm_add_count),
+            "counterterm_source_evaluations": 2,
+            "counterterm_effective_count_after_average": 1,
+            "material_cache_fingerprint": self.material_cache_fingerprint,
+            "source_material_cache_fingerprints": list(self.source_material_cache_fingerprints),
+            "source_grid_fingerprints": list(self.source_grid_fingerprints),
+        }
 
 
 class CrystalResponseCache:
@@ -127,19 +171,18 @@ class CrystalResponseCache:
 
     def put(self, result: ArbitraryQPeriodicBZResult) -> None:
         metadata = result.metadata
-        key = self.key(
-            result.material_cache_fingerprint,
-            result.q_model,
-            result.xi_eV_values,
-            phase_policy=str(metadata["post_integral_phase_hessian_policy"]),
-            canonical_reduction_block_size=int(
-                metadata["canonical_reduction_block_size"]
-            ),
-            operator_ward_atol=float(result.operator_ward.atol),
-            operator_ward_rtol=float(result.operator_ward.rtol),
-            primitive_contract_version=str(metadata["primitive_contract_version"]),
-        )
-        self._values[key] = result
+        self._values[
+            self.key(
+                result.material_cache_fingerprint,
+                result.q_model,
+                result.xi_eV_values,
+                phase_policy=str(metadata["post_integral_phase_hessian_policy"]),
+                canonical_reduction_block_size=int(metadata["canonical_reduction_block_size"]),
+                operator_ward_atol=float(result.operator_ward.atol),
+                operator_ward_rtol=float(result.operator_ward.rtol),
+                primitive_contract_version=str(metadata["primitive_contract_version"]),
+            )
+        ] = result
 
     def metadata(self) -> dict[str, int | str]:
         return {
@@ -170,23 +213,15 @@ def rotate_lab_q_to_crystal(q_lab: np.ndarray, theta_rad: float) -> np.ndarray:
         raise ValueError("q_lab and theta must be finite")
     cosine = np.cos(theta)
     sine = np.sin(theta)
-    rotation = np.asarray([[cosine, sine], [-sine, cosine]], dtype=float)
-    return rotation @ q
+    return np.asarray([[cosine, sine], [-sine, cosine]], dtype=float) @ q
 
 
 def _phase_policy(pairing_name: str) -> str:
-    return (
-        "nearest_neighbor_bond_metric"
-        if pairing_name == "dwave"
-        else "q_independent"
-    )
+    return "nearest_neighbor_bond_metric" if pairing_name == "dwave" else "q_independent"
 
 
 def _base_config(
-    xi_values: np.ndarray,
-    *,
-    temperature_K: float,
-    eta_eV: float,
+    xi_values: np.ndarray, *, temperature_K: float, eta_eV: float
 ) -> KuboConfig:
     return KuboConfig.from_kelvin(
         omega_eV=float(xi_values[0]),
@@ -207,7 +242,7 @@ def _finalize_result(
     options: FiniteQEngineOptions,
     phase_policy: str,
     operator_ward: OperatorWardReport,
-    profile: ArbitraryQAccumulationProfile,
+    profile: object,
     material_fingerprint: str,
     integration_metadata: dict[str, object],
 ) -> ArbitraryQPeriodicBZResult:
@@ -254,8 +289,6 @@ def integrate_arbitrary_q_periodic_bz(
     operator_ward_atol: float = 512.0 * np.finfo(float).eps,
     operator_ward_rtol: float = 512.0 * np.finfo(float).eps,
 ) -> ArbitraryQPeriodicBZResult:
-    """Evaluate exact q without commensuration, rounding, wrapping, or interpolation."""
-
     xi_values = _validate_xi(xi_eV_values)
     q = validate_q_domain(np.asarray(q_model, dtype=float))
     pairing_name = str(getattr(ansatz, "name", ""))
@@ -263,12 +296,7 @@ def integrate_arbitrary_q_periodic_bz(
         raise ValueError("arbitrary-q periodic BZ supports spm and dwave")
     if getattr(ansatz, "phase_vertex", None) != "bond_endpoint_gauge":
         raise ValueError("arbitrary-q periodic BZ requires bond_endpoint_gauge")
-
-    base_config = _base_config(
-        xi_values,
-        temperature_K=temperature_K,
-        eta_eV=eta_eV,
-    )
+    base_config = _base_config(xi_values, temperature_K=temperature_K, eta_eV=eta_eV)
     options = FiniteQEngineOptions(phase_hessian_policy="q_independent")
     phase_policy = _phase_policy(pairing_name)
 
@@ -325,11 +353,13 @@ def integrate_arbitrary_q_periodic_bz(
     )
     integration_metadata: dict[str, object] = {
         "integration_strategy": "arbitrary_q_fixed_shifted_periodic_bz_lattice",
-        "arbitrary_q_contract": "ArbitraryQPeriodicBZContract-v2",
+        "arbitrary_q_contract": "ArbitraryQPeriodicBZContract-v3",
         "primitive_contract_version": PRIMITIVE_CONTRACT_VERSION,
         "exact_q_used_without_rounding": True,
         "q_wrapping_forbidden": True,
-        "validated_q_component_limit": VALIDATED_Q_COMPONENT_LIMIT,
+        "principal_q_domain_kind": "syntactically_supported_not_numerically_qualified",
+        "supported_q_component_limit": SUPPORTED_Q_COMPONENT_LIMIT,
+        "numerically_qualified_q_envelope_established": False,
         "translation_by_q_is_exact_orbit_permutation": False,
         "matsubara_batch_shared_nodes": True,
         "zero_and_positive_frequencies_share_eigensystems": bool(
@@ -341,12 +371,13 @@ def integrate_arbitrary_q_periodic_bz(
         "material_cache_hit": bool(cache_hit),
         "material_cache_build_count": int(material_cache.build_count),
         "material_cache_fingerprint": material_cache.fingerprint,
+        "material_state_fingerprint": material_cache.material_state_fingerprint,
+        "grid_fingerprint": material_cache.grid_fingerprint,
         "counterterm_add_count": int(accumulated.profile.counterterm_add_count),
-        "canonical_reduction_block_size": int(
-            canonical_reduction_block_size
-        ),
+        "canonical_reduction_block_size": int(canonical_reduction_block_size),
         "runtime_chunk_size": int(runtime_chunk_size),
         "runtime_chunk_affects_numerical_definition": False,
+        "runtime_chunk_controls_q_workspace_batch": True,
         "grid": grid.metadata(),
         "operator_ward": accumulated.operator_ward.as_dict(),
         "accumulation_profile": accumulated.profile.as_dict(),
@@ -373,6 +404,35 @@ def integrate_arbitrary_q_periodic_bz(
     return result
 
 
+def _profile_sum(first: object, second: object, fingerprint: str) -> PairedShiftProfile:
+    integer_sum = lambda name: int(getattr(first, name)) + int(getattr(second, name))
+    float_sum = lambda name: float(getattr(first, name)) + float(getattr(second, name))
+    return PairedShiftProfile(
+        k_point_count=integer_sum("k_point_count"),
+        frequency_count=int(getattr(first, "frequency_count")),
+        canonical_reduction_block_size=int(getattr(first, "canonical_reduction_block_size")),
+        runtime_chunk_size=int(getattr(first, "runtime_chunk_size")),
+        canonical_block_count=integer_sum("canonical_block_count"),
+        runtime_chunk_count=integer_sum("runtime_chunk_count"),
+        q_workspace_build_count=integer_sum("q_workspace_build_count"),
+        shifted_eigensystem_build_count=integer_sum("shifted_eigensystem_build_count"),
+        q_workspace_seconds=float_sum("q_workspace_seconds"),
+        kubo_factor_seconds=float_sum("kubo_factor_seconds"),
+        kubo_contraction_seconds=float_sum("kubo_contraction_seconds"),
+        primitive_pack_seconds=float_sum("primitive_pack_seconds"),
+        operator_ward_seconds=float_sum("operator_ward_seconds"),
+        accumulation_seconds=float_sum("accumulation_seconds"),
+        total_seconds=float_sum("total_seconds"),
+        counterterm_add_count=1,
+        material_cache_fingerprint=fingerprint,
+        source_material_cache_fingerprints=(
+            str(getattr(first, "material_cache_fingerprint")),
+            str(getattr(second, "material_cache_fingerprint")),
+        ),
+        source_grid_fingerprints=("", ""),
+    )
+
+
 def paired_average_arbitrary_q_results(
     first: ArbitraryQPeriodicBZResult,
     second: ArbitraryQPeriodicBZResult,
@@ -381,9 +441,8 @@ def paired_average_arbitrary_q_results(
     pairing: object,
     temperature_K: float,
     eta_eV: float,
+    require_formal_audit_pair: bool = True,
 ) -> ArbitraryQPeriodicBZResult:
-    """Average two audit shifts at the linear packed-primitive level."""
-
     if not np.array_equal(first.q_model, second.q_model):
         raise ValueError("paired shift results must use exactly the same q")
     if not np.array_equal(first.xi_eV_values, second.xi_eV_values):
@@ -392,14 +451,30 @@ def paired_average_arbitrary_q_results(
         "primitive_contract_version",
         "post_integral_phase_hessian_policy",
         "canonical_reduction_block_size",
+        "runtime_chunk_size",
+        "material_state_fingerprint",
     ):
         if first.metadata.get(key) != second.metadata.get(key):
-            raise ValueError(f"paired shift result policy differs for {key}")
-    if (
-        first.operator_ward.atol != second.operator_ward.atol
-        or first.operator_ward.rtol != second.operator_ward.rtol
-    ):
+            raise ValueError(f"paired shift result policy/state differs for {key}")
+    if first.operator_ward.atol != second.operator_ward.atol or first.operator_ward.rtol != second.operator_ward.rtol:
         raise ValueError("paired shift operator Ward tolerances differ")
+
+    grid_a = dict(first.metadata.get("grid", {}))
+    grid_b = dict(second.metadata.get("grid", {}))
+    for key in ("N", "bz_convention", "ordering", "point_count"):
+        if grid_a.get(key) != grid_b.get(key):
+            raise ValueError(f"paired shift grids differ for {key}")
+    shift_a = tuple(float(v) % 1.0 for v in grid_a.get("shift", ()))
+    shift_b = tuple(float(v) % 1.0 for v in grid_b.get("shift", ()))
+    if len(shift_a) != 2 or len(shift_b) != 2:
+        raise ValueError("paired shift grid metadata lacks two-dimensional shifts")
+    expected_b = tuple((-value) % 1.0 for value in shift_a)
+    if any(abs(a - b) > 64.0 * np.finfo(float).eps for a, b in zip(expected_b, shift_b)):
+        raise ValueError("paired audit shifts are not related by inversion")
+    if require_formal_audit_pair:
+        formal = {(0.25, 0.75), (0.75, 0.25)}
+        if {shift_a, shift_b} != formal:
+            raise ValueError("formal paired audit requires shifts (1/4,3/4) and (3/4,1/4)")
 
     packed = 0.5 * (
         np.asarray(first.packed_primitives, dtype=complex)
@@ -407,36 +482,51 @@ def paired_average_arbitrary_q_results(
     )
     fingerprint = hashlib.sha256(
         (
-            "paired-shift:"
-            + first.material_cache_fingerprint
+            "paired-shift-v1:"
+            + str(first.metadata["material_state_fingerprint"])
             + ":"
-            + second.material_cache_fingerprint
+            + str(first.metadata["grid_fingerprint"])
+            + ":"
+            + str(second.metadata["grid_fingerprint"])
         ).encode("utf-8")
     ).hexdigest()
-    profile = replace(
-        first.profile,
-        material_cache_fingerprint=fingerprint,
-        total_seconds=float(first.profile.total_seconds + second.profile.total_seconds),
+    profile = _profile_sum(first.profile, second.profile, fingerprint)
+    object.__setattr__(
+        profile,
+        "source_grid_fingerprints",
+        (str(first.metadata["grid_fingerprint"]), str(second.metadata["grid_fingerprint"])),
     )
-    operator = combine_operator_ward_reports(
-        (first.operator_ward, second.operator_ward)
-    )
+    operator = combine_operator_ward_reports((first.operator_ward, second.operator_ward))
+    paired_grid = {
+        "grid_contract": "PairedShiftGrid-v1",
+        "N": int(grid_a["N"]),
+        "point_count_per_shift": int(grid_a["point_count"]),
+        "total_point_evaluations": int(grid_a["point_count"]) + int(grid_b["point_count"]),
+        "audit_shifts": [list(shift_a), list(shift_b)],
+        "bz_convention": grid_a["bz_convention"],
+        "ordering": grid_a["ordering"],
+        "source_grid_fingerprints": list(profile.source_grid_fingerprints),
+        "fingerprint": hashlib.sha256(
+            (str(first.metadata["grid_fingerprint"]) + str(second.metadata["grid_fingerprint"])).encode("utf-8")
+        ).hexdigest(),
+    }
     metadata = {
         **dict(first.metadata),
         "integration_strategy": "paired_shift_average_of_linear_packed_primitives",
         "paired_shift_primitive_average": True,
-        "paired_shift_material_fingerprints": [
-            first.material_cache_fingerprint,
-            second.material_cache_fingerprint,
-        ],
+        "paired_shift_profile_schema": "PairedShiftProfile-v1",
+        "paired_shift_material_fingerprints": list(profile.source_material_cache_fingerprints),
+        "material_cache_fingerprint": fingerprint,
+        "grid_fingerprint": paired_grid["fingerprint"],
+        "grid": paired_grid,
+        "material_cache_hit": "paired_source_results",
+        "material_cache_build_count": 2,
+        "counterterm_add_count": 1,
+        "accumulation_profile": profile.as_dict(),
         "nonlinear_observable_average_forbidden": True,
         "operator_ward": operator.as_dict(),
     }
-    base_config = _base_config(
-        first.xi_eV_values,
-        temperature_K=temperature_K,
-        eta_eV=eta_eV,
-    )
+    base_config = _base_config(first.xi_eV_values, temperature_K=temperature_K, eta_eV=eta_eV)
     return _finalize_result(
         packed=packed,
         q=np.asarray(first.q_model, dtype=float),
@@ -491,8 +581,6 @@ def integrate_two_plate_angle_batch(
     operator_ward_atol: float = 512.0 * np.finfo(float).eps,
     operator_ward_rtol: float = 512.0 * np.finfo(float).eps,
 ) -> TwoPlateAngleBatchResult:
-    """Evaluate one q_lab task with plate 1 reused across an angle batch."""
-
     q = np.asarray(q_lab, dtype=float)
     angles = np.asarray(theta_2_rad_values, dtype=float)
     if q.shape != (2,) or not np.isfinite(q).all():
@@ -517,13 +605,11 @@ def integrate_two_plate_angle_batch(
         operator_ward_rtol=operator_ward_rtol,
     )
     plate_1 = integrate_arbitrary_q_periodic_bz(
-        q_model=rotate_lab_q_to_crystal(q, float(theta_1_rad)),
-        **common,
+        q_model=rotate_lab_q_to_crystal(q, float(theta_1_rad)), **common
     )
     plate_2 = tuple(
         integrate_arbitrary_q_periodic_bz(
-            q_model=rotate_lab_q_to_crystal(q, float(theta)),
-            **common,
+            q_model=rotate_lab_q_to_crystal(q, float(theta)), **common
         )
         for theta in angles
     )
@@ -540,6 +626,7 @@ def integrate_two_plate_angle_batch(
 __all__ = [
     "ArbitraryQPeriodicBZResult",
     "CrystalResponseCache",
+    "PairedShiftProfile",
     "TwoPlateAngleBatchResult",
     "integrate_arbitrary_q_periodic_bz",
     "integrate_two_plate_angle_batch",
