@@ -30,9 +30,11 @@ matsubara total-orbit-timing-profile
 matsubara matsubara-orbit-gauss-crosscheck
 matsubara orbit-gauss-preflight
 matsubara total-orbit-gauss-scan
+matsubara arbitrary-q-performance-preflight
+matsubara arbitrary-q-periodic-bz-qualification
 ```
 
-Only the total-Matsubara routes may be used to qualify input for the future full outer integral. Historical positive-only aliases are no longer public commands.
+The total-Matsubara complete-orbit routes retain the qualified commensurate reference. The arbitrary-q routes are blocking preflight and qualification commands for the new fixed periodic-BZ backend; their existence does not establish a production response reference. Historical positive-only aliases are no longer public commands.
 
 ### Diagnostic-only commands
 
@@ -60,9 +62,9 @@ These routes localize numerical behavior or preserve forensic reproducibility. T
 - Primitive blocks are integrated before phase-Hessian pullback, Schur reduction, sheet conversion, reflection or logdet.
 - The final single-point observable is `lno327.casimir.lifshitz_integrand.passive_sheet_logdet` in the common lab LT tangential-electric basis.
 
-## Retained transverse method
+## Retained commensurate reference
 
-The qualified main path uses one full-period equal-panel composite Gauss-Legendre rule with no even, C4, axis, diagonal or q-direction symmetry reduction. Child processes compute full q orbits; the parent performs original-node-order complex Kahan reduction.
+The qualified complete-orbit path uses one full-period equal-panel composite Gauss-Legendre rule with no even, C4, axis, diagonal or q-direction symmetry reduction. Child processes compute full q orbits; the parent performs original-node-order complex Kahan reduction.
 
 ```text
 screen: C64 / C96
@@ -70,7 +72,34 @@ medium: C160 / C192
 hard:   C320 / C384
 ```
 
-Multi-process runs must pin BLAS/OpenMP thread counts to one. A real-`nk` preflight manifest from the same Git head is mandatory before any formal scanner run.
+This backend is not forced onto arbitrary q. It remains the authority at commensurate q and the regression reference for the periodic-BZ implementation.
+
+## Arbitrary-q periodic BZ backend
+
+`ArbitraryQPeriodicBZContract-v1` uses an exact real crystal momentum on a fixed shifted `N x N` periodic midpoint lattice. It does not round q, change its direction or magnitude, or interpolate primitive response.
+
+The implementation contract is:
+
+```text
+shared quadrature-independent primitive kernel
+readonly q-independent material cache
+exact q-dependent streamed canonical reduction blocks
+exact n=0 + positive Matsubara shared shifted eigensystems
+Goldstone/HS counterterm added once after full linear accumulation
+normal Peierls operator identity checked before integration
+integrated RHS-aware Ward checked after full integration
+q_lab + angle-batch persistent-fork tasks
+ordered parent collection and pickle-safe compact payloads
+primary shift (1/2,1/2)
+audit shifts (1/4,3/4) and (3/4,1/4)
+```
+
+The two blocking commands have different purposes:
+
+- `arbitrary-q-performance-preflight` verifies readonly cache reuse, Matsubara eigensystem sharing, counterterm count, chunk invariance, process determinism, single-thread BLAS/OMP and real-hardware q-task speedup.
+- `arbitrary-q-periodic-bz-qualification` compares commensurate q against complete-orbit, performs `N=256/384/512` arbitrary-q refinement and paired-shift audit, and checks a two-plate `0/17 degree` common-lab-LT logdet path.
+
+Large-N qualification must not be run before the same-head performance preflight passes. CI runs only small deterministic contract tests; real speedup and large-N manifests are local blocking evidence.
 
 ## Exact-diagonal d-wave finding
 
@@ -82,7 +111,7 @@ The final pre-outer diagnostic established:
 - every tested reflection and logdet cut drift remains below `1e-3`;
 - Ward, exact-static Ward and the physical pipeline pass.
 
-This permits a diagnostic full outer-integration trial with explicit diagonal sensitivity variants. It does not establish a production response reference.
+The arbitrary-q qualification preserves this policy: exact-diagonal primitive response may remain explicitly unresolved, but physical, reflection, logdet and grid-shift observable gates remain hard.
 
 ## Repository and output boundary
 
@@ -103,16 +132,20 @@ Do not run the destructive command while a job is active. Preserve needed compac
 
 ## Handoff
 
-The next implementation window must begin with:
+The implementation contracts are:
 
 ```text
 docs/full_outer_integration_handoff.md
+docs/arbitrary_q_periodic_bz_design.md
 scripts/casimir/README.md
 ```
 
 Current hard state:
 
 ```text
+arbitrary_q_performance_contract = not_yet_qualified
+arbitrary_q_microscopic_contract = not_yet_qualified
+
 diagnostic_only = True
 production_reference_established = False
 valid_for_casimir_input = False
