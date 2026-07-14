@@ -94,11 +94,11 @@ are ~3%. Process startup and postprocessing are about 1% of the C64 wall time.
 
 ## Verification
 
-GitHub Actions run `29306818594` passed completely on head
-`22b51d7c73a49d66155c052d223b2d418f268b09`, including targeted contracts, the full
-repository suite, CLI routing, fork-process fixed-Gauss smoke, the blocking
-preflight-to-manifest-to-total-scan subprocess chain, static-soft schema v2, and legacy
-entry points.
+The active CI contract covers targeted tests, the full repository suite, CLI routing,
+fork-process fixed-Gauss smoke, the blocking preflight-to-manifest-to-total-scan
+subprocess chain, static-soft schema v2, and legacy entry points. Exact run and head
+identifiers are kept in the draft PR description rather than this tracked file, so
+updating evidence does not create a moving-head commit loop.
 
 A formal local scan must regenerate the preflight manifest after pulling the current
 head, because manifests are intentionally bound to the exact Git head and runtime
