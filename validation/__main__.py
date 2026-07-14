@@ -41,6 +41,12 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ),
     # Diagnostic-only routes are deliberately separated from the outer-integration
     # intake surface. They never authorize production input by themselves.
+    ("diagnostic", "arbitrary-q-performance-smoke"): (
+        "validation.commands.matsubara.arbitrary_q_performance_smoke"
+    ),
+    ("diagnostic", "arbitrary-q-physics-smoke"): (
+        "validation.commands.matsubara.arbitrary_q_physics_smoke"
+    ),
     ("diagnostic", "dwave-small-xi"): (
         "validation.commands.matsubara.dwave_small_xi"
     ),
