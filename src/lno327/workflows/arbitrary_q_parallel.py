@@ -57,6 +57,16 @@ def validate_single_thread_blas_environment() -> None:
         )
 
 
+def actual_threadpool_record() -> tuple[tuple[dict[str, object], ...], bool]:
+    try:
+        from threadpoolctl import threadpool_info  # type: ignore
+    except ImportError:
+        return (({"error": "threadpoolctl not installed", "num_threads": -1},), False)
+    rows = tuple(dict(item) for item in threadpool_info())
+    passed = bool(rows) and all(int(row.get("num_threads", -1)) == 1 for row in rows)
+    return rows, passed
+
+
 def _memory_snapshot() -> tuple[int, int]:
     rss = int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
     if os.name == "posix":
@@ -74,8 +84,6 @@ def _memory_snapshot() -> tuple[int, int]:
 
 
 def _response_payload(response: ArbitraryQPeriodicBZResult) -> tuple[object, ...]:
-    """Return a pickle-safe response payload for parent reconstruction."""
-
     rhs_payloads = tuple(
         (
             np.asarray(item.left),
@@ -148,6 +156,8 @@ def _restore_task_result(
     payload_bytes: int,
     worker_rss_bytes: int,
     worker_pss_bytes: int,
+    worker_threadpools: tuple[dict[str, object], ...],
+    worker_threadpool_passed: bool,
 ) -> "QLabAngleTaskResult":
     batch = TwoPlateAngleBatchResult(
         q_lab=q_lab,
@@ -164,6 +174,8 @@ def _restore_task_result(
         payload_bytes=payload_bytes,
         worker_rss_bytes=worker_rss_bytes,
         worker_pss_bytes=worker_pss_bytes,
+        worker_threadpools=worker_threadpools,
+        worker_threadpool_passed=worker_threadpool_passed,
     )
 
 
@@ -195,6 +207,8 @@ class QLabAngleTaskResult:
     payload_bytes: int = 0
     worker_rss_bytes: int = 0
     worker_pss_bytes: int = 0
+    worker_threadpools: tuple[dict[str, object], ...] = ()
+    worker_threadpool_passed: bool = False
 
     def __reduce__(self):
         return (
@@ -211,6 +225,8 @@ class QLabAngleTaskResult:
                 int(self.payload_bytes),
                 int(self.worker_rss_bytes),
                 int(self.worker_pss_bytes),
+                tuple(dict(item) for item in self.worker_threadpools),
+                bool(self.worker_threadpool_passed),
             ),
         )
 
@@ -252,9 +268,7 @@ class ArbitraryQParallelEvaluator:
         self.temperature_K = float(temperature_K)
         self.eta_eV = float(eta_eV)
         self.process_workers = int(process_workers)
-        self.canonical_reduction_block_size = int(
-            canonical_reduction_block_size
-        )
+        self.canonical_reduction_block_size = int(canonical_reduction_block_size)
         self.runtime_chunk_size = int(runtime_chunk_size)
         self._pool: Pool | None = None
         self._guard_held = False
@@ -264,6 +278,8 @@ class ArbitraryQParallelEvaluator:
         self.last_evaluate_wall_seconds = 0.0
         self.last_parent_collection_overhead_seconds = 0.0
         self.last_payload_bytes = 0
+        self.last_worker_threadpool_all_passed = False
+        self.last_worker_threadpool_records: tuple[tuple[dict[str, object], ...], ...] = ()
         if self.process_workers <= 0:
             raise ValueError("process_workers must be positive")
         if self.process_workers > 1:
@@ -293,6 +309,12 @@ class ArbitraryQParallelEvaluator:
         self.pool_startup_seconds = float(perf_counter() - started)
 
     def _evaluate_local(self, task: QLabAngleTask) -> QLabAngleTaskResult:
+        threadpools, threadpool_passed = actual_threadpool_record()
+        if self.process_workers > 1 and not threadpool_passed:
+            raise RuntimeError(
+                "arbitrary-q worker has a non-single-thread BLAS runtime: "
+                f"{threadpools}"
+            )
         started = perf_counter()
         response_cache = CrystalResponseCache()
         result = integrate_two_plate_angle_batch(
@@ -318,6 +340,8 @@ class ArbitraryQParallelEvaluator:
             worker_seconds=worker_seconds,
             worker_rss_bytes=rss,
             worker_pss_bytes=pss,
+            worker_threadpools=threadpools,
+            worker_threadpool_passed=threadpool_passed,
         )
         payload_bytes = len(pickle.dumps(provisional, protocol=pickle.HIGHEST_PROTOCOL))
         return QLabAngleTaskResult(
@@ -327,6 +351,8 @@ class ArbitraryQParallelEvaluator:
             payload_bytes=payload_bytes,
             worker_rss_bytes=rss,
             worker_pss_bytes=pss,
+            worker_threadpools=threadpools,
+            worker_threadpool_passed=threadpool_passed,
         )
 
     def evaluate_iter(
@@ -335,8 +361,6 @@ class ArbitraryQParallelEvaluator:
         *,
         chunksize: int = 1,
     ) -> Iterator[QLabAngleTaskResult]:
-        """Yield results in task order so callers may reduce and release incrementally."""
-
         if self._closed:
             raise RuntimeError("arbitrary-q evaluator is closed")
         ordered = tuple(tasks)
@@ -345,23 +369,30 @@ class ArbitraryQParallelEvaluator:
             raise ValueError("q task indices must be unique")
         started = perf_counter()
         pool = self._pool
-        if pool is None:
-            iterator = (self._evaluate_local(task) for task in ordered)
-        else:
-            iterator = pool.imap(_fork_evaluate_task, ordered, chunksize=int(chunksize))
+        iterator = (
+            (self._evaluate_local(task) for task in ordered)
+            if pool is None
+            else pool.imap(_fork_evaluate_task, ordered, chunksize=int(chunksize))
+        )
         collected_worker_seconds = 0.0
         payload_bytes = 0
+        threadpool_records: list[tuple[dict[str, object], ...]] = []
+        threadpool_passed: list[bool] = []
         for expected_index, result in zip(indices, iterator, strict=True):
             if result.index != expected_index:
                 raise RuntimeError("ordered q-task result index mismatch")
             collected_worker_seconds += float(result.worker_seconds)
             payload_bytes += int(result.payload_bytes)
+            threadpool_records.append(tuple(result.worker_threadpools))
+            threadpool_passed.append(bool(result.worker_threadpool_passed))
             yield result
         wall = float(perf_counter() - started)
         self.last_evaluate_wall_seconds = wall
         self.last_payload_bytes = payload_bytes
         ideal_parallel = collected_worker_seconds / max(self.process_workers, 1)
         self.last_parent_collection_overhead_seconds = max(wall - ideal_parallel, 0.0)
+        self.last_worker_threadpool_records = tuple(threadpool_records)
+        self.last_worker_threadpool_all_passed = bool(threadpool_passed) and all(threadpool_passed)
 
     def evaluate(self, tasks: Sequence[QLabAngleTask]) -> tuple[QLabAngleTaskResult, ...]:
         return tuple(self.evaluate_iter(tasks))
@@ -396,23 +427,22 @@ class ArbitraryQParallelEvaluator:
     def metadata(self) -> dict[str, object]:
         return {
             "execution_strategy": (
-                EXECUTION_STRATEGY
-                if self.process_workers > 1
-                else "serial_q_lab_angle_batch_tasks"
+                EXECUTION_STRATEGY if self.process_workers > 1 else "serial_q_lab_angle_batch_tasks"
             ),
             "process_workers": int(self.process_workers),
             "pool_startup_seconds": float(self.pool_startup_seconds),
             "pool_shutdown_seconds": float(self.pool_shutdown_seconds),
             "last_evaluate_wall_seconds": float(self.last_evaluate_wall_seconds),
-            "parent_collection_overhead_seconds": float(
-                self.last_parent_collection_overhead_seconds
-            ),
+            "parent_collection_overhead_seconds": float(self.last_parent_collection_overhead_seconds),
             "parent_reduction_seconds": 0.0,
-            "parent_reduction_note": (
-                "primitive reduction occurs deterministically inside each q worker"
-            ),
+            "parent_reduction_note": "primitive reduction occurs deterministically inside each q worker",
             "last_payload_bytes": int(self.last_payload_bytes),
             "thread_environment": thread_environment(),
+            "worker_actual_threadpool_all_passed": bool(self.last_worker_threadpool_all_passed),
+            "worker_actual_threadpools": [
+                [dict(item) for item in record]
+                for record in self.last_worker_threadpool_records
+            ],
             "material_cache_fingerprint": self.material_cache.fingerprint,
         }
 
@@ -421,6 +451,7 @@ __all__ = [
     "ArbitraryQParallelEvaluator",
     "QLabAngleTask",
     "QLabAngleTaskResult",
+    "actual_threadpool_record",
     "thread_environment",
     "validate_single_thread_blas_environment",
 ]
