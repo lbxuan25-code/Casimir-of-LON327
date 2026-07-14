@@ -56,6 +56,7 @@ jobs:
             tests/test_finite_q_validation_model_adapter.py \
             tests/test_repository_layout_contract.py \
             tests/test_static_nk_scan_diagnostics.py \
+            tests/test_commensurate_orbit_workspace.py \
             tests/test_commensurate_orbit_panel_adaptive.py \
             tests/test_commensurate_orbit_panel_adaptive_v3.py \
             tests/test_validation_cli.py \
