@@ -22,6 +22,8 @@ def test_validation_cli_exposes_tight_main_and_diagnostic_surfaces():
         ("matsubara", "orbit-gauss-preflight"),
         ("matsubara", "arbitrary-q-performance-preflight"),
         ("matsubara", "arbitrary-q-periodic-bz-qualification"),
+        ("diagnostic", "arbitrary-q-performance-smoke"),
+        ("diagnostic", "arbitrary-q-physics-smoke"),
         ("diagnostic", "dwave-small-xi"),
         ("diagnostic", "bond-metric-positive"),
         ("diagnostic", "dwave-orbit-adaptive"),
