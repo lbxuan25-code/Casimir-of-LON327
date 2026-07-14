@@ -37,10 +37,12 @@ def test_fixed_gauss_reuses_batched_complete_orbit_evaluator() -> None:
 
     profile = result.evaluator_profile
     assert profile.callbacks == 4
-    assert profile.complete_orbit_points == 16
+    # m=(1,0) requires two complementary origins, so every t has 2*nk points.
+    assert profile.complete_orbit_points == 32
+    assert profile.material_workspace_implementation == "batched_model_capability"
     assert profile.q_workspace_implementation == "batched_model_capability"
     assert result.quadrature.transverse_evaluations == 4
-    assert result.quadrature.point_evaluations == 16
+    assert result.quadrature.point_evaluations == 32
     assert result.components[0].metadata["q_workspace_implementation"] == (
         "batched_model_capability"
     )
