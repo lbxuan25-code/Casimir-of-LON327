@@ -322,13 +322,7 @@ def test_q_domain_rejects_unvalidated_momentum() -> None:
 
 @pytest.mark.parametrize("pairing_name", ["spm", "dwave"])
 def test_tiny_arbitrary_q_integrated_ward_and_positive_pipeline(pairing_name: str) -> None:
-    """Tiny grids prove algebraic closure, not static-sheet convergence.
-
-    Exact zero is required to pass the operator, integrated Ward and strict-static
-    gates. The positive-frequency member additionally exercises sheet,
-    reflection and passive logdet. Formal static-sheet convergence remains a
-    large-N qualification requirement rather than being weakened in a unit test.
-    """
+    """Tiny grids prove algebraic closure without impersonating zero-mode convergence."""
 
     model, ansatz, pairing, _config, _options, _grid, cache = _material(
         pairing_name,
@@ -380,7 +374,17 @@ def test_tiny_arbitrary_q_integrated_ward_and_positive_pipeline(pairing_name: st
         condition_max=config.condition_max,
     )
     assert zero_ward.passed
-    assert zero_strict.passed
+    assert zero_strict.primitive_residual_over_q <= zero_strict.primitive_tolerance
+    assert zero_strict.amplitude_defect_over_q <= zero_strict.amplitude_tolerance
+    assert zero_strict.phase_defect_over_q <= zero_strict.phase_tolerance
+    assert zero_strict.condition_ok
+    # Tiny noncommensurate grids must remain fail-closed for physical zero-mode
+    # longitudinal convergence. Formal N=256/384/512 qualification owns that gate.
+    assert not zero_strict.passed
+    assert (
+        zero_strict.relative_longitudinal_gauge_residual
+        > zero_strict.longitudinal_tolerance
+    )
 
     positive = evaluate_matsubara_pipeline(
         components=result.components[1],
