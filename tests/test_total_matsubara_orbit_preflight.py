@@ -69,5 +69,5 @@ def test_preflight_zero_matches_independent_exact_static_dwave_path() -> None:
     args = _small_args()
     record = _legacy_static_record(args)
 
-    assert record["passed"] is True
-    assert record["maximum_relative"] < 1e-7
+    assert record["passed"] is True, record
+    assert record["maximum_relative"] < 1e-7, record
