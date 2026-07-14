@@ -63,6 +63,7 @@ def test_preflight_uses_combined_zero_positive_batched_process_path() -> None:
     assert record["evaluator_callbacks"] == 4
     assert record["full_transverse_period_integrated"] is True
     assert record["symmetry_reduction_applied"] is False
+    assert record["primitive_serial_parallel_mixed_ratio"] <= 1.0
 
 
 def test_preflight_zero_matches_independent_exact_static_dwave_path() -> None:
@@ -70,4 +71,6 @@ def test_preflight_zero_matches_independent_exact_static_dwave_path() -> None:
     record = _legacy_static_record(args)
 
     assert record["passed"] is True, record
-    assert record["maximum_relative"] < 1e-7, record
+    assert record["maximum_component_relative"] < 1e-7, record
+    assert record["maximum_component_mixed_ratio"] <= 1.0, record
+    assert record["rhs_mixed_ratio"] <= 1.0, record
