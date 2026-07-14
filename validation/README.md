@@ -14,22 +14,33 @@ python -m validation <group> <command> [options]
 当前分组：
 
 - `ward`：finite-q Ward、collective phase-column 与 phase-Hessian 诊断；
-- `static`：exact zero-Matsubara k-grid、quadrature 和 d-wave reference 扫描；
-- `matsubara`：正 Matsubara 单点、完整 orbit、panel 与 fixed/composite Gauss 验证。
+- `static`：独立 exact zero-Matsubara k-grid、quadrature 和 d-wave reference；
+- `matsubara`：零频与正频总验证、完整 orbit、fixed/composite Gauss、性能 preflight 和分级扫描。
 
 示例：
 
 ```bash
 python -m validation static nk-scan --nks 8 12 16
-python -m validation matsubara positive-point --help
-python -m validation matsubara positive-orbit-gauss-crosscheck --help
-python -m validation matsubara positive-orbit-gauss-scan --help
+python -m validation matsubara orbit-gauss-preflight --help
+python -m validation matsubara matsubara-orbit-gauss-crosscheck --help
+python -m validation matsubara total-orbit-gauss-scan --help
 python -m validation ward commensurate --help
 ```
 
+## 总 Matsubara 共用 microscopic batch
+
+`matsubara-orbit-gauss-crosscheck`、`orbit-gauss-preflight` 与 `total-orbit-gauss-scan` 都要求真正的 Matsubara `n=0` 与至少一个正频率同时出现。它们在同一次 complete-orbit callback 中共享 midpoint/shifted eigensystems：
+
+- `n=0` 使用 exact static divided-difference factor，随后进入 density/stiffness、static sheet、static reflection 与带 prime 权重的 Lifshitz 项；
+- `n>0` 使用正 Matsubara factor，随后进入 conductivity、positive-frequency reflection 与 Lifshitz 项；
+- 禁止对 `n=0` 使用 `sigma=-K/xi`；
+- 频率数增加不会增加 transverse callback 数，只增加共享本征系统后的轻量 contraction。
+
+扫描输出统一使用 `primary_response`：静态行为 `diag(chi_bar,Dbar_T)`，正频行为 `sigma_tilde`。reflection 与 logdet 始终由对应频率扇区的正确 electrodynamics contract 构造。
+
 ## Fixed/composite Gauss 并行约定
 
-`positive-orbit-gauss-crosscheck` 与兼容的 d-wave 入口支持对独立 transverse nodes 做确定性 POSIX-fork 进程并行：
+总 Matsubara fixed/composite Gauss 支持对独立 transverse nodes 做确定性 POSIX-fork 进程并行：
 
 ```text
 --transverse-workers N
@@ -46,19 +57,28 @@ env \
   OPENBLAS_NUM_THREADS=1 \
   MKL_NUM_THREADS=1 \
   NUMEXPR_NUM_THREADS=1 \
-  python -m validation matsubara positive-orbit-gauss-crosscheck \
+  BLIS_NUM_THREADS=1 \
+  VECLIB_MAXIMUM_THREADS=1 \
+  python -m validation matsubara orbit-gauss-preflight \
     --transverse-workers 8 \
     --transverse-task-size 4 \
     ...
 ```
 
-不要仅凭小尺寸等价测试推断性能。正式高阶计算前，应在真实 `nk` 上用较小 Gauss order 做串行/进程 A/B，并同时检查墙钟时间和 shell `time` 的总 CPU 时间。不要同时对多个 q case 再做外层并行。
+不要仅凭小尺寸等价测试推断性能。正式扫描前必须在真实 `nk` 上运行 preflight。它直接执行正式总后端，并检查：
 
-外部 reference CSV 是可选的。省略 `--reference-csv` 时，命令仍会完成相邻阶数、周期切口、Ward、sheet、reflection 和 passive-logdet 检查。
+- `spm` 与 `dwave` 的 serial/fork primitive integral 混合绝对–相对等价；
+- batched material/q workspace 标识；
+- callback 数等于 transverse node 数且不随频率数增加；
+- full transverse period、无 symmetry reduction、fork execution strategy；
+- 实际 wall-time speedup 与 worker CPU/wall ratio；
+- d-wave `n=0` response components 对独立旧 exact-static primitive 路径的等价。
+
+preflight 写出带当前 Git head 和运行参数的 manifest。正式 scanner 默认拒绝缺失、失败、参数不匹配或 Git head 已变化的 manifest。
 
 ## 单一方法的逐点分级参数
 
-`positive-orbit-gauss-scan` 同时覆盖 `spm` 与 `dwave` 的正 Matsubara 扇区。所有点始终使用同一个 16-panel composite Gauss-Legendre 方法；不同点只允许改变总 transverse order 和相应预算。
+`total-orbit-gauss-scan` 同时覆盖 `spm`、`dwave`、真正的 `n=0` 和所有指定正频率。所有点始终使用同一个 full-period 16-panel composite Gauss-Legendre 方法；不同点只允许改变总 transverse order 和相应预算。
 
 默认阶数按照独立 low/high stage pairs 解释：
 
@@ -68,11 +88,9 @@ medium: C160 / C192
 hard:   C320 / C384
 ```
 
-每一级只比较同级高低阶。严格通过的点立即停止；reflection/logdet 已收敛且 sigma 仅轻微超过严格阈值的点，需要满足 soft 门禁和趋势要求，并进行 shifted-periodic-cut 审计。只有困难点才进入后续阶数对。不同 Matsubara 正频共享同一个 microscopic eigensystem batch，因此按 q 选择阶数，而不为了高频点拆分主要计算。
+每一级只比较同级高低阶。严格通过的 q case 立即停止。正频 reflection/logdet 已收敛且 sigma 仅轻微超过严格阈值时，可按 soft 门禁和趋势要求接受，并执行 shifted-periodic-cut 审计。真正的 `n=0` 不允许 soft 放宽：static response、strict static Ward、reflection 与 logdet 必须达到严格门禁。只有困难 q case 才进入后续阶数对。
 
-真正的 Matsubara `n=0` 不属于该命令。静态项必须继续使用 exact-static density/stiffness formulation，不能由 `sigma=-K/xi` 外推。
-
-扫描只可能给出 `outer_integral_candidate=True`。它不建立 production response reference，也不代表最终 Casimir energy/torque 已经收敛。
+阶数按 q case 而不是单个 Matsubara index 选择，因为同一 q 的全部频率共享主要 eigensystem 成本。扫描只可能给出 `outer_integral_candidate=True`；它不建立 production response reference，也不代表最终 Casimir energy/torque 已经收敛。
 
 ## 目录边界
 
@@ -101,4 +119,4 @@ git clean -fdX validation/outputs
 
 正在运行的任务所写目录不得在任务结束前清理。需要保留的 compact summary 应先整理为带 `summary` 或 `status` 的文件，再执行清理。
 
-当前 validation 只证明相应数值门禁；在 exact-static reference、正频连续性和外层积分报告全部完成前，不宣称 finite-q Casimir production-ready。
+当前 validation 只证明相应数值门禁；在总 Matsubara reference、完整外层积分与最终 energy/torque 报告完成前，不宣称 finite-q Casimir production-ready。
