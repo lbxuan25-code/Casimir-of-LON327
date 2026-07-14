@@ -39,23 +39,37 @@ outputs/**/*.json
 !outputs/**/figures/**/*.pdf
 !outputs/**/figures/**/*.svg
 
-# Validation artifacts: raw scans, caches and logs are reproducible local data.
+# Validation artifacts are reproducible local data unless explicitly summarized.
 validation/cache/**
+validation/logs/**
 validation/outputs/**/raw/**
 validation/outputs/**/intermediate/**
-validation/outputs/**/data/*.npz
-validation/outputs/**/data/*.npy
-validation/outputs/**/data/*.csv
-validation/outputs/**/figures/*.png
-validation/outputs/**/figures/*.pdf
-validation/logs/**
+validation/outputs/**/*.log
+validation/outputs/**/*.json
+validation/outputs/**/*.csv
+validation/outputs/**/*.txt
+validation/outputs/**/*.tmp
+validation/outputs/**/*.active
+validation/outputs/**/*.npz
+validation/outputs/**/*.npy
+validation/outputs/**/*.h5
+validation/outputs/**/*.hdf5
+validation/outputs/**/*.parquet
+validation/outputs/**/*.feather
+validation/outputs/**/*.pkl
+validation/outputs/**/*.pickle
+validation/outputs/**/*.png
+validation/outputs/**/*.pdf
+validation/outputs/**/*.svg
 
 # Keep validation documentation and compact summaries.
 !validation/README.md
 !validation/reports/**
 !validation/outputs/**/README.md
+!validation/outputs/**/command.sh
+!validation/outputs/**/.gitkeep
 !validation/outputs/**/*summary*.md
 !validation/outputs/**/*summary*.json
 !validation/outputs/**/*summary*.csv
+!validation/outputs/**/*summary*.txt
 !validation/outputs/**/*status*.json
-!validation/outputs/**/command.sh
