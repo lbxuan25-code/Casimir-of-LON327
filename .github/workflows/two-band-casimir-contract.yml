@@ -63,6 +63,7 @@ jobs:
             tests/test_positive_orbit_gauss.py \
             tests/test_dwave_orbit_gauss_crosscheck_command.py \
             tests/test_positive_orbit_gauss_scan.py \
+            tests/test_total_matsubara_orbit_preflight.py \
             tests/test_commensurate_orbit_panel_adaptive.py \
             tests/test_commensurate_orbit_panel_adaptive_v3.py \
             tests/test_validation_cli.py \
@@ -164,46 +165,89 @@ jobs:
             --max-point-evaluations 128 \
             --output /tmp/dwave-gauss-process-smoke.csv
 
-      - name: Smoke test common spm fixed-Gauss crosscheck and scan routing
+      - name: Smoke test total zero-positive Gauss preflight and scan
         env:
           OMP_NUM_THREADS: "1"
           OPENBLAS_NUM_THREADS: "1"
           MKL_NUM_THREADS: "1"
           NUMEXPR_NUM_THREADS: "1"
+          BLIS_NUM_THREADS: "1"
+          VECLIB_MAXIMUM_THREADS: "1"
         run: |
-          python -m validation matsubara positive-orbit-gauss-crosscheck \
+          python -m validation matsubara matsubara-orbit-gauss-crosscheck \
             --pairing spm \
             --nk 4 \
             --mx 1 \
             --my 0 \
-            --matsubara-indices 1 \
+            --matsubara-indices 0 1 \
             --gauss-orders 4 8 \
             --panel-count 1 \
             --transverse-workers 2 \
             --transverse-task-size 2 \
             --max-point-evaluations 128 \
-            --output /tmp/spm-gauss-process-smoke.csv
+            --output /tmp/spm-total-gauss-smoke.csv
           python - <<'PY'
           import json
           from pathlib import Path
 
-          payload = json.loads(Path('/tmp/spm-gauss-process-smoke.json').read_text())
-          assert payload['schema'] == 'positive_commensurate_orbit_fixed_gauss_crosscheck_v1'
+          payload = json.loads(Path('/tmp/spm-total-gauss-smoke.json').read_text())
+          assert payload['schema'] == 'zero_positive_commensurate_orbit_fixed_gauss_crosscheck_v1'
+          assert payload['status']['zero_matsubara_included'] is True
+          assert payload['status']['zero_uses_exact_static_divided_difference'] is True
+          assert payload['status']['zero_conductivity_division_used'] is False
+          assert {row['response_sector'] for row in payload['rows']} == {'zero', 'positive'}
           assert all(row['pairing'] == 'spm' for row in payload['rows'])
           assert all(row['phase_hessian_policy'] == 'q_independent' for row in payload['rows'])
+          assert all(row['material_workspace_implementation'] == 'batched_model_capability' for row in payload['rows'])
+          assert all(row['q_workspace_implementation'] == 'batched_model_capability' for row in payload['rows'])
           assert all(row['execution_strategy'] == 'fork_process_transverse_nodes_ordered_parent_reduction' for row in payload['rows'])
           assert all(row['full_transverse_period_integrated'] is True for row in payload['rows'])
           assert all(row['symmetry_reduction_applied'] is False for row in payload['rows'])
-          assert payload['status']['valid_for_casimir_input'] is False
           PY
-          python -m validation matsubara positive-orbit-gauss-scan \
-            --case smoke:1:0 \
+
+          python -m validation matsubara orbit-gauss-preflight \
             --pairings spm dwave \
             --nk 4 \
-            --matsubara-indices 1 \
-            --gauss-orders 16 32 \
-            --panel-count 16 \
-            --dry-run
+            --mx 1 \
+            --my 0 \
+            --matsubara-indices 0 1 \
+            --transverse-order 4 \
+            --panel-count 1 \
+            --transverse-workers 2 \
+            --transverse-task-size 2 \
+            --legacy-static-nk 4 \
+            --legacy-static-order 4 \
+            --minimum-speedup 0 \
+            --minimum-parallel-cpu-wall-ratio 0 \
+            --comparison-rtol 1e-8 \
+            --comparison-atol 1e-9 \
+            --no-require-physical \
+            --output /tmp/total-preflight.json
+
+          python -m validation matsubara total-orbit-gauss-scan \
+            --case smoke:1:0 \
+            --pairings spm \
+            --nk 4 \
+            --matsubara-indices 0 1 \
+            --gauss-orders 4 8 \
+            --panel-count 1 \
+            --transverse-workers 2 \
+            --transverse-task-size 2 \
+            --preflight-manifest /tmp/total-preflight.json \
+            --output-root /tmp/total-scan-smoke
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path('/tmp/total-scan-smoke/scan_summary.json').read_text())
+          assert payload['schema'] == 'total_matsubara_pointwise_gauss_scan_v1'
+          assert payload['status']['zero_matsubara_included'] is True
+          assert payload['status']['zero_uses_exact_static_divided_difference'] is True
+          assert payload['status']['zero_conductivity_division_used'] is False
+          assert payload['status']['preflight_passed'] is True
+          assert payload['preflight']['accepted'] is True
+          assert payload['status']['valid_for_casimir_input'] is False
+          PY
 
       - name: Smoke test timed static scan CLI
         env:
