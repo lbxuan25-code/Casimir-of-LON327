@@ -49,11 +49,18 @@ DEFAULT_OUTPUT = Path(
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--pairings", nargs="+", choices=("spm", "dwave"), default=["spm", "dwave"])
+    parser.add_argument(
+        "--pairings",
+        nargs="+",
+        choices=("spm", "dwave"),
+        default=["spm", "dwave"],
+    )
     parser.add_argument("--nk", type=int, default=1256)
     parser.add_argument("--mx", type=int, default=1)
     parser.add_argument("--my", type=int, default=1)
-    parser.add_argument("--matsubara-indices", nargs="+", type=int, default=[0, 1, 2])
+    parser.add_argument(
+        "--matsubara-indices", nargs="+", type=int, default=[0, 1, 2]
+    )
     parser.add_argument("--transverse-order", type=int, default=32)
     parser.add_argument("--panel-count", type=int, default=16)
     parser.add_argument("--transverse-workers", type=int, default=8)
@@ -61,7 +68,9 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--legacy-static-nk", type=int, default=32)
     parser.add_argument("--legacy-static-order", type=int, default=16)
     parser.add_argument("--minimum-speedup", type=float, default=1.25)
-    parser.add_argument("--minimum-parallel-cpu-wall-ratio", type=float, default=1.5)
+    parser.add_argument(
+        "--minimum-parallel-cpu-wall-ratio", type=float, default=1.5
+    )
     parser.add_argument("--comparison-rtol", type=float, default=2e-11)
     parser.add_argument("--comparison-atol", type=float, default=2e-12)
     parser.add_argument(
@@ -70,7 +79,9 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         default=True,
     )
     parser.add_argument("--shift-s", type=float, default=0.5)
-    parser.add_argument("--subgrid-average", choices=("auto", "none"), default="auto")
+    parser.add_argument(
+        "--subgrid-average", choices=("auto", "none"), default="auto"
+    )
     parser.add_argument("--temperature-K", type=float, default=10.0)
     parser.add_argument("--delta0-eV", type=float, default=0.1)
     parser.add_argument("--eta-eV", type=float, default=1e-8)
@@ -95,8 +106,14 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     if args.transverse_task_size <= 0:
         parser.error("transverse task size must be positive")
     indices = tuple(sorted(set(int(value) for value in args.matsubara_indices)))
-    if any(index < 0 for index in indices) or 0 not in indices or not any(index > 0 for index in indices):
-        parser.error("preflight requires index 0 and at least one positive Matsubara index")
+    if (
+        any(index < 0 for index in indices)
+        or 0 not in indices
+        or not any(index > 0 for index in indices)
+    ):
+        parser.error(
+            "preflight requires index 0 and at least one positive Matsubara index"
+        )
     args.matsubara_indices = indices
     args.pairings = tuple(dict.fromkeys(args.pairings))
     for name in (
@@ -107,14 +124,18 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     ):
         value = float(getattr(args, name))
         if not np.isfinite(value) or value < 0.0:
-            parser.error(f"--{name.replace('_', '-')} must be finite and non-negative")
+            parser.error(
+                f"--{name.replace('_', '-')} must be finite and non-negative"
+            )
     return args
 
 
 def _git_head() -> str:
     try:
         return subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], text=True, stderr=subprocess.DEVNULL
+            ["git", "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
         ).strip()
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
@@ -122,12 +143,23 @@ def _git_head() -> str:
 
 def _xi_values(indices: Sequence[int], temperature_K: float) -> np.ndarray:
     return np.asarray(
-        [0.0 if index == 0 else matsubara_energy_eV(index, temperature_K) for index in indices],
+        [
+            0.0
+            if index == 0
+            else matsubara_energy_eV(index, temperature_K)
+            for index in indices
+        ],
         dtype=float,
     )
 
 
-def _budget(nk: int, mx: int, my: int, subgrid_average: str, order: int) -> int:
+def _budget(
+    nk: int,
+    mx: int,
+    my: int,
+    subgrid_average: str,
+    order: int,
+) -> int:
     common = int(np.gcd(abs(int(mx)), abs(int(my))))
     origins = 2 if subgrid_average == "auto" and common % 2 == 1 else 1
     return int(nk) * origins * int(order)
@@ -144,12 +176,17 @@ def _run_combined(
     indices: Sequence[int] | None = None,
 ):
     model = get_finite_q_validation_model("symmetry_bdg_2band")
-    ansatz = model.build_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
+    ansatz = model.build_ansatz(
+        pairing_name,
+        phase_vertex="bond_endpoint_gauge",
+    )
     pairing = model.build_pairing_params(args.delta0_eV)
     selected_nk = int(args.nk if nk is None else nk)
     selected_order = int(args.transverse_order if order is None else order)
     selected_panels = int(args.panel_count if panel_count is None else panel_count)
-    selected_indices = args.matsubara_indices if indices is None else tuple(indices)
+    selected_indices = (
+        args.matsubara_indices if indices is None else tuple(indices)
+    )
     xi_values = _xi_values(selected_indices, args.temperature_K)
     started = time.perf_counter()
     integrated = integrate_matsubara_orbit_gauss(
@@ -180,7 +217,10 @@ def _run_combined(
     return integrated, wall
 
 
-def _physical_rows(args: argparse.Namespace, integrated) -> list[dict[str, Any]]:
+def _physical_rows(
+    args: argparse.Namespace,
+    integrated,
+) -> list[dict[str, Any]]:
     config = OrbitAcceptancePhysicsConfig(
         degeneracy=args.degeneracy,
         separation_nm=args.separation_nm,
@@ -231,11 +271,30 @@ def _max_relative(left: np.ndarray, right: np.ndarray) -> float:
     b = np.asarray(right, dtype=complex)
     return float(
         np.linalg.norm(a - b)
-        / max(float(np.linalg.norm(a)), float(np.linalg.norm(b)), np.finfo(float).tiny)
+        / max(
+            float(np.linalg.norm(a)),
+            float(np.linalg.norm(b)),
+            np.finfo(float).tiny,
+        )
     )
 
 
-def _serial_parallel_record(args: argparse.Namespace, pairing_name: str) -> dict[str, Any]:
+def _relative_comparison_passed(
+    value: float,
+    *,
+    rtol: float,
+    atol: float,
+) -> bool:
+    return bool(
+        np.isfinite(value)
+        and value <= float(rtol) + float(atol)
+    )
+
+
+def _serial_parallel_record(
+    args: argparse.Namespace,
+    pairing_name: str,
+) -> dict[str, Any]:
     serial, serial_wall = _run_combined(
         args=args,
         pairing_name=pairing_name,
@@ -246,43 +305,46 @@ def _serial_parallel_record(args: argparse.Namespace, pairing_name: str) -> dict
         pairing_name=pairing_name,
         workers=args.transverse_workers,
     )
-    primitive_relative = _max_relative(serial.quadrature.value, parallel.quadrature.value)
+    primitive_relative = _max_relative(
+        serial.quadrature.value,
+        parallel.quadrature.value,
+    )
     profile = parallel.evaluator_profile
     speedup = serial_wall / max(parallel_wall, np.finfo(float).tiny)
     cpu_wall_ratio = profile.total_seconds / max(
-        parallel.quadrature.wall_seconds, np.finfo(float).tiny
+        parallel.quadrature.wall_seconds,
+        np.finfo(float).tiny,
     )
     execution_expected = (
         "fork_process_transverse_nodes_ordered_parent_reduction"
     )
     metadata = parallel.components[0].metadata
     physical_rows = _physical_rows(args, parallel)
+    numerical_match = _relative_comparison_passed(
+        primitive_relative,
+        rtol=args.comparison_rtol,
+        atol=args.comparison_atol,
+    )
     correctness = bool(
-        primitive_relative
-        <= args.comparison_atol
-        + args.comparison_rtol
-        * max(
-            float(np.linalg.norm(serial.quadrature.value)),
-            float(np.linalg.norm(parallel.quadrature.value)),
-        )
-        and all(row["physical_passed"] for row in physical_rows)
-        if args.require_physical
-        else primitive_relative
-        <= args.comparison_atol
-        + args.comparison_rtol
-        * max(
-            float(np.linalg.norm(serial.quadrature.value)),
-            float(np.linalg.norm(parallel.quadrature.value)),
+        numerical_match
+        and (
+            not args.require_physical
+            or all(row["physical_passed"] for row in physical_rows)
         )
     )
     optimization = bool(
-        profile.material_workspace_implementation == "batched_model_capability"
-        and profile.q_workspace_implementation == "batched_model_capability"
+        profile.material_workspace_implementation
+        == "batched_model_capability"
+        and profile.q_workspace_implementation
+        == "batched_model_capability"
         and parallel.quadrature.execution_strategy == execution_expected
         and profile.callbacks == parallel.quadrature.transverse_evaluations
         and profile.callbacks == args.transverse_order
-        and profile.complete_orbit_points == parallel.quadrature.point_evaluations
-        and bool(metadata.get("zero_and_positive_frequencies_share_eigensystems"))
+        and profile.complete_orbit_points
+        == parallel.quadrature.point_evaluations
+        and bool(
+            metadata.get("zero_and_positive_frequencies_share_eigensystems")
+        )
         and bool(metadata.get("exact_zero_uses_divided_difference"))
         and not bool(metadata.get("symmetry_reduction_applied"))
         and bool(metadata.get("full_transverse_period_integrated"))
@@ -298,11 +360,15 @@ def _serial_parallel_record(args: argparse.Namespace, pairing_name: str) -> dict
         "serial_seconds_per_node": serial_wall / args.transverse_order,
         "parallel_seconds_per_node": parallel_wall / args.transverse_order,
         "primitive_serial_parallel_relative": primitive_relative,
-        "material_workspace_implementation": profile.material_workspace_implementation,
+        "material_workspace_implementation": (
+            profile.material_workspace_implementation
+        ),
         "q_workspace_implementation": profile.q_workspace_implementation,
         "execution_strategy": parallel.quadrature.execution_strategy,
         "evaluator_callbacks": int(profile.callbacks),
-        "transverse_evaluations": int(parallel.quadrature.transverse_evaluations),
+        "transverse_evaluations": int(
+            parallel.quadrature.transverse_evaluations
+        ),
         "point_evaluations": int(parallel.quadrature.point_evaluations),
         "frequency_count": len(args.matsubara_indices),
         "callbacks_not_multiplied_by_frequency_count": bool(
@@ -339,11 +405,17 @@ def _component_fields(component: object) -> tuple[np.ndarray, ...]:
 
 def _legacy_static_record(args: argparse.Namespace) -> dict[str, Any]:
     model = get_finite_q_validation_model("symmetry_bdg_2band")
-    ansatz = model.build_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
+    ansatz = model.build_ansatz(
+        "dwave",
+        phase_vertex="bond_endpoint_gauge",
+    )
     pairing = model.build_pairing_params(args.delta0_eV)
     nk = int(args.legacy_static_nk)
     order = int(args.legacy_static_order)
-    q = (2.0 * np.pi / float(nk)) * np.asarray([args.mx, args.my], dtype=float)
+    q = (2.0 * np.pi / float(nk)) * np.asarray(
+        [args.mx, args.my],
+        dtype=float,
+    )
     kubo = KuboConfig.from_kelvin(
         omega_eV=0.0,
         temperature_K=args.temperature_K,
@@ -368,7 +440,11 @@ def _legacy_static_record(args: argparse.Namespace) -> dict[str, Any]:
         subgrid_average=args.subgrid_average,
         chunk_size=1024,
         max_point_evaluations=_budget(
-            nk, args.mx, args.my, args.subgrid_average, order
+            nk,
+            args.mx,
+            args.my,
+            args.subgrid_average,
+            order,
         ),
     )
     legacy_components, legacy_rhs, _ = assemble_dwave_static_primitives(
@@ -406,18 +482,14 @@ def _legacy_static_record(args: argparse.Namespace) -> dict[str, Any]:
         )
     ]
     rhs_relative = max(
-        _max_relative(processed.ward.left.primitive_rhs, generic.rhs[0].left),
-        _max_relative(processed.ward.right.primitive_rhs, generic.rhs[0].right),
+        _max_relative(legacy_rhs.left, generic.rhs[0].left),
+        _max_relative(legacy_rhs.right, generic.rhs[0].right),
     )
     maximum = max(component_relatives + [rhs_relative])
-    passed = bool(
-        maximum
-        <= args.comparison_atol
-        + args.comparison_rtol
-        * max(
-            max(float(np.linalg.norm(value)) for value in _component_fields(processed.components)),
-            max(float(np.linalg.norm(value)) for value in _component_fields(generic.components[0])),
-        )
+    passed = _relative_comparison_passed(
+        maximum,
+        rtol=args.comparison_rtol,
+        atol=args.comparison_atol,
     )
     return {
         "nk": nk,
@@ -426,7 +498,9 @@ def _legacy_static_record(args: argparse.Namespace) -> dict[str, Any]:
         "rhs_relative": rhs_relative,
         "maximum_relative": maximum,
         "legacy_strict_static_passed": bool(processed.strict.passed),
-        "legacy_sheet_validation_passed": bool(processed.sheet.validation.passed),
+        "legacy_sheet_validation_passed": bool(
+            processed.sheet.validation.passed
+        ),
         "passed": passed,
     }
 
@@ -440,7 +514,10 @@ def main() -> None:
         f"workers={args.transverse_workers}, n={args.matsubara_indices}",
         flush=True,
     )
-    records = [_serial_parallel_record(args, pairing) for pairing in args.pairings]
+    records = [
+        _serial_parallel_record(args, pairing)
+        for pairing in args.pairings
+    ]
     legacy = _legacy_static_record(args)
     correctness_passed = bool(
         all(record["correctness_passed"] for record in records)
@@ -453,16 +530,18 @@ def main() -> None:
 
     for record in records:
         print(
-            f"{record['pairing']}: serial={record['serial_wall_seconds']:.3f}s, "
+            f"{record['pairing']}: "
+            f"serial={record['serial_wall_seconds']:.3f}s, "
             f"parallel={record['parallel_wall_seconds']:.3f}s, "
             f"speedup={record['speedup']:.2f}x, "
             f"CPU/wall={record['parallel_cpu_wall_ratio']:.2f}, "
             f"relative={record['primitive_serial_parallel_relative']:.3e}, "
-            f"correct={record['correctness_passed']}, optimized={record['optimization_passed']}",
+            f"correct={record['correctness_passed']}, "
+            f"optimized={record['optimization_passed']}",
             flush=True,
         )
     print(
-        f"legacy exact-static d-wave agreement: max relative="
+        "legacy exact-static d-wave agreement: max relative="
         f"{legacy['maximum_relative']:.3e}; passed={legacy['passed']}",
         flush=True,
     )
@@ -496,7 +575,10 @@ def main() -> None:
             "valid_for_casimir_input": False,
         },
     }
-    output.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    output.write_text(
+        json.dumps(payload, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
     print(f"preflight manifest: {output}")
     if not passed:
         raise SystemExit("preflight failed; formal total scan is blocked")
