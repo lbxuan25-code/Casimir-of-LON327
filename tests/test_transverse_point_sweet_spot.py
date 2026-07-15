@@ -7,6 +7,7 @@ from validation.__main__ import resolve_command
 from validation.commands.matsubara import transverse_point_sweet_spot as command
 from validation.commands.matsubara.transverse_point_sweet_spot import (
     assess_frequency_level,
+    assess_oscillatory_envelope,
     main,
 )
 
@@ -15,6 +16,24 @@ def _state(logdet: float, passed: bool = True) -> dict[str, object]:
     return {
         "two_plate_logdet": float(logdet),
         "hard_physical_passed": bool(passed),
+    }
+
+
+def _history_row(N: int, values: tuple[float, float, float]) -> dict[str, object]:
+    shifts = {
+        f"shift_{index}": _state(value)
+        for index, value in enumerate(values)
+    }
+    assessment = assess_frequency_level(
+        current_by_shift=shifts,
+        previous_by_shift=None,
+        rtol=1e-3,
+        atol=1e-6,
+    )
+    return {
+        "N": int(N),
+        "shifts": shifts,
+        **assessment,
     }
 
 
@@ -70,6 +89,50 @@ def test_frequency_level_requires_closure_N_and_shift_convergence() -> None:
     assert result["accepted_transition"] is True
 
 
+def test_absolute_tolerance_is_checked_before_relative_tolerance() -> None:
+    previous = {
+        "primary": _state(0.0),
+        "audit": _state(0.0),
+    }
+    current = {
+        "primary": _state(5e-7),
+        "audit": _state(5e-7),
+    }
+    result = assess_frequency_level(
+        current_by_shift=current,
+        previous_by_shift=previous,
+        rtol=1e-3,
+        atol=1e-6,
+    )
+    row = result["adjacent_N_by_shift"]["primary"]
+    assert row["absolute_passed"] is True
+    assert row["relative_passed"] is False
+    assert row["passed_by"] == "absolute"
+    assert result["accepted_transition"] is True
+
+
+def test_relative_tolerance_is_a_fallback_when_absolute_fails() -> None:
+    previous = {
+        "primary": _state(-0.010000),
+        "audit": _state(-0.010000),
+    }
+    current = {
+        "primary": _state(-0.010005),
+        "audit": _state(-0.010005),
+    }
+    result = assess_frequency_level(
+        current_by_shift=current,
+        previous_by_shift=previous,
+        rtol=1e-3,
+        atol=1e-6,
+    )
+    row = result["adjacent_N_by_shift"]["primary"]
+    assert row["absolute_passed"] is False
+    assert row["relative_passed"] is True
+    assert row["passed_by"] == "relative"
+    assert result["accepted_transition"] is True
+
+
 def test_frequency_level_rejects_failed_physical_gate_even_if_logdet_is_stable() -> None:
     previous = {
         "primary": _state(-0.02),
@@ -83,14 +146,66 @@ def test_frequency_level_rejects_failed_physical_gate_even_if_logdet_is_stable()
         current_by_shift=current,
         previous_by_shift=previous,
         rtol=1e-3,
-        atol=1e-14,
+        atol=1e-6,
     )
     assert result["two_plate_logdet_cross_shift"]["passed"] is True
     assert result["hard_physical_closure_across_shifts"] is False
     assert result["accepted_transition"] is False
 
 
-def test_unified_point_command_writes_v3_history_and_parallel_plan(
+def test_three_level_envelope_accepts_universal_absolute_near_zero() -> None:
+    history = [
+        _history_row(128, (0.0, 1e-7, -1e-7)),
+        _history_row(192, (4e-7, 3e-7, 2e-7)),
+        _history_row(256, (-2e-7, -1e-7, 0.0)),
+    ]
+    result = assess_oscillatory_envelope(
+        history,
+        rtol=1e-3,
+        atol=1e-6,
+    )
+    envelope = result["joint_logdet_envelope"]
+    assert result["passed"] is True
+    assert result["N_window"] == [128, 192, 256]
+    assert envelope["absolute_passed"] is True
+    assert envelope["relative_passed"] is False
+    assert envelope["passed_by"] == "absolute"
+
+
+def test_three_level_envelope_accepts_relative_fallback_for_finite_signal() -> None:
+    history = [
+        _history_row(512, (-0.0108320, -0.0108321, -0.0108319)),
+        _history_row(640, (-0.0108290, -0.0108292, -0.0108291)),
+        _history_row(768, (-0.0108317, -0.0108320, -0.0108320)),
+    ]
+    result = assess_oscillatory_envelope(
+        history,
+        rtol=1e-3,
+        atol=1e-6,
+    )
+    envelope = result["joint_logdet_envelope"]
+    assert result["passed"] is True
+    assert envelope["absolute_passed"] is False
+    assert envelope["relative_passed"] is True
+    assert envelope["passed_by"] == "relative"
+
+
+def test_three_level_envelope_rejects_wide_oscillation() -> None:
+    history = [
+        _history_row(256, (-0.01087, -0.01087, -0.01087)),
+        _history_row(384, (-0.01086, -0.01086, -0.01086)),
+        _history_row(512, (-0.01084, -0.01084, -0.01084)),
+    ]
+    result = assess_oscillatory_envelope(
+        history,
+        rtol=1e-3,
+        atol=1e-6,
+    )
+    assert result["passed"] is False
+    assert result["joint_logdet_envelope"]["passed_by"] == "failed"
+
+
+def test_unified_point_command_writes_v4_universal_policy(
     tmp_path: Path,
 ) -> None:
     output = tmp_path / "sweet_spot.json"
@@ -104,11 +219,16 @@ def test_unified_point_command_writes_v3_history_and_parallel_plan(
         ]
     )
     payload = json.loads(output.read_text(encoding="utf-8"))
-    assert payload["schema"] == "transverse-point-sweet-spot-v3"
+    assert payload["schema"] == "transverse-point-sweet-spot-v4"
     assert payload["single_public_point_convergence_script"] is True
     assert payload["point_specific_early_stop"] is True
     assert payload["hard_gate_policy"]["static_longitudinal"] is False
     assert payload["run_complete"] is True
+    assert payload["logdet_atol"] == 1e-6
+    policy = payload["convergence_policy"]
+    assert policy["q_or_frequency_specific_exceptions"] is False
+    assert policy["comparison_order"] == "absolute_first_then_relative_fallback"
+    assert policy["oscillatory_envelope_path"]["levels"] == 3
     assert payload["cpu_parallel_policy"]["nested_process_pools"] is False
     assert payload["cpu_parallel_policy"]["wave_flattens_context_q_tasks"] is True
     first_plan = payload["execution_levels"][0]["parallel_plan"]
@@ -149,6 +269,7 @@ def test_one_pass_reports_previous_working_and_current_audit(
     main([*_tiny_command(output), "--workers", "1", "--parallel-mode", "serial"])
     point = json.loads(output.read_text(encoding="utf-8"))["point_results"][0]
     assert point["sweet_spot"]["status"] == "established"
+    assert point["sweet_spot"]["establishment_mode"] == "strict_consecutive_adjacent"
     assert point["sweet_spot"]["working_N"] == 2
     assert point["sweet_spot"]["audit_N"] == 4
 
