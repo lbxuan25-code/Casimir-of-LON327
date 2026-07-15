@@ -17,7 +17,7 @@ assess_oscillatory_envelope = _command.assess_oscillatory_envelope
 
 def main(argv: Sequence[str] | None = None) -> None:
     # Preserve the public monkeypatch/test surface while keeping the numerical
-    # implementation in a non-runnable internal library module.
+    # implementation in non-runnable internal library modules.
     _command.assess_frequency_level = assess_frequency_level
     _command.assess_oscillatory_envelope = assess_oscillatory_envelope
     _command.main(argv)
