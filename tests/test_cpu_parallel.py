@@ -50,6 +50,30 @@ def test_auto_uses_flattened_wave_when_product_exposes_more_work(monkeypatch) ->
     assert plan.nested_process_pools is False
 
 
+def test_auto_wave_counts_tasks_across_heterogeneous_frequency_groups(
+    monkeypatch,
+) -> None:
+    """One q per group can still mean several flattened tasks per context."""
+
+    monkeypatch.setattr(cpu_parallel, "affinity_cpu_count", lambda: 32)
+    plan = choose_cpu_parallel_plan(
+        mode="auto",
+        requested_workers=0,
+        context_count=3,
+        max_q_tasks_per_context=1,
+        total_flat_tasks=6,
+        estimated_context_bytes=100_000_000,
+        memory_budget_gb=4.0,
+        q_parallel_supported=True,
+    )
+    assert plan.strategy == "wave"
+    assert plan.context_workers == 3
+    assert plan.flat_workers == 6
+    assert plan.q_workers == 6
+    assert plan.total_flat_tasks == 6
+    assert plan.estimated_process_utilization == 6
+
+
 def test_memory_cap_reduces_wave_and_can_leave_q_as_best_axis(monkeypatch) -> None:
     monkeypatch.setattr(cpu_parallel, "affinity_cpu_count", lambda: 8)
     plan = choose_cpu_parallel_plan(
