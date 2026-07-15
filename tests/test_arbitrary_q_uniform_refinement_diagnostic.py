@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -7,6 +8,7 @@ import numpy as np
 from validation.__main__ import resolve_command
 from validation.commands.matsubara.arbitrary_q_uniform_refinement_diagnostic import (
     block_resolved_primitive_change,
+    main,
     primitive_block_slices,
 )
 
@@ -35,6 +37,42 @@ def test_block_resolved_change_identifies_worst_physical_block() -> None:
     assert result["max_mixed_ratio"] > 1.0
 
 
+def test_uniform_refinement_command_writes_block_and_physical_diagnostics(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "uniform.json"
+    main(
+        [
+            "--pairing",
+            "spm",
+            "--q-model",
+            "0.03",
+            "0.02",
+            "--matsubara-indices",
+            "0",
+            "1",
+            "--N-values",
+            "2",
+            "4",
+            "--canonical-block",
+            "4",
+            "--runtime-chunk",
+            "4",
+            "--output",
+            str(output),
+        ]
+    )
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["integration_family"] == "fixed_even_N_full_periodic_BZ_only"
+    assert payload["local_refinement_present"] is False
+    assert [level["N"] for level in payload["levels"]] == [2, 4]
+    final = payload["levels"][-1]
+    assert final["successive_primitive"]["blocks"]
+    assert final["successive_primitive"]["worst_block"]
+    assert len(final["physical_by_frequency"]) == 2
+    assert len(final["successive_observables"]) == 2
+
+
 def test_uniform_refinement_command_is_the_only_extra_arbitrary_q_diagnostic() -> None:
     assert resolve_command("diagnostic", "arbitrary-q-uniform-refinement") == (
         "validation.commands.matsubara.arbitrary_q_uniform_refinement_diagnostic"
@@ -48,6 +86,16 @@ def test_retained_arbitrary_q_workflow_surface_is_allowlisted() -> None:
     assert actual == {
         "arbitrary_q_matsubara.py",
         "arbitrary_q_parallel.py",
+    }
+
+
+def test_retained_quadrature_workflow_surface_is_allowlisted() -> None:
+    root = Path(__file__).resolve().parents[1]
+    workflow_dir = root / "src" / "lno327" / "workflows"
+    actual = {path.name for path in workflow_dir.glob("*quadrature.py")}
+    assert actual == {
+        "dwave_periodic_multishift_quadrature.py",
+        "finite_q_quadrature.py",
     }
 
 
