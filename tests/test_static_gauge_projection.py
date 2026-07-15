@@ -102,7 +102,8 @@ def test_projection_passes_small_raw_leakage_and_preserves_physical_channels():
         ward,
         longitudinal_tolerance=1e-7,
     )
-    assert raw.validation.passed is False
+    assert raw.validation.passed is True
+    assert raw.validation.longitudinal_warning is True
     assert raw.validation.relative_longitudinal_gauge_residual > 1e-7
     assert raw.validation.relative_longitudinal_gauge_residual < 1e-5
 
@@ -174,17 +175,21 @@ def test_projection_does_not_change_static_reflection_or_logical_physical_output
     )
 
 
-def test_projection_rejects_raw_longitudinal_leakage_above_ceiling():
+def test_projection_records_large_raw_longitudinal_leakage_without_blocking():
     kernel, rhs = _synthetic_static_contract(kll_noise=1e-3)
     ward = _closed_ward(kernel, rhs)
 
-    with pytest.raises(ValueError, match="projection prerequisites failed"):
-        static_matsubara_kernel_to_sheet_response_with_policy(
-            kernel,
-            ward,
-            longitudinal_policy=PROJECT_AFTER_VALIDATED_WARD,
-            projection_raw_longitudinal_ceiling=1e-5,
-        )
+    projected = static_matsubara_kernel_to_sheet_response_with_policy(
+        kernel,
+        ward,
+        longitudinal_policy=PROJECT_AFTER_VALIDATED_WARD,
+        projection_raw_longitudinal_ceiling=1e-5,
+    )
+
+    assert projected.validation.passed is True
+    assert projected.metadata["gauge_projection_applied"] is True
+    assert projected.metadata["raw_relative_longitudinal_gauge_residual"] > 1e-5
+    assert projected.metadata["projected_relative_longitudinal_gauge_residual"] == 0.0
 
 
 def test_projection_rejects_failed_mixed_ward_even_when_raw_leakage_is_small():
@@ -213,7 +218,7 @@ def test_projection_rejects_failed_mixed_ward_even_when_raw_leakage_is_small():
         )
 
 
-def test_raw_policy_preserves_original_fail_closed_behavior():
+def test_raw_policy_records_longitudinal_warning_without_blocking():
     kernel, rhs = _synthetic_static_contract(kll_noise=2e-5)
     ward = _closed_ward(kernel, rhs)
 
@@ -224,7 +229,8 @@ def test_raw_policy_preserves_original_fail_closed_behavior():
         longitudinal_tolerance=1e-7,
     )
 
-    assert response.validation.passed is False
+    assert response.validation.passed is True
+    assert response.validation.longitudinal_warning is True
     assert response.metadata["static_longitudinal_policy"] == RAW_FAIL_CLOSED
     assert response.metadata["gauge_projection_applied"] is False
     assert response.kernel_lt[1, 1] != 0.0
