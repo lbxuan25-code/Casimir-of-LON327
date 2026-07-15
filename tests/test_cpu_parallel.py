@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from lno327.workflows import cpu_parallel
 from lno327.workflows.cpu_parallel import (
     choose_cpu_parallel_plan,
     estimate_context_bytes,
@@ -10,7 +11,8 @@ from lno327.workflows.cpu_parallel import (
 )
 
 
-def test_auto_prefers_q_axis_when_it_fills_worker_budget() -> None:
+def test_auto_prefers_q_axis_when_it_fills_worker_budget(monkeypatch) -> None:
+    monkeypatch.setattr(cpu_parallel, "affinity_cpu_count", lambda: 8)
     plan = choose_cpu_parallel_plan(
         mode="auto",
         requested_workers=8,
@@ -20,13 +22,17 @@ def test_auto_prefers_q_axis_when_it_fills_worker_budget() -> None:
         memory_budget_gb=1.0,
         q_parallel_supported=True,
     )
+    assert plan.total_worker_budget == 8
     assert plan.strategy == "q"
     assert plan.q_workers == 8
     assert plan.context_workers == 1
     assert plan.nested_process_pools is False
 
 
-def test_auto_uses_context_axis_for_sparse_q_scan_when_memory_allows() -> None:
+def test_auto_uses_context_axis_for_sparse_q_scan_when_memory_allows(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(cpu_parallel, "affinity_cpu_count", lambda: 8)
     plan = choose_cpu_parallel_plan(
         mode="auto",
         requested_workers=8,
@@ -42,7 +48,10 @@ def test_auto_uses_context_axis_for_sparse_q_scan_when_memory_allows() -> None:
     assert plan.estimated_process_utilization == 6
 
 
-def test_context_axis_is_memory_capped_and_auto_falls_back_to_q() -> None:
+def test_context_axis_is_memory_capped_and_auto_falls_back_to_q(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(cpu_parallel, "affinity_cpu_count", lambda: 8)
     plan = choose_cpu_parallel_plan(
         mode="auto",
         requested_workers=8,
