@@ -1,0 +1,48 @@
+{
+  "schema": "LNO327NumericalMethodRegistry-v1",
+  "methods": {
+    "DWaveFixedOuterAdaptiveInner-v1": {
+      "status": "canonical_target",
+      "scope": "d-wave microscopic Brillouin-zone response",
+      "primary_orientation": "xy",
+      "required_audit_orientation": "yx",
+      "main_route_allowed": false,
+      "promotion_requirements": [
+        "exact-static parity",
+        "outer-order ladder",
+        "inner-tolerance ladder",
+        "commensurate complete-orbit crosscheck",
+        "arbitrary-q fixed-periodic crosscheck",
+        "two-plate logdet qualification",
+        "real-hardware performance evidence"
+      ]
+    },
+    "ArbitraryQPeriodicBZContract-v3": {
+      "status": "independent_crosscheck",
+      "scope": "exact arbitrary-q fixed shifted periodic grids",
+      "main_route_allowed": false
+    },
+    "CompleteOrbitGaussReference": {
+      "status": "commensurate_reference",
+      "scope": "commensurate q with exact discrete orbit permutation",
+      "main_route_allowed": false
+    },
+    "FullBZGL2GL3CellAdaptive": {
+      "status": "rejected",
+      "scope": "historical diagnostic only",
+      "main_route_allowed": false,
+      "reason": "failed real convergence and warm-q performance"
+    },
+    "FermiWindowLocalRefinement": {
+      "status": "forbidden_for_ward_sensitive_main_route",
+      "scope": "historical diagnostic classifier only",
+      "main_route_allowed": false,
+      "reason": "q-specific local meshes do not preserve the retained translation/closure discipline"
+    }
+  },
+  "routing": {
+    "current_formal_arbitrary_q": "ArbitraryQPeriodicBZContract-v3",
+    "candidate_diagnostic": "DWaveFixedOuterAdaptiveInner-v1",
+    "future_dwave_primary_after_qualification": "DWaveFixedOuterAdaptiveInner-v1"
+  }
+}
