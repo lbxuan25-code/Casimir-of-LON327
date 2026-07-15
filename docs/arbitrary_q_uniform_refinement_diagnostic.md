@@ -65,6 +65,39 @@ pass/fail
 
 The report names the worst block at every adjacent pair of levels.
 
+## Uniform zero-mode physical gate
+
+Every zero-Matsubara integration point uses the same gate. There are no q-direction,
+near-diagonal or pairing-specific exemptions.
+
+Hard requirements are:
+
+```text
+crystal-xy effective Ward validation passed
+finite static kernel and extracted sheet channels
+reality tolerance passed
+density-transverse mixing tolerance passed
+static passivity passed
+reflection constructed without a nonphysical pole
+passive zero-mode logdet constructed
+```
+
+The local-LT longitudinal residual is always evaluated and retained, but is not a
+hard gate:
+
+```text
+relative_longitudinal_gauge_residual:
+  recorded at every point
+  compared with the configured diagnostic tolerance
+  warning emitted when above tolerance
+  never by itself blocks sheet, reflection or logdet construction
+```
+
+The historical strict-static aggregate remains telemetry only. Casimir-oriented
+convergence is decided from physical closure plus the quantities actually consumed
+by the outer calculation: static reflection, zero-mode logdet and their `N`/shift
+stability.
+
 ## Physical telemetry
 
 Every complete grid is unpacked once and passed through the established physical
@@ -73,18 +106,21 @@ pipeline. For each Matsubara frequency the JSON records:
 ```text
 integrated Ward pass and mixed ratio
 Schur condition number
-strict-static pass where applicable
+historical strict-static diagnostic where applicable
+static longitudinal residual/tolerance/warning where applicable
 sheet validation
 reflection construction
 primary-response norm
 reflection norm
 logdet
 chi_bar and dbar_t where applicable
-error text
+error and warning text
 ```
 
 Adjacent levels also compare primary response, reflection and logdet. This separates
-microscopic primitive convergence from downstream observable sensitivity.
+microscopic primitive convergence from downstream observable sensitivity. A
+nonobservable primitive defect does not reject a Casimir result when all hard
+physical gates pass and the final reflection/logdet observables are stable.
 
 ## Retained numerical boundary
 
