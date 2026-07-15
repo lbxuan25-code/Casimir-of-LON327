@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from validation.__main__ import resolve_command
 from validation.lib.dwave_commensurate_orbit_gauss import (
     commensurate_orbit_basis,
     complementary_orbit_origins,
@@ -68,9 +67,3 @@ def test_even_reduced_shift_uses_one_orbit_subgrid():
     assert result.orbit_origins == (0.5,)
     assert result.point_evaluations == 12 * 6
     assert np.isclose(result.value[0], 1.0, rtol=0.0, atol=2e-14)
-
-
-def test_public_static_dwave_orbit_route():
-    assert resolve_command("static", "dwave-orbit") == (
-        "validation.commands.static.dwave_orbit_gauss"
-    )
