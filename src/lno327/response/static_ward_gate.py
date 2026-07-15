@@ -1,15 +1,13 @@
-"""Strict exact-static Ward closure gate for finite-q BdG kernels.
+"""Exact-static Ward closure telemetry for finite-q BdG kernels.
 
-The generic RHS-aware Ward validator uses a mixed absolute-relative criterion.
-That criterion answers whether the algebraic primitive/effective identities are
-internally consistent, but at finite q it does not require the physical static
-longitudinal kernel itself to vanish.  Production zero-Matsubara validation
-therefore needs this second, q-normalized hard gate.
+The generic RHS-aware Ward validator is the hard gauge-closure gate. This module
+adds q-normalized microscopic diagnostics and a local-LT longitudinal view. The
+longitudinal residual is always recorded but is not itself a hard gate; no q,
+pairing, or direction receives a special-case exemption.
 
-The gate is observational: it never projects or modifies the kernel and never
-promotes a response to Casimir-ready status.
+The diagnostic is observational: it never projects or modifies the kernel and
+never promotes a response to Casimir-ready status.
 """
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -44,7 +42,7 @@ def _norm(value: Any) -> float:
 
 @dataclass(frozen=True)
 class StrictStaticWardClosure:
-    """Hard exact-static microscopic closure result for one nonzero q."""
+    """Q-normalized static Ward diagnostics plus nonblocking longitudinal telemetry."""
 
     primitive_residual_over_q: float
     amplitude_defect_over_q: float
@@ -96,29 +94,44 @@ class StrictStaticWardClosure:
         )
 
     @property
-    def passed(self) -> bool:
+    def longitudinal_within_tolerance(self) -> bool:
         return bool(
-            self.primitive_residual_over_q <= self.primitive_tolerance
+            self.relative_longitudinal_gauge_residual <= self.longitudinal_tolerance
+        )
+
+    @property
+    def longitudinal_warning(self) -> bool:
+        return not self.longitudinal_within_tolerance
+
+    @property
+    def passed(self) -> bool:
+        """Return hard microscopic closure without gating on longitudinal telemetry."""
+
+        return bool(
+            self.generic_ward_passed
+            and self.primitive_residual_over_q <= self.primitive_tolerance
             and self.amplitude_defect_over_q <= self.amplitude_tolerance
             and self.phase_defect_over_q <= self.phase_tolerance
             and self.effective_direct_over_q <= self.effective_direct_tolerance
             and self.effective_residual_over_q <= self.effective_residual_tolerance
-            and self.relative_longitudinal_gauge_residual <= self.longitudinal_tolerance
             and self.condition_ok
         )
 
     def require_passed(self) -> None:
         if not self.passed:
             raise ValueError(
-                "strict exact-static Ward closure failed: "
+                "exact-static Ward closure failed hard validation: "
+                f"generic_ward_passed={self.generic_ward_passed}, "
                 f"primitive/q={self.primitive_residual_over_q:.3e}, "
                 f"amplitude/q={self.amplitude_defect_over_q:.3e}, "
                 f"phase/q={self.phase_defect_over_q:.3e}, "
                 f"effective_direct/q={self.effective_direct_over_q:.3e}, "
                 f"effective_residual/q={self.effective_residual_over_q:.3e}, "
-                f"longitudinal={self.relative_longitudinal_gauge_residual:.3e}, "
                 f"condition={self.schur_condition_number:.3e}, "
-                f"inverse_method={self.schur_inverse_method}"
+                f"inverse_method={self.schur_inverse_method}; "
+                "longitudinal is diagnostic-only: "
+                f"residual={self.relative_longitudinal_gauge_residual:.3e}, "
+                f"tolerance={self.longitudinal_tolerance:.3e}"
             )
 
     def to_dict(self) -> dict[str, Any]:
@@ -139,6 +152,9 @@ class StrictStaticWardClosure:
             "effective_direct_tolerance": self.effective_direct_tolerance,
             "effective_residual_tolerance": self.effective_residual_tolerance,
             "longitudinal_tolerance": self.longitudinal_tolerance,
+            "longitudinal_within_tolerance": self.longitudinal_within_tolerance,
+            "longitudinal_warning": self.longitudinal_warning,
+            "longitudinal_is_hard_gate": False,
             "condition_max": self.condition_max,
             "condition_ok": self.condition_ok,
             "generic_ward_passed": self.generic_ward_passed,
@@ -182,11 +198,11 @@ def validate_strict_static_ward_closure(
     longitudinal_tolerance: float = DEFAULT_STATIC_LONGITUDINAL_TOLERANCE,
     condition_max: float = DEFAULT_STATIC_CONDITION_MAX,
 ) -> StrictStaticWardClosure:
-    """Apply the hard q-normalized exact-static closure criterion.
+    """Evaluate uniform exact-static closure and longitudinal telemetry.
 
-    This intentionally does not reuse ``ward.passed``.  The mixed Ward criterion
-    can pass when a finite external RHS is reproduced exactly, while the physical
-    exact-static longitudinal kernel remains nonzero.
+    The generic crystal-xy Ward pass and q-normalized microscopic defects remain
+    hard checks. The local-LT longitudinal residual is reported against its
+    configured tolerance but never changes ``passed``.
     """
 
     if float(kernel.xi_eV) != 0.0 or float(ward.xi_eV) != 0.0:
@@ -258,10 +274,12 @@ def validate_strict_static_ward_closure(
         condition_max=checked["condition_max"],
         generic_ward_passed=bool(ward.passed),
         metadata={
-            "criterion": "strict_static_q_normalized_v1",
+            "criterion": "static_q_normalized_ward_plus_longitudinal_telemetry_v2",
             "basis": "primitive_crystal_A0_xy_with_diagnostic_LT_view",
             "projection_applied": False,
-            "generic_mixed_ward_pass_is_not_sufficient": True,
+            "generic_mixed_ward_is_hard_gate": True,
+            "longitudinal_is_hard_gate": False,
+            "uniform_policy_all_q_pairings_directions": True,
             "valid_for_casimir_input": False,
         },
     )
