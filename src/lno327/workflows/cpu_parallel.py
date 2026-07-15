@@ -1,6 +1,6 @@
 """Resource-aware single-pool CPU parallel planning.
 
-Every numerical process keeps BLAS/OpenMP single-threaded.  The planner exposes
+Every numerical process keeps BLAS/OpenMP single-threaded. The planner exposes
 three non-nested execution shapes:
 
 * ``q``: one readonly material context, many q tasks;
@@ -8,8 +8,8 @@ three non-nested execution shapes:
 * ``wave``: a memory-safe wave of parent-built readonly material contexts and one
   forked pool over flattened ``(context, q)`` work units.
 
-Automatic mode chooses the shape with the highest process utilization.  Ties
-prefer the simpler/smaller-memory shape in the order q, context, wave.
+Automatic mode chooses the shape with the highest estimated process utilization.
+Ties prefer the simpler/smaller-memory shape in the order q, context, wave.
 """
 from __future__ import annotations
 
@@ -202,8 +202,25 @@ def choose_cpu_parallel_plan(
         1,
     )
     context_utilization = min(contexts_per_wave, total)
+
+    # q mode evaluates one identical-frequency group at a time, so its useful
+    # concurrency is the largest number of q labels inside any one group.
     q_utilization = min(q_tasks, total) if q_parallel_supported else 1
-    wave_task_capacity = min(flat_tasks, contexts_per_wave * q_tasks)
+
+    # Wave mode flattens *all* groups in every live context into one pool. When
+    # active frequencies differ by q label, a context can contain several groups
+    # even though each individual group has only one q label. Estimate the live
+    # wave capacity from total flattened tasks per context, not only the largest
+    # same-frequency group. The executor still caps workers by the exact number of
+    # tasks in each actual wave, so this estimate cannot oversubscribe work.
+    flat_tasks_per_context = max(
+        q_tasks,
+        int(math.ceil(flat_tasks / contexts)),
+    )
+    wave_task_capacity = min(
+        flat_tasks,
+        contexts_per_wave * flat_tasks_per_context,
+    )
     wave_utilization = min(wave_task_capacity, total) if q_parallel_supported else 1
 
     if requested_mode == "serial" or total == 1:
