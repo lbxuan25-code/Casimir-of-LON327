@@ -22,22 +22,109 @@ periodic-grid shifts.
 It does not perform the outer q integral or Matsubara sum. It is diagnostic-only
 and cannot by itself authorize production Casimir input.
 
-## Why the budget is point-specific
+## Universal convergence policy
+
+The convergence definition is identical for every pairing, q magnitude, q
+direction, and Matsubara index. There is no axis, diagonal, near-diagonal, zero-mode,
+positive-frequency, `spm`, or `dwave` exception.
+
+Every logdet comparison is evaluated in this order:
+
+```text
+1. absolute error <= logdet_atol
+2. otherwise relative error <= logdet_rtol
+3. otherwise fail
+```
+
+The default provisional global tolerances are
+
+```text
+logdet_atol = 1e-6
+logdet_rtol = 1e-3
+```
+
+The absolute tolerance is a universal numerical floor, not a special allowance for
+one difficult point. Its present value is provisional until the complete outer-q,
+Matsubara, and torque error budget is available. Users may override both tolerances
+explicitly, but one run applies the chosen values uniformly to every requested point.
+
+Physical closure remains a hard gate and is never bypassed by an absolute or
+relative numerical tolerance.
+
+## Two universal establishment routes
+
+A point can establish a working/audit pair through either of two routes.
+
+### Strict consecutive-adjacent route
+
+For one adjacent-N transition to pass, all requested shifts must satisfy:
+
+```text
+operator Ward identity                     hard gate
+effective Ward identity                    hard gate
+finite/reality/mixing/passivity sheet      hard gate
+reflection construction for both plates    hard gate
+finite two-plate logdet                     hard gate
+adjacent-N logdet absolute-or-relative gate convergence gate
+cross-shift absolute-or-relative spread     convergence gate
+```
+
+By default two consecutive accepted transitions are required. Thus
+`N1 -> N2` and `N2 -> N3` must both pass, and the reported pair is
+`working_N=N2`, `audit_N=N3`.
+
+### Three-level oscillatory-envelope route
+
+Periodic full-grid quadrature can approach its limit through small non-monotone
+aliasing oscillations. A point may therefore also establish when the most recent
+three complete N levels satisfy all of the following:
+
+```text
+all hard physical gates pass at every level
+cross-shift spread passes at every level
+one joint envelope over all three N levels and all shifts passes
+```
+
+The joint envelope is
+
+```text
+max(logdet over N and shift) - min(logdet over N and shift)
+```
+
+and uses the same universal absolute-first, relative-fallback tolerances. No point
+receives a custom envelope width. When this route passes, the report uses the final
+two levels as `working_N` and `audit_N` and records the complete three-level N window.
+
+The output field `establishment_mode` is one of
+
+```text
+strict_consecutive_adjacent
+three_level_oscillatory_envelope
+```
+
+The exact-static longitudinal residual and the historical strict-static aggregate
+remain recorded telemetry. They are not hard gates and receive no q-specific or
+pairing-specific exception.
+
+## Why the budget remains point-specific
 
 Different external q magnitudes, q directions, pairings, and Matsubara frequencies
 have different transverse-integration difficulty. Applying the hardest point's N to
 every point wastes material-grid construction and response time.
 
 The command therefore tracks each `(pairing, q label, n)` independently. Once one
-point has enough consecutive accepted N transitions, that frequency is removed
-from subsequent levels while unresolved points continue. The JSON records:
+point passes either universal establishment route, that frequency is removed from
+subsequent levels while unresolved points continue. The JSON records:
 
 ```text
 working_N
-  lower endpoint of the final accepted adjacent-N transition
+  lower endpoint of the final accepted working/audit pair
 
 audit_N
   higher endpoint that confirms the accepted convergence window
+
+establishment_mode
+  strict consecutive-adjacent or three-level oscillatory envelope
 ```
 
 This early stop changes only workload scheduling. Every evaluated level remains an
@@ -74,9 +161,6 @@ context-wave/q parallelism
 
 Wave planning counts every flattened task in a context, including q labels whose
 active Matsubara sets differ and therefore belong to different frequency groups.
-This prevents a late-N scan from falling back to context-only execution merely
-because each individual frequency group contains one q label.
-
 Automatic mode chooses the shape that can occupy more CPU processes. A tie prefers
 the simpler/smaller-memory shape in the order q, context, wave.
 
@@ -110,30 +194,32 @@ estimated concurrent bytes and the reason for the choice. The output is atomical
 checkpointed after each completed N level. Automatic resume is not yet implemented;
 a partial checkpoint is evidence, not an instruction to skip unfinished work.
 
-## Acceptance criterion
+## Output contract
 
-The primary numerical observable is the actual common-lab two-plate Lifshitz
-`logdet` for the requested plate angles and separation.
-
-For one N transition to pass, all requested shifts must satisfy:
+The v4 JSON records
 
 ```text
-operator Ward identity                     hard gate
-effective Ward identity                    hard gate
-finite/reality/mixing/passivity sheet      hard gate
-reflection construction for both plates    hard gate
-finite two-plate logdet                     hard gate
-adjacent-N logdet tolerance                 convergence gate
-cross-shift logdet spread                   convergence gate
+schema = transverse-point-sweet-spot-v4
+convergence_policy.scope = universal for all requested points
+convergence_policy.comparison_order = absolute first, relative fallback
+convergence_policy.q_or_frequency_specific_exceptions = false
 ```
 
-The exact-static longitudinal residual and the historical strict-static aggregate
-remain recorded telemetry. They are not hard gates and receive no q-specific or
-pairing-specific exception.
+Each comparison records
 
-By default two consecutive accepted transitions are required. Thus an established
-sweet spot contains at least three N levels and is not based on one accidental
-pairwise agreement.
+```text
+absolute
+relative
+absolute_tolerance
+relative_tolerance
+absolute_passed
+relative_passed
+passed_by = absolute | relative | failed
+passed
+```
+
+Each history level also contains the current three-level oscillatory-envelope
+assessment when enough levels are available.
 
 ## Example
 
@@ -164,14 +250,14 @@ env \
     --memory-budget-gb 0 \
     --max-context-workers 0 \
     --logdet-rtol 1e-3 \
-    --logdet-atol 1e-14 \
+    --logdet-atol 1e-6 \
     --output validation/outputs/matsubara/transverse_point_sweet_spot/example.json
 ```
 
-The summary printed to stdout lists the parallel plan for every N level and the
-selected `working_N`/`audit_N` for every requested point. Unresolved points remain
-explicitly `not_established`; the command never silently substitutes the highest
-attempted N as a qualified result.
+The summary printed to stdout lists the parallel plan and the selected
+`working_N`/`audit_N`/`establishment_mode` for every requested point. Unresolved
+points remain explicitly `not_established`; the command never silently substitutes
+the highest attempted N as a qualified result.
 
 ## Public-surface boundary
 
@@ -183,6 +269,8 @@ static nk-scan
 diagnostic arbitrary-q-uniform-refinement
 ```
 
-Formal arbitrary-q qualification, performance checks, quadrature-method comparison,
-and complete outer-integration commands have different responsibilities and remain
-separate. They do not constitute alternative public single-point sweet-spot tools.
+The large numerical implementation behind the public command is retained only as an
+internal library engine. Formal arbitrary-q qualification, performance checks,
+quadrature-method comparison, and complete outer-integration commands have different
+responsibilities and remain separate. They do not constitute alternative public
+single-point sweet-spot tools.
