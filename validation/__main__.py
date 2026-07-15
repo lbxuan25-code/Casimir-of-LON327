@@ -15,10 +15,6 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("ward", "bond-metric-family"): (
         "validation.commands.ward.bond_metric_family"
     ),
-    ("static", "dwave"): "validation.commands.static.dwave_gauss_outer",
-    ("static", "dwave-orbit"): "validation.commands.static.dwave_orbit_gauss",
-    ("static", "projection-scan"): "validation.commands.static.projection_scan",
-    ("static", "quadrature-compare"): "validation.commands.static.quadrature_compare",
     ("matsubara", "total-orbit-timing-profile"): (
         "validation.commands.matsubara.orbit_gauss_timing_profile"
     ),
@@ -37,76 +33,28 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("matsubara", "arbitrary-q-periodic-bz-qualification"): (
         "validation.commands.matsubara.arbitrary_q_periodic_bz_qualification_gate"
     ),
-    # Diagnostic-only routes are deliberately separated from the outer-integration
-    # intake surface. They never authorize production input by themselves.
+    # The only public fixed-point transverse-integration command. It handles both
+    # pairings, zero/positive Matsubara indices, arbitrary q directions and
+    # point-specific N/shift sweet-spot selection.
+    ("diagnostic", "transverse-point-sweet-spot"): (
+        "validation.commands.matsubara.transverse_point_sweet_spot"
+    ),
     ("diagnostic", "arbitrary-q-performance-smoke"): (
         "validation.commands.matsubara.arbitrary_q_performance_smoke"
     ),
     ("diagnostic", "arbitrary-q-physics-smoke"): (
         "validation.commands.matsubara.arbitrary_q_physics_smoke"
     ),
-    ("diagnostic", "transverse-point-sweet-spot"): (
-        "validation.commands.matsubara.transverse_point_sweet_spot"
-    ),
-    ("diagnostic", "dwave-small-xi"): (
-        "validation.commands.matsubara.dwave_small_xi"
-    ),
-    ("diagnostic", "bond-metric-positive"): (
-        "validation.commands.matsubara.bond_metric_positive"
-    ),
-    ("diagnostic", "dwave-orbit-adaptive"): (
-        "validation.commands.matsubara.dwave_orbit_adaptive"
-    ),
-    ("diagnostic", "dwave-orbit-panel-adaptive"): (
-        "validation.commands.matsubara.dwave_orbit_panel_adaptive"
-    ),
-    ("diagnostic", "dwave-orbit-evaluator-profile"): (
-        "validation.commands.matsubara.dwave_orbit_evaluator_profile"
-    ),
-    ("diagnostic", "dwave-orbit-integrand-profile"): (
-        "validation.commands.matsubara.dwave_orbit_integrand_profile"
-    ),
-    ("diagnostic", "dwave-diagonal-width-scan"): (
-        "validation.commands.matsubara.dwave_diagonal_width_scan"
-    ),
-    ("diagnostic", "dwave-orbit-gauss-crosscheck"): (
-        "validation.commands.matsubara.dwave_orbit_gauss_crosscheck"
-    ),
-    ("diagnostic", "dwave-orbit-certification-scan"): (
-        "validation.commands.matsubara.dwave_orbit_certification_scan_parallel"
-    ),
 }
 
-# Hidden compatibility routes keep internal subprocess orchestration and older direct
-# callers working without advertising superseded names to the next implementation
-# window. They must not appear in ``available_commands`` or help output.
+# Hidden compatibility routes retain only names needed by aggregate orchestration.
+# Removed single-point commands have no public or hidden runnable aliases.
 _INTERNAL_ALIASES: dict[tuple[str, str], str] = {
     ("matsubara", "positive-orbit-gauss-crosscheck"): (
         "validation.commands.matsubara.positive_orbit_gauss_crosscheck"
     ),
     ("matsubara", "positive-orbit-gauss-scan"): (
         "validation.commands.matsubara.total_orbit_gauss_scan"
-    ),
-    ("matsubara", "dwave-orbit-gauss-crosscheck"): (
-        "validation.commands.matsubara.dwave_orbit_gauss_crosscheck"
-    ),
-    ("matsubara", "dwave-orbit-certification-scan"): (
-        "validation.commands.matsubara.dwave_orbit_certification_scan_parallel"
-    ),
-    ("matsubara", "dwave-orbit-adaptive"): (
-        "validation.commands.matsubara.dwave_orbit_adaptive"
-    ),
-    ("matsubara", "dwave-orbit-panel-adaptive"): (
-        "validation.commands.matsubara.dwave_orbit_panel_adaptive"
-    ),
-    ("matsubara", "dwave-orbit-evaluator-profile"): (
-        "validation.commands.matsubara.dwave_orbit_evaluator_profile"
-    ),
-    ("matsubara", "dwave-orbit-integrand-profile"): (
-        "validation.commands.matsubara.dwave_orbit_integrand_profile"
-    ),
-    ("matsubara", "dwave-diagonal-width-scan"): (
-        "validation.commands.matsubara.dwave_diagonal_width_scan"
     ),
 }
 
@@ -117,7 +65,7 @@ def available_commands() -> tuple[tuple[str, str], ...]:
 
 
 def resolve_command(group: str, command: str) -> str:
-    """Resolve a public command or a hidden compatibility route."""
+    """Resolve a public command or a narrowly retained internal alias."""
     key = (str(group), str(command))
     if key in _COMMANDS:
         return _COMMANDS[key]
