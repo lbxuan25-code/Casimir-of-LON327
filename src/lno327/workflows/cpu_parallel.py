@@ -1,33 +1,33 @@
-"""Resource-aware single-layer CPU parallel planning.
+"""Resource-aware single-pool CPU parallel planning.
 
-The numerical workflows in this repository keep BLAS/OpenMP single-threaded and use
-exactly one process-parallel layer.  A caller may parallelize either
+Every numerical process keeps BLAS/OpenMP single-threaded.  The planner exposes
+three non-nested execution shapes:
 
-* q/angle tasks that share one readonly material cache; or
-* independent material contexts such as pairing/shift combinations.
+* ``q``: one readonly material context, many q tasks;
+* ``context``: independent material contexts, one task per context;
+* ``wave``: a memory-safe wave of parent-built readonly material contexts and one
+  forked pool over flattened ``(context, q)`` work units.
 
-The planner chooses between those axes from CPU affinity, available memory, task
-multiplicity and the estimated live bytes of one material context.  It never
-recommends nested process pools.
+Automatic mode chooses the shape with the highest process utilization.  Ties
+prefer the simpler/smaller-memory shape in the order q, context, wave.
 """
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import math
 import os
 from typing import Any, Literal
 
 import numpy as np
 
-ParallelMode = Literal["auto", "serial", "q", "context"]
-ParallelStrategy = Literal["serial", "q", "context"]
+ParallelMode = Literal["auto", "serial", "q", "context", "wave"]
+ParallelStrategy = Literal["serial", "q", "context", "wave"]
 
 _GIB = 1024**3
 _DEFAULT_MEMORY_FRACTION = 0.70
 
 
 def affinity_cpu_count() -> int:
-    """Return CPUs available to this process, honoring scheduler affinity."""
-
     getter = getattr(os, "sched_getaffinity", None)
     if callable(getter):
         try:
@@ -40,8 +40,6 @@ def affinity_cpu_count() -> int:
 
 
 def available_memory_bytes() -> int:
-    """Return currently available memory with dependency-free fallbacks."""
-
     try:
         import psutil  # type: ignore
 
@@ -50,7 +48,6 @@ def available_memory_bytes() -> int:
             return value
     except (ImportError, OSError, AttributeError, ValueError):
         pass
-
     try:
         pages = int(os.sysconf("SC_AVPHYS_PAGES"))
         page_size = int(os.sysconf("SC_PAGE_SIZE"))
@@ -63,8 +60,6 @@ def available_memory_bytes() -> int:
 
 
 def resolve_worker_budget(requested_workers: int) -> int:
-    """Resolve ``0`` as automatic CPU-affinity count."""
-
     requested = int(requested_workers)
     if requested < 0:
         raise ValueError("requested_workers must be non-negative")
@@ -73,8 +68,6 @@ def resolve_worker_budget(requested_workers: int) -> int:
 
 
 def resolve_memory_budget_bytes(memory_budget_gb: float) -> int:
-    """Resolve ``0`` as a conservative fraction of available memory."""
-
     requested = float(memory_budget_gb)
     if not np.isfinite(requested) or requested < 0.0:
         raise ValueError("memory_budget_gb must be finite and non-negative")
@@ -94,13 +87,6 @@ def estimate_context_bytes(
     fallback_bytes_per_point: float = 16_384.0,
     fixed_overhead_bytes: int = 256 * 1024**2,
 ) -> int:
-    """Estimate live bytes for one material context.
-
-    ``observed_bytes_per_point`` should come from exact ndarray accounting of a
-    completed material cache.  The fallback is intentionally conservative and is
-    used only before a run has produced such telemetry.
-    """
-
     points = int(point_count)
     if points <= 0:
         raise ValueError("point_count must be positive")
@@ -119,7 +105,7 @@ def estimate_context_bytes(
 
 
 def numpy_array_bytes(value: Any) -> int:
-    """Count unique NumPy array storage reachable from an object graph."""
+    """Count unique NumPy storage reachable from an object graph."""
 
     seen_objects: set[int] = set()
     seen_buffers: set[int] = set()
@@ -129,7 +115,6 @@ def numpy_array_bytes(value: Any) -> int:
         if object_id in seen_objects:
             return 0
         seen_objects.add(object_id)
-
         if isinstance(item, np.ndarray):
             root = item
             while isinstance(root.base, np.ndarray):
@@ -152,19 +137,20 @@ def numpy_array_bytes(value: Any) -> int:
 
 @dataclass(frozen=True)
 class CPUParallelPlan:
-    """One non-nested process-parallel plan for a workload level."""
-
     requested_mode: ParallelMode
     strategy: ParallelStrategy
     total_worker_budget: int
     context_workers: int
     q_workers: int
+    flat_workers: int
     context_count: int
     max_q_tasks_per_context: int
+    total_flat_tasks: int
     estimated_context_bytes: int
     memory_budget_bytes: int
     memory_limited_context_workers: int
     max_context_workers: int
+    wave_count: int
     q_parallel_supported: bool
     estimated_process_utilization: int
     estimated_peak_concurrent_context_bytes: int
@@ -182,28 +168,26 @@ def choose_cpu_parallel_plan(
     context_count: int,
     max_q_tasks_per_context: int,
     estimated_context_bytes: int,
+    total_flat_tasks: int | None = None,
     memory_budget_gb: float = 0.0,
     max_context_workers: int = 0,
     q_parallel_supported: bool = True,
 ) -> CPUParallelPlan:
-    """Choose q-parallel or material-context-parallel execution.
-
-    Automatic mode prefers the axis that can occupy more processes.  Ties prefer
-    q-parallelism because forked q workers share one readonly material cache.
-    Context parallelism is capped by the configured memory budget.
-    """
-
     requested_mode = str(mode)
-    if requested_mode not in {"auto", "serial", "q", "context"}:
-        raise ValueError("mode must be auto, serial, q, or context")
+    if requested_mode not in {"auto", "serial", "q", "context", "wave"}:
+        raise ValueError("mode must be auto, serial, q, context, or wave")
+
     contexts = int(context_count)
     q_tasks = int(max_q_tasks_per_context)
     estimate = int(estimated_context_bytes)
     context_limit = int(max_context_workers)
+    flat_tasks = contexts * q_tasks if total_flat_tasks is None else int(total_flat_tasks)
     if contexts <= 0:
         raise ValueError("context_count must be positive")
     if q_tasks <= 0:
         raise ValueError("max_q_tasks_per_context must be positive")
+    if flat_tasks <= 0:
+        raise ValueError("total_flat_tasks must be positive")
     if estimate <= 0:
         raise ValueError("estimated_context_bytes must be positive")
     if context_limit < 0:
@@ -213,58 +197,89 @@ def choose_cpu_parallel_plan(
     memory_budget = resolve_memory_budget_bytes(float(memory_budget_gb))
     memory_cap = contexts if memory_budget == 0 else max(memory_budget // estimate, 1)
     configured_context_cap = total if context_limit == 0 else min(context_limit, total)
-    context_workers = max(
+    contexts_per_wave = max(
         min(contexts, total, configured_context_cap, int(memory_cap)),
         1,
     )
-    q_workers = max(min(q_tasks, total), 1) if q_parallel_supported else 1
+    context_utilization = min(contexts_per_wave, total)
+    q_utilization = min(q_tasks, total) if q_parallel_supported else 1
+    wave_task_capacity = min(flat_tasks, contexts_per_wave * q_tasks)
+    wave_utilization = min(wave_task_capacity, total) if q_parallel_supported else 1
 
     if requested_mode == "serial" or total == 1:
         strategy: ParallelStrategy = "serial"
         context_workers = 1
         q_workers = 1
+        flat_workers = 1
         reason = "serial mode requested or only one CPU is available"
     elif requested_mode == "q":
         if not q_parallel_supported:
-            raise ValueError("q parallelism was requested but is not supported")
-        strategy = "q" if q_workers > 1 else "serial"
+            raise ValueError("q parallelism was requested but fork is unavailable")
+        strategy = "q" if q_utilization > 1 else "serial"
         context_workers = 1
+        q_workers = q_utilization
+        flat_workers = q_workers
         reason = "q parallelism explicitly requested"
     elif requested_mode == "context":
-        strategy = "context" if context_workers > 1 else "serial"
+        strategy = "context" if context_utilization > 1 else "serial"
+        context_workers = context_utilization
         q_workers = 1
+        flat_workers = context_workers
         reason = "material-context parallelism explicitly requested"
-    elif context_workers > q_workers:
-        strategy = "context"
-        q_workers = 1
-        reason = (
-            "context axis occupies more processes than q axis within the memory budget"
-        )
-    elif q_workers > 1:
-        strategy = "q"
-        context_workers = 1
-        reason = (
-            "q axis is at least as parallel and shares one readonly material cache"
-        )
-    elif context_workers > 1:
-        strategy = "context"
-        q_workers = 1
-        reason = "q axis is serial but multiple material contexts fit in memory"
+    elif requested_mode == "wave":
+        if not q_parallel_supported:
+            raise ValueError("wave parallelism requires POSIX fork")
+        strategy = "wave" if wave_utilization > 1 else "serial"
+        context_workers = contexts_per_wave
+        q_workers = wave_utilization
+        flat_workers = wave_utilization
+        reason = "single-pool context-wave/q-task parallelism explicitly requested"
     else:
-        strategy = "serial"
-        context_workers = 1
-        q_workers = 1
-        reason = "neither workload axis exposes safe process parallelism"
+        candidates: list[tuple[int, int, ParallelStrategy]] = [
+            (q_utilization, 3, "q"),
+            (context_utilization, 2, "context"),
+            (wave_utilization, 1, "wave"),
+            (1, 0, "serial"),
+        ]
+        _, _, strategy = max(candidates, key=lambda item: (item[0], item[1]))
+        if strategy == "q":
+            context_workers = 1
+            q_workers = q_utilization
+            flat_workers = q_workers
+            reason = "q axis gives the best utilization and shares one readonly cache"
+        elif strategy == "context":
+            context_workers = context_utilization
+            q_workers = 1
+            flat_workers = context_workers
+            reason = "context axis gives the best utilization within the memory budget"
+        elif strategy == "wave":
+            context_workers = contexts_per_wave
+            q_workers = wave_utilization
+            flat_workers = wave_utilization
+            reason = (
+                "flattened context-wave/q tasks occupy more processes than either "
+                "axis alone within the memory budget"
+            )
+        else:
+            context_workers = 1
+            q_workers = 1
+            flat_workers = 1
+            reason = "the workload exposes no safe process parallelism"
 
     utilization = (
-        context_workers
+        flat_workers
+        if strategy == "wave"
+        else context_workers
         if strategy == "context"
         else q_workers
         if strategy == "q"
         else 1
     )
-    peak_context_bytes = (
-        context_workers * estimate if strategy == "context" else estimate
+    live_contexts = context_workers if strategy in {"context", "wave"} else 1
+    wave_count = (
+        int(math.ceil(contexts / max(context_workers, 1)))
+        if strategy == "wave"
+        else 1
     )
     return CPUParallelPlan(
         requested_mode=requested_mode,  # type: ignore[arg-type]
@@ -272,15 +287,18 @@ def choose_cpu_parallel_plan(
         total_worker_budget=int(total),
         context_workers=int(context_workers),
         q_workers=int(q_workers),
+        flat_workers=int(flat_workers),
         context_count=contexts,
         max_q_tasks_per_context=q_tasks,
+        total_flat_tasks=flat_tasks,
         estimated_context_bytes=estimate,
         memory_budget_bytes=int(memory_budget),
         memory_limited_context_workers=int(memory_cap),
         max_context_workers=int(configured_context_cap),
+        wave_count=int(wave_count),
         q_parallel_supported=bool(q_parallel_supported),
         estimated_process_utilization=int(utilization),
-        estimated_peak_concurrent_context_bytes=int(peak_context_bytes),
+        estimated_peak_concurrent_context_bytes=int(live_contexts * estimate),
         nested_process_pools=False,
         reason=reason,
     )
