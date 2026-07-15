@@ -34,16 +34,11 @@ from subsequent levels while unresolved points continue. The JSON records:
 
 ```text
 working_N
-  the lower endpoint of the final accepted adjacent-N transition
+  lower endpoint of the final accepted adjacent-N transition
 
 audit_N
-  the higher endpoint that confirms the transition
+  higher endpoint that confirms the accepted convergence window
 ```
-
-With the default two consecutive accepted transitions, `N1 -> N2` and `N2 -> N3`
-must both pass, and the reported pair is `working_N=N2`, `audit_N=N3`. With the
-one-pass smoke setting, the report is `working_N=N_previous`,
-`audit_N=N_current`; the two values are never fabricated from the same level.
 
 This early stop changes only workload scheduling. Every evaluated level remains an
 independent complete shifted even-N periodic BZ quadrature; no cell or physical
@@ -54,41 +49,36 @@ sector receives local refinement.
 The command uses exactly one process-parallel layer and requires one BLAS/OpenMP
 thread per process. It never nests a process pool inside another process pool.
 
-At every N level, automatic scheduling compares three safe execution shapes:
+At every N level, automatic scheduling compares four execution shapes:
 
 ```text
+serial
+  one material context and one q task at a time.
+
 q parallelism
   one pairing/shift material cache is built once;
   POSIX-fork workers share the readonly cache copy-on-write;
-  q/angle tasks are distributed through the established q evaluator.
+  q/angle tasks from one identical-frequency group are distributed in parallel.
 
 material-context parallelism
   independent pairing/shift contexts run in spawn workers;
-  each worker builds one material cache and processes q tasks serially;
+  each worker builds one material cache and processes its q groups serially;
   simultaneous contexts are capped by the memory budget.
 
-context-wave/q-task parallelism
-  the parent builds a memory-safe wave of readonly pairing/shift material caches;
-  one POSIX-fork pool inherits all caches in that wave;
-  work is flattened into independent `(context, q)` tasks;
-  the wave is released before the next set of contexts is built.
+context-wave/q parallelism
+  a memory-safe set of pairing/shift caches is built in the parent;
+  one POSIX-fork pool inherits all readonly caches in the wave;
+  all `(context, q)` tasks from every active Matsubara group are flattened into
+  the same dynamic work queue.
 ```
 
-Automatic mode chooses the shape with the highest process utilization. Ties prefer
-q parallelism, then context parallelism, because they retain fewer simultaneous
-material contexts. Wave mode is selected when the product of context and q
-multiplicities exposes more independent work than either axis alone.
+Wave planning counts every flattened task in a context, including q labels whose
+active Matsubara sets differ and therefore belong to different frequency groups.
+This prevents a late-N scan from falling back to context-only execution merely
+because each individual frequency group contains one q label.
 
-For example, two pairings, three shifts, and three q points expose
-
-```text
-6 pairing/shift contexts
-18 flattened context-q tasks
-```
-
-If memory permits all six contexts in one wave on a 32-CPU host, automatic mode may
-use 18 workers rather than being limited to six context workers or three q workers.
-At larger N, the same workload can split into multiple memory-capped waves.
+Automatic mode chooses the shape that can occupy more CPU processes. A tie prefers
+the simpler/smaller-memory shape in the order q, context, wave.
 
 The worker and memory controls are:
 
@@ -104,7 +94,7 @@ The worker and memory controls are:
   use 70% of currently available memory; a positive value sets an explicit budget.
 
 --max-context-workers 0
-  automatic memory-limited contexts per wave; a positive value adds a hard cap.
+  automatic memory-limited context count; a positive value adds a hard cap.
 
 --memory-safety-factor 1.5
   inflate measured/fallback material-context memory before choosing concurrency.
@@ -112,17 +102,13 @@ The worker and memory controls are:
 
 The first N level uses a conservative bytes-per-grid-point estimate. Every completed
 context then records exact reachable NumPy-array bytes for its material cache. Later
-N levels reuse the largest observed bytes-per-point value, so the wave/context cap
+N levels reuse the largest observed bytes-per-point value, so the context-worker cap
 adapts to the actual model rather than staying a fixed guess.
 
-Every N-level JSON record contains the selected strategy, worker counts, flattened
-task count, contexts per wave, wave count, memory cap, estimated concurrent bytes,
-and the reason for the choice. Each wave records exact live cache-array bytes,
-worker PIDs, task count, parent cache-build time, and pool wall time.
-
-The output is atomically checkpointed after each completed N level. Automatic resume
-is not yet implemented; a partial checkpoint is evidence, not an instruction to
-skip unfinished work.
+Every N-level JSON record contains the selected strategy, worker counts, memory cap,
+estimated concurrent bytes and the reason for the choice. The output is atomically
+checkpointed after each completed N level. Automatic resume is not yet implemented;
+a partial checkpoint is evidence, not an instruction to skip unfinished work.
 
 ## Acceptance criterion
 
@@ -177,7 +163,6 @@ env \
     --parallel-mode auto \
     --memory-budget-gb 0 \
     --max-context-workers 0 \
-    --memory-safety-factor 1.5 \
     --logdet-rtol 1e-3 \
     --logdet-atol 1e-14 \
     --output validation/outputs/matsubara/transverse_point_sweet_spot/example.json
