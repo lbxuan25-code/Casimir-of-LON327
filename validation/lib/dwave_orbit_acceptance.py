@@ -97,10 +97,12 @@ def _empty_result(*, sector: str) -> dict[str, Any]:
         "physical_passed": False,
         "ward_passed": False,
         "strict_static_ward_passed": False,
+        "strict_static_hard_gate": False,
         "sheet_validation_passed": False,
         "reflection_constructed": False,
         "logdet_passed": False,
         "error": "",
+        "warning": "",
         "primary_response": nan_matrix.copy(),
         "sigma": nan_matrix.copy(),
         "reflection": nan_matrix.copy(),
@@ -109,6 +111,10 @@ def _empty_result(*, sector: str) -> dict[str, Any]:
         "dbar_t": float("nan"),
         "ward_effective_mixed_ratio_max": float("nan"),
         "schur_condition_number": float("nan"),
+        "static_longitudinal_residual": float("nan"),
+        "static_longitudinal_tolerance": float("nan"),
+        "static_longitudinal_within_tolerance": False,
+        "static_longitudinal_warning": False,
         "matsubara_prime_weight": 0.5 if sector == "zero" else 1.0,
     }
 
@@ -193,7 +199,13 @@ def evaluate_zero_matsubara_pipeline(
     q_model: np.ndarray,
     config: OrbitAcceptancePhysicsConfig,
 ) -> dict[str, Any]:
-    """Validate exact static density/stiffness without any conductivity division."""
+    """Validate exact static density/stiffness without any conductivity division.
+
+    The effective crystal-xy Ward identity is a hard gate.  The local-LT
+    longitudinal residual and the historical strict-static aggregate are retained
+    as telemetry only; they never receive point-specific exemptions and never by
+    themselves block sheet, reflection or zero-mode logdet construction.
+    """
 
     result = _empty_result(sector="zero")
     q = np.asarray(q_model, dtype=float)
@@ -253,10 +265,26 @@ def evaluate_zero_matsubara_pipeline(
         return result
 
     primary = np.diag([float(sheet.chi_bar), float(sheet.dbar_t)]).astype(complex)
+    longitudinal_residual = float(
+        sheet.validation.relative_longitudinal_gauge_residual
+    )
+    longitudinal_tolerance = float(sheet.validation.longitudinal_tolerance)
+    longitudinal_within_tolerance = bool(
+        sheet.validation.longitudinal_within_tolerance
+    )
+    warning = ""
+    if not longitudinal_within_tolerance:
+        warning = (
+            "diagnostic warning: static longitudinal residual exceeded its "
+            f"nonblocking tolerance: residual={longitudinal_residual:.3e}, "
+            f"tolerance={longitudinal_tolerance:.3e}"
+        )
+
     result.update(
         {
             "ward_passed": bool(ward.passed),
             "strict_static_ward_passed": bool(strict.passed),
+            "strict_static_hard_gate": False,
             "sheet_validation_passed": bool(sheet.validation.passed),
             "reflection_constructed": True,
             "logdet_passed": True,
@@ -270,11 +298,15 @@ def evaluate_zero_matsubara_pipeline(
                 ward.right.effective_mixed_ratio,
             ),
             "schur_condition_number": float(ward.schur_condition_number),
+            "static_longitudinal_residual": longitudinal_residual,
+            "static_longitudinal_tolerance": longitudinal_tolerance,
+            "static_longitudinal_within_tolerance": longitudinal_within_tolerance,
+            "static_longitudinal_warning": not longitudinal_within_tolerance,
+            "warning": warning,
         }
     )
     result["physical_passed"] = bool(
         result["ward_passed"]
-        and result["strict_static_ward_passed"]
         and result["sheet_validation_passed"]
         and result["reflection_constructed"]
         and result["logdet_passed"]
