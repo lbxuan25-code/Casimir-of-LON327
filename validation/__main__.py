@@ -48,7 +48,7 @@ _COMMANDS: dict[tuple[str, str], str] = {
         "validation.commands.matsubara.arbitrary_q_physics_smoke"
     ),
     ("diagnostic", "arbitrary-q-vector-adaptive-compare"): (
-        "validation.commands.matsubara.arbitrary_q_vector_adaptive_compare"
+        "validation.commands.matsubara.arbitrary_q_vector_adaptive_successive_compare"
     ),
     ("diagnostic", "dwave-small-xi"): (
         "validation.commands.matsubara.dwave_small_xi"
