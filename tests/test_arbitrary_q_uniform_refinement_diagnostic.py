@@ -73,9 +73,15 @@ def test_uniform_refinement_command_writes_block_and_physical_diagnostics(
     assert len(final["successive_observables"]) == 2
 
 
-def test_uniform_refinement_command_is_the_only_extra_arbitrary_q_diagnostic() -> None:
+def test_uniform_refinement_and_fixed_outer_candidate_routes_are_explicit() -> None:
     assert resolve_command("diagnostic", "arbitrary-q-uniform-refinement") == (
         "validation.commands.matsubara.arbitrary_q_uniform_refinement_diagnostic"
+    )
+    assert resolve_command(
+        "diagnostic", "arbitrary-q-fixed-outer-adaptive-inner"
+    ) == (
+        "validation.commands.matsubara."
+        "arbitrary_q_fixed_outer_adaptive_inner_diagnostic"
     )
 
 
@@ -84,6 +90,7 @@ def test_retained_arbitrary_q_workflow_surface_is_allowlisted() -> None:
     workflow_dir = root / "src" / "lno327" / "workflows"
     actual = {path.name for path in workflow_dir.glob("arbitrary_q_*.py")}
     assert actual == {
+        "arbitrary_q_fixed_outer_adaptive_inner.py",
         "arbitrary_q_matsubara.py",
         "arbitrary_q_parallel.py",
     }
@@ -104,6 +111,7 @@ def test_retained_arbitrary_q_validation_surface_is_allowlisted() -> None:
     command_dir = root / "validation" / "commands" / "matsubara"
     actual = {path.name for path in command_dir.glob("arbitrary_q_*.py")}
     assert actual == {
+        "arbitrary_q_fixed_outer_adaptive_inner_diagnostic.py",
         "arbitrary_q_performance_preflight.py",
         "arbitrary_q_performance_smoke.py",
         "arbitrary_q_periodic_bz_qualification.py",
