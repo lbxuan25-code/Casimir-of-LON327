@@ -58,7 +58,9 @@ def test_frequency_level_rejects_failed_physical_gate_even_if_logdet_is_stable()
     assert result["accepted_transition"] is False
 
 
-def test_unified_point_command_writes_point_specific_history(tmp_path: Path) -> None:
+def test_unified_point_command_writes_point_specific_history_and_parallel_plan(
+    tmp_path: Path,
+) -> None:
     output = tmp_path / "sweet_spot.json"
     main(
         [
@@ -82,6 +84,10 @@ def test_unified_point_command_writes_point_specific_history(tmp_path: Path) -> 
             "0.75",
             "--required-consecutive-passes",
             "1",
+            "--workers",
+            "1",
+            "--parallel-mode",
+            "serial",
             "--canonical-block",
             "4",
             "--runtime-chunk",
@@ -91,10 +97,17 @@ def test_unified_point_command_writes_point_specific_history(tmp_path: Path) -> 
         ]
     )
     payload = json.loads(output.read_text(encoding="utf-8"))
-    assert payload["schema"] == "transverse-point-sweet-spot-v1"
+    assert payload["schema"] == "transverse-point-sweet-spot-v2"
     assert payload["single_public_point_convergence_script"] is True
     assert payload["point_specific_early_stop"] is True
     assert payload["hard_gate_policy"]["static_longitudinal"] is False
+    assert payload["run_complete"] is True
+    assert payload["cpu_parallel_policy"]["nested_process_pools"] is False
+    assert payload["cpu_parallel_policy"]["one_process_parallel_layer_only"] is True
+    assert payload["execution_levels"]
+    first_plan = payload["execution_levels"][0]["parallel_plan"]
+    assert first_plan["strategy"] == "serial"
+    assert first_plan["total_worker_budget"] == 1
     assert len(payload["point_results"]) == 1
     point = payload["point_results"][0]
     assert point["pairing"] == "spm"
