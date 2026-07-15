@@ -50,6 +50,10 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("diagnostic", "arbitrary-q-uniform-refinement"): (
         "validation.commands.matsubara.arbitrary_q_uniform_refinement_diagnostic"
     ),
+    ("diagnostic", "arbitrary-q-fixed-outer-adaptive-inner"): (
+        "validation.commands.matsubara."
+        "arbitrary_q_fixed_outer_adaptive_inner_diagnostic"
+    ),
     ("diagnostic", "dwave-small-xi"): (
         "validation.commands.matsubara.dwave_small_xi"
     ),
