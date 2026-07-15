@@ -4,7 +4,10 @@ import numpy as np
 import pytest
 
 from lno327.response.effective_kernel import EffectiveEMKernel
-from lno327.response.static_ward_gate import validate_strict_static_ward_closure
+from lno327.response.static_ward_gate import (
+    StrictStaticWardClosure,
+    validate_strict_static_ward_closure,
+)
 from lno327.response.ward_validation import PrimitiveWardRHS, validate_effective_ward_xy
 
 
@@ -36,16 +39,46 @@ def _kernel_and_ward(kll: float):
     return kernel, ward
 
 
-def test_strict_static_gate_passes_zero_longitudinal_kernel():
+def test_static_gate_passes_zero_longitudinal_kernel():
     kernel, ward = _kernel_and_ward(0.0)
     gate = validate_strict_static_ward_closure(kernel, ward)
     assert ward.passed is True
     assert gate.passed is True
     assert gate.effective_direct_over_q == pytest.approx(0.0)
     assert gate.relative_longitudinal_gauge_residual == pytest.approx(0.0)
+    assert gate.longitudinal_warning is False
 
 
-def test_strict_static_gate_rejects_nonzero_longitudinal_kernel_even_when_mixed_ward_passes():
+def test_longitudinal_excess_is_recorded_but_not_a_hard_gate():
+    gate = StrictStaticWardClosure(
+        primitive_residual_over_q=0.0,
+        amplitude_defect_over_q=0.0,
+        phase_defect_over_q=0.0,
+        effective_direct_over_q=0.0,
+        effective_residual_over_q=0.0,
+        relative_longitudinal_gauge_residual=1e-3,
+        schur_condition_number=1.0,
+        schur_inverse_method="inv",
+        primitive_tolerance=1e-9,
+        amplitude_tolerance=1e-9,
+        phase_tolerance=1e-9,
+        effective_direct_tolerance=1e-9,
+        effective_residual_tolerance=1e-9,
+        longitudinal_tolerance=1e-6,
+        condition_max=1e12,
+        generic_ward_passed=True,
+        metadata={},
+    )
+    assert gate.longitudinal_within_tolerance is False
+    assert gate.longitudinal_warning is True
+    assert gate.passed is True
+    gate.require_passed()
+    payload = gate.to_dict()
+    assert payload["longitudinal_is_hard_gate"] is False
+    assert payload["longitudinal_warning"] is True
+
+
+def test_static_gate_still_rejects_hard_ward_defects():
     kernel, ward = _kernel_and_ward(1e-3)
     gate = validate_strict_static_ward_closure(kernel, ward)
     assert ward.passed is True
@@ -53,11 +86,11 @@ def test_strict_static_gate_rejects_nonzero_longitudinal_kernel_even_when_mixed_
     assert gate.effective_direct_over_q == pytest.approx(1e-3)
     assert gate.relative_longitudinal_gauge_residual == pytest.approx(1e-3)
     assert gate.passed is False
-    with pytest.raises(ValueError, match="strict exact-static Ward closure failed"):
+    with pytest.raises(ValueError, match="failed hard validation"):
         gate.require_passed()
 
 
-def test_strict_static_gate_requires_positive_condition_limit():
+def test_static_gate_requires_positive_condition_limit():
     kernel, ward = _kernel_and_ward(0.0)
     with pytest.raises(ValueError, match="condition_max must be positive"):
         validate_strict_static_ward_closure(kernel, ward, condition_max=0.0)
