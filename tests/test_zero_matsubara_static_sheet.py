@@ -186,7 +186,7 @@ def test_static_passivity_failure_is_fail_closed_before_reflection():
     kernel, ward = _synthetic_static_contract(chi_bar=1.0, dbar_t=-0.1)
     response = static_matsubara_kernel_to_sheet_response(kernel, ward)
     assert response.validation.passed is False
-    with pytest.raises(ValueError, match="zero-Matsubara sheet response failed validation"):
+    with pytest.raises(ValueError, match="zero-Matsubara sheet response failed hard validation"):
         static_sheet_response_to_reflection(
             response,
             q_lab_model=kernel.q_model,
