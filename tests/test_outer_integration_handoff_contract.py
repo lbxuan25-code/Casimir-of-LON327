@@ -29,13 +29,18 @@ def test_outer_handoff_preserves_hard_readiness_state():
         assert statement in text
 
 
-def test_outer_main_surface_has_no_positive_only_or_diagnostic_aliases():
+def test_outer_main_surface_separates_aggregate_and_one_point_tools():
     commands = set(available_commands())
     assert ("matsubara", "matsubara-orbit-gauss-crosscheck") in commands
     assert ("matsubara", "orbit-gauss-preflight") in commands
     assert ("matsubara", "total-orbit-gauss-scan") in commands
+    assert ("diagnostic", "transverse-point-sweet-spot") in commands
     assert ("matsubara", "positive-orbit-gauss-crosscheck") not in commands
     assert ("matsubara", "positive-orbit-gauss-scan") not in commands
-    assert ("matsubara", "dwave-orbit-integrand-profile") not in commands
-    assert ("diagnostic", "dwave-orbit-integrand-profile") in commands
-    assert ("diagnostic", "dwave-diagonal-width-scan") in commands
+    for retired in (
+        ("matsubara", "dwave-orbit-integrand-profile"),
+        ("diagnostic", "dwave-orbit-integrand-profile"),
+        ("diagnostic", "dwave-diagonal-width-scan"),
+        ("diagnostic", "dwave-orbit-adaptive"),
+    ):
+        assert retired not in commands
