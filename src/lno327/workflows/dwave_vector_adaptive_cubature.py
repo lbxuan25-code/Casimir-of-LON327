@@ -255,6 +255,42 @@ def merge_cell_components_before_schur(
     return merged, merged_rhs
 
 
+_PACKED_HEADER_WIDTH = 18
+_PACKED_FREQUENCY_WIDTH = 25
+_PACKED_HEADER_GROUP_WIDTHS = (9, 4, 2, 3)
+_PACKED_FREQUENCY_GROUP_WIDTHS = (9, 4, 6, 6)
+
+
+def _primitive_error_groups(width: int) -> tuple[slice, ...]:
+    """Return stable physical block slices, with a whole-vector fallback."""
+
+    size = int(width)
+    if size <= 0:
+        raise ValueError("primitive vectors must be nonempty")
+    dynamic = size - _PACKED_HEADER_WIDTH
+    if dynamic < 0 or dynamic % _PACKED_FREQUENCY_WIDTH:
+        return (slice(0, size),)
+
+    groups: list[slice] = []
+    cursor = 0
+    for group_width in _PACKED_HEADER_GROUP_WIDTHS:
+        groups.append(slice(cursor, cursor + group_width))
+        cursor += group_width
+    frequency_count = dynamic // _PACKED_FREQUENCY_WIDTH
+    for _ in range(frequency_count):
+        for group_width in _PACKED_FREQUENCY_GROUP_WIDTHS:
+            groups.append(slice(cursor, cursor + group_width))
+            cursor += group_width
+    if cursor != size:
+        raise RuntimeError("primitive error groups do not cover the complete vector")
+    return tuple(groups)
+
+
+def _max_abs(value: np.ndarray) -> float:
+    array = np.asarray(value, dtype=complex)
+    return float(np.max(np.abs(array))) if array.size else 0.0
+
+
 def vector_error_metrics(
     low_vectors: Sequence[np.ndarray],
     high_vectors: Sequence[np.ndarray],
@@ -265,37 +301,96 @@ def vector_error_metrics(
     high_ward_vectors: Sequence[np.ndarray] | None = None,
     ward_threshold: float | None = None,
 ) -> dict[str, Any]:
+    """Measure global low/high convergence while retaining local refinement scores.
+
+    The hard convergence metric is formed only after summing all active cells.
+    Stable physical blocks are compared with mixed absolute/relative max norms, so
+    cell-to-cell cancellation and symmetry-forced near-zero components do not become
+    artificial global errors. Per-cell low/high differences remain only as a ranking
+    signal for deciding which cells to refine next.
+    """
+
     if not low_vectors or len(low_vectors) != len(high_vectors):
         raise ValueError("low_vectors and high_vectors must be nonempty and aligned")
+    rtol = float(relative_tolerance)
+    atol = float(absolute_tolerance)
+    if not np.isfinite(rtol) or not np.isfinite(atol) or rtol < 0.0 or atol < 0.0:
+        raise ValueError("adaptive tolerances must be finite and non-negative")
+
     low = np.stack([np.asarray(value, dtype=complex) for value in low_vectors])
     high = np.stack([np.asarray(value, dtype=complex) for value in high_vectors])
-    delta = high - low
-    total = np.sum(high, axis=0)
-    thresholds = float(absolute_tolerance) + float(relative_tolerance) * np.abs(total)
-    thresholds = np.maximum(thresholds, np.finfo(float).tiny)
-    local_ratios = np.abs(delta) / thresholds[None, :]
-    scores = np.max(local_ratios, axis=1)
-    conservative = np.sum(np.abs(delta), axis=0) / thresholds
-    signed = np.abs(np.sum(delta, axis=0)) / thresholds
+    if low.shape != high.shape or low.ndim != 2:
+        raise ValueError("low/high primitive vectors must have equal two-dimensional shape")
 
-    ward_conservative = float("nan")
+    delta = high - low
+    low_total = np.sum(low, axis=0)
+    high_total = np.sum(high, axis=0)
+    global_delta = high_total - low_total
+    groups = _primitive_error_groups(high.shape[1])
+    tiny = np.finfo(float).tiny
+
+    group_ratios: list[float] = []
+    group_thresholds: list[float] = []
+    local_group_ratios: list[np.ndarray] = []
+    local_absolute_ratios: list[float] = []
+    for group in groups:
+        scale = max(_max_abs(low_total[group]), _max_abs(high_total[group]))
+        threshold = max(atol + rtol * scale, tiny)
+        group_thresholds.append(float(threshold))
+        group_ratios.append(_max_abs(global_delta[group]) / threshold)
+        local = np.max(np.abs(delta[:, group]), axis=1) / threshold
+        local_group_ratios.append(np.asarray(local, dtype=float))
+        local_absolute_ratios.append(float(np.sum(local)))
+
+    scores = np.max(np.stack(local_group_ratios, axis=1), axis=1)
+    global_ratio = float(max(group_ratios, default=0.0))
+    local_absolute_ratio = float(max(local_absolute_ratios, default=0.0))
+
+    ward_global_ratio = float("nan")
+    ward_local_absolute_ratio = float("nan")
     if low_ward_vectors is not None or high_ward_vectors is not None:
         if low_ward_vectors is None or high_ward_vectors is None:
             raise ValueError("both low and high Ward vectors are required")
-        low_ward = np.stack([np.asarray(value, dtype=complex) for value in low_ward_vectors])
-        high_ward = np.stack([np.asarray(value, dtype=complex) for value in high_ward_vectors])
+        if len(low_ward_vectors) != len(high_ward_vectors) or len(low_ward_vectors) != len(low_vectors):
+            raise ValueError("Ward vectors must align with primitive cell vectors")
+        low_ward = np.stack(
+            [np.asarray(value, dtype=complex) for value in low_ward_vectors]
+        )
+        high_ward = np.stack(
+            [np.asarray(value, dtype=complex) for value in high_ward_vectors]
+        )
+        if low_ward.shape != high_ward.shape or low_ward.ndim != 2:
+            raise ValueError("low/high Ward vectors must have equal two-dimensional shape")
         ward_delta = high_ward - low_ward
-        threshold = max(float(ward_threshold or absolute_tolerance), np.finfo(float).tiny)
-        ward_local = np.linalg.norm(ward_delta, axis=1) / threshold
+        low_ward_total = np.sum(low_ward, axis=0)
+        high_ward_total = np.sum(high_ward, axis=0)
+        ward_atol = atol if ward_threshold is None else float(ward_threshold)
+        if not np.isfinite(ward_atol) or ward_atol < 0.0:
+            raise ValueError("ward_threshold must be finite and non-negative")
+        ward_scale = max(_max_abs(low_ward_total), _max_abs(high_ward_total))
+        mixed_ward_threshold = max(ward_atol + rtol * ward_scale, tiny)
+        ward_global_ratio = (
+            _max_abs(high_ward_total - low_ward_total) / mixed_ward_threshold
+        )
+        ward_local = np.max(np.abs(ward_delta), axis=1) / mixed_ward_threshold
         scores = np.maximum(scores, ward_local)
-        ward_conservative = float(np.sum(np.linalg.norm(ward_delta, axis=1)) / threshold)
+        ward_local_absolute_ratio = float(np.sum(ward_local))
 
     return {
         "cell_scores": np.asarray(scores, dtype=float),
-        "conservative_error_ratio_max": float(np.max(conservative)),
-        "signed_error_ratio_max": float(np.max(signed)),
-        "ward_error_ratio_conservative": ward_conservative,
-        "global_high_vector_norm": float(np.linalg.norm(total)),
+        # Backward-compatible field names now carry the correct global signed
+        # mixed-error semantics. The explicit v2 names below remove ambiguity.
+        "conservative_error_ratio_max": global_ratio,
+        "signed_error_ratio_max": global_ratio,
+        "ward_error_ratio_conservative": ward_global_ratio,
+        "global_group_error_ratio_max": global_ratio,
+        "local_absolute_error_ratio_max": local_absolute_ratio,
+        "ward_global_error_ratio": ward_global_ratio,
+        "ward_local_absolute_error_ratio": ward_local_absolute_ratio,
+        "group_error_ratios": np.asarray(group_ratios, dtype=float),
+        "group_thresholds": np.asarray(group_thresholds, dtype=float),
+        "error_estimator_contract": "global_signed_group_mixed_v2",
+        "global_high_vector_norm": float(np.linalg.norm(high_total)),
     }
 
 
