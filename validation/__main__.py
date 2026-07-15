@@ -15,12 +15,10 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("ward", "bond-metric-family"): (
         "validation.commands.ward.bond_metric_family"
     ),
-    ("static", "nk-scan"): "validation.commands.static.nk_scan",
     ("static", "dwave"): "validation.commands.static.dwave_gauss_outer",
     ("static", "dwave-orbit"): "validation.commands.static.dwave_orbit_gauss",
     ("static", "projection-scan"): "validation.commands.static.projection_scan",
     ("static", "quadrature-compare"): "validation.commands.static.quadrature_compare",
-    ("matsubara", "positive-point"): "validation.commands.matsubara.positive_point",
     ("matsubara", "total-orbit-timing-profile"): (
         "validation.commands.matsubara.orbit_gauss_timing_profile"
     ),
@@ -47,8 +45,8 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("diagnostic", "arbitrary-q-physics-smoke"): (
         "validation.commands.matsubara.arbitrary_q_physics_smoke"
     ),
-    ("diagnostic", "arbitrary-q-uniform-refinement"): (
-        "validation.commands.matsubara.arbitrary_q_uniform_refinement_diagnostic"
+    ("diagnostic", "transverse-point-sweet-spot"): (
+        "validation.commands.matsubara.transverse_point_sweet_spot"
     ),
     ("diagnostic", "dwave-small-xi"): (
         "validation.commands.matsubara.dwave_small_xi"
