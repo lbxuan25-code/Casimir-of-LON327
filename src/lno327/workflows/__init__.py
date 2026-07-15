@@ -17,18 +17,6 @@ from lno327.workflows.dwave_periodic_shift_ensemble import (
     nested_c4_antithetic_shifts,
     periodic_shift_mesh,
 )
-from lno327.workflows.dwave_vector_adaptive_cubature import (
-    DWaveCubatureCell,
-    DWaveVectorAdaptiveOptions,
-    cubature_cell_gauss_rule,
-    initial_cubature_cells,
-    merge_cell_components_before_schur,
-    primitive_component_vector,
-    primitive_ward_residual_vector,
-    subdivide_cubature_cell,
-    validate_vector_adaptive_options,
-    vector_error_metrics,
-)
 from lno327.workflows.finite_q_engine import (
     BdGPhaseCorrectionError,
     FiniteQEngineOptions,
@@ -47,11 +35,9 @@ from lno327.workflows.finite_q_quadrature import (
 
 __all__ = [
     "BdGPhaseCorrectionError",
-    "DWaveCubatureCell",
     "DWaveNodalQuadratureOptions",
     "DWavePeriodicMultishiftOptions",
     "DWavePeriodicShiftEnsembleOptions",
-    "DWaveVectorAdaptiveOptions",
     "FiniteQEngineOptions",
     "FiniteQQuadratureOptions",
     "bdg_finite_q_response_imag_axis_from_workspace",
@@ -61,19 +47,11 @@ __all__ = [
     "build_dwave_periodic_shift_ensemble",
     "collective_form_factor",
     "collective_goldstone_counterterm",
-    "cubature_cell_gauss_rule",
     "finite_q_bdg_response_from_ansatz",
     "finite_q_quadrature_points",
-    "initial_cubature_cells",
-    "merge_cell_components_before_schur",
     "merge_shift_components_before_schur",
     "nested_c4_antithetic_shifts",
     "pairing_form_factor_matrix",
     "periodic_shift_mesh",
     "precompute_finite_q_engine_workspace",
-    "primitive_component_vector",
-    "primitive_ward_residual_vector",
-    "subdivide_cubature_cell",
-    "validate_vector_adaptive_options",
-    "vector_error_metrics",
 ]
