@@ -17,6 +17,37 @@ def _state(logdet: float, passed: bool = True) -> dict[str, object]:
     }
 
 
+def _tiny_command(output: Path) -> list[str]:
+    return [
+        "--q-point",
+        "generic",
+        "0.03",
+        "0.02",
+        "--pairings",
+        "spm",
+        "--matsubara-indices",
+        "1",
+        "--N-candidates",
+        "2",
+        "4",
+        "6",
+        "--shift",
+        "0.5",
+        "0.5",
+        "--shift",
+        "0.25",
+        "0.75",
+        "--required-consecutive-passes",
+        "1",
+        "--canonical-block",
+        "4",
+        "--runtime-chunk",
+        "4",
+        "--output",
+        str(output),
+    ]
+
+
 def test_frequency_level_requires_closure_N_and_shift_convergence() -> None:
     previous = {
         "primary": _state(-0.02),
@@ -64,36 +95,11 @@ def test_unified_point_command_writes_point_specific_history_and_parallel_plan(
     output = tmp_path / "sweet_spot.json"
     main(
         [
-            "--q-point",
-            "generic",
-            "0.03",
-            "0.02",
-            "--pairings",
-            "spm",
-            "--matsubara-indices",
-            "1",
-            "--N-candidates",
-            "2",
-            "4",
-            "6",
-            "--shift",
-            "0.5",
-            "0.5",
-            "--shift",
-            "0.25",
-            "0.75",
-            "--required-consecutive-passes",
-            "1",
+            *_tiny_command(output),
             "--workers",
             "1",
             "--parallel-mode",
             "serial",
-            "--canonical-block",
-            "4",
-            "--runtime-chunk",
-            "4",
-            "--output",
-            str(output),
         ]
     )
     payload = json.loads(output.read_text(encoding="utf-8"))
@@ -118,6 +124,36 @@ def test_unified_point_command_writes_point_specific_history_and_parallel_plan(
     assert "two_plate_logdet" in first_shift
     assert "plate_1" in first_shift
     assert "plate_2" in first_shift
+
+
+def test_context_parallel_command_uses_spawn_workers_without_nested_q_pool(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "context_parallel.json"
+    main(
+        [
+            *_tiny_command(output),
+            "--workers",
+            "2",
+            "--parallel-mode",
+            "context",
+            "--memory-budget-gb",
+            "4",
+            "--max-context-workers",
+            "2",
+        ]
+    )
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    first_level = payload["execution_levels"][0]
+    plan = first_level["parallel_plan"]
+    assert plan["strategy"] == "context"
+    assert plan["context_workers"] == 2
+    assert plan["q_workers"] == 1
+    records = first_level["pairings"]["spm"]
+    assert len(records) == 2
+    for record in records:
+        assert record["context_worker_actual_threadpool_passed"] is True
+        assert all(group["workers"] == 1 for group in record["groups"])
 
 
 def test_unified_point_command_is_the_only_public_point_convergence_route() -> None:
