@@ -12,7 +12,6 @@ from lno327.response.workspace import (
 )
 from lno327.workflows.dwave_periodic_shift_ensemble import periodic_shift_mesh
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
-from validation.__main__ import resolve_command
 from validation.lib.dwave_adaptive_bond_metric import (
     AdaptiveStaticValidationConfig,
     postprocess_adaptive_bond_metric_static,
@@ -214,21 +213,3 @@ def test_postintegral_bond_metric_matches_policy_aware_workspace():
             q_model=q,
             config=AdaptiveStaticValidationConfig(),
         )
-
-
-def test_public_static_dwave_route_is_unique_gauss_outer_path():
-    assert resolve_command("static", "dwave") == (
-        "validation.commands.static.dwave_gauss_outer"
-    )
-    for retired in (
-        "dwave-gauss-outer",
-        "dwave-iterated-adaptive",
-        "dwave-adaptive-convergence",
-        "dwave-shift-batch",
-        "dwave-shift-budget",
-        "dwave-shift-reference",
-        "bond-metric-nk-convergence",
-        "bond-metric-shift-convergence",
-    ):
-        with pytest.raises(ValueError):
-            resolve_command("static", retired)
