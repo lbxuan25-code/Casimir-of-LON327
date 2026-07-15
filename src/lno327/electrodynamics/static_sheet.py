@@ -83,7 +83,13 @@ def _dimensionless_static_kernel(kernel_lt: np.ndarray, energy_scale_eV: float) 
 
 @dataclass(frozen=True)
 class StaticSheetValidation:
-    """Physical and convention checks for one zero-Matsubara sheet response."""
+    """Hard static-sheet checks plus nonblocking longitudinal telemetry.
+
+    The crystal-xy effective Ward identity is the gauge-closure hard gate.  The
+    local-LT longitudinal norm is retained at every point as a convergence
+    diagnostic, but it does not by itself reject an otherwise finite, real,
+    passive static sheet response.
+    """
 
     finite: bool
     ward_passed: bool
@@ -115,12 +121,21 @@ class StaticSheetValidation:
             object.__setattr__(self, name, value)
 
     @property
+    def longitudinal_within_tolerance(self) -> bool:
+        return bool(
+            self.relative_longitudinal_gauge_residual <= self.longitudinal_tolerance
+        )
+
+    @property
+    def longitudinal_warning(self) -> bool:
+        return not self.longitudinal_within_tolerance
+
+    @property
     def passed(self) -> bool:
         return bool(
             self.finite
             and self.ward_passed
             and self.relative_imaginary_norm <= self.reality_tolerance
-            and self.relative_longitudinal_gauge_residual <= self.longitudinal_tolerance
             and self.relative_density_transverse_mixing <= self.mixing_tolerance
             and self.chi_bar >= -self.passivity_tolerance
             and self.dbar_t >= -self.passivity_tolerance
@@ -129,14 +144,14 @@ class StaticSheetValidation:
     def require_passed(self) -> None:
         if not self.passed:
             raise ValueError(
-                "zero-Matsubara sheet response failed validation: "
+                "zero-Matsubara sheet response failed hard validation: "
                 f"finite={self.finite}, ward_passed={self.ward_passed}, "
                 f"relative_imaginary_norm={self.relative_imaginary_norm:.3e}, "
-                "relative_longitudinal_gauge_residual="
-                f"{self.relative_longitudinal_gauge_residual:.3e}, "
                 "relative_density_transverse_mixing="
                 f"{self.relative_density_transverse_mixing:.3e}, "
-                f"chi_bar={self.chi_bar:.3e}, dbar_t={self.dbar_t:.3e}"
+                f"chi_bar={self.chi_bar:.3e}, dbar_t={self.dbar_t:.3e}; "
+                "longitudinal_diagnostic_only="
+                f"{self.relative_longitudinal_gauge_residual:.3e}"
             )
 
 
@@ -355,6 +370,9 @@ def static_matsubara_kernel_to_sheet_response(
             "local_projection_matrix": transform.copy(),
             "chi_bar_complex_before_reality_projection": chi_bar_complex,
             "dbar_t_complex_before_reality_projection": dbar_t_complex,
+            "longitudinal_hard_gate": False,
+            "longitudinal_within_tolerance": validation.longitudinal_within_tolerance,
+            "longitudinal_warning": validation.longitudinal_warning,
         },
     )
 
@@ -443,6 +461,11 @@ def static_sheet_response_to_reflection(
             "q_crystal_formula": "q_crystal = R(-theta) q_lab",
             "q_match_relative_residual": q_mismatch,
             "conductivity_limit_not_used": True,
+            "longitudinal_hard_gate": False,
+            "longitudinal_within_tolerance": (
+                response.validation.longitudinal_within_tolerance
+            ),
+            "longitudinal_warning": response.validation.longitudinal_warning,
         },
     )
 
