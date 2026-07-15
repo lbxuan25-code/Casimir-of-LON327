@@ -1,29 +1,28 @@
-"""Unified single-point transverse-integration sweet-spot search.
+"""Unified transverse-point sweet-spot search with one global CPU pool.
 
-For each requested external lab-frame momentum, pairing, and Matsubara index, this
-command evaluates complete shifted even-N periodic Brillouin-zone grids. It stops
-an individual point as soon as the two-plate Casimir logdet is stable across
-adjacent N levels and independent full-period shifts while every hard physical
-gate remains closed.
+For every requested ``(pairing, q_lab, Matsubara index)`` point, this command
+evaluates complete shifted even-N periodic Brillouin-zone grids and stops the
+point independently after the actual two-plate Casimir logdet passes adjacent-N,
+cross-shift, and hard physical-closure checks.
 
-CPU execution uses exactly one process-parallel layer.  Automatic mode chooses
-between q/angle parallelism with one fork-shared readonly material cache and
-independent pairing/shift material-context parallelism capped by a memory budget.
-Nested process pools and multithreaded BLAS are forbidden.
-
-This is the only public single-point transverse-convergence command. It does not
-perform an outer q integral or Matsubara sum and cannot authorize production input.
+Automatic CPU scheduling uses exactly one process pool.  When enough independent
+work exists, it builds a memory-safe wave of readonly pairing/shift material
+contexts in the parent and forks one pool over flattened ``(context, q)`` tasks.
+No nested process pool is created, and every process must use single-thread
+BLAS/OpenMP.
 """
 from __future__ import annotations
 
 import argparse
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
 from multiprocessing import get_all_start_methods, get_context
 import os
 from pathlib import Path
+import pickle
 import resource
 import sys
 from time import perf_counter
@@ -51,9 +50,14 @@ from lno327.response.effective_kernel import effective_em_kernel_from_components
 from lno327.response.periodic_bz_grid import build_periodic_bz_grid
 from lno327.response.static_ward_gate import validate_strict_static_ward_closure
 from lno327.response.ward_validation import validate_effective_ward_xy
+from lno327.workflows.arbitrary_q_matsubara import (
+    CrystalResponseCache,
+    integrate_two_plate_angle_batch,
+)
 from lno327.workflows.arbitrary_q_parallel import (
     ArbitraryQParallelEvaluator,
     QLabAngleTask,
+    QLabAngleTaskResult,
     actual_threadpool_record,
     validate_single_thread_blas_environment,
 )
@@ -175,7 +179,6 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         nargs=3,
         metavar=("LABEL", "QX", "QY"),
         required=True,
-        help="repeatable lab-frame external momentum",
     )
     parser.add_argument(
         "--pairings",
@@ -190,51 +193,27 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         type=int,
         default=[128, 192, 256, 384, 512, 640, 768],
     )
-    parser.add_argument(
-        "--shift",
-        action="append",
-        nargs=2,
-        type=float,
-        metavar=("SX", "SY"),
-        help="repeatable complete-period grid shift; defaults to primary/A/B",
-    )
+    parser.add_argument("--shift", action="append", nargs=2, type=float)
     parser.add_argument("--plate-angles-deg", nargs=2, type=float, default=[0.0, 17.0])
     parser.add_argument("--required-consecutive-passes", type=int, default=2)
     parser.add_argument(
         "--workers",
         type=int,
         default=0,
-        help="total process budget; 0 uses the current CPU affinity",
+        help="total process budget; 0 uses current CPU affinity",
     )
     parser.add_argument(
         "--parallel-mode",
-        choices=("auto", "serial", "q", "context"),
+        choices=("auto", "serial", "q", "context", "wave"),
         default="auto",
-        help="select one non-nested process-parallel axis",
     )
-    parser.add_argument(
-        "--memory-budget-gb",
-        type=float,
-        default=0.0,
-        help="context-parallel memory budget; 0 uses 70%% of available memory",
-    )
-    parser.add_argument(
-        "--max-context-workers",
-        type=int,
-        default=0,
-        help="hard cap for simultaneous pairing/shift material contexts; 0 is automatic",
-    )
-    parser.add_argument(
-        "--memory-safety-factor",
-        type=float,
-        default=1.5,
-        help="multiplier applied to measured or fallback context memory",
-    )
+    parser.add_argument("--memory-budget-gb", type=float, default=0.0)
+    parser.add_argument("--max-context-workers", type=int, default=0)
+    parser.add_argument("--memory-safety-factor", type=float, default=1.5)
     parser.add_argument(
         "--fallback-context-bytes-per-point",
         type=float,
         default=16_384.0,
-        help="conservative pre-telemetry material-context memory estimate",
     )
     parser.add_argument("--canonical-block", type=int, default=4096)
     parser.add_argument("--runtime-chunk", type=int, default=16384)
@@ -260,11 +239,8 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         args.q_points = _parse_q_points(args.q_point)
     except ValueError as exc:
         parser.error(str(exc))
-
     args.pairings = tuple(dict.fromkeys(str(value) for value in args.pairings))
-    args.matsubara_indices = tuple(
-        sorted(set(int(value) for value in args.matsubara_indices))
-    )
+    args.matsubara_indices = tuple(sorted(set(args.matsubara_indices)))
     args.N_candidates = tuple(int(value) for value in args.N_candidates)
     args.shifts = tuple(
         tuple(float(component) for component in value)
@@ -287,14 +263,14 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         parser.error("at least two unique --shift values are required")
     if not all(np.isfinite(value) for shift in args.shifts for value in shift):
         parser.error("all shifts must be finite")
+    if not all(np.isfinite(value) for value in args.plate_angles_rad):
+        parser.error("--plate-angles-deg values must be finite")
     if args.required_consecutive_passes <= 0:
         parser.error("--required-consecutive-passes must be positive")
     if args.required_consecutive_passes >= len(args.N_candidates):
         parser.error("consecutive-pass requirement leaves no usable N ladder")
-    if args.workers < 0:
-        parser.error("--workers must be non-negative")
-    if args.max_context_workers < 0:
-        parser.error("--max-context-workers must be non-negative")
+    if args.workers < 0 or args.max_context_workers < 0:
+        parser.error("worker controls must be non-negative")
     if not np.isfinite(args.memory_budget_gb) or args.memory_budget_gb < 0.0:
         parser.error("--memory-budget-gb must be finite and non-negative")
     if not np.isfinite(args.memory_safety_factor) or args.memory_safety_factor < 1.0:
@@ -316,8 +292,6 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         parser.error("--degeneracy must be finite and positive")
     if not np.isfinite(args.separation_nm) or args.separation_nm <= 0.0:
         parser.error("--separation-nm must be finite and positive")
-    if not all(np.isfinite(value) for value in args.plate_angles_rad):
-        parser.error("--plate-angles-deg values must be finite")
     for name in (
         "ward_tolerance",
         "ward_absolute_tolerance",
@@ -359,7 +333,6 @@ def _plate_state(
         absolute_residual_tolerance=float(args.ward_absolute_tolerance),
         condition_max=float(args.condition_max),
     )
-
     if float(xi_eV) == 0.0:
         strict = validate_strict_static_ward_closure(
             kernel,
@@ -390,8 +363,8 @@ def _plate_state(
             lattice_constant_m=LNO327_THIN_FILM_SLAO_IN_PLANE.lattice_a_x_m,
             require_physical=True,
         )
-        primary = np.diag([float(sheet.chi_bar), float(sheet.dbar_t)]).astype(complex)
         validation = sheet.validation
+        primary = np.diag([float(sheet.chi_bar), float(sheet.dbar_t)]).astype(complex)
         state = {
             "operator_ward_passed": bool(result.operator_ward.passed),
             "ward_passed": bool(ward.passed),
@@ -454,7 +427,6 @@ def _plate_state(
             "relative_imaginary_norm": float(validation.relative_imaginary_norm),
             "relative_density_transverse_mixing": float("nan"),
         }
-
     state["hard_physical_passed"] = bool(
         state["operator_ward_passed"]
         and state["ward_passed"]
@@ -475,11 +447,9 @@ def _two_plate_state(
 ) -> dict[str, Any]:
     q_lab = np.asarray(batch.q_lab, dtype=float)
     theta_1, theta_2 = args.plate_angles_rad
-    plate_1_result = batch.plate_1
-    plate_2_result = batch.plate_2[0]
     try:
         reflection_1, plate_1 = _plate_state(
-            plate_1_result,
+            batch.plate_1,
             frequency_index=frequency_index,
             q_lab=q_lab,
             theta_rad=float(theta_1),
@@ -487,7 +457,7 @@ def _two_plate_state(
             args=args,
         )
         reflection_2, plate_2 = _plate_state(
-            plate_2_result,
+            batch.plate_2[0],
             frequency_index=frequency_index,
             q_lab=q_lab,
             theta_rad=float(theta_2),
@@ -500,27 +470,24 @@ def _two_plate_state(
             separation_m=float(args.separation_nm) * 1e-9,
         )
         logdet = float(point.logdet)
-        logdet_passed = bool(np.isfinite(logdet))
-        hard_passed = bool(
-            plate_1["hard_physical_passed"]
+        passed = bool(
+            np.isfinite(logdet)
+            and plate_1["hard_physical_passed"]
             and plate_2["hard_physical_passed"]
-            and logdet_passed
         )
         error = ""
     except (ValueError, np.linalg.LinAlgError) as exc:
         plate_1 = locals().get("plate_1", {})
         plate_2 = locals().get("plate_2", {})
         logdet = float("nan")
-        logdet_passed = False
-        hard_passed = False
+        passed = False
         error = str(exc)
-
     return {
         "n": int(n),
         "xi_eV": float(xi_eV),
         "two_plate_logdet": logdet,
-        "logdet_passed": logdet_passed,
-        "hard_physical_passed": hard_passed,
+        "logdet_passed": bool(np.isfinite(logdet)),
+        "hard_physical_passed": passed,
         "plate_1": plate_1,
         "plate_2": plate_2,
         "longitudinal_is_hard_gate": False,
@@ -540,121 +507,6 @@ def _current_pss_bytes() -> int:
         return int(getattr(psutil.Process().memory_full_info(), "pss", 0))
     except (ImportError, OSError, AttributeError):
         return 0
-
-
-def _evaluate_shift(
-    *,
-    pairing_name: str,
-    n_grid: int,
-    shift: tuple[float, float],
-    active_by_label: dict[str, tuple[int, ...]],
-    q_by_label: dict[str, np.ndarray],
-    args: argparse.Namespace | SimpleNamespace,
-    q_workers: int,
-) -> dict[str, Any]:
-    context_started = perf_counter()
-    model = get_finite_q_validation_model("symmetry_bdg_2band")
-    ansatz = model.build_ansatz(pairing_name, phase_vertex="bond_endpoint_gauge")
-    pairing = model.build_pairing_params(float(args.delta0_eV))
-
-    grid_started = perf_counter()
-    grid = build_periodic_bz_grid(int(n_grid), shift)
-    grid_seconds = perf_counter() - grid_started
-    material_started = perf_counter()
-    cache = build_material_grid_cache(
-        spec=model.spec,
-        ansatz=ansatz,
-        pairing=pairing,
-        config=KuboConfig.from_kelvin(
-            omega_eV=0.0,
-            temperature_K=float(args.temperature_K),
-            eta_eV=float(args.eta_eV),
-            output_si=False,
-        ),
-        options=FiniteQEngineOptions(phase_hessian_policy="q_independent"),
-        grid=grid,
-    )
-    material_seconds = perf_counter() - material_started
-    cache_array_bytes = numpy_array_bytes(cache.workspace)
-
-    grouped: dict[tuple[int, ...], list[str]] = defaultdict(list)
-    for label, active_indices in active_by_label.items():
-        if active_indices:
-            grouped[tuple(active_indices)].append(label)
-
-    point_states: dict[str, dict[str, Any]] = {label: {} for label in active_by_label}
-    group_records: list[dict[str, Any]] = []
-    for indices, labels in sorted(grouped.items()):
-        xi_values = np.asarray(
-            [matsubara_energy_eV(index, args.temperature_K) for index in indices],
-            dtype=float,
-        )
-        tasks = tuple(
-            QLabAngleTask(
-                index=position,
-                q_lab=q_by_label[label],
-                theta_1_rad=float(args.plate_angles_rad[0]),
-                theta_2_rad_values=np.asarray(
-                    [float(args.plate_angles_rad[1])],
-                    dtype=float,
-                ),
-            )
-            for position, label in enumerate(labels)
-        )
-        workers = min(max(int(q_workers), 1), len(tasks))
-        evaluator = ArbitraryQParallelEvaluator(
-            material_cache=cache,
-            spec=model.spec,
-            ansatz=ansatz,
-            pairing=pairing,
-            xi_eV_values=xi_values,
-            temperature_K=float(args.temperature_K),
-            eta_eV=float(args.eta_eV),
-            process_workers=workers,
-            canonical_reduction_block_size=int(args.canonical_block),
-            runtime_chunk_size=int(args.runtime_chunk),
-        )
-        try:
-            evaluated = evaluator.evaluate(tasks)
-        finally:
-            evaluator.close()
-        execution = evaluator.metadata()
-        for label, evaluated_task in zip(labels, evaluated, strict=True):
-            for frequency_index, (n, xi_eV) in enumerate(
-                zip(indices, xi_values, strict=True)
-            ):
-                point_states[label][str(n)] = _two_plate_state(
-                    evaluated_task.result,
-                    frequency_index=frequency_index,
-                    n=int(n),
-                    xi_eV=float(xi_eV),
-                    args=args,
-                )
-        group_records.append(
-            {
-                "matsubara_indices": list(indices),
-                "q_labels": list(labels),
-                "workers": workers,
-                "execution": execution,
-            }
-        )
-
-    return {
-        "pairing": pairing_name,
-        "N": int(n_grid),
-        "point_count": int(grid.point_count),
-        "shift": list(shift),
-        "grid_build_seconds": float(grid_seconds),
-        "material_build_seconds": float(material_seconds),
-        "material_cache_array_bytes": int(cache_array_bytes),
-        "context_wall_seconds": float(perf_counter() - context_started),
-        "process_pid": int(os.getpid()),
-        "process_peak_rss_bytes": int(_peak_rss_bytes()),
-        "process_current_pss_bytes": int(_current_pss_bytes()),
-        "material_cache": cache.metadata(),
-        "groups": group_records,
-        "points": point_states,
-    }
 
 
 def _physics_args_payload(args: argparse.Namespace) -> dict[str, Any]:
@@ -684,39 +536,8 @@ def _context_cost(job: dict[str, Any]) -> float:
     active_evaluations = sum(
         len(indices) for indices in job["active_by_label"].values()
     )
-    pairing_factor = 1.25 if job["pairing_name"] == "dwave" else 1.0
-    return float(pairing_factor * int(job["n_grid"]) ** 2 * active_evaluations)
-
-
-def _evaluate_context_job(job: dict[str, Any]) -> dict[str, Any]:
-    threadpools, threadpool_passed = actual_threadpool_record()
-    if bool(job["require_single_thread_runtime"]) and not threadpool_passed:
-        raise RuntimeError(
-            "context-parallel worker has a non-single-thread BLAS runtime: "
-            f"{threadpools}"
-        )
-    record = _evaluate_shift(
-        pairing_name=str(job["pairing_name"]),
-        n_grid=int(job["n_grid"]),
-        shift=tuple(float(value) for value in job["shift"]),
-        active_by_label={
-            str(label): tuple(int(value) for value in indices)
-            for label, indices in job["active_by_label"].items()
-        },
-        q_by_label={
-            str(label): np.asarray(value, dtype=float)
-            for label, value in job["q_by_label"].items()
-        },
-        args=SimpleNamespace(**dict(job["args_payload"])),
-        q_workers=1,
-    )
-    record["context_id"] = str(job["context_id"])
-    record["shift_index"] = int(job["shift_index"])
-    record["context_worker_actual_threadpools"] = [
-        dict(item) for item in threadpools
-    ]
-    record["context_worker_actual_threadpool_passed"] = bool(threadpool_passed)
-    return record
+    factor = 1.25 if job["pairing_name"] == "dwave" else 1.0
+    return float(factor * int(job["n_grid"]) ** 2 * active_evaluations)
 
 
 def _build_context_jobs(
@@ -748,73 +569,481 @@ def _build_context_jobs(
                         label: q.tolist() for label, q in q_by_label.items()
                     },
                     "args_payload": args_payload,
-                    "require_single_thread_runtime": True,
                 }
             )
     return jobs
 
 
+def _grouped_labels(job: dict[str, Any]) -> list[tuple[tuple[int, ...], list[str]]]:
+    grouped: dict[tuple[int, ...], list[str]] = defaultdict(list)
+    for label, indices in job["active_by_label"].items():
+        if indices:
+            grouped[tuple(indices)].append(str(label))
+    return sorted(grouped.items())
+
+
+def _total_flat_tasks(jobs: Sequence[dict[str, Any]]) -> int:
+    return sum(len(labels) for job in jobs for _, labels in _grouped_labels(job))
+
+
 def _max_q_tasks_per_context(jobs: Sequence[dict[str, Any]]) -> int:
-    maximum = 0
-    for job in jobs:
-        grouped: dict[tuple[int, ...], int] = defaultdict(int)
-        for indices in job["active_by_label"].values():
-            if indices:
-                grouped[tuple(indices)] += 1
-        maximum = max(maximum, max(grouped.values(), default=0))
-    return max(maximum, 1)
+    return max(
+        (len(labels) for job in jobs for _, labels in _grouped_labels(job)),
+        default=1,
+    )
+
+
+def _evaluate_shift(
+    *,
+    job: dict[str, Any],
+    q_workers: int,
+) -> dict[str, Any]:
+    args = SimpleNamespace(**dict(job["args_payload"]))
+    started = perf_counter()
+    model = get_finite_q_validation_model("symmetry_bdg_2band")
+    ansatz = model.build_ansatz(
+        str(job["pairing_name"]),
+        phase_vertex="bond_endpoint_gauge",
+    )
+    pairing = model.build_pairing_params(float(args.delta0_eV))
+    grid_started = perf_counter()
+    grid = build_periodic_bz_grid(int(job["n_grid"]), tuple(job["shift"]))
+    grid_seconds = perf_counter() - grid_started
+    material_started = perf_counter()
+    cache = build_material_grid_cache(
+        spec=model.spec,
+        ansatz=ansatz,
+        pairing=pairing,
+        config=KuboConfig.from_kelvin(
+            omega_eV=0.0,
+            temperature_K=float(args.temperature_K),
+            eta_eV=float(args.eta_eV),
+            output_si=False,
+        ),
+        options=FiniteQEngineOptions(phase_hessian_policy="q_independent"),
+        grid=grid,
+    )
+    material_seconds = perf_counter() - material_started
+    point_states: dict[str, dict[str, Any]] = {
+        str(label): {} for label in job["active_by_label"]
+    }
+    groups: list[dict[str, Any]] = []
+    for indices, labels in _grouped_labels(job):
+        xi_values = np.asarray(
+            [matsubara_energy_eV(index, args.temperature_K) for index in indices],
+            dtype=float,
+        )
+        tasks = tuple(
+            QLabAngleTask(
+                index=position,
+                q_lab=np.asarray(job["q_by_label"][label], dtype=float),
+                theta_1_rad=float(args.plate_angles_rad[0]),
+                theta_2_rad_values=np.asarray([args.plate_angles_rad[1]], dtype=float),
+            )
+            for position, label in enumerate(labels)
+        )
+        workers = min(max(int(q_workers), 1), len(tasks))
+        evaluator = ArbitraryQParallelEvaluator(
+            material_cache=cache,
+            spec=model.spec,
+            ansatz=ansatz,
+            pairing=pairing,
+            xi_eV_values=xi_values,
+            temperature_K=float(args.temperature_K),
+            eta_eV=float(args.eta_eV),
+            process_workers=workers,
+            canonical_reduction_block_size=int(args.canonical_block),
+            runtime_chunk_size=int(args.runtime_chunk),
+        )
+        try:
+            evaluated = evaluator.evaluate(tasks)
+        finally:
+            evaluator.close()
+        for label, evaluated_task in zip(labels, evaluated, strict=True):
+            for frequency_index, (n, xi_eV) in enumerate(
+                zip(indices, xi_values, strict=True)
+            ):
+                point_states[label][str(n)] = _two_plate_state(
+                    evaluated_task.result,
+                    frequency_index=frequency_index,
+                    n=int(n),
+                    xi_eV=float(xi_eV),
+                    args=args,
+                )
+        groups.append(
+            {
+                "matsubara_indices": list(indices),
+                "q_labels": labels,
+                "workers": workers,
+                "execution": evaluator.metadata(),
+            }
+        )
+    return {
+        "context_id": str(job["context_id"]),
+        "pairing": str(job["pairing_name"]),
+        "shift_index": int(job["shift_index"]),
+        "N": int(job["n_grid"]),
+        "point_count": int(grid.point_count),
+        "shift": list(job["shift"]),
+        "grid_build_seconds": float(grid_seconds),
+        "material_build_seconds": float(material_seconds),
+        "material_cache_array_bytes": int(numpy_array_bytes(cache.workspace)),
+        "context_wall_seconds": float(perf_counter() - started),
+        "process_pid": int(os.getpid()),
+        "process_peak_rss_bytes": int(_peak_rss_bytes()),
+        "process_current_pss_bytes": int(_current_pss_bytes()),
+        "material_cache": cache.metadata(),
+        "groups": groups,
+        "points": point_states,
+    }
+
+
+def _evaluate_context_job(job: dict[str, Any]) -> dict[str, Any]:
+    pools, passed = actual_threadpool_record()
+    if not passed:
+        raise RuntimeError(
+            "context worker has a non-single-thread BLAS runtime: "
+            f"{pools}"
+        )
+    record = _evaluate_shift(job=job, q_workers=1)
+    record["context_worker_actual_threadpools"] = [dict(item) for item in pools]
+    record["context_worker_actual_threadpool_passed"] = True
+    return record
+
+
+@dataclass(frozen=True)
+class _WaveTask:
+    group_key: str
+    context_id: str
+    shift_index: int
+    label: str
+    index: int
+    q_lab: tuple[float, float]
+    theta_1_rad: float
+    theta_2_rad: float
+
+
+_WAVE_CONTEXTS: dict[str, dict[str, Any]] = {}
+
+
+def _wave_evaluate_task(task: _WaveTask) -> tuple[str, int, str, str, int, QLabAngleTaskResult]:
+    context = _WAVE_CONTEXTS.get(task.group_key)
+    if context is None:
+        raise RuntimeError("fork wave worker has no inherited context")
+    pools, passed = actual_threadpool_record()
+    if not passed:
+        raise RuntimeError(
+            "wave worker has a non-single-thread BLAS runtime: "
+            f"{pools}"
+        )
+    q_task = QLabAngleTask(
+        index=int(task.index),
+        q_lab=np.asarray(task.q_lab, dtype=float),
+        theta_1_rad=float(task.theta_1_rad),
+        theta_2_rad_values=np.asarray([task.theta_2_rad], dtype=float),
+    )
+    started = perf_counter()
+    response_cache = CrystalResponseCache()
+    result = integrate_two_plate_angle_batch(
+        q_lab=q_task.q_lab,
+        theta_1_rad=q_task.theta_1_rad,
+        theta_2_rad_values=q_task.theta_2_rad_values,
+        material_cache=context["cache"],
+        spec=context["spec"],
+        ansatz=context["ansatz"],
+        pairing=context["pairing"],
+        xi_eV_values=context["xi_values"],
+        temperature_K=float(context["temperature_K"]),
+        eta_eV=float(context["eta_eV"]),
+        canonical_reduction_block_size=int(context["canonical_block"]),
+        runtime_chunk_size=int(context["runtime_chunk"]),
+        response_cache=response_cache,
+    )
+    worker_seconds = float(perf_counter() - started)
+    provisional = QLabAngleTaskResult(
+        index=int(task.index),
+        result=result,
+        worker_seconds=worker_seconds,
+        worker_rss_bytes=_peak_rss_bytes(),
+        worker_pss_bytes=_current_pss_bytes(),
+        worker_threadpools=tuple(dict(item) for item in pools),
+        worker_threadpool_passed=True,
+    )
+    payload_bytes = len(pickle.dumps(provisional, protocol=pickle.HIGHEST_PROTOCOL))
+    output = QLabAngleTaskResult(
+        index=provisional.index,
+        result=provisional.result,
+        worker_seconds=provisional.worker_seconds,
+        payload_bytes=payload_bytes,
+        worker_rss_bytes=provisional.worker_rss_bytes,
+        worker_pss_bytes=provisional.worker_pss_bytes,
+        worker_threadpools=provisional.worker_threadpools,
+        worker_threadpool_passed=True,
+    )
+    return (
+        task.context_id,
+        int(task.shift_index),
+        task.group_key,
+        task.label,
+        int(os.getpid()),
+        output,
+    )
+
+
+def _build_parent_context(job: dict[str, Any]) -> dict[str, Any]:
+    args = SimpleNamespace(**dict(job["args_payload"]))
+    started = perf_counter()
+    model = get_finite_q_validation_model("symmetry_bdg_2band")
+    ansatz = model.build_ansatz(
+        str(job["pairing_name"]),
+        phase_vertex="bond_endpoint_gauge",
+    )
+    pairing = model.build_pairing_params(float(args.delta0_eV))
+    grid_started = perf_counter()
+    grid = build_periodic_bz_grid(int(job["n_grid"]), tuple(job["shift"]))
+    grid_seconds = perf_counter() - grid_started
+    material_started = perf_counter()
+    cache = build_material_grid_cache(
+        spec=model.spec,
+        ansatz=ansatz,
+        pairing=pairing,
+        config=KuboConfig.from_kelvin(
+            omega_eV=0.0,
+            temperature_K=float(args.temperature_K),
+            eta_eV=float(args.eta_eV),
+            output_si=False,
+        ),
+        options=FiniteQEngineOptions(phase_hessian_policy="q_independent"),
+        grid=grid,
+    )
+    material_seconds = perf_counter() - material_started
+    group_contexts: dict[str, dict[str, Any]] = {}
+    tasks: list[_WaveTask] = []
+    groups: list[dict[str, Any]] = []
+    for group_index, (indices, labels) in enumerate(_grouped_labels(job)):
+        xi_values = np.asarray(
+            [matsubara_energy_eV(index, args.temperature_K) for index in indices],
+            dtype=float,
+        )
+        group_key = f"{job['context_id']}:group_{group_index}"
+        group_contexts[group_key] = {
+            "cache": cache,
+            "spec": model.spec,
+            "ansatz": ansatz,
+            "pairing": pairing,
+            "xi_values": xi_values,
+            "indices": tuple(indices),
+            "temperature_K": float(args.temperature_K),
+            "eta_eV": float(args.eta_eV),
+            "canonical_block": int(args.canonical_block),
+            "runtime_chunk": int(args.runtime_chunk),
+        }
+        for position, label in enumerate(labels):
+            q = tuple(float(value) for value in job["q_by_label"][label])
+            tasks.append(
+                _WaveTask(
+                    group_key=group_key,
+                    context_id=str(job["context_id"]),
+                    shift_index=int(job["shift_index"]),
+                    label=label,
+                    index=position,
+                    q_lab=q,
+                    theta_1_rad=float(args.plate_angles_rad[0]),
+                    theta_2_rad=float(args.plate_angles_rad[1]),
+                )
+            )
+        groups.append(
+            {
+                "group_key": group_key,
+                "matsubara_indices": list(indices),
+                "q_labels": list(labels),
+                "workers": None,
+                "execution": {
+                    "execution_strategy": "single_fork_pool_flattened_context_q_tasks",
+                    "nested_process_pools": False,
+                },
+                "_worker_seconds": 0.0,
+                "_payload_bytes": 0,
+                "_worker_pids": set(),
+                "_worker_threadpool_passed": [],
+            }
+        )
+    record = {
+        "context_id": str(job["context_id"]),
+        "pairing": str(job["pairing_name"]),
+        "shift_index": int(job["shift_index"]),
+        "N": int(job["n_grid"]),
+        "point_count": int(grid.point_count),
+        "shift": list(job["shift"]),
+        "grid_build_seconds": float(grid_seconds),
+        "material_build_seconds": float(material_seconds),
+        "material_cache_array_bytes": int(numpy_array_bytes(cache.workspace)),
+        "context_wall_seconds": 0.0,
+        "process_pid": int(os.getpid()),
+        "process_peak_rss_bytes": int(_peak_rss_bytes()),
+        "process_current_pss_bytes": int(_current_pss_bytes()),
+        "material_cache": cache.metadata(),
+        "groups": groups,
+        "points": {str(label): {} for label in job["active_by_label"]},
+        "_context_started": started,
+        "_args": args,
+    }
+    return {
+        "record": record,
+        "group_contexts": group_contexts,
+        "tasks": tasks,
+    }
+
+
+def _execute_wave(
+    *,
+    jobs: Sequence[dict[str, Any]],
+    plan: CPUParallelPlan,
+) -> tuple[dict[tuple[str, int], dict[str, Any]], list[dict[str, Any]]]:
+    validate_single_thread_blas_environment()
+    if "fork" not in get_all_start_methods():
+        raise RuntimeError("context-wave execution requires POSIX fork")
+    ordered = sorted(jobs, key=_context_cost, reverse=True)
+    records: dict[tuple[str, int], dict[str, Any]] = {}
+    wave_telemetry: list[dict[str, Any]] = []
+    wave_size = max(int(plan.context_workers), 1)
+
+    for wave_index, start in enumerate(range(0, len(ordered), wave_size)):
+        wave_jobs = ordered[start : start + wave_size]
+        build_started = perf_counter()
+        built = [_build_parent_context(job) for job in wave_jobs]
+        build_seconds = perf_counter() - build_started
+        global _WAVE_CONTEXTS
+        if _WAVE_CONTEXTS:
+            raise RuntimeError("another context wave is already active")
+        _WAVE_CONTEXTS = {
+            key: value
+            for item in built
+            for key, value in item["group_contexts"].items()
+        }
+        tasks = [task for item in built for task in item["tasks"]]
+        workers = min(max(int(plan.flat_workers), 1), max(len(tasks), 1))
+        task_started = perf_counter()
+        worker_pids: set[int] = set()
+        try:
+            with ProcessPoolExecutor(
+                max_workers=workers,
+                mp_context=get_context("fork"),
+            ) as executor:
+                futures = [executor.submit(_wave_evaluate_task, task) for task in tasks]
+                for future in as_completed(futures):
+                    context_id, shift_index, group_key, label, pid, evaluated = future.result()
+                    worker_pids.add(int(pid))
+                    item = next(
+                        value
+                        for value in built
+                        if value["record"]["context_id"] == context_id
+                        and value["record"]["shift_index"] == shift_index
+                    )
+                    record = item["record"]
+                    group_context = item["group_contexts"][group_key]
+                    group = next(
+                        row for row in record["groups"] if row["group_key"] == group_key
+                    )
+                    indices = group_context["indices"]
+                    xi_values = group_context["xi_values"]
+                    for frequency_index, (n, xi_eV) in enumerate(
+                        zip(indices, xi_values, strict=True)
+                    ):
+                        record["points"][label][str(n)] = _two_plate_state(
+                            evaluated.result,
+                            frequency_index=frequency_index,
+                            n=int(n),
+                            xi_eV=float(xi_eV),
+                            args=record["_args"],
+                        )
+                    group["_worker_seconds"] += float(evaluated.worker_seconds)
+                    group["_payload_bytes"] += int(evaluated.payload_bytes)
+                    group["_worker_pids"].add(int(pid))
+                    group["_worker_threadpool_passed"].append(
+                        bool(evaluated.worker_threadpool_passed)
+                    )
+        finally:
+            _WAVE_CONTEXTS = {}
+        task_seconds = perf_counter() - task_started
+        exact_cache_bytes = sum(
+            int(item["record"]["material_cache_array_bytes"]) for item in built
+        )
+        for item in built:
+            record = item["record"]
+            for group in record["groups"]:
+                group["workers"] = workers
+                group["execution"].update(
+                    {
+                        "worker_seconds_sum": float(group.pop("_worker_seconds")),
+                        "payload_bytes": int(group.pop("_payload_bytes")),
+                        "worker_pids": sorted(group.pop("_worker_pids")),
+                        "worker_actual_threadpool_all_passed": all(
+                            group.pop("_worker_threadpool_passed")
+                        ),
+                    }
+                )
+                group.pop("group_key", None)
+            record["context_wall_seconds"] = float(
+                perf_counter() - record.pop("_context_started")
+            )
+            record.pop("_args", None)
+            key = (str(record["pairing"]), int(record["shift_index"]))
+            records[key] = record
+        wave_telemetry.append(
+            {
+                "wave_index": int(wave_index),
+                "context_ids": [
+                    str(item["record"]["context_id"]) for item in built
+                ],
+                "context_count": len(built),
+                "flattened_task_count": len(tasks),
+                "workers": workers,
+                "worker_pids": sorted(worker_pids),
+                "parent_cache_build_seconds": float(build_seconds),
+                "task_pool_wall_seconds": float(task_seconds),
+                "exact_live_material_cache_array_bytes": int(exact_cache_bytes),
+                "estimated_memory_budget_bytes": int(plan.memory_budget_bytes),
+                "nested_process_pools": False,
+            }
+        )
+    return records, wave_telemetry
 
 
 def _execute_level(
     *,
     jobs: Sequence[dict[str, Any]],
     plan: CPUParallelPlan,
-) -> dict[tuple[str, int], dict[str, Any]]:
+) -> tuple[dict[tuple[str, int], dict[str, Any]], list[dict[str, Any]]]:
+    if plan.strategy == "wave":
+        return _execute_wave(jobs=jobs, plan=plan)
+
     ordered = sorted(jobs, key=_context_cost, reverse=True)
     records: dict[tuple[str, int], dict[str, Any]] = {}
     if plan.strategy == "context":
         validate_single_thread_blas_environment()
-        context = get_context("spawn")
         with ProcessPoolExecutor(
             max_workers=int(plan.context_workers),
-            mp_context=context,
+            mp_context=get_context("spawn"),
         ) as executor:
             futures = {
-                executor.submit(_evaluate_context_job, job): job
-                for job in ordered
+                executor.submit(_evaluate_context_job, job): job for job in ordered
             }
             for future in as_completed(futures):
                 job = futures[future]
-                record = future.result()
-                key = (str(job["pairing_name"]), int(job["shift_index"]))
-                records[key] = record
+                records[(str(job["pairing_name"]), int(job["shift_index"]))] = (
+                    future.result()
+                )
     else:
         q_workers = int(plan.q_workers) if plan.strategy == "q" else 1
         if q_workers > 1:
             validate_single_thread_blas_environment()
         for job in ordered:
-            record = _evaluate_shift(
-                pairing_name=str(job["pairing_name"]),
-                n_grid=int(job["n_grid"]),
-                shift=tuple(float(value) for value in job["shift"]),
-                active_by_label={
-                    str(label): tuple(int(value) for value in indices)
-                    for label, indices in job["active_by_label"].items()
-                },
-                q_by_label={
-                    str(label): np.asarray(value, dtype=float)
-                    for label, value in job["q_by_label"].items()
-                },
-                args=SimpleNamespace(**dict(job["args_payload"])),
-                q_workers=q_workers,
-            )
-            record["context_id"] = str(job["context_id"])
-            record["shift_index"] = int(job["shift_index"])
-            key = (str(job["pairing_name"]), int(job["shift_index"]))
-            records[key] = record
+            record = _evaluate_shift(job=job, q_workers=q_workers)
+            records[(str(job["pairing_name"]), int(job["shift_index"]))] = record
     if len(records) != len(jobs):
-        raise RuntimeError("parallel level execution did not return every material context")
-    return records
+        raise RuntimeError("level execution did not return every material context")
+    return records, []
 
 
 def assess_frequency_level(
@@ -834,7 +1063,7 @@ def assess_frequency_level(
         for label in ordered_labels
     )
     cross_shift = _scalar_spread(current_logdets, rtol=rtol, atol=atol)
-    adjacent: dict[str, dict[str, Any]] | None = None
+    adjacent = None
     adjacent_passed = False
     if previous_by_shift is not None:
         adjacent = {
@@ -882,12 +1111,8 @@ def _build_payload(
     run_complete: bool,
 ) -> dict[str, Any]:
     point_results = list(result_records.values())
-    all_established = all(
-        row["sweet_spot"]["status"] == "established"
-        for row in point_results
-    )
     return {
-        "schema": "transverse-point-sweet-spot-v2",
+        "schema": "transverse-point-sweet-spot-v3",
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "purpose": "point_specific_transverse_BZ_working_and_audit_N_selection",
         "integration_family": "fixed_even_N_full_periodic_BZ_only",
@@ -922,8 +1147,8 @@ def _build_payload(
             "one_process_parallel_layer_only": True,
             "nested_process_pools": False,
             "blas_openmp_threads_per_process_required": 1,
-            "q_axis_uses_fork_shared_readonly_material_cache": True,
-            "context_axis_uses_spawn_and_builds_one_cache_per_worker": True,
+            "wave_parent_builds_readonly_contexts_before_fork": True,
+            "wave_flattens_context_q_tasks": True,
         },
         "hard_gate_policy": {
             "operator_ward": True,
@@ -936,7 +1161,10 @@ def _build_payload(
         },
         "point_results": point_results,
         "execution_levels": execution_levels,
-        "all_requested_sweet_spots_established": all_established,
+        "all_requested_sweet_spots_established": all(
+            row["sweet_spot"]["status"] == "established"
+            for row in point_results
+        ),
         "point_specific_early_stop": True,
         "checkpoint_written_after_each_completed_N": True,
         "resume_from_checkpoint_implemented": False,
@@ -982,7 +1210,7 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     execution_levels: list[dict[str, Any]] = []
     observed_cache_bytes_per_point: float | None = None
-    q_parallel_supported = "fork" in get_all_start_methods()
+    fork_supported = "fork" in get_all_start_methods()
 
     for n_grid in args.N_candidates:
         jobs = _build_context_jobs(
@@ -1004,17 +1232,18 @@ def main(argv: Sequence[str] | None = None) -> None:
             requested_workers=int(args.workers),
             context_count=len(jobs),
             max_q_tasks_per_context=_max_q_tasks_per_context(jobs),
+            total_flat_tasks=_total_flat_tasks(jobs),
             estimated_context_bytes=estimated_bytes,
             memory_budget_gb=float(args.memory_budget_gb),
             max_context_workers=int(args.max_context_workers),
-            q_parallel_supported=q_parallel_supported,
+            q_parallel_supported=fork_supported,
         )
         level_started = perf_counter()
-        records = _execute_level(jobs=jobs, plan=plan)
+        records, waves = _execute_level(jobs=jobs, plan=plan)
 
         for record in records.values():
-            point_count = max(int(record["point_count"]), 1)
-            measured = float(record["material_cache_array_bytes"]) / point_count
+            points = max(int(record["point_count"]), 1)
+            measured = float(record["material_cache_array_bytes"]) / points
             observed_cache_bytes_per_point = (
                 measured
                 if observed_cache_bytes_per_point is None
@@ -1024,6 +1253,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         level_record: dict[str, Any] = {
             "N": int(n_grid),
             "parallel_plan": plan.as_dict(),
+            "waves": waves,
             "level_wall_seconds": float(perf_counter() - level_started),
             "pairings": {},
         }
@@ -1062,10 +1292,11 @@ def main(argv: Sequence[str] | None = None) -> None:
                         rtol=float(args.logdet_rtol),
                         atol=float(args.logdet_atol),
                     )
-                    if assessment["accepted_transition"]:
-                        consecutive[key] += 1
-                    else:
-                        consecutive[key] = 0
+                    consecutive[key] = (
+                        consecutive[key] + 1
+                        if assessment["accepted_transition"]
+                        else 0
+                    )
                     history_row = {
                         "N": int(n_grid),
                         "shifts": current_by_shift,
@@ -1076,13 +1307,14 @@ def main(argv: Sequence[str] | None = None) -> None:
                     previous_states[key] = current_by_shift
                     if consecutive[key] >= int(args.required_consecutive_passes):
                         history = result_records[key]["history"]
-                        working_index = -int(args.required_consecutive_passes)
-                        working_N = int(history[working_index]["N"])
-                        audit_N = int(n_grid)
+                        if len(history) < 2:
+                            raise RuntimeError(
+                                "accepted transition lacks a previous N level"
+                            )
                         result_records[key]["sweet_spot"] = {
                             "status": "established",
-                            "working_N": working_N,
-                            "audit_N": audit_N,
+                            "working_N": int(history[-2]["N"]),
+                            "audit_N": int(history[-1]["N"]),
                             "required_consecutive_passes": int(
                                 args.required_consecutive_passes
                             ),
@@ -1096,15 +1328,17 @@ def main(argv: Sequence[str] | None = None) -> None:
                 active[(pairing_name, label)].discard(n)
 
         execution_levels.append(level_record)
-        checkpoint = _build_payload(
-            args=args,
-            q_by_label=q_by_label,
-            result_records=result_records,
-            execution_levels=execution_levels,
-            observed_cache_bytes_per_point=observed_cache_bytes_per_point,
-            run_complete=False,
+        _atomic_write(
+            args.output,
+            _build_payload(
+                args=args,
+                q_by_label=q_by_label,
+                result_records=result_records,
+                execution_levels=execution_levels,
+                observed_cache_bytes_per_point=observed_cache_bytes_per_point,
+                run_complete=False,
+            ),
         )
-        _atomic_write(args.output, checkpoint)
         if not any(active.values()):
             break
 
@@ -1117,7 +1351,6 @@ def main(argv: Sequence[str] | None = None) -> None:
         run_complete=True,
     )
     _atomic_write(args.output, payload)
-
     summary = {
         "output": str(args.output),
         "all_requested_sweet_spots_established": payload[
@@ -1132,6 +1365,9 @@ def main(argv: Sequence[str] | None = None) -> None:
                 ],
                 "context_workers": level["parallel_plan"]["context_workers"],
                 "q_workers": level["parallel_plan"]["q_workers"],
+                "flat_workers": level["parallel_plan"]["flat_workers"],
+                "total_flat_tasks": level["parallel_plan"]["total_flat_tasks"],
+                "wave_count": level["parallel_plan"]["wave_count"],
                 "reason": level["parallel_plan"]["reason"],
             }
             for level in execution_levels
