@@ -211,6 +211,7 @@ def _physical_summary(n: int, state: dict[str, Any]) -> dict[str, Any]:
         "physical_passed": bool(state["physical_passed"]),
         "ward_passed": bool(state["ward_passed"]),
         "strict_static_ward_passed": bool(state["strict_static_ward_passed"]),
+        "strict_static_hard_gate": bool(state.get("strict_static_hard_gate", False)),
         "sheet_validation_passed": bool(state["sheet_validation_passed"]),
         "reflection_constructed": bool(state["reflection_constructed"]),
         "logdet_passed": bool(state["logdet_passed"]),
@@ -223,6 +224,19 @@ def _physical_summary(n: int, state: dict[str, Any]) -> dict[str, Any]:
             state["ward_effective_mixed_ratio_max"]
         ),
         "schur_condition_number": float(state["schur_condition_number"]),
+        "static_longitudinal_residual": float(
+            state.get("static_longitudinal_residual", float("nan"))
+        ),
+        "static_longitudinal_tolerance": float(
+            state.get("static_longitudinal_tolerance", float("nan"))
+        ),
+        "static_longitudinal_within_tolerance": bool(
+            state.get("static_longitudinal_within_tolerance", False)
+        ),
+        "static_longitudinal_warning": bool(
+            state.get("static_longitudinal_warning", False)
+        ),
+        "warning": str(state.get("warning", "")),
         "error": str(state["error"]),
     }
 
@@ -352,6 +366,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "integration_family": "fixed_even_N_full_periodic_BZ_only",
         "local_refinement_present": False,
+        "static_longitudinal_hard_gate": False,
+        "static_ward_hard_gate": True,
         "pairing": args.pairing,
         "q_model": q.tolist(),
         "matsubara_indices": list(args.matsubara_indices),
@@ -381,6 +397,11 @@ def main(argv: Sequence[str] | None = None) -> None:
                     bool(row["physical_passed"])
                     for row in final["physical_by_frequency"]
                 ),
+                "final_static_longitudinal_warnings": [
+                    bool(row["static_longitudinal_warning"])
+                    for row in final["physical_by_frequency"]
+                    if int(row["n"]) == 0
+                ],
             },
             indent=2,
         )
