@@ -301,13 +301,14 @@ def vector_error_metrics(
     high_ward_vectors: Sequence[np.ndarray] | None = None,
     ward_threshold: float | None = None,
 ) -> dict[str, Any]:
-    """Measure global low/high convergence while retaining local refinement scores.
+    """Measure global low/high convergence and primitive-only cell refinement scores.
 
-    The hard convergence metric is formed only after summing all active cells.
-    Stable physical blocks are compared with mixed absolute/relative max norms, so
+    The hard primitive and Ward convergence metrics are formed only after summing all
+    active cells. Stable physical blocks use mixed absolute/relative max norms, so
     cell-to-cell cancellation and symmetry-forced near-zero components do not become
-    artificial global errors. Per-cell low/high differences remain only as a ranking
-    signal for deciding which cells to refine next.
+    artificial global errors. Only local primitive low/high differences rank cells;
+    local Ward differences are retained as diagnostics because Ward closure is a
+    full-BZ identity rather than a cell-local condition.
     """
 
     if not low_vectors or len(low_vectors) != len(high_vectors):
@@ -348,6 +349,7 @@ def vector_error_metrics(
 
     ward_global_ratio = float("nan")
     ward_local_absolute_ratio = float("nan")
+    ward_cell_scores = np.full(low.shape[0], np.nan, dtype=float)
     if low_ward_vectors is not None or high_ward_vectors is not None:
         if low_ward_vectors is None or high_ward_vectors is None:
             raise ValueError("both low and high Ward vectors are required")
@@ -372,14 +374,16 @@ def vector_error_metrics(
         ward_global_ratio = (
             _max_abs(high_ward_total - low_ward_total) / mixed_ward_threshold
         )
-        ward_local = np.max(np.abs(ward_delta), axis=1) / mixed_ward_threshold
-        scores = np.maximum(scores, ward_local)
-        ward_local_absolute_ratio = float(np.sum(ward_local))
+        ward_cell_scores = (
+            np.max(np.abs(ward_delta), axis=1) / mixed_ward_threshold
+        )
+        ward_local_absolute_ratio = float(np.sum(ward_cell_scores))
 
     return {
         "cell_scores": np.asarray(scores, dtype=float),
-        # Backward-compatible field names now carry the correct global signed
-        # mixed-error semantics. The explicit v2 names below remove ambiguity.
+        "ward_cell_scores": np.asarray(ward_cell_scores, dtype=float),
+        # Backward-compatible field names carry the global signed mixed-error
+        # semantics. The explicit names below remove ambiguity.
         "conservative_error_ratio_max": global_ratio,
         "signed_error_ratio_max": global_ratio,
         "ward_error_ratio_conservative": ward_global_ratio,
@@ -389,7 +393,8 @@ def vector_error_metrics(
         "ward_local_absolute_error_ratio": ward_local_absolute_ratio,
         "group_error_ratios": np.asarray(group_ratios, dtype=float),
         "group_thresholds": np.asarray(group_thresholds, dtype=float),
-        "error_estimator_contract": "global_signed_group_mixed_v2",
+        "error_estimator_contract": "global_signed_group_mixed_v3",
+        "cell_score_contract": "primitive_local_group_mixed_only_v1",
         "global_high_vector_norm": float(np.linalg.norm(high_total)),
     }
 
