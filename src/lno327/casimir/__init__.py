@@ -4,6 +4,14 @@ from __future__ import annotations
 
 from .lifshitz import casimir_energy_integrand
 from .lifshitz_integrand import LifshitzPoint, passive_sheet_logdet
+from .outer_quadrature import (
+    MatsubaraFreeEnergyPerArea,
+    OuterQPolarGrid,
+    build_outer_q_polar_grid,
+    free_energy_per_area_from_logdet,
+    integrate_outer_q,
+    matsubara_prime_weights,
+)
 from .reflection import reflection_matrix_weak_2d
 from .setup import CasimirSetup, matsubara_frequency
 from .torque import casimir_torque_integrand
@@ -19,10 +27,13 @@ def casimir_layer_metadata() -> dict[str, object]:
         "zero_matsubara_signed_logdet_supported": True,
         "zero_matsubara_uses_static_susceptibility_not_conductivity": True,
         "zero_matsubara_prime_weight_applied_by_quadrature": True,
+        "outer_q_measure_contract_present": True,
+        "outer_q_radial_variable": "u = 2 Q d",
+        "outer_q_full_angular_domain": True,
         "notes": (
-            "This package contains mathematical integrand building blocks only.",
+            "This package contains mathematical integrand and quadrature building blocks.",
             "It does not validate finite-q Ward/gauge closure.",
-            "The n=0 half weight belongs to the future Matsubara quadrature layer.",
+            "The outer-q layer applies the n=0 half weight but does not estimate the Matsubara tail.",
             "It does not make BdG response outputs Casimir-ready by itself.",
         ),
     }
@@ -31,10 +42,16 @@ def casimir_layer_metadata() -> dict[str, object]:
 __all__ = [
     "CasimirSetup",
     "LifshitzPoint",
+    "MatsubaraFreeEnergyPerArea",
+    "OuterQPolarGrid",
+    "build_outer_q_polar_grid",
     "casimir_energy_integrand",
     "casimir_layer_metadata",
     "casimir_torque_integrand",
+    "free_energy_per_area_from_logdet",
+    "integrate_outer_q",
     "matsubara_frequency",
+    "matsubara_prime_weights",
     "passive_sheet_logdet",
     "reflection_matrix_weak_2d",
 ]
