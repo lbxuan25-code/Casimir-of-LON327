@@ -66,15 +66,16 @@ def _point(pairing: str, label: str, n: int, value: float) -> dict[str, object]:
     }
 
 
-def test_staged_plan_deduplicates_shared_reference_grid() -> None:
+def test_staged_plan_deduplicates_shared_reference_config() -> None:
     plan, manifest = _plan_and_manifest()
     assert plan.reference_spec_id in {spec.spec_id for spec in plan.specs}
     assert plan.ladders["cutoff"][-1] == plan.reference_spec_id
     assert plan.ladders["radial"][-1] == plan.reference_spec_id
     assert plan.ladders["angular"][-1] == plan.reference_spec_id
     assert plan.reference_spec_id in plan.ladders["offset"]
+    assert len(plan.specs) < sum(len(values) for values in plan.ladders.values())
     naive_count = sum(grid.node_count for grid in manifest.grids.values())
-    assert len(manifest.labels) < naive_count
+    assert len(manifest.labels) <= naive_count
     assert np.all(np.linalg.norm(manifest.q_model, axis=1) > 0.0)
 
 
