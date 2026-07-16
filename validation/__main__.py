@@ -6,7 +6,8 @@ import sys
 from collections.abc import Sequence
 
 
-# Public surface used by the pre-outer-integration main flow.
+# Public validation surface for response, point integration, and staged outer
+# Casimir integration qualification.
 _COMMANDS: dict[tuple[str, str], str] = {
     ("ward", "commensurate"): "validation.commands.ward.commensurate",
     ("ward", "bond-metric-full-kernel"): (
@@ -32,6 +33,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ),
     ("matsubara", "arbitrary-q-periodic-bz-qualification"): (
         "validation.commands.matsubara.arbitrary_q_periodic_bz_qualification_gate"
+    ),
+    ("casimir", "outer-q-quadrature-preflight"): (
+        "validation.commands.casimir.outer_q_quadrature_preflight"
     ),
     # The only public fixed-point transverse-integration command. It handles both
     # pairings, zero/positive Matsubara indices, arbitrary q directions and
