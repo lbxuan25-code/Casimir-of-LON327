@@ -17,6 +17,7 @@ def test_validation_cli_exposes_tight_main_and_diagnostic_surfaces():
         ("matsubara", "arbitrary-q-performance-preflight"),
         ("matsubara", "arbitrary-q-periodic-bz-qualification"),
         ("casimir", "outer-q-quadrature-preflight"),
+        ("casimir", "microscopic-outer-q-preflight"),
         ("diagnostic", "arbitrary-q-performance-smoke"),
         ("diagnostic", "arbitrary-q-physics-smoke"),
         ("diagnostic", "transverse-point-sweet-spot"),

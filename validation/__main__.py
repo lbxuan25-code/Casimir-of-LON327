@@ -37,6 +37,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("casimir", "outer-q-quadrature-preflight"): (
         "validation.commands.casimir.outer_q_quadrature_preflight"
     ),
+    ("casimir", "microscopic-outer-q-preflight"): (
+        "validation.commands.casimir.microscopic_outer_q_preflight"
+    ),
     # The only public fixed-point transverse-integration command. It handles both
     # pairings, zero/positive Matsubara indices, arbitrary q directions and
     # point-specific N/shift sweet-spot selection.
