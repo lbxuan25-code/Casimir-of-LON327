@@ -73,17 +73,33 @@ w_n = 1 for n >= 1
 ```
 
 The prime weight is applied exactly once by the Matsubara free-energy reduction.
+The helper converting `n,T` to `hbar*xi_n` in eV is owned by
+`lno327.casimir.matsubara`; validation only re-exports it.
+
+## Microscopic model contract
+
+The active symmetry-based two-band finite-q model adapter is owned by
+`lno327.casimir.microscopic_model`.  Constructing the model does not certify a
+point and does not authorize Casimir input.  Validation retains its historical
+model API as a compatibility facade over the same production object.
 
 ## Migration rule
 
-The first migration stage only moves already-qualified fixed-grid planning and
-reduction into `src/lno327/casimir/fixed_outer_q.py`.  It does not change numerical
-rules, introduce adaptivity, alter worker scheduling, change microscopic convergence
-criteria, or clean historical outputs.
+The migration only moves already-qualified fixed-grid components into
+`src/lno327/casimir`.  It does not change numerical rules, introduce adaptivity,
+alter worker scheduling, change microscopic convergence criteria, or clean
+historical outputs.
 
-Validation facades may temporarily preserve private legacy helpers, but every public
-outer-Q planning/reduction function used by validation must resolve to the production
-module.
+Completed production ownership:
+
+- Matsubara energy helper;
+- active finite-q microscopic model adapter;
+- nested compound outer-Q planning and exact node reuse;
+- certified-point reduction into finite Matsubara partial free energies;
+- cutoff/radial/angular/offset ladder comparisons.
+
+The transverse-point certification engine remains the next mechanical migration
+boundary.  Until it is moved, no production controller is exposed.
 
 ## Golden fixed reference
 
