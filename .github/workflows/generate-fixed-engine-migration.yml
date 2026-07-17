@@ -1,20 +1,21 @@
 name: Apply fixed engine migration
 
 on:
-  pull_request:
+  push:
+    branches:
+      - refactor/casimir-fixed-chain-migration
 
 permissions:
   contents: write
 
 jobs:
   migrate:
-    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - name: Check out pull-request head
+      - name: Check out branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: refactor/casimir-fixed-chain-migration
           fetch-depth: 0
 
       - name: Mechanically move the fixed point engine
@@ -117,4 +118,4 @@ def test_cpu_headroom_facade_still_wraps_production_parser() -> None:
             tests/test_casimir_fixed_point_engine_migration.py \
             .github/workflows/generate-fixed-engine-migration.yml
           git commit -m "Move fixed point certification engine into production"
-          git push origin "HEAD:${{ github.head_ref }}"
+          git push origin HEAD:refactor/casimir-fixed-chain-migration
