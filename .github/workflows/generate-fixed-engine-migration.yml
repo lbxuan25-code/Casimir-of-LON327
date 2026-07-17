@@ -1,0 +1,61 @@
+name: Generate fixed engine migration source
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Generate mechanical production copy
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          source = Path(
+              "validation/lib/transverse_point_sweet_spot_engine_legacy.py"
+          )
+          output = Path("generated-migration/fixed_point_engine.py")
+          output.parent.mkdir(parents=True, exist_ok=True)
+
+          text = source.read_text(encoding="utf-8")
+          replacements = {
+              "from validation.lib.finite_q_validation_models import get_finite_q_validation_model": (
+                  "from lno327.casimir.microscopic_model import "
+                  "get_finite_q_microscopic_model"
+              ),
+              "from validation.lib.matsubara import matsubara_energy_eV": (
+                  "from lno327.casimir.matsubara import matsubara_energy_eV"
+              ),
+              "get_finite_q_validation_model(": "get_finite_q_microscopic_model(",
+              "validation/outputs/matsubara/transverse_point_sweet_spot/diagnostic.json": (
+                  "outputs/casimir/current/fixed_point_certification.json"
+              ),
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f"required migration token missing: {old}")
+              text = text.replace(old, new)
+
+          if "from validation" in text or "import validation" in text:
+              raise SystemExit("generated production engine still imports validation")
+
+          output.write_text(text, encoding="utf-8")
+          print(output)
+          print("lines:", len(text.splitlines()))
+          PY
+
+      - name: Upload generated source
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixed-engine-migration-source
+          path: generated-migration/fixed_point_engine.py
+          if-no-files-found: error
+          retention-days: 1
