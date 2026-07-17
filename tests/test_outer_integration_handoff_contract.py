@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from lno327.casimir import FixedCasimirConfig, run_casimir
 from validation.__main__ import available_commands
 
 
@@ -29,12 +30,15 @@ def test_outer_handoff_preserves_hard_readiness_state():
         assert statement in text
 
 
-def test_outer_main_surface_separates_aggregate_and_one_point_tools():
+def test_outer_main_surface_uses_production_fixed_controller():
+    assert callable(run_casimir)
+    assert FixedCasimirConfig().matsubara_indices == (0, 1)
     commands = set(available_commands())
     assert ("matsubara", "matsubara-orbit-gauss-crosscheck") in commands
     assert ("matsubara", "orbit-gauss-preflight") in commands
     assert ("matsubara", "total-orbit-gauss-scan") in commands
-    assert ("diagnostic", "transverse-point-sweet-spot") in commands
+    assert ("diagnostic", "transverse-point-sweet-spot") not in commands
+    assert ("casimir", "microscopic-outer-q-preflight") not in commands
     assert ("matsubara", "positive-orbit-gauss-crosscheck") not in commands
     assert ("matsubara", "positive-orbit-gauss-scan") not in commands
     for retired in (
