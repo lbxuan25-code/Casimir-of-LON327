@@ -40,8 +40,6 @@ jobs:
                   line = line[10:]
               lines.append(line)
           script = "\n".join(lines) + "\n"
-          # The audited workflow embeds Python source inside Python source. Change
-          # only the outer delimiter so the inner docstrings remain literal.
           script = script.replace(
               'cpu_reserve = r"""',
               "cpu_reserve = r'''",
@@ -60,14 +58,19 @@ jobs:
           PY
           python /tmp/one_time_fixed_transverse_point_migration.py
 
-      - name: Run focused migration tests
+      - name: Install test dependencies quietly
+        run: python -m pip install -q -e ".[dev]"
+
+      - name: Run migration-structure tests
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
           python -m pytest -q --tb=short \
             tests/test_casimir_fixed_chain_migration.py \
             tests/test_casimir_production_dependencies.py \
-            tests/test_casimir_fixed_transverse_point_migration.py \
+            tests/test_casimir_fixed_transverse_point_migration.py
+
+      - name: Run existing transverse-point regressions
+        run: |
+          python -m pytest -q --tb=short \
             tests/test_transverse_point_sweet_spot.py \
             tests/test_microscopic_outer_q_preflight.py
 
