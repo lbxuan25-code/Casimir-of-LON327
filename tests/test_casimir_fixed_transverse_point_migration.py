@@ -12,10 +12,32 @@ def test_validation_engine_surface_resolves_to_production() -> None:
     for name in (
         "_build_context_jobs",
         "_execute_level",
-        "_parse_args",
         "assess_frequency_level",
     ):
         assert getattr(facade, name) is getattr(production, name)
+
+
+def test_validation_parse_wrapper_delegates_to_production(monkeypatch) -> None:
+    from lno327.casimir import fixed_transverse_point_engine as production
+    from validation.lib import transverse_point_sweet_spot_engine as facade
+
+    monkeypatch.setattr(facade, "affinity_cpu_count", lambda: 32)
+    monkeypatch.delenv("LNO327_CPU_RESERVE", raising=False)
+    args = facade._parse_args(
+        [
+            "--q-point",
+            "q",
+            "0.01",
+            "0.02",
+            "--N-candidates",
+            "128",
+            "192",
+            "256",
+        ]
+    )
+    assert production.affinity_cpu_count is facade.affinity_cpu_count
+    assert args.workers == 30
+    assert args.worker_budget_source == "cpu_affinity_minus_reserved_headroom"
 
 
 def test_validation_command_uses_production_controller() -> None:
