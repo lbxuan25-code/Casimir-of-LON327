@@ -71,8 +71,14 @@ def test_real_production_certifier_connects_to_joint_controller(
     )
 
     result = run_adaptive_joint_casimir(config)
+    diagnostic = (
+        f"reason={result.termination_reason}; "
+        f"stats={dict(result.provider_statistics)}; "
+        f"runs={[ (row['angular_order'], row['angular_offset_fraction'], row['status'], row['termination_reason']) for row in result.radial_run_records ]}; "
+        f"directions={[ (row['selected_direction'], row['selection_reason']) for row in result.direction_records ]}"
+    )
 
-    assert result.status == "adaptive_finite_partial", result.as_dict()
+    assert result.status == "adaptive_finite_partial", diagnostic
     assert result.joint_converged
     assert result.selected_angular_order == 2
     assert result.selected_radial_round_cap == 0
