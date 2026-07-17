@@ -119,3 +119,8 @@ unresolved points: 0
 
 This is a finite `n=0,1` partial result only.  `production_casimir_allowed` remains
 false until the complete main chain and Matsubara tail are certified.
+
+
+## Fixed transverse-point migration
+
+The fixed transverse-point engine and universal certification controller now live in `src/lno327/casimir/`. The validation modules are compatibility facades. The legacy engine remains only as a migration reference and is not on the active calculation path.
