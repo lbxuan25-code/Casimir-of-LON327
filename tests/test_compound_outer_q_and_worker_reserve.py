@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import numpy as np
 
+from lno327.casimir import fixed_transverse_point_engine as sweet_engine
 from lno327.casimir.compound_outer_quadrature import build_compound_outer_q_polar_grid
-from lno327.casimir.outer_quadrature import integrate_outer_q
-from validation.lib import transverse_point_sweet_spot_engine as sweet_engine
-from validation.lib.microscopic_outer_q_preflight import (
+from lno327.casimir.fixed_outer_q import (
     build_staged_grid_plan,
     build_union_node_manifest,
 )
+from lno327.casimir.outer_quadrature import integrate_outer_q
 
 
 def _grid(edges, panel_order=4, angular=8):
@@ -56,16 +56,26 @@ def test_cutoff_ladder_reuses_all_earlier_nodes() -> None:
     )
     cutoff_ids = plan.ladders["cutoff"]
     for left_id, right_id in zip(cutoff_ids[:-1], cutoff_ids[1:], strict=True):
-        assert set(manifest.labels_by_spec[left_id]) < set(manifest.labels_by_spec[right_id])
-    reference = next(spec for spec in plan.specs if spec.spec_id == plan.reference_spec_id)
+        assert set(manifest.labels_by_spec[left_id]) < set(
+            manifest.labels_by_spec[right_id]
+        )
+    reference = next(
+        spec for spec in plan.specs if spec.spec_id == plan.reference_spec_id
+    )
     assert reference.radial_panel_edges == (0.0, 6.0, 10.0, 14.0, 18.0)
     assert reference.radial_panel_order == 6
 
 
 def _parse_workers(extra=None):
     values = [
-        "--q-point", "q", "0.01", "0.02",
-        "--N-candidates", "128", "192", "256",
+        "--q-point",
+        "q",
+        "0.01",
+        "0.02",
+        "--N-candidates",
+        "128",
+        "192",
+        "256",
     ]
     values.extend(extra or [])
     return sweet_engine._parse_args(values)
