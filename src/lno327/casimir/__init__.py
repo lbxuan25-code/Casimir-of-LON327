@@ -1,4 +1,4 @@
-"""Casimir-Lifshitz building blocks and the fixed calculation controller."""
+"""Casimir-Lifshitz building blocks and finite partial-sum controllers."""
 
 from __future__ import annotations
 
@@ -7,6 +7,20 @@ from .fixed_chain import (
     FixedCasimirExecutionError,
     FixedCasimirResult,
     run_casimir,
+)
+from .certified_point_provider import (
+    CertifiedOuterQProvider,
+    CertifiedPointBatch,
+    CertifiedPointCacheError,
+    certified_primary_logdet,
+)
+from .adaptive_outer_q import (
+    AdaptiveOuterQPanelGrid,
+    AdaptiveRadialCasimirConfig,
+    AdaptiveRadialCasimirResult,
+    AdaptiveRadialPanel,
+    build_adaptive_outer_q_panel_grid,
+    run_adaptive_radial_casimir,
 )
 from .fixed_outer_q import (
     OuterQGridPlan,
@@ -54,24 +68,37 @@ def casimir_layer_metadata() -> dict[str, object]:
         "finite_q_model_adapter_owned_by_production": True,
         "fixed_transverse_certifier_owned_by_production": True,
         "fixed_casimir_controller_owned_by_production": True,
+        "incremental_certified_point_provider_present": True,
         "outer_q_measure_contract_present": True,
         "outer_q_fixed_nested_planning_present": True,
+        "outer_q_adaptive_radial_present": True,
+        "outer_q_adaptive_cutoff_fixed": True,
+        "outer_q_adaptive_tail_estimated": False,
         "outer_q_radial_variable": "u = 2 Q d",
         "outer_q_full_angular_domain": True,
         "finite_matsubara_partial_result_supported": True,
         "matsubara_tail_estimated": False,
         "notes": (
             "The unique fixed controller is lno327.casimir.run_casimir.",
+            "The adaptive radial controller is an independent finite-partial diagnostic.",
             "Validation may consume this package but production never imports validation.",
-            "The controller preserves the qualified fixed point-certification and outer-Q rules.",
-            "The outer-q layer applies the n=0 half weight but does not estimate the Matsubara tail.",
-            "Every returned fixed result remains fail-closed for production authorization.",
+            "The fixed controller preserves its qualified point-certification and outer-Q rules.",
+            "Adaptive refinement keeps u_max and the full angular rule fixed.",
+            "Neither controller estimates the omitted outer-Q or Matsubara tail.",
+            "Every returned result remains fail-closed for production authorization.",
         ),
     }
 
 
 __all__ = [
+    "AdaptiveOuterQPanelGrid",
+    "AdaptiveRadialCasimirConfig",
+    "AdaptiveRadialCasimirResult",
+    "AdaptiveRadialPanel",
     "CasimirSetup",
+    "CertifiedOuterQProvider",
+    "CertifiedPointBatch",
+    "CertifiedPointCacheError",
     "FiniteQMicroscopicModel",
     "FixedCasimirConfig",
     "FixedCasimirExecutionError",
@@ -85,12 +112,14 @@ __all__ = [
     "absolute_then_relative",
     "aggregate_certified_outer_q",
     "available_finite_q_microscopic_models",
+    "build_adaptive_outer_q_panel_grid",
     "build_outer_q_polar_grid",
     "build_staged_grid_plan",
     "build_union_node_manifest",
     "casimir_energy_integrand",
     "casimir_layer_metadata",
     "casimir_torque_integrand",
+    "certified_primary_logdet",
     "compare_ladders",
     "free_energy_per_area_from_logdet",
     "get_finite_q_microscopic_model",
@@ -100,5 +129,6 @@ __all__ = [
     "matsubara_prime_weights",
     "passive_sheet_logdet",
     "reflection_matrix_weak_2d",
+    "run_adaptive_radial_casimir",
     "run_casimir",
 ]
