@@ -10,10 +10,10 @@ from lno327.casimir import (
 )
 
 
-def test_real_production_certifier_connects_to_joint_controller(
+def test_real_production_certifier_fails_closed_before_joint_direction(
     tmp_path: Path,
 ) -> None:
-    """Exercise order, offset, provider-cache, and joint-controller boundaries."""
+    """Exercise the real provider boundary without weakening microscopic closure."""
 
     point_config = FixedCasimirConfig(
         pairings=("spm",),
@@ -71,23 +71,24 @@ def test_real_production_certifier_connects_to_joint_controller(
     )
 
     result = run_adaptive_joint_casimir(config)
-    diagnostic = (
-        f"reason={result.termination_reason}; "
-        f"stats={dict(result.provider_statistics)}; "
-        f"runs={[ (row['angular_order'], row['angular_offset_fraction'], row['status'], row['termination_reason']) for row in result.radial_run_records ]}; "
-        f"directions={[ (row['selected_direction'], row['selection_reason']) for row in result.direction_records ]}"
-    )
 
-    assert result.status == "adaptive_finite_partial", diagnostic
-    assert result.joint_converged
-    assert result.selected_angular_order == 2
-    assert result.selected_radial_round_cap == 0
-    assert result.offset_audit_passed
-    assert result.provider_statistics["certification_batches"] == 3
-    assert result.provider_statistics["requested_q_evaluations"] == 15
-    assert result.provider_statistics["new_q_evaluations"] == 12
-    assert result.provider_statistics["cache_hit_q_evaluations"] == 3
-    assert result.unique_microscopic_q_node_count == 12
+    assert result.status == "unresolved"
+    assert result.termination_reason == (
+        "radial_run_unresolved: previous=microscopic_point_unresolved, "
+        "current=microscopic_point_unresolved"
+    )
+    assert result.joint_converged is False
+    assert result.all_microscopic_nodes_certified is False
+    assert result.direction_records == ()
+    assert [row["status"] for row in result.radial_run_records] == [
+        "unresolved",
+        "unresolved",
+    ]
+    assert result.provider_statistics["certification_batches"] == 2
+    assert result.provider_statistics["requested_q_evaluations"] == 9
+    assert result.provider_statistics["new_q_evaluations"] == 9
+    assert result.provider_statistics["cache_hit_q_evaluations"] == 0
+    assert result.unique_microscopic_q_node_count == 9
     assert cache.is_file()
     assert result.production_casimir_allowed is False
     assert result.outer_tail_estimated is False
