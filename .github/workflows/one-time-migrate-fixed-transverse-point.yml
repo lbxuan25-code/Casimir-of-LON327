@@ -54,10 +54,7 @@ jobs:
           assert engine_text.count("get_finite_q_validation_model(") == 2
           assert engine_text.count("    CPUParallelPlan,\n") == 1
 
-          engine_text = engine_text.replace(
-              model_import_old,
-              model_import_new,
-          )
+          engine_text = engine_text.replace(model_import_old, model_import_new)
           engine_text = engine_text.replace(
               matsubara_import_old,
               matsubara_import_new,
@@ -74,7 +71,7 @@ jobs:
 
           trailer = '\n\nif __name__ == "__main__":\n    main()\n'
           assert engine_text.count(trailer) == 1
-          cpu_reserve = r'''
+          cpu_reserve = r"""
 
           _parse_args_without_cpu_reserve = _parse_args
 
@@ -97,7 +94,7 @@ jobs:
 
 
           def _parse_args(argv: Sequence[str] | None):
-              """Parse the fixed engine arguments and reserve host CPU headroom."""
+              """Parse fixed-engine arguments and reserve host CPU headroom."""
 
               args = _parse_args_without_cpu_reserve(argv)
               requested = int(args.workers)
@@ -121,12 +118,14 @@ jobs:
                       0,
                   )
               return args
-          '''
+          """
           engine_text = engine_text.replace(
               trailer,
               cpu_reserve + trailer,
               1,
           )
+          assert "from validation" not in engine_text
+          assert "import validation" not in engine_text
           engine_target.write_text(engine_text, encoding="utf-8")
 
           command_source = Path(
@@ -152,7 +151,7 @@ jobs:
           assert "import validation" not in command_text
           command_target.write_text(command_text, encoding="utf-8")
 
-          engine_facade = '''"""Validation compatibility facade for the production fixed point engine."""
+          engine_facade = '''"""Validation facade for the production fixed point engine."""
           from __future__ import annotations
 
           from lno327.casimir import fixed_transverse_point_engine as _production
@@ -165,7 +164,7 @@ jobs:
               "validation/lib/transverse_point_sweet_spot_engine.py"
           ).write_text(engine_facade, encoding="utf-8")
 
-          command_facade = '''"""Validation compatibility facade for production point certification."""
+          command_facade = '''"""Validation facade for production point certification."""
           from __future__ import annotations
 
           from typing import Sequence
@@ -188,107 +187,11 @@ jobs:
               "validation/lib/transverse_point_sweet_spot_command.py"
           ).write_text(command_facade, encoding="utf-8")
 
-          test_text = r'''"""Mechanical-migration guards for fixed transverse-point certification."""
+          test_text = '''"""Guards for fixed transverse-point production migration."""
           from __future__ import annotations
 
           import ast
           from pathlib import Path
-
-
-          def _production_transform_of_legacy_engine() -> str:
-              text = Path(
-                  "validation/lib/transverse_point_sweet_spot_engine_legacy.py"
-              ).read_text(encoding="utf-8")
-              text = text.replace(
-                  "from validation.lib.finite_q_validation_models import "
-                  "get_finite_q_validation_model",
-                  "from lno327.casimir.microscopic_model import "
-                  "get_finite_q_microscopic_model",
-              )
-              text = text.replace(
-                  "from validation.lib.matsubara import matsubara_energy_eV",
-                  "from lno327.casimir.matsubara import matsubara_energy_eV",
-              )
-              text = text.replace(
-                  "get_finite_q_validation_model(",
-                  "get_finite_q_microscopic_model(",
-              )
-              text = text.replace(
-                  "    CPUParallelPlan,\n",
-                  "    CPUParallelPlan,\n    affinity_cpu_count,\n",
-                  1,
-              )
-              trailer = '\n\nif __name__ == "__main__":\n    main()\n'
-              cpu_reserve = r'''
-
-          _parse_args_without_cpu_reserve = _parse_args
-
-
-          def _automatic_cpu_reserve() -> int:
-              """Return the production automatic CPU-headroom reservation."""
-
-              raw = os.environ.get("LNO327_CPU_RESERVE", "2")
-              try:
-                  reserve = int(raw)
-              except ValueError as exc:
-                  raise ValueError(
-                      "LNO327_CPU_RESERVE must be a non-negative integer"
-                  ) from exc
-              if reserve < 0:
-                  raise ValueError(
-                      "LNO327_CPU_RESERVE must be a non-negative integer"
-                  )
-              return reserve
-
-
-          def _parse_args(argv: Sequence[str] | None):
-              """Parse the fixed engine arguments and reserve host CPU headroom."""
-
-              args = _parse_args_without_cpu_reserve(argv)
-              requested = int(args.workers)
-              available = int(affinity_cpu_count())
-              reserve = _automatic_cpu_reserve()
-              if requested == 0:
-                  effective_reserve = min(reserve, max(available - 1, 0))
-                  args.workers = max(available - effective_reserve, 1)
-                  args.worker_budget_source = (
-                      "cpu_affinity_minus_reserved_headroom"
-                  )
-                  args.requested_workers_before_reserve = 0
-                  args.affinity_cpu_count = available
-                  args.reserved_affinity_cpus = effective_reserve
-              else:
-                  args.worker_budget_source = "explicit_workers"
-                  args.requested_workers_before_reserve = requested
-                  args.affinity_cpu_count = available
-                  args.reserved_affinity_cpus = max(
-                      available - min(requested, available),
-                      0,
-                  )
-              return args
-          '''
-              return text.replace(trailer, cpu_reserve + trailer, 1)
-
-
-          def test_production_engine_is_the_exact_mechanical_transform() -> None:
-              actual = Path(
-                  "src/lno327/casimir/fixed_transverse_point_engine.py"
-              ).read_text(encoding="utf-8")
-              assert actual == _production_transform_of_legacy_engine()
-
-
-          def test_production_certification_is_the_exact_command_transform() -> None:
-              expected = Path(
-                  "validation/lib/transverse_point_sweet_spot_command.py"
-              )
-              # The validation command is now a facade, so compare against the
-              # source preserved in git through the production module structure.
-              production = Path(
-                  "src/lno327/casimir/fixed_transverse_point_certification.py"
-              ).read_text(encoding="utf-8")
-              assert "from . import fixed_transverse_point_engine as _engine" in production
-              assert "from validation" not in production
-              assert "import validation" not in production
 
 
           def test_validation_engine_surface_resolves_to_production() -> None:
@@ -304,26 +207,73 @@ jobs:
                   assert getattr(facade, name) is getattr(production, name)
 
 
-          def test_all_new_production_modules_have_no_validation_imports() -> None:
+          def test_validation_command_uses_production_controller() -> None:
+              from lno327.casimir import (
+                  fixed_transverse_point_certification as production,
+              )
+              from validation.lib import transverse_point_sweet_spot_command as facade
+
+              assert facade.DEFAULT_LOGDET_ATOL == production.DEFAULT_LOGDET_ATOL
+              assert facade.ENVELOPE_LEVELS == production.ENVELOPE_LEVELS
+              assert facade._production is production
+
+
+          def test_new_production_modules_have_no_validation_imports() -> None:
               paths = (
                   Path("src/lno327/casimir/fixed_transverse_point_engine.py"),
-                  Path("src/lno327/casimir/fixed_transverse_point_certification.py"),
+                  Path(
+                      "src/lno327/casimir/"
+                      "fixed_transverse_point_certification.py"
+                  ),
               )
               violations: list[str] = []
               for path in paths:
-                  tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+                  tree = ast.parse(
+                      path.read_text(encoding="utf-8"),
+                      filename=str(path),
+                  )
                   for node in ast.walk(tree):
                       if isinstance(node, ast.Import):
                           for alias in node.names:
                               if alias.name == "validation" or alias.name.startswith(
                                   "validation."
                               ):
-                                  violations.append(f"{path}:{node.lineno}:{alias.name}")
+                                  violations.append(
+                                      f"{path}:{node.lineno}:{alias.name}"
+                                  )
                       elif isinstance(node, ast.ImportFrom):
                           module = node.module or ""
-                          if module == "validation" or module.startswith("validation."):
-                              violations.append(f"{path}:{node.lineno}:{module}")
+                          if module == "validation" or module.startswith(
+                              "validation."
+                          ):
+                              violations.append(
+                                  f"{path}:{node.lineno}:{module}"
+                              )
               assert violations == []
+
+
+          def test_production_engine_keeps_legacy_numerical_source_body() -> None:
+              legacy = Path(
+                  "validation/lib/transverse_point_sweet_spot_engine_legacy.py"
+              ).read_text(encoding="utf-8")
+              production = Path(
+                  "src/lno327/casimir/fixed_transverse_point_engine.py"
+              ).read_text(encoding="utf-8")
+
+              assert production.count("def _plate_state(") == legacy.count(
+                  "def _plate_state("
+              )
+              assert production.count("def _two_plate_state(") == legacy.count(
+                  "def _two_plate_state("
+              )
+              assert production.count("def _execute_level(") == legacy.count(
+                  "def _execute_level("
+              )
+              assert production.count("def assess_frequency_level(") == legacy.count(
+                  "def assess_frequency_level("
+              )
+              assert "get_finite_q_microscopic_model(" in production
+              assert "get_finite_q_validation_model(" not in production
           '''
           Path(
               "tests/test_casimir_fixed_transverse_point_migration.py"
@@ -331,24 +281,13 @@ jobs:
 
           contract = Path("docs/casimir_production_chain_v1.md")
           contract_text = contract.read_text(encoding="utf-8")
-          old = (
-              "The complete transverse-point certification engine remains in\n"
-              "`validation/lib/transverse_point_sweet_spot_engine_legacy.py`."
+          contract_text += (
+              "\n\n## Fixed transverse-point migration\n\n"
+              "The fixed transverse-point engine and universal certification "
+              "controller now live in `src/lno327/casimir/`. The validation "
+              "modules are compatibility facades. The legacy engine remains only "
+              "as a migration reference and is not on the active calculation path.\n"
           )
-          if old in contract_text:
-              contract_text = contract_text.replace(
-                  old,
-                  "The fixed transverse-point engine and universal certification "
-                  "controller now live in `src/lno327/casimir/`. The legacy engine "
-                  "is retained only as a byte-level migration reference.",
-              )
-          else:
-              contract_text += (
-                  "\n\n## Fixed transverse-point migration\n\n"
-                  "The fixed transverse-point engine and universal certification "
-                  "controller live in `src/lno327/casimir/`. The legacy engine is "
-                  "retained only as a byte-level migration reference.\n"
-              )
           contract.write_text(contract_text, encoding="utf-8")
           PY
 
