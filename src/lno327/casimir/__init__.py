@@ -14,6 +14,12 @@ from .fixed_outer_q import (
 )
 from .lifshitz import casimir_energy_integrand
 from .lifshitz_integrand import LifshitzPoint, passive_sheet_logdet
+from .matsubara import matsubara_energy_eV
+from .microscopic_model import (
+    FiniteQMicroscopicModel,
+    available_finite_q_microscopic_models,
+    get_finite_q_microscopic_model,
+)
 from .outer_quadrature import (
     MatsubaraFreeEnergyPerArea,
     OuterQPolarGrid,
@@ -37,13 +43,15 @@ def casimir_layer_metadata() -> dict[str, object]:
         "zero_matsubara_signed_logdet_supported": True,
         "zero_matsubara_uses_static_susceptibility_not_conductivity": True,
         "zero_matsubara_prime_weight_applied_by_quadrature": True,
+        "matsubara_energy_helper_owned_by_production": True,
+        "finite_q_model_adapter_owned_by_production": True,
         "outer_q_measure_contract_present": True,
         "outer_q_fixed_nested_planning_present": True,
         "outer_q_radial_variable": "u = 2 Q d",
         "outer_q_full_angular_domain": True,
         "notes": (
             "This package contains mathematical integrand and fixed quadrature building blocks.",
-            "Validation consumes the fixed outer-q planning and reduction from this package.",
+            "Validation consumes Matsubara, model-adapter, planning, and reduction helpers from this package.",
             "It does not validate finite-q Ward/gauge closure.",
             "The outer-q layer applies the n=0 half weight but does not estimate the Matsubara tail.",
             "It does not make BdG response outputs Casimir-ready by itself.",
@@ -53,6 +61,7 @@ def casimir_layer_metadata() -> dict[str, object]:
 
 __all__ = [
     "CasimirSetup",
+    "FiniteQMicroscopicModel",
     "LifshitzPoint",
     "MatsubaraFreeEnergyPerArea",
     "OuterQGridPlan",
@@ -61,6 +70,7 @@ __all__ = [
     "OuterQPolarGrid",
     "absolute_then_relative",
     "aggregate_certified_outer_q",
+    "available_finite_q_microscopic_models",
     "build_outer_q_polar_grid",
     "build_staged_grid_plan",
     "build_union_node_manifest",
@@ -69,7 +79,9 @@ __all__ = [
     "casimir_torque_integrand",
     "compare_ladders",
     "free_energy_per_area_from_logdet",
+    "get_finite_q_microscopic_model",
     "integrate_outer_q",
+    "matsubara_energy_eV",
     "matsubara_frequency",
     "matsubara_prime_weights",
     "passive_sheet_logdet",
