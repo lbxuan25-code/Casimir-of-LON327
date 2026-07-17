@@ -51,9 +51,7 @@ class _AnalyticFrequencyProvider:
             for n in self.config.matsubara_indices
         }
         new_entries = requested - self._entries
-        incomplete_q = {
-            (entry[2], entry[3]) for entry in new_entries
-        }
+        incomplete_q = {(entry[2], entry[3]) for entry in new_entries}
         self.requested_q_evaluations += len(unique)
         self.new_q_evaluations += len(incomplete_q)
         self.cache_hit_q_evaluations += len(unique) - len(incomplete_q)
@@ -158,8 +156,22 @@ def test_real_outer_adaptive_stack_composes_with_frequency_extension() -> None:
     )
 
     result = run_adaptive_matsubara_casimir(config, provider=provider)
+    evidence = {
+        "termination_reason": result.termination_reason,
+        "selected_matsubara_cutoff": result.selected_matsubara_cutoff,
+        "cutoffs": [
+            {
+                "n": row["matsubara_cutoff"],
+                "status": row["status"],
+                "outer_reason": row["termination_reason"],
+                "selected_u_max": row["selected_u_max"],
+                "has_tail_metrics": row["matsubara_tail_metrics"] is not None,
+            }
+            for row in result.cutoff_records
+        ],
+    }
 
-    assert result.status == "adaptive_tail_bounded"
+    assert result.status == "adaptive_tail_bounded", evidence
     assert result.matsubara_tail_estimated
     assert result.outer_tail_estimated
     assert result.selected_matsubara_cutoff == 5
