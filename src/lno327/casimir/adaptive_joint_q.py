@@ -17,6 +17,7 @@ import numpy as np
 from .adaptive_outer_q import (
     AdaptiveRadialCasimirConfig,
     AdaptiveRadialCasimirResult,
+    build_initial_adaptive_outer_q_model,
     run_adaptive_radial_casimir,
 )
 from .certified_point_provider import CertifiedOuterQProvider, CertifiedPointCacheError
@@ -229,7 +230,10 @@ class AdaptiveJointCasimirResult:
         }
 
 
-def _provider_statistics(provider: Any) -> dict[str, int]:
+def _provider_statistics(provider: Any) -> dict[str, Any]:
+    performance_statistics = getattr(provider, "performance_statistics", None)
+    if callable(performance_statistics):
+        return dict(performance_statistics())
     names = (
         "cached_point_count",
         "unique_q_count",
@@ -559,6 +563,81 @@ def run_adaptive_joint_casimir(
                 cache_path=config.radial_config.point_cache_path,
             )
 
+        def build_run_config(
+            angular_order: int,
+            offset_fraction: float,
+            round_cap: int,
+        ) -> AdaptiveRadialCasimirConfig:
+            radial_fraction = config.per_run_radial_budget_fraction
+            return replace(
+                config.radial_config,
+                angular_order=int(angular_order),
+                angular_offset_fraction=float(offset_fraction),
+                radial_rtol=config.outer_rtol * radial_fraction,
+                radial_atol_J_m2=config.outer_atol_J_m2 * radial_fraction,
+                max_refinement_rounds=int(round_cap),
+            )
+
+
+        def prefetch_comparison_runs(
+            specifications: Sequence[tuple[int, float, int]],
+        ) -> None:
+            """Batch the known initial q grids for a comparison pair.
+
+            This changes only orchestration. Each radial run subsequently requests
+            the exact same IEEE-754 q coordinates and reads the certified points from
+            the provider cache.
+            """
+
+            evaluate = getattr(active_provider, "evaluate", None)
+            count_new_q = getattr(active_provider, "count_new_q", None)
+            if not callable(evaluate) or not callable(count_new_q):
+                return
+            pending = [
+                build_run_config(angular_order, offset_fraction, round_cap)
+                for angular_order, offset_fraction, round_cap in specifications
+                if (
+                    int(angular_order),
+                    float(offset_fraction),
+                    int(round_cap),
+                )
+                not in run_cache
+            ]
+            if len(pending) < 2:
+                return
+            initial_arrays = [
+                build_initial_adaptive_outer_q_model(radial_config)
+                for radial_config in pending
+            ]
+            for radial_config, q_model in zip(
+                pending,
+                initial_arrays,
+                strict=True,
+            ):
+                unique_count = len(
+                    {
+                        (float(q[0]).hex(), float(q[1]).hex())
+                        for q in np.asarray(q_model, dtype=float)
+                    }
+                )
+                if unique_count > radial_config.max_microscopic_q_nodes:
+                    return
+            combined = np.concatenate(initial_arrays, axis=0)
+            new_q_count = int(count_new_q(combined))
+            if new_q_count == 0:
+                return
+            current_q_count = int(getattr(active_provider, "unique_q_count", 0))
+            if (
+                current_q_count + new_q_count
+                > config.max_total_microscopic_q_nodes
+            ):
+                return
+            batch = evaluate(combined)
+            if not batch.all_established:
+                raise FixedCasimirExecutionError(
+                    "prefetched comparison contains unresolved microscopic points"
+                )
+
         def get_run(
             angular_order: int,
             offset_fraction: float,
@@ -566,14 +645,10 @@ def run_adaptive_joint_casimir(
         ) -> AdaptiveRadialCasimirResult:
             key = (int(angular_order), float(offset_fraction), int(round_cap))
             if key not in run_cache:
-                radial_fraction = config.per_run_radial_budget_fraction
-                radial_config = replace(
-                    config.radial_config,
-                    angular_order=int(angular_order),
-                    angular_offset_fraction=float(offset_fraction),
-                    radial_rtol=config.outer_rtol * radial_fraction,
-                    radial_atol_J_m2=config.outer_atol_J_m2 * radial_fraction,
-                    max_refinement_rounds=int(round_cap),
+                radial_config = build_run_config(
+                    angular_order,
+                    offset_fraction,
+                    round_cap,
                 )
                 result = radial_runner(radial_config, provider=active_provider)
                 run_cache[key] = result
@@ -595,6 +670,20 @@ def run_adaptive_joint_casimir(
         for iteration in range(config.max_joint_iterations):
             previous_order = config.angular_orders[previous_index]
             current_order = config.angular_orders[current_index]
+            prefetch_comparison_runs(
+                (
+                    (
+                        previous_order,
+                        config.primary_offset_fraction,
+                        radial_round_cap,
+                    ),
+                    (
+                        current_order,
+                        config.primary_offset_fraction,
+                        radial_round_cap,
+                    ),
+                )
+            )
             previous = get_run(
                 previous_order,
                 config.primary_offset_fraction,

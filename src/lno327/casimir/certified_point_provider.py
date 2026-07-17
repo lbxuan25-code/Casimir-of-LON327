@@ -17,6 +17,7 @@ import hashlib
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from time import perf_counter
 from typing import Any, Callable, Mapping, Sequence
 
 import numpy as np
@@ -181,8 +182,25 @@ class CertifiedOuterQProvider:
         self.requested_point_evaluations = 0
         self.new_point_evaluations = 0
         self.cache_hit_point_evaluations = 0
+        self.certifier_wall_seconds = 0.0
+        self.certifier_reported_level_wall_seconds = 0.0
+        self.certifier_material_build_seconds = 0.0
+        self.certifier_context_wall_seconds = 0.0
+        self.cache_load_seconds = 0.0
+        self.cache_save_seconds = 0.0
+        self.cache_save_count = 0
+        self.cache_file_bytes = 0
+        self.certifier_batch_records: list[dict[str, Any]] = []
         if self.cache_path is not None and self.cache_path.exists():
-            self._load()
+            started = perf_counter()
+            try:
+                self._load()
+            finally:
+                self.cache_load_seconds += float(perf_counter() - started)
+            try:
+                self.cache_file_bytes = int(self.cache_path.stat().st_size)
+            except OSError:
+                self.cache_file_bytes = 0
 
     @property
     def cached_point_count(self) -> int:
@@ -195,6 +213,91 @@ class CertifiedOuterQProvider:
     @property
     def frequency_extendable(self) -> bool:
         return self._frequency_extendable
+
+    def performance_statistics(self) -> dict[str, Any]:
+        """Return orchestration telemetry without changing numerical policy."""
+
+        return {
+            "cached_point_count": int(self.cached_point_count),
+            "unique_q_count": int(self.unique_q_count),
+            "certification_batches": int(self.certification_batches),
+            "requested_q_evaluations": int(self.requested_q_evaluations),
+            "new_q_evaluations": int(self.new_q_evaluations),
+            "cache_hit_q_evaluations": int(self.cache_hit_q_evaluations),
+            "requested_point_evaluations": int(self.requested_point_evaluations),
+            "new_point_evaluations": int(self.new_point_evaluations),
+            "cache_hit_point_evaluations": int(
+                self.cache_hit_point_evaluations
+            ),
+            "certifier_wall_seconds": float(self.certifier_wall_seconds),
+            "certifier_reported_level_wall_seconds": float(
+                self.certifier_reported_level_wall_seconds
+            ),
+            "certifier_material_build_seconds": float(
+                self.certifier_material_build_seconds
+            ),
+            "certifier_context_wall_seconds": float(
+                self.certifier_context_wall_seconds
+            ),
+            "cache_load_seconds": float(self.cache_load_seconds),
+            "cache_save_seconds": float(self.cache_save_seconds),
+            "cache_save_count": int(self.cache_save_count),
+            "cache_file_bytes": int(self.cache_file_bytes),
+            "certifier_batch_records": [
+                dict(record) for record in self.certifier_batch_records
+            ],
+        }
+
+    def _consume_certifier_telemetry(
+        self,
+        payload: Mapping[str, Any],
+        *,
+        wall_seconds: float,
+        requested_q_count: int,
+        requested_point_count: int,
+        matsubara_indices: Sequence[int],
+    ) -> None:
+        level_wall = 0.0
+        material_build = 0.0
+        context_wall = 0.0
+        levels = payload.get("execution_levels", ())
+        if isinstance(levels, Sequence):
+            for level in levels:
+                if not isinstance(level, Mapping):
+                    continue
+                level_wall += float(level.get("level_wall_seconds", 0.0))
+                pairings = level.get("pairings", {})
+                if not isinstance(pairings, Mapping):
+                    continue
+                for records in pairings.values():
+                    if not isinstance(records, Sequence):
+                        continue
+                    for record in records:
+                        if not isinstance(record, Mapping):
+                            continue
+                        material_build += float(
+                            record.get("material_build_seconds", 0.0)
+                        )
+                        context_wall += float(
+                            record.get("context_wall_seconds", 0.0)
+                        )
+        self.certifier_reported_level_wall_seconds += level_wall
+        self.certifier_material_build_seconds += material_build
+        self.certifier_context_wall_seconds += context_wall
+        self.certifier_batch_records.append(
+            {
+                "batch_index": len(self.certifier_batch_records),
+                "requested_q_count": int(requested_q_count),
+                "requested_point_count": int(requested_point_count),
+                "matsubara_indices": [
+                    int(value) for value in matsubara_indices
+                ],
+                "certifier_wall_seconds": float(wall_seconds),
+                "reported_level_wall_seconds": float(level_wall),
+                "material_build_seconds": float(material_build),
+                "context_wall_seconds": float(context_wall),
+            }
+        )
 
     def reconfigure(self, config: FixedCasimirConfig) -> None:
         """Switch the active cumulative Matsubara request under the same policy.
@@ -283,9 +386,25 @@ class CertifiedOuterQProvider:
                 grids={},
                 labels_by_spec={},
             )
-            with TemporaryDirectory(prefix="lno327-adaptive-point-batch-") as temporary:
+            started = perf_counter()
+            with TemporaryDirectory(
+                prefix="lno327-adaptive-point-batch-"
+            ) as temporary:
                 output = Path(temporary) / "certification.json"
                 certification = self._runner(run_config, manifest, output)
+            wall_seconds = float(perf_counter() - started)
+            self.certifier_wall_seconds += wall_seconds
+            self._consume_certifier_telemetry(
+                certification.payload,
+                wall_seconds=wall_seconds,
+                requested_q_count=len(group),
+                requested_point_count=(
+                    len(group)
+                    * len(run_config.pairings)
+                    * len(run_config.matsubara_indices)
+                ),
+                matsubara_indices=run_config.matsubara_indices,
+            )
             self.certification_batches += 1
             self.new_q_evaluations += len(group)
             batch_points = len(group) * len(run_config.pairings) * len(
@@ -437,6 +556,7 @@ class CertifiedOuterQProvider:
     def _save(self) -> None:
         if self.cache_path is None:
             return
+        started = perf_counter()
         entries = []
         for key in sorted(self._entries):
             pairing, n_token, qx_hex, qy_hex = key.split("|", 3)
@@ -467,6 +587,27 @@ class CertifiedOuterQProvider:
             encoding="utf-8",
         )
         temporary.replace(self.cache_path)
+        self.cache_save_seconds += float(perf_counter() - started)
+        self.cache_save_count += 1
+        try:
+            self.cache_file_bytes = int(self.cache_path.stat().st_size)
+        except OSError:
+            self.cache_file_bytes = 0
+
+        telemetry_path = self.cache_path.with_suffix(".telemetry.json")
+        telemetry_temporary = telemetry_path.with_suffix(
+            telemetry_path.suffix + ".tmp"
+        )
+        telemetry_temporary.write_text(
+            json.dumps(
+                self.performance_statistics(),
+                sort_keys=True,
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        telemetry_temporary.replace(telemetry_path)
 
 
 class FrequencyExtendableCertifiedOuterQProvider(CertifiedOuterQProvider):

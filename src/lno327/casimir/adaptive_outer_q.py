@@ -377,6 +377,30 @@ def _candidate_grids(
     return tuple(records)
 
 
+def build_initial_adaptive_outer_q_model(
+    config: AdaptiveRadialCasimirConfig,
+) -> np.ndarray:
+    """Build the exact initial parent/child q nodes for one radial run."""
+
+    panels = tuple(
+        AdaptiveRadialPanel(left, right, 0)
+        for left, right in zip(
+            config.initial_panel_edges[:-1],
+            config.initial_panel_edges[1:],
+            strict=True,
+        )
+    )
+    records = _candidate_grids(panels, config)
+    return np.concatenate(
+        [
+            grid.q_model
+            for _, parent, left, right in records
+            for grid in (parent, left, right)
+        ],
+        axis=0,
+    )
+
+
 def _q_hex_keys(q_model: np.ndarray) -> set[tuple[str, str]]:
     return {
         (float(q[0]).hex(), float(q[1]).hex())
