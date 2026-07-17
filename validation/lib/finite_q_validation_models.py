@@ -1,83 +1,35 @@
-"""Active two-band model adapter for finite-q validation."""
-
+"""Validation compatibility facade for the production finite-q model adapter."""
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Callable
-
-from lno327.models.symmetry_bdg_2band.collective import (
-    SymmetryTwoBandPairingAmplitudes,
-    build_pairing_ansatz,
+from lno327.casimir.microscopic_model import (
+    FiniteQMicroscopicModel,
+    available_finite_q_microscopic_models,
+    get_finite_q_microscopic_model,
 )
-from lno327.models.symmetry_bdg_2band.parameters import TwoBandParameters
-from lno327.models.symmetry_bdg_2band.spec import SymmetryBdG2BandSpec
 
-
-@dataclass(frozen=True)
-class FiniteQValidationModel:
-    name: str
-    spec: object
-    pairing_names: tuple[str, ...]
-    default_pairings: tuple[str, ...]
-    default_delta0_eV: float
-    primary_validation_model: bool
-    _build_ansatz: Callable[[str, str], object]
-    _build_pairing_params: Callable[[float], object]
-
-    def build_ansatz(self, pairing_name: str, phase_vertex: str = "bond_endpoint_gauge"):
-        self.require_pairing(pairing_name)
-        return self._build_ansatz(pairing_name, phase_vertex)
-
-    def build_pairing_params(self, delta0_eV: float | None = None):
-        value = self.default_delta0_eV if delta0_eV is None else float(delta0_eV)
-        return self._build_pairing_params(value)
-
-    def require_pairing(self, pairing_name: str) -> None:
-        if pairing_name not in self.pairing_names:
-            choices = ", ".join(self.pairing_names)
-            raise ValueError(
-                f"pairing {pairing_name!r} is not supported by {self.name}; choices: {choices}"
-            )
-
-    def metadata(self) -> dict[str, object]:
-        return {
-            "model_name": self.name,
-            "pairing_names": list(self.pairing_names),
-            "default_pairings": list(self.default_pairings),
-            "default_delta0_eV": float(self.default_delta0_eV),
-            "primary_validation_model": bool(self.primary_validation_model),
-            "valid_for_casimir_input": False,
-            "spec_metadata": self.spec.metadata().__dict__,
-        }
-
-
-def _two_band_model() -> FiniteQValidationModel:
-    default_delta = 0.1
-    params = TwoBandParameters(delta_s=default_delta, delta_d=default_delta)
-    return FiniteQValidationModel(
-        name="symmetry_bdg_2band",
-        spec=SymmetryBdG2BandSpec(params),
-        pairing_names=("normal", "spm", "dwave"),
-        default_pairings=("spm", "dwave"),
-        default_delta0_eV=default_delta,
-        primary_validation_model=True,
-        _build_ansatz=lambda pairing, phase_vertex: build_pairing_ansatz(
-            pairing, phase_vertex=phase_vertex
-        ),
-        _build_pairing_params=lambda delta: SymmetryTwoBandPairingAmplitudes(
-            delta0_eV=delta,
-            delta_s=delta,
-            delta_d=delta,
-        ),
-    )
+FiniteQValidationModel = FiniteQMicroscopicModel
 
 
 def available_finite_q_validation_models() -> tuple[str, ...]:
-    return ("symmetry_bdg_2band",)
+    """Return model names through the historical validation API."""
+
+    return available_finite_q_microscopic_models()
 
 
 def get_finite_q_validation_model(name: str) -> FiniteQValidationModel:
-    if name == "symmetry_bdg_2band":
-        return _two_band_model()
-    choices = ", ".join(available_finite_q_validation_models())
-    raise ValueError(f"unknown finite-q validation model {name!r}; choices: {choices}")
+    """Return the production model through the historical validation API."""
+
+    try:
+        return get_finite_q_microscopic_model(name)
+    except ValueError as exc:
+        choices = ", ".join(available_finite_q_validation_models())
+        raise ValueError(
+            f"unknown finite-q validation model {name!r}; choices: {choices}"
+        ) from exc
+
+
+__all__ = [
+    "FiniteQValidationModel",
+    "available_finite_q_validation_models",
+    "get_finite_q_validation_model",
+]
