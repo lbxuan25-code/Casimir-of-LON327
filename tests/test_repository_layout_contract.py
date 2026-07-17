@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from validation.commands.matsubara.transverse_point_sweet_spot import DEFAULT_OUTPUT
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -26,10 +24,22 @@ def test_active_validation_surface_is_grouped() -> None:
     assert (validation_root / "commands/static").is_dir()
     assert (validation_root / "commands/matsubara").is_dir()
     assert (validation_root / "lib/finite_q_validation_models.py").is_file()
-    assert (
-        validation_root
-        / "commands/matsubara/transverse_point_sweet_spot.py"
-    ).is_file()
+
+
+def test_fixed_casimir_validation_routes_and_legacy_files_are_absent() -> None:
+    validation_root = ROOT / "validation"
+    for relative in (
+        "commands/matsubara/transverse_point_sweet_spot.py",
+        "commands/casimir/microscopic_outer_q_preflight.py",
+        "lib/matsubara.py",
+        "lib/microscopic_outer_q_compound.py",
+        "lib/microscopic_outer_q_preflight.py",
+        "lib/microscopic_outer_q_preflight_legacy.py",
+        "lib/transverse_point_sweet_spot_engine.py",
+        "lib/transverse_point_sweet_spot_command.py",
+        "lib/transverse_point_sweet_spot_engine_legacy.py",
+    ):
+        assert not (validation_root / relative).exists(), relative
 
 
 def test_superseded_point_convergence_files_are_absent() -> None:
@@ -58,15 +68,11 @@ def test_superseded_point_convergence_files_are_absent() -> None:
 
 
 def test_validation_root_has_no_bare_runner_or_analyzer_modules() -> None:
-    root_modules = {
-        path.name
-        for path in (ROOT / "validation").glob("*.py")
-    }
+    root_modules = {path.name for path in (ROOT / "validation").glob("*.py")}
     assert root_modules == {"__init__.py", "__main__.py"}
 
 
-def test_unified_point_sweet_spot_default_stays_under_validation_outputs() -> None:
-    expected = Path(
-        "validation/outputs/matsubara/transverse_point_sweet_spot/diagnostic.json"
-    )
-    assert DEFAULT_OUTPUT == expected
+def test_validation_outputs_are_ignored_as_runtime_artifacts() -> None:
+    gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    assert "validation/outputs/**" in gitignore
+    assert "!validation/outputs" not in gitignore
