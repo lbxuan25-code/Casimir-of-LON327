@@ -1,7 +1,13 @@
-"""Casimir-Lifshitz building blocks."""
+"""Casimir-Lifshitz building blocks and the fixed calculation controller."""
 
 from __future__ import annotations
 
+from .fixed_chain import (
+    FixedCasimirConfig,
+    FixedCasimirExecutionError,
+    FixedCasimirResult,
+    run_casimir,
+)
 from .fixed_outer_q import (
     OuterQGridPlan,
     OuterQGridSpec,
@@ -35,8 +41,9 @@ from .torque import casimir_torque_integrand
 
 def casimir_layer_metadata() -> dict[str, object]:
     return {
-        "layer": "casimir_lifshitz_building_blocks",
+        "layer": "casimir_lifshitz_fixed_chain",
         "valid_for_casimir_input": False,
+        "production_casimir_allowed": False,
         "requires_gauge_closed_response": True,
         "ward_identity_closed_by_this_module": False,
         "positive_matsubara_signed_logdet_supported": True,
@@ -45,16 +52,20 @@ def casimir_layer_metadata() -> dict[str, object]:
         "zero_matsubara_prime_weight_applied_by_quadrature": True,
         "matsubara_energy_helper_owned_by_production": True,
         "finite_q_model_adapter_owned_by_production": True,
+        "fixed_transverse_certifier_owned_by_production": True,
+        "fixed_casimir_controller_owned_by_production": True,
         "outer_q_measure_contract_present": True,
         "outer_q_fixed_nested_planning_present": True,
         "outer_q_radial_variable": "u = 2 Q d",
         "outer_q_full_angular_domain": True,
+        "finite_matsubara_partial_result_supported": True,
+        "matsubara_tail_estimated": False,
         "notes": (
-            "This package contains mathematical integrand and fixed quadrature building blocks.",
-            "Validation consumes Matsubara, model-adapter, planning, and reduction helpers from this package.",
-            "It does not validate finite-q Ward/gauge closure.",
+            "The unique fixed controller is lno327.casimir.run_casimir.",
+            "Validation may consume this package but production never imports validation.",
+            "The controller preserves the qualified fixed point-certification and outer-Q rules.",
             "The outer-q layer applies the n=0 half weight but does not estimate the Matsubara tail.",
-            "It does not make BdG response outputs Casimir-ready by itself.",
+            "Every returned fixed result remains fail-closed for production authorization.",
         ),
     }
 
@@ -62,6 +73,9 @@ def casimir_layer_metadata() -> dict[str, object]:
 __all__ = [
     "CasimirSetup",
     "FiniteQMicroscopicModel",
+    "FixedCasimirConfig",
+    "FixedCasimirExecutionError",
+    "FixedCasimirResult",
     "LifshitzPoint",
     "MatsubaraFreeEnergyPerArea",
     "OuterQGridPlan",
@@ -86,4 +100,5 @@ __all__ = [
     "matsubara_prime_weights",
     "passive_sheet_logdet",
     "reflection_matrix_weak_2d",
+    "run_casimir",
 ]
