@@ -12,33 +12,27 @@ from lno327.casimir import (
 def test_real_production_certifier_connects_to_adaptive_radial_controller(
     tmp_path: Path,
 ) -> None:
+    """Exercise the adaptive/provider boundary with the established tiny command."""
+
     point_config = FixedCasimirConfig(
         pairings=("spm",),
-        matsubara_indices=(0,),
-        u_max_values=(0.01, 0.02),
+        matsubara_indices=(1,),
+        u_max_values=(1.5, 3.0),
         radial_orders=(1, 2),
         angular_orders=(1, 2),
         angular_offsets=(0.0, 0.5),
-        N_candidates=(4, 6, 8),
+        N_candidates=(2, 4, 6),
+        shifts=((0.5, 0.5), (0.25, 0.75)),
         required_consecutive_passes=1,
         workers=1,
         parallel_mode="serial",
-        canonical_block=16,
-        runtime_chunk=16,
-        ward_tolerance=1e6,
-        ward_absolute_tolerance=1e6,
-        condition_max=1e30,
-        static_reality_tolerance=1e6,
-        static_longitudinal_tolerance=1e6,
-        static_mixing_tolerance=1e6,
-        static_passivity_tolerance=1e6,
-        logdet_rtol=1e6,
-        logdet_atol=1e6,
+        canonical_block=4,
+        runtime_chunk=4,
     )
     cache = tmp_path / "real-adaptive-points.json"
     config = AdaptiveRadialCasimirConfig(
         point_config=point_config,
-        initial_panel_edges=(0.0, 0.02),
+        initial_panel_edges=(0.0, 3.0),
         radial_order=1,
         angular_order=1,
         angular_offset_fraction=0.5,
