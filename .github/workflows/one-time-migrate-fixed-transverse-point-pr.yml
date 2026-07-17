@@ -40,6 +40,18 @@ jobs:
                   line = line[10:]
               lines.append(line)
           script = "\n".join(lines) + "\n"
+          # The audited workflow embeds Python source inside Python source. Change
+          # only the outer delimiter so the inner docstrings remain literal.
+          script = script.replace(
+              'cpu_reserve = r"""',
+              "cpu_reserve = r'''",
+              1,
+          )
+          script = script.replace(
+              '\n"""\nengine_text = engine_text.replace(',
+              "\n'''\nengine_text = engine_text.replace(",
+              1,
+          )
           compile(script, "one_time_fixed_transverse_point_migration.py", "exec")
           Path("/tmp/one_time_fixed_transverse_point_migration.py").write_text(
               script,
