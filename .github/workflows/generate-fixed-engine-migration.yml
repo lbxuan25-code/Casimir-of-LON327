@@ -1,9 +1,8 @@
 name: Apply fixed engine migration
 
 on:
-  push:
-    branches:
-      - refactor/casimir-fixed-chain-migration
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -12,7 +11,7 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out branch
+      - name: Check out pull-request head
         uses: actions/checkout@v4
         with:
           ref: refactor/casimir-fixed-chain-migration
@@ -100,8 +99,7 @@ def test_cpu_headroom_facade_still_wraps_production_parser() -> None:
               encoding="utf-8",
           )
 
-          workflow = Path(".github/workflows/generate-fixed-engine-migration.yml")
-          workflow.unlink()
+          Path(".github/workflows/generate-fixed-engine-migration.yml").unlink()
 
           print("production engine lines:", len(text.splitlines()))
           print("validation imports removed")
