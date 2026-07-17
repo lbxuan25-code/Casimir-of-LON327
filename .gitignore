@@ -46,37 +46,11 @@ outputs/**/*.svg
 !outputs/**/command.sh
 !outputs/**/.gitkeep
 
-# Validation artifacts are reproducible local data unless explicitly summarized.
+# Validation runtime artifacts are reproducible local data. No generated validation
+# output, including summaries or status snapshots, belongs in version control.
 validation/cache/**
 validation/logs/**
-validation/outputs/**/raw/**
-validation/outputs/**/intermediate/**
-validation/outputs/**/*.log
-validation/outputs/**/*.json
-validation/outputs/**/*.csv
-validation/outputs/**/*.txt
-validation/outputs/**/*.tmp
-validation/outputs/**/*.active
-validation/outputs/**/*.npz
-validation/outputs/**/*.npy
-validation/outputs/**/*.h5
-validation/outputs/**/*.hdf5
-validation/outputs/**/*.parquet
-validation/outputs/**/*.feather
-validation/outputs/**/*.pkl
-validation/outputs/**/*.pickle
-validation/outputs/**/*.png
-validation/outputs/**/*.pdf
-validation/outputs/**/*.svg
+validation/outputs/**
 
-# Keep validation documentation and compact summaries.
-!validation/README.md
-!validation/reports/**
-!validation/outputs/**/README.md
-!validation/outputs/**/command.sh
-!validation/outputs/**/.gitkeep
-!validation/outputs/**/*summary*.md
-!validation/outputs/**/*summary*.json
-!validation/outputs/**/*summary*.csv
-!validation/outputs/**/*summary*.txt
-!validation/outputs/**/*status*.json
+# Hand-written validation documentation and compact immutable reference fixtures live
+# outside validation/outputs and remain tracked normally.
