@@ -6,15 +6,17 @@ from types import MappingProxyType
 import numpy as np
 import pytest
 
-from lno327.casimir import (
-    AdaptiveJointCasimirConfig,
+from lno327.casimir.adaptive_joint_q import AdaptiveJointCasimirConfig
+from lno327.casimir.adaptive_matsubara_tail import (
     AdaptiveMatsubaraCasimirConfig,
-    AdaptiveOuterTailCasimirConfig,
-    AdaptiveOuterTailCasimirResult,
-    AdaptiveRadialCasimirConfig,
-    FixedCasimirConfig,
     run_adaptive_matsubara_casimir,
 )
+from lno327.casimir.adaptive_outer_q import AdaptiveRadialCasimirConfig
+from lno327.casimir.adaptive_outer_tail import (
+    AdaptiveOuterTailCasimirConfig,
+    AdaptiveOuterTailCasimirResult,
+)
+from lno327.casimir.fixed_chain import FixedCasimirConfig
 
 
 class _FrequencyProvider:
