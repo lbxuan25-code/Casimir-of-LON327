@@ -1,57 +1,21 @@
-"""Casimir-Lifshitz building blocks and adaptive diagnostic controllers."""
+"""LNO327 Casimir calculation package.
 
+Canonical public route
+----------------------
+``build_full_casimir_config`` -> ``run_full_casimir``
+
+The fixed-grid reference controller is intentionally isolated in
+``lno327.casimir.legacy``.  Lower-level adaptive controllers remain available from
+their implementation modules for numerical development, but are not competing
+top-level calculation routes.
+"""
 from __future__ import annotations
 
-from .fixed_chain import (
-    FixedCasimirConfig,
-    FixedCasimirExecutionError,
-    FixedCasimirResult,
-    run_casimir,
-)
-from .certified_point_provider import (
-    CertifiedOuterQProvider,
-    CertifiedPointBatch,
-    CertifiedPointCacheError,
-    FrequencyExtendableCertifiedOuterQProvider,
-    certified_primary_logdet,
-)
-from .adaptive_angular_q import (
-    AdaptiveAngularCasimirConfig,
-    AdaptiveAngularCasimirResult,
-    run_adaptive_angular_casimir,
-)
-from .adaptive_joint_q import (
-    AdaptiveJointCasimirConfig,
-    AdaptiveJointCasimirResult,
-    run_adaptive_joint_casimir,
-)
-from .adaptive_matsubara_tail import (
-    AdaptiveMatsubaraCasimirConfig,
-    AdaptiveMatsubaraCasimirResult,
-    run_adaptive_matsubara_casimir,
-)
-from .adaptive_outer_q import (
-    AdaptiveOuterQPanelGrid,
-    AdaptiveRadialCasimirConfig,
-    AdaptiveRadialCasimirResult,
-    AdaptiveRadialPanel,
-    build_adaptive_outer_q_panel_grid,
-    run_adaptive_radial_casimir,
-)
-from .adaptive_outer_tail import (
-    AdaptiveOuterTailCasimirConfig,
-    AdaptiveOuterTailCasimirResult,
-    run_adaptive_outer_tail_casimir,
-)
-from .fixed_outer_q import (
-    OuterQGridPlan,
-    OuterQGridSpec,
-    OuterQNodeManifest,
-    absolute_then_relative,
-    aggregate_certified_outer_q,
-    build_staged_grid_plan,
-    build_union_node_manifest,
-    compare_ladders,
+from .production import (
+    FullCasimirConfig,
+    FullCasimirResult,
+    build_full_casimir_config,
+    run_full_casimir,
 )
 from .lifshitz import casimir_energy_integrand
 from .lifshitz_integrand import LifshitzPoint, passive_sheet_logdet
@@ -76,7 +40,11 @@ from .torque import casimir_torque_integrand
 
 def casimir_layer_metadata() -> dict[str, object]:
     return {
-        "layer": "casimir_lifshitz_fixed_chain",
+        "layer": "casimir_lifshitz_full_adaptive",
+        "canonical_entrypoint": "lno327.casimir.run_full_casimir",
+        "canonical_config_builder": "lno327.casimir.build_full_casimir_config",
+        "legacy_fixed_route": "lno327.casimir.legacy.run_fixed_reference_casimir",
+        "legacy_fixed_exported_from_package_root": False,
         "valid_for_casimir_input": False,
         "production_casimir_allowed": False,
         "requires_gauge_closed_response": True,
@@ -85,81 +53,41 @@ def casimir_layer_metadata() -> dict[str, object]:
         "zero_matsubara_signed_logdet_supported": True,
         "zero_matsubara_uses_static_susceptibility_not_conductivity": True,
         "zero_matsubara_prime_weight_applied_by_quadrature": True,
-        "matsubara_energy_helper_owned_by_production": True,
-        "finite_q_model_adapter_owned_by_production": True,
-        "fixed_transverse_certifier_owned_by_production": True,
-        "fixed_casimir_controller_owned_by_production": True,
-        "incremental_certified_point_provider_present": True,
         "frequency_extendable_certified_point_provider_present": True,
-        "outer_q_measure_contract_present": True,
-        "outer_q_fixed_nested_planning_present": True,
         "outer_q_adaptive_radial_present": True,
         "outer_q_adaptive_angular_present": True,
         "outer_q_joint_radial_angular_budget_present": True,
         "outer_q_joint_direction_selection_present": True,
         "outer_q_adaptive_cutoff_present": True,
         "outer_q_geometric_tail_envelope_present": True,
-        "outer_q_angular_order_doubling_present": True,
         "outer_q_angular_offset_audit_present": True,
-        "outer_q_adaptive_cutoff_fixed": False,
-        "outer_q_adaptive_tail_estimated": True,
-        "outer_q_radial_variable": "u = 2 Q d",
-        "outer_q_full_angular_domain": True,
-        "finite_matsubara_partial_result_supported": True,
         "matsubara_adaptive_cutoff_present": True,
         "matsubara_geometric_tail_envelope_present": True,
-        "matsubara_tail_estimated": True,
+        "adaptive_outer_integration_architecture_complete": True,
+        "real_model_end_to_end_qualified": False,
         "notes": (
-            "The unique fixed controller is lno327.casimir.run_casimir.",
-            "Adaptive controllers remain independent diagnostic surfaces.",
-            "The frequency-extendable provider appends only newly requested Matsubara indices.",
-            "The Matsubara controller requires outer-Q tail closure for every included term.",
-            "Both outer-Q and Matsubara tails are bounded channelwise without sign cancellation.",
-            "Production authorization remains false pending physical qualification of the adaptive tail model.",
+            "The package root exposes one full adaptive calculation route.",
+            "The fixed-grid chain is regression-only and lives under lno327.casimir.legacy.",
+            "Both outer-Q and Matsubara tails are bounded without sign cancellation.",
+            "Physical production authorization remains false until real-model qualification.",
         ),
     }
 
 
 __all__ = [
-    "AdaptiveAngularCasimirConfig",
-    "AdaptiveAngularCasimirResult",
-    "AdaptiveJointCasimirConfig",
-    "AdaptiveJointCasimirResult",
-    "AdaptiveMatsubaraCasimirConfig",
-    "AdaptiveMatsubaraCasimirResult",
-    "AdaptiveOuterQPanelGrid",
-    "AdaptiveOuterTailCasimirConfig",
-    "AdaptiveOuterTailCasimirResult",
-    "AdaptiveRadialCasimirConfig",
-    "AdaptiveRadialCasimirResult",
-    "AdaptiveRadialPanel",
     "CasimirSetup",
-    "CertifiedOuterQProvider",
-    "CertifiedPointBatch",
-    "CertifiedPointCacheError",
     "FiniteQMicroscopicModel",
-    "FixedCasimirConfig",
-    "FixedCasimirExecutionError",
-    "FixedCasimirResult",
-    "FrequencyExtendableCertifiedOuterQProvider",
+    "FullCasimirConfig",
+    "FullCasimirResult",
     "LifshitzPoint",
     "MatsubaraFreeEnergyPerArea",
-    "OuterQGridPlan",
-    "OuterQGridSpec",
-    "OuterQNodeManifest",
     "OuterQPolarGrid",
-    "absolute_then_relative",
-    "aggregate_certified_outer_q",
     "available_finite_q_microscopic_models",
-    "build_adaptive_outer_q_panel_grid",
+    "build_full_casimir_config",
     "build_outer_q_polar_grid",
-    "build_staged_grid_plan",
-    "build_union_node_manifest",
     "casimir_energy_integrand",
     "casimir_layer_metadata",
     "casimir_torque_integrand",
-    "certified_primary_logdet",
-    "compare_ladders",
     "free_energy_per_area_from_logdet",
     "get_finite_q_microscopic_model",
     "integrate_outer_q",
@@ -168,10 +96,5 @@ __all__ = [
     "matsubara_prime_weights",
     "passive_sheet_logdet",
     "reflection_matrix_weak_2d",
-    "run_adaptive_angular_casimir",
-    "run_adaptive_joint_casimir",
-    "run_adaptive_matsubara_casimir",
-    "run_adaptive_outer_tail_casimir",
-    "run_adaptive_radial_casimir",
-    "run_casimir",
+    "run_full_casimir",
 ]

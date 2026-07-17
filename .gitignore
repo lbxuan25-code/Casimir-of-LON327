@@ -8,49 +8,14 @@ dist/
 *.egg-info/
 /results/
 
-# Root outputs: keep only lightweight reproducibility metadata before a production
-# reference exists. Raw grids, figures, caches and full tables remain local.
-outputs/**/logs/**
-outputs/**/*.log
-outputs/**/*.jsonl
-outputs/**/*.tmp
-outputs/**/*.active
-outputs/**/raw/**
-outputs/**/intermediate/**
-outputs/**/cache/**
-outputs/**/*.npz
-outputs/**/*.npy
-outputs/**/*.h5
-outputs/**/*.hdf5
-outputs/**/*.parquet
-outputs/**/*.feather
-outputs/**/*.pkl
-outputs/**/*.pickle
-outputs/**/*.npy.gz
-outputs/**/*.npz.gz
-outputs/**/*.csv.gz
-outputs/**/*.json
-outputs/**/*.csv
-outputs/**/*.txt
-outputs/**/*.png
-outputs/**/*.pdf
-outputs/**/*.svg
-!outputs/**/summary*.json
-!outputs/**/summary*.csv
-!outputs/**/summary*.txt
-!outputs/**/summary*.md
-!outputs/**/status*.json
-!outputs/**/run_config.json
-!outputs/**/self_check.json
-!outputs/**/README.md
-!outputs/**/command.sh
-!outputs/**/.gitkeep
+# All generated run artifacts are local. The repository tracks only the two layout
+# documents below; compact immutable regression evidence belongs in validation/references.
+/outputs/**
+!/outputs/README.md
+!/outputs/casimir/
+!/outputs/casimir/README.md
 
-# Validation runtime artifacts are reproducible local data. No generated validation
-# output, including summaries or status snapshots, belongs in version control.
+# Validation runtime artifacts are reproducible local data.
 validation/cache/**
 validation/logs/**
 validation/outputs/**
-
-# Hand-written validation documentation and compact immutable reference fixtures live
-# outside validation/outputs and remain tracked normally.
