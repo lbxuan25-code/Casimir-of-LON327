@@ -15,7 +15,6 @@ from lno327.constants import KB
 
 
 _REMOVED_FIXED_CHAIN_VALIDATION_FILES = (
-    "validation/lib/finite_q_validation_models.py",
     "validation/lib/matsubara.py",
     "validation/lib/microscopic_outer_q_compound.py",
     "validation/lib/microscopic_outer_q_preflight.py",
@@ -49,7 +48,11 @@ def test_production_source_tree_does_not_import_top_level_validation() -> None:
 
 def test_fixed_chain_validation_compatibility_files_are_removed() -> None:
     root = Path(__file__).resolve().parents[1]
-    remaining = [path for path in _REMOVED_FIXED_CHAIN_VALIDATION_FILES if (root / path).exists()]
+    remaining = [
+        path
+        for path in _REMOVED_FIXED_CHAIN_VALIDATION_FILES
+        if (root / path).exists()
+    ]
     assert remaining == []
 
 
