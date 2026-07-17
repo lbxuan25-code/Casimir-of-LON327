@@ -1,0 +1,75 @@
+name: One-time fixed transverse-point migration PR trigger
+
+on:
+  pull_request:
+    branches:
+      - feat/outer-q-integration-contract
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  migrate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR head branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Extract and run the audited mechanical migration
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          workflow = Path(
+              ".github/workflows/one-time-migrate-fixed-transverse-point.yml"
+          ).read_text(encoding="utf-8")
+          start_marker = "          python - <<'PY'\n"
+          end_marker = "\n          PY\n"
+          start = workflow.index(start_marker) + len(start_marker)
+          end = workflow.index(end_marker, start)
+          embedded = workflow[start:end]
+          lines = []
+          for line in embedded.splitlines():
+              if line.startswith("          "):
+                  line = line[10:]
+              lines.append(line)
+          script = "\n".join(lines) + "\n"
+          compile(script, "one_time_fixed_transverse_point_migration.py", "exec")
+          Path("/tmp/one_time_fixed_transverse_point_migration.py").write_text(
+              script,
+              encoding="utf-8",
+          )
+          PY
+          python /tmp/one_time_fixed_transverse_point_migration.py
+
+      - name: Run focused migration tests
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          python -m pytest -q --tb=short \
+            tests/test_casimir_fixed_chain_migration.py \
+            tests/test_casimir_production_dependencies.py \
+            tests/test_casimir_fixed_transverse_point_migration.py \
+            tests/test_transverse_point_sweet_spot.py \
+            tests/test_microscopic_outer_q_preflight.py
+
+      - name: Commit generated migration to the PR head
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            src/lno327/casimir/fixed_transverse_point_engine.py \
+            src/lno327/casimir/fixed_transverse_point_certification.py \
+            validation/lib/transverse_point_sweet_spot_engine.py \
+            validation/lib/transverse_point_sweet_spot_command.py \
+            tests/test_casimir_fixed_transverse_point_migration.py \
+            docs/casimir_production_chain_v1.md
+          git commit -m "Move fixed transverse-point certification into production"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
