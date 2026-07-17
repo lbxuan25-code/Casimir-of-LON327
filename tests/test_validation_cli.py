@@ -5,7 +5,7 @@ import importlib
 from validation.__main__ import available_commands, resolve_command
 
 
-def test_validation_cli_exposes_tight_main_and_diagnostic_surfaces():
+def test_validation_cli_exposes_retained_check_surfaces():
     expected = {
         ("ward", "commensurate"),
         ("ward", "bond-metric-full-kernel"),
@@ -17,17 +17,20 @@ def test_validation_cli_exposes_tight_main_and_diagnostic_surfaces():
         ("matsubara", "arbitrary-q-performance-preflight"),
         ("matsubara", "arbitrary-q-periodic-bz-qualification"),
         ("casimir", "outer-q-quadrature-preflight"),
-        ("casimir", "microscopic-outer-q-preflight"),
         ("diagnostic", "arbitrary-q-performance-smoke"),
         ("diagnostic", "arbitrary-q-physics-smoke"),
-        ("diagnostic", "transverse-point-sweet-spot"),
     }
     assert set(available_commands()) == expected
 
 
-def test_unified_sweet_spot_is_only_public_fixed_point_transverse_route():
+def test_fixed_casimir_compatibility_routes_are_removed():
     commands = set(available_commands())
-    assert ("diagnostic", "transverse-point-sweet-spot") in commands
+    assert ("casimir", "microscopic-outer-q-preflight") not in commands
+    assert ("diagnostic", "transverse-point-sweet-spot") not in commands
+
+
+def test_retired_point_and_static_routes_remain_absent():
+    commands = set(available_commands())
     for retired in (
         ("matsubara", "positive-point"),
         ("static", "nk-scan"),
