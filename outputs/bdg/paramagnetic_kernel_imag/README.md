@@ -1,8 +1,0 @@
-# BdG paramagnetic kernel 输出
-
-- `data/`：$K_{\mathrm{para}}(i\xi)$ 扫描的 `.npz` 数据。
-- `figures/`：$K_{\mathrm{para}}(i\xi)$ 的 $C_4$ 对称性诊断图。
-
-这些输出只是中间诊断；它们不包含 diamagnetic term，也不是完整超导电导。
-当前 $K_{\mathrm{para}}$ 是 positive current-current bubble，并包含补偿 BdG
-particle-hole redundancy 的 Nambu `1/2` prefactor。

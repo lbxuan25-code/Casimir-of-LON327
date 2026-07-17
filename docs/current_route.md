@@ -1,37 +1,34 @@
 # 当前总路线
 
-## 总目标
-
-从 LNO327 minimal model 出发，建立 response-to-Casimir 的计算链条：normal / BdG response、finite-q response、Ward / gauge validation、unit / reflection input 与 Casimir benchmark。
-
-## 总路线
+## 主计算链
 
 ```text
 H0(k)
--> pairing ansatz
--> BdG / normal response
--> finite-q response
--> Ward / gauge validation
--> unit conversion
--> reflection input
--> Casimir benchmark
+→ pairing ansatz
+→ finite-q normal/BdG response
+→ microscopic point certification
+→ reflection/logdet
+→ full adaptive outer-Q integration
+→ adaptive Matsubara sum
 ```
 
-## 当前主线位置
+外积分工程结构已经闭合：径向、角向、联合误差预算、outer-Q cutoff/tail 和 Matsubara cutoff/tail 均由同一顶层控制器组织。
 
-- local `q=0` response 是 baseline；
-- finite-q BdG response engine 是当前 response 主线；
-- `PairingAnsatz` 与 generic finite-q engine 的分层是当前工程结构；
-- Ward / gauge closure 是 finite-q response 进入 formal conductivity 的关键阻塞；
-- unit conversion、reflection input 和 `n=0` policy 是进入 formal Casimir input 的必要 gating；
-- 当前 Casimir 相关输出只能作为 benchmark / baseline / candidate，不是最终材料结论。
+## 唯一入口
 
-## 下一步核心问题
+```text
+build_full_casimir_config
+→ run_full_casimir
+```
 
-- 完成或明确 finite-q response 的 Ward / gauge closure；
-- 明确 formal finite-q conductivity 的构造条件；
-- 固定 unit conversion 与 reflection input 的 production policy；
-- 建立 Matsubara `n=0` policy；
-- 在上述 gating 通过后，才讨论正式 Casimir energy / force / torque。
+旧 fixed-grid 路线只位于 `lno327.casimir.legacy`，用于回归比较，不属于主流程。
 
-详细数值状态见 `../validation/reports/validation_summary.md`。该 validation 总览是证据入口；本文档只说明项目路线。
+## 当前物理状态
+
+- 自适应外积分架构完整；
+- microscopic 认证、缓存和 fail-closed 传播完整；
+- 真实 LNO327 全栈 pilot 尚未成功闭合；
+- Ward/gauge 与真实模型资格状态仍决定结果是否可作为物理结论；
+- `production_casimir_allowed` 继续为 `false`。
+
+下一步不是增加新的积分维度，而是在一个人为指定的 `spm` 参数点运行正式全栈 pilot，并依据审计证据校准计算上限和成本。

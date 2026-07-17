@@ -1,18 +1,36 @@
-# 输出目录
+# 运行产物
 
-`outputs/` 只保存当前主计算产物的轻量说明、summary、必要图表和复现入口。
+`outputs/` 只定义正式运行的本地目录结构。生成结果、缓存、日志和图表均不提交到 Git；需要长期保留的紧凑回归证据进入 `validation/references/`。
 
-## 当前边界
+## Casimir 算例布局
 
-- `normal_state/`、`pairing/`、`bdg/`：历史主计算的轻量说明；
-- `casimir/local_response_distance_scan/`：明确标注为 local-response baseline / benchmark，不是 finite-q production 结果；
-- 当前尚无正式 finite-q Casimir energy、force 或 torque 输出。
+```text
+outputs/casimir/runs/<case>/
+├── manifest.json
+├── config.json
+├── summary.json
+├── result.json
+└── cache/
+    └── certified_points.json
+```
 
-旧 `finite_q_bdg_pipeline` 产物已经删除，因为对应实现使用过失效的 Ward、零模外推和 TE/TM-amplitude 路线。
+- `<case>` 是稳定、可读的物理算例名，例如 `spm_T10K_d20nm_theta17deg`；
+- 不以 `v1`、`v2`、`latest`、时间戳或临时调试名组织算例；
+- `manifest.json` 记录状态、commit 和文件关系；
+- `config.json` 是完整嵌套配置；
+- `summary.json` 是人工阅读入口；
+- `result.json` 保存完整审计证据；
+- `cache/` 支持相同物理策略下的恢复和 Matsubara 增量扩展。
 
-## 维护原则
+## 运行
 
-- 正式主流程结果进入 `outputs/`；
-- 数值验证和 benchmark 进入 `validation/outputs/`；
-- raw 数组、cache、scratch log 和大型表格不提交；
-- 不建立第三套根目录 `results/`。
+```bash
+python -m lno327.casimir \
+  --case spm_T10K_d20nm_theta17deg \
+  --pairings spm \
+  --temperature-K 10 \
+  --separation-nm 20 \
+  --plate-angles-deg 0 17
+```
+
+同一算例继续使用已有微观点缓存时加 `--resume`。物理或数值配置不兼容时 CLI/provider 会拒绝复用，而不是静默覆盖。
