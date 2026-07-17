@@ -2,9 +2,9 @@
 
 ## Status
 
-This document freezes the non-adaptive calculation chain used during migration out
-of `validation`.  It does **not** qualify the infinite Matsubara tail and does not
-enable a production Casimir result.
+This document freezes the non-adaptive calculation chain migrated out of
+`validation`. It does **not** qualify the infinite Matsubara tail and does not enable
+a production Casimir result.
 
 ## Dependency direction
 
@@ -40,9 +40,9 @@ phi in [0, 2pi)
 q_model = (a_x Q_x, a_y Q_y)
 ```
 
-The full angular interval is retained.  There is no crystal, mirror, plate-exchange,
-or pairing symmetry reduction.  Periodic angular nodes do not duplicate the `2pi`
-endpoint.  Gauss-Legendre radial nodes contain no explicit `Q=0` node.
+The full angular interval is retained. There is no crystal, mirror, plate-exchange,
+or pairing symmetry reduction. Periodic angular nodes do not duplicate the `2pi`
+endpoint. Gauss-Legendre radial nodes contain no explicit `Q=0` node.
 
 ## Fixed nested radial contract
 
@@ -61,7 +61,7 @@ means cumulative panels
 ...
 ```
 
-The radial order is the Gauss-Legendre order per panel.  Increasing the cutoff adds
+The radial order is the Gauss-Legendre order per panel. Increasing the cutoff adds
 one panel and preserves all earlier nodes and weights exactly.
 
 ## Matsubara contract
@@ -76,17 +76,24 @@ The prime weight is applied exactly once by the Matsubara free-energy reduction.
 The helper converting `n,T` to `hbar*xi_n` in eV is owned by
 `lno327.casimir.matsubara`; validation only re-exports it.
 
-## Microscopic model contract
+## Microscopic model and point-certification contract
 
 The active symmetry-based two-band finite-q model adapter is owned by
-`lno327.casimir.microscopic_model`.  Constructing the model does not certify a
-point and does not authorize Casimir input.  Validation retains its historical
-model API as a compatibility facade over the same production object.
+`lno327.casimir.microscopic_model`. Constructing the model does not certify a point
+and does not authorize Casimir input.
+
+The fixed transverse-point numerical engine is owned by
+`lno327.casimir.fixed_transverse_point_engine`. The universal adjacent-N,
+cross-shift, oscillatory-envelope, and hard-physical acceptance controller is owned
+by `lno327.casimir.fixed_transverse_point_certification`. Validation retains
+historical command and monkeypatch surfaces only as compatibility facades. The
+legacy engine remains solely as a migration reference and is not on the active
+calculation path.
 
 ## Migration rule
 
-The migration only moves already-qualified fixed-grid components into
-`src/lno327/casimir`.  It does not change numerical rules, introduce adaptivity,
+This migration moves only already-qualified fixed-grid components into
+`src/lno327/casimir`. It does not change numerical rules, introduce adaptivity,
 alter worker scheduling, change microscopic convergence criteria, or clean
 historical outputs.
 
@@ -94,12 +101,15 @@ Completed production ownership:
 
 - Matsubara energy helper;
 - active finite-q microscopic model adapter;
+- fixed transverse-point numerical engine and universal certification controller;
 - nested compound outer-Q planning and exact node reuse;
 - certified-point reduction into finite Matsubara partial free energies;
 - cutoff/radial/angular/offset ladder comparisons.
 
-The transverse-point certification engine remains the next mechanical migration
-boundary.  Until it is moved, no production controller is exposed.
+The next boundary is a single fixed production controller that composes these
+production-owned components and writes a non-production finite-partial result. It
+must be established before adaptive radial integration or automatic cutoff is
+introduced.
 
 ## Golden fixed reference
 
@@ -117,10 +127,5 @@ audit N: 256
 unresolved points: 0
 ```
 
-This is a finite `n=0,1` partial result only.  `production_casimir_allowed` remains
+This is a finite `n=0,1` partial result only. `production_casimir_allowed` remains
 false until the complete main chain and Matsubara tail are certified.
-
-
-## Fixed transverse-point migration
-
-The fixed transverse-point engine and universal certification controller now live in `src/lno327/casimir/`. The validation modules are compatibility facades. The legacy engine remains only as a migration reference and is not on the active calculation path.
