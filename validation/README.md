@@ -1,8 +1,10 @@
 # Validation
 
-`validation/` contains reproducible checks for the current two-band finite-q response contract. It is not the full Casimir outer integrator.
+`validation/` contains reproducible checks for the current two-band finite-q response
+and fixed Casimir-chain contracts. It is not part of the production calculation
+implementation.
 
-The dependency direction for the fixed Casimir chain is:
+The dependency direction is:
 
 ```text
 validation -> src/lno327
@@ -15,9 +17,9 @@ Current migration status:
 
 - production owns the Matsubara energy helper;
 - production owns the active finite-q microscopic model adapter;
+- production owns the fixed transverse-point engine and universal point-certification controller;
 - production owns fixed nested outer-q planning, node reuse, reduction, and ladder comparisons;
-- validation retains compatibility commands, diagnostics, and report schemas;
-- the transverse-point certification engine remains the next mechanical migration boundary.
+- validation retains compatibility commands, diagnostics, report schemas, and regression evidence.
 
 Validation outputs are diagnostic evidence only and never authorize a production
 Casimir result by themselves.
