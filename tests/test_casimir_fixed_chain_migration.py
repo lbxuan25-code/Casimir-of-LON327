@@ -1,4 +1,4 @@
-"""Migration guards for the unique fixed Casimir outer-Q chain."""
+"""Boundary and numerical guards for the unique fixed Casimir chain."""
 from __future__ import annotations
 
 import ast
@@ -14,15 +14,31 @@ from lno327.casimir.fixed_outer_q import (
 from lno327.constants import KB
 
 
-def test_production_casimir_package_does_not_import_validation() -> None:
-    package = Path(__file__).resolve().parents[1] / "src" / "lno327" / "casimir"
+_REMOVED_FIXED_CHAIN_VALIDATION_FILES = (
+    "validation/lib/finite_q_validation_models.py",
+    "validation/lib/matsubara.py",
+    "validation/lib/microscopic_outer_q_compound.py",
+    "validation/lib/microscopic_outer_q_preflight.py",
+    "validation/lib/microscopic_outer_q_preflight_legacy.py",
+    "validation/lib/transverse_point_sweet_spot_command.py",
+    "validation/lib/transverse_point_sweet_spot_engine.py",
+    "validation/lib/transverse_point_sweet_spot_engine_legacy.py",
+    "validation/commands/casimir/microscopic_outer_q_preflight.py",
+    "validation/commands/matsubara/transverse_point_sweet_spot.py",
+)
+
+
+def test_production_source_tree_does_not_import_top_level_validation() -> None:
+    package = Path(__file__).resolve().parents[1] / "src" / "lno327"
     violations: list[str] = []
     for path in sorted(package.rglob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    if alias.name == "validation" or alias.name.startswith("validation."):
+                    if alias.name == "validation" or alias.name.startswith(
+                        "validation."
+                    ):
                         violations.append(f"{path}:{node.lineno}:{alias.name}")
             elif isinstance(node, ast.ImportFrom):
                 module = node.module or ""
@@ -31,21 +47,10 @@ def test_production_casimir_package_does_not_import_validation() -> None:
     assert violations == []
 
 
-def test_validation_public_outer_q_surface_is_the_production_surface() -> None:
-    from lno327.casimir import fixed_outer_q as production
-    from validation.lib import microscopic_outer_q_preflight as validation_facade
-
-    for name in (
-        "OuterQGridPlan",
-        "OuterQGridSpec",
-        "OuterQNodeManifest",
-        "absolute_then_relative",
-        "aggregate_certified_outer_q",
-        "build_staged_grid_plan",
-        "build_union_node_manifest",
-        "compare_ladders",
-    ):
-        assert getattr(validation_facade, name) is getattr(production, name)
+def test_fixed_chain_validation_compatibility_files_are_removed() -> None:
+    root = Path(__file__).resolve().parents[1]
+    remaining = [path for path in _REMOVED_FIXED_CHAIN_VALIDATION_FILES if (root / path).exists()]
+    assert remaining == []
 
 
 def test_qualified_radial_plan_preserves_nested_cutoff_nodes() -> None:
