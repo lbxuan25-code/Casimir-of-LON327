@@ -1,12 +1,11 @@
 """Exact-static d-wave Ward diagnostic on a q-commensurate periodic grid.
 
 The external momentum is constructed from an integer lattice translation,
-``q=(2*pi/nk)*(mx,my)``.  All primitive response and analytic Ward-RHS channels
+``q=(2*pi/nk)*(mx,my)``. All primitive response and analytic Ward-RHS channels
 share the same complete periodic grid, and the amplitude/phase Schur is formed
-only after the full primitive average.  This command is diagnostic-only and does
+only after the full primitive average. This command is diagnostic-only and does
 not apply a longitudinal projection.
 """
-
 from __future__ import annotations
 
 import argparse
@@ -19,6 +18,7 @@ from typing import Any
 import numpy as np
 
 from lno327 import KuboConfig
+from lno327.casimir.microscopic_model import get_finite_q_microscopic_model
 from lno327.electrodynamics.static_sheet import static_matsubara_kernel_to_sheet_response
 from lno327.response.effective_kernel import effective_em_kernel_from_components
 from lno327.response.ward_validation import validate_effective_ward_xy
@@ -31,7 +31,6 @@ from validation.lib.dwave_static_primitives import (
     assemble_dwave_static_primitives,
     build_dwave_static_integrand_context,
 )
-from validation.lib.finite_q_validation_models import get_finite_q_validation_model
 
 DEFAULT_OUTPUT = Path(
     "validation/outputs/zero_matsubara/dwave_ward_contract_audit/raw/"
@@ -89,7 +88,7 @@ def main() -> None:
         max_points=args.max_points,
     )
     q = np.asarray(grid.q_model, dtype=float)
-    model = get_finite_q_validation_model("symmetry_bdg_2band")
+    model = get_finite_q_microscopic_model("symmetry_bdg_2band")
     ansatz = model.build_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
     pairing = model.build_pairing_params(args.delta0_eV)
     kubo = KuboConfig.from_kelvin(
@@ -206,7 +205,8 @@ def main() -> None:
         "row": _jsonable(row),
     }
     output.with_suffix(".json").write_text(
-        json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8"
+        json.dumps(payload, indent=2, sort_keys=True),
+        encoding="utf-8",
     )
     print(summary, end="")
 
