@@ -1,8 +1,8 @@
 """CPU-headroom facade for the transverse-point sweet-spot engine.
 
 All numerical implementation remains in ``transverse_point_sweet_spot_engine_legacy``.
-Automatic worker selection now reserves two affinity-visible logical CPUs by default
-so the host remains responsive.  Set ``LNO327_CPU_RESERVE`` to another non-negative
+Automatic worker selection reserves two affinity-visible logical CPUs by default so
+the host remains responsive. Set ``LNO327_CPU_RESERVE`` to another non-negative
 integer, or pass an explicit positive ``--workers`` value, to override this policy.
 """
 from __future__ import annotations
