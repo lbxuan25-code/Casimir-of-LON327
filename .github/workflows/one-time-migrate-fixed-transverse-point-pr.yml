@@ -68,8 +68,36 @@ jobs:
             tests/test_casimir_production_dependencies.py \
             tests/test_casimir_fixed_transverse_point_migration.py
 
-      - name: Run transverse-point regression
-        run: python -m pytest -q --tb=short tests/test_transverse_point_sweet_spot.py
+      - name: Run transverse-point regression and capture report
+        id: transverse
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          python -m pytest -q --tb=short \
+            --junitxml=/tmp/transverse-point-junit.xml \
+            tests/test_transverse_point_sweet_spot.py \
+            > /tmp/transverse-point-pytest.txt 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload transverse-point regression report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transverse-point-migration-debug
+          path: |
+            /tmp/transverse-point-pytest.txt
+            /tmp/transverse-point-junit.xml
+          if-no-files-found: error
+          retention-days: 3
+
+      - name: Enforce transverse-point regression
+        if: steps.transverse.outputs.status != '0'
+        run: |
+          cat /tmp/transverse-point-pytest.txt
+          exit 1
 
       - name: Run microscopic outer-q regression
         run: python -m pytest -q --tb=short tests/test_microscopic_outer_q_preflight.py
