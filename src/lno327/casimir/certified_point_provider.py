@@ -1,13 +1,18 @@
-"""Incremental certified microscopic-point provider for outer-Q integration.
+"""Incremental certified microscopic-point providers for adaptive integration.
 
-The provider is a thin orchestration layer over the existing production transverse
-point certifier.  It never evaluates microscopic response itself.  Exact model-q
+The providers are thin orchestration layers over the existing production transverse
+point certifier.  They never evaluate microscopic response themselves.  Exact model-q
 coordinates are keyed by their IEEE-754 hexadecimal representations, so repeated
 adaptive refinement rounds reuse only bitwise-identical points.
+
+``CertifiedOuterQProvider`` preserves the original fixed-frequency cache contract.
+``FrequencyExtendableCertifiedOuterQProvider`` additionally permits a cumulative
+Matsubara set to grow under one unchanged microscopic policy.  Only newly requested
+Matsubara indices are sent back to the production certifier.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
 import json
 from pathlib import Path
@@ -23,7 +28,8 @@ from .fixed_chain import (
 )
 from .fixed_outer_q import OuterQNodeManifest
 
-_CACHE_SCHEMA = "certified-outer-q-point-cache-v1"
+_CACHE_SCHEMA_V1 = "certified-outer-q-point-cache-v1"
+_CACHE_SCHEMA_V2 = "certified-outer-q-point-cache-v2-matsubara-extendable"
 
 
 class CertifiedPointCacheError(RuntimeError):
@@ -40,6 +46,9 @@ class CertifiedPointBatch:
     new_q_count: int
     cache_hit_q_count: int
     certification_batches: int
+    requested_point_count: int = 0
+    new_point_count: int = 0
+    cache_hit_point_count: int = 0
 
     @property
     def all_established(self) -> bool:
@@ -65,8 +74,17 @@ def _stable_q_label(q_key: tuple[str, str]) -> str:
     return f"adaptive_q_{digest}"
 
 
-def _point_policy_payload(config: FixedCasimirConfig) -> dict[str, Any]:
-    """Return only inputs that can change one certified microscopic point."""
+def _point_policy_payload(
+    config: FixedCasimirConfig,
+    *,
+    frequency_extendable: bool = False,
+) -> dict[str, Any]:
+    """Return only inputs that can change one certified microscopic point.
+
+    For the v2 cache the requested Matsubara *set* is orchestration state rather than
+    microscopic policy.  The Matsubara index remains part of every cache-entry key.
+    Temperature and all other frequency-defining physical inputs remain fingerprinted.
+    """
 
     payload = config.as_dict()
     for name in (
@@ -79,12 +97,21 @@ def _point_policy_payload(config: FixedCasimirConfig) -> dict[str, Any]:
         "transverse_checkpoint_path",
     ):
         payload.pop(name, None)
+    if frequency_extendable:
+        payload.pop("matsubara_indices", None)
     return payload
 
 
-def _policy_fingerprint(config: FixedCasimirConfig) -> str:
+def _policy_fingerprint(
+    config: FixedCasimirConfig,
+    *,
+    frequency_extendable: bool = False,
+) -> str:
     encoded = json.dumps(
-        _point_policy_payload(config),
+        _point_policy_payload(
+            config,
+            frequency_extendable=frequency_extendable,
+        ),
         sort_keys=True,
         separators=(",", ":"),
     ).encode("utf-8")
@@ -130,19 +157,30 @@ class CertifiedOuterQProvider:
         *,
         cache_path: Path | None = None,
         runner: Runner | None = None,
+        _frequency_extendable: bool = False,
     ) -> None:
         if not isinstance(config, FixedCasimirConfig):
             raise TypeError("config must be a FixedCasimirConfig")
         self.config = config
         self.cache_path = None if cache_path is None else Path(cache_path)
         self._runner = _run_transverse_certifier if runner is None else runner
-        self._policy_fingerprint = _policy_fingerprint(config)
+        self._frequency_extendable = bool(_frequency_extendable)
+        self._cache_schema = (
+            _CACHE_SCHEMA_V2 if self._frequency_extendable else _CACHE_SCHEMA_V1
+        )
+        self._policy_fingerprint = _policy_fingerprint(
+            config,
+            frequency_extendable=self._frequency_extendable,
+        )
         self._entries: dict[str, Mapping[str, Any]] = {}
         self._q_by_entry: dict[str, tuple[str, str]] = {}
         self.certification_batches = 0
         self.requested_q_evaluations = 0
         self.new_q_evaluations = 0
         self.cache_hit_q_evaluations = 0
+        self.requested_point_evaluations = 0
+        self.new_point_evaluations = 0
+        self.cache_hit_point_evaluations = 0
         if self.cache_path is not None and self.cache_path.exists():
             self._load()
 
@@ -154,10 +192,33 @@ class CertifiedOuterQProvider:
     def unique_q_count(self) -> int:
         return len(set(self._q_by_entry.values()))
 
+    @property
+    def frequency_extendable(self) -> bool:
+        return self._frequency_extendable
+
+    def reconfigure(self, config: FixedCasimirConfig) -> None:
+        """Switch the active cumulative Matsubara request under the same policy.
+
+        The original v1 provider is deliberately immutable.  The v2 provider accepts
+        only configurations whose frequency-independent point-policy fingerprint is
+        identical.  Pairings, temperature, shifts, N ladders and every physical gate
+        therefore remain frozen while the non-negative Matsubara set may grow.
+        """
+
+        if not self._frequency_extendable:
+            raise TypeError("this certified point provider has a fixed Matsubara set")
+        if not isinstance(config, FixedCasimirConfig):
+            raise TypeError("config must be a FixedCasimirConfig")
+        fingerprint = _policy_fingerprint(config, frequency_extendable=True)
+        if fingerprint != self._policy_fingerprint:
+            raise CertifiedPointCacheError(
+                "Matsubara extension changes the microscopic point-policy fingerprint"
+            )
+        self.config = config
+
     def count_new_q(self, q_model: np.ndarray) -> int:
         points = self._unique_points(q_model)
-        cached_q = set(self._q_by_entry.values())
-        return sum(q_key not in cached_q for q_key, _ in points)
+        return sum(bool(self._missing_indices(q_key)) for q_key, _ in points)
 
     def point_result(
         self,
@@ -176,19 +237,46 @@ class CertifiedOuterQProvider:
 
     def evaluate(self, q_model: np.ndarray) -> CertifiedPointBatch:
         points = self._unique_points(q_model)
+        pairings = tuple(self.config.pairings)
+        indices = tuple(self.config.matsubara_indices)
+        requested_point_count = len(points) * len(pairings) * len(indices)
         self.requested_q_evaluations += len(points)
-        missing = [
-            (q_key, q)
-            for q_key, q in points
-            if not self._q_is_complete(q_key)
-        ]
-        cache_hits = len(points) - len(missing)
-        self.cache_hit_q_evaluations += cache_hits
-        new_batches = 0
+        self.requested_point_evaluations += requested_point_count
 
-        if missing:
-            labels = tuple(_stable_q_label(q_key) for q_key, _ in missing)
-            q_values = np.asarray([q for _, q in missing], dtype=float)
+        missing_by_q = {
+            q_key: self._missing_indices(q_key) for q_key, _ in points
+        }
+        incomplete = {q_key for q_key, missing in missing_by_q.items() if missing}
+        cache_hit_q_count = len(points) - len(incomplete)
+        self.cache_hit_q_evaluations += cache_hit_q_count
+
+        if self._frequency_extendable:
+            groups: dict[
+                tuple[int, ...],
+                list[tuple[tuple[str, str], tuple[float, float]]],
+            ] = {}
+            for q_key, q in points:
+                missing = missing_by_q[q_key]
+                if missing:
+                    groups.setdefault(missing, []).append((q_key, q))
+        else:
+            missing_points = [
+                (q_key, q) for q_key, q in points if q_key in incomplete
+            ]
+            groups = {indices: missing_points} if missing_points else {}
+
+        new_point_count = 0
+        new_batch_count = 0
+        for missing_indices, group in groups.items():
+            if not group:
+                continue
+            run_config = (
+                replace(self.config, matsubara_indices=missing_indices)
+                if self._frequency_extendable
+                else self.config
+            )
+            labels = tuple(_stable_q_label(q_key) for q_key, _ in group)
+            q_values = np.asarray([q for _, q in group], dtype=float)
             manifest = OuterQNodeManifest(
                 labels=labels,
                 q_model=q_values,
@@ -197,23 +285,33 @@ class CertifiedOuterQProvider:
             )
             with TemporaryDirectory(prefix="lno327-adaptive-point-batch-") as temporary:
                 output = Path(temporary) / "certification.json"
-                certification = self._runner(self.config, manifest, output)
+                certification = self._runner(run_config, manifest, output)
             self.certification_batches += 1
-            self.new_q_evaluations += len(missing)
-            new_batches = 1
+            self.new_q_evaluations += len(group)
+            batch_points = len(group) * len(run_config.pairings) * len(
+                run_config.matsubara_indices
+            )
+            self.new_point_evaluations += batch_points
+            new_point_count += batch_points
+            new_batch_count += 1
             self._consume_payload(
                 certification.payload,
                 labels=labels,
-                q_keys=tuple(q_key for q_key, _ in missing),
+                q_keys=tuple(q_key for q_key, _ in group),
+                requested_config=run_config,
             )
+
+        cache_hit_point_count = requested_point_count - new_point_count
+        self.cache_hit_point_evaluations += cache_hit_point_count
+        if groups:
             self._save()
 
         rows: list[Mapping[str, Any]] = []
         unresolved: list[Mapping[str, Any]] = []
         for q_key, _ in points:
             label = _stable_q_label(q_key)
-            for pairing in self.config.pairings:
-                for n in self.config.matsubara_indices:
+            for pairing in pairings:
+                for n in indices:
                     key = _entry_key(pairing, n, q_key)
                     point = self._entries.get(key)
                     if point is None:
@@ -245,9 +343,12 @@ class CertifiedOuterQProvider:
             point_results=tuple(rows),
             unresolved_points=tuple(unresolved),
             requested_q_count=len(points),
-            new_q_count=len(missing),
-            cache_hit_q_count=cache_hits,
-            certification_batches=new_batches,
+            new_q_count=len(incomplete),
+            cache_hit_q_count=cache_hit_q_count,
+            certification_batches=new_batch_count,
+            requested_point_count=requested_point_count,
+            new_point_count=new_point_count,
+            cache_hit_point_count=cache_hit_point_count,
         )
 
     def _unique_points(
@@ -263,11 +364,14 @@ class CertifiedOuterQProvider:
             unique.setdefault(key, (float(q[0]), float(q[1])))
         return tuple(unique.items())
 
-    def _q_is_complete(self, q_key: tuple[str, str]) -> bool:
-        return all(
-            _entry_key(pairing, n, q_key) in self._entries
-            for pairing in self.config.pairings
+    def _missing_indices(self, q_key: tuple[str, str]) -> tuple[int, ...]:
+        return tuple(
+            int(n)
             for n in self.config.matsubara_indices
+            if any(
+                _entry_key(pairing, n, q_key) not in self._entries
+                for pairing in self.config.pairings
+            )
         )
 
     def _consume_payload(
@@ -276,6 +380,7 @@ class CertifiedOuterQProvider:
         *,
         labels: tuple[str, ...],
         q_keys: tuple[tuple[str, str], ...],
+        requested_config: FixedCasimirConfig,
     ) -> None:
         if payload.get("schema") != "transverse-point-sweet-spot-v4":
             raise CertifiedPointCacheError(
@@ -291,7 +396,10 @@ class CertifiedOuterQProvider:
                 )
             pairing = str(point.get("pairing", ""))
             n = int(point.get("n", -1))
-            if pairing not in self.config.pairings or n not in self.config.matsubara_indices:
+            if (
+                pairing not in requested_config.pairings
+                or n not in requested_config.matsubara_indices
+            ):
                 raise CertifiedPointCacheError(
                     "transverse certifier returned an unrequested point"
                 )
@@ -305,7 +413,7 @@ class CertifiedOuterQProvider:
             payload = json.loads(self.cache_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
             raise CertifiedPointCacheError(f"cannot read point cache: {exc}") from exc
-        if payload.get("schema") != _CACHE_SCHEMA:
+        if payload.get("schema") != self._cache_schema:
             raise CertifiedPointCacheError("point cache schema mismatch")
         if payload.get("policy_fingerprint") != self._policy_fingerprint:
             raise CertifiedPointCacheError("point cache policy fingerprint mismatch")
@@ -320,6 +428,8 @@ class CertifiedOuterQProvider:
                 point = dict(entry["point_result"])
             except (KeyError, TypeError, ValueError) as exc:
                 raise CertifiedPointCacheError("malformed point cache entry") from exc
+            if n < 0:
+                raise CertifiedPointCacheError("point cache contains a negative Matsubara index")
             key = _entry_key(pairing, n, q_key)
             self._entries[key] = point
             self._q_by_entry[key] = q_key
@@ -340,9 +450,14 @@ class CertifiedOuterQProvider:
                 }
             )
         payload = {
-            "schema": _CACHE_SCHEMA,
+            "schema": self._cache_schema,
             "policy_fingerprint": self._policy_fingerprint,
-            "point_policy": _point_policy_payload(self.config),
+            "frequency_extendable": self._frequency_extendable,
+            "active_matsubara_indices": list(self.config.matsubara_indices),
+            "point_policy": _point_policy_payload(
+                self.config,
+                frequency_extendable=self._frequency_extendable,
+            ),
             "entries": entries,
         }
         self.cache_path.parent.mkdir(parents=True, exist_ok=True)
@@ -354,9 +469,28 @@ class CertifiedOuterQProvider:
         temporary.replace(self.cache_path)
 
 
+class FrequencyExtendableCertifiedOuterQProvider(CertifiedOuterQProvider):
+    """Certified point provider whose cumulative Matsubara set may grow safely."""
+
+    def __init__(
+        self,
+        config: FixedCasimirConfig,
+        *,
+        cache_path: Path | None = None,
+        runner: Runner | None = None,
+    ) -> None:
+        super().__init__(
+            config,
+            cache_path=cache_path,
+            runner=runner,
+            _frequency_extendable=True,
+        )
+
+
 __all__ = [
     "CertifiedOuterQProvider",
     "CertifiedPointBatch",
     "CertifiedPointCacheError",
+    "FrequencyExtendableCertifiedOuterQProvider",
     "certified_primary_logdet",
 ]
