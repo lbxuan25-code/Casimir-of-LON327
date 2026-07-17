@@ -1,7 +1,9 @@
-name: Two-band Casimir contract tests
+name: LNO327 production contracts
 
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -33,6 +35,22 @@ jobs:
       - name: Install package and test dependencies
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
 
+      - name: Verify canonical Casimir entrypoint
+        run: |
+          python -m lno327.casimir --help
+          lno327-casimir --help
+          python - <<'PY'
+          import lno327.casimir as casimir
+
+          assert callable(casimir.build_full_casimir_config)
+          assert callable(casimir.run_full_casimir)
+          assert not hasattr(casimir, "run_casimir")
+          assert not hasattr(casimir, "FixedCasimirConfig")
+          metadata = casimir.casimir_layer_metadata()
+          assert metadata["canonical_entrypoint"] == "lno327.casimir.run_full_casimir"
+          assert metadata["legacy_fixed_exported_from_package_root"] is False
+          PY
+
       - name: Verify test collection after cleanup
         shell: bash
         run: |
@@ -51,7 +69,7 @@ jobs:
           cat full-pytest-output.txt
           exit $status
 
-      - name: Smoke test tightened CLI routing
+      - name: Smoke test validation routing
         run: |
           python -m validation --help
           python -m validation matsubara --help
@@ -78,7 +96,6 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-
           payload = json.loads(Path('/tmp/arbitrary-q-performance-smoke.json').read_text())
           assert payload['schema'] == 'arbitrary-q-performance-smoke-v2'
           assert payload['optimization_structure_passed'] is True
@@ -102,13 +119,11 @@ jobs:
             --runtime-chunk-size 256 \
             --output /tmp/arbitrary-q-physics-smoke.json \
             > physics-smoke-output.txt 2>&1
-          status=$?
           cp /tmp/arbitrary-q-physics-smoke.json physics-smoke-result.json 2>/dev/null || true
           cat physics-smoke-output.txt
           python - <<'PY'
           import json
           from pathlib import Path
-
           payload = json.loads(Path('/tmp/arbitrary-q-physics-smoke.json').read_text())
           assert payload['schema'] == 'arbitrary-q-physics-smoke-v2'
           assert payload['formal_numerical_evidence'] is False
@@ -117,30 +132,20 @@ jobs:
           summary = payload['pairings'][0]['summary']
           assert summary['operator_identity_all_passed'] is True
           assert summary['integrated_ward_all_passed'] is True
-          # N=16 is deliberately below the physical smoke scale and may fail
-          # positive-sheet/static gates; the command must still emit full diagnostics.
           PY
           exit 0
 
       - name: Smoke test total zero-positive Gauss preflight and scan
         run: |
           python -m validation matsubara matsubara-orbit-gauss-crosscheck \
-            --pairing spm \
-            --nk 4 \
-            --mx 1 \
-            --my 0 \
-            --matsubara-indices 0 1 \
-            --gauss-orders 4 8 \
-            --panel-count 1 \
-            --transverse-workers 2 \
-            --transverse-task-size 2 \
+            --pairing spm --nk 4 --mx 1 --my 0 \
+            --matsubara-indices 0 1 --gauss-orders 4 8 --panel-count 1 \
+            --transverse-workers 2 --transverse-task-size 2 \
             --max-point-evaluations 128 \
             --output /tmp/spm-total-gauss-smoke.csv
-
           python - <<'PY'
           import json
           from pathlib import Path
-
           payload = json.loads(Path('/tmp/spm-total-gauss-smoke.json').read_text())
           assert payload['schema'] == 'zero_positive_commensurate_orbit_fixed_gauss_crosscheck_v1'
           assert payload['status']['zero_matsubara_included'] is True
@@ -155,42 +160,23 @@ jobs:
           assert all(row['full_transverse_period_integrated'] is True for row in payload['rows'])
           assert all(row['symmetry_reduction_applied'] is False for row in payload['rows'])
           PY
-
           python -m validation matsubara orbit-gauss-preflight \
-            --pairings spm dwave \
-            --nk 4 \
-            --mx 1 \
-            --my 0 \
-            --matsubara-indices 0 1 \
-            --transverse-order 4 \
-            --panel-count 1 \
-            --transverse-workers 2 \
-            --transverse-task-size 2 \
-            --legacy-static-nk 4 \
-            --legacy-static-order 4 \
-            --minimum-speedup 0 \
-            --minimum-parallel-cpu-wall-ratio 0 \
-            --comparison-rtol 1e-8 \
-            --comparison-atol 1e-9 \
-            --no-require-physical \
-            --output /tmp/total-preflight.json
-
+            --pairings spm dwave --nk 4 --mx 1 --my 0 \
+            --matsubara-indices 0 1 --transverse-order 4 --panel-count 1 \
+            --transverse-workers 2 --transverse-task-size 2 \
+            --legacy-static-nk 4 --legacy-static-order 4 \
+            --minimum-speedup 0 --minimum-parallel-cpu-wall-ratio 0 \
+            --comparison-rtol 1e-8 --comparison-atol 1e-9 \
+            --no-require-physical --output /tmp/total-preflight.json
           python -m validation matsubara total-orbit-gauss-scan \
-            --case smoke:1:0 \
-            --pairings spm \
-            --nk 4 \
-            --matsubara-indices 0 1 \
-            --gauss-orders 4 8 \
-            --panel-count 1 \
-            --transverse-workers 2 \
-            --transverse-task-size 2 \
+            --case smoke:1:0 --pairings spm --nk 4 \
+            --matsubara-indices 0 1 --gauss-orders 4 8 --panel-count 1 \
+            --transverse-workers 2 --transverse-task-size 2 \
             --preflight-manifest /tmp/total-preflight.json \
             --output-root /tmp/total-scan-smoke
-
           python - <<'PY'
           import json
           from pathlib import Path
-
           payload = json.loads(Path('/tmp/total-scan-smoke/scan_summary.json').read_text())
           assert payload['schema'] == 'total_matsubara_pointwise_gauss_scan_v2'
           assert payload['status']['zero_matsubara_included'] is True
@@ -206,7 +192,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: two-band-casimir-test-reports
+          name: lno327-production-test-reports
           path: |
             collect-output.txt
             full-pytest-output.txt
