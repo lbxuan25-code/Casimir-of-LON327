@@ -89,15 +89,17 @@ def test_real_production_certifier_stops_before_cutoff_extension(
 
     assert result.status == "unresolved"
     assert result.termination_reason == (
-        "finite_domain_run_unresolved: radial_run_unresolved: "
-        "previous=microscopic_point_unresolved, "
-        "current=microscopic_point_unresolved"
+        "finite_domain_run_unresolved: microscopic_point_unresolved"
     )
     assert result.selected_u_max == 3.0
     assert result.cutoff_converged is False
     assert result.outer_tail_estimated is False
     assert result.all_microscopic_nodes_certified is False
     assert len(result.cutoff_records) == 1
+    assert result.cutoff_records[0]["termination_reason"] == (
+        "radial_run_unresolved: previous=microscopic_point_unresolved, "
+        "current=microscopic_point_unresolved"
+    )
     assert result.shell_records == ()
     assert result.provider_statistics["certification_batches"] == 2
     assert result.provider_statistics["requested_q_evaluations"] == 9
