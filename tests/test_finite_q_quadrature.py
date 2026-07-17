@@ -4,7 +4,10 @@ from pathlib import Path
 
 import numpy as np
 
-from lno327.workflows.finite_q_quadrature import FiniteQQuadratureOptions, finite_q_quadrature_points
+from lno327.workflows.finite_q_quadrature import (
+    FiniteQQuadratureOptions,
+    finite_q_quadrature_points,
+)
 
 
 def test_uniform_quadrature_metadata_and_weights() -> None:
@@ -95,18 +98,16 @@ def test_adaptive_metadata_records_stage4_15_semantics() -> None:
 
     assert metadata["q_model_used_for_quadrature"] == [float(q[0]), float(q[1])]
     assert "num_flagged_base_cells" in metadata
-    assert metadata["validation_semantics"] == "stage4_15_build_adaptive_cells_and_quadrature_points_for_cells"
+    assert metadata["validation_semantics"] == (
+        "stage4_15_build_adaptive_cells_and_quadrature_points_for_cells"
+    )
     assert metadata["parent_child_double_counting"] is False
 
 
-def test_outer_handoff_removes_retired_pipeline_and_validation_script_imports() -> None:
-    retired = Path("scripts/casimir/finite_q_bdg_casimir_pipeline.py")
-    assert not retired.exists()
-
-    for relative in (
-        "scripts/casimir/README.md",
-        "src/lno327/workflows/finite_q_quadrature.py",
-    ):
-        text = Path(relative).read_text(encoding="utf-8")
-        assert "validation/scripts" not in text
-        assert "validation.scripts" not in text
+def test_retired_casimir_script_tree_is_absent_from_active_quadrature_route() -> None:
+    assert not Path("scripts/casimir").exists()
+    text = Path("src/lno327/workflows/finite_q_quadrature.py").read_text(
+        encoding="utf-8"
+    )
+    assert "validation/scripts" not in text
+    assert "validation.scripts" not in text
