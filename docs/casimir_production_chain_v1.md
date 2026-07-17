@@ -3,8 +3,12 @@
 ## Status
 
 This document freezes the non-adaptive calculation chain migrated out of
-`validation`. It does **not** qualify the infinite Matsubara tail and does not enable
-a production Casimir result.
+`validation`. The complete fixed controller now exists at
+`lno327.casimir.run_casimir`. It returns an explicitly finite Matsubara partial
+result and remains fail-closed for production authorization.
+
+This contract does **not** qualify the infinite Matsubara tail and does not enable a
+full production Casimir result.
 
 ## Dependency direction
 
@@ -14,20 +18,24 @@ The allowed dependency direction is
 validation -> lno327.casimir
 ```
 
-Code below `src/lno327/` must never import `validation`.
+Code below `src/lno327/` must never import the top-level `validation` package.
 
 ## Unique fixed calculation chain
 
 ```text
-physical configuration
-  -> Matsubara index and prime weight
-  -> nested compound outer-Q grid
-  -> SI Q to model q mapping
-  -> finite-q microscopic response certification
+FixedCasimirConfig
+  -> run_casimir(config)
+  -> nested compound outer-Q grid plan
+  -> exact union and reuse of microscopic q nodes
+  -> production transverse-point certification process
+  -> finite-q microscopic response
   -> sheet response and plate reflection matrices
   -> two-plate propagation and stable logdet
+  -> certified primary-shift estimator
   -> fixed outer-Q reduction
-  -> finite Matsubara partial sum
+  -> Matsubara prime weighting
+  -> fixed ladder comparisons
+  -> FixedCasimirResult(status="finite_partial" | "unresolved")
 ```
 
 There is one mathematical outer-Q contract:
@@ -43,6 +51,55 @@ q_model = (a_x Q_x, a_y Q_y)
 The full angular interval is retained. There is no crystal, mirror, plate-exchange,
 or pairing symmetry reduction. Periodic angular nodes do not duplicate the `2pi`
 endpoint. Gauss-Legendre radial nodes contain no explicit `Q=0` node.
+
+## Fixed controller contract
+
+The public production entry point is
+
+```python
+from lno327.casimir import FixedCasimirConfig, FixedCasimirResult, run_casimir
+
+result: FixedCasimirResult = run_casimir(FixedCasimirConfig())
+```
+
+`FixedCasimirConfig` owns all fixed numerical and physical inputs used by the
+qualified chain. Its defaults reproduce the qualified `spm`, `n=0,1` reference
+settings.
+
+The controller performs the following operations in one fixed order:
+
+1. build the nested outer-Q ladder and deduplicated microscopic node manifest;
+2. invoke `lno327.casimir.fixed_transverse_point_certification` directly as the
+   production point-certification backend;
+3. retain the established independent-process and single-thread BLAS/OpenMP
+   environment;
+4. retain checkpoint-after-each-completed-N behavior when a checkpoint path is
+   supplied;
+5. require established hard-physical and numerical certification at every requested
+   microscopic point;
+6. reduce the canonical primary-shift logdet values with the fixed outer-Q measure;
+7. apply the Matsubara prime weight exactly once;
+8. evaluate the fixed cutoff, radial, angular, and offset ladders;
+9. return a finite-partial or unresolved result without inferring any missing tail.
+
+A successful controller result has
+
+```text
+status = finite_partial
+partial_sum_only = true
+matsubara_tail_estimated = false
+production_casimir_allowed = false
+```
+
+Any missing or uncertified microscopic point produces
+
+```text
+status = unresolved
+production_casimir_allowed = false
+```
+
+The controller never silently drops unresolved points and never promotes a finite
+partial sum to a complete Casimir result.
 
 ## Fixed nested radial contract
 
@@ -85,10 +142,11 @@ and does not authorize Casimir input.
 The fixed transverse-point numerical engine is owned by
 `lno327.casimir.fixed_transverse_point_engine`. The universal adjacent-N,
 cross-shift, oscillatory-envelope, and hard-physical acceptance controller is owned
-by `lno327.casimir.fixed_transverse_point_certification`. Validation retains
-historical command and monkeypatch surfaces only as compatibility facades. The
-legacy engine remains solely as a migration reference and is not on the active
-calculation path.
+by `lno327.casimir.fixed_transverse_point_certification`.
+
+The full fixed composition is owned by `lno327.casimir.fixed_chain`. Validation may
+retain historical command, report, and monkeypatch surfaces as compatibility layers,
+but none of them is required by the production controller.
 
 ## Migration rule
 
@@ -104,12 +162,14 @@ Completed production ownership:
 - fixed transverse-point numerical engine and universal certification controller;
 - nested compound outer-Q planning and exact node reuse;
 - certified-point reduction into finite Matsubara partial free energies;
-- cutoff/radial/angular/offset ladder comparisons.
+- cutoff/radial/angular/offset ladder comparisons;
+- unique `run_casimir(config) -> FixedCasimirResult` controller.
 
-The next boundary is a single fixed production controller that composes these
-production-owned components and writes a non-production finite-partial result. It
-must be established before adaptive radial integration or automatic cutoff is
-introduced.
+The fixed main chain must remain frozen while its controller-level regression and
+CI evidence are established. Compatibility-facade, legacy-reference, and historical
+output cleanup may proceed only after that evidence passes. Adaptive radial
+integration, automatic outer cutoff, and Matsubara-tail inference remain separate
+future qualification tasks.
 
 ## Golden fixed reference
 
@@ -128,4 +188,4 @@ unresolved points: 0
 ```
 
 This is a finite `n=0,1` partial result only. `production_casimir_allowed` remains
-false until the complete main chain and Matsubara tail are certified.
+false until the Matsubara tail and the final production qualification are complete.
