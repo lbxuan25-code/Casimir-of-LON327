@@ -1,4 +1,4 @@
-"""Unified command-line entry point for active validation workflows."""
+"""Unified command-line entry point for retained validation workflows."""
 from __future__ import annotations
 
 import importlib
@@ -6,8 +6,9 @@ import sys
 from collections.abc import Sequence
 
 
-# Public validation surface for response, point integration, and staged outer
-# Casimir integration qualification.
+# Public validation surface for independent Ward, response, numerical, and measure
+# checks. The fixed microscopic Casimir chain is production-only and is entered via
+# lno327.casimir.run_casimir rather than through validation compatibility commands.
 _COMMANDS: dict[tuple[str, str], str] = {
     ("ward", "commensurate"): "validation.commands.ward.commensurate",
     ("ward", "bond-metric-full-kernel"): (
@@ -37,15 +38,6 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("casimir", "outer-q-quadrature-preflight"): (
         "validation.commands.casimir.outer_q_quadrature_preflight"
     ),
-    ("casimir", "microscopic-outer-q-preflight"): (
-        "validation.commands.casimir.microscopic_outer_q_preflight"
-    ),
-    # The only public fixed-point transverse-integration command. It handles both
-    # pairings, zero/positive Matsubara indices, arbitrary q directions and
-    # point-specific N/shift sweet-spot selection.
-    ("diagnostic", "transverse-point-sweet-spot"): (
-        "validation.commands.matsubara.transverse_point_sweet_spot"
-    ),
     ("diagnostic", "arbitrary-q-performance-smoke"): (
         "validation.commands.matsubara.arbitrary_q_performance_smoke"
     ),
@@ -54,8 +46,8 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ),
 }
 
-# Hidden compatibility routes retain only names needed by aggregate orchestration.
-# Removed single-point commands have no public or hidden runnable aliases.
+# Hidden compatibility routes retain only names still needed by aggregate
+# non-Casimir validation orchestration.
 _INTERNAL_ALIASES: dict[tuple[str, str], str] = {
     ("matsubara", "positive-orbit-gauss-crosscheck"): (
         "validation.commands.matsubara.positive_orbit_gauss_crosscheck"
@@ -67,12 +59,14 @@ _INTERNAL_ALIASES: dict[tuple[str, str], str] = {
 
 
 def available_commands() -> tuple[tuple[str, str], ...]:
-    """Return the stable public command names exposed by ``python -m validation``."""
+    """Return the stable public commands exposed by ``python -m validation``."""
+
     return tuple(sorted(_COMMANDS))
 
 
 def resolve_command(group: str, command: str) -> str:
     """Resolve a public command or a narrowly retained internal alias."""
+
     key = (str(group), str(command))
     if key in _COMMANDS:
         return _COMMANDS[key]
@@ -112,7 +106,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     module = importlib.import_module(module_name)
     command_main = getattr(module, "main", None)
     if not callable(command_main):
-        raise RuntimeError(f"validation command module has no callable main(): {module_name}")
+        raise RuntimeError(
+            f"validation command module has no callable main(): {module_name}"
+        )
 
     original_argv = sys.argv
     try:
