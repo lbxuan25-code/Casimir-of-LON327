@@ -1,5 +1,4 @@
 """Helpers for cached periodic-shift d-wave batch validation."""
-
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
@@ -9,6 +8,7 @@ import numpy as np
 
 from lno327 import KuboConfig
 from lno327.casimir.lifshitz_integrand import passive_sheet_logdet
+from lno327.casimir.microscopic_model import get_finite_q_microscopic_model
 from lno327.electrodynamics.static_gauge_projection import (
     PROJECT_AFTER_VALIDATED_WARD,
     static_matsubara_kernel_to_sheet_response_with_policy,
@@ -31,7 +31,6 @@ from lno327.workflows.dwave_periodic_shift_ensemble import (
     periodic_shift_mesh,
 )
 from lno327.workflows.finite_q_engine import FiniteQEngineOptions
-from validation.lib.finite_q_validation_models import get_finite_q_validation_model
 
 
 @dataclass(frozen=True)
@@ -57,8 +56,12 @@ class ShiftBatchConfig:
         return np.asarray([self.qx, self.qy], dtype=float)
 
 
-def evaluate_one_shift(config: ShiftBatchConfig, index: int, shift: np.ndarray) -> dict[str, Any]:
-    model = get_finite_q_validation_model("symmetry_bdg_2band")
+def evaluate_one_shift(
+    config: ShiftBatchConfig,
+    index: int,
+    shift: np.ndarray,
+) -> dict[str, Any]:
+    model = get_finite_q_microscopic_model("symmetry_bdg_2band")
     ansatz = model.build_ansatz("dwave", phase_vertex="bond_endpoint_gauge")
     pairing = model.build_pairing_params(config.delta0_eV)
     kubo = KuboConfig.from_kelvin(
@@ -69,7 +72,13 @@ def evaluate_one_shift(config: ShiftBatchConfig, index: int, shift: np.ndarray) 
     )
     points, weights = periodic_shift_mesh(config.base_nk, shift)
     material = precompute_finite_q_material_workspace_from_model_ansatz(
-        model.spec, ansatz, points, weights, kubo, pairing, FiniteQEngineOptions()
+        model.spec,
+        ansatz,
+        points,
+        weights,
+        kubo,
+        pairing,
+        FiniteQEngineOptions(),
     )
     workspace = precompute_finite_q_q_workspace(material, config.q)
     return {
@@ -81,15 +90,10 @@ def evaluate_one_shift(config: ShiftBatchConfig, index: int, shift: np.ndarray) 
     }
 
 
-def _portable_component_payload(components: BdGFiniteQResponseComponents) -> dict[str, Any]:
-    """Strip non-pickleable nested metadata from one worker result.
-
-    ``BdGFiniteQResponseComponents.metadata`` may contain ``MappingProxyType``
-    values inherited from immutable model metadata.  ProcessPool workers must
-    therefore return a deliberately small plain-dict metadata contract.  Every
-    numerical dataclass field is retained exactly; only unused audit metadata is
-    omitted during inter-process transfer.
-    """
+def _portable_component_payload(
+    components: BdGFiniteQResponseComponents,
+) -> dict[str, Any]:
+    """Strip non-pickleable nested metadata from one worker result."""
 
     payload: dict[str, Any] = {}
     for field in fields(BdGFiniteQResponseComponents):
@@ -132,7 +136,9 @@ def portable_shift_result(result: dict[str, Any]) -> dict[str, Any]:
 
 
 def evaluate_one_shift_portable(
-    config: ShiftBatchConfig, index: int, shift: np.ndarray
+    config: ShiftBatchConfig,
+    index: int,
+    shift: np.ndarray,
 ) -> dict[str, Any]:
     """Worker entry point returning only pickle-safe arrays, scalars and dicts."""
 
@@ -155,15 +161,28 @@ def restore_portable_shift_result(payload: dict[str, Any]) -> dict[str, Any]:
 def _matrix_fields(matrix: np.ndarray) -> dict[str, float]:
     value = np.asarray(matrix, dtype=complex)
     result = {"reflection_norm": float(np.linalg.norm(value))}
-    for label, i, j in (("ll", 0, 0), ("lt", 0, 1), ("tl", 1, 0), ("tt", 1, 1)):
+    for label, i, j in (
+        ("ll", 0, 0),
+        ("lt", 0, 1),
+        ("tl", 1, 0),
+        ("tt", 1, 1),
+    ):
         scalar = complex(value[i, j])
         result[f"reflection_{label}_real"] = float(scalar.real)
         result[f"reflection_{label}_imag"] = float(scalar.imag)
     return result
 
 
-def postprocess_merged(components, rhs, config: ShiftBatchConfig) -> dict[str, Any]:
-    kernel = effective_em_kernel_from_components(components, q_model=config.q, xi_eV=0.0)
+def postprocess_merged(
+    components,
+    rhs,
+    config: ShiftBatchConfig,
+) -> dict[str, Any]:
+    kernel = effective_em_kernel_from_components(
+        components,
+        q_model=config.q,
+        xi_eV=0.0,
+    )
     ward = validate_effective_ward_xy(
         kernel,
         rhs,
@@ -204,7 +223,10 @@ def postprocess_merged(components, rhs, config: ShiftBatchConfig) -> dict[str, A
         projection_eligible = True
         try:
             reflection = static_sheet_response_to_reflection(
-                projected, q_lab_model=config.q, theta_rad=0.0, require_physical=True
+                projected,
+                q_lab_model=config.q,
+                theta_rad=0.0,
+                require_physical=True,
             )
         except (ValueError, RuntimeError, np.linalg.LinAlgError) as exc:
             reflection_error = str(exc)
@@ -225,14 +247,18 @@ def postprocess_merged(components, rhs, config: ShiftBatchConfig) -> dict[str, A
     result: dict[str, Any] = {
         "ward_passed": bool(ward.passed),
         "ward_primitive_mixed_ratio_max": max(
-            ward.left.primitive_mixed_ratio, ward.right.primitive_mixed_ratio
+            ward.left.primitive_mixed_ratio,
+            ward.right.primitive_mixed_ratio,
         ),
         "ward_effective_mixed_ratio_max": max(
-            ward.left.effective_mixed_ratio, ward.right.effective_mixed_ratio
+            ward.left.effective_mixed_ratio,
+            ward.right.effective_mixed_ratio,
         ),
         "schur_condition_number": float(ward.schur_condition_number),
         "schur_inverse_method": ward.schur_inverse_method,
-        "raw_longitudinal": float(raw.validation.relative_longitudinal_gauge_residual),
+        "raw_longitudinal": float(
+            raw.validation.relative_longitudinal_gauge_residual
+        ),
         "raw_imaginary": float(raw.validation.relative_imaginary_norm),
         "raw_density_transverse_mixing": float(
             raw.validation.relative_density_transverse_mixing
@@ -281,7 +307,11 @@ def jackknife_orbit_errors(
         return {f"jackknife_{name}_abs": float("nan") for name in names}
     samples = {name: [] for name in names}
     for omitted in range(orbits):
-        retained = [item for index, item in enumerate(selected) if index // 4 != omitted]
+        retained = [
+            item
+            for index, item in enumerate(selected)
+            if index // 4 != omitted
+        ]
         components, rhs = merge_shift_components_before_schur(
             [item["components"] for item in retained],
             [item["rhs"] for item in retained],
