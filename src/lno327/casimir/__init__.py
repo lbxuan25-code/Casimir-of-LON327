@@ -2,6 +2,16 @@
 
 from __future__ import annotations
 
+from .fixed_outer_q import (
+    OuterQGridPlan,
+    OuterQGridSpec,
+    OuterQNodeManifest,
+    absolute_then_relative,
+    aggregate_certified_outer_q,
+    build_staged_grid_plan,
+    build_union_node_manifest,
+    compare_ladders,
+)
 from .lifshitz import casimir_energy_integrand
 from .lifshitz_integrand import LifshitzPoint, passive_sheet_logdet
 from .outer_quadrature import (
@@ -28,10 +38,12 @@ def casimir_layer_metadata() -> dict[str, object]:
         "zero_matsubara_uses_static_susceptibility_not_conductivity": True,
         "zero_matsubara_prime_weight_applied_by_quadrature": True,
         "outer_q_measure_contract_present": True,
+        "outer_q_fixed_nested_planning_present": True,
         "outer_q_radial_variable": "u = 2 Q d",
         "outer_q_full_angular_domain": True,
         "notes": (
-            "This package contains mathematical integrand and quadrature building blocks.",
+            "This package contains mathematical integrand and fixed quadrature building blocks.",
+            "Validation consumes the fixed outer-q planning and reduction from this package.",
             "It does not validate finite-q Ward/gauge closure.",
             "The outer-q layer applies the n=0 half weight but does not estimate the Matsubara tail.",
             "It does not make BdG response outputs Casimir-ready by itself.",
@@ -43,11 +55,19 @@ __all__ = [
     "CasimirSetup",
     "LifshitzPoint",
     "MatsubaraFreeEnergyPerArea",
+    "OuterQGridPlan",
+    "OuterQGridSpec",
+    "OuterQNodeManifest",
     "OuterQPolarGrid",
+    "absolute_then_relative",
+    "aggregate_certified_outer_q",
     "build_outer_q_polar_grid",
+    "build_staged_grid_plan",
+    "build_union_node_manifest",
     "casimir_energy_integrand",
     "casimir_layer_metadata",
     "casimir_torque_integrand",
+    "compare_ladders",
     "free_energy_per_area_from_logdet",
     "integrate_outer_q",
     "matsubara_frequency",
