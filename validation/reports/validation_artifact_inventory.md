@@ -1,56 +1,20 @@
-# Validation artifact inventory
-
-本文件是 `validation/` 的维护政策，不是逐文件流水账。目标是在保留结论和复现能力的同时，让大型 generated artifacts 退出版本控制。
+# Validation artifact policy
 
 ## 长期保留
 
-保留便于 review 且无需重新跑重任务的轻量证据：
-
-- `validation/README.md`；
-- `validation/reports/*.md`；
-- topic README；
-- summary markdown；
-- 小型 status / summary JSON 或 CSV；
-- `command.sh` 或复现命令片段；
-- validation scripts 和 tests。
-
-小型 machine-readable metrics 可以保留；如果 JSON 变成 raw dump，应拆成小型 status/summary 和 ignored raw artifact。
+- active validation Python 入口；
+- 当前模型 adapter；
+- 被多个 active quadrature 复用的中性 workspace 与物理后处理；
+- README、command、summary、status；
+- 小型 machine-readable convergence 摘要。
 
 ## 不长期保留
 
-以下内容可再生成，应由 ignore 规则排除在长期 Git 内容之外：
-
-- `validation/cache/**/*.npz`、`.npy`、`.csv`、`.jsonl`；
-- `validation/outputs/**/data/*.npz` 和 `.npy`；
-- raw / expanded / large data CSV；
-- `raw/`、`intermediate/` 输出目录；
+- raw CSV/JSON/txt/log；
+- `.npz`、`.npy`、cache tensors；
+- intermediate outputs；
 - repeated figures；
-- benchmark scratch outputs 和 logs。
+- 已否决 quadrature 的 backend、wrapper、CLI、专用测试和专用文档；
+- 已被 production contract 取代的历史诊断脚本和输出。
 
-图像只在报告明确引用且文字/表格不足以表达时保留；优先放在报告附近或 `docs/assets/validation/`，并说明来源。
-
-## cache 与 outputs 的区别
-
-`validation/cache/` 是复用中间张量，存在目的只是加速本地 validation，始终可再生成。
-
-`validation/outputs/` 保存脚本输出。长期保留的只应是 README、summary、status marker 和 command。`data/`、`figures/`、`raw/`、`intermediate/` 默认是本地 artifact。
-
-## 再生成策略
-
-需要复查 raw artifact 时：
-
-1. 阅读对应 `validation/outputs/**/README.md` 和 summary。
-2. 查看同目录 `command.sh`。
-3. 运行对应 `validation/scripts/**` 重新生成本地 ignored 输出。
-4. 只提交新的 README、summary、status 或 command，除非报告明确说明必须保留大型 artifact。
-
-## 当前组织方式
-
-- response kernel / Ward / BdG：`validation/outputs/response/`
-- unit conversion / q-grid mapping：`validation/outputs/units/`
-- reflection input / adapter：`validation/outputs/reflection/`
-- 跨主题总览：`validation/reports/validation_summary.md`
-
-## 维护边界
-
-validation 目录长期保存轻量证据、status、summary 和复现入口。cache tensors、binary arrays、CSV data tables、repeated figures 和 scratch logs 属于本地再生成 artifact；需要复查时按 summary 或 `command.sh` 中的入口重新生成。
+完整扫描是可复现本地产物，由 Git 忽略。正式结果只在 production reference 建立后进入根目录 `outputs/`。历史实现和拒绝证据通过 Git history、当前主合同和 PR 说明追溯，不在当前工作树保留 archive、sandbox 副本或可运行的失败方法入口。

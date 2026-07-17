@@ -1,0 +1,22 @@
+positive-Matsubara d-wave fixed/composite-Gauss cross-check
+==========================================================================================================
+reference = none (consecutive-order/cut-only mode)
+grid: nk=1256, m=(1,1)
+total Gauss orders = (64,)
+panel count = 16; cuts = (-3.141592653589793,)
+transverse workers/task size = 4/4
+matrix atol/rtol = 1.000e-12/1.000e-03; logdet atol/rtol = 1.000e-12/1.000e-03
+
+ cut total local  n   sigma-ref  sigma-prev  sigma-cut   Ward  physical  wall(s)
+----------------------------------------------------------------------------------------------------------
+   0    64     4  1         n/a         n/a         n/a   True      True    5.506
+   0    64     4  2         n/a         n/a         n/a   True      True    5.506
+
+all fixed-Gauss physical pipelines passed = True
+external reference available = False
+all available reference cross-checks passed = False
+all consecutive-order checks passed = False
+all periodic-cut checks passed = True
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False

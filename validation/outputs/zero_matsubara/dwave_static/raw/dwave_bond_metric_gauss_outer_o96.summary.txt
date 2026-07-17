@@ -1,0 +1,35 @@
+d-wave bond-metric fixed-Gauss-outer adaptive static validation
+=====================================================================
+q = (0.03001521644, 0.02001014429); T = 10 K; delta0 = 0.1 eV
+outer_order = 96; inner epsabs = 2.000e-04; inner epsrel = 2.000e-02; quadrature = gk15
+point budget per orientation = 100000; total wall time = 125.872 s
+
+Per-orientation results
+-----------------------
+ order  points outer   inner_err success   phase/q   eff-direct/q longitudinal strict      chi_bar       Dbar_T
+  xy    44640    96  1.383e-03    True  5.098e-04     1.564e-03    1.773e-03  False   0.44863154   0.58789021
+  yx    44100    96  1.305e-03    True  2.358e-04     1.324e-03    1.782e-03  False   0.44854256   0.58790905
+
+Orientation comparison
+----------------------
+relative_chi_xy_yx = 1.983e-04
+relative_dbar_xy_yx = 3.203e-05
+physical_orientation_disagreement = 1.983e-04
+orientation_agreement_tolerance = 5.000e-03
+orientation_agreement_pass = True
+
+Fail-closed status
+------------------
+all_adaptive_orientations_succeeded = True
+all_strict_static_gates_passed = False
+all_sheet_validations_passed = False
+adaptive_feasibility_pass = False
+integration_strategy = fixed_gauss_outer_adaptive_inner
+phase_hessian_policy = nearest_neighbor_bond_metric
+phase_hessian_application_stage = after_complete_primitive_integral
+outer_discretization_error_estimated = False
+projection_applied = False
+production_reference_established = False
+valid_for_casimir_input = False
+
+A production reference requires convergence in outer_order and agreement between xy and yx at the final numerical target.

@@ -1,0 +1,29 @@
+positive-Matsubara d-wave q-orbit certification scan
+==============================================================================
+cases = ('axis_min', 'diagonal_min', 'generic_small', 'generic_mid', 'reference', 'axis_mid', 'diagonal_mid', 'generic_large')
+tight selected = ('axis_min', 'diagonal_min', 'generic_small', 'generic_mid', 'axis_mid', 'diagonal_mid')
+fixed-Gauss selected = ('generic_small', 'axis_mid')
+failed tasks = ()
+
+ case                 q=(mx,my)  level   certified
+--------------------------------------------------------------
+ axis_min             (  1,  0)  full        False
+ diagonal_min         (  1,  1)  full        False
+ generic_small        (  2,  1)  full         True
+ generic_mid          (  3,  2)  screen       True
+ reference            (  6,  4)  screen       True
+ axis_mid             (  6,  0)  screen       True
+ diagonal_mid         (  6,  6)  screen      False
+ generic_large        (  9,  6)  screen       True
+
+worst screen->tight sigma relative = 3.706759e-03
+worst screen->tight reflection relative = 7.246461e-05
+worst screen->tight logdet relative = 1.453508e-04
+worst Gauss->tight sigma relative = 5.636170e-05
+worst Gauss->tight reflection relative = 1.953849e-05
+worst Gauss->tight logdet relative = 7.642452e-08
+
+certification_scan_passed = False
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False

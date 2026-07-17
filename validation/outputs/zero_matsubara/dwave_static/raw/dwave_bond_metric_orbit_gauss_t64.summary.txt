@@ -1,0 +1,27 @@
+d-wave bond-metric commensurate-orbit transverse-Gauss validation
+========================================================================
+grid q = (2 pi/628) (3, 2)
+q = (0.0300152164356, 0.0200101442904); |q| = 0.0360738006342
+orbit basis p = (3, 2); transverse n = (1, 1)
+orbit origins = (0.5, 0.0); transverse order = 64
+point evaluations = 80384; wall time = 108.209 s
+
+Closure and observables
+-----------------------
+primitive/q = 1.990890385436e-15
+amplitude/q = 6.595045944978e-18
+phase/q = 1.248963599180e-08
+effective-direct/q = 6.939784194677e-08
+effective-residual/q = 2.036000379478e-15
+longitudinal = 6.955042190696e-08
+strict static gate = True
+sheet validation = True
+chi_bar = 4.511145263471e-01
+Dbar_T = 5.897214669404e-01
+
+Fail-closed status
+------------------
+integration_strategy = commensurate_q_orbit_transverse_gauss
+projection_applied = False
+production_reference_established = False
+valid_for_casimir_input = False

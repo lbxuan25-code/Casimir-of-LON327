@@ -1,0 +1,27 @@
+positive-Matsubara d-wave deterministic panel-adaptive validation
+==================================================================================
+grid q = (2 pi/1256) (6, 6)
+orbit origins = (0.5,)
+strategy = deterministic_panel_adaptive; quadrature = nested_clenshaw_curtis_9_17_33
+primary error ratio = 3.473984e+01; success = False
+audit error ratio = unavailable; success = False
+primary worst = xi_0_em on (-2.356194490192345, -1.9634954084936207) CC17
+audit worst = unavailable
+primitive group audit passed = False
+unique transverse evaluations = 250 / 256; cache hits = 119
+microscopic point evaluations = 314000
+quadrature wall = 66.697 s; evaluator wall = 66.651 s
+
+ n       xi[eV]  sigma-audit  R-audit  logdet-audit  primary  audit  point
+----------------------------------------------------------------------------------------
+ 1  5.41443e-03         inf      inf          inf     True  False  False
+ 2  1.08289e-02         inf      inf          inf     True  False  False
+ 4  2.16577e-02         inf      inf          inf     True  False  False
+ 8  4.33154e-02         inf      inf          inf     True  False  False
+
+quadrature success = False
+failure reason = panel_boundary_transverse_budget_exceeded: current=250, required_new=16, maximum=256
+all point pipelines passed = False
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False

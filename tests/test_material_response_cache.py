@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
-import subprocess
-import sys
 
 import numpy as np
 
@@ -12,15 +9,11 @@ from lno327.casimir.material_grid import default_stage5_11_points, grid_point_to
 from lno327.casimir.material_cache import (
     atomic_write_json,
     cache_filename_for_point_id,
-    cache_path_for_point,
     is_reusable_cache,
     load_reusable_point_cache,
     write_point_cache,
 )
 from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE
-
-ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "validation" / "scripts" / "response" / "stage5_11_real_material_reflection_grid_prototype.py"
 
 
 def _response_config() -> dict[str, object]:
@@ -56,12 +49,21 @@ def _point_id(converted: dict[str, object]) -> str:
 
 def _synthetic_row(point, *, status: str = "PASS") -> dict[str, object]:
     convention = _convention()
-    converted = grid_point_to_si_and_model_q(point, convention.lattice_a_x_m, convention.lattice_a_y_m)
-    matrix = np.array([[0.0 + 0.0j, 0.0 + 0.0j], [0.0 + 0.0j, 0.0 + 0.0j]])
+    converted = grid_point_to_si_and_model_q(
+        point,
+        convention.lattice_a_x_m,
+        convention.lattice_a_y_m,
+    )
+    matrix = np.zeros((2, 2), dtype=complex)
     return {
         "point_id": _point_id(converted),
         **converted,
-        "ward_residual": {"left_max": 0.0, "right_max": 0.0, "total_max": 0.0, "status": "PASS"},
+        "ward_residual": {
+            "left_max": 0.0,
+            "right_max": 0.0,
+            "total_max": 0.0,
+            "status": "PASS",
+        },
         "response_matrix": matrix,
         "sigma_model_xy": matrix,
         "sigma_tilde_xy": matrix,
@@ -87,18 +89,6 @@ def _synthetic_row(point, *, status: str = "PASS") -> dict[str, object]:
         "runtime_seconds": 0.0,
         "status": status,
     }
-
-
-def _synthetic_stage5_10(path: Path) -> None:
-    path.write_text(
-        json.dumps(
-            {
-                "stage": "Stage 5.10",
-                "diagnostic_status": {"stage5_10_status": "STAGE5_10_TOY_CASIMIR_INTEGRATION_CONVERGENCE_AUDIT_PASSED"},
-            }
-        ),
-        encoding="utf-8",
-    )
 
 
 def test_cache_filename_is_stable_and_readable():
@@ -177,48 +167,3 @@ def test_atomic_write_json_produces_complete_json(tmp_path):
     assert payload["point_id"] == "n1_Q0.050_phi0.0"
     assert payload["value"]["re"] == 1.0
     assert not list(tmp_path.glob("*.tmp"))
-
-
-def test_resume_skip_existing_preserves_point_result_order(tmp_path):
-    input_json = tmp_path / "stage5_10.json"
-    output_json = tmp_path / "stage5_11.json"
-    output_md = tmp_path / "stage5_11.md"
-    cache_dir = tmp_path / "cache"
-    _synthetic_stage5_10(input_json)
-
-    expected_ids = []
-    for point in default_stage5_11_points(smoke=True):
-        row = _synthetic_row(point)
-        expected_ids.append(row["point_id"])
-        write_point_cache(
-            cache_dir,
-            row,
-            response_config=_response_config(),
-            lattice_convention=_lattice_convention(),
-        )
-        assert cache_path_for_point(cache_dir, row["point_id"]).exists()
-
-    subprocess.run(
-        [
-            sys.executable,
-            str(SCRIPT),
-            "--input-json",
-            str(input_json),
-            "--output-json",
-            str(output_json),
-            "--output-md",
-            str(output_md),
-            "--smoke",
-            "--workers",
-            "2",
-            "--resume",
-            "--skip-existing",
-            "--cache-dir",
-            str(cache_dir),
-        ],
-        check=True,
-    )
-    data = json.loads(output_json.read_text(encoding="utf-8"))
-    actual_ids = [row["point_id"] for row in data["point_results"]]
-    assert actual_ids == expected_ids
-    assert all(row["cache"]["source"] == "hit" for row in data["point_results"])

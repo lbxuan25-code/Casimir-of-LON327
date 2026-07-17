@@ -1,28 +1,36 @@
-# 输出指南
+# 运行产物
 
-`outputs/` 保存当前主计算产物的轻量说明、summary、figures/data 目录占位和必要复现入口。
+`outputs/` 只定义正式运行的本地目录结构。生成结果、缓存、日志和图表均不提交到 Git；需要长期保留的紧凑回归证据进入 `validation/references/`。
 
-raw 数组、scratch 图、cache、临时结果和大型 CSV 不作为 `outputs/` 的长期 Git 内容。数值收敛性、公式诊断、benchmark-only 证据和 cache 属于 `validation/` 或本地再生成产物。
+## Casimir 算例布局
 
-## 当前保留内容
+```text
+outputs/casimir/runs/<case>/
+├── manifest.json
+├── config.json
+├── summary.json
+├── result.json
+└── cache/
+    └── certified_points.json
+```
 
-- `normal_state/`：normal-state conductivity 与 band / block inspection 的说明；
-- `pairing/`：pairing 和 gap structure 的说明；
-- `bdg/`：BdG paramagnetic / diamagnetic / total kernel 与 superconducting response 的说明；
-- `casimir/local_response_distance_scan/`：local-response baseline / benchmark 的轻量说明与复现入口。
+- `<case>` 是稳定、可读的物理算例名，例如 `spm_T10K_d20nm_theta17deg`；
+- 不以 `v1`、`v2`、`latest`、时间戳或临时调试名组织算例；
+- `manifest.json` 记录状态、commit 和文件关系；
+- `config.json` 是完整嵌套配置；
+- `summary.json` 是人工阅读入口；
+- `result.json` 保存完整审计证据；
+- `cache/` 支持相同物理策略下的恢复和 Matsubara 增量扩展。
 
-## 阅读顺序
+## 运行
 
-1. `../docs/current_route.md`
-2. `normal_state/README.md`
-3. `pairing/gap_structure/README.md`
-4. `bdg/total_kernel_imag/README.md`
-5. `bdg/superconducting_response_imag/README.md`
-6. `casimir/local_response_distance_scan/README.md`
+```bash
+python -m lno327.casimir \
+  --case spm_T10K_d20nm_theta17deg \
+  --pairings spm \
+  --temperature-K 10 \
+  --separation-nm 20 \
+  --plate-angles-deg 0 17
+```
 
-## 维护原则
-
-- `outputs/` 面向当前主计算产物和边界清楚的结果摘要；
-- `validation/` 面向“为什么这些计算可信”的支撑证据；
-- `outputs/**/data/` 和 `outputs/**/figures/` 只保留目录占位；生成内容不提交；
-- 需要复查 validation 证据时先看 `../validation/README.md`。
+同一算例继续使用已有微观点缓存时加 `--resume`。物理或数值配置不兼容时 CLI/provider 会拒绝复用，而不是静默覆盖。

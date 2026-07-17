@@ -5,12 +5,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "lno327-casimir-torque"
 version = "0.1.0"
-description = "Foundational LNO327 superconducting pairing and Casimir-torque utilities."
+description = "LNO327 finite-q response and full adaptive Casimir integration."
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.23", "scipy>=1.9"]
 
+[project.scripts]
+lno327-casimir = "lno327.casimir.cli:main"
+
 [project.optional-dependencies]
-dev = ["pytest>=7"]
+validation = ["threadpoolctl>=3", "psutil>=5"]
+dev = ["pytest>=7", "matplotlib>=3.6", "threadpoolctl>=3", "psutil>=5"]
 plot = ["matplotlib>=3.6"]
 
 [tool.setuptools.packages.find]

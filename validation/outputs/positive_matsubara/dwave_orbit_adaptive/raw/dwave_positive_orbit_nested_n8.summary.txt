@@ -1,0 +1,18 @@
+positive-Matsubara d-wave commensurate-orbit transverse-adaptive validation
+==============================================================================
+grid q = (2 pi/1256) (6, 4)
+q = (0.0300152164356, 0.0200101442904); |q| = 0.0360738006342
+orbit basis p = (3, 2); transverse n = (1, 1)
+orbit origins = (0.5,)
+adaptive: pilot=16, epsabs=2.000e-05, epsrel=2.000e-03, limit=60, rule=periodic_trapezoid, norm=max
+transverse evaluations = 256; point evaluations = 321536
+scaled error estimate = 2.922048e-03; adaptive success = True
+
+ n       xi[eV]    Ward-mixed    condition   sheet  reflection  logdet  point
+----------------------------------------------------------------------------------------
+ 8  4.33154e-02    7.443e-05   6.836e+00   True       True    True   True
+
+all point pipelines passed = True
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False

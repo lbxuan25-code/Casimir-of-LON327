@@ -11,6 +11,8 @@ from typing import Any
 
 import numpy as np
 
+from lno327.electrodynamics.basis import q_lab_to_crystal, rotation_matrix
+
 
 def _as_2x2_complex(matrix: np.ndarray) -> np.ndarray:
     array = np.asarray(matrix)
@@ -67,20 +69,18 @@ def scalar_sheet_te_tm_reflection(sigma_tilde: float, eta_L: float, eta_T: float
 
 
 def rotation_matrix_2d(theta_rad: float) -> np.ndarray:
-    """Return the active two-dimensional rotation matrix R(theta)."""
+    """Backward-compatible alias for the central active 2D rotation."""
 
-    cos_t = float(np.cos(theta_rad))
-    sin_t = float(np.sin(theta_rad))
-    return np.array([[cos_t, -sin_t], [sin_t, cos_t]], dtype=float)
+    return rotation_matrix(theta_rad)
 
 
 def lab_q_to_crystal_q(Q_lab: np.ndarray, theta_rad: float) -> np.ndarray:
-    """Return Q_crystal = R(-theta) Q_lab."""
+    """Return Q_crystal = R(-theta) Q_lab using the central basis convention."""
 
     q = np.asarray(Q_lab, dtype=float)
     if q.shape != (2,):
         raise ValueError("Q_lab must have shape (2,)")
-    return rotation_matrix_2d(-float(theta_rad)) @ q
+    return q_lab_to_crystal(q, theta_rad)
 
 
 def pre_lifshitz_readiness_metadata() -> dict[str, Any]:

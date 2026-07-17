@@ -57,6 +57,20 @@ def fermi_derivative(
     return -float(1.0 / (4.0 * temperature_eV * np.cosh(x) ** 2))
 
 
+def _is_zero_matsubara(omega_eV: float) -> bool:
+    """Return whether the frequency is the exact bosonic zero mode.
+
+    The static equilibrium susceptibility is selected by the Matsubara index,
+    not by whether the two shifted Hamiltonians happen to share an eigenbasis.
+    Production callers therefore pass exactly ``omega_eV == 0`` for ``n=0``.
+    """
+
+    omega = float(omega_eV)
+    if not np.isfinite(omega):
+        raise ValueError("omega_eV must be finite")
+    return bool(omega == 0.0)
+
+
 def kubo_factor(
     em: float,
     en: float,
@@ -69,12 +83,24 @@ def kubo_factor(
     temperature_eV: float | None = None,
     eta_eV: float = 1e-8,
 ) -> complex:
+    """Return the finite-q imaginary-axis Kubo divided difference.
+
+    At the exact zero Matsubara mode the degenerate divided difference is the
+    thermodynamic derivative ``f'(E)``.  This branch is used for arbitrary
+    finite q as well as q=0 and contains no retarded ``i eta`` broadening.
+    ``static_limit`` is retained for backward compatibility with callers that
+    explicitly request the same equilibrium limit.
+    """
+
+    omega = float(omega_eV)
     delta_e = float(em) - float(en)
-    if static_limit and abs(float(omega_eV)) <= eta_eV and abs(delta_e) < eta_eV:
+    static_matsubara = bool(static_limit or _is_zero_matsubara(omega))
+    if static_matsubara and abs(omega) <= float(eta_eV) and abs(delta_e) < float(eta_eV):
         if temperature_eV is None:
             raise ValueError("temperature_eV is required for static degenerate Kubo factor")
-        return fermi_derivative(float(em), fermi_level_eV, temperature_eV, eta_eV)
-    return (float(fm) - float(fn)) / (1j * float(omega_eV) + delta_e)
+        midpoint_energy = 0.5 * (float(em) + float(en))
+        return fermi_derivative(midpoint_energy, fermi_level_eV, temperature_eV, eta_eV)
+    return (float(fm) - float(fn)) / (1j * omega + delta_e)
 
 
 def vertex_band(states_minus: np.ndarray, vertex: np.ndarray, states_plus: np.ndarray) -> np.ndarray:
@@ -106,13 +132,20 @@ def add_bubble(
 ) -> None:
     left_band = tuple(vertex_band(states_minus, vertex, states_plus) for vertex in left_vertices)
     right_band = tuple(vertex_band(states_minus, vertex, states_plus) for vertex in right_vertices)
+    exact_zero_matsubara = _is_zero_matsubara(omega_eV)
+    static_matsubara = bool(static_limit or exact_zero_matsubara)
     for m, energy_minus in enumerate(energies_minus):
         for n, energy_plus in enumerate(energies_plus):
             occupation_diff = float(occupations_minus[m] - occupations_plus[n])
-            if occupation_diff == 0.0 and not static_limit:
+            if occupation_diff == 0.0 and not static_matsubara:
                 continue
             if config is None:
-                raw_factor = occupation_diff / (1j * omega_eV + float(energy_minus - energy_plus))
+                delta_e = float(energy_minus - energy_plus)
+                if exact_zero_matsubara and abs(delta_e) < 1e-14:
+                    raise ValueError(
+                        "config is required for a degenerate zero-Matsubara bubble"
+                    )
+                raw_factor = occupation_diff / (1j * omega_eV + delta_e)
             else:
                 raw_factor = kubo_factor(
                     float(energy_minus),
@@ -120,7 +153,7 @@ def add_bubble(
                     float(occupations_minus[m]),
                     float(occupations_plus[n]),
                     omega_eV,
-                    static_limit=static_limit,
+                    static_limit=static_matsubara,
                     fermi_level_eV=config.fermi_level_eV,
                     temperature_eV=config.temperature_eV,
                     eta_eV=config.eta_eV,
@@ -147,13 +180,20 @@ def add_band_bubble(
 ) -> None:
     """Accumulate a bubble from forward vertices stored as [minus, plus]."""
 
+    exact_zero_matsubara = _is_zero_matsubara(omega_eV)
+    static_matsubara = bool(static_limit or exact_zero_matsubara)
     for m, energy_minus in enumerate(energies_minus):
         for n, energy_plus in enumerate(energies_plus):
             occupation_diff = float(occupations_minus[m] - occupations_plus[n])
-            if occupation_diff == 0.0 and not static_limit:
+            if occupation_diff == 0.0 and not static_matsubara:
                 continue
             if config is None:
-                raw_factor = occupation_diff / (1j * omega_eV + float(energy_minus - energy_plus))
+                delta_e = float(energy_minus - energy_plus)
+                if exact_zero_matsubara and abs(delta_e) < 1e-14:
+                    raise ValueError(
+                        "config is required for a degenerate zero-Matsubara bubble"
+                    )
+                raw_factor = occupation_diff / (1j * omega_eV + delta_e)
             else:
                 raw_factor = kubo_factor(
                     float(energy_minus),
@@ -161,7 +201,7 @@ def add_band_bubble(
                     float(occupations_minus[m]),
                     float(occupations_plus[n]),
                     omega_eV,
-                    static_limit=static_limit,
+                    static_limit=static_matsubara,
                     fermi_level_eV=config.fermi_level_eV,
                     temperature_eV=config.temperature_eV,
                     eta_eV=config.eta_eV,

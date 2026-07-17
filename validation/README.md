@@ -1,47 +1,49 @@
-# Validation 指南
+# Validation
 
-`validation/` 保存当前可复现的数值检验、诊断结果、轻量 status 和复现入口。这里不是 raw numerical artifacts 的长期仓库。
+`validation/` contains reproducible checks for Ward identities, response conventions,
+numerical stability, and independent quadrature contracts. It is not part of the
+production calculation implementation.
 
-## 目录组织
+The dependency direction is:
 
-- `scripts/`：可复现的 validation、diagnostic、convergence 和 smoke 检验入口；
-- `outputs/`：按具体检验对象组织的 README、summary、status marker 和 command；
-- `cache/`：可再生成的响应张量或中间数组缓存；
-- `reports/`：跨主题 validation 总览和 artifact policy。
+```text
+validation -> src/lno327
+```
 
-validation 报告按“具体检验对象”阅读：每个检验应说明检验目的、被检验对象、判据、结果、边界和复现方式。
+Code under `src/lno327` must never depend on the top-level `validation` package.
 
-BdG finite-q validation 关注 raw finite-q response 是否满足 Ward / gauge closure，以及它是否可进入 formal conductivity / reflection / Casimir gating chain。对应复现入口位于 `validation/scripts/bdg_finite_q/`，统一轻量报告和复现命令位于 `validation/outputs/finite_q_ward/`。
+## Fixed Casimir chain
 
-## Artifact 策略
+The complete fixed microscopic Casimir chain is production-owned:
 
-长期进入 Git 的证据应保持紧凑：
+```python
+from lno327.casimir import FixedCasimirConfig, run_casimir
 
-- README；
-- summary markdown；
-- 小型 status / summary JSON 或 CSV；
-- `command.sh` 或复现命令；
-- validation report 文档。
+result = run_casimir(FixedCasimirConfig())
+```
 
-默认不跟踪：
+The former validation compatibility facades, legacy numerical copies,
+`microscopic-outer-q-preflight` command, and `transverse-point-sweet-spot` command
+have been removed. Validation no longer provides an alternate entry point for the
+fixed Casimir calculation.
 
-- `.npz` / `.npy`；
-- raw、expanded 或大型 data CSV；
-- cache tensors；
-- intermediate outputs；
-- repeated benchmark figures；
-- scratch logs。
+The immutable qualified `spm`, `n=0,1` golden fixture remains under
+`validation/references/casimir/` as regression evidence. It is not a runtime output
+and does not authorize a complete production Casimir result.
 
-`validation/cache/` 总是可再生成。`validation/outputs/` 只保留小型摘要、状态和复现入口。需要复查 raw artifact 时，运行对应目录的 `command.sh` 或 `validation/scripts/**` 重新生成本地 ignored 输出。
+## Runtime outputs
 
-## 阅读顺序
+All files generated under `validation/outputs/`, `validation/logs/`, and
+`validation/cache/` are local reproducible artifacts and are ignored by version
+control. Results that must become long-lived contracts should be reduced to a small,
+reviewed fixture under `validation/references/` or documented in `docs/`.
 
-1. `validation/reports/validation_summary.md`
-2. `validation/reports/validation_artifact_inventory.md`
-3. `validation/outputs/**/README.md`
-4. `validation/outputs/**/*summary*.md`
-5. `validation/outputs/**/command.sh`
+## Retained command surface
 
-## 边界
+```bash
+python -m validation <group> <command> [options]
+```
 
-validation 报告只说明当前检验结果和适用范围。除非 summary/status 明确写成 production-ready，否则 diagnostic-only 结果不得作为正式 Casimir energy、force、torque 输入。
+The retained CLI exposes independent Ward, Matsubara, numerical, diagnostic, and
+outer-measure checks listed by `python -m validation --help`. These commands never
+authorize production Casimir output.

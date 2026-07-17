@@ -41,25 +41,47 @@ def _eta2_phase_vertex(phi: np.ndarray) -> np.ndarray:
     return np.block([[zero, 1j * phi], [-1j * phi.conjugate().T, zero]]).astype(complex)
 
 
-def _amplitude_vertex_from_endpoints(phi_minus: np.ndarray, phi_plus: np.ndarray) -> np.ndarray:
+def _amplitude_vertex_from_endpoints(
+    phi_minus: np.ndarray,
+    phi_plus: np.ndarray,
+) -> np.ndarray:
     zero = np.zeros_like(phi_plus)
-    return np.block([[zero, phi_plus], [phi_minus.conjugate().T, zero]]).astype(complex)
+    return np.block([[zero, phi_plus], [phi_minus.conjugate().T, zero]]).astype(
+        complex
+    )
 
 
-def _eta2_phase_vertex_from_endpoints(phi_minus: np.ndarray, phi_plus: np.ndarray) -> np.ndarray:
+def _eta2_phase_vertex_from_endpoints(
+    phi_minus: np.ndarray,
+    phi_plus: np.ndarray,
+) -> np.ndarray:
     zero = np.zeros_like(phi_plus)
-    return np.block([[zero, 1j * phi_plus], [-1j * phi_minus.conjugate().T, zero]]).astype(complex)
+    return np.block(
+        [[zero, 1j * phi_plus], [-1j * phi_minus.conjugate().T, zero]]
+    ).astype(complex)
 
 
-def _kubo_static_factor(em: float, en: float, fm: float, fn: float, config) -> complex:
+def _kubo_static_factor(
+    em: float,
+    en: float,
+    fm: float,
+    fn: float,
+    config,
+) -> complex:
     delta_e = float(em) - float(en)
     if abs(delta_e) < config.eta_eV:
         shifted = float(em) - float(config.fermi_level_eV)
         if config.temperature_eV <= 0.0:
             width = max(float(config.eta_eV), 1e-12)
             return -float(width / (np.pi * (shifted**2 + width**2)))
-        x = np.clip(shifted / (2.0 * config.temperature_eV), -350.0, 350.0)
-        return -float(1.0 / (4.0 * config.temperature_eV * np.cosh(x) ** 2))
+        x = np.clip(
+            shifted / (2.0 * config.temperature_eV),
+            -350.0,
+            350.0,
+        )
+        return -float(
+            1.0 / (4.0 * config.temperature_eV * np.cosh(x) ** 2)
+        )
     return (float(fm) - float(fn)) / delta_e
 
 
@@ -71,6 +93,36 @@ def _form_factor(name: PairingChannel, kx: float, ky: float) -> np.ndarray:
     if name == "dwave":
         return d_wave_form_factor(kx, ky) * TAU0.astype(complex)
     raise ValueError("pairing ansatz must be 'normal', 'spm', or 'dwave'")
+
+
+def _points_array(k_points: np.ndarray) -> np.ndarray:
+    points = np.asarray(k_points, dtype=float)
+    if points.ndim < 1 or points.shape[-1] != 2:
+        raise ValueError("k_points must have shape (..., 2)")
+    if not np.isfinite(points).all():
+        raise ValueError("k_points must be finite")
+    return points
+
+
+def _q_array(q_model: np.ndarray) -> np.ndarray:
+    q = np.asarray(q_model, dtype=float)
+    if q.shape != (2,) or not np.isfinite(q).all():
+        raise ValueError("q_model must be a finite vector with shape (2,)")
+    return q
+
+
+def _collective_vertices_batch_from_phi(phi: np.ndarray) -> np.ndarray:
+    form = np.asarray(phi, dtype=complex)
+    if form.shape[-2:] != (2, 2):
+        raise ValueError("collective form factor must have shape (..., 2, 2)")
+    result = np.zeros(form.shape[:-2] + (2, 4, 4), dtype=complex)
+    form_dagger = np.swapaxes(form.conjugate(), -1, -2)
+
+    result[..., 0, :2, 2:] = form
+    result[..., 0, 2:, :2] = form_dagger
+    result[..., 1, :2, 2:] = 1j * form
+    result[..., 1, 2:, :2] = -1j * form_dagger
+    return result
 
 
 @dataclass(frozen=True)
@@ -91,7 +143,39 @@ class SymmetryTwoBandPairingAnsatz:
         if self.name == "spm":
             return amplitude.spm_delta * TAUX.astype(complex)
         if self.name == "dwave":
-            return amplitude.dwave_delta * d_wave_form_factor(kx, ky) * TAU0.astype(complex)
+            return (
+                amplitude.dwave_delta
+                * d_wave_form_factor(kx, ky)
+                * TAU0.astype(complex)
+            )
+        raise ValueError("pairing ansatz must be 'normal', 'spm', or 'dwave'")
+
+    def mean_pairing_batch(
+        self,
+        k_points: np.ndarray,
+        amp: SymmetryTwoBandPairingAmplitudes | None = None,
+    ) -> np.ndarray:
+        """Return mean pairing matrices with shape (..., 2, 2)."""
+
+        points = _points_array(k_points)
+        amplitude = amp or SymmetryTwoBandPairingAmplitudes()
+        leading = points.shape[:-1]
+        if self.name == "normal":
+            return np.zeros(leading + (2, 2), dtype=complex)
+        if self.name == "spm":
+            return np.broadcast_to(
+                amplitude.spm_delta * TAUX.astype(complex),
+                leading + (2, 2),
+            ).copy()
+        if self.name == "dwave":
+            factor = 0.5 * (
+                np.cos(points[..., 0]) - np.cos(points[..., 1])
+            )
+            return (
+                amplitude.dwave_delta
+                * factor[..., None, None]
+                * TAU0.astype(complex)
+            )
         raise ValueError("pairing ansatz must be 'normal', 'spm', or 'dwave'")
 
     def collective_form_factor(
@@ -110,10 +194,53 @@ class SymmetryTwoBandPairingAnsatz:
         if self.phase_vertex == "midpoint":
             return self.mean_pairing(kx, ky, amp) / delta0
         if self.phase_vertex in {"symmetric_kpm", "bond_endpoint_gauge"}:
-            phi_minus = self.mean_pairing(kx - 0.5 * qx, ky - 0.5 * qy, amp) / delta0
-            phi_plus = self.mean_pairing(kx + 0.5 * qx, ky + 0.5 * qy, amp) / delta0
+            phi_minus = (
+                self.mean_pairing(
+                    kx - 0.5 * qx,
+                    ky - 0.5 * qy,
+                    amp,
+                )
+                / delta0
+            )
+            phi_plus = (
+                self.mean_pairing(
+                    kx + 0.5 * qx,
+                    ky + 0.5 * qy,
+                    amp,
+                )
+                / delta0
+            )
             return 0.5 * (phi_minus + phi_plus)
-        raise ValueError("phase_vertex must be 'midpoint', 'symmetric_kpm', or 'bond_endpoint_gauge'")
+        raise ValueError(
+            "phase_vertex must be 'midpoint', 'symmetric_kpm', or "
+            "'bond_endpoint_gauge'"
+        )
+
+    def collective_form_factor_batch(
+        self,
+        k_points: np.ndarray,
+        q_model: np.ndarray,
+        amp: SymmetryTwoBandPairingAmplitudes,
+    ) -> np.ndarray:
+        """Return collective form factors with shape (..., 2, 2)."""
+
+        points = _points_array(k_points)
+        q = _q_array(q_model)
+        delta0 = float(amp.delta0_eV)
+        if delta0 == 0.0:
+            raise ValueError("pairing form factor is undefined for delta0=0")
+        if self.name == "normal":
+            return np.zeros(points.shape[:-1] + (2, 2), dtype=complex)
+        if self.phase_vertex == "midpoint":
+            return self.mean_pairing_batch(points, amp) / delta0
+        if self.phase_vertex in {"symmetric_kpm", "bond_endpoint_gauge"}:
+            phi_minus = self.mean_pairing_batch(points - 0.5 * q, amp) / delta0
+            phi_plus = self.mean_pairing_batch(points + 0.5 * q, amp) / delta0
+            return 0.5 * (phi_minus + phi_plus)
+        raise ValueError(
+            "phase_vertex must be 'midpoint', 'symmetric_kpm', or "
+            "'bond_endpoint_gauge'"
+        )
 
     def phase_pairing_matrix(
         self,
@@ -125,7 +252,30 @@ class SymmetryTwoBandPairingAnsatz:
     ) -> np.ndarray:
         if self.name == "normal" or float(amp.delta0_eV) == 0.0:
             return np.zeros((2, 2), dtype=complex)
-        return float(amp.delta0_eV) * self.collective_form_factor(kx, ky, qx, qy, amp)
+        return float(amp.delta0_eV) * self.collective_form_factor(
+            kx,
+            ky,
+            qx,
+            qy,
+            amp,
+        )
+
+    def phase_pairing_matrix_batch(
+        self,
+        k_points: np.ndarray,
+        q_model: np.ndarray,
+        amp: SymmetryTwoBandPairingAmplitudes,
+    ) -> np.ndarray:
+        """Return phase-pairing matrices with shape (..., 2, 2)."""
+
+        points = _points_array(k_points)
+        if self.name == "normal" or float(amp.delta0_eV) == 0.0:
+            return np.zeros(points.shape[:-1] + (2, 2), dtype=complex)
+        return float(amp.delta0_eV) * self.collective_form_factor_batch(
+            points,
+            q_model,
+            amp,
+        )
 
     def _endpoint_form_factors(
         self,
@@ -138,8 +288,22 @@ class SymmetryTwoBandPairingAnsatz:
         delta0 = float(amp.delta0_eV)
         if delta0 == 0.0:
             raise ValueError("pairing form factor is undefined for delta0=0")
-        phi_minus = self.mean_pairing(kx - 0.5 * qx, ky - 0.5 * qy, amp) / delta0
-        phi_plus = self.mean_pairing(kx + 0.5 * qx, ky + 0.5 * qy, amp) / delta0
+        phi_minus = (
+            self.mean_pairing(
+                kx - 0.5 * qx,
+                ky - 0.5 * qy,
+                amp,
+            )
+            / delta0
+        )
+        phi_plus = (
+            self.mean_pairing(
+                kx + 0.5 * qx,
+                ky + 0.5 * qy,
+                amp,
+            )
+            / delta0
+        )
         return phi_minus, phi_plus
 
     def collective_vertices(
@@ -152,13 +316,26 @@ class SymmetryTwoBandPairingAnsatz:
     ) -> tuple[np.ndarray, ...]:
         """Return amplitude/eta2 vertices using the Ward gauge source convention.
 
-        Finite-q charge Ward closure has anomalous source Delta(k-q/2)+Delta(k+q/2).
-        Therefore bond_endpoint_gauge uses the same endpoint-average form factor as
-        phase_pairing_matrix.  Endpoint-asymmetric helpers are retained only for
-        diagnostics and are not used as the eta2 Ward gauge channel.
+        Finite-q charge Ward closure has anomalous source
+        Delta(k-q/2)+Delta(k+q/2). Therefore bond_endpoint_gauge uses the same
+        endpoint-average form factor as phase_pairing_matrix.
+        Endpoint-asymmetric helpers are retained only for diagnostics and are
+        not used as the eta2 Ward gauge channel.
         """
+
         phi = self.collective_form_factor(kx, ky, qx, qy, amp)
         return (_amplitude_vertex(phi), _eta2_phase_vertex(phi))
+
+    def collective_vertices_batch(
+        self,
+        k_points: np.ndarray,
+        q_model: np.ndarray,
+        amp: SymmetryTwoBandPairingAmplitudes,
+    ) -> np.ndarray:
+        """Return both collective vertices with shape (..., 2, 4, 4)."""
+
+        phi = self.collective_form_factor_batch(k_points, q_model, amp)
+        return _collective_vertices_batch_from_phi(phi)
 
     def hs_counterterm(
         self,
@@ -170,8 +347,15 @@ class SymmetryTwoBandPairingAnsatz:
         points = np.asarray(k_points, dtype=float)
         weights = np.asarray(k_weights, dtype=float)
         bubble = np.zeros((2, 2), dtype=complex)
-        params = TwoBandParameters(delta_s=amp.spm_delta, delta_d=amp.dwave_delta)
-        for weight, (kx_value, ky_value) in zip(weights, points, strict=True):
+        params = TwoBandParameters(
+            delta_s=amp.spm_delta,
+            delta_d=amp.dwave_delta,
+        )
+        for weight, (kx_value, ky_value) in zip(
+            weights,
+            points,
+            strict=True,
+        ):
             kx = float(kx_value)
             ky = float(ky_value)
             delta = self.mean_pairing(kx, ky, amp)
@@ -181,8 +365,21 @@ class SymmetryTwoBandPairingAnsatz:
                 delta,
             )
             energies, states = np.linalg.eigh(h)
-            occupations = fermi_function(energies, config.fermi_level_eV, config.temperature_eV)
-            band = tuple(states.conjugate().T @ vertex @ states for vertex in self.collective_vertices(kx, ky, 0.0, 0.0, amp))
+            occupations = fermi_function(
+                energies,
+                config.fermi_level_eV,
+                config.temperature_eV,
+            )
+            band = tuple(
+                states.conjugate().T @ vertex @ states
+                for vertex in self.collective_vertices(
+                    kx,
+                    ky,
+                    0.0,
+                    0.0,
+                    amp,
+                )
+            )
             for m, energy_m in enumerate(energies):
                 for n, energy_n in enumerate(energies):
                     factor = 0.5 * float(weight) * _kubo_static_factor(
@@ -194,9 +391,19 @@ class SymmetryTwoBandPairingAnsatz:
                     )
                     for left_idx, left in enumerate(band):
                         for right_idx, right in enumerate(band):
-                            bubble[left_idx, right_idx] += factor * left[m, n] * np.conjugate(right[m, n])
-        counterterm = np.zeros((len(self.channel_names), len(self.channel_names)), dtype=complex)
-        counterterm[:, :] = -complex(bubble[1, 1]) * np.eye(len(self.channel_names), dtype=complex)
+                            bubble[left_idx, right_idx] += (
+                                factor
+                                * left[m, n]
+                                * np.conjugate(right[m, n])
+                            )
+        counterterm = np.zeros(
+            (len(self.channel_names), len(self.channel_names)),
+            dtype=complex,
+        )
+        counterterm[:, :] = -complex(bubble[1, 1]) * np.eye(
+            len(self.channel_names),
+            dtype=complex,
+        )
         return counterterm
 
     def metadata(self) -> dict[str, Any]:
@@ -204,8 +411,12 @@ class SymmetryTwoBandPairingAnsatz:
             "name": self.name,
             "channel_names": list(self.channel_names),
             "phase_vertex": self.phase_vertex,
-            "eta2_gauge_source": "endpoint_average_delta_minus_plus_delta_plus_over_2delta0",
-            "bond_endpoint_gauge_eta2_convention": "endpoint_average_not_endpoint_asymmetric",
+            "eta2_gauge_source": (
+                "endpoint_average_delta_minus_plus_delta_plus_over_2delta0"
+            ),
+            "bond_endpoint_gauge_eta2_convention": (
+                "endpoint_average_not_endpoint_asymmetric"
+            ),
             "model": "symmetry_bdg_2band",
             "bond_resolved_extra_modes": False,
             "validation_only": True,
@@ -220,4 +431,7 @@ def build_pairing_ansatz(
 ) -> SymmetryTwoBandPairingAnsatz:
     if name not in {"normal", "spm", "dwave"}:
         raise ValueError("pairing ansatz must be 'normal', 'spm', or 'dwave'")
-    return SymmetryTwoBandPairingAnsatz(name=name, phase_vertex=phase_vertex)
+    return SymmetryTwoBandPairingAnsatz(
+        name=name,
+        phase_vertex=phase_vertex,
+    )

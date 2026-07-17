@@ -21,6 +21,11 @@ from lno327.response.finite_q_bdg import (
     finite_q_bdg_response_from_workspace,
     precompute_finite_q_bdg_workspace_from_model_ansatz,
 )
+from lno327.response.phase_hessian import (
+    PhaseHessianPolicy,
+    apply_phase_hessian_policy_to_components,
+    phase_hessian_policy_from_options,
+)
 from lno327.response.validation import validate_finite_q_inputs
 from lno327.models.lno327_four_orbital.collective import PairingAnsatz, build_pairing_ansatz
 from lno327.models.lno327_four_orbital.parameters import PairingAmplitudes, PhaseVertexName
@@ -41,6 +46,7 @@ class FiniteQEngineOptions:
     phase_phase_direct_convention: PhaseDirectConvention = "plus"
     collective_mode: CollectiveMode = "amplitude_phase"
     collective_counterterm: CollectiveCounterterm = "goldstone_gap_equation"
+    phase_hessian_policy: PhaseHessianPolicy = "q_independent"
 
 
 def _is_normal_limit(pairing_params: PairingAmplitudes | None) -> bool:
@@ -93,6 +99,7 @@ def _normal_limit_components(
             "phase_correction_requested": bool(include_phase_correction),
             "phase_correction_applied": False,
             "phase_correction_status": "skipped_normal_delta0_limit",
+            "phase_hessian_policy": "not_applicable_normal_limit",
             "valid_for_casimir_input": False,
             "casimir_gating_status": "diagnostic_normal_limit_response_not_promoted_by_finite_q_engine",
         },
@@ -151,10 +158,11 @@ def finite_q_bdg_response_from_ansatz(
     pairing_params: PairingAmplitudes | None = None,
     options: FiniteQEngineOptions | None = None,
 ) -> BdGFiniteQResponseComponents:
-    """Return finite-q BdG response components for the LNO327 four-orbital ansatz."""
+    """Return finite-q components with the explicit phase-Hessian policy applied."""
 
     amp = pairing_params or PairingAmplitudes()
-    return finite_q_bdg_response_from_model_ansatz(
+    opts = options or FiniteQEngineOptions()
+    base = finite_q_bdg_response_from_model_ansatz(
         LNO327FourOrbitalSpec(pairing_amplitudes=amp),
         ansatz,
         omega_eV,
@@ -163,8 +171,15 @@ def finite_q_bdg_response_from_ansatz(
         k_weights,
         config,
         amp,
-        options,
+        opts,
     )
+    corrected, _ = apply_phase_hessian_policy_to_components(
+        base,
+        ansatz,
+        q_model,
+        phase_hessian_policy_from_options(opts),
+    )
+    return corrected
 
 
 def precompute_finite_q_engine_workspace(
@@ -179,6 +194,7 @@ def precompute_finite_q_engine_workspace(
     """Precompute omega-independent finite-q BdG workflow data."""
 
     amp = pairing_params or PairingAmplitudes()
+    opts = options or FiniteQEngineOptions()
     return precompute_finite_q_bdg_workspace_from_model_ansatz(
         LNO327FourOrbitalSpec(pairing_amplitudes=amp),
         ansatz,
@@ -187,7 +203,7 @@ def precompute_finite_q_engine_workspace(
         k_weights,
         config,
         amp,
-        options,
+        opts,
     )
 
 
@@ -196,9 +212,18 @@ def bdg_finite_q_response_imag_axis_from_workspace(
     omega_eV: float | None = None,
     config: KuboConfig | None = None,
 ) -> BdGFiniteQResponseComponents:
-    """Evaluate a precomputed finite-q BdG workspace at one Matsubara energy."""
+    """Evaluate a legacy workspace and apply its explicit phase-Hessian policy."""
 
-    return finite_q_bdg_response_from_workspace(workspace, omega_eV=omega_eV, config=config)
+    base = finite_q_bdg_response_from_workspace(
+        workspace, omega_eV=omega_eV, config=config
+    )
+    corrected, _ = apply_phase_hessian_policy_to_components(
+        base,
+        workspace.ansatz,
+        workspace.q_model,
+        phase_hessian_policy_from_options(workspace.options),
+    )
+    return corrected
 
 
 def bdg_finite_q_response_imag_axis(
@@ -218,22 +243,31 @@ def bdg_finite_q_response_imag_axis(
     phase_phase_direct_convention: PhaseDirectConvention = "plus",
     collective_mode: CollectiveMode = "amplitude_phase",
     collective_counterterm: CollectiveCounterterm = "goldstone_gap_equation",
+    phase_hessian_policy: PhaseHessianPolicy = "q_independent",
 ) -> BdGFiniteQResponseComponents:
     """Return finite-q BdG response components through the generic engine.
 
     ``phase_vertex="symmetric_kpm"`` remains the legacy default for this public
-    convenience entry point. New ansatz-based workflows should choose the phase
-    vertex explicitly; ``PairingAnsatz`` itself defaults to
-    ``bond_endpoint_gauge``.
+    convenience entry point.  The nearest-neighbour bond phase-Hessian policy
+    therefore requires callers to opt into both ``pairing="dwave"`` and
+    ``phase_vertex="bond_endpoint_gauge"`` explicitly.
     """
 
     if pairing not in {"onsite_s", "spm", "dwave"}:
         raise ValueError("pairing must be 'onsite_s', 'spm', or 'dwave'")
     q, points, weights = validate_finite_q_inputs(q_model, k_points, k_weights, config)
     if _is_normal_limit(pairing_params) and use_normal_backend_in_delta0_limit:
-        return _normal_limit_components(q, points, weights, config, include_phase_correction=include_phase_correction)
+        return _normal_limit_components(
+            q,
+            points,
+            weights,
+            config,
+            include_phase_correction=include_phase_correction,
+        )
     if phase_vertex not in {"midpoint", "symmetric_kpm", "bond_endpoint_gauge"}:
-        raise ValueError("phase_vertex must be 'midpoint', 'symmetric_kpm', or 'bond_endpoint_gauge'")
+        raise ValueError(
+            "phase_vertex must be 'midpoint', 'symmetric_kpm', or 'bond_endpoint_gauge'"
+        )
 
     ansatz = build_pairing_ansatz(pairing, phase_vertex=phase_vertex)
     return finite_q_bdg_response_from_ansatz(
@@ -251,5 +285,6 @@ def bdg_finite_q_response_imag_axis(
             phase_phase_direct_convention=phase_phase_direct_convention,
             collective_mode=collective_mode,
             collective_counterterm=collective_counterterm,
+            phase_hessian_policy=phase_hessian_policy,
         ),
     )

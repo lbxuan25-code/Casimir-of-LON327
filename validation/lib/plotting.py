@@ -1,4 +1,4 @@
-"""Publication-oriented plotting helpers for diagnostic scripts."""
+"""Publication-oriented plotting helpers for retained diagnostic scripts."""
 
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ def style_publication_axis(ax, *, legend: bool = True, grid: bool = True) -> Non
     ax.minorticks_on()
     ax.tick_params(direction="in", top=True, right=True, width=0.8)
     if legend:
-        handles, labels = ax.get_legend_handles_labels()
+        handles, _labels = ax.get_legend_handles_labels()
         if handles:
             ax.legend()
 

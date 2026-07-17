@@ -1,0 +1,34 @@
+positive-Matsubara d-wave deterministic panel-adaptive validation
+==================================================================================
+grid q = (2 pi/1256) (6, 6)
+orbit origins = (0.5,)
+strategy = deterministic_panel_adaptive; quadrature = nested_clenshaw_curtis_5_9_17_33_split_history
+full-period start = -0.785398163397; initial panels = 8; pilots = 16
+symmetry reduction = False; q-direction special case = False
+primary error ratio = 2.503707e+01; success = False
+audit error ratio = unavailable; success = False
+primary worst = xi_0_mixed on (3.141592653589793, 3.9269908169872414) CC33
+audit worst = unavailable
+refinement trace steps = 15
+primitive group audit passed = False
+unique transverse evaluations = 250 / 256; cache hits = 192
+microscopic point evaluations = 314000
+quadrature wall = 65.624 s; evaluator wall = 65.553 s
+
+last refinement:
+  step=15 stage=primary operation=split_history panel=(2.356194490192345, 3.141592653589793) CC33 new_nodes=14
+  ratio 2.504031e+01 -> 2.503707e+01; worst xi_0_mixed -> xi_0_mixed
+
+ n       xi[eV]  sigma-audit  R-audit  logdet-audit  primary  audit  point
+----------------------------------------------------------------------------------------
+ 1  5.41443e-03         inf      inf          inf     True  False  False
+ 2  1.08289e-02         inf      inf          inf     True  False  False
+ 4  2.16577e-02         inf      inf          inf     True  False  False
+ 8  4.33154e-02         inf      inf          inf     True  False  False
+
+quadrature success = False
+failure reason = panel_boundary_transverse_budget_exceeded: current=250, minimum_required_new=8, maximum=256
+all point pipelines passed = False
+diagnostic_only = True
+production_reference_established = False
+valid_for_casimir_input = False

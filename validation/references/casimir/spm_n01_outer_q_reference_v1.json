@@ -1,0 +1,73 @@
+{
+  "schema": "casimir-fixed-outer-q-reference-v1",
+  "source_git_head": "b45dd6acfdbf9e8074bc1d5392103f0d55b1f7d7",
+  "status": {
+    "all_microscopic_nodes_certified": true,
+    "candidate_outer_q_budget_established": true,
+    "finite_partial_outer_q_integrals_available": true,
+    "production_casimir_allowed": false
+  },
+  "scope": {
+    "pairing": "spm",
+    "temperature_K": 10.0,
+    "separation_nm": 20.0,
+    "plate_angles_deg": [0.0, 17.0],
+    "matsubara_indices": [0, 1],
+    "partial_sum_only": true
+  },
+  "outer_q_contract": {
+    "radial_variable": "u = 2 Q d",
+    "measure": "d^2Q/(2pi)^2 = u du dphi/(16 pi^2 d^2)",
+    "radial_panel_edges": [0.0, 6.0, 10.0, 14.0, 18.0, 24.0],
+    "radial_panel_order": 8,
+    "angular_order": 8,
+    "angular_offset_fraction": 0.5,
+    "full_angular_interval": true,
+    "symmetry_reduction": false,
+    "explicit_q_zero_node": false,
+    "reference_spec_id": "u24_p5_r8_a8_o0p5",
+    "reference_node_count": 320
+  },
+  "microscopic_contract": {
+    "N_candidates": [128, 192, 256],
+    "working_N": 192,
+    "audit_N": 256,
+    "shifts": [[0.5, 0.5], [0.25, 0.75], [0.75, 0.25]],
+    "establishment_mode": "strict_consecutive_adjacent",
+    "certified_q_n_points": 2080,
+    "unresolved_points": 0
+  },
+  "reference_result": {
+    "partial_free_energy_J_m2": -2.4696354012227892e-08,
+    "contributions_J_m2": [
+      -8.238520130188009e-09,
+      -1.6457833882039883e-08
+    ],
+    "outer_q_integrals_m_inv2": [
+      -119342716797506.22,
+      -119203605565497.69
+    ]
+  },
+  "radial_ladder": [
+    {
+      "left_spec_id": "u24_p5_r4_a8_o0p5",
+      "right_spec_id": "u24_p5_r6_a8_o0p5",
+      "absolute_J_m2": 3.7765535720343317e-10,
+      "relative": 0.015017678678410515,
+      "passed": true
+    },
+    {
+      "left_spec_id": "u24_p5_r6_a8_o0p5",
+      "right_spec_id": "u24_p5_r8_a8_o0p5",
+      "absolute_J_m2": 7.337627455320714e-11,
+      "relative": 0.0029623364365968076,
+      "passed": true
+    }
+  ],
+  "cutoff_tail_increments_J_m2": [
+    {"panel": [6.0, 10.0], "value": -3.431411870254542e-10},
+    {"panel": [10.0, 14.0], "value": -9.84181212989623e-12},
+    {"panel": [14.0, 18.0], "value": -2.445745900590095e-13},
+    {"panel": [18.0, 24.0], "value": -5.749821356463222e-15}
+  ]
+}

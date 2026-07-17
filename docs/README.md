@@ -1,21 +1,15 @@
 # 文档入口
 
-本目录保存仓库的理论主线和工程设计说明。
-
-它不是：
-
-- validation 结果目录；
-- 运行命令手册；
-- 开发流水记录；
-- outputs 数据说明。
+本目录保存理论主线、稳定数值合同和运行维护说明，不保存开发流水或生成结果。
 
 推荐阅读顺序：
 
-1. `current_route.md`：当前总路线进行到了哪一步；
-2. `theory_path.md`：从物理目标到 Casimir observable 的理论计算路径；
-3. `implementation_design.md`：代码工程如何对应理论对象；
-4. `references/`：论文、理论背景和材料参考。
+1. `current_route.md`：当前唯一计算路线和物理状态；
+2. `casimir/README.md`：完整自适应 Casimir 主入口；
+3. `casimir/numerical_contract.md`：径向、角向和双尾误差合同；
+4. `casimir/operations.md`：正式运行、恢复与产物读取；
+5. `theory_path.md`：理论计算路径；
+6. `implementation_design.md`：代码对象与理论对象的对应；
+7. `references/`：论文和材料背景。
 
-详细数值检验见 `../validation/`。
-主计算产物见 `../outputs/`。
-运行入口见顶层 `../README.md` 和 `../scripts/`。
+独立资格检验见 `../validation/`，生成产物布局见 `../outputs/`。Casimir 正式入口只见顶层 `../README.md`，不通过 `scripts/` 启动。

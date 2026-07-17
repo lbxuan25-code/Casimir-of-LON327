@@ -1,103 +1,21 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+/results/
 
-# Root outputs archive policy:
-# keep human-readable summaries, figures, and plotting data;
-# ignore raw runtime artifacts, logs, caches, and complete large data dumps.
-outputs/**/logs/**
-outputs/**/*.log
-outputs/**/*.jsonl
-outputs/**/*.tmp
-outputs/**/*.active
-outputs/**/raw/**
-outputs/**/intermediate/**
-outputs/**/cache/**
-outputs/**/*.npz
-outputs/**/*.npy
-outputs/**/*.h5
-outputs/**/*.hdf5
-outputs/**/*.parquet
-outputs/**/*.feather
-outputs/**/*.pkl
-outputs/**/*.pickle
-outputs/**/*.npy.gz
-outputs/**/*.npz.gz
-outputs/**/*.csv.gz
+# All generated run artifacts are local. The repository tracks only the two layout
+# documents below; compact immutable regression evidence belongs in validation/references.
+/outputs/**
+!/outputs/README.md
+!/outputs/casimir/
+!/outputs/casimir/README.md
 
-outputs/**/*.json
-!outputs/**/summary*.json
-!outputs/**/status*.json
-!outputs/**/run_config.json
-!outputs/**/self_check.json
-!outputs/**/README.md
-!outputs/**/command.sh
-!outputs/**/.gitkeep
-
-!outputs/**/data/
-!outputs/**/data/**/
-
-!outputs/**/figures/
-!outputs/**/figures/**/
-!outputs/**/figures/**/*.png
-!outputs/**/figures/**/*.pdf
-!outputs/**/figures/**/*.svg
-
-# Validation generated artifacts
-validation/cache/**/*.npz
-validation/cache/**/*.npy
-validation/cache/**/*.csv
-validation/cache/**/*.jsonl
-
-validation/outputs/**/data/*.npz
-validation/outputs/**/data/*.npy
-validation/outputs/**/data/*.csv
-validation/outputs/**/data/*expanded*.csv
-validation/outputs/**/data/*raw*.csv
-validation/outputs/**/raw/**
-validation/outputs/**/intermediate/**
-validation/outputs/**/figures/*.png
-validation/outputs/**/figures/*.pdf
-validation/logs/*.log
-validation/logs/**/*.log
-
-# Keep validation documentation and lightweight summaries
-!validation/README.md
-!validation/reports/**
-!validation/outputs/**/README.md
-!validation/outputs/**/*summary*.md
-!validation/outputs/**/*summary*.json
-!validation/outputs/**/*summary*.csv
-!validation/outputs/**/*status*.json
-!validation/outputs/**/command.sh
-!validation/outputs/**/*command*.sh
-
-# Historical large reproducible unit-audit data
-validation/outputs/**/data/*.npz
-validation/outputs/**/data/*expanded*.csv
-validation/outputs/units/casimir_q_grid_model_q_audit/data/casimir_q_grid_model_q_audit.csv
-
-# finite-q BdG Casimir smoke-pilot archive
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/logs/
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/*.log
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/*.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/reflection_results*.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/point_results.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/energy_point_results*.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/failed_points*.jsonl
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/*.tmp
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/*.active
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/raw/**
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/intermediate/**
-outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/**/cache/**
-
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/README.md
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/run_config.json
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/summary.json
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/status.json
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/run_status.json
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/data/*.csv
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/
-!outputs/casimir/finite_q_bdg_pipeline/runtime_smoke_pilot/figures/*.png
+# Validation runtime artifacts are reproducible local data.
+validation/cache/**
+validation/logs/**
+validation/outputs/**

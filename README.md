@@ -1,55 +1,84 @@
 # Casimir-of-LON327
 
-## 项目定位
+本仓库实现 LNO327 minimal model 的 finite-q response、微观点认证与完整自适应 Casimir 外积分。
 
-本仓库围绕 LNO327 minimal model，建立从 normal / BdG response 到 finite-q response、unit / reflection input 与 Casimir benchmark 的研究型计算框架。
-
-local `q=0` response 是当前 baseline；finite-q response 与 Ward / gauge validation 是当前主线中的核心环节。仓库当前不输出最终 Casimir torque、force 或 energy 结论。
-
-## 计算主线
+## 唯一主计算路线
 
 ```text
-H0(k)
--> pairing ansatz
--> BdG / normal response
--> finite-q response
--> Ward / gauge validation
--> unit conversion
--> reflection input
--> Casimir benchmark
+microscopic finite-q certification
+→ radial adaptivity
+→ angular adaptivity + offset audit
+→ joint radial/angular error budget
+→ adaptive outer-Q cutoff + tail bound
+→ adaptive Matsubara cutoff + tail bound
 ```
 
-## 当前主线位置
+稳定公共入口只有：
 
-- normal / local response 已作为 baseline；
-- finite-q BdG response engine 是当前 response 主线；
-- `PairingAnsatz` 负责 pairing-dependent 输入，generic finite-q engine 负责通用 response 计算；
-- Ward / gauge closure 是 finite-q response 进入 formal conductivity 的关键条件；
-- unit conversion、reflection input 与 Matsubara `n=0` policy 是进入 formal Casimir input 的 gating chain；
-- 当前 Casimir 相关结果只能作为 benchmark / candidate / baseline，不能作为最终材料结论。
+```python
+from lno327.casimir import build_full_casimir_config, run_full_casimir
 
-## 阅读入口
+config = build_full_casimir_config(
+    pairings=("spm",),
+    temperature_K=10.0,
+    separation_nm=20.0,
+    plate_angles_deg=(0.0, 17.0),
+)
+result = run_full_casimir(config)
+```
 
-- `docs/README.md`：理论主线与工程设计入口；
-- `docs/current_route.md`：当前总路线进行到哪一步；
-- `docs/theory_path.md`：理论计算路径；
-- `docs/implementation_design.md`：代码工程如何对应理论对象；
-- `docs/references/`：参考文献与背景资料；
-- `validation/README.md`：数值检验、status、summary 和复现命令；
-- `outputs/README.md`：当前主计算产物；
-- `scripts/README.md`：可运行脚本入口。
-
-## 快速检查
+命令行入口：
 
 ```bash
-pytest
+python -m lno327.casimir \
+  --case spm_T10K_d20nm_theta17deg \
+  --pairings spm \
+  --temperature-K 10 \
+  --separation-nm 20 \
+  --plate-angles-deg 0 17
 ```
 
-## 目录结构
+运行产物统一进入：
 
-- `src/lno327/`：核心计算实现；
-- `scripts/`：当前主计算入口；
-- `outputs/`：主计算产物和轻量结果说明；
-- `validation/`：数值检验、诊断结果和复现入口；
-- `docs/`：理论主线与工程设计；
-- `docs/references/`：参考文献和背景资料。
+```text
+outputs/casimir/runs/<case>/
+```
+
+其中 `<case>` 是人为命名的物理算例，不使用开发版本号命名。
+
+## 物理边界
+
+外积分控制结构已经完整，但真实 LNO327 全栈资格验证尚未完成。因此结果仍保持 fail-closed：
+
+```text
+production_casimir_allowed = false
+```
+
+这表示仓库和运行路线已生产化，不表示当前响应模型已经获得最终物理授权。
+
+## 固定网格历史路线
+
+旧固定网格控制器不再从包顶层导出。它只保留作回归参考：
+
+```python
+from lno327.casimir.legacy import run_fixed_reference_casimir
+```
+
+新计算不得以该接口作为主路线。
+
+## 目录
+
+- `src/lno327/casimir/`：主计算及数值合同；
+- `validation/`：独立诊断、资格检验与不可变参考证据；
+- `tests/`：稳定数值合同与全栈 fail-closed 测试；
+- `docs/casimir/`：主路线、误差预算、运行和维护说明；
+- `outputs/`：本地运行产物布局说明，生成数据不提交；
+- `scripts/`：非 Casimir 主入口的研究辅助脚本。
+
+## 检查
+
+```bash
+python -m pip install -e ".[dev]"
+python -m pytest -q
+python -m lno327.casimir --help
+```
