@@ -131,18 +131,7 @@ The angular controller can return unresolved for:
 
 ```text
 radial_run_unresolved
-aangular_order_ladder_exhausted
-```
-
-The canonical spelling used by the implementation is:
-
-```text
 angular_order_ladder_exhausted
-```
-
-Additional unresolved boundaries are:
-
-```text
 offset_audit_radial_unresolved
 angular_offset_audit_failed
 point_provider_failure: ...
