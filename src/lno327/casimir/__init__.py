@@ -19,6 +19,11 @@ from .adaptive_angular_q import (
     AdaptiveAngularCasimirResult,
     run_adaptive_angular_casimir,
 )
+from .adaptive_joint_q import (
+    AdaptiveJointCasimirConfig,
+    AdaptiveJointCasimirResult,
+    run_adaptive_joint_casimir,
+)
 from .adaptive_outer_q import (
     AdaptiveOuterQPanelGrid,
     AdaptiveRadialCasimirConfig,
@@ -78,6 +83,8 @@ def casimir_layer_metadata() -> dict[str, object]:
         "outer_q_fixed_nested_planning_present": True,
         "outer_q_adaptive_radial_present": True,
         "outer_q_adaptive_angular_present": True,
+        "outer_q_joint_radial_angular_budget_present": True,
+        "outer_q_joint_direction_selection_present": True,
         "outer_q_angular_order_doubling_present": True,
         "outer_q_angular_offset_audit_present": True,
         "outer_q_adaptive_cutoff_fixed": True,
@@ -88,10 +95,11 @@ def casimir_layer_metadata() -> dict[str, object]:
         "matsubara_tail_estimated": False,
         "notes": (
             "The unique fixed controller is lno327.casimir.run_casimir.",
-            "The adaptive radial and angular controllers are independent finite-partial diagnostics.",
+            "The radial, angular, and joint controllers are independent finite-partial diagnostics.",
+            "The joint controller advances the largest normalized allocated outer-Q error.",
             "Validation may consume this package but production never imports validation.",
             "The fixed controller preserves its qualified point-certification and outer-Q rules.",
-            "Angular refinement keeps u_max fixed and retains the full periodic angular domain.",
+            "Joint refinement keeps u_max fixed and retains the full periodic angular domain.",
             "No controller estimates the omitted outer-Q or Matsubara tail.",
             "Every returned result remains fail-closed for production authorization.",
         ),
@@ -101,6 +109,8 @@ def casimir_layer_metadata() -> dict[str, object]:
 __all__ = [
     "AdaptiveAngularCasimirConfig",
     "AdaptiveAngularCasimirResult",
+    "AdaptiveJointCasimirConfig",
+    "AdaptiveJointCasimirResult",
     "AdaptiveOuterQPanelGrid",
     "AdaptiveRadialCasimirConfig",
     "AdaptiveRadialCasimirResult",
@@ -140,6 +150,7 @@ __all__ = [
     "passive_sheet_logdet",
     "reflection_matrix_weak_2d",
     "run_adaptive_angular_casimir",
+    "run_adaptive_joint_casimir",
     "run_adaptive_radial_casimir",
     "run_casimir",
 ]
