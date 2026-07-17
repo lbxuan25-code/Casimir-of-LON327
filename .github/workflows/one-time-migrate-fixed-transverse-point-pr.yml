@@ -68,11 +68,11 @@ jobs:
             tests/test_casimir_production_dependencies.py \
             tests/test_casimir_fixed_transverse_point_migration.py
 
-      - name: Run existing transverse-point regressions
-        run: |
-          python -m pytest -q --tb=short \
-            tests/test_transverse_point_sweet_spot.py \
-            tests/test_microscopic_outer_q_preflight.py
+      - name: Run transverse-point regression
+        run: python -m pytest -q --tb=short tests/test_transverse_point_sweet_spot.py
+
+      - name: Run microscopic outer-q regression
+        run: python -m pytest -q --tb=short tests/test_microscopic_outer_q_preflight.py
 
       - name: Commit generated migration to the PR head
         shell: bash
