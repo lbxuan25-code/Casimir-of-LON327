@@ -1,14 +1,15 @@
-"""Matsubara validation commands and private compatibility helpers."""
+"""Matsubara validation commands and retained private command aliases."""
 from __future__ import annotations
 
 import sys
 from types import ModuleType
 
-from validation.lib.matsubara import matsubara_energy_eV
+from lno327.casimir.matsubara import matsubara_energy_eV
 
 
-# Old modules imported the frequency helper from the removed positive-point command.
-# Keep that import path private and non-runnable until all internal imports migrate.
+# Older retained Matsubara commands import the frequency helper from the retired
+# positive-point command. Keep that private non-runnable import path until those
+# independent command modules are migrated; the implementation is production-owned.
 _legacy_frequency_module = ModuleType(f"{__name__}.positive_point")
 _legacy_frequency_module.matsubara_energy_eV = matsubara_energy_eV
 _legacy_frequency_module.__all__ = ["matsubara_energy_eV"]
