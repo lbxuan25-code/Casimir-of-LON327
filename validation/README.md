@@ -1,8 +1,8 @@
 # Validation
 
-`validation/` contains reproducible checks for the current two-band finite-q response
-and fixed Casimir-chain contracts. It is not part of the production calculation
-implementation.
+`validation/` contains reproducible checks for Ward identities, response conventions,
+numerical stability, and independent quadrature contracts. It is not part of the
+production calculation implementation.
 
 The dependency direction is:
 
@@ -10,25 +10,40 @@ The dependency direction is:
 validation -> src/lno327
 ```
 
-Validation commands may consume production numerical implementations. Code under
-`src/lno327` must never depend on `validation`.
+Code under `src/lno327` must never depend on the top-level `validation` package.
 
-Current migration status:
+## Fixed Casimir chain
 
-- production owns the Matsubara energy helper;
-- production owns the active finite-q microscopic model adapter;
-- production owns the fixed transverse-point engine and universal point-certification controller;
-- production owns fixed nested outer-q planning, node reuse, reduction, and ladder comparisons;
-- validation retains compatibility commands, diagnostics, report schemas, and regression evidence.
+The complete fixed microscopic Casimir chain is production-owned:
 
-Validation outputs are diagnostic evidence only and never authorize a production
-Casimir result by themselves.
+```python
+from lno327.casimir import FixedCasimirConfig, run_casimir
 
-## Public command surface
+result = run_casimir(FixedCasimirConfig())
+```
+
+The former validation compatibility facades, legacy numerical copies,
+`microscopic-outer-q-preflight` command, and `transverse-point-sweet-spot` command
+have been removed. Validation no longer provides an alternate entry point for the
+fixed Casimir calculation.
+
+The immutable qualified `spm`, `n=0,1` golden fixture remains under
+`validation/references/casimir/` as regression evidence. It is not a runtime output
+and does not authorize a complete production Casimir result.
+
+## Runtime outputs
+
+All files generated under `validation/outputs/`, `validation/logs/`, and
+`validation/cache/` are local reproducible artifacts and are ignored by version
+control. Results that must become long-lived contracts should be reduced to a small,
+reviewed fixture under `validation/references/` or documented in `docs/`.
+
+## Retained command surface
 
 ```bash
 python -m validation <group> <command> [options]
 ```
 
-Main retained and blocking commands include the Ward, static, Matsubara, diagnostic,
-and Casimir preflight groups exposed by `python -m validation --help`.
+The retained CLI exposes independent Ward, Matsubara, numerical, diagnostic, and
+outer-measure checks listed by `python -m validation --help`. These commands never
+authorize production Casimir output.
