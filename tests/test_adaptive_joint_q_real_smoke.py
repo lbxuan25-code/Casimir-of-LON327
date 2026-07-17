@@ -21,7 +21,7 @@ def test_real_production_certifier_connects_to_joint_controller(
         u_max_values=(1.5, 3.0),
         radial_orders=(1, 2),
         angular_orders=(1, 2),
-        angular_offsets=(0.0, 0.5),
+        angular_offsets=(0.125, 0.25),
         N_candidates=(2, 4, 6),
         shifts=((0.5, 0.5), (0.25, 0.75)),
         required_consecutive_passes=1,
@@ -45,7 +45,7 @@ def test_real_production_certifier_connects_to_joint_controller(
         initial_panel_edges=(0.0, 3.0),
         radial_order=1,
         angular_order=1,
-        angular_offset_fraction=0.5,
+        angular_offset_fraction=0.125,
         radial_rtol=1e6,
         radial_atol_J_m2=1e6,
         max_refinement_rounds=0,
@@ -57,8 +57,8 @@ def test_real_production_certifier_connects_to_joint_controller(
     config = AdaptiveJointCasimirConfig(
         radial_config=radial,
         angular_orders=(1, 2),
-        primary_offset_fraction=0.5,
-        audit_offset_fraction=0.0,
+        primary_offset_fraction=0.125,
+        audit_offset_fraction=0.25,
         outer_rtol=1e6,
         outer_atol_J_m2=1e6,
         radial_budget_fraction=0.5,
@@ -72,7 +72,7 @@ def test_real_production_certifier_connects_to_joint_controller(
 
     result = run_adaptive_joint_casimir(config)
 
-    assert result.status == "adaptive_finite_partial"
+    assert result.status == "adaptive_finite_partial", result.as_dict()
     assert result.joint_converged
     assert result.selected_angular_order == 2
     assert result.selected_radial_round_cap == 0
