@@ -32,6 +32,11 @@ from .adaptive_outer_q import (
     build_adaptive_outer_q_panel_grid,
     run_adaptive_radial_casimir,
 )
+from .adaptive_outer_tail import (
+    AdaptiveOuterTailCasimirConfig,
+    AdaptiveOuterTailCasimirResult,
+    run_adaptive_outer_tail_casimir,
+)
 from .fixed_outer_q import (
     OuterQGridPlan,
     OuterQGridSpec,
@@ -85,22 +90,24 @@ def casimir_layer_metadata() -> dict[str, object]:
         "outer_q_adaptive_angular_present": True,
         "outer_q_joint_radial_angular_budget_present": True,
         "outer_q_joint_direction_selection_present": True,
+        "outer_q_adaptive_cutoff_present": True,
+        "outer_q_geometric_tail_envelope_present": True,
         "outer_q_angular_order_doubling_present": True,
         "outer_q_angular_offset_audit_present": True,
-        "outer_q_adaptive_cutoff_fixed": True,
-        "outer_q_adaptive_tail_estimated": False,
+        "outer_q_adaptive_cutoff_fixed": False,
+        "outer_q_adaptive_tail_estimated": True,
         "outer_q_radial_variable": "u = 2 Q d",
         "outer_q_full_angular_domain": True,
         "finite_matsubara_partial_result_supported": True,
         "matsubara_tail_estimated": False,
         "notes": (
             "The unique fixed controller is lno327.casimir.run_casimir.",
-            "The radial, angular, and joint controllers are independent finite-partial diagnostics.",
+            "The radial, angular, joint, and tail controllers are independent finite-partial diagnostics.",
             "The joint controller advances the largest normalized allocated outer-Q error.",
+            "The tail controller extends cumulative cutoffs and requires a channelwise shell envelope.",
             "Validation may consume this package but production never imports validation.",
             "The fixed controller preserves its qualified point-certification and outer-Q rules.",
-            "Joint refinement keeps u_max fixed and retains the full periodic angular domain.",
-            "No controller estimates the omitted outer-Q or Matsubara tail.",
+            "The Matsubara tail remains unresolved and production authorization remains false.",
             "Every returned result remains fail-closed for production authorization.",
         ),
     }
@@ -112,6 +119,8 @@ __all__ = [
     "AdaptiveJointCasimirConfig",
     "AdaptiveJointCasimirResult",
     "AdaptiveOuterQPanelGrid",
+    "AdaptiveOuterTailCasimirConfig",
+    "AdaptiveOuterTailCasimirResult",
     "AdaptiveRadialCasimirConfig",
     "AdaptiveRadialCasimirResult",
     "AdaptiveRadialPanel",
@@ -151,6 +160,7 @@ __all__ = [
     "reflection_matrix_weak_2d",
     "run_adaptive_angular_casimir",
     "run_adaptive_joint_casimir",
+    "run_adaptive_outer_tail_casimir",
     "run_adaptive_radial_casimir",
     "run_casimir",
 ]
