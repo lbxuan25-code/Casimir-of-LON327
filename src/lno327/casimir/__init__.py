@@ -1,4 +1,4 @@
-"""Casimir-Lifshitz building blocks and finite partial-sum controllers."""
+"""Casimir-Lifshitz building blocks and adaptive diagnostic controllers."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from .certified_point_provider import (
     CertifiedOuterQProvider,
     CertifiedPointBatch,
     CertifiedPointCacheError,
+    FrequencyExtendableCertifiedOuterQProvider,
     certified_primary_logdet,
 )
 from .adaptive_angular_q import (
@@ -23,6 +24,11 @@ from .adaptive_joint_q import (
     AdaptiveJointCasimirConfig,
     AdaptiveJointCasimirResult,
     run_adaptive_joint_casimir,
+)
+from .adaptive_matsubara_tail import (
+    AdaptiveMatsubaraCasimirConfig,
+    AdaptiveMatsubaraCasimirResult,
+    run_adaptive_matsubara_casimir,
 )
 from .adaptive_outer_q import (
     AdaptiveOuterQPanelGrid,
@@ -84,6 +90,7 @@ def casimir_layer_metadata() -> dict[str, object]:
         "fixed_transverse_certifier_owned_by_production": True,
         "fixed_casimir_controller_owned_by_production": True,
         "incremental_certified_point_provider_present": True,
+        "frequency_extendable_certified_point_provider_present": True,
         "outer_q_measure_contract_present": True,
         "outer_q_fixed_nested_planning_present": True,
         "outer_q_adaptive_radial_present": True,
@@ -99,16 +106,16 @@ def casimir_layer_metadata() -> dict[str, object]:
         "outer_q_radial_variable": "u = 2 Q d",
         "outer_q_full_angular_domain": True,
         "finite_matsubara_partial_result_supported": True,
-        "matsubara_tail_estimated": False,
+        "matsubara_adaptive_cutoff_present": True,
+        "matsubara_geometric_tail_envelope_present": True,
+        "matsubara_tail_estimated": True,
         "notes": (
             "The unique fixed controller is lno327.casimir.run_casimir.",
-            "The radial, angular, joint, and tail controllers are independent finite-partial diagnostics.",
-            "The joint controller advances the largest normalized allocated outer-Q error.",
-            "The tail controller extends cumulative cutoffs and requires a channelwise shell envelope.",
-            "Validation may consume this package but production never imports validation.",
-            "The fixed controller preserves its qualified point-certification and outer-Q rules.",
-            "The Matsubara tail remains unresolved and production authorization remains false.",
-            "Every returned result remains fail-closed for production authorization.",
+            "Adaptive controllers remain independent diagnostic surfaces.",
+            "The frequency-extendable provider appends only newly requested Matsubara indices.",
+            "The Matsubara controller requires outer-Q tail closure for every included term.",
+            "Both outer-Q and Matsubara tails are bounded channelwise without sign cancellation.",
+            "Production authorization remains false pending physical qualification of the adaptive tail model.",
         ),
     }
 
@@ -118,6 +125,8 @@ __all__ = [
     "AdaptiveAngularCasimirResult",
     "AdaptiveJointCasimirConfig",
     "AdaptiveJointCasimirResult",
+    "AdaptiveMatsubaraCasimirConfig",
+    "AdaptiveMatsubaraCasimirResult",
     "AdaptiveOuterQPanelGrid",
     "AdaptiveOuterTailCasimirConfig",
     "AdaptiveOuterTailCasimirResult",
@@ -132,6 +141,7 @@ __all__ = [
     "FixedCasimirConfig",
     "FixedCasimirExecutionError",
     "FixedCasimirResult",
+    "FrequencyExtendableCertifiedOuterQProvider",
     "LifshitzPoint",
     "MatsubaraFreeEnergyPerArea",
     "OuterQGridPlan",
@@ -160,6 +170,7 @@ __all__ = [
     "reflection_matrix_weak_2d",
     "run_adaptive_angular_casimir",
     "run_adaptive_joint_casimir",
+    "run_adaptive_matsubara_casimir",
     "run_adaptive_outer_tail_casimir",
     "run_adaptive_radial_casimir",
     "run_casimir",
