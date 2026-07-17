@@ -11,8 +11,14 @@ for _name in dir(_production):
 
 
 def main(argv: Sequence[str] | None = None) -> None:
-    # Preserve the historical validation monkeypatch surface while the
-    # implementation and all numerical state live in production.
+    """Run production certification through the historical validation API."""
+
+    original_level = _production.assess_frequency_level
+    original_envelope = _production.assess_oscillatory_envelope
     _production.assess_frequency_level = assess_frequency_level
     _production.assess_oscillatory_envelope = assess_oscillatory_envelope
-    _production.main(argv)
+    try:
+        _production.main(argv)
+    finally:
+        _production.assess_frequency_level = original_level
+        _production.assess_oscillatory_envelope = original_envelope
