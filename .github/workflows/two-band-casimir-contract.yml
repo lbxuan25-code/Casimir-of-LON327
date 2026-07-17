@@ -41,7 +41,6 @@ jobs:
           lno327-casimir --help
           python - <<'PY'
           import lno327.casimir as casimir
-
           assert callable(casimir.build_full_casimir_config)
           assert callable(casimir.run_full_casimir)
           assert not hasattr(casimir, "run_casimir")
@@ -190,9 +189,10 @@ jobs:
 
       - name: Upload test reports
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: lno327-production-test-reports
+          name: lno327-production-test-reports-${{ github.run_id }}
           path: |
             collect-output.txt
             full-pytest-output.txt
