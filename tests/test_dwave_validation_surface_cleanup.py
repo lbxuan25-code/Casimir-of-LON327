@@ -41,6 +41,7 @@ def test_retired_dwave_point_routes_stay_absent():
         "validation/commands/matsubara/dwave_orbit_gauss_crosscheck.py",
         "validation/commands/matsubara/dwave_orbit_certification_scan.py",
         "validation/commands/matsubara/dwave_orbit_certification_scan_parallel.py",
+        "validation/commands/matsubara/transverse_point_sweet_spot.py",
         "validation/commands/ward/contract_audit.py",
         "validation/commands/ward/phase_column.py",
         "validation/commands/ward/phase_hessian.py",
@@ -56,9 +57,9 @@ def test_retired_dwave_point_routes_stay_absent():
     assert not [path for path in retired if (ROOT / path).exists()]
 
 
-def test_only_unified_point_runner_remains_active():
+def test_production_point_certifier_and_retained_ward_runners_exist():
     active = (
-        "validation/commands/matsubara/transverse_point_sweet_spot.py",
+        "src/lno327/casimir/fixed_transverse_point_certification.py",
         "validation/commands/ward/commensurate.py",
         "validation/commands/ward/bond_metric_full_kernel.py",
         "validation/commands/ward/bond_metric_family.py",
