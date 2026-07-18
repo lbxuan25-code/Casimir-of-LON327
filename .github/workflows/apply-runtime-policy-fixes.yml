@@ -30,7 +30,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
 
       - name: Apply exact source patch
         run: |
@@ -49,8 +48,8 @@ jobs:
           rm -f .github/runtime_policy_patch.b64
           rm -f .github/workflows/apply-runtime-policy-fixes.yml
 
-      - name: Install package
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Install package quietly
+        run: python -m pip install -e ".[dev]" --quiet
 
       - name: Compile changed modules
         run: |
@@ -65,7 +64,7 @@ jobs:
 
       - name: Run targeted tests
         run: |
-          pytest -q -vv \
+          pytest -q -x --tb=short \
             tests/test_casimir_runtime_policy.py \
             tests/test_certified_outer_q_provider.py \
             tests/test_frequency_extendable_certified_provider.py \
