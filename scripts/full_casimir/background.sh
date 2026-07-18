@@ -17,17 +17,17 @@ usage()
 {
     cat <<'EOF'
 Usage:
-  bash scripts/casimir/background.sh start pilots [workflow options]
-  bash scripts/casimir/background.sh start scan   [workflow options]
-  bash scripts/casimir/background.sh start all    [workflow options]
-  bash scripts/casimir/background.sh status
-  bash scripts/casimir/background.sh logs
-  bash scripts/casimir/background.sh stop
+  bash scripts/full_casimir/background.sh start pilots [workflow options]
+  bash scripts/full_casimir/background.sh start scan   [workflow options]
+  bash scripts/full_casimir/background.sh start all    [workflow options]
+  bash scripts/full_casimir/background.sh status
+  bash scripts/full_casimir/background.sh logs
+  bash scripts/full_casimir/background.sh stop
 
 Examples:
-  bash scripts/casimir/background.sh start pilots
-  bash scripts/casimir/background.sh start scan
-  bash scripts/casimir/background.sh start all
+  bash scripts/full_casimir/background.sh start pilots
+  bash scripts/full_casimir/background.sh start scan
+  bash scripts/full_casimir/background.sh start all
 EOF
 }
 
@@ -56,7 +56,7 @@ start_job()
 
     if is_running; then
         echo "ERROR: a background workflow is already running (PID=$(cat "$PID_FILE"))" >&2
-        echo "Use: bash scripts/casimir/background.sh status" >&2
+        echo "Use: bash scripts/full_casimir/background.sh status" >&2
         exit 1
     fi
 
@@ -65,7 +65,7 @@ start_job()
     local command=(
         "$python_bin"
         -m
-        scripts.casimir.workflow
+        scripts.full_casimir.workflow
         "$mode"
         "$@"
     )
@@ -112,7 +112,7 @@ status_job()
         ps -o pid,ppid,sid,pgid,ni,psr,pcpu,pmem,rss,etime,cmd -p "$pid"
         echo
         echo "active Casimir processes:"
-        pgrep -af 'scripts.casimir.workflow|lno327.casimir|fixed_transverse_point_certification' || true
+        pgrep -af 'scripts.full_casimir.workflow|lno327.casimir|fixed_transverse_point_certification' || true
     else
         echo "not running"
         if [[ -f "$PID_FILE" ]]; then

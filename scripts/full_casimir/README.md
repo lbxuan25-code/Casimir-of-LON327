@@ -8,40 +8,40 @@ Python or shell workflow scripts should be added to the repository root.
 Show the CPU reservation without starting a calculation:
 
 ```bash
-python -m scripts.casimir.workflow resources
+python -m scripts.full_casimir.workflow resources
 ```
 
 Run the SPM and d-wave 0° pilots sequentially in the background:
 
 ```bash
-bash scripts/casimir/background.sh start pilots
+bash scripts/full_casimir/background.sh start pilots
 ```
 
 Run the padded energy scan, -4° to 94° in 2° steps:
 
 ```bash
-bash scripts/casimir/background.sh start scan
+bash scripts/full_casimir/background.sh start scan
 ```
 
 Run the complete scan and then automatically extract torque and create plots:
 
 ```bash
-bash scripts/casimir/background.sh start all
+bash scripts/full_casimir/background.sh start all
 ```
 
 Inspect or stop the background job:
 
 ```bash
-bash scripts/casimir/background.sh status
-bash scripts/casimir/background.sh logs
-bash scripts/casimir/background.sh stop
+bash scripts/full_casimir/background.sh status
+bash scripts/full_casimir/background.sh logs
+bash scripts/full_casimir/background.sh stop
 ```
 
 Post-process an already completed scan in the foreground:
 
 ```bash
-python -m scripts.casimir.workflow torque
-python -m scripts.casimir.workflow plot
+python -m scripts.full_casimir.workflow torque
+python -m scripts.full_casimir.workflow plot
 ```
 
 ## Defaults

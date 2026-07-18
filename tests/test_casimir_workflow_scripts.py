@@ -5,14 +5,14 @@ import math
 
 import pytest
 
-from scripts.casimir.cleanup_legacy_root import cleanup_legacy_root_scripts
-from scripts.casimir.config import (
+from scripts.full_casimir.cleanup_legacy_root import cleanup_legacy_root_scripts
+from scripts.full_casimir.config import (
     angle_token,
     case_name,
     inclusive_integer_grid,
     select_runtime_resources,
 )
-from scripts.casimir.postprocess import (
+from scripts.full_casimir.postprocess import (
     five_point_torque,
     five_point_torque_error_bound,
 )

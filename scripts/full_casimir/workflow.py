@@ -36,7 +36,7 @@ PILOT_PROFILE = "0deg_pilot_v2"
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="python -m scripts.casimir.workflow",
+        prog="python -m scripts.full_casimir.workflow",
         description=(
             "Run LNO327 Casimir energy calculations, torque post-processing, "
             "and plotting from the organized scripts package."
