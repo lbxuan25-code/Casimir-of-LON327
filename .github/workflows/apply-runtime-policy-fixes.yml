@@ -62,9 +62,10 @@ jobs:
             src/lno327/casimir/cli.py \
             tests/test_casimir_runtime_policy.py
 
-      - name: Run targeted tests
+      - name: Capture targeted test result
         run: |
-          pytest -q -x --tb=short \
+          set +e
+          pytest -q -x --tb=long \
             tests/test_casimir_runtime_policy.py \
             tests/test_certified_outer_q_provider.py \
             tests/test_frequency_extendable_certified_provider.py \
@@ -72,7 +73,22 @@ jobs:
             tests/test_adaptive_outer_tail.py \
             tests/test_adaptive_matsubara_tail.py \
             tests/test_casimir_cli.py \
-            tests/test_casimir_performance_batching.py
+            tests/test_casimir_performance_batching.py \
+            > /tmp/runtime-policy-pytest.txt 2>&1
+          echo $? > /tmp/runtime-policy-pytest-exit.txt
+          set -e
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: runtime-policy-pytest
+          path: |
+            /tmp/runtime-policy-pytest.txt
+            /tmp/runtime-policy-pytest-exit.txt
+
+      - name: Require targeted tests
+        run: |
+          cat /tmp/runtime-policy-pytest.txt
+          test "$(cat /tmp/runtime-policy-pytest-exit.txt)" = "0"
 
       - name: Run full suite
         run: pytest -q --tb=short
