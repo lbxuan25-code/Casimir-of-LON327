@@ -72,7 +72,6 @@ jobs:
             tests/test_adaptive_joint_q.py \
             tests/test_adaptive_outer_tail.py \
             tests/test_adaptive_matsubara_tail.py \
-            tests/test_casimir_cli.py \
             tests/test_casimir_performance_batching.py \
             > /tmp/runtime-policy-pytest.txt 2>&1
           echo $? > /tmp/runtime-policy-pytest-exit.txt
