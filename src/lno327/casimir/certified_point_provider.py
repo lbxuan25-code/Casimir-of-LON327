@@ -24,6 +24,7 @@ import numpy as np
 
 from .fixed_chain import (
     FixedCasimirConfig,
+    FixedCasimirExecutionError,
     _CertificationRun,
     _run_transverse_certifier,
 )
@@ -158,6 +159,7 @@ class CertifiedOuterQProvider:
         *,
         cache_path: Path | None = None,
         runner: Runner | None = None,
+        certifier_q_batch_size: int = 256,
         _frequency_extendable: bool = False,
     ) -> None:
         if not isinstance(config, FixedCasimirConfig):
@@ -165,6 +167,10 @@ class CertifiedOuterQProvider:
         self.config = config
         self.cache_path = None if cache_path is None else Path(cache_path)
         self._runner = _run_transverse_certifier if runner is None else runner
+        batch_size = int(certifier_q_batch_size)
+        if batch_size <= 0:
+            raise ValueError("certifier_q_batch_size must be positive")
+        self.certifier_q_batch_size = batch_size
         self._frequency_extendable = bool(_frequency_extendable)
         self._cache_schema = (
             _CACHE_SCHEMA_V2 if self._frequency_extendable else _CACHE_SCHEMA_V1
@@ -176,6 +182,7 @@ class CertifiedOuterQProvider:
         self._entries: dict[str, Mapping[str, Any]] = {}
         self._q_by_entry: dict[str, tuple[str, str]] = {}
         self.certification_batches = 0
+        self.certification_failed_batches = 0
         self.requested_q_evaluations = 0
         self.new_q_evaluations = 0
         self.cache_hit_q_evaluations = 0
@@ -221,6 +228,13 @@ class CertifiedOuterQProvider:
             "cached_point_count": int(self.cached_point_count),
             "unique_q_count": int(self.unique_q_count),
             "certification_batches": int(self.certification_batches),
+            "certification_failed_batches": int(
+                self.certification_failed_batches
+            ),
+            "certification_attempts": int(
+                self.certification_batches + self.certification_failed_batches
+            ),
+            "certifier_q_batch_size": int(self.certifier_q_batch_size),
             "requested_q_evaluations": int(self.requested_q_evaluations),
             "new_q_evaluations": int(self.new_q_evaluations),
             "cache_hit_q_evaluations": int(self.cache_hit_q_evaluations),
@@ -256,6 +270,8 @@ class CertifiedOuterQProvider:
         requested_q_count: int,
         requested_point_count: int,
         matsubara_indices: Sequence[int],
+        stdout: str = "",
+        stderr: str = "",
     ) -> None:
         level_wall = 0.0
         material_build = 0.0
@@ -287,6 +303,7 @@ class CertifiedOuterQProvider:
         self.certifier_batch_records.append(
             {
                 "batch_index": len(self.certifier_batch_records),
+                "status": "succeeded",
                 "requested_q_count": int(requested_q_count),
                 "requested_point_count": int(requested_point_count),
                 "matsubara_indices": [
@@ -296,6 +313,39 @@ class CertifiedOuterQProvider:
                 "reported_level_wall_seconds": float(level_wall),
                 "material_build_seconds": float(material_build),
                 "context_wall_seconds": float(context_wall),
+                "stdout_tail": str(stdout)[-4000:],
+                "stderr_tail": str(stderr)[-4000:],
+            }
+        )
+
+    def _record_certifier_failure(
+        self,
+        *,
+        wall_seconds: float,
+        requested_q_count: int,
+        requested_point_count: int,
+        matsubara_indices: Sequence[int],
+        exception: Exception,
+        stdout: str = "",
+        stderr: str = "",
+    ) -> None:
+        self.certifier_batch_records.append(
+            {
+                "batch_index": len(self.certifier_batch_records),
+                "status": "failed",
+                "requested_q_count": int(requested_q_count),
+                "requested_point_count": int(requested_point_count),
+                "matsubara_indices": [
+                    int(value) for value in matsubara_indices
+                ],
+                "certifier_wall_seconds": float(wall_seconds),
+                "reported_level_wall_seconds": 0.0,
+                "material_build_seconds": 0.0,
+                "context_wall_seconds": 0.0,
+                "exception_type": type(exception).__name__,
+                "exception_message": str(exception),
+                "stdout_tail": str(stdout)[-4000:],
+                "stderr_tail": str(stderr)[-4000:],
             }
         )
 
@@ -378,47 +428,96 @@ class CertifiedOuterQProvider:
                 if self._frequency_extendable
                 else self.config
             )
-            labels = tuple(_stable_q_label(q_key) for q_key, _ in group)
-            q_values = np.asarray([q for _, q in group], dtype=float)
-            manifest = OuterQNodeManifest(
-                labels=labels,
-                q_model=q_values,
-                grids={},
-                labels_by_spec={},
-            )
-            started = perf_counter()
-            with TemporaryDirectory(
-                prefix="lno327-adaptive-point-batch-"
-            ) as temporary:
-                output = Path(temporary) / "certification.json"
-                certification = self._runner(run_config, manifest, output)
-            wall_seconds = float(perf_counter() - started)
-            self.certifier_wall_seconds += wall_seconds
-            self._consume_certifier_telemetry(
-                certification.payload,
-                wall_seconds=wall_seconds,
-                requested_q_count=len(group),
-                requested_point_count=(
-                    len(group)
+            total_chunks = (
+                len(group) + self.certifier_q_batch_size - 1
+            ) // self.certifier_q_batch_size
+            for chunk_index, start in enumerate(
+                range(0, len(group), self.certifier_q_batch_size),
+                start=1,
+            ):
+                chunk = group[start : start + self.certifier_q_batch_size]
+                labels = tuple(
+                    _stable_q_label(q_key) for q_key, _ in chunk
+                )
+                q_values = np.asarray([q for _, q in chunk], dtype=float)
+                manifest = OuterQNodeManifest(
+                    labels=labels,
+                    q_model=q_values,
+                    grids={},
+                    labels_by_spec={},
+                )
+                chunk_point_count = (
+                    len(chunk)
                     * len(run_config.pairings)
                     * len(run_config.matsubara_indices)
-                ),
-                matsubara_indices=run_config.matsubara_indices,
-            )
-            self.certification_batches += 1
-            self.new_q_evaluations += len(group)
-            batch_points = len(group) * len(run_config.pairings) * len(
-                run_config.matsubara_indices
-            )
-            self.new_point_evaluations += batch_points
-            new_point_count += batch_points
-            new_batch_count += 1
-            self._consume_payload(
-                certification.payload,
-                labels=labels,
-                q_keys=tuple(q_key for q_key, _ in group),
-                requested_config=run_config,
-            )
+                )
+                started = perf_counter()
+                certification: _CertificationRun | None = None
+                try:
+                    with TemporaryDirectory(
+                        prefix="lno327-adaptive-point-batch-"
+                    ) as temporary:
+                        output = Path(temporary) / "certification.json"
+                        certification = self._runner(
+                            run_config, manifest, output
+                        )
+                    wall_seconds = float(perf_counter() - started)
+                    self.certifier_wall_seconds += wall_seconds
+                    self._consume_payload(
+                        certification.payload,
+                        labels=labels,
+                        q_keys=tuple(q_key for q_key, _ in chunk),
+                        requested_config=run_config,
+                    )
+                    self._consume_certifier_telemetry(
+                        certification.payload,
+                        wall_seconds=wall_seconds,
+                        requested_q_count=len(chunk),
+                        requested_point_count=chunk_point_count,
+                        matsubara_indices=run_config.matsubara_indices,
+                        stdout=certification.stdout,
+                        stderr=certification.stderr,
+                    )
+                except Exception as exc:
+                    wall_seconds = float(perf_counter() - started)
+                    self.certifier_wall_seconds += wall_seconds
+                    self.certification_failed_batches += 1
+                    self._record_certifier_failure(
+                        wall_seconds=wall_seconds,
+                        requested_q_count=len(chunk),
+                        requested_point_count=chunk_point_count,
+                        matsubara_indices=run_config.matsubara_indices,
+                        exception=exc,
+                        stdout=(
+                            "" if certification is None else certification.stdout
+                        ),
+                        stderr=(
+                            "" if certification is None else certification.stderr
+                        ),
+                    )
+                    if self.cache_path is not None:
+                        self._save()
+                    raise FixedCasimirExecutionError(
+                        "certifier q batch failed "
+                        f"(group_q={len(group)}, chunk={chunk_index}/{total_chunks}, "
+                        f"chunk_q={len(chunk)}, matsubara_indices="
+                        f"{tuple(run_config.matsubara_indices)}): "
+                        f"{type(exc).__name__}: {exc}"
+                    ) from exc
+
+                self.certification_batches += 1
+                self.new_q_evaluations += len(chunk)
+                self.new_point_evaluations += chunk_point_count
+                new_point_count += chunk_point_count
+                new_batch_count += 1
+
+                # Large refinement requests are checkpointed after every successful
+                # chunk so a later failed chunk cannot discard already certified q.
+                if (
+                    self.cache_path is not None
+                    and len(group) > self.certifier_q_batch_size
+                ):
+                    self._save()
 
         cache_hit_point_count = requested_point_count - new_point_count
         self.cache_hit_point_evaluations += cache_hit_point_count
@@ -619,11 +718,13 @@ class FrequencyExtendableCertifiedOuterQProvider(CertifiedOuterQProvider):
         *,
         cache_path: Path | None = None,
         runner: Runner | None = None,
+        certifier_q_batch_size: int = 256,
     ) -> None:
         super().__init__(
             config,
             cache_path=cache_path,
             runner=runner,
+            certifier_q_batch_size=certifier_q_batch_size,
             _frequency_extendable=True,
         )
 

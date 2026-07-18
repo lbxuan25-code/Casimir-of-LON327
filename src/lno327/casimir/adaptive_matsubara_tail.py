@@ -57,11 +57,11 @@ class AdaptiveMatsubaraCasimirConfig:
     outer_tail_config: AdaptiveOuterTailCasimirConfig = field(
         default_factory=AdaptiveOuterTailCasimirConfig
     )
-    matsubara_cutoff_values: tuple[int, ...] = (1, 3, 7, 15, 31)
+    matsubara_cutoff_values: tuple[int, ...] = (1, 3, 7, 11, 15, 23, 31)
     total_free_energy_rtol: float = 5e-2
     total_free_energy_atol_J_m2: float = 1e-10
-    finite_matsubara_budget_fraction: float = 0.6
-    matsubara_tail_budget_fraction: float = 0.4
+    finite_matsubara_budget_fraction: float = 0.7
+    matsubara_tail_budget_fraction: float = 0.3
     tail_start_n: int = 8
     tail_window_terms: int = 4
     tail_ratio_max: float = 0.8
@@ -280,7 +280,11 @@ def _scaled_outer_tail_config(
     outer = config.outer_tail_config
     radial = replace(outer.joint_config.radial_config, point_config=point)
     joint = replace(outer.joint_config, radial_config=radial)
-    share = config.per_term_outer_budget_fraction
+    # At each cumulative cutoff, divide the finite-Matsubara allocation across
+    # the terms actually present.  Using the final 32-term count at cutoff=1
+    # over-constrains the first two terms by a factor of sixteen without improving
+    # the final summed error guarantee.
+    share = config.finite_matsubara_budget_fraction / (int(cutoff) + 1)
     return replace(
         outer,
         joint_config=joint,
@@ -291,7 +295,7 @@ def _scaled_outer_tail_config(
 
 def _outer_run_usable(result: AdaptiveOuterTailCasimirResult) -> tuple[bool, str]:
     if not bool(result.all_microscopic_nodes_certified):
-        return False, "microscopic_point_unresolved"
+        return False, str(result.termination_reason)
     if result.status != "adaptive_finite_partial" or not bool(result.cutoff_converged):
         return False, str(result.termination_reason)
     if not bool(result.outer_tail_estimated):
