@@ -184,7 +184,18 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--memory-budget-gb", type=float, default=0.0)
     parser.add_argument("--max-context-workers", type=int, default=0)
-    parser.add_argument("--matsubara-cutoffs", nargs="+", type=int, default=(1, 3, 7, 15, 31))
+    parser.add_argument(
+        "--N-candidates",
+        nargs="+",
+        type=int,
+        default=(128, 192, 256),
+    )
+    parser.add_argument(
+        "--matsubara-cutoffs",
+        nargs="+",
+        type=int,
+        default=(1, 3, 7, 11, 15, 23, 31),
+    )
     parser.add_argument(
         "--outer-cutoffs-u",
         nargs="+",
@@ -210,6 +221,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         parallel_mode=args.parallel_mode,
         memory_budget_gb=args.memory_budget_gb,
         max_context_workers=args.max_context_workers,
+        N_candidates=tuple(args.N_candidates),
         matsubara_cutoff_values=tuple(args.matsubara_cutoffs),
         cutoff_u_values=tuple(args.outer_cutoffs_u),
         total_free_energy_rtol=args.rtol,

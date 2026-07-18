@@ -60,10 +60,10 @@ class AdaptiveOuterTailCasimirConfig:
     )
     total_outer_rtol: float = 5e-2
     total_outer_atol_J_m2: float = 1e-10
-    finite_domain_budget_fraction: float = 0.6
-    tail_budget_fraction: float = 0.4
-    joint_budget_fraction_within_finite: float = 0.75
-    offset_budget_fraction_within_finite: float = 0.25
+    finite_domain_budget_fraction: float = 0.7
+    tail_budget_fraction: float = 0.3
+    joint_budget_fraction_within_finite: float = 0.8
+    offset_budget_fraction_within_finite: float = 0.2
     tail_start_u: float = 24.0
     tail_window_shells: int = 3
     tail_ratio_max: float = 0.8
@@ -272,7 +272,7 @@ def _scaled_joint_config(
 
 def _joint_run_usable(result: AdaptiveJointCasimirResult) -> tuple[bool, str]:
     if not bool(result.all_microscopic_nodes_certified):
-        return False, "microscopic_point_unresolved"
+        return False, str(result.termination_reason)
     if result.status != "adaptive_finite_partial" or not bool(result.joint_converged):
         return False, str(result.termination_reason)
     if not bool(result.radial_budget_passed):

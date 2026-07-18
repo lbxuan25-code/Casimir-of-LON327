@@ -47,7 +47,7 @@ def build_full_casimir_config(
     outer_tail_start_u: float = 24.0,
     outer_tail_window_shells: int = 3,
     outer_tail_ratio_max: float = 0.8,
-    matsubara_cutoff_values: Sequence[int] = (1, 3, 7, 15, 31),
+    matsubara_cutoff_values: Sequence[int] = (1, 3, 7, 11, 15, 23, 31),
     matsubara_tail_start_n: int = 8,
     matsubara_tail_window_terms: int = 4,
     matsubara_tail_ratio_max: float = 0.8,
@@ -65,11 +65,12 @@ def build_full_casimir_config(
     dataclasses directly from their implementation modules.
     """
 
+    pairing_tuple = tuple(str(value) for value in pairings)
     base = AdaptiveMatsubaraCasimirConfig()
     radial_base = base.outer_tail_config.joint_config.radial_config
     point = replace(
         radial_base.point_config,
-        pairings=tuple(pairings),
+        pairings=pairing_tuple,
         matsubara_indices=(0, 1),
         temperature_K=float(temperature_K),
         separation_nm=float(separation_nm),
@@ -91,9 +92,14 @@ def build_full_casimir_config(
         max_microscopic_q_nodes=int(max_total_microscopic_q_nodes),
         point_cache_path=None,
     )
+    # SPM pilot data show angular errors two orders of magnitude below the
+    # radial allocation.  D-wave keeps a more conservative angular reserve.
+    radial_fraction = 0.85 if set(pairing_tuple) == {"spm"} else 0.75
     joint = replace(
         base.outer_tail_config.joint_config,
         radial_config=radial,
+        radial_budget_fraction=radial_fraction,
+        angular_budget_fraction=1.0 - radial_fraction,
         max_total_microscopic_q_nodes=int(max_total_microscopic_q_nodes),
     )
     outer = replace(

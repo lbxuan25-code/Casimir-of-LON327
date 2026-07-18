@@ -54,8 +54,8 @@ class AdaptiveJointCasimirConfig:
     audit_offset_fraction: float = 0.0
     outer_rtol: float = 5e-2
     outer_atol_J_m2: float = 1e-10
-    radial_budget_fraction: float = 0.5
-    angular_budget_fraction: float = 0.5
+    radial_budget_fraction: float = 0.75
+    angular_budget_fraction: float = 0.25
     offset_rtol: float = 5e-2
     offset_atol_J_m2: float = 1e-10
     initial_radial_round_cap: int = 0
@@ -274,7 +274,15 @@ def _radial_run_record(
 
 def _usable_radial_estimate(result: AdaptiveRadialCasimirResult) -> tuple[bool, str]:
     if not bool(result.all_microscopic_nodes_certified):
-        return False, "microscopic_point_unresolved"
+        reason = str(result.termination_reason)
+        details = [
+            str(record.get("reason", ""))
+            for record in result.unresolved_points
+            if isinstance(record, Mapping) and record.get("reason")
+        ]
+        if details and details[0] not in reason:
+            reason = f"{reason}: {details[0]}"
+        return False, reason
     if result.status == "adaptive_finite_partial" and bool(result.radial_converged):
         return True, "radial_tolerance_met"
     if result.status == "unresolved" and result.termination_reason in {
