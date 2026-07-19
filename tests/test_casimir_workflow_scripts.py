@@ -8,10 +8,17 @@ import sys
 
 import pytest
 
-from lno327.casimir.certified_point_provider import certified_point_policy_fingerprint
+from lno327.casimir.certified_point_provider import (
+    certified_point_policy_fingerprint,
+    certified_point_policy_payload,
+)
 from lno327.casimir.fixed_chain import FixedCasimirConfig
 from scripts.full_casimir import workflow
-from scripts.full_casimir.cache_migration import CACHE_SCHEMA, migrate_cache
+from scripts.full_casimir.cache_migration import (
+    CACHE_SCHEMA,
+    LEGACY_SCHEDULING_FIELDS,
+    migrate_cache,
+)
 from scripts.full_casimir.cleanup_legacy_root import cleanup_legacy_root_scripts
 from scripts.full_casimir.config import (
     REPO_ROOT,
@@ -133,6 +140,80 @@ def test_existing_target_cache_must_match_target_policy(tmp_path: Path) -> None:
         target_config,
         frequency_extendable=True,
     ) != "stale-policy"
+
+
+def test_legacy_source_cache_may_differ_only_by_scheduling_fingerprint(
+    tmp_path: Path,
+) -> None:
+    source_config = FixedCasimirConfig(
+        pairings=("spm",),
+        plate_angles_deg=(0.0, 0.0),
+        logdet_rtol=1e-3,
+        workers=30,
+        parallel_mode="q",
+        memory_budget_gb=0.0,
+        max_context_workers=1,
+    )
+    target_config = FixedCasimirConfig(
+        pairings=("spm",),
+        plate_angles_deg=(0.0, 0.0),
+        logdet_rtol=1.5e-3,
+        workers=26,
+        parallel_mode="q",
+        memory_budget_gb=16.0,
+        max_context_workers=1,
+    )
+    source_run = tmp_path / "source"
+    source_cache = source_run / "cache" / "certified_points.json"
+    source_cache.parent.mkdir(parents=True)
+    (source_run / "config.json").write_text(
+        json.dumps(
+            {
+                "outer_tail_config": {
+                    "joint_config": {
+                        "radial_config": {"point_config": source_config.as_dict()}
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    legacy_policy = certified_point_policy_payload(
+        source_config,
+        frequency_extendable=True,
+    )
+    full_source = source_config.as_dict()
+    for name in LEGACY_SCHEDULING_FIELDS:
+        legacy_policy[name] = full_source[name]
+    source_cache.write_text(
+        json.dumps(
+            {
+                "schema": CACHE_SCHEMA,
+                "policy_fingerprint": "legacy-scheduling-dependent-hash",
+                "frequency_extendable": True,
+                "point_policy": legacy_policy,
+                "entries": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    target_run = tmp_path / "target"
+    report = migrate_cache(
+        pairing="spm",
+        source_run_dir=source_run,
+        target_run_dir=target_run,
+        target_point_config=target_config,
+    )
+
+    assert not report.skipped
+    migrated = json.loads(
+        (target_run / "cache" / "certified_points.json").read_text(encoding="utf-8")
+    )
+    assert migrated["policy_fingerprint"] == certified_point_policy_fingerprint(
+        target_config,
+        frequency_extendable=True,
+    )
 
 
 def test_background_runner_persists_child_exit_code(tmp_path: Path) -> None:
