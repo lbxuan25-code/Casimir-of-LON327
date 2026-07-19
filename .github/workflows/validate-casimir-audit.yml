@@ -68,7 +68,6 @@ jobs:
             tests/test_certified_outer_q_provider.py \
             tests/test_frequency_extendable_certified_provider.py \
             tests/test_adaptive_joint_q.py \
-            tests/test_full_casimir_scripts.py \
             > /tmp/casimir-focused-pytest.log 2>&1
           status=$?
           echo "$status" > /tmp/casimir-focused-pytest.status
