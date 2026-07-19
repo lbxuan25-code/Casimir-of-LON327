@@ -66,6 +66,7 @@ class AdaptiveMatsubaraCasimirConfig:
     tail_window_terms: int = 4
     tail_ratio_max: float = 0.8
     max_total_microscopic_point_entries: int = 1_000_000
+    certifier_q_batch_size: int = 256
     point_cache_path: Path | None = None
 
     def __post_init__(self) -> None:
@@ -142,6 +143,10 @@ class AdaptiveMatsubaraCasimirConfig:
         if entries <= 0:
             raise ValueError("max_total_microscopic_point_entries must be positive")
         object.__setattr__(self, "max_total_microscopic_point_entries", entries)
+        batch_size = int(self.certifier_q_batch_size)
+        if batch_size <= 0:
+            raise ValueError("certifier_q_batch_size must be positive")
+        object.__setattr__(self, "certifier_q_batch_size", batch_size)
         if self.point_cache_path is not None:
             object.__setattr__(self, "point_cache_path", Path(self.point_cache_path))
 
@@ -163,13 +168,17 @@ class AdaptiveMatsubaraCasimirConfig:
                 self.finite_matsubara_budget_fraction
             ),
             "matsubara_tail_budget_fraction": self.matsubara_tail_budget_fraction,
-            "per_term_outer_budget_fraction": self.per_term_outer_budget_fraction,
+            "per_term_outer_budget_policy": "active_term_count",
+            "per_term_outer_budget_fraction_at_maximum_cutoff": (
+                self.per_term_outer_budget_fraction
+            ),
             "tail_start_n": self.tail_start_n,
             "tail_window_terms": self.tail_window_terms,
             "tail_ratio_max": self.tail_ratio_max,
             "max_total_microscopic_point_entries": (
                 self.max_total_microscopic_point_entries
             ),
+            "certifier_q_batch_size": self.certifier_q_batch_size,
             "point_cache_path": (
                 None if self.point_cache_path is None else str(self.point_cache_path)
             ),
@@ -249,7 +258,10 @@ class AdaptiveMatsubaraCasimirResult:
         }
 
 
-def _provider_statistics(provider: Any) -> dict[str, int]:
+def _provider_statistics(provider: Any) -> dict[str, Any]:
+    performance_summary = getattr(provider, "performance_summary", None)
+    if callable(performance_summary):
+        return dict(performance_summary())
     names = (
         "cached_point_count",
         "unique_q_count",
@@ -550,6 +562,7 @@ def run_adaptive_matsubara_casimir(
             active_provider = FrequencyExtendableCertifiedOuterQProvider(
                 first_point,
                 cache_path=config.point_cache_path,
+                certifier_q_batch_size=config.certifier_q_batch_size,
             )
 
         for cutoff in config.matsubara_cutoff_values:

@@ -231,9 +231,9 @@ class AdaptiveJointCasimirResult:
 
 
 def _provider_statistics(provider: Any) -> dict[str, Any]:
-    performance_statistics = getattr(provider, "performance_statistics", None)
-    if callable(performance_statistics):
-        return dict(performance_statistics())
+    performance_summary = getattr(provider, "performance_summary", None)
+    if callable(performance_summary):
+        return dict(performance_summary())
     names = (
         "cached_point_count",
         "unique_q_count",
@@ -642,9 +642,10 @@ def run_adaptive_joint_casimir(
                 return
             batch = evaluate(combined)
             if not batch.all_established:
-                raise FixedCasimirExecutionError(
-                    "prefetched comparison contains unresolved microscopic points"
-                )
+                # Prefetch is only an optimization.  Let the real radial runs request
+                # the same cached points so their detailed unresolved records propagate
+                # through the normal fail-closed result path.
+                return
 
         def get_run(
             angular_order: int,
@@ -1022,6 +1023,26 @@ def run_adaptive_joint_casimir(
             reason="joint_iteration_budget_exhausted",
             provider=active_provider,
         )
+    except (CertifiedPointCacheError, FixedCasimirExecutionError) as exc:
+        return _unresolved_result(
+            config,
+            direction_records=direction_records,
+            radial_run_records=radial_run_records,
+            offset_record=None,
+            selected_order=(
+                config.angular_orders[current_index]
+                if current_index < len(config.angular_orders)
+                else None
+            ),
+            radial_round_cap=radial_round_cap,
+            pairing_results=last_pairing_results,
+            radial_passed=False,
+            angular_passed=False,
+            offset_passed=False,
+            all_certified=False,
+            reason=f"point_provider_failure: {exc}",
+            provider=active_provider,
+        )
     except RuntimeError as exc:
         reason = (
             "joint_microscopic_q_node_budget_exhausted"
@@ -1033,7 +1054,11 @@ def run_adaptive_joint_casimir(
             direction_records=direction_records,
             radial_run_records=radial_run_records,
             offset_record=None,
-            selected_order=config.angular_orders[current_index],
+            selected_order=(
+                config.angular_orders[current_index]
+                if current_index < len(config.angular_orders)
+                else None
+            ),
             radial_round_cap=radial_round_cap,
             pairing_results=last_pairing_results,
             radial_passed=last_radial_passed,
@@ -1041,22 +1066,6 @@ def run_adaptive_joint_casimir(
             offset_passed=last_offset_passed,
             all_certified=all_certified,
             reason=reason,
-            provider=active_provider,
-        )
-    except (CertifiedPointCacheError, FixedCasimirExecutionError) as exc:
-        return _unresolved_result(
-            config,
-            direction_records=direction_records,
-            radial_run_records=radial_run_records,
-            offset_record=None,
-            selected_order=config.angular_orders[current_index],
-            radial_round_cap=radial_round_cap,
-            pairing_results=last_pairing_results,
-            radial_passed=False,
-            angular_passed=False,
-            offset_passed=False,
-            all_certified=False,
-            reason=f"point_provider_failure: {exc}",
             provider=active_provider,
         )
     except (KeyError, TypeError, ValueError, IndexError) as exc:

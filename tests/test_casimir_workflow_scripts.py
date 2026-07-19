@@ -1,12 +1,27 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import math
+import subprocess
+import sys
 
 import pytest
 
+from lno327.casimir.certified_point_provider import (
+    certified_point_policy_fingerprint,
+    certified_point_policy_payload,
+)
+from lno327.casimir.fixed_chain import FixedCasimirConfig
+from scripts.full_casimir import workflow
+from scripts.full_casimir.cache_migration import (
+    CACHE_SCHEMA,
+    LEGACY_SCHEDULING_FIELDS,
+    migrate_cache,
+)
 from scripts.full_casimir.cleanup_legacy_root import cleanup_legacy_root_scripts
 from scripts.full_casimir.config import (
+    REPO_ROOT,
     angle_token,
     case_name,
     inclusive_integer_grid,
@@ -26,18 +41,18 @@ def test_angle_grid_and_case_names_are_deterministic() -> None:
     assert angle_token(0) == "p000"
     assert angle_token(94) == "p094"
     assert case_name("spm", 0) == (
-        "spm_T10K_d20nm_theta_p000deg_runtime_budget_v2"
+        "spm_T10K_d20nm_theta_p000deg_runtime_budget_v3"
     )
 
 
 def test_cpu_selection_reserves_requested_logical_capacity() -> None:
     resources = select_runtime_resources(
         available_cpus=tuple(range(32)),
-        reserve_logical_cpus=4,
-        worker_cap=28,
+        reserve_logical_cpus=6,
+        worker_cap=26,
     )
-    assert resources.workers == 28
-    assert len(resources.reserved_cpus) == 4
+    assert resources.workers == 26
+    assert len(resources.reserved_cpus) == 6
     assert set(resources.selected_cpus).isdisjoint(resources.reserved_cpus)
     assert set(resources.selected_cpus) | set(resources.reserved_cpus) == set(range(32))
 
@@ -76,3 +91,148 @@ def test_cleanup_removes_only_explicit_legacy_names(tmp_path: Path) -> None:
     assert removed == [legacy]
     assert not legacy.exists()
     assert keep.exists()
+
+
+def test_custom_pilot_profile_is_used_for_cache_migration(monkeypatch) -> None:
+    seen: dict[str, object] = {}
+
+    monkeypatch.setattr(workflow, "cleanup_legacy_root_scripts", lambda: [])
+    monkeypatch.setattr(workflow, "_resources", lambda args: object())
+    monkeypatch.setattr(workflow, "validate_pairings", lambda values: tuple(values))
+    monkeypatch.setattr(workflow, "_energy_options", lambda args: object())
+
+    def fake_migrate(args, pairings, resources, options, *, target_profile):
+        seen["target_profile"] = target_profile
+
+    monkeypatch.setattr(workflow, "_migrate", fake_migrate)
+    monkeypatch.setattr(workflow, "run_energy_cases", lambda **kwargs: 0)
+
+    assert workflow.main(["pilots", "--profile", "custom_pilot_profile"]) == 0
+    assert seen["target_profile"] == "custom_pilot_profile"
+
+
+def test_existing_target_cache_must_match_target_policy(tmp_path: Path) -> None:
+    target_config = FixedCasimirConfig(pairings=("spm",), plate_angles_deg=(0.0, 0.0))
+    target_run = tmp_path / "target"
+    target_cache = target_run / "cache" / "certified_points.json"
+    target_cache.parent.mkdir(parents=True)
+    target_cache.write_text(
+        json.dumps(
+            {
+                "schema": CACHE_SCHEMA,
+                "policy_fingerprint": "stale-policy",
+                "frequency_extendable": True,
+                "entries": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="fingerprint"):
+        migrate_cache(
+            pairing="spm",
+            source_run_dir=tmp_path / "source",
+            target_run_dir=target_run,
+            target_point_config=target_config,
+        )
+
+    assert certified_point_policy_fingerprint(
+        target_config,
+        frequency_extendable=True,
+    ) != "stale-policy"
+
+
+def test_legacy_source_cache_may_differ_only_by_scheduling_fingerprint(
+    tmp_path: Path,
+) -> None:
+    source_config = FixedCasimirConfig(
+        pairings=("spm",),
+        plate_angles_deg=(0.0, 0.0),
+        logdet_rtol=1e-3,
+        workers=30,
+        parallel_mode="q",
+        memory_budget_gb=0.0,
+        max_context_workers=1,
+    )
+    target_config = FixedCasimirConfig(
+        pairings=("spm",),
+        plate_angles_deg=(0.0, 0.0),
+        logdet_rtol=1.5e-3,
+        workers=26,
+        parallel_mode="q",
+        memory_budget_gb=16.0,
+        max_context_workers=1,
+    )
+    source_run = tmp_path / "source"
+    source_cache = source_run / "cache" / "certified_points.json"
+    source_cache.parent.mkdir(parents=True)
+    (source_run / "config.json").write_text(
+        json.dumps(
+            {
+                "outer_tail_config": {
+                    "joint_config": {
+                        "radial_config": {"point_config": source_config.as_dict()}
+                    }
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    legacy_policy = certified_point_policy_payload(
+        source_config,
+        frequency_extendable=True,
+    )
+    full_source = source_config.as_dict()
+    for name in LEGACY_SCHEDULING_FIELDS:
+        legacy_policy[name] = full_source[name]
+    source_cache.write_text(
+        json.dumps(
+            {
+                "schema": CACHE_SCHEMA,
+                "policy_fingerprint": "legacy-scheduling-dependent-hash",
+                "frequency_extendable": True,
+                "point_policy": legacy_policy,
+                "entries": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    target_run = tmp_path / "target"
+    report = migrate_cache(
+        pairing="spm",
+        source_run_dir=source_run,
+        target_run_dir=target_run,
+        target_point_config=target_config,
+    )
+
+    assert not report.skipped
+    migrated = json.loads(
+        (target_run / "cache" / "certified_points.json").read_text(encoding="utf-8")
+    )
+    assert migrated["policy_fingerprint"] == certified_point_policy_fingerprint(
+        target_config,
+        frequency_extendable=True,
+    )
+
+
+def test_background_runner_persists_child_exit_code(tmp_path: Path) -> None:
+    runner = REPO_ROOT / "scripts" / "full_casimir" / "background_runner.sh"
+    exit_file = tmp_path / "exit_code"
+
+    completed = subprocess.run(
+        [
+            "bash",
+            str(runner),
+            str(exit_file),
+            sys.executable,
+            "-c",
+            "raise SystemExit(7)",
+        ],
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+
+    assert completed.returncode == 7
+    assert exit_file.read_text(encoding="utf-8").strip() == "7"

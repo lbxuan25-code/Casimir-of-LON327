@@ -1,33 +1,19 @@
 # Casimir operational workflow
 
-All repository-local run and post-processing helpers live in this directory. No
-Python or shell workflow scripts should be added to the repository root.
+All run and post-processing helpers live under `scripts/full_casimir/`.
 
-## Commands
-
-Show the CPU reservation without starting a calculation:
+## Runtime-v3 pilot
 
 ```bash
 python -m scripts.full_casimir.workflow resources
-```
-
-Run the SPM and d-wave 0° pilots sequentially in the background:
-
-```bash
 bash scripts/full_casimir/background.sh start pilots
 ```
 
-Run the padded energy scan, -4° to 94° in 2° steps:
-
-```bash
-bash scripts/full_casimir/background.sh start scan
-```
-
-Run the complete scan and then automatically extract torque and create plots:
-
-```bash
-bash scripts/full_casimir/background.sh start all
-```
+The pilot reserves six logical CPUs (maximum 26 workers), runs SPM then d-wave,
+uses `logdet_rtol=1.5e-3`, keeps `logdet_atol=1e-6` and two consecutive accepted
+transitions, and uses 512-q certifier batches.  When v2 pilot caches are present,
+the workflow safely reassesses their stored raw N/shift histories under the relaxed
+relative logdet criterion and seeds the v3 cache.  It never alters the v2 evidence.
 
 Inspect or stop the background job:
 
@@ -37,44 +23,22 @@ bash scripts/full_casimir/background.sh logs
 bash scripts/full_casimir/background.sh stop
 ```
 
-Post-process an already completed scan in the foreground:
+Run the padded scan after both v3 pilots are reviewed:
 
 ```bash
-python -m scripts.full_casimir.workflow torque
-python -m scripts.full_casimir.workflow plot
+bash scripts/full_casimir/background.sh start scan
 ```
 
-## Defaults
+Run scan, torque extraction, and plotting as one fail-closed workflow:
 
-- T = 10 K
-- d = 20 nm
-- pairings = SPM, d-wave
-- N ladder = 128, 192, 256, 384, 512, 640, 768, 896
-- Matsubara cutoffs = 1, 3, 7, 11, 15, 23, 31
-- total free-energy tolerance = 0.5% relative and 1e-12 J/m² absolute
-- at most 28 workers, with 4 logical CPUs reserved
-- single-threaded BLAS/OpenMP inside each worker
-- low CPU and I/O scheduling priority for background jobs
-
-## Outputs
-
-Energy run artifacts:
-
-```text
-outputs/casimir/runs/<case>/
+```bash
+bash scripts/full_casimir/background.sh start all
 ```
 
-Workflow logs:
+`all` stops before post-processing if any energy is unresolved or an engineering
+failure occurs.  Torque uses the five-point centered derivative with angle in
+radians, so the default energy scan includes -4° and 94° padding.
 
-```text
-outputs/casimir/workflow_logs/
-```
-
-Post-processing tables and figures:
-
-```text
-outputs/casimir/postprocessed/runtime_budget_v2/
-```
-
-Torque uses a five-point centered derivative in radians. The default energy scan
-therefore includes -4° and 94° padding so torque can be evaluated on 0°–90°.
+Outputs are under `outputs/casimir/runs`, logs under
+`outputs/casimir/workflow_logs`, and post-processing under
+`outputs/casimir/postprocessed/runtime_budget_v3`.

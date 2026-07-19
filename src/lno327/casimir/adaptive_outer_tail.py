@@ -235,7 +235,10 @@ class AdaptiveOuterTailCasimirResult:
         }
 
 
-def _provider_statistics(provider: Any) -> dict[str, int]:
+def _provider_statistics(provider: Any) -> dict[str, Any]:
+    performance_summary = getattr(provider, "performance_summary", None)
+    if callable(performance_summary):
+        return dict(performance_summary())
     names = (
         "cached_point_count",
         "unique_q_count",
@@ -243,6 +246,9 @@ def _provider_statistics(provider: Any) -> dict[str, int]:
         "requested_q_evaluations",
         "new_q_evaluations",
         "cache_hit_q_evaluations",
+        "requested_point_evaluations",
+        "new_point_evaluations",
+        "cache_hit_point_evaluations",
     )
     return {name: int(getattr(provider, name, 0)) for name in names}
 

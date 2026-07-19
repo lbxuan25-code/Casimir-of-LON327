@@ -172,15 +172,35 @@ def _parse_q_points(raw: Sequence[Sequence[str]]) -> tuple[dict[str, Any], ...]:
     return tuple(points)
 
 
+def _parse_q_points_file(path: Path) -> tuple[dict[str, Any], ...]:
+    try:
+        payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"cannot read q-points file: {exc}") from exc
+    if not isinstance(payload, list):
+        raise ValueError("q-points file must contain a JSON list")
+    raw: list[tuple[str, str, str]] = []
+    for index, record in enumerate(payload):
+        if not isinstance(record, dict):
+            raise ValueError(f"q-points file record {index} must be an object")
+        label = record.get("label")
+        q_lab = record.get("q_lab")
+        if not isinstance(q_lab, list) or len(q_lab) != 2:
+            raise ValueError(f"q-points file record {index} must contain q_lab=[qx,qy]")
+        raw.append((str(label), str(q_lab[0]), str(q_lab[1])))
+    return _parse_q_points(raw)
+
+
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
+    q_source = parser.add_mutually_exclusive_group(required=True)
+    q_source.add_argument(
         "--q-point",
         action="append",
         nargs=3,
         metavar=("LABEL", "QX", "QY"),
-        required=True,
     )
+    q_source.add_argument("--q-points-file", type=Path)
     parser.add_argument(
         "--pairings",
         nargs="+",
@@ -237,7 +257,11 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     args = parser.parse_args(argv)
 
     try:
-        args.q_points = _parse_q_points(args.q_point)
+        args.q_points = (
+            _parse_q_points_file(args.q_points_file)
+            if args.q_points_file is not None
+            else _parse_q_points(args.q_point)
+        )
     except ValueError as exc:
         parser.error(str(exc))
     args.pairings = tuple(dict.fromkeys(str(value) for value in args.pairings))

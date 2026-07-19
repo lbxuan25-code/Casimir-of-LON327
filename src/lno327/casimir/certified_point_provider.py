@@ -32,6 +32,7 @@ from .fixed_outer_q import OuterQNodeManifest
 
 _CACHE_SCHEMA_V1 = "certified-outer-q-point-cache-v1"
 _CACHE_SCHEMA_V2 = "certified-outer-q-point-cache-v2-matsubara-extendable"
+_TELEMETRY_SCHEMA = "certified-point-provider-telemetry-v1"
 
 
 class CertifiedPointCacheError(RuntimeError):
@@ -97,6 +98,14 @@ def _point_policy_payload(
         "outer_rtol",
         "outer_atol_J_m2",
         "transverse_checkpoint_path",
+        # Scheduling changes do not change one microscopic point.  Excluding them
+        # permits exact cached point reuse when the user reserves more desktop CPUs.
+        "workers",
+        "parallel_mode",
+        "memory_budget_gb",
+        "max_context_workers",
+        "memory_safety_factor",
+        "fallback_context_bytes_per_point",
     ):
         payload.pop(name, None)
     if frequency_extendable:
@@ -118,6 +127,28 @@ def _policy_fingerprint(
         separators=(",", ":"),
     ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
+
+
+def certified_point_policy_payload(
+    config: FixedCasimirConfig,
+    *,
+    frequency_extendable: bool = True,
+) -> dict[str, Any]:
+    return _point_policy_payload(
+        config,
+        frequency_extendable=frequency_extendable,
+    )
+
+
+def certified_point_policy_fingerprint(
+    config: FixedCasimirConfig,
+    *,
+    frequency_extendable: bool = True,
+) -> str:
+    return _policy_fingerprint(
+        config,
+        frequency_extendable=frequency_extendable,
+    )
 
 
 def certified_primary_logdet(point: Mapping[str, Any]) -> float:
@@ -208,6 +239,7 @@ class CertifiedOuterQProvider:
                 self.cache_file_bytes = int(self.cache_path.stat().st_size)
             except OSError:
                 self.cache_file_bytes = 0
+            self._load_telemetry()
 
     @property
     def cached_point_count(self) -> int:
@@ -221,8 +253,8 @@ class CertifiedOuterQProvider:
     def frequency_extendable(self) -> bool:
         return self._frequency_extendable
 
-    def performance_statistics(self) -> dict[str, Any]:
-        """Return orchestration telemetry without changing numerical policy."""
+    def performance_summary(self) -> dict[str, Any]:
+        """Return compact counters suitable for nested numerical result records."""
 
         return {
             "cached_point_count": int(self.cached_point_count),
@@ -257,6 +289,13 @@ class CertifiedOuterQProvider:
             "cache_save_seconds": float(self.cache_save_seconds),
             "cache_save_count": int(self.cache_save_count),
             "cache_file_bytes": int(self.cache_file_bytes),
+        }
+
+    def performance_statistics(self) -> dict[str, Any]:
+        """Return complete orchestration telemetry for the sidecar file."""
+
+        return {
+            **self.performance_summary(),
             "certifier_batch_records": [
                 dict(record) for record in self.certifier_batch_records
             ],
@@ -420,6 +459,7 @@ class CertifiedOuterQProvider:
 
         new_point_count = 0
         new_batch_count = 0
+        cache_dirty = False
         for missing_indices, group in groups.items():
             if not group:
                 continue
@@ -469,6 +509,7 @@ class CertifiedOuterQProvider:
                         q_keys=tuple(q_key for q_key, _ in chunk),
                         requested_config=run_config,
                     )
+                    cache_dirty = True
                     self._consume_certifier_telemetry(
                         certification.payload,
                         wall_seconds=wall_seconds,
@@ -518,10 +559,11 @@ class CertifiedOuterQProvider:
                     and len(group) > self.certifier_q_batch_size
                 ):
                     self._save()
+                    cache_dirty = False
 
         cache_hit_point_count = requested_point_count - new_point_count
         self.cache_hit_point_evaluations += cache_hit_point_count
-        if groups:
+        if cache_dirty:
             self._save()
 
         rows: list[Mapping[str, Any]] = []
@@ -604,8 +646,26 @@ class CertifiedOuterQProvider:
             raise CertifiedPointCacheError(
                 "transverse certifier returned an unexpected schema"
             )
+        rows = payload.get("point_results")
+        if not isinstance(rows, list):
+            raise CertifiedPointCacheError(
+                "transverse certifier point_results must be a list"
+            )
         q_by_label = dict(zip(labels, q_keys, strict=True))
-        for point in payload.get("point_results", []):
+        expected = {
+            (label, pairing, int(n))
+            for label in labels
+            for pairing in requested_config.pairings
+            for n in requested_config.matsubara_indices
+        }
+        seen: set[tuple[str, str, int]] = set()
+        staged: list[tuple[str, tuple[str, str], dict[str, Any]]] = []
+        for raw_point in rows:
+            if not isinstance(raw_point, Mapping):
+                raise CertifiedPointCacheError(
+                    "transverse certifier returned a malformed point row"
+                )
+            point = dict(raw_point)
             label = str(point.get("q_label", ""))
             q_key = q_by_label.get(label)
             if q_key is None:
@@ -614,15 +674,25 @@ class CertifiedOuterQProvider:
                 )
             pairing = str(point.get("pairing", ""))
             n = int(point.get("n", -1))
-            if (
-                pairing not in requested_config.pairings
-                or n not in requested_config.matsubara_indices
-            ):
+            identity = (label, pairing, n)
+            if identity not in expected:
                 raise CertifiedPointCacheError(
                     "transverse certifier returned an unrequested point"
                 )
+            if identity in seen:
+                raise CertifiedPointCacheError(
+                    "transverse certifier returned a duplicate point"
+                )
+            seen.add(identity)
             key = _entry_key(pairing, n, q_key)
-            self._entries[key] = dict(point)
+            staged.append((key, q_key, point))
+        missing = expected - seen
+        if missing:
+            raise CertifiedPointCacheError(
+                f"transverse certifier omitted {len(missing)} requested points"
+            )
+        for key, q_key, point in staged:
+            self._entries[key] = point
             self._q_by_entry[key] = q_key
 
     def _load(self) -> None:
@@ -638,19 +708,77 @@ class CertifiedOuterQProvider:
         entries = payload.get("entries", [])
         if not isinstance(entries, list):
             raise CertifiedPointCacheError("point cache entries must be a list")
+        seen: set[str] = set()
         for entry in entries:
             try:
                 pairing = str(entry["pairing"])
                 n = int(entry["n"])
                 q_key = (str(entry["qx_hex"]), str(entry["qy_hex"]))
                 point = dict(entry["point_result"])
+                q_values = tuple(float.fromhex(value) for value in q_key)
             except (KeyError, TypeError, ValueError) as exc:
                 raise CertifiedPointCacheError("malformed point cache entry") from exc
-            if n < 0:
-                raise CertifiedPointCacheError("point cache contains a negative Matsubara index")
+            if pairing not in self.config.pairings:
+                raise CertifiedPointCacheError("point cache contains an unknown pairing")
+            if n < 0 or (
+                not self._frequency_extendable
+                and n not in self.config.matsubara_indices
+            ):
+                raise CertifiedPointCacheError(
+                    "point cache contains an incompatible Matsubara index"
+                )
+            if not np.isfinite(q_values).all():
+                raise CertifiedPointCacheError("point cache contains a non-finite q key")
             key = _entry_key(pairing, n, q_key)
+            if key in seen:
+                raise CertifiedPointCacheError("point cache contains duplicate entries")
+            seen.add(key)
             self._entries[key] = point
             self._q_by_entry[key] = q_key
+
+    def _load_telemetry(self) -> None:
+        if self.cache_path is None:
+            return
+        telemetry_path = self.cache_path.with_suffix(".telemetry.json")
+        if not telemetry_path.exists():
+            return
+        try:
+            payload = json.loads(telemetry_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return
+        if (
+            payload.get("schema") != _TELEMETRY_SCHEMA
+            or payload.get("policy_fingerprint") != self._policy_fingerprint
+            or bool(payload.get("frequency_extendable")) != self._frequency_extendable
+        ):
+            return
+        integer_names = (
+            "certification_batches",
+            "certification_failed_batches",
+            "requested_q_evaluations",
+            "new_q_evaluations",
+            "cache_hit_q_evaluations",
+            "requested_point_evaluations",
+            "new_point_evaluations",
+            "cache_hit_point_evaluations",
+            "cache_save_count",
+        )
+        float_names = (
+            "certifier_wall_seconds",
+            "certifier_reported_level_wall_seconds",
+            "certifier_material_build_seconds",
+            "certifier_context_wall_seconds",
+            "cache_save_seconds",
+        )
+        for name in integer_names:
+            setattr(self, name, int(payload.get(name, getattr(self, name))))
+        for name in float_names:
+            setattr(self, name, float(payload.get(name, getattr(self, name))))
+        records = payload.get("certifier_batch_records", [])
+        if isinstance(records, list):
+            self.certifier_batch_records = [
+                dict(record) for record in records if isinstance(record, Mapping)
+            ]
 
     def _save(self) -> None:
         if self.cache_path is None:
@@ -682,7 +810,7 @@ class CertifiedOuterQProvider:
         self.cache_path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.cache_path.with_suffix(self.cache_path.suffix + ".tmp")
         temporary.write_text(
-            json.dumps(payload, sort_keys=True, indent=2) + "\n",
+            json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n",
             encoding="utf-8",
         )
         temporary.replace(self.cache_path)
@@ -699,7 +827,12 @@ class CertifiedOuterQProvider:
         )
         telemetry_temporary.write_text(
             json.dumps(
-                self.performance_statistics(),
+                {
+                    "schema": _TELEMETRY_SCHEMA,
+                    "policy_fingerprint": self._policy_fingerprint,
+                    "frequency_extendable": self._frequency_extendable,
+                    **self.performance_statistics(),
+                },
                 sort_keys=True,
                 indent=2,
             )
@@ -734,5 +867,7 @@ __all__ = [
     "CertifiedPointBatch",
     "CertifiedPointCacheError",
     "FrequencyExtendableCertifiedOuterQProvider",
+    "certified_point_policy_fingerprint",
+    "certified_point_policy_payload",
     "certified_primary_logdet",
 ]
