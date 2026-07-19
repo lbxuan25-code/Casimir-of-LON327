@@ -11,6 +11,7 @@ MODE_FILE="$LOG_ROOT/background.mode"
 COMMAND_FILE="$LOG_ROOT/background.command"
 DRIVER_LOG="$LOG_ROOT/background.log"
 EXIT_FILE="$LOG_ROOT/background.exit_code"
+LOCK_FILE="$LOG_ROOT/background.lock"
 mkdir -p "$LOG_ROOT"
 
 usage() {
@@ -48,6 +49,18 @@ is_running() {
 start_job() {
   local mode="${1:-}"; shift || true
   case "$mode" in pilots|scan|all|torque|plot) ;; *) usage; exit 64;; esac
+
+  # Serialize the state check and PID publication so two simultaneous `start`
+  # invocations cannot both launch workflows before either writes the PID file.
+  local lock_fd=""
+  if command -v flock >/dev/null 2>&1; then
+    exec {lock_fd}>"$LOCK_FILE"
+    if ! flock -n "$lock_fd"; then
+      echo "ERROR: another background start operation is in progress" >&2
+      exit 1
+    fi
+  fi
+
   if is_running; then
     echo "ERROR: workflow already running (PID=$(cat "$PID_FILE"))" >&2; exit 1
   fi
