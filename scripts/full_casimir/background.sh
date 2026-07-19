@@ -2,6 +2,7 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+RUNNER="$SCRIPT_DIR/background_runner.sh"
 cd "$REPO_ROOT"
 LOG_ROOT="outputs/casimir/workflow_logs"
 PID_FILE="$LOG_ROOT/background.pid"
@@ -36,11 +37,12 @@ is_running() {
   local pid expected actual cmdline
   pid="$(cat "$PID_FILE")"
   expected="$(cat "$START_FILE")"
+  [[ "$pid" =~ ^[0-9]+$ ]] || return 1
   kill -0 "$pid" 2>/dev/null || return 1
   actual="$(proc_start_ticks "$pid" 2>/dev/null || true)"
   [[ -n "$actual" && "$actual" == "$expected" ]] || return 1
   cmdline="$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null || true)"
-  [[ "$cmdline" == *"scripts.full_casimir.workflow"* ]]
+  [[ "$cmdline" == *"background_runner.sh"* || "$cmdline" == *"scripts.full_casimir.workflow"* ]]
 }
 
 start_job() {
@@ -49,6 +51,7 @@ start_job() {
   if is_running; then
     echo "ERROR: workflow already running (PID=$(cat "$PID_FILE"))" >&2; exit 1
   fi
+  [[ -f "$RUNNER" ]] || { echo "ERROR: missing background runner: $RUNNER" >&2; exit 1; }
   cleanup_stale
   local python_bin; python_bin="$(command -v python)"
   local command=("$python_bin" -m scripts.full_casimir.workflow "$mode" "$@")
@@ -58,7 +61,8 @@ start_job() {
   rm -f "$EXIT_FILE"
   local launcher=(setsid nice -n 15)
   if command -v ionice >/dev/null 2>&1; then launcher+=(ionice -c 2 -n 7); fi
-  nohup "${launcher[@]}" "${command[@]}" >> "$DRIVER_LOG" 2>&1 < /dev/null &
+  nohup "${launcher[@]}" bash "$RUNNER" "$EXIT_FILE" "${command[@]}" \
+    >> "$DRIVER_LOG" 2>&1 < /dev/null &
   local pid=$!
   printf '%s\n' "$pid" > "$PID_FILE"
   local ticks=""
@@ -73,7 +77,7 @@ start_job() {
     echo "started: mode=$mode"; echo "PID: $pid"; echo "log: $DRIVER_LOG"; return 0
   fi
   set +e; wait "$pid"; local rc=$?; set -e
-  printf '%s\n' "$rc" > "$EXIT_FILE"
+  if [[ -f "$EXIT_FILE" ]]; then rc="$(cat "$EXIT_FILE")"; fi
   cleanup_stale
   if [[ "$rc" -eq 0 ]]; then
     echo "workflow completed before background status check"; return 0
