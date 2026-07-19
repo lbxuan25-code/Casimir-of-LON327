@@ -62,6 +62,10 @@ jobs:
                   'updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)',
                   'updated, count = re.subn(pattern, lambda _: replacement, text, count=1, flags=re.S)',
               ),
+              (
+                  r'        "cache_hit_q_evaluations",\n    )\n    return {name: int(getattr(provider, name, 0)) for name in names}\n',
+                  r'        "cache_hit_q_evaluations",\n        "requested_point_evaluations",\n        "new_point_evaluations",\n        "cache_hit_point_evaluations",\n    )\n    return {name: int(getattr(provider, name, 0)) for name in names}\n',
+              ),
           )
           for old, new in corrections:
               if script.count(old) != 1:
