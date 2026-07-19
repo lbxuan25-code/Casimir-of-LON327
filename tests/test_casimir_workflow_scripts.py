@@ -36,6 +36,46 @@ from scripts.full_casimir.postprocess import (
 )
 
 
+def _write_completed_artifacts(run: Path, *, config: dict) -> None:
+    run.mkdir(parents=True, exist_ok=True)
+    reason = "outer_and_matsubara_cutoff_tail_tolerances_met"
+    (run / "config.json").write_text(json.dumps(config), encoding="utf-8")
+    (run / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema": "full-casimir-run-manifest",
+                "case": run.name,
+                "status": "completed",
+                "termination_reason": reason,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (run / "summary.json").write_text(
+        json.dumps(
+            {
+                "schema": "full-casimir-run-summary",
+                "case": run.name,
+                "status": "adaptive_tail_bounded",
+                "matsubara_converged": True,
+                "termination_reason": reason,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (run / "result.json").write_text(
+        json.dumps(
+            {
+                "schema": "adaptive-matsubara-casimir-result-v1",
+                "status": "adaptive_tail_bounded",
+                "matsubara_converged": True,
+                "termination_reason": reason,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
 def test_angle_grid_and_case_names_are_deterministic() -> None:
     assert inclusive_integer_grid(-4, 94, 2)[0] == -4
     assert inclusive_integer_grid(-4, 94, 2)[-1] == 94
@@ -122,10 +162,13 @@ def test_cleanup_removes_only_explicit_legacy_names(tmp_path: Path) -> None:
     assert keep.exists()
 
 
-def test_custom_pilot_profile_is_used_for_cache_migration(monkeypatch) -> None:
+def test_normal_pilot_run_does_not_mutate_source_tree(monkeypatch) -> None:
     seen: dict[str, object] = {}
 
-    monkeypatch.setattr(workflow, "cleanup_legacy_root_scripts", lambda: [])
+    def unexpected_cleanup():
+        raise AssertionError("normal energy runs must not delete source files")
+
+    monkeypatch.setattr(workflow, "cleanup_legacy_root_scripts", unexpected_cleanup)
     monkeypatch.setattr(workflow, "_resources", lambda args: object())
     monkeypatch.setattr(workflow, "validate_pairings", lambda values: tuple(values))
     monkeypatch.setattr(workflow, "_energy_options", lambda args: object())
@@ -142,15 +185,7 @@ def test_custom_pilot_profile_is_used_for_cache_migration(monkeypatch) -> None:
 
 def test_case_state_rejects_a_stale_configuration_before_skip(tmp_path: Path) -> None:
     run = tmp_path / "case"
-    run.mkdir()
-    (run / "config.json").write_text(json.dumps({"policy": "old"}), encoding="utf-8")
-    (run / "manifest.json").write_text(
-        json.dumps({"status": "completed"}), encoding="utf-8"
-    )
-    (run / "summary.json").write_text(
-        json.dumps({"matsubara_converged": True}), encoding="utf-8"
-    )
-    (run / "result.json").write_text("{}", encoding="utf-8")
+    _write_completed_artifacts(run, config={"policy": "old"})
 
     assert _case_state(run) == "completed"
     assert _case_state(
@@ -161,6 +196,17 @@ def test_case_state_rejects_a_stale_configuration_before_skip(tmp_path: Path) ->
         run,
         expected_config={"policy": "old"},
     ) == "completed"
+
+
+def test_corrupt_completed_result_is_resumed_not_skipped(tmp_path: Path) -> None:
+    run = tmp_path / "case"
+    _write_completed_artifacts(run, config={"policy": "current"})
+    (run / "result.json").write_text("{truncated", encoding="utf-8")
+
+    assert _case_state(
+        run,
+        expected_config={"policy": "current"},
+    ) == "artifact_inconsistent"
 
 
 def test_existing_target_cache_must_match_target_policy(tmp_path: Path) -> None:
