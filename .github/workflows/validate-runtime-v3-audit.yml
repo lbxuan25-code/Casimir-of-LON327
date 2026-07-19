@@ -31,7 +31,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Reconstruct and apply exact audit patch
+      - name: Reconstruct exact audit patch
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -51,7 +51,26 @@ jobs:
           script = zlib.decompress(base64.b64decode(encoded))
           Path('/tmp/apply_runtime_v3.py').write_bytes(script)
           PY
-          python /tmp/apply_runtime_v3.py
+
+      - name: Apply audit patch and capture result
+        run: |
+          set +e
+          python /tmp/apply_runtime_v3.py > /tmp/runtime-v3-apply.log 2>&1
+          echo $? > /tmp/runtime-v3-apply.exit
+          set -e
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-v3-apply-diagnostics
+          path: |
+            /tmp/runtime-v3-apply.log
+            /tmp/runtime-v3-apply.exit
+
+      - name: Require successful patch application
+        run: |
+          cat /tmp/runtime-v3-apply.log
+          test "$(cat /tmp/runtime-v3-apply.exit)" = "0"
           rm -f .github/runtime_v3_patch.*
           rm -f .github/workflows/validate-runtime-v3-audit.yml
 
