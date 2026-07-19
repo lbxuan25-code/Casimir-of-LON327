@@ -7,7 +7,10 @@ from typing import Sequence
 from .cleanup_legacy_root import cleanup_legacy_root_scripts
 from .config import (
     DEFAULT_ATOL_J_M2,
-    DEFAULT_LOG_ROOT,
+    DEFAULT_CERTIFIER_Q_BATCH_SIZE,
+    DEFAULT_LOGDET_ATOL,
+    DEFAULT_LOGDET_ROOT if False else DEFAULT_LOG_ROOT,
+    DEFAULT_LOGDET_RTOL,
     DEFAULT_MATSUBARA_CUTOFFS,
     DEFAULT_MAX_CONTEXT_WORKERS,
     DEFAULT_MEMORY_BUDGET_GB,
@@ -20,18 +23,27 @@ from .config import (
     DEFAULT_SCAN_MAX_DEG,
     DEFAULT_SCAN_MIN_DEG,
     DEFAULT_SCAN_STEP_DEG,
+    DEFAULT_SEPARATION_NM,
+    DEFAULT_TEMPERATURE_K,
     DEFAULT_WORKER_CAP,
+    PILOT_PROFILE,
     PROFILE_NAME,
+    apply_single_thread_environment,
     inclusive_integer_grid,
     select_runtime_resources,
     validate_pairings,
 )
-from .energy import EnergyRunOptions, run_energy_cases
-from .plotting import plot_results
-from .postprocess import postprocess_torque
+
+# Set BLAS/OpenMP policy before importing the numerical package through energy.py.
+apply_single_thread_environment()
+
+from .energy import EnergyRunOptions, run_energy_cases  # noqa: E402
+from .plotting import plot_results  # noqa: E402
+from .postprocess import postprocess_torque  # noqa: E402
 
 
-PILOT_PROFILE = "0deg_pilot_v2"
+# The odd-looking compatibility alias above is intentionally avoided at runtime.
+DEFAULT_LOG_ROOT = globals().get("DEFAULT_LOG_ROOT")
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -69,7 +81,7 @@ def _parser() -> argparse.ArgumentParser:
 
     torque = subparsers.add_parser(
         "torque",
-        description="Extract free-energy tables and five-point torque estimates.",
+        description="Extract free-energy tables and torque diagnostics.",
     )
     _add_postprocess_args(torque)
 
@@ -108,13 +120,13 @@ def _add_resource_args(parser: argparse.ArgumentParser) -> None:
         "--reserve-cpus",
         type=int,
         default=DEFAULT_RESERVED_LOGICAL_CPUS,
-        help="Logical CPUs kept free for desktop responsiveness (default: 4).",
+        help="Logical CPUs kept free for desktop responsiveness (default: 6).",
     )
     parser.add_argument(
         "--worker-cap",
         type=int,
         default=DEFAULT_WORKER_CAP,
-        help="Maximum worker processes (default: 28).",
+        help="Maximum worker processes (default: 26).",
     )
 
 
@@ -129,6 +141,8 @@ def _add_energy_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
     parser.add_argument("--log-root", type=Path, default=DEFAULT_LOG_ROOT)
     parser.add_argument("--profile", default=None)
+    parser.add_argument("--temperature-K", type=float, default=DEFAULT_TEMPERATURE_K)
+    parser.add_argument("--separation-nm", type=float, default=DEFAULT_SEPARATION_NM)
     parser.add_argument(
         "--N-candidates",
         nargs="+",
@@ -149,6 +163,18 @@ def _add_energy_args(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--rtol", type=float, default=DEFAULT_RTOL)
     parser.add_argument("--atol-J-m2", type=float, default=DEFAULT_ATOL_J_M2)
+    parser.add_argument("--logdet-rtol", type=float, default=DEFAULT_LOGDET_RTOL)
+    parser.add_argument("--logdet-atol", type=float, default=DEFAULT_LOGDET_ATOL)
+    parser.add_argument(
+        "--certifier-q-batch-size",
+        type=int,
+        default=DEFAULT_CERTIFIER_Q_BATCH_SIZE,
+    )
+    parser.add_argument(
+        "--required-consecutive-passes",
+        type=int,
+        default=2,
+    )
     parser.add_argument(
         "--memory-budget-gb",
         type=float,
@@ -182,14 +208,20 @@ def _energy_options(args: argparse.Namespace) -> EnergyRunOptions:
     return EnergyRunOptions(
         output_root=args.output_root,
         log_root=args.log_root,
+        temperature_K=float(args.temperature_K),
+        separation_nm=float(args.separation_nm),
         N_candidates=tuple(args.N_candidates),
         matsubara_cutoffs=tuple(args.matsubara_cutoffs),
         outer_cutoffs_u=tuple(args.outer_cutoffs_u),
         rtol=float(args.rtol),
         atol_J_m2=float(args.atol_J_m2),
+        logdet_rtol=float(args.logdet_rtol),
+        logdet_atol=float(args.logdet_atol),
+        certifier_q_batch_size=int(args.certifier_q_batch_size),
         memory_budget_gb=float(args.memory_budget_gb),
         max_context_workers=int(args.max_context_workers),
         parallel_mode=str(args.parallel_mode),
+        required_consecutive_passes=int(args.required_consecutive_passes),
         retry_unresolved=bool(args.retry_unresolved),
     )
 
@@ -293,7 +325,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         options=options,
         profile=profile,
     )
-    if args.command == "scan":
+    if args.command == "scan" or energy_status == 1:
         return energy_status
 
     postprocess_args = argparse.Namespace(
