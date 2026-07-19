@@ -32,13 +32,23 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Apply exact reviewed core patches
+      - name: Patch fixed chain and Matsubara orchestration
+        run: python .github/patch_runtime_v3_fixed.py
+
+      - name: Patch provider batching and extraction
+        run: python .github/patch_runtime_v3_provider.py
+
+      - name: Patch provider payload validation
+        run: python .github/patch_runtime_v3_payload.py
+
+      - name: Patch joint orchestration and offset errors
+        run: python .github/patch_runtime_v3_joint.py
+
+      - name: Patch joint exception hierarchy
+        run: python .github/patch_runtime_v3_catch.py
+
+      - name: Remove temporary patch machinery
         run: |
-          python .github/patch_runtime_v3_fixed.py
-          python .github/patch_runtime_v3_provider.py
-          python .github/patch_runtime_v3_payload.py
-          python .github/patch_runtime_v3_joint.py
-          python .github/patch_runtime_v3_catch.py
           rm -f .github/patch_runtime_v3_*.py
           rm -f .github/workflows/validate-runtime-v3.yml
 
