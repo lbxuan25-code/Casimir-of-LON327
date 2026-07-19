@@ -33,6 +33,14 @@ def _atomic_json(path: Path, payload: Any) -> None:
     temporary.replace(path)
 
 
+def _read_json_object(path: Path) -> dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
 def _git_commit() -> str | None:
     """Return this checkout's commit without consulting the caller's cwd."""
 
@@ -119,7 +127,13 @@ def execute_case(
     config_payload = config.as_dict()
     config_path = run_dir / "config.json"
     if resume and config_path.exists():
-        existing = json.loads(config_path.read_text(encoding="utf-8"))
+        try:
+            existing = json.loads(config_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(
+                "--resume cannot verify the existing run configuration because "
+                f"config.json is unreadable: {exc}"
+            ) from exc
         if existing != config_payload:
             raise ValueError(
                 "--resume requires the exact existing run configuration; "
@@ -130,15 +144,23 @@ def execute_case(
     previous_manifest: dict[str, Any] = {}
     manifest_path = run_dir / "manifest.json"
     if resume and manifest_path.exists():
-        previous_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        previous_manifest = _read_json_object(manifest_path)
     now = _utc_now()
+    started_at = previous_manifest.get("started_at_utc")
+    if not isinstance(started_at, str) or not started_at:
+        started_at = now
+    try:
+        previous_attempts = int(previous_manifest.get("attempt_count", 0))
+    except (TypeError, ValueError, OverflowError):
+        previous_attempts = 0
+    previous_attempts = max(previous_attempts, 0)
     manifest = {
         "schema": "full-casimir-run-manifest",
         "case": case,
         "status": "running",
-        "started_at_utc": previous_manifest.get("started_at_utc", now),
+        "started_at_utc": started_at,
         "last_started_at_utc": now,
-        "attempt_count": int(previous_manifest.get("attempt_count", 0)) + 1,
+        "attempt_count": previous_attempts + 1,
         "git_commit": _git_commit(),
         "paths": {
             "config": "config.json",
