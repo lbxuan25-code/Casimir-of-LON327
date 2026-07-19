@@ -88,29 +88,68 @@ jobs:
           rm -f .github/runtime_v3_patch.*
           rm -f .github/workflows/validate-runtime-v3-audit.yml
 
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-v3-patched-tree
+          path: |
+            src/lno327/casimir/fixed_transverse_point_engine.py
+            src/lno327/casimir/fixed_chain.py
+            src/lno327/casimir/certified_point_provider.py
+            src/lno327/casimir/adaptive_joint_q.py
+            src/lno327/casimir/adaptive_outer_q.py
+            src/lno327/casimir/adaptive_outer_tail.py
+            src/lno327/casimir/adaptive_matsubara_tail.py
+            src/lno327/casimir/production.py
+            src/lno327/casimir/cli.py
+            scripts/full_casimir/config.py
+            scripts/full_casimir/cache_migration.py
+            scripts/full_casimir/energy.py
+            scripts/full_casimir/workflow.py
+            scripts/full_casimir/postprocess.py
+            scripts/full_casimir/plotting.py
+            scripts/full_casimir/background.sh
+            scripts/full_casimir/README.md
+            tests/test_casimir_runtime_v3_audit.py
+
       - name: Install package
         run: python -m pip install -e ".[dev]" --quiet
 
       - name: Compile and shell-check changed modules
         run: |
-          python -m py_compile \
-            src/lno327/casimir/fixed_transverse_point_engine.py \
-            src/lno327/casimir/fixed_chain.py \
-            src/lno327/casimir/certified_point_provider.py \
-            src/lno327/casimir/adaptive_joint_q.py \
-            src/lno327/casimir/adaptive_outer_q.py \
-            src/lno327/casimir/adaptive_outer_tail.py \
-            src/lno327/casimir/adaptive_matsubara_tail.py \
-            src/lno327/casimir/production.py \
-            src/lno327/casimir/cli.py \
-            scripts/full_casimir/config.py \
-            scripts/full_casimir/cache_migration.py \
-            scripts/full_casimir/energy.py \
-            scripts/full_casimir/workflow.py \
-            scripts/full_casimir/postprocess.py \
-            scripts/full_casimir/plotting.py \
-            tests/test_casimir_runtime_v3_audit.py
-          bash -n scripts/full_casimir/background.sh
+          set +e
+          {
+            python -m py_compile \
+              src/lno327/casimir/fixed_transverse_point_engine.py \
+              src/lno327/casimir/fixed_chain.py \
+              src/lno327/casimir/certified_point_provider.py \
+              src/lno327/casimir/adaptive_joint_q.py \
+              src/lno327/casimir/adaptive_outer_q.py \
+              src/lno327/casimir/adaptive_outer_tail.py \
+              src/lno327/casimir/adaptive_matsubara_tail.py \
+              src/lno327/casimir/production.py \
+              src/lno327/casimir/cli.py \
+              scripts/full_casimir/config.py \
+              scripts/full_casimir/cache_migration.py \
+              scripts/full_casimir/energy.py \
+              scripts/full_casimir/workflow.py \
+              scripts/full_casimir/postprocess.py \
+              scripts/full_casimir/plotting.py \
+              tests/test_casimir_runtime_v3_audit.py
+            bash -n scripts/full_casimir/background.sh
+          } > /tmp/runtime-v3-compile.log 2>&1
+          echo $? > /tmp/runtime-v3-compile.exit
+          set -e
+          cat /tmp/runtime-v3-compile.log
+          test "$(cat /tmp/runtime-v3-compile.exit)" = "0"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-v3-compile-diagnostics
+          path: |
+            /tmp/runtime-v3-compile.log
+            /tmp/runtime-v3-compile.exit
 
       - name: Run targeted tests
         run: |
