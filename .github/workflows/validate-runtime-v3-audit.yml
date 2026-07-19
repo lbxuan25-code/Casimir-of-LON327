@@ -49,11 +49,20 @@ jobs:
           )
           encoded += bytes.fromhex(tail_hex).decode('ascii')
           script = zlib.decompress(base64.b64decode(encoded)).decode('utf-8')
-          old = 'return command\\n\\n\\n\\ndef _run_transverse_certifier'
-          new = 'return command\\n\\n+def _run_transverse_certifier'
-          if script.count(old) != 1:
-              raise RuntimeError('cannot correct fixed-chain regex matcher')
-          script = script.replace(old, new)
+          corrections = (
+              (
+                  'return command\\n\\n\\n\\ndef _run_transverse_certifier',
+                  'return command\\n\\n+def _run_transverse_certifier',
+              ),
+              (
+                  r'def _provider_statistics\\(provider: Any\\) -> dict\\[str, (?:Any|int)\\]:\\n',
+                  r'def _provider_statistics\\(provider: [^)]+\\) -> dict\\[str, (?:Any|int)\\]:\\n',
+              ),
+          )
+          for old, new in corrections:
+              if script.count(old) != 1:
+                  raise RuntimeError(f'cannot apply patch-script correction: {old}')
+              script = script.replace(old, new)
           Path('/tmp/apply_runtime_v3.py').write_text(script, encoding='utf-8')
           PY
 
