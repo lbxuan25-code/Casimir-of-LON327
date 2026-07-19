@@ -8,10 +8,11 @@ import csv
 import json
 import traceback
 
-from lno327.casimir.cli import execute_case
-
 from .config import (
     DEFAULT_ATOL_J_M2,
+    DEFAULT_CERTIFIER_Q_BATCH_SIZE,
+    DEFAULT_LOGDET_ATOL,
+    DEFAULT_LOGDET_RTOL,
     DEFAULT_LOG_ROOT,
     DEFAULT_MATSUBARA_CUTOFFS,
     DEFAULT_MAX_CONTEXT_WORKERS,
@@ -28,6 +29,11 @@ from .config import (
     case_name,
 )
 
+# These variables must be fixed before importing NumPy/BLAS through lno327.
+apply_single_thread_environment()
+
+from lno327.casimir.cli import execute_case  # noqa: E402
+
 
 @dataclass(frozen=True)
 class EnergyRunOptions:
@@ -40,6 +46,9 @@ class EnergyRunOptions:
     outer_cutoffs_u: tuple[float, ...] = DEFAULT_OUTER_CUTOFFS_U
     rtol: float = DEFAULT_RTOL
     atol_J_m2: float = DEFAULT_ATOL_J_M2
+    logdet_rtol: float = DEFAULT_LOGDET_RTOL
+    logdet_atol: float = DEFAULT_LOGDET_ATOL
+    certifier_q_batch_size: int = DEFAULT_CERTIFIER_Q_BATCH_SIZE
     memory_budget_gb: float = DEFAULT_MEMORY_BUDGET_GB
     max_context_workers: int = DEFAULT_MAX_CONTEXT_WORKERS
     parallel_mode: str = "q"
@@ -54,17 +63,31 @@ def _utc_now() -> str:
 def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def _case_state(run_dir: Path) -> str:
-    summary = _read_json(run_dir / "summary.json")
-    if summary:
-        return str(summary.get("status", "result_present"))
+    """Classify one artifact directory without trusting a stale summary first."""
+
+    if not run_dir.exists():
+        return "missing"
     manifest = _read_json(run_dir / "manifest.json")
-    if manifest:
-        return str(manifest.get("status", "directory_present"))
-    return "missing"
+    summary = _read_json(run_dir / "summary.json")
+    manifest_status = str(manifest.get("status", "incomplete"))
+
+    if manifest_status == "completed":
+        return "completed" if bool(summary.get("matsubara_converged")) else "inconsistent"
+    if manifest_status == "unresolved":
+        return "unresolved"
+    if manifest_status == "failed":
+        return "failed"
+    if manifest_status in {"running", "interrupted"}:
+        return "interrupted"
+    return "incomplete"
 
 
 def _append_status(log_root: Path, row: dict[str, Any]) -> None:
@@ -90,6 +113,7 @@ def _append_status(log_root: Path, row: dict[str, Any]) -> None:
         if write_header:
             writer.writeheader()
         writer.writerow({name: row.get(name, "") for name in fieldnames})
+        handle.flush()
 
 
 def _summary_row(
@@ -110,10 +134,10 @@ def _summary_row(
         "angle_deg": angle_deg,
         "case": case,
         "action": action,
-        "status": summary.get("status", manifest.get("status", "unknown")),
+        "status": manifest.get("status", summary.get("status", "unknown")),
         "termination_reason": summary.get(
             "termination_reason",
-            manifest.get("termination_reason", ""),
+            manifest.get("termination_reason", manifest.get("error", "")),
         ),
         "selected_matsubara_cutoff": summary.get("selected_matsubara_cutoff", ""),
         "selected_u_max": summary.get("selected_u_max", ""),
@@ -143,12 +167,21 @@ def run_energy_cases(
     print(f"reserved CPUs: {resources.reserved_cpus}", flush=True)
     print(f"workers: {resources.workers}", flush=True)
     print(f"profile: {profile}", flush=True)
+    print(f"logdet tolerance: rtol={options.logdet_rtol}, atol={options.logdet_atol}", flush=True)
+    print(f"certifier q batch size: {options.certifier_q_batch_size}", flush=True)
 
     engineering_failures = 0
+    unresolved_cases = 0
 
     for pairing in pairings:
         for angle_deg in angles_deg:
-            case = case_name(pairing, angle_deg, profile=profile)
+            case = case_name(
+                pairing,
+                angle_deg,
+                temperature_K=options.temperature_K,
+                separation_nm=options.separation_nm,
+                profile=profile,
+            )
             run_dir = options.output_root / case
             state = _case_state(run_dir)
 
@@ -168,6 +201,7 @@ def run_energy_cases(
                 continue
 
             if state == "unresolved" and not options.retry_unresolved:
+                unresolved_cases += 1
                 print(f"SKIP unresolved result present: {case}", flush=True)
                 _append_status(
                     options.log_root,
@@ -184,9 +218,10 @@ def run_energy_cases(
 
             resume = run_dir.exists()
             action = "resume" if resume else "start"
-            print(f"{action.upper()}: {case}", flush=True)
+            print(f"{action.upper()} ({state}): {case}", flush=True)
             started = time.perf_counter()
             error: BaseException | None = None
+            converged = False
 
             try:
                 result = execute_case(
@@ -207,15 +242,23 @@ def run_energy_cases(
                     cutoff_u_values=options.outer_cutoffs_u,
                     total_free_energy_rtol=options.rtol,
                     total_free_energy_atol_J_m2=options.atol_J_m2,
+                    logdet_rtol=options.logdet_rtol,
+                    logdet_atol=options.logdet_atol,
+                    certifier_q_batch_size=options.certifier_q_batch_size,
                 )
-                if result.matsubara_converged:
+                converged = bool(result.matsubara_converged)
+                if converged:
                     print(f"CONVERGED: {case}", flush=True)
                 else:
+                    unresolved_cases += 1
                     print(
                         f"UNRESOLVED: {case}: {result.termination_reason}",
                         flush=True,
                     )
-            except BaseException as exc:
+            except KeyboardInterrupt as exc:
+                error = exc
+                print(f"INTERRUPTED: {case}", flush=True)
+            except Exception as exc:
                 error = exc
                 engineering_failures += 1
                 print(
@@ -240,5 +283,11 @@ def run_energy_cases(
 
             if isinstance(error, KeyboardInterrupt):
                 raise error
+            if error is None and not converged:
+                continue
 
-    return 1 if engineering_failures else 0
+    if engineering_failures:
+        return 1
+    if unresolved_cases:
+        return 2
+    return 0
