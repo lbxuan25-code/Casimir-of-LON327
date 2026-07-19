@@ -81,10 +81,14 @@ replace_once(
 )
 replace_once(
     path,
-    '''                "requested_point_count": int(requested_point_count),
+    '''                "status": "succeeded",
+                "requested_q_count": int(requested_q_count),
+                "requested_point_count": int(requested_point_count),
                 "matsubara_indices": [
 ''',
-    '''                "requested_point_count": int(requested_point_count),
+    '''                "status": "succeeded",
+                "requested_q_count": int(requested_q_count),
+                "requested_point_count": int(requested_point_count),
                 "returned_point_count": int(len(payload.get("point_results", ()))),
                 "unresolved_point_count": int(
                     sum(
