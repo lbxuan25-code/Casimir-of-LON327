@@ -58,6 +58,10 @@ jobs:
                   r'def _provider_statistics\(provider: Any\) -> dict\[str, (?:Any|int)\]:\n',
                   r'def _provider_statistics\(provider: [^)]+\) -> dict\[str, (?:Any|int)\]:\n',
               ),
+              (
+                  'updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)',
+                  'updated, count = re.subn(pattern, lambda _: replacement, text, count=1, flags=re.S)',
+              ),
           )
           for old, new in corrections:
               if script.count(old) != 1:
@@ -118,30 +122,34 @@ jobs:
       - name: Compile and shell-check changed modules
         run: |
           set +e
-          {
-            python -m py_compile \
-              src/lno327/casimir/fixed_transverse_point_engine.py \
-              src/lno327/casimir/fixed_chain.py \
-              src/lno327/casimir/certified_point_provider.py \
-              src/lno327/casimir/adaptive_joint_q.py \
-              src/lno327/casimir/adaptive_outer_q.py \
-              src/lno327/casimir/adaptive_outer_tail.py \
-              src/lno327/casimir/adaptive_matsubara_tail.py \
-              src/lno327/casimir/production.py \
-              src/lno327/casimir/cli.py \
-              scripts/full_casimir/config.py \
-              scripts/full_casimir/cache_migration.py \
-              scripts/full_casimir/energy.py \
-              scripts/full_casimir/workflow.py \
-              scripts/full_casimir/postprocess.py \
-              scripts/full_casimir/plotting.py \
-              tests/test_casimir_runtime_v3_audit.py
-            bash -n scripts/full_casimir/background.sh
-          } > /tmp/runtime-v3-compile.log 2>&1
-          echo $? > /tmp/runtime-v3-compile.exit
+          python -m py_compile \
+            src/lno327/casimir/fixed_transverse_point_engine.py \
+            src/lno327/casimir/fixed_chain.py \
+            src/lno327/casimir/certified_point_provider.py \
+            src/lno327/casimir/adaptive_joint_q.py \
+            src/lno327/casimir/adaptive_outer_q.py \
+            src/lno327/casimir/adaptive_outer_tail.py \
+            src/lno327/casimir/adaptive_matsubara_tail.py \
+            src/lno327/casimir/production.py \
+            src/lno327/casimir/cli.py \
+            scripts/full_casimir/config.py \
+            scripts/full_casimir/cache_migration.py \
+            scripts/full_casimir/energy.py \
+            scripts/full_casimir/workflow.py \
+            scripts/full_casimir/postprocess.py \
+            scripts/full_casimir/plotting.py \
+            tests/test_casimir_runtime_v3_audit.py \
+            > /tmp/runtime-v3-compile.log 2>&1
+          compile_status=$?
+          if [[ "$compile_status" == "0" ]]; then
+            bash -n scripts/full_casimir/background.sh \
+              >> /tmp/runtime-v3-compile.log 2>&1
+            compile_status=$?
+          fi
+          echo "$compile_status" > /tmp/runtime-v3-compile.exit
           set -e
           cat /tmp/runtime-v3-compile.log
-          test "$(cat /tmp/runtime-v3-compile.exit)" = "0"
+          test "$compile_status" = "0"
 
       - uses: actions/upload-artifact@v4
         if: always()
