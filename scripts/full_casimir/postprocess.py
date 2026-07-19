@@ -47,11 +47,15 @@ class EnergyPoint:
 def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def _finite_float(value: Any) -> float | None:
-    if not isinstance(value, (int, float)):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     converted = float(value)
     return converted if math.isfinite(converted) else None
@@ -91,21 +95,54 @@ def collect_energy_points(
         angle_deg = decode_angle(match.group(2), match.group(3))
         summary = _read_json(run_dir / "summary.json")
         manifest = _read_json(run_dir / "manifest.json")
-        payload = summary.get("pairings", {}).get(pairing, {})
+        result = _read_json(run_dir / "result.json")
         config = _read_json(run_dir / "config.json")
+        summary_pairing = summary.get("pairings", {}).get(pairing, {})
+        result_pairing = result.get("pairing_results", {}).get(pairing, {})
+        if not isinstance(summary_pairing, Mapping):
+            summary_pairing = {}
+        if not isinstance(result_pairing, Mapping):
+            result_pairing = {}
+        summary_energy = _finite_float(
+            summary_pairing.get("finite_matsubara_partial_J_m2")
+        )
+        summary_error = _finite_float(
+            summary_pairing.get("estimated_total_error_J_m2")
+        )
+        result_energy = _finite_float(
+            result_pairing.get("finite_matsubara_partial_J_m2")
+        )
+        result_error = _finite_float(
+            result_pairing.get("estimated_total_error_J_m2")
+        )
         try:
             point_config = config["outer_tail_config"]["joint_config"][
                 "radial_config"
             ]["point_config"]
             expected_angles = [0.0, float(angle_deg)]
             artifact_consistent = bool(
-                summary.get("case") == run_dir.name
+                summary.get("schema") == "full-casimir-run-summary"
+                and manifest.get("schema") == "full-casimir-run-manifest"
+                and result.get("schema") == "adaptive-matsubara-casimir-result-v1"
+                and summary.get("case") == run_dir.name
                 and manifest.get("case") == run_dir.name
                 and manifest.get("status") == "completed"
+                and summary.get("status") == "adaptive_tail_bounded"
+                and result.get("status") == "adaptive_tail_bounded"
+                and bool(summary.get("matsubara_converged"))
+                and bool(result.get("matsubara_converged"))
+                and summary.get("termination_reason")
+                == result.get("termination_reason")
                 and point_config.get("pairings") == [pairing]
                 and point_config.get("plate_angles_deg") == expected_angles
                 and float(point_config.get("temperature_K")) == 10.0
                 and float(point_config.get("separation_nm")) == 20.0
+                and summary_energy is not None
+                and summary_error is not None
+                and result_energy is not None
+                and result_error is not None
+                and summary_energy == result_energy
+                and summary_error == result_error
             )
         except (KeyError, TypeError, ValueError):
             artifact_consistent = False
@@ -123,12 +160,8 @@ def collect_energy_points(
                     )
                 ),
                 matsubara_converged=bool(summary.get("matsubara_converged", False)),
-                energy_J_m2=_finite_float(
-                    payload.get("finite_matsubara_partial_J_m2")
-                ),
-                error_J_m2=_finite_float(
-                    payload.get("estimated_total_error_J_m2")
-                ),
+                energy_J_m2=summary_energy,
+                error_J_m2=summary_error,
                 artifact_consistent=artifact_consistent,
             )
         )
@@ -167,6 +200,13 @@ def five_point_torque_error_bound(
     angle_deg: int,
     step_deg: int,
 ) -> float:
+    """Propagate input energy bounds through the five-point stencil.
+
+    This does not include the O(h^4) finite-difference truncation error.  The return
+    value is therefore not a complete torque error bound unless a separate angle-step
+    convergence audit has bounded that truncation term.
+    """
+
     h_rad = math.radians(step_deg)
     required = (
         angle_deg - 2 * step_deg,
@@ -275,8 +315,10 @@ def postprocess_torque(
                         "status": "missing_converged_energy",
                         "missing_angles_deg": " ".join(map(str, missing)),
                         "torque_per_area_N_per_m": "",
-                        "torque_error_bound_N_per_m": "",
-                        "relative_error_bound": "",
+                        "propagated_energy_error_bound_N_per_m": "",
+                        "relative_propagated_energy_error_bound": "",
+                        "finite_difference_truncation_error_bounded": False,
+                        "torque_numerically_certified": False,
                     }
                 )
                 continue
@@ -284,19 +326,25 @@ def postprocess_torque(
             torque = five_point_torque(
                 energies, angle_deg=angle_deg, step_deg=step_deg
             )
-            bound = five_point_torque_error_bound(
+            propagated_bound = five_point_torque_error_bound(
                 errors, angle_deg=angle_deg, step_deg=step_deg
             )
-            relative = math.inf if torque == 0.0 else bound / abs(torque)
+            relative = (
+                math.inf
+                if torque == 0.0
+                else propagated_bound / abs(torque)
+            )
             rows.append(
                 {
                     "pairing": pairing,
                     "angle_deg": angle_deg,
-                    "status": "computed",
+                    "status": "computed_diagnostic",
                     "missing_angles_deg": "",
                     "torque_per_area_N_per_m": torque,
-                    "torque_error_bound_N_per_m": bound,
-                    "relative_error_bound": relative,
+                    "propagated_energy_error_bound_N_per_m": propagated_bound,
+                    "relative_propagated_energy_error_bound": relative,
+                    "finite_difference_truncation_error_bounded": False,
+                    "torque_numerically_certified": False,
                 }
             )
 
@@ -307,8 +355,10 @@ def postprocess_torque(
         "status",
         "missing_angles_deg",
         "torque_per_area_N_per_m",
-        "torque_error_bound_N_per_m",
-        "relative_error_bound",
+        "propagated_energy_error_bound_N_per_m",
+        "relative_propagated_energy_error_bound",
+        "finite_difference_truncation_error_bounded",
+        "torque_numerically_certified",
     )
     torque_temporary = torque_csv.with_suffix(torque_csv.suffix + ".tmp")
     with torque_temporary.open("w", newline="", encoding="utf-8") as handle:
@@ -325,11 +375,18 @@ def postprocess_torque(
         "finite_difference": "five_point_centered",
         "angle_derivative_unit": "radian",
         "torque_per_area_unit": "N/m",
+        "torque_uncertainty_scope": "propagated_energy_uncertainty_only",
+        "finite_difference_truncation_error_bounded": False,
+        "torque_numerically_certified": False,
+        "torque_certification_requirement": (
+            "repeat the energy scan on a finer nested angle grid and bound the "
+            "five-point derivative truncation error before treating torque as certified"
+        ),
         "energy_point_count": len(points),
         "usable_energy_point_count": sum(point.usable for point in points),
         "torque_row_count": len(rows),
         "computed_torque_row_count": sum(
-            row["status"] == "computed" for row in rows
+            row["status"] == "computed_diagnostic" for row in rows
         ),
         "all_target_torques_available": all_available,
     }

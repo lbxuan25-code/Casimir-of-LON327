@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import csv
 import json
 import math
 import subprocess
@@ -27,10 +28,62 @@ from scripts.full_casimir.config import (
     inclusive_integer_grid,
     select_runtime_resources,
 )
+from scripts.full_casimir.energy import _case_state
 from scripts.full_casimir.postprocess import (
     five_point_torque,
     five_point_torque_error_bound,
+    postprocess_torque,
 )
+
+
+def _write_completed_artifacts(run: Path, *, config: dict) -> None:
+    run.mkdir(parents=True, exist_ok=True)
+    reason = "outer_and_matsubara_cutoff_tail_tolerances_met"
+    common = {
+        "selected_matsubara_cutoff": 1,
+        "production_casimir_allowed": False,
+        "provider_statistics": {},
+    }
+    (run / "config.json").write_text(json.dumps(config), encoding="utf-8")
+    (run / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema": "full-casimir-run-manifest",
+                "case": run.name,
+                "status": "completed",
+                "termination_reason": reason,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (run / "summary.json").write_text(
+        json.dumps(
+            {
+                "schema": "full-casimir-run-summary",
+                "case": run.name,
+                "status": "adaptive_tail_bounded",
+                "matsubara_converged": True,
+                "termination_reason": reason,
+                "pairings": {},
+                **common,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (run / "result.json").write_text(
+        json.dumps(
+            {
+                "schema": "adaptive-matsubara-casimir-result-v1",
+                "status": "adaptive_tail_bounded",
+                "matsubara_converged": True,
+                "termination_reason": reason,
+                "pairing_results": {},
+                "config": config,
+                **common,
+            }
+        ),
+        encoding="utf-8",
+    )
 
 
 def test_angle_grid_and_case_names_are_deterministic() -> None:
@@ -80,6 +133,32 @@ def test_torque_error_bound_uses_absolute_stencil_coefficients() -> None:
     ) == pytest.approx(expected)
 
 
+def test_torque_metadata_does_not_claim_truncation_error_is_bounded(
+    tmp_path: Path,
+) -> None:
+    energy_csv, torque_csv, metadata_json, complete = postprocess_torque(
+        run_root=tmp_path / "runs",
+        output_root=tmp_path / "postprocessed",
+        profile="diagnostic_test",
+        step_deg=2,
+        target_min_deg=0,
+        target_max_deg=0,
+    )
+
+    assert energy_csv.is_file()
+    assert torque_csv.is_file()
+    assert not complete
+    metadata = json.loads(metadata_json.read_text(encoding="utf-8"))
+    assert metadata["torque_uncertainty_scope"] == "propagated_energy_uncertainty_only"
+    assert metadata["finite_difference_truncation_error_bounded"] is False
+    assert metadata["torque_numerically_certified"] is False
+    with torque_csv.open(encoding="utf-8") as handle:
+        fields = csv.DictReader(handle).fieldnames
+    assert fields is not None
+    assert "propagated_energy_error_bound_N_per_m" in fields
+    assert "torque_error_bound_N_per_m" not in fields
+
+
 def test_cleanup_removes_only_explicit_legacy_names(tmp_path: Path) -> None:
     legacy = tmp_path / "run_full_casimir_N896_scan.sh"
     keep = tmp_path / "important.py"
@@ -93,10 +172,13 @@ def test_cleanup_removes_only_explicit_legacy_names(tmp_path: Path) -> None:
     assert keep.exists()
 
 
-def test_custom_pilot_profile_is_used_for_cache_migration(monkeypatch) -> None:
+def test_normal_pilot_run_does_not_mutate_source_tree(monkeypatch) -> None:
     seen: dict[str, object] = {}
 
-    monkeypatch.setattr(workflow, "cleanup_legacy_root_scripts", lambda: [])
+    def unexpected_cleanup():
+        raise AssertionError("normal energy runs must not delete source files")
+
+    monkeypatch.setattr(workflow, "cleanup_legacy_root_scripts", unexpected_cleanup)
     monkeypatch.setattr(workflow, "_resources", lambda args: object())
     monkeypatch.setattr(workflow, "validate_pairings", lambda values: tuple(values))
     monkeypatch.setattr(workflow, "_energy_options", lambda args: object())
@@ -109,6 +191,32 @@ def test_custom_pilot_profile_is_used_for_cache_migration(monkeypatch) -> None:
 
     assert workflow.main(["pilots", "--profile", "custom_pilot_profile"]) == 0
     assert seen["target_profile"] == "custom_pilot_profile"
+
+
+def test_case_state_rejects_a_stale_configuration_before_skip(tmp_path: Path) -> None:
+    run = tmp_path / "case"
+    _write_completed_artifacts(run, config={"policy": "old"})
+
+    assert _case_state(run) == "completed"
+    assert _case_state(
+        run,
+        expected_config={"policy": "new"},
+    ) == "configuration_mismatch"
+    assert _case_state(
+        run,
+        expected_config={"policy": "old"},
+    ) == "completed"
+
+
+def test_corrupt_completed_result_is_resumed_not_skipped(tmp_path: Path) -> None:
+    run = tmp_path / "case"
+    _write_completed_artifacts(run, config={"policy": "current"})
+    (run / "result.json").write_text("{truncated", encoding="utf-8")
+
+    assert _case_state(
+        run,
+        expected_config={"policy": "current"},
+    ) == "artifact_inconsistent"
 
 
 def test_existing_target_cache_must_match_target_policy(tmp_path: Path) -> None:

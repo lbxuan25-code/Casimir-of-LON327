@@ -11,6 +11,7 @@ MODE_FILE="$LOG_ROOT/background.mode"
 COMMAND_FILE="$LOG_ROOT/background.command"
 DRIVER_LOG="$LOG_ROOT/background.log"
 EXIT_FILE="$LOG_ROOT/background.exit_code"
+LOCK_FILE="$LOG_ROOT/background.lock"
 mkdir -p "$LOG_ROOT"
 
 usage() {
@@ -48,6 +49,20 @@ is_running() {
 start_job() {
   local mode="${1:-}"; shift || true
   case "$mode" in pilots|scan|all|torque|plot) ;; *) usage; exit 64;; esac
+
+  # Never fall back to an unlocked check-then-write sequence.  Concurrent production
+  # starts are unsafe because they share PID, log, cache and run-artifact paths.
+  command -v flock >/dev/null 2>&1 || {
+    echo "ERROR: flock is required for safe background workflow startup" >&2
+    exit 1
+  }
+  local lock_fd
+  exec {lock_fd}>"$LOCK_FILE"
+  if ! flock -n "$lock_fd"; then
+    echo "ERROR: another background start operation is in progress" >&2
+    exit 1
+  fi
+
   if is_running; then
     echo "ERROR: workflow already running (PID=$(cat "$PID_FILE"))" >&2; exit 1
   fi

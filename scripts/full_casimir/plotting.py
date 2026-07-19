@@ -59,20 +59,25 @@ def plot_results(
         selected_torque = [
             row
             for row in torque_rows
-            if row["pairing"] == pairing and row["status"] == "computed"
+            if row["pairing"] == pairing and row["status"] == "computed_diagnostic"
         ]
         if selected_torque:
             selected_torque.sort(key=lambda row: float(row["angle_deg"]))
             angles = [float(row["angle_deg"]) for row in selected_torque]
             torque = [float(row["torque_per_area_N_per_m"]) for row in selected_torque]
-            errors = [float(row["torque_error_bound_N_per_m"]) for row in selected_torque]
+            errors = [
+                float(row["propagated_energy_error_bound_N_per_m"])
+                for row in selected_torque
+            ]
 
             plt.figure(figsize=(8, 5))
             plt.errorbar(angles, torque, yerr=errors, marker="o", capsize=2)
             plt.axhline(0.0, linewidth=1)
             plt.xlabel("Relative angle (deg)")
             plt.ylabel("Torque per area (N/m)")
-            plt.title(f"{pairing}: T=10 K, d=20 nm")
+            plt.title(
+                f"{pairing}: diagnostic torque; energy-error propagation only"
+            )
             plt.grid(True, alpha=0.25)
             plt.tight_layout()
             path = figure_root / f"{pairing}_torque.png"
@@ -93,7 +98,7 @@ def plot_results(
             "torque",
             torque_rows,
             "torque_per_area_N_per_m",
-            "torque_error_bound_N_per_m",
+            "propagated_energy_error_bound_N_per_m",
             "Torque per area (N/m)",
             "combined_torque.png",
         ),
@@ -114,7 +119,7 @@ def plot_results(
                     row
                     for row in rows
                     if row["pairing"] == pairing
-                    and row.get("status") == "computed"
+                    and row.get("status") == "computed_diagnostic"
                 ]
             if not selected:
                 continue
@@ -137,7 +142,10 @@ def plot_results(
                 plt.axhline(0.0, linewidth=1)
             plt.xlabel("Relative angle (deg)")
             plt.ylabel(ylabel)
-            plt.title("SPM and d-wave comparison: T=10 K, d=20 nm")
+            plt.title(
+                "SPM and d-wave comparison: T=10 K, d=20 nm"
+                + (" (diagnostic torque)" if kind == "torque" else "")
+            )
             plt.grid(True, alpha=0.25)
             plt.legend()
             plt.tight_layout()
