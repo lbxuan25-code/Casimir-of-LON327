@@ -127,6 +127,56 @@ def test_postprocess_marks_truncated_result_unusable_instead_of_crashing(
     assert points[0].usable is False
 
 
+def test_execute_case_recovers_from_a_truncated_manifest(tmp_path: Path) -> None:
+    case = "resume_case"
+    run = tmp_path / case
+    run.mkdir()
+    config_payload = {"policy": "same"}
+    (run / "config.json").write_text(
+        json.dumps(config_payload),
+        encoding="utf-8",
+    )
+    (run / "manifest.json").write_text("{truncated", encoding="utf-8")
+
+    class DummyConfig:
+        def as_dict(self):
+            return dict(config_payload)
+
+    class DummyResult:
+        status = "adaptive_tail_bounded"
+        termination_reason = "done"
+        matsubara_converged = True
+        outer_tail_estimated = True
+        matsubara_tail_estimated = True
+        production_casimir_allowed = False
+        selected_matsubara_cutoff = 1
+        pairing_results = {}
+        cutoff_records = ()
+        provider_statistics = {}
+
+        def as_dict(self):
+            return {
+                "schema": "adaptive-matsubara-casimir-result-v1",
+                "status": self.status,
+                "termination_reason": self.termination_reason,
+                "matsubara_converged": self.matsubara_converged,
+                "pairing_results": {},
+            }
+
+    result = cli.execute_case(
+        case=case,
+        output_root=tmp_path,
+        resume=True,
+        config_builder=lambda **kwargs: DummyConfig(),
+        runner=lambda config: DummyResult(),
+    )
+
+    assert result.matsubara_converged
+    manifest = json.loads((run / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["status"] == "completed"
+    assert manifest["attempt_count"] == 1
+
+
 def test_git_commit_lookup_is_pinned_to_package_checkout(monkeypatch) -> None:
     observed: dict[str, object] = {}
 
