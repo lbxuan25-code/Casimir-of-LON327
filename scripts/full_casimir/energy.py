@@ -63,8 +63,17 @@ def _case_state(
     expected_config: Mapping[str, Any] | None = None,
 ) -> str:
     if expected_config is not None and run_dir.exists():
-        stored_config = _read_json(run_dir / "config.json")
-        if not stored_config or stored_config != dict(expected_config):
+        config_path = run_dir / "config.json"
+        if config_path.exists():
+            stored_config = _read_json(config_path)
+            if not stored_config or stored_config != dict(expected_config):
+                return "configuration_mismatch"
+        elif any(
+            (run_dir / name).exists()
+            for name in ("manifest.json", "summary.json", "result.json")
+        ):
+            # A cache-only target created by the v2->v3 migration is a valid seed.
+            # Missing configuration beside actual run artifacts is not.
             return "configuration_mismatch"
     summary = _read_json(run_dir / "summary.json")
     manifest = _read_json(run_dir / "manifest.json")
