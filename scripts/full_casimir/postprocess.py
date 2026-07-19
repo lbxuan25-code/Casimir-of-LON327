@@ -47,11 +47,15 @@ class EnergyPoint:
 def _read_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
 
 
 def _finite_float(value: Any) -> float | None:
-    if not isinstance(value, (int, float)):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     converted = float(value)
     return converted if math.isfinite(converted) else None
@@ -91,21 +95,54 @@ def collect_energy_points(
         angle_deg = decode_angle(match.group(2), match.group(3))
         summary = _read_json(run_dir / "summary.json")
         manifest = _read_json(run_dir / "manifest.json")
-        payload = summary.get("pairings", {}).get(pairing, {})
+        result = _read_json(run_dir / "result.json")
         config = _read_json(run_dir / "config.json")
+        summary_pairing = summary.get("pairings", {}).get(pairing, {})
+        result_pairing = result.get("pairing_results", {}).get(pairing, {})
+        if not isinstance(summary_pairing, Mapping):
+            summary_pairing = {}
+        if not isinstance(result_pairing, Mapping):
+            result_pairing = {}
+        summary_energy = _finite_float(
+            summary_pairing.get("finite_matsubara_partial_J_m2")
+        )
+        summary_error = _finite_float(
+            summary_pairing.get("estimated_total_error_J_m2")
+        )
+        result_energy = _finite_float(
+            result_pairing.get("finite_matsubara_partial_J_m2")
+        )
+        result_error = _finite_float(
+            result_pairing.get("estimated_total_error_J_m2")
+        )
         try:
             point_config = config["outer_tail_config"]["joint_config"][
                 "radial_config"
             ]["point_config"]
             expected_angles = [0.0, float(angle_deg)]
             artifact_consistent = bool(
-                summary.get("case") == run_dir.name
+                summary.get("schema") == "full-casimir-run-summary"
+                and manifest.get("schema") == "full-casimir-run-manifest"
+                and result.get("schema") == "adaptive-matsubara-casimir-result-v1"
+                and summary.get("case") == run_dir.name
                 and manifest.get("case") == run_dir.name
                 and manifest.get("status") == "completed"
+                and summary.get("status") == "adaptive_tail_bounded"
+                and result.get("status") == "adaptive_tail_bounded"
+                and bool(summary.get("matsubara_converged"))
+                and bool(result.get("matsubara_converged"))
+                and summary.get("termination_reason")
+                == result.get("termination_reason")
                 and point_config.get("pairings") == [pairing]
                 and point_config.get("plate_angles_deg") == expected_angles
                 and float(point_config.get("temperature_K")) == 10.0
                 and float(point_config.get("separation_nm")) == 20.0
+                and summary_energy is not None
+                and summary_error is not None
+                and result_energy is not None
+                and result_error is not None
+                and summary_energy == result_energy
+                and summary_error == result_error
             )
         except (KeyError, TypeError, ValueError):
             artifact_consistent = False
@@ -123,12 +160,8 @@ def collect_energy_points(
                     )
                 ),
                 matsubara_converged=bool(summary.get("matsubara_converged", False)),
-                energy_J_m2=_finite_float(
-                    payload.get("finite_matsubara_partial_J_m2")
-                ),
-                error_J_m2=_finite_float(
-                    payload.get("estimated_total_error_J_m2")
-                ),
+                energy_J_m2=summary_energy,
+                error_J_m2=summary_error,
                 artifact_consistent=artifact_consistent,
             )
         )
