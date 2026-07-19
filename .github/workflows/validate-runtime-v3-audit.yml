@@ -171,8 +171,25 @@ jobs:
             tests/test_adaptive_outer_tail.py \
             tests/test_adaptive_matsubara_tail.py
 
-      - name: Run full suite
-        run: pytest -q --tb=short
+      - name: Run full suite and capture result
+        run: |
+          set +e
+          pytest -q --tb=short > /tmp/runtime-v3-full-pytest.log 2>&1
+          echo $? > /tmp/runtime-v3-full-pytest.exit
+          set -e
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-v3-full-pytest-diagnostics
+          path: |
+            /tmp/runtime-v3-full-pytest.log
+            /tmp/runtime-v3-full-pytest.exit
+
+      - name: Require complete suite
+        run: |
+          cat /tmp/runtime-v3-full-pytest.log
+          test "$(cat /tmp/runtime-v3-full-pytest.exit)" = "0"
 
       - name: Commit validated source tree
         run: |
