@@ -89,8 +89,7 @@ jobs:
             tests/test_frequency_extendable_certified_provider.py \
             tests/test_adaptive_joint_q.py \
             tests/test_adaptive_outer_tail.py \
-            tests/test_adaptive_matsubara_tail.py \
-            tests/test_casimir_cli_artifacts.py
+            tests/test_adaptive_matsubara_tail.py
 
       - name: Run full suite
         run: pytest -q --tb=short
