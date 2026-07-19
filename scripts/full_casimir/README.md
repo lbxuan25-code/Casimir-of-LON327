@@ -36,8 +36,16 @@ bash scripts/full_casimir/background.sh start all
 ```
 
 `all` stops before post-processing if any energy is unresolved or an engineering
-failure occurs.  Torque uses the five-point centered derivative with angle in
-radians, so the default energy scan includes -4° and 94° padding.
+failure occurs.  Existing case directories are reused only when their complete stored
+configuration exactly matches the requested configuration; otherwise the workflow
+fails and requires a new profile name.
+
+Torque uses the five-point centered derivative with angle in radians, so the default
+energy scan includes -4° and 94° padding.  The generated torque is diagnostic: its
+reported uncertainty propagates the certified energy error bars through the stencil,
+but does not include the finite-difference truncation error.  A finer nested angle scan
+and step-size convergence audit are required before the torque can be called
+numerically certified.
 
 Outputs are under `outputs/casimir/runs`, logs under
 `outputs/casimir/workflow_logs`, and post-processing under
