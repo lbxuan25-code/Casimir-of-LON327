@@ -51,12 +51,12 @@ jobs:
           script = zlib.decompress(base64.b64decode(encoded)).decode('utf-8')
           corrections = (
               (
-                  'return command\\n\\n\\n\\ndef _run_transverse_certifier',
-                  'return command\\n\\n+def _run_transverse_certifier',
+                  r'return command\n\n\n\ndef _run_transverse_certifier',
+                  r'return command\n\n+def _run_transverse_certifier',
               ),
               (
-                  r'def _provider_statistics\\(provider: Any\\) -> dict\\[str, (?:Any|int)\\]:\\n',
-                  r'def _provider_statistics\\(provider: [^)]+\\) -> dict\\[str, (?:Any|int)\\]:\\n',
+                  r'def _provider_statistics\(provider: Any\) -> dict\[str, (?:Any|int)\]:\n',
+                  r'def _provider_statistics\(provider: [^)]+\) -> dict\[str, (?:Any|int)\]:\n',
               ),
           )
           for old, new in corrections:
