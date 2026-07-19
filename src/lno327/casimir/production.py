@@ -1,16 +1,4 @@
-"""Canonical full adaptive Casimir calculation surface.
-
-The public production route is intentionally narrow:
-
-``build_full_casimir_config`` -> ``run_full_casimir``
-
-Lower-level radial, angular, cutoff and Matsubara controllers remain implementation
-modules.  The historical fixed-grid controller is isolated in
-:mod:`lno327.casimir.legacy` and is not re-exported from :mod:`lno327.casimir`.
-
-The numerical result remains fail-closed: repository production readiness does not
-change the physical authorization flag carried by the adaptive result.
-"""
+"""Canonical full adaptive Casimir calculation surface."""
 from __future__ import annotations
 
 from dataclasses import replace
@@ -22,7 +10,6 @@ from .adaptive_matsubara_tail import (
     AdaptiveMatsubaraCasimirResult,
     run_adaptive_matsubara_casimir,
 )
-from .fixed_chain import FixedCasimirConfig
 
 FullCasimirConfig = AdaptiveMatsubaraCasimirConfig
 FullCasimirResult = AdaptiveMatsubaraCasimirResult
@@ -39,6 +26,8 @@ def build_full_casimir_config(
     degeneracy: float = 1.0,
     N_candidates: Sequence[int] = (128, 192, 256),
     required_consecutive_passes: int = 2,
+    logdet_rtol: float = 1.5e-3,
+    logdet_atol: float = 1e-6,
     workers: int = 0,
     parallel_mode: Literal["auto", "serial", "q", "context", "wave"] = "auto",
     memory_budget_gb: float = 0.0,
@@ -51,19 +40,14 @@ def build_full_casimir_config(
     matsubara_tail_start_n: int = 8,
     matsubara_tail_window_terms: int = 4,
     matsubara_tail_ratio_max: float = 0.8,
-    total_free_energy_rtol: float = 5e-2,
-    total_free_energy_atol_J_m2: float = 1e-10,
+    total_free_energy_rtol: float = 5e-3,
+    total_free_energy_atol_J_m2: float = 1e-12,
     max_total_microscopic_q_nodes: int = 250_000,
     max_total_microscopic_point_entries: int = 1_000_000,
+    certifier_q_batch_size: int = 512,
     point_cache_path: Path | None = None,
 ) -> FullCasimirConfig:
-    """Build the canonical nested adaptive configuration.
-
-    External physical parameters are supplied by the caller.  The builder only wires
-    them into the complete adaptive integration stack and applies the repository's
-    conservative default ladders.  Advanced studies may construct the underlying
-    dataclasses directly from their implementation modules.
-    """
+    """Build the canonical nested adaptive configuration."""
 
     pairing_tuple = tuple(str(value) for value in pairings)
     base = AdaptiveMatsubaraCasimirConfig()
@@ -80,6 +64,8 @@ def build_full_casimir_config(
         degeneracy=float(degeneracy),
         N_candidates=tuple(int(value) for value in N_candidates),
         required_consecutive_passes=int(required_consecutive_passes),
+        logdet_rtol=float(logdet_rtol),
+        logdet_atol=float(logdet_atol),
         workers=int(workers),
         parallel_mode=parallel_mode,
         memory_budget_gb=float(memory_budget_gb),
@@ -92,8 +78,6 @@ def build_full_casimir_config(
         max_microscopic_q_nodes=int(max_total_microscopic_q_nodes),
         point_cache_path=None,
     )
-    # SPM pilot data show angular errors two orders of magnitude below the
-    # radial allocation.  D-wave keeps a more conservative angular reserve.
     radial_fraction = 0.85 if set(pairing_tuple) == {"spm"} else 0.75
     joint = replace(
         base.outer_tail_config.joint_config,
@@ -123,6 +107,7 @@ def build_full_casimir_config(
         tail_window_terms=int(matsubara_tail_window_terms),
         tail_ratio_max=float(matsubara_tail_ratio_max),
         max_total_microscopic_point_entries=int(max_total_microscopic_point_entries),
+        certifier_q_batch_size=int(certifier_q_batch_size),
         point_cache_path=None if point_cache_path is None else Path(point_cache_path),
     )
 

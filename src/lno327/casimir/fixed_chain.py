@@ -340,14 +340,26 @@ def _transverse_certification_command(
     config: FixedCasimirConfig,
     manifest: OuterQNodeManifest,
     output: Path,
+    *,
+    q_points_file: Path | None = None,
 ) -> list[str]:
     command = [
         sys.executable,
         "-m",
         "lno327.casimir.fixed_transverse_point_certification",
     ]
-    for label, q in zip(manifest.labels, manifest.q_model, strict=True):
-        command.extend(["--q-point", label, repr(float(q[0])), repr(float(q[1]))])
+    if q_points_file is None:
+        for label, q in zip(manifest.labels, manifest.q_model, strict=True):
+            command.extend(
+                [
+                    "--q-point",
+                    label,
+                    np.format_float_positional(float(q[0]), unique=True, trim="-"),
+                    np.format_float_positional(float(q[1]), unique=True, trim="-"),
+                ]
+            )
+    else:
+        command.extend(["--q-points-file", str(q_points_file)])
     command.extend(["--pairings", *config.pairings])
     command.extend(
         [
@@ -423,7 +435,24 @@ def _run_transverse_certifier(
     manifest: OuterQNodeManifest,
     output: Path,
 ) -> _CertificationRun:
-    command = _transverse_certification_command(config, manifest, output)
+    q_points_file = output.with_name("q_points.json")
+    q_points_payload = [
+        {
+            "label": str(label),
+            "q_lab": [float(q[0]), float(q[1])],
+        }
+        for label, q in zip(manifest.labels, manifest.q_model, strict=True)
+    ]
+    q_points_file.write_text(
+        json.dumps(q_points_payload, sort_keys=True, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
+    command = _transverse_certification_command(
+        config,
+        manifest,
+        output,
+        q_points_file=q_points_file,
+    )
     completed = subprocess.run(
         command,
         env=_thread_environment(),

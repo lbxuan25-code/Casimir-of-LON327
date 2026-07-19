@@ -26,18 +26,18 @@ def test_angle_grid_and_case_names_are_deterministic() -> None:
     assert angle_token(0) == "p000"
     assert angle_token(94) == "p094"
     assert case_name("spm", 0) == (
-        "spm_T10K_d20nm_theta_p000deg_runtime_budget_v2"
+        "spm_T10K_d20nm_theta_p000deg_runtime_budget_v3"
     )
 
 
 def test_cpu_selection_reserves_requested_logical_capacity() -> None:
     resources = select_runtime_resources(
         available_cpus=tuple(range(32)),
-        reserve_logical_cpus=4,
-        worker_cap=28,
+        reserve_logical_cpus=6,
+        worker_cap=26,
     )
-    assert resources.workers == 28
-    assert len(resources.reserved_cpus) == 4
+    assert resources.workers == 26
+    assert len(resources.reserved_cpus) == 6
     assert set(resources.selected_cpus).isdisjoint(resources.reserved_cpus)
     assert set(resources.selected_cpus) | set(resources.reserved_cpus) == set(range(32))
 

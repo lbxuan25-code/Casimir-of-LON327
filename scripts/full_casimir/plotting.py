@@ -64,8 +64,8 @@ def plot_results(
         if selected_torque:
             selected_torque.sort(key=lambda row: float(row["angle_deg"]))
             angles = [float(row["angle_deg"]) for row in selected_torque]
-            torque = [float(row["torque_per_area_N_m"]) for row in selected_torque]
-            errors = [float(row["torque_error_bound_N_m"]) for row in selected_torque]
+            torque = [float(row["torque_per_area_N_per_m"]) for row in selected_torque]
+            errors = [float(row["torque_error_bound_N_per_m"]) for row in selected_torque]
 
             plt.figure(figsize=(8, 5))
             plt.errorbar(angles, torque, yerr=errors, marker="o", capsize=2)
@@ -92,8 +92,8 @@ def plot_results(
         (
             "torque",
             torque_rows,
-            "torque_per_area_N_m",
-            "torque_error_bound_N_m",
+            "torque_per_area_N_per_m",
+            "torque_error_bound_N_per_m",
             "Torque per area (N/m)",
             "combined_torque.png",
         ),

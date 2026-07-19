@@ -122,11 +122,18 @@ def execute_case(
             )
     _atomic_json(config_path, config_payload)
 
+    previous_manifest: dict[str, Any] = {}
+    manifest_path = run_dir / "manifest.json"
+    if resume and manifest_path.exists():
+        previous_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    now = _utc_now()
     manifest = {
         "schema": "full-casimir-run-manifest",
         "case": case,
         "status": "running",
-        "started_at_utc": _utc_now(),
+        "started_at_utc": previous_manifest.get("started_at_utc", now),
+        "last_started_at_utc": now,
+        "attempt_count": int(previous_manifest.get("attempt_count", 0)) + 1,
         "git_commit": _git_commit(),
         "paths": {
             "config": "config.json",
@@ -177,6 +184,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--separation-nm", type=float, default=20.0)
     parser.add_argument("--plate-angles-deg", nargs=2, type=float, default=(0.0, 17.0))
     parser.add_argument("--workers", type=int, default=0)
+    parser.add_argument("--logdet-rtol", type=float, default=1.5e-3)
+    parser.add_argument("--logdet-atol", type=float, default=1e-6)
+    parser.add_argument("--certifier-q-batch-size", type=int, default=512)
     parser.add_argument(
         "--parallel-mode",
         choices=("auto", "serial", "q", "context", "wave"),
@@ -202,8 +212,8 @@ def _parser() -> argparse.ArgumentParser:
         type=float,
         default=(6.0, 10.0, 14.0, 18.0, 24.0, 30.0, 36.0, 42.0),
     )
-    parser.add_argument("--rtol", type=float, default=5e-2)
-    parser.add_argument("--atol-J-m2", type=float, default=1e-10)
+    parser.add_argument("--rtol", type=float, default=5e-3)
+    parser.add_argument("--atol-J-m2", type=float, default=1e-12)
     return parser
 
 
@@ -222,6 +232,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         memory_budget_gb=args.memory_budget_gb,
         max_context_workers=args.max_context_workers,
         N_candidates=tuple(args.N_candidates),
+        logdet_rtol=args.logdet_rtol,
+        logdet_atol=args.logdet_atol,
+        certifier_q_batch_size=args.certifier_q_batch_size,
         matsubara_cutoff_values=tuple(args.matsubara_cutoffs),
         cutoff_u_values=tuple(args.outer_cutoffs_u),
         total_free_energy_rtol=args.rtol,

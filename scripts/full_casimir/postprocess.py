@@ -29,11 +29,13 @@ class EnergyPoint:
     matsubara_converged: bool
     energy_J_m2: float | None
     error_J_m2: float | None
+    artifact_consistent: bool = True
 
     @property
     def usable(self) -> bool:
         return (
-            self.matsubara_converged
+            self.artifact_consistent
+            and self.matsubara_converged
             and self.energy_J_m2 is not None
             and self.error_J_m2 is not None
             and math.isfinite(self.energy_J_m2)
@@ -90,6 +92,23 @@ def collect_energy_points(
         summary = _read_json(run_dir / "summary.json")
         manifest = _read_json(run_dir / "manifest.json")
         payload = summary.get("pairings", {}).get(pairing, {})
+        config = _read_json(run_dir / "config.json")
+        try:
+            point_config = config["outer_tail_config"]["joint_config"][
+                "radial_config"
+            ]["point_config"]
+            expected_angles = [0.0, float(angle_deg)]
+            artifact_consistent = bool(
+                summary.get("case") == run_dir.name
+                and manifest.get("case") == run_dir.name
+                and manifest.get("status") == "completed"
+                and point_config.get("pairings") == [pairing]
+                and point_config.get("plate_angles_deg") == expected_angles
+                and float(point_config.get("temperature_K")) == 10.0
+                and float(point_config.get("separation_nm")) == 20.0
+            )
+        except (KeyError, TypeError, ValueError):
+            artifact_consistent = False
 
         output.append(
             EnergyPoint(
@@ -110,6 +129,7 @@ def collect_energy_points(
                 error_J_m2=_finite_float(
                     payload.get("estimated_total_error_J_m2")
                 ),
+                artifact_consistent=artifact_consistent,
             )
         )
 
@@ -176,9 +196,11 @@ def _write_energy_csv(path: Path, points: Sequence[EnergyPoint]) -> None:
         "matsubara_converged",
         "energy_J_m2",
         "energy_error_bound_J_m2",
+        "artifact_consistent",
         "usable_for_torque",
     )
-    with path.open("w", newline="", encoding="utf-8") as handle:
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    with temporary.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
         for point in sorted(points, key=lambda item: (item.pairing, item.angle_deg)):
@@ -192,9 +214,11 @@ def _write_energy_csv(path: Path, points: Sequence[EnergyPoint]) -> None:
                     "matsubara_converged": point.matsubara_converged,
                     "energy_J_m2": point.energy_J_m2,
                     "energy_error_bound_J_m2": point.error_J_m2,
+                    "artifact_consistent": point.artifact_consistent,
                     "usable_for_torque": point.usable,
                 }
             )
+    temporary.replace(path)
 
 
 def postprocess_torque(
@@ -250,8 +274,8 @@ def postprocess_torque(
                         "angle_deg": angle_deg,
                         "status": "missing_converged_energy",
                         "missing_angles_deg": " ".join(map(str, missing)),
-                        "torque_per_area_N_m": "",
-                        "torque_error_bound_N_m": "",
+                        "torque_per_area_N_per_m": "",
+                        "torque_error_bound_N_per_m": "",
                         "relative_error_bound": "",
                     }
                 )
@@ -270,8 +294,8 @@ def postprocess_torque(
                     "angle_deg": angle_deg,
                     "status": "computed",
                     "missing_angles_deg": "",
-                    "torque_per_area_N_m": torque,
-                    "torque_error_bound_N_m": bound,
+                    "torque_per_area_N_per_m": torque,
+                    "torque_error_bound_N_per_m": bound,
                     "relative_error_bound": relative,
                 }
             )
@@ -282,14 +306,16 @@ def postprocess_torque(
         "angle_deg",
         "status",
         "missing_angles_deg",
-        "torque_per_area_N_m",
-        "torque_error_bound_N_m",
+        "torque_per_area_N_per_m",
+        "torque_error_bound_N_per_m",
         "relative_error_bound",
     )
-    with torque_csv.open("w", newline="", encoding="utf-8") as handle:
+    torque_temporary = torque_csv.with_suffix(torque_csv.suffix + ".tmp")
+    with torque_temporary.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
         writer.writerows(rows)
+    torque_temporary.replace(torque_csv)
 
     metadata = {
         "profile": profile,
@@ -307,8 +333,8 @@ def postprocess_torque(
         ),
         "all_target_torques_available": all_available,
     }
-    metadata_json.write_text(
-        json.dumps(metadata, sort_keys=True, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    metadata_temporary = metadata_json.with_suffix(metadata_json.suffix + ".tmp")
+    metadata_temporary.write_text(
+        json.dumps(metadata, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    metadata_temporary.replace(metadata_json)
     return energy_csv, torque_csv, metadata_json, all_available

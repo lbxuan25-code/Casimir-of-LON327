@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Iterable, Sequence
 import os
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "outputs" / "casimir" / "runs"
 DEFAULT_POSTPROCESS_ROOT = REPO_ROOT / "outputs" / "casimir" / "postprocessed"
@@ -19,16 +18,21 @@ DEFAULT_TEMPERATURE_K = 10.0
 DEFAULT_SEPARATION_NM = 20.0
 DEFAULT_RTOL = 5e-3
 DEFAULT_ATOL_J_M2 = 1e-12
+DEFAULT_LOGDET_RTOL = 1.5e-3
+DEFAULT_LOGDET_ATOL = 1e-6
+DEFAULT_CERTIFIER_Q_BATCH_SIZE = 512
 DEFAULT_MEMORY_BUDGET_GB = 16.0
 DEFAULT_MAX_CONTEXT_WORKERS = 1
-DEFAULT_RESERVED_LOGICAL_CPUS = 4
-DEFAULT_WORKER_CAP = 28
+DEFAULT_RESERVED_LOGICAL_CPUS = 6
+DEFAULT_WORKER_CAP = 26
 DEFAULT_SCAN_MIN_DEG = -4
 DEFAULT_SCAN_MAX_DEG = 94
 DEFAULT_SCAN_STEP_DEG = 2
 DEFAULT_TARGET_MIN_DEG = 0
 DEFAULT_TARGET_MAX_DEG = 90
-PROFILE_NAME = "runtime_budget_v2"
+PROFILE_NAME = "runtime_budget_v3"
+PILOT_PROFILE = "0deg_pilot_v3"
+LEGACY_PILOT_PROFILE = "0deg_pilot_v2"
 
 
 @dataclass(frozen=True)
@@ -68,26 +72,19 @@ def angle_token(angle_deg: int | float) -> str:
     return f"m{abs(rounded):03d}" if rounded < 0 else f"p{rounded:03d}"
 
 
-def case_name(
-    pairing: str,
-    angle_deg: int | float,
-    *,
-    profile: str = PROFILE_NAME,
-) -> str:
+def case_name(pairing: str, angle_deg: int | float, *, profile: str = PROFILE_NAME) -> str:
     if pairing not in DEFAULT_PAIRINGS:
         raise ValueError(f"unsupported pairing: {pairing}")
-    return (
-        f"{pairing}_T10K_d20nm_theta_{angle_token(angle_deg)}deg_"
-        f"{profile}"
-    )
+    return f"{pairing}_T10K_d20nm_theta_{angle_token(angle_deg)}deg_{profile}"
 
 
 def _read_topology(cpu: int) -> tuple[int, int]:
     root = Path(f"/sys/devices/system/cpu/cpu{cpu}/topology")
     try:
-        package = int((root / "physical_package_id").read_text())
-        core = int((root / "core_id").read_text())
-        return package, core
+        return (
+            int((root / "physical_package_id").read_text()),
+            int((root / "core_id").read_text()),
+        )
     except (OSError, ValueError):
         return 0, int(cpu)
 
@@ -102,26 +99,19 @@ def select_runtime_resources(
         raise ValueError("reserve_logical_cpus must be non-negative")
     if worker_cap <= 0:
         raise ValueError("worker_cap must be positive")
-
-    visible = tuple(
-        sorted(
-            os.sched_getaffinity(0)
-            if available_cpus is None
-            else {int(value) for value in available_cpus}
-        )
-    )
+    visible = tuple(sorted(
+        os.sched_getaffinity(0)
+        if available_cpus is None
+        else {int(value) for value in available_cpus}
+    ))
     if not visible:
         raise RuntimeError("no CPUs are visible to the process")
-
     target = min(worker_cap, max(1, len(visible) - reserve_logical_cpus))
     groups: dict[tuple[int, int], list[int]] = {}
     for cpu in visible:
         groups.setdefault(_read_topology(cpu), []).append(cpu)
-
     selected = set(visible)
     reserved: list[int] = []
-
-    # Prefer reserving complete physical cores so the desktop has true core capacity.
     for key in reversed(sorted(groups)):
         if len(selected) <= target:
             break
@@ -131,18 +121,14 @@ def select_runtime_resources(
         for cpu in group:
             selected.remove(cpu)
             reserved.append(cpu)
-
-    # Fall back to logical-CPU trimming when topology data are incomplete.
     if len(selected) > target:
         extra = sorted(selected)[target:]
         for cpu in extra:
             selected.remove(cpu)
             reserved.append(cpu)
-
     selected_tuple = tuple(sorted(selected))
     if not selected_tuple:
         raise RuntimeError("CPU reservation left no workers")
-
     return RuntimeResources(
         visible_cpus=visible,
         selected_cpus=selected_tuple,
@@ -151,7 +137,7 @@ def select_runtime_resources(
 
 
 def apply_single_thread_environment() -> None:
-    values = {
+    os.environ.update({
         "OMP_NUM_THREADS": "1",
         "OPENBLAS_NUM_THREADS": "1",
         "MKL_NUM_THREADS": "1",
@@ -162,8 +148,7 @@ def apply_single_thread_environment() -> None:
         "MKL_DYNAMIC": "FALSE",
         "MALLOC_ARENA_MAX": "4",
         "PYTHONUNBUFFERED": "1",
-    }
-    os.environ.update(values)
+    })
 
 
 def apply_cpu_affinity(resources: RuntimeResources) -> None:
