@@ -1,0 +1,80 @@
+name: Validate Casimir pilot v3 audit
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    if: github.head_ref == 'fix/casimir-audit-implementation5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      BLIS_NUM_THREADS: '1'
+      VECLIB_MAXIMUM_THREADS: '1'
+      OMP_DYNAMIC: 'FALSE'
+      MKL_DYNAMIC: 'FALSE'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/casimir-audit-implementation5
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Apply audited changes
+        run: |
+          python .github/casimir_audit_patch.py
+          rm -f .github/casimir_audit_patch.py
+          rm -f .github/workflows/validate-casimir-audit.yml
+
+      - name: Install package
+        run: python -m pip install -e '.[dev]' --quiet
+
+      - name: Compile changed modules
+        run: |
+          python -m py_compile \
+            src/lno327/casimir/fixed_chain.py \
+            src/lno327/casimir/production.py \
+            src/lno327/casimir/cli.py \
+            src/lno327/casimir/adaptive_joint_q.py \
+            src/lno327/casimir/certified_point_provider.py \
+            scripts/full_casimir/config.py \
+            scripts/full_casimir/energy.py \
+            scripts/full_casimir/workflow.py \
+            scripts/full_casimir/postprocess.py \
+            tests/test_casimir_pilot_v3_audit.py
+          bash -n scripts/full_casimir/background.sh
+
+      - name: Focused regression tests
+        run: |
+          pytest -q -x --tb=short \
+            tests/test_casimir_pilot_v3_audit.py \
+            tests/test_casimir_runtime_policy.py \
+            tests/test_certified_outer_q_provider.py \
+            tests/test_frequency_extendable_certified_provider.py \
+            tests/test_adaptive_joint_q.py \
+            tests/test_full_casimir_scripts.py
+
+      - name: Full suite
+        run: pytest -q --tb=short
+
+      - name: Commit validated tree
+        run: |
+          set -euxo pipefail
+          git diff --check
+          git config user.name 'OpenAI Codex'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'Fix Casimir pilot v3 reliability and runtime policy'
+          git push origin HEAD:fix/casimir-audit-implementation5
