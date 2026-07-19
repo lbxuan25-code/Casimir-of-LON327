@@ -50,15 +50,17 @@ start_job() {
   local mode="${1:-}"; shift || true
   case "$mode" in pilots|scan|all|torque|plot) ;; *) usage; exit 64;; esac
 
-  # Serialize the state check and PID publication so two simultaneous `start`
-  # invocations cannot both launch workflows before either writes the PID file.
-  local lock_fd=""
-  if command -v flock >/dev/null 2>&1; then
-    exec {lock_fd}>"$LOCK_FILE"
-    if ! flock -n "$lock_fd"; then
-      echo "ERROR: another background start operation is in progress" >&2
-      exit 1
-    fi
+  # Never fall back to an unlocked check-then-write sequence.  Concurrent production
+  # starts are unsafe because they share PID, log, cache and run-artifact paths.
+  command -v flock >/dev/null 2>&1 || {
+    echo "ERROR: flock is required for safe background workflow startup" >&2
+    exit 1
+  }
+  local lock_fd
+  exec {lock_fd}>"$LOCK_FILE"
+  if ! flock -n "$lock_fd"; then
+    echo "ERROR: another background start operation is in progress" >&2
+    exit 1
   fi
 
   if is_running; then
