@@ -58,6 +58,18 @@ def _atomic_json(path: Path, payload: Any, *, compact: bool = False) -> None:
     temporary.replace(path)
 
 
+def _read_json_mapping(path: Path, *, label: str) -> dict[str, Any]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise ValueError(f"cannot read {label}: {path}: {exc}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{label} is not valid JSON: {path}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError(f"{label} must contain a JSON object: {path}")
+    return payload
+
+
 def _point_config_from_run_config(payload: Mapping[str, Any]) -> FixedCasimirConfig:
     try:
         point = payload["outer_tail_config"]["joint_config"]["radial_config"][
@@ -85,6 +97,53 @@ def _assert_relaxation_only(
         )
     if target_rtol < source_rtol or target_atol != source_atol:
         raise ValueError("target logdet policy is not a pure relative-tolerance relaxation")
+
+
+def _validated_entries(
+    payload: Mapping[str, Any],
+    *,
+    path: Path,
+    expected_fingerprint: str,
+) -> list[dict[str, Any]]:
+    if payload.get("schema") != CACHE_SCHEMA:
+        raise ValueError(f"cache has an incompatible schema: {path}")
+    if payload.get("frequency_extendable") is not True:
+        raise ValueError(f"cache is not frequency-extendable: {path}")
+    if payload.get("policy_fingerprint") != expected_fingerprint:
+        raise ValueError(f"cache point-policy fingerprint does not match target policy: {path}")
+    raw_entries = payload.get("entries")
+    if not isinstance(raw_entries, list):
+        raise ValueError(f"cache entries must be a list: {path}")
+
+    entries: list[dict[str, Any]] = []
+    identities: set[tuple[str, int, str, str]] = set()
+    for index, raw_entry in enumerate(raw_entries):
+        if not isinstance(raw_entry, Mapping):
+            raise ValueError(f"cache entry {index} is not an object: {path}")
+        entry = dict(raw_entry)
+        try:
+            identity = (
+                str(entry["pairing"]),
+                int(entry["n"]),
+                str(entry["qx_hex"]),
+                str(entry["qy_hex"]),
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError(f"cache entry {index} has an invalid identity: {path}") from exc
+        if identity in identities:
+            raise ValueError(f"cache contains duplicate point identity {identity}: {path}")
+        identities.add(identity)
+        if not isinstance(entry.get("point_result"), Mapping):
+            raise ValueError(f"cache entry {index} has no point_result object: {path}")
+        entries.append(entry)
+    return entries
+
+
+def _established_count(entries: list[dict[str, Any]]) -> int:
+    return sum(
+        entry["point_result"].get("sweet_spot", {}).get("status") == "established"
+        for entry in entries
+    )
 
 
 def reassess_point(
@@ -167,53 +226,68 @@ def migrate_cache(
 ) -> MigrationReport:
     source_cache = source_run_dir / "cache" / "certified_points.json"
     target_cache = target_run_dir / "cache" / "certified_points.json"
+    target_fingerprint = certified_point_policy_fingerprint(
+        target_point_config,
+        frequency_extendable=True,
+    )
+
     if target_cache.exists():
-        payload = json.loads(target_cache.read_text(encoding="utf-8"))
-        count = len(payload.get("entries", []))
-        established = sum(
-            entry.get("point_result", {}).get("sweet_spot", {}).get("status")
-            == "established"
-            for entry in payload.get("entries", [])
+        target_payload = _read_json_mapping(target_cache, label="target cache")
+        entries = _validated_entries(
+            target_payload,
+            path=target_cache,
+            expected_fingerprint=target_fingerprint,
         )
+        established = _established_count(entries)
         return MigrationReport(
-            pairing, source_cache, target_cache, count, count, established, established, 0, True
+            pairing,
+            source_cache,
+            target_cache,
+            len(entries),
+            len(entries),
+            established,
+            established,
+            0,
+            True,
         )
+
     if not source_cache.exists():
         return MigrationReport(
             pairing, source_cache, target_cache, 0, 0, 0, 0, 0, True
         )
+
     source_config_path = source_run_dir / "config.json"
-    source_config = _point_config_from_run_config(
-        json.loads(source_config_path.read_text(encoding="utf-8"))
-    )
+    source_run_config = _read_json_mapping(source_config_path, label="source run config")
+    source_config = _point_config_from_run_config(source_run_config)
     _assert_relaxation_only(source_config, target_point_config)
-    payload = json.loads(source_cache.read_text(encoding="utf-8"))
-    if payload.get("schema") != CACHE_SCHEMA:
-        raise ValueError("source pilot cache has an incompatible schema")
-    entries = payload.get("entries")
-    if not isinstance(entries, list):
-        raise ValueError("source pilot cache entries must be a list")
-    before = 0
+
+    source_payload = _read_json_mapping(source_cache, label="source cache")
+    source_fingerprint = certified_point_policy_fingerprint(
+        source_config,
+        frequency_extendable=True,
+    )
+    entries = _validated_entries(
+        source_payload,
+        path=source_cache,
+        expected_fingerprint=source_fingerprint,
+    )
+
+    before = _established_count(entries)
     after = 0
     migrated_entries: list[dict[str, Any]] = []
     for entry in entries:
-        point = dict(entry["point_result"])
-        was_established = point.get("sweet_spot", {}).get("status") == "established"
-        before += int(was_established)
         reassessed = reassess_point(
-            point,
+            entry["point_result"],
             rtol=target_point_config.logdet_rtol,
             atol=target_point_config.logdet_atol,
             required_consecutive_passes=target_point_config.required_consecutive_passes,
         )
-        is_established = reassessed["sweet_spot"]["status"] == "established"
-        after += int(is_established)
-        migrated_entries.append({**dict(entry), "point_result": reassessed})
+        after += int(reassessed["sweet_spot"]["status"] == "established")
+        migrated_entries.append({**entry, "point_result": reassessed})
+
     target_payload = {
         "schema": CACHE_SCHEMA,
-        "policy_fingerprint": certified_point_policy_fingerprint(
-            target_point_config, frequency_extendable=True
-        ),
+        "policy_fingerprint": target_fingerprint,
         "frequency_extendable": True,
         "active_matsubara_indices": list(target_point_config.matsubara_indices),
         "point_policy": certified_point_policy_payload(
