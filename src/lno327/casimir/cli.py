@@ -34,9 +34,14 @@ def _atomic_json(path: Path, payload: Any) -> None:
 
 
 def _git_commit() -> str | None:
+    """Return this checkout's commit without consulting the caller's cwd."""
+
+    repository_root = Path(__file__).resolve().parents[3]
+    if not (repository_root / ".git").exists():
+        return None
     try:
         completed = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
+            ["git", "-C", str(repository_root), "rev-parse", "HEAD"],
             text=True,
             capture_output=True,
             check=False,
