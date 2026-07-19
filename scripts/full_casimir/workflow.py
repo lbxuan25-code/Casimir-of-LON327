@@ -138,10 +138,17 @@ def _target_point_configs(pairings, resources, options):
     return output
 
 
-def _migrate(args, pairings, resources, options) -> None:
+def _migrate(
+    args,
+    pairings,
+    resources,
+    options,
+    *,
+    target_profile: str,
+) -> None:
     reports = migrate_pilot_caches(
         pairings=pairings, output_root=options.output_root,
-        source_profile=LEGACY_PILOT_PROFILE, target_profile=PILOT_PROFILE,
+        source_profile=LEGACY_PILOT_PROFILE, target_profile=target_profile,
         target_configs=_target_point_configs(pairings, resources, options),
     )
     for report in reports:
@@ -191,7 +198,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     options = _energy_options(args)
     profile = args.profile or (PILOT_PROFILE if args.command in ("pilots", "migrate-pilots") else PROFILE_NAME)
     if args.command in ("pilots", "migrate-pilots") and not args.no_migrate_v2_cache:
-        _migrate(args, pairings, resources, options)
+        _migrate(
+            args,
+            pairings,
+            resources,
+            options,
+            target_profile=profile,
+        )
     if args.command == "migrate-pilots":
         return 0
     if args.command == "pilots":
