@@ -138,9 +138,26 @@ def test_runtime_v3_defaults_are_calibrated() -> None:
 def test_case_state_recognizes_successful_summary_status(tmp_path: Path) -> None:
     run = tmp_path / "case"
     run.mkdir()
-    (run / "manifest.json").write_text(json.dumps({"status": "completed"}))
-    (run / "summary.json").write_text(json.dumps({"status": "adaptive_tail_bounded", "matsubara_converged": True}))
-    (run / "result.json").write_text("{}")
+    reason = "outer_and_matsubara_cutoff_tail_tolerances_met"
+    (run / "manifest.json").write_text(json.dumps({
+        "schema": "full-casimir-run-manifest",
+        "case": "case",
+        "status": "completed",
+        "termination_reason": reason,
+    }))
+    (run / "summary.json").write_text(json.dumps({
+        "schema": "full-casimir-run-summary",
+        "case": "case",
+        "status": "adaptive_tail_bounded",
+        "matsubara_converged": True,
+        "termination_reason": reason,
+    }))
+    (run / "result.json").write_text(json.dumps({
+        "schema": "adaptive-matsubara-casimir-result-v1",
+        "status": "adaptive_tail_bounded",
+        "matsubara_converged": True,
+        "termination_reason": reason,
+    }))
     assert _case_state(run) == "completed"
 
 
