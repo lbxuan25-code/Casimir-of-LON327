@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Sequence
+import math
 import os
 
 
@@ -19,16 +20,20 @@ DEFAULT_TEMPERATURE_K = 10.0
 DEFAULT_SEPARATION_NM = 20.0
 DEFAULT_RTOL = 5e-3
 DEFAULT_ATOL_J_M2 = 1e-12
+DEFAULT_LOGDET_RTOL = 1.5e-3
+DEFAULT_LOGDET_ATOL = 1e-6
+DEFAULT_CERTIFIER_Q_BATCH_SIZE = 384
 DEFAULT_MEMORY_BUDGET_GB = 16.0
 DEFAULT_MAX_CONTEXT_WORKERS = 1
-DEFAULT_RESERVED_LOGICAL_CPUS = 4
-DEFAULT_WORKER_CAP = 28
+DEFAULT_RESERVED_LOGICAL_CPUS = 6
+DEFAULT_WORKER_CAP = 26
 DEFAULT_SCAN_MIN_DEG = -4
 DEFAULT_SCAN_MAX_DEG = 94
 DEFAULT_SCAN_STEP_DEG = 2
 DEFAULT_TARGET_MIN_DEG = 0
 DEFAULT_TARGET_MAX_DEG = 90
-PROFILE_NAME = "runtime_budget_v2"
+PROFILE_NAME = "runtime_budget_v3"
+PILOT_PROFILE = "0deg_pilot_v3"
 
 
 @dataclass(frozen=True)
@@ -68,17 +73,31 @@ def angle_token(angle_deg: int | float) -> str:
     return f"m{abs(rounded):03d}" if rounded < 0 else f"p{rounded:03d}"
 
 
+def _number_token(value: int | float, *, name: str) -> str:
+    scalar = float(value)
+    if not math.isfinite(scalar) or scalar <= 0.0:
+        raise ValueError(f"{name} must be finite and positive")
+    text = format(scalar, ".12g")
+    return text.replace("-", "m").replace("+", "").replace(".", "p")
+
+
 def case_name(
     pairing: str,
     angle_deg: int | float,
     *,
+    temperature_K: float = DEFAULT_TEMPERATURE_K,
+    separation_nm: float = DEFAULT_SEPARATION_NM,
     profile: str = PROFILE_NAME,
 ) -> str:
     if pairing not in DEFAULT_PAIRINGS:
         raise ValueError(f"unsupported pairing: {pairing}")
+    if not profile or any(character not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-" for character in profile):
+        raise ValueError("profile must contain only letters, digits, '.', '_' or '-'")
+    temperature = _number_token(temperature_K, name="temperature_K")
+    separation = _number_token(separation_nm, name="separation_nm")
     return (
-        f"{pairing}_T10K_d20nm_theta_{angle_token(angle_deg)}deg_"
-        f"{profile}"
+        f"{pairing}_T{temperature}K_d{separation}nm_"
+        f"theta_{angle_token(angle_deg)}deg_{profile}"
     )
 
 
@@ -103,13 +122,15 @@ def select_runtime_resources(
     if worker_cap <= 0:
         raise ValueError("worker_cap must be positive")
 
-    visible = tuple(
-        sorted(
-            os.sched_getaffinity(0)
-            if available_cpus is None
-            else {int(value) for value in available_cpus}
-        )
-    )
+    affinity_getter = getattr(os, "sched_getaffinity", None)
+    if available_cpus is None:
+        if callable(affinity_getter):
+            visible_values = affinity_getter(0)
+        else:
+            visible_values = range(max(int(os.cpu_count() or 1), 1))
+    else:
+        visible_values = {int(value) for value in available_cpus}
+    visible = tuple(sorted(visible_values))
     if not visible:
         raise RuntimeError("no CPUs are visible to the process")
 
@@ -167,12 +188,13 @@ def apply_single_thread_environment() -> None:
 
 
 def apply_cpu_affinity(resources: RuntimeResources) -> None:
-    if hasattr(os, "sched_setaffinity"):
-        os.sched_setaffinity(0, set(resources.selected_cpus))
+    setter = getattr(os, "sched_setaffinity", None)
+    if callable(setter):
+        setter(0, set(resources.selected_cpus))
 
 
 def validate_pairings(values: Iterable[str]) -> tuple[str, ...]:
-    pairings = tuple(str(value) for value in values)
+    pairings = tuple(dict.fromkeys(str(value) for value in values))
     invalid = [value for value in pairings if value not in DEFAULT_PAIRINGS]
     if invalid:
         raise ValueError(f"unsupported pairings: {invalid}")
