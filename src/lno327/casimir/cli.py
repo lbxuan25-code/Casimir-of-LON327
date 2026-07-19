@@ -151,6 +151,17 @@ def execute_case(
         )
         _atomic_json(run_dir / "manifest.json", manifest)
         return result
+    except KeyboardInterrupt:
+        manifest.update(
+            {
+                "status": "interrupted",
+                "finished_at_utc": _utc_now(),
+                "error_type": "KeyboardInterrupt",
+                "error": "calculation interrupted by user or termination signal",
+            }
+        )
+        _atomic_json(run_dir / "manifest.json", manifest)
+        raise
     except Exception as exc:
         manifest.update(
             {
@@ -190,6 +201,10 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=(128, 192, 256),
     )
+    parser.add_argument("--required-consecutive-passes", type=int, default=2)
+    parser.add_argument("--logdet-rtol", type=float, default=1.5e-3)
+    parser.add_argument("--logdet-atol", type=float, default=1e-6)
+    parser.add_argument("--certifier-q-batch-size", type=int, default=384)
     parser.add_argument(
         "--matsubara-cutoffs",
         nargs="+",
@@ -222,6 +237,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         memory_budget_gb=args.memory_budget_gb,
         max_context_workers=args.max_context_workers,
         N_candidates=tuple(args.N_candidates),
+        required_consecutive_passes=args.required_consecutive_passes,
+        logdet_rtol=args.logdet_rtol,
+        logdet_atol=args.logdet_atol,
+        certifier_q_batch_size=args.certifier_q_batch_size,
         matsubara_cutoff_values=tuple(args.matsubara_cutoffs),
         cutoff_u_values=tuple(args.outer_cutoffs_u),
         total_free_energy_rtol=args.rtol,
