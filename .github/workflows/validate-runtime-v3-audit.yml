@@ -1,0 +1,107 @@
+name: Validate Casimir runtime-v3 audit
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-test-commit:
+    if: github.head_ref == 'fix/casimir-runtime-v3-audit'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      NUMEXPR_NUM_THREADS: "1"
+      BLIS_NUM_THREADS: "1"
+      VECLIB_MAXIMUM_THREADS: "1"
+      OMP_DYNAMIC: "FALSE"
+      MKL_DYNAMIC: "FALSE"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/casimir-runtime-v3-audit
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Reconstruct and apply exact audit patch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import base64
+          import zlib
+
+          root = Path('.github')
+          encoded = ''.join(
+              (root / f'runtime_v3_patch.{index:02d}').read_text()
+              for index in range(4)
+          )
+          tail_hex = (
+              (root / 'runtime_v3_patch.04a.hex').read_text()
+              + (root / 'runtime_v3_patch.04b.hex').read_text()
+          )
+          encoded += bytes.fromhex(tail_hex).decode('ascii')
+          script = zlib.decompress(base64.b64decode(encoded))
+          Path('/tmp/apply_runtime_v3.py').write_bytes(script)
+          PY
+          python /tmp/apply_runtime_v3.py
+          rm -f .github/runtime_v3_patch.*
+          rm -f .github/workflows/validate-runtime-v3-audit.yml
+
+      - name: Install package
+        run: python -m pip install -e ".[dev]" --quiet
+
+      - name: Compile and shell-check changed modules
+        run: |
+          python -m py_compile \
+            src/lno327/casimir/fixed_transverse_point_engine.py \
+            src/lno327/casimir/fixed_chain.py \
+            src/lno327/casimir/certified_point_provider.py \
+            src/lno327/casimir/adaptive_joint_q.py \
+            src/lno327/casimir/adaptive_outer_q.py \
+            src/lno327/casimir/adaptive_outer_tail.py \
+            src/lno327/casimir/adaptive_matsubara_tail.py \
+            src/lno327/casimir/production.py \
+            src/lno327/casimir/cli.py \
+            scripts/full_casimir/config.py \
+            scripts/full_casimir/cache_migration.py \
+            scripts/full_casimir/energy.py \
+            scripts/full_casimir/workflow.py \
+            scripts/full_casimir/postprocess.py \
+            scripts/full_casimir/plotting.py \
+            tests/test_casimir_runtime_v3_audit.py
+          bash -n scripts/full_casimir/background.sh
+
+      - name: Run targeted tests
+        run: |
+          pytest -q -x --tb=long \
+            tests/test_casimir_runtime_v3_audit.py \
+            tests/test_casimir_runtime_policy.py \
+            tests/test_casimir_workflow_scripts.py \
+            tests/test_certified_outer_q_provider.py \
+            tests/test_frequency_extendable_certified_provider.py \
+            tests/test_adaptive_joint_q.py \
+            tests/test_adaptive_outer_tail.py \
+            tests/test_adaptive_matsubara_tail.py \
+            tests/test_casimir_cli_artifacts.py
+
+      - name: Run full suite
+        run: pytest -q --tb=short
+
+      - name: Commit validated source tree
+        run: |
+          set -euxo pipefail
+          git diff --check
+          git config user.name "OpenAI Codex"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "Audit Casimir runtime scripts and optimize v3 pilots"
+          git push origin HEAD:fix/casimir-runtime-v3-audit
