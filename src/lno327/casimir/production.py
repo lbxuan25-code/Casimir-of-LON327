@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import json
+import math
 from pathlib import Path
-from typing import Literal, Sequence
+from typing import Any, Literal, Mapping, Sequence
 
 from .adaptive_matsubara_tail import (
     AdaptiveMatsubaraCasimirConfig,
@@ -13,6 +15,84 @@ from .adaptive_matsubara_tail import (
 
 FullCasimirConfig = AdaptiveMatsubaraCasimirConfig
 FullCasimirResult = AdaptiveMatsubaraCasimirResult
+
+_TELEMETRY_SCHEMA = "certified-point-provider-telemetry-v1"
+_TELEMETRY_INTEGER_FIELDS = (
+    "certification_batches",
+    "certification_failed_batches",
+    "requested_q_evaluations",
+    "new_q_evaluations",
+    "cache_hit_q_evaluations",
+    "requested_point_evaluations",
+    "new_point_evaluations",
+    "cache_hit_point_evaluations",
+    "cache_save_count",
+)
+_TELEMETRY_FLOAT_FIELDS = (
+    "certifier_wall_seconds",
+    "certifier_reported_level_wall_seconds",
+    "certifier_material_build_seconds",
+    "certifier_context_wall_seconds",
+    "cache_save_seconds",
+)
+
+
+def _safe_nonnegative_number(value: Any, *, integer: bool) -> bool:
+    if isinstance(value, bool):
+        return False
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return False
+    if not math.isfinite(numeric) or numeric < 0.0:
+        return False
+    return not integer or numeric.is_integer()
+
+
+def _telemetry_payload_is_safe(payload: Any) -> bool:
+    if not isinstance(payload, Mapping):
+        return False
+    if payload.get("schema") != _TELEMETRY_SCHEMA:
+        return True
+    for name in _TELEMETRY_INTEGER_FIELDS:
+        if name in payload and not _safe_nonnegative_number(payload[name], integer=True):
+            return False
+    for name in _TELEMETRY_FLOAT_FIELDS:
+        if name in payload and not _safe_nonnegative_number(payload[name], integer=False):
+            return False
+    records = payload.get("certifier_batch_records", [])
+    return isinstance(records, list) and all(
+        isinstance(record, Mapping) for record in records
+    )
+
+
+def _quarantine_invalid_telemetry(config: FullCasimirConfig) -> Path | None:
+    """Remove only malformed, non-authoritative telemetry from the resume path.
+
+    The certified-point cache remains untouched.  A quarantined sidecar is retained
+    next to the cache for diagnosis and can never affect physical acceptance.
+    """
+
+    if config.point_cache_path is None:
+        return None
+    telemetry_path = Path(config.point_cache_path).with_suffix(".telemetry.json")
+    if not telemetry_path.exists():
+        return None
+    try:
+        payload = json.loads(telemetry_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if _telemetry_payload_is_safe(payload):
+        return None
+    quarantine_path = telemetry_path.with_suffix(telemetry_path.suffix + ".invalid")
+    try:
+        quarantine_path.unlink(missing_ok=True)
+        telemetry_path.replace(quarantine_path)
+    except OSError as exc:
+        raise RuntimeError(
+            f"cannot quarantine malformed telemetry sidecar {telemetry_path}: {exc}"
+        ) from exc
+    return quarantine_path
 
 
 def build_full_casimir_config(
@@ -117,6 +197,7 @@ def run_full_casimir(config: FullCasimirConfig) -> FullCasimirResult:
 
     if not isinstance(config, AdaptiveMatsubaraCasimirConfig):
         raise TypeError("config must be a FullCasimirConfig")
+    _quarantine_invalid_telemetry(config)
     return run_adaptive_matsubara_casimir(config)
 
 
