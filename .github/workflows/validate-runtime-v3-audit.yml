@@ -48,8 +48,13 @@ jobs:
               + (root / 'runtime_v3_patch.04b.hex').read_text()
           )
           encoded += bytes.fromhex(tail_hex).decode('ascii')
-          script = zlib.decompress(base64.b64decode(encoded))
-          Path('/tmp/apply_runtime_v3.py').write_bytes(script)
+          script = zlib.decompress(base64.b64decode(encoded)).decode('utf-8')
+          old = 'return command\\n\\n\\n\\ndef _run_transverse_certifier'
+          new = 'return command\\n\\n+def _run_transverse_certifier'
+          if script.count(old) != 1:
+              raise RuntimeError('cannot correct fixed-chain regex matcher')
+          script = script.replace(old, new)
+          Path('/tmp/apply_runtime_v3.py').write_text(script, encoding='utf-8')
           PY
 
       - name: Apply audit patch and capture result
