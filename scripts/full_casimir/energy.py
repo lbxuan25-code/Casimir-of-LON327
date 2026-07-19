@@ -57,11 +57,41 @@ def _read_json(path: Path) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
+def _summary_matches_result(
+    summary: Mapping[str, Any],
+    result: Mapping[str, Any],
+) -> bool:
+    summary_pairings = summary.get("pairings")
+    result_pairings = result.get("pairing_results")
+    if not isinstance(summary_pairings, Mapping) or not isinstance(
+        result_pairings, Mapping
+    ):
+        return False
+    if set(summary_pairings) != set(result_pairings):
+        return False
+    for pairing, summary_record in summary_pairings.items():
+        result_record = result_pairings.get(pairing)
+        if not isinstance(summary_record, Mapping) or not isinstance(
+            result_record, Mapping
+        ):
+            return False
+        if any(result_record.get(name) != value for name, value in summary_record.items()):
+            return False
+    return bool(
+        summary.get("selected_matsubara_cutoff")
+        == result.get("selected_matsubara_cutoff")
+        and summary.get("production_casimir_allowed")
+        == result.get("production_casimir_allowed")
+        and summary.get("provider_statistics") == result.get("provider_statistics")
+    )
+
+
 def _artifacts_consistent(
     run_dir: Path,
     *,
     manifest_status: str,
     converged: bool,
+    expected_config: Mapping[str, Any] | None = None,
 ) -> bool:
     summary = _read_json(run_dir / "summary.json")
     manifest = _read_json(run_dir / "manifest.json")
@@ -79,6 +109,12 @@ def _artifacts_consistent(
         and summary.get("status") == expected_result_status
         and result.get("status") == expected_result_status
         and summary.get("termination_reason") == result.get("termination_reason")
+        and manifest.get("termination_reason") == result.get("termination_reason")
+        and _summary_matches_result(summary, result)
+        and (
+            expected_config is None
+            or result.get("config") == dict(expected_config)
+        )
     )
 
 
@@ -109,6 +145,7 @@ def _case_state(
                 run_dir,
                 manifest_status="completed",
                 converged=True,
+                expected_config=expected_config,
             )
             else "artifact_inconsistent"
         )
@@ -119,6 +156,7 @@ def _case_state(
                 run_dir,
                 manifest_status="unresolved",
                 converged=False,
+                expected_config=expected_config,
             )
             else "artifact_inconsistent"
         )
