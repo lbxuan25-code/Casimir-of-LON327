@@ -167,6 +167,13 @@ def five_point_torque_error_bound(
     angle_deg: int,
     step_deg: int,
 ) -> float:
+    """Propagate input energy bounds through the five-point stencil.
+
+    This does not include the O(h^4) finite-difference truncation error.  The return
+    value is therefore not a complete torque error bound unless a separate angle-step
+    convergence audit has bounded that truncation term.
+    """
+
     h_rad = math.radians(step_deg)
     required = (
         angle_deg - 2 * step_deg,
@@ -275,8 +282,10 @@ def postprocess_torque(
                         "status": "missing_converged_energy",
                         "missing_angles_deg": " ".join(map(str, missing)),
                         "torque_per_area_N_per_m": "",
-                        "torque_error_bound_N_per_m": "",
-                        "relative_error_bound": "",
+                        "propagated_energy_error_bound_N_per_m": "",
+                        "relative_propagated_energy_error_bound": "",
+                        "finite_difference_truncation_error_bounded": False,
+                        "torque_numerically_certified": False,
                     }
                 )
                 continue
@@ -284,19 +293,25 @@ def postprocess_torque(
             torque = five_point_torque(
                 energies, angle_deg=angle_deg, step_deg=step_deg
             )
-            bound = five_point_torque_error_bound(
+            propagated_bound = five_point_torque_error_bound(
                 errors, angle_deg=angle_deg, step_deg=step_deg
             )
-            relative = math.inf if torque == 0.0 else bound / abs(torque)
+            relative = (
+                math.inf
+                if torque == 0.0
+                else propagated_bound / abs(torque)
+            )
             rows.append(
                 {
                     "pairing": pairing,
                     "angle_deg": angle_deg,
-                    "status": "computed",
+                    "status": "computed_diagnostic",
                     "missing_angles_deg": "",
                     "torque_per_area_N_per_m": torque,
-                    "torque_error_bound_N_per_m": bound,
-                    "relative_error_bound": relative,
+                    "propagated_energy_error_bound_N_per_m": propagated_bound,
+                    "relative_propagated_energy_error_bound": relative,
+                    "finite_difference_truncation_error_bounded": False,
+                    "torque_numerically_certified": False,
                 }
             )
 
@@ -307,8 +322,10 @@ def postprocess_torque(
         "status",
         "missing_angles_deg",
         "torque_per_area_N_per_m",
-        "torque_error_bound_N_per_m",
-        "relative_error_bound",
+        "propagated_energy_error_bound_N_per_m",
+        "relative_propagated_energy_error_bound",
+        "finite_difference_truncation_error_bounded",
+        "torque_numerically_certified",
     )
     torque_temporary = torque_csv.with_suffix(torque_csv.suffix + ".tmp")
     with torque_temporary.open("w", newline="", encoding="utf-8") as handle:
@@ -325,11 +342,18 @@ def postprocess_torque(
         "finite_difference": "five_point_centered",
         "angle_derivative_unit": "radian",
         "torque_per_area_unit": "N/m",
+        "torque_uncertainty_scope": "propagated_energy_uncertainty_only",
+        "finite_difference_truncation_error_bounded": False,
+        "torque_numerically_certified": False,
+        "torque_certification_requirement": (
+            "repeat the energy scan on a finer nested angle grid and bound the "
+            "five-point derivative truncation error before treating torque as certified"
+        ),
         "energy_point_count": len(points),
         "usable_energy_point_count": sum(point.usable for point in points),
         "torque_row_count": len(rows),
         "computed_torque_row_count": sum(
-            row["status"] == "computed" for row in rows
+            row["status"] == "computed_diagnostic" for row in rows
         ),
         "all_target_torques_available": all_available,
     }
