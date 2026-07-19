@@ -191,8 +191,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_postprocess(args)
     if args.command == "plot":
         return _run_plot(args)
-    for path in cleanup_legacy_root_scripts():
-        print(f"removed obsolete root-level script: {path.name}")
     resources = _resources(args)
     pairings = validate_pairings(args.pairings)
     options = _energy_options(args)
