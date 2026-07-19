@@ -73,17 +73,25 @@ jobs:
             tests/test_casimir_workflow_scripts.py
           bash -n scripts/full_casimir/background.sh
 
-      - name: Run targeted runtime tests
+      - name: Run new runtime v3 tests
+        run: pytest -q -x --tb=long tests/test_casimir_runtime_v3_audit.py
+
+      - name: Run workflow script tests
+        run: pytest -q -x --tb=long tests/test_casimir_workflow_scripts.py
+
+      - name: Run provider tests
         run: |
           pytest -q -x --tb=long \
-            tests/test_casimir_runtime_v3_audit.py \
-            tests/test_casimir_workflow_scripts.py \
             tests/test_certified_outer_q_provider.py \
             tests/test_frequency_extendable_certified_provider.py \
+            tests/test_casimir_performance_batching.py
+
+      - name: Run adaptive controller tests
+        run: |
+          pytest -q -x --tb=long \
             tests/test_adaptive_joint_q.py \
             tests/test_adaptive_outer_tail.py \
-            tests/test_adaptive_matsubara_tail.py \
-            tests/test_casimir_performance_batching.py
+            tests/test_adaptive_matsubara_tail.py
 
       - name: Run complete test suite
         run: pytest -q --tb=short
