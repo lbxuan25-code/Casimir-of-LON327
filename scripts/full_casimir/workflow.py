@@ -9,8 +9,8 @@ from .config import (
     DEFAULT_ATOL_J_M2,
     DEFAULT_CERTIFIER_Q_BATCH_SIZE,
     DEFAULT_LOGDET_ATOL,
-    DEFAULT_LOGDET_ROOT if False else DEFAULT_LOG_ROOT,
     DEFAULT_LOGDET_RTOL,
+    DEFAULT_LOG_ROOT,
     DEFAULT_MATSUBARA_CUTOFFS,
     DEFAULT_MAX_CONTEXT_WORKERS,
     DEFAULT_MEMORY_BUDGET_GB,
@@ -40,10 +40,6 @@ apply_single_thread_environment()
 from .energy import EnergyRunOptions, run_energy_cases  # noqa: E402
 from .plotting import plot_results  # noqa: E402
 from .postprocess import postprocess_torque  # noqa: E402
-
-
-# The odd-looking compatibility alias above is intentionally avoided at runtime.
-DEFAULT_LOG_ROOT = globals().get("DEFAULT_LOG_ROOT")
 
 
 def _parser() -> argparse.ArgumentParser:
