@@ -4,11 +4,17 @@ from pathlib import Path
 from types import SimpleNamespace
 import json
 
-from lno327.casimir import cli
+import pytest
+
+from lno327.casimir import cli, production
+from lno327.casimir.fixed_transverse_point_cli import (
+    validate_q_points_file_argument,
+)
 from lno327.casimir.production import (
     _quarantine_invalid_telemetry,
     build_full_casimir_config,
 )
+from lno327.casimir.strict_transverse_runner import run_strict_transverse_certifier
 from scripts.full_casimir.energy import _case_state
 from scripts.full_casimir.postprocess import collect_energy_points
 
@@ -61,6 +67,42 @@ def test_malformed_numeric_telemetry_is_quarantined_without_touching_cache(
     assert quarantined is not None and quarantined.is_file()
     assert not telemetry.exists()
     assert cache.read_text(encoding="utf-8") == '{"authoritative":"cache"}\n'
+
+
+def test_q_points_file_requires_explicit_nonempty_string_label(
+    tmp_path: Path,
+) -> None:
+    q_file = tmp_path / "q.json"
+    q_file.write_text(
+        json.dumps([{"q_lab": [-1.0e-17, 0.25]}]),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="nonempty string label"):
+        validate_q_points_file_argument(["--q-points-file", str(q_file)])
+
+
+def test_canonical_route_installs_strict_certifier_runner(monkeypatch) -> None:
+    observed: dict[str, object] = {}
+
+    class FakeProvider:
+        def __init__(self, config, **kwargs):
+            observed["runner"] = kwargs.get("runner")
+
+    sentinel = object()
+    monkeypatch.setattr(
+        production,
+        "FrequencyExtendableCertifiedOuterQProvider",
+        FakeProvider,
+    )
+    monkeypatch.setattr(
+        production,
+        "run_adaptive_matsubara_casimir",
+        lambda config, *, provider: sentinel,
+    )
+
+    assert production.run_full_casimir(build_full_casimir_config()) is sentinel
+    assert observed["runner"] is run_strict_transverse_certifier
 
 
 def test_postprocess_marks_truncated_result_unusable_instead_of_crashing(
