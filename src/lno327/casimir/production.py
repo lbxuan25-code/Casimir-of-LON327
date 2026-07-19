@@ -22,7 +22,6 @@ from .adaptive_matsubara_tail import (
     AdaptiveMatsubaraCasimirResult,
     run_adaptive_matsubara_casimir,
 )
-from .fixed_chain import FixedCasimirConfig
 
 FullCasimirConfig = AdaptiveMatsubaraCasimirConfig
 FullCasimirResult = AdaptiveMatsubaraCasimirResult
@@ -39,10 +38,13 @@ def build_full_casimir_config(
     degeneracy: float = 1.0,
     N_candidates: Sequence[int] = (128, 192, 256),
     required_consecutive_passes: int = 2,
+    logdet_rtol: float = 1.5e-3,
+    logdet_atol: float = 1e-6,
     workers: int = 0,
     parallel_mode: Literal["auto", "serial", "q", "context", "wave"] = "auto",
     memory_budget_gb: float = 0.0,
     max_context_workers: int = 0,
+    certifier_q_batch_size: int = 384,
     cutoff_u_values: Sequence[float] = (6.0, 10.0, 14.0, 18.0, 24.0, 30.0, 36.0, 42.0),
     outer_tail_start_u: float = 24.0,
     outer_tail_window_shells: int = 3,
@@ -80,6 +82,8 @@ def build_full_casimir_config(
         degeneracy=float(degeneracy),
         N_candidates=tuple(int(value) for value in N_candidates),
         required_consecutive_passes=int(required_consecutive_passes),
+        logdet_rtol=float(logdet_rtol),
+        logdet_atol=float(logdet_atol),
         workers=int(workers),
         parallel_mode=parallel_mode,
         memory_budget_gb=float(memory_budget_gb),
@@ -93,7 +97,7 @@ def build_full_casimir_config(
         point_cache_path=None,
     )
     # SPM pilot data show angular errors two orders of magnitude below the
-    # radial allocation.  D-wave keeps a more conservative angular reserve.
+    # radial allocation. D-wave keeps a more conservative angular reserve.
     radial_fraction = 0.85 if set(pairing_tuple) == {"spm"} else 0.75
     joint = replace(
         base.outer_tail_config.joint_config,
@@ -123,6 +127,7 @@ def build_full_casimir_config(
         tail_window_terms=int(matsubara_tail_window_terms),
         tail_ratio_max=float(matsubara_tail_ratio_max),
         max_total_microscopic_point_entries=int(max_total_microscopic_point_entries),
+        certifier_q_batch_size=int(certifier_q_batch_size),
         point_cache_path=None if point_cache_path is None else Path(point_cache_path),
     )
 
