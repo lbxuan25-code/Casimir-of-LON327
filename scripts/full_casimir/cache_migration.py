@@ -19,6 +19,14 @@ from lno327.casimir.fixed_transverse_point_certification import (
 from .config import case_name
 
 CACHE_SCHEMA = "certified-outer-q-point-cache-v2-matsubara-extendable"
+LEGACY_SCHEDULING_FIELDS = (
+    "workers",
+    "parallel_mode",
+    "memory_budget_gb",
+    "max_context_workers",
+    "memory_safety_factor",
+    "fallback_context_bytes_per_point",
+)
 
 
 @dataclass(frozen=True)
@@ -99,18 +107,45 @@ def _assert_relaxation_only(
         raise ValueError("target logdet policy is not a pure relative-tolerance relaxation")
 
 
+def _policy_matches(
+    payload: Mapping[str, Any],
+    *,
+    expected_fingerprint: str,
+    expected_policy: Mapping[str, Any],
+    allow_legacy_scheduling_fingerprint: bool,
+) -> bool:
+    if payload.get("policy_fingerprint") == expected_fingerprint:
+        return True
+    if not allow_legacy_scheduling_fingerprint:
+        return False
+    raw_policy = payload.get("point_policy")
+    if not isinstance(raw_policy, Mapping):
+        return False
+    normalized = dict(raw_policy)
+    for name in LEGACY_SCHEDULING_FIELDS:
+        normalized.pop(name, None)
+    return normalized == dict(expected_policy)
+
+
 def _validated_entries(
     payload: Mapping[str, Any],
     *,
     path: Path,
     expected_fingerprint: str,
+    expected_policy: Mapping[str, Any],
+    allow_legacy_scheduling_fingerprint: bool = False,
 ) -> list[dict[str, Any]]:
     if payload.get("schema") != CACHE_SCHEMA:
         raise ValueError(f"cache has an incompatible schema: {path}")
     if payload.get("frequency_extendable") is not True:
         raise ValueError(f"cache is not frequency-extendable: {path}")
-    if payload.get("policy_fingerprint") != expected_fingerprint:
-        raise ValueError(f"cache point-policy fingerprint does not match target policy: {path}")
+    if not _policy_matches(
+        payload,
+        expected_fingerprint=expected_fingerprint,
+        expected_policy=expected_policy,
+        allow_legacy_scheduling_fingerprint=allow_legacy_scheduling_fingerprint,
+    ):
+        raise ValueError(f"cache point-policy fingerprint does not match expected policy: {path}")
     raw_entries = payload.get("entries")
     if not isinstance(raw_entries, list):
         raise ValueError(f"cache entries must be a list: {path}")
@@ -230,6 +265,10 @@ def migrate_cache(
         target_point_config,
         frequency_extendable=True,
     )
+    target_policy = certified_point_policy_payload(
+        target_point_config,
+        frequency_extendable=True,
+    )
 
     if target_cache.exists():
         target_payload = _read_json_mapping(target_cache, label="target cache")
@@ -237,6 +276,7 @@ def migrate_cache(
             target_payload,
             path=target_cache,
             expected_fingerprint=target_fingerprint,
+            expected_policy=target_policy,
         )
         established = _established_count(entries)
         return MigrationReport(
@@ -266,10 +306,16 @@ def migrate_cache(
         source_config,
         frequency_extendable=True,
     )
+    source_policy = certified_point_policy_payload(
+        source_config,
+        frequency_extendable=True,
+    )
     entries = _validated_entries(
         source_payload,
         path=source_cache,
         expected_fingerprint=source_fingerprint,
+        expected_policy=source_policy,
+        allow_legacy_scheduling_fingerprint=True,
     )
 
     before = _established_count(entries)
@@ -290,9 +336,7 @@ def migrate_cache(
         "policy_fingerprint": target_fingerprint,
         "frequency_extendable": True,
         "active_matsubara_indices": list(target_point_config.matsubara_indices),
-        "point_policy": certified_point_policy_payload(
-            target_point_config, frequency_extendable=True
-        ),
+        "point_policy": target_policy,
         "entries": migrated_entries,
     }
     _atomic_json(target_cache, target_payload, compact=True)
