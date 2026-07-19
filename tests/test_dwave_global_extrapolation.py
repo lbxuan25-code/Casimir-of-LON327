@@ -24,7 +24,11 @@ def test_static_power_law_extrapolation_recovers_known_limit():
     assert min(abs(float(row["intercept"]) - limit) for row in exact) < 1e-11
     summary = summarize_fit_ensemble(fits)
     assert np.isfinite(summary.estimate)
-    assert summary.minimum <= limit <= summary.maximum
+    # LAPACK/NumPy versions may place an analytically exact intercept one ULP
+    # outside the raw ensemble extrema.  Bound only representational roundoff;
+    # do not introduce a physics-scale relative tolerance here.
+    roundoff = 4.0 * abs(float(np.spacing(limit)))
+    assert summary.minimum - roundoff <= limit <= summary.maximum + roundoff
 
 
 def test_small_xi_even_fit_recovers_zero_frequency_intercept():
