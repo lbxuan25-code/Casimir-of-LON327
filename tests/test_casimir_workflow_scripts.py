@@ -39,6 +39,11 @@ from scripts.full_casimir.postprocess import (
 def _write_completed_artifacts(run: Path, *, config: dict) -> None:
     run.mkdir(parents=True, exist_ok=True)
     reason = "outer_and_matsubara_cutoff_tail_tolerances_met"
+    common = {
+        "selected_matsubara_cutoff": 1,
+        "production_casimir_allowed": False,
+        "provider_statistics": {},
+    }
     (run / "config.json").write_text(json.dumps(config), encoding="utf-8")
     (run / "manifest.json").write_text(
         json.dumps(
@@ -59,6 +64,8 @@ def _write_completed_artifacts(run: Path, *, config: dict) -> None:
                 "status": "adaptive_tail_bounded",
                 "matsubara_converged": True,
                 "termination_reason": reason,
+                "pairings": {},
+                **common,
             }
         ),
         encoding="utf-8",
@@ -70,6 +77,9 @@ def _write_completed_artifacts(run: Path, *, config: dict) -> None:
                 "status": "adaptive_tail_bounded",
                 "matsubara_converged": True,
                 "termination_reason": reason,
+                "pairing_results": {},
+                "config": config,
+                **common,
             }
         ),
         encoding="utf-8",
