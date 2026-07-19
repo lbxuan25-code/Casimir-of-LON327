@@ -36,6 +36,7 @@ jobs:
         id: patch
         continue-on-error: true
         run: |
+          sed -i 's/from dataclasses import dataclass, replace\\n/from dataclasses import dataclass, field, replace\\n/g' .github/casimir_audit_patch.py
           set +e
           python .github/casimir_audit_patch.py > /tmp/casimir-audit-patch.log 2>&1
           status=$?
