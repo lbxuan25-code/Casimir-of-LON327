@@ -32,29 +32,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Capture patch result
-        id: patch
-        continue-on-error: true
+      - name: Apply audited changes
         run: |
           sed -i 's/from dataclasses import dataclass, replace\\n/from dataclasses import dataclass, field, replace\\n/g' .github/casimir_audit_patch.py
-          set +e
-          python .github/casimir_audit_patch.py > /tmp/casimir-audit-patch.log 2>&1
-          status=$?
-          echo "$status" > /tmp/casimir-audit-patch.status
-          exit "$status"
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: casimir-audit-patch-diagnostics
-          path: |
-            /tmp/casimir-audit-patch.log
-            /tmp/casimir-audit-patch.status
-
-      - name: Require patch success
-        run: |
-          cat /tmp/casimir-audit-patch.log
-          test "$(cat /tmp/casimir-audit-patch.status)" = '0'
+          python .github/casimir_audit_patch.py
           rm -f .github/casimir_audit_patch.py
           rm -f .github/workflows/validate-casimir-audit.yml
 
@@ -76,15 +57,35 @@ jobs:
             tests/test_casimir_pilot_v3_audit.py
           bash -n scripts/full_casimir/background.sh
 
-      - name: Focused regression tests
+      - name: Capture focused regression tests
+        id: focused
+        continue-on-error: true
         run: |
-          pytest -q -x --tb=short \
+          set +e
+          pytest -q -x --tb=long \
             tests/test_casimir_pilot_v3_audit.py \
             tests/test_casimir_runtime_policy.py \
             tests/test_certified_outer_q_provider.py \
             tests/test_frequency_extendable_certified_provider.py \
             tests/test_adaptive_joint_q.py \
-            tests/test_full_casimir_scripts.py
+            tests/test_full_casimir_scripts.py \
+            > /tmp/casimir-focused-pytest.log 2>&1
+          status=$?
+          echo "$status" > /tmp/casimir-focused-pytest.status
+          exit "$status"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: casimir-focused-pytest-diagnostics
+          path: |
+            /tmp/casimir-focused-pytest.log
+            /tmp/casimir-focused-pytest.status
+
+      - name: Require focused tests
+        run: |
+          cat /tmp/casimir-focused-pytest.log
+          test "$(cat /tmp/casimir-focused-pytest.status)" = '0'
 
       - name: Full suite
         run: pytest -q --tb=short
