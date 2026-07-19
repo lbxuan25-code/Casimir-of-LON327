@@ -12,6 +12,8 @@ from .adaptive_matsubara_tail import (
     AdaptiveMatsubaraCasimirResult,
     run_adaptive_matsubara_casimir,
 )
+from .certified_point_provider import FrequencyExtendableCertifiedOuterQProvider
+from .strict_transverse_runner import run_strict_transverse_certifier
 
 FullCasimirConfig = AdaptiveMatsubaraCasimirConfig
 FullCasimirResult = AdaptiveMatsubaraCasimirResult
@@ -198,7 +200,19 @@ def run_full_casimir(config: FullCasimirConfig) -> FullCasimirResult:
     if not isinstance(config, AdaptiveMatsubaraCasimirConfig):
         raise TypeError("config must be a FullCasimirConfig")
     _quarantine_invalid_telemetry(config)
-    return run_adaptive_matsubara_casimir(config)
+    first_cutoff = config.matsubara_cutoff_values[0]
+    base_point = config.outer_tail_config.joint_config.radial_config.point_config
+    first_point = replace(
+        base_point,
+        matsubara_indices=tuple(range(int(first_cutoff) + 1)),
+    )
+    provider = FrequencyExtendableCertifiedOuterQProvider(
+        first_point,
+        cache_path=config.point_cache_path,
+        runner=run_strict_transverse_certifier,
+        certifier_q_batch_size=config.certifier_q_batch_size,
+    )
+    return run_adaptive_matsubara_casimir(config, provider=provider)
 
 
 __all__ = [
