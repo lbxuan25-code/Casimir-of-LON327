@@ -57,6 +57,31 @@ def _read_json(path: Path) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
+def _artifacts_consistent(
+    run_dir: Path,
+    *,
+    manifest_status: str,
+    converged: bool,
+) -> bool:
+    summary = _read_json(run_dir / "summary.json")
+    manifest = _read_json(run_dir / "manifest.json")
+    result = _read_json(run_dir / "result.json")
+    expected_result_status = "adaptive_tail_bounded" if converged else "unresolved"
+    return bool(
+        summary.get("schema") == "full-casimir-run-summary"
+        and manifest.get("schema") == "full-casimir-run-manifest"
+        and result.get("schema") == "adaptive-matsubara-casimir-result-v1"
+        and summary.get("case") == run_dir.name
+        and manifest.get("case") == run_dir.name
+        and manifest.get("status") == manifest_status
+        and bool(summary.get("matsubara_converged")) is converged
+        and bool(result.get("matsubara_converged")) is converged
+        and summary.get("status") == expected_result_status
+        and result.get("status") == expected_result_status
+        and summary.get("termination_reason") == result.get("termination_reason")
+    )
+
+
 def _case_state(
     run_dir: Path,
     *,
@@ -75,16 +100,28 @@ def _case_state(
             # A cache-only target created by the v2->v3 migration is a valid seed.
             # Missing configuration beside actual run artifacts is not.
             return "configuration_mismatch"
-    summary = _read_json(run_dir / "summary.json")
     manifest = _read_json(run_dir / "manifest.json")
-    if (
-        manifest.get("status") == "completed"
-        and bool(summary.get("matsubara_converged"))
-        and (run_dir / "result.json").is_file()
-    ):
-        return "completed"
+    summary = _read_json(run_dir / "summary.json")
+    if manifest.get("status") == "completed":
+        return (
+            "completed"
+            if _artifacts_consistent(
+                run_dir,
+                manifest_status="completed",
+                converged=True,
+            )
+            else "artifact_inconsistent"
+        )
     if manifest.get("status") == "unresolved" or summary.get("status") == "unresolved":
-        return "unresolved"
+        return (
+            "unresolved"
+            if _artifacts_consistent(
+                run_dir,
+                manifest_status="unresolved",
+                converged=False,
+            )
+            else "artifact_inconsistent"
+        )
     if manifest.get("status") == "failed":
         return "failed"
     if manifest.get("status") == "running":
@@ -221,6 +258,8 @@ def run_energy_cases(*, pairings: Sequence[str], angles_deg: Sequence[int],
                     pairing=pairing, angle_deg=angle_deg, case=case,
                     action="skip_unresolved", run_dir=run_dir, wall_seconds=0.0))
                 continue
+            if state == "artifact_inconsistent":
+                print(f"RESUME inconsistent run artifacts: {case}", flush=True)
             resume = run_dir.exists()
             action = "resume" if resume else "start"
             print(f"{action.upper()}: {case}", flush=True)
