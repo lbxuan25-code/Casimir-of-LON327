@@ -49,6 +49,9 @@ def test_layout_audit_classifies_canonical_legacy_and_review_entries(
         'path = "outputs/casimir/N896_scan_logs"\n',
         encoding="utf-8",
     )
+    documentation = repo / "docs" / "layout.md"
+    documentation.parent.mkdir(parents=True)
+    documentation.write_text("N896_scan_logs is legacy.\n", encoding="utf-8")
 
     before = {
         path.relative_to(root).as_posix(): path.read_bytes()
@@ -73,7 +76,12 @@ def test_layout_audit_classifies_canonical_legacy_and_review_entries(
     entries = {entry["name"]: entry for entry in audit["entries"]}
     assert entries["runs"]["classification"] == "canonical"
     assert entries["N896_scan_logs"]["classification"] == "known_legacy"
-    assert entries["N896_scan_logs"]["reference_count"] == 1
+    assert entries["N896_scan_logs"]["reference_count"] == 2
+    assert entries["N896_scan_logs"]["runtime_reference_count"] == 1
+    assert entries["N896_scan_logs"]["reference_role_counts"] == {
+        "documentation": 1,
+        "runtime": 1,
+    }
     assert entries["N896_scan_logs"]["tree_digest"]
     assert entries["diagnostics"]["classification"] == "review_required"
     assert entries["diagnostics"]["json_files"] == [
@@ -90,7 +98,7 @@ def test_layout_audit_classifies_canonical_legacy_and_review_entries(
     assert entries["dwave_0deg_pilot_cache.tar.gz"]["tar_summary"][
         "top_level_roots"
     ] == ["dwave"]
-    assert any("still referenced" in item for item in audit["migration_blockers"])
+    assert any("runtime references" in item for item in audit["migration_blockers"])
 
 
 def test_layout_audit_flags_unexpected_and_unsafe_archives(tmp_path: Path) -> None:
@@ -129,4 +137,4 @@ def test_layout_audit_writer_emits_json_and_tsv(tmp_path: Path) -> None:
     assert loaded["audit_sha256"] == audit["audit_sha256"]
     lines = tsv_path.read_text(encoding="utf-8").splitlines()
     assert lines[0].startswith("classification\tkind\tbytes")
-    assert any("canonical_directory" in line and line.endswith("runs\t") for line in lines[1:])
+    assert any("canonical_directory" in line and "\truns\t" in line for line in lines[1:])
