@@ -115,8 +115,7 @@ def policy_snapshot(config: Mapping[str, Any]) -> dict[str, Any]:
             ],
             "reason": (
                 "Physical model identity is excluded from numerical-policy parity. "
-                "The audit compares whether different pairings receive the same gates, "
-                "budgets, ladders, and controller rules."
+                "The audit compares gates, budgets, ladders, and controller rules."
             ),
         },
     }
@@ -125,35 +124,26 @@ def policy_snapshot(config: Mapping[str, Any]) -> dict[str, Any]:
 def _value_at_path(payload: Any, path: str) -> Any:
     if not path.startswith("$"):
         return None
+    tokens = path[1:].split(".")
     current = payload
-    token = ""
-    index = 1
-    while index < len(path):
-        char = path[index]
-        if char == ".":
-            if token:
-                current = mapping(current).get(token)
-                token = ""
-            index += 1
+    for token in tokens:
+        if not token:
             continue
-        if char == "[":
-            if token:
-                current = mapping(current).get(token)
-                token = ""
-            end = path.find("]", index)
-            if end < 0:
-                return None
+        if token == "length":
+            return len(current) if isinstance(current, (list, tuple, Mapping)) else None
+        while "[" in token:
+            name, rest = token.split("[", 1)
+            if name:
+                current = mapping(current).get(name)
+            position_token, token = rest.split("]", 1)
             try:
-                position = int(path[index + 1 : end])
+                position = int(position_token)
                 current = current[position] if isinstance(current, list) else None
             except (ValueError, IndexError):
                 return None
-            index = end + 1
-            continue
-        token += char
-        index += 1
-    if token:
-        current = mapping(current).get(token)
+            token = token.lstrip(".")
+        if token:
+            current = mapping(current).get(token)
     return current
 
 
@@ -188,9 +178,8 @@ def compare_policy_snapshots(
     scientific_difference_count = 0
     scheduling_difference_count = 0
     for name, snapshot in snapshots[1:]:
-        paths = config_difference_paths(reference, snapshot)
         records = []
-        for path in paths:
+        for path in config_difference_paths(reference, snapshot):
             if path.startswith("$.excluded_physical_fields"):
                 continue
             category = _difference_category(path)
@@ -198,14 +187,17 @@ def compare_policy_snapshots(
                 scheduling_difference_count += 1
             else:
                 scientific_difference_count += 1
-            records.append(
-                {
-                    "path": path,
-                    "category": category,
-                    "reference_value": _value_at_path(reference, path),
-                    "compared_value": _value_at_path(snapshot, path),
-                }
-            )
+            record = {
+                "path": path,
+                "category": category,
+                "reference_value": _value_at_path(reference, path),
+                "compared_value": _value_at_path(snapshot, path),
+            }
+            if path.endswith(".length"):
+                parent_path = path[: -len(".length")]
+                record["reference_sequence"] = _value_at_path(reference, parent_path)
+                record["compared_sequence"] = _value_at_path(snapshot, parent_path)
+            records.append(record)
         comparisons.append(
             {
                 "reference_run": reference_name,
@@ -226,9 +218,7 @@ def compare_policy_snapshots(
         "snapshots": {name: snapshot for name, snapshot in snapshots},
         "interpretation": (
             "Scientific parity requires identical acceptance gates, controller rules, "
-            "error allocations, and adaptive ladders after physical model fields are "
-            "removed. Runtime scheduling differences are reported but do not by themselves "
-            "change scientific acceptance."
+            "error allocations, and adaptive ladders after physical fields are removed."
         ),
     }
 
