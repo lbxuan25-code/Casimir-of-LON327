@@ -4,13 +4,13 @@ import math
 
 import pytest
 
-from scripts.full_casimir.audit_closure import (
+from scripts.full_casimir.budget_audit import (
     budget_fraction_sensitivity,
     conditional_analytic_outer_tail_bound,
     holdout_plan,
-    production_equivalence_audit,
     weighted_microscopic_impact,
 )
+from scripts.full_casimir.candidate_replay_audit import production_equivalence_audit
 from scripts.full_casimir.policy_audit import compare_policy_snapshots
 
 
