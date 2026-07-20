@@ -121,20 +121,41 @@ def test_layout_audit_flags_unexpected_and_unsafe_archives(tmp_path: Path) -> No
     assert any("unsafe archive members" in item for item in audit["migration_blockers"])
 
 
-def test_layout_audit_writer_emits_json_and_tsv(tmp_path: Path) -> None:
+def test_layout_audit_rejects_symlink_as_canonical_directory(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    root = repo / "outputs" / "casimir"
+    root.mkdir(parents=True)
+    target = repo / "external_runs"
+    target.mkdir()
+    (root / "runs").symlink_to(target, target_is_directory=True)
+
+    audit = build_output_layout_audit(root, repo_root=repo)
+    entry = audit["entries"][0]
+
+    assert entry["name"] == "runs"
+    assert entry["classification"] == "unexpected"
+    assert entry["entry_type_counts"] == {"symlink": 1}
+    assert any("unsupported filesystem entry type" in item for item in audit["migration_blockers"])
+
+
+def test_layout_audit_writer_is_idempotent(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     root = repo / "outputs" / "casimir"
     (root / "runs").mkdir(parents=True)
-    audit = build_output_layout_audit(root, repo_root=repo)
+    (root / "catalog").mkdir()
 
+    first = build_output_layout_audit(root, repo_root=repo)
     json_path, tsv_path = write_output_layout_audit(
-        audit,
+        first,
         json_path=root / "catalog" / "output_layout_audit.json",
         tsv_path=root / "catalog" / "output_layout_audit.tsv",
     )
+    second = build_output_layout_audit(root, repo_root=repo)
+    write_output_layout_audit(second, json_path=json_path, tsv_path=tsv_path)
 
+    assert second["audit_sha256"] == first["audit_sha256"]
     loaded = json.loads(json_path.read_text(encoding="utf-8"))
-    assert loaded["audit_sha256"] == audit["audit_sha256"]
+    assert loaded["audit_sha256"] == first["audit_sha256"]
     lines = tsv_path.read_text(encoding="utf-8").splitlines()
     assert lines[0].startswith("classification\tkind\tbytes")
     assert any("canonical_directory" in line and "\truns\t" in line for line in lines[1:])
