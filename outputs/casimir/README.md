@@ -56,3 +56,16 @@ python -m scripts.full_casimir.diagnostics \
 ```
 
 结构化报告写入每个运行目录的 `reports/diagnostics.json`。如果 replay 遇到缓存缺失点，命令会 fail closed，而不会启动昂贵的横向积分。
+
+## 统一收敛审计
+
+`audit` 子命令对多个 pairing 使用同一审计结构：逐点重放候选全局 `logdet_rtol`、比较 pairing-blind 数值政策、在可重放的运行上分离真实 outer shell 信号与有限域误差地板，并生成一份统一的证据账本。
+
+```bash
+python -m scripts.full_casimir.diagnostics audit \
+  --run-dir outputs/casimir/runs/dwave_T10K_d20nm_theta_p000deg_0deg_pilot_v4 \
+  --run-dir outputs/casimir/runs/spm_T10K_d20nm_theta_p000deg_0deg_pilot_v4 \
+  --candidate-logdet-rtol 0.0015 0.00175 0.002 0.0025 0.003
+```
+
+默认报告写入 `outputs/casimir/reports/convergence_audit.json`。审计不会修改任何认证门：hard-physical gate 与连续通过次数保持不变。点级 `N^2` 只作为成本代理，不冒充 wall time；在缺少求积权重、高 N holdout、解析尾界或无重复计数的总误差账本时，报告必须保持 `production_change_not_authorized`。
