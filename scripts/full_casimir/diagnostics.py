@@ -6,13 +6,17 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from ._diagnostic_io import atomic_json, finite_number, mapping, read_json, sequence, sha256
-from .audit_closure import (
+from .budget_audit import (
     audit_completion_ledger,
+    audit_evidence_gaps,
     budget_fraction_sensitivity,
+    candidate_policy_screen,
+    tail_resolution_audit,
+)
+from .candidate_replay_audit import (
     candidate_cache_replay_audit,
     production_equivalence_audit,
 )
-from .budget_audit import audit_evidence_gaps, candidate_policy_screen, tail_resolution_audit
 from .outer_tail_diagnostics import _config_from_payload, replay_outer_tail_cache_only
 from .point_diagnostics import point_cache_diagnostics, tolerance_replay_audit
 from .policy_audit import compare_policy_snapshots
