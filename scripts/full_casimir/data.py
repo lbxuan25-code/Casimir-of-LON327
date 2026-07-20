@@ -14,6 +14,16 @@ from .data_management import (
     write_data_catalog,
     write_registry_template,
 )
+from .data_retention import (
+    PRUNE_CONFIRMATION,
+    build_prune_plan,
+    execute_prune_plan,
+    pack_json_report,
+    verify_archive_plan,
+    write_archive_verification,
+    write_prune_execution,
+    write_prune_plan,
+)
 
 
 def _default_casimir_root() -> Path:
@@ -24,7 +34,7 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m scripts.full_casimir.data",
         description=(
-            "Catalog and archive local Casimir run data without deleting source artifacts."
+            "Catalog, archive, restore-verify, and explicitly prune local Casimir data."
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -56,6 +66,44 @@ def _parser() -> argparse.ArgumentParser:
     archive.add_argument("--confirm-plan-sha256", required=True)
     archive.add_argument("--run", action="append", default=[])
     archive.add_argument("--execution-report", type=Path, default=None)
+
+    verify = subparsers.add_parser(
+        "verify",
+        help="Restore archives to temporary storage and compare every file to the manifest.",
+    )
+    verify.add_argument("--plan-path", type=Path, required=True)
+    verify.add_argument("--run", action="append", default=[])
+    verify.add_argument("--verification-report", type=Path, default=None)
+
+    prune_plan = subparsers.add_parser(
+        "prune-plan",
+        help="Plan source removal only for explicitly selected, restored-and-verified runs.",
+    )
+    prune_plan.add_argument("--casimir-root", type=Path, default=_default_casimir_root())
+    prune_plan.add_argument("--catalog-root", type=Path, default=None)
+    prune_plan.add_argument("--registry", type=Path, default=None)
+    prune_plan.add_argument("--verification-report", type=Path, required=True)
+    prune_plan.add_argument("--run", action="append", required=True)
+    prune_plan.add_argument("--plan-path", type=Path, default=None)
+
+    prune = subparsers.add_parser(
+        "prune",
+        help="Delete source run directories from an exact approved prune plan.",
+    )
+    prune.add_argument("--plan-path", type=Path, required=True)
+    prune.add_argument("--confirm-plan-sha256", required=True)
+    prune.add_argument("--confirm-delete", required=True)
+    prune.add_argument("--execution-report", type=Path, default=None)
+
+    pack = subparsers.add_parser(
+        "pack-report",
+        help="Externalize large JSON lists into verified compressed sidecars.",
+    )
+    pack.add_argument("--report-path", type=Path, required=True)
+    pack.add_argument("--compact-path", type=Path, default=None)
+    pack.add_argument("--pack-root", type=Path, default=None)
+    pack.add_argument("--manifest-path", type=Path, default=None)
+    pack.add_argument("--threshold-mib", type=float, default=1.0)
     return parser
 
 
@@ -158,6 +206,107 @@ def _run_archive(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_verify(args: argparse.Namespace) -> int:
+    report = verify_archive_plan(
+        Path(args.plan_path),
+        selected_runs=tuple(args.run),
+    )
+    report_path = (
+        Path(args.verification_report).resolve()
+        if args.verification_report is not None
+        else Path(args.plan_path).resolve().with_name("archive_verification.json")
+    )
+    write_archive_verification(report, report_path)
+    print(f"written: {report_path}")
+    print(f"restored and verified: {report['result_count']}")
+    print(f"verification_sha256: {report['verification_sha256']}")
+    print("All temporary restored copies were removed; archives and sources remain present.")
+    return 0
+
+
+def _run_prune_plan(args: argparse.Namespace) -> int:
+    casimir_root, catalog_root, registry_path = _catalog_paths(args)
+    if registry_path is None:
+        raise FileNotFoundError("prune planning requires an explicit registry")
+    catalog = build_data_catalog(casimir_root, registry_path=registry_path)
+    write_data_catalog(catalog, catalog_root=catalog_root)
+    verification = __import__("json").loads(
+        Path(args.verification_report).read_text(encoding="utf-8")
+    )
+    plan = build_prune_plan(
+        catalog,
+        verification,
+        selected_runs=tuple(args.run),
+    )
+    plan_path = (
+        Path(args.plan_path).resolve()
+        if args.plan_path is not None
+        else catalog_root / "prune_plan.json"
+    )
+    write_prune_plan(plan, plan_path)
+    print(f"written: {plan_path}")
+    print(f"prune items: {plan['item_count']}")
+    print(f"releasable bytes: {plan['source_total_bytes']}")
+    print(f"plan_sha256: {plan['plan_sha256']}")
+    print(f"required deletion phrase: {PRUNE_CONFIRMATION}")
+    print("No source directory was modified.")
+    return 0
+
+
+def _run_prune(args: argparse.Namespace) -> int:
+    report = execute_prune_plan(
+        Path(args.plan_path),
+        confirm_plan_sha256=str(args.confirm_plan_sha256),
+        confirm_delete=str(args.confirm_delete),
+    )
+    report_path = (
+        Path(args.execution_report).resolve()
+        if args.execution_report is not None
+        else Path(args.plan_path).resolve().with_name("prune_execution.json")
+    )
+    write_prune_execution(report, report_path)
+    print(f"written: {report_path}")
+    print(f"removed runs: {report['removed_run_count']}")
+    print(f"released bytes: {report['released_bytes']}")
+    print("Verified archive copies remain present.")
+    return 0
+
+
+def _run_pack_report(args: argparse.Namespace) -> int:
+    source = Path(args.report_path).resolve()
+    compact = (
+        Path(args.compact_path).resolve()
+        if args.compact_path is not None
+        else source.with_name(f"{source.stem}.compact.json")
+    )
+    pack_root = (
+        Path(args.pack_root).resolve()
+        if args.pack_root is not None
+        else source.with_name(f"{source.stem}.pack")
+    )
+    manifest = (
+        Path(args.manifest_path).resolve()
+        if args.manifest_path is not None
+        else source.with_name(f"{source.stem}.pack_manifest.json")
+    )
+    threshold = int(float(args.threshold_mib) * 1024 * 1024)
+    report = pack_json_report(
+        source,
+        compact_path=compact,
+        pack_root=pack_root,
+        manifest_path=manifest,
+        threshold_bytes=threshold,
+    )
+    print(f"written: {compact}")
+    print(f"written: {manifest}")
+    print(f"sidecars: {report['sidecar_count']}")
+    print(f"source bytes: {report['source_bytes']}")
+    print(f"compact bytes: {report['compact_bytes']}")
+    print(f"sidecar bytes: {report['sidecar_total_bytes']}")
+    print("Reconstruction verified; the original report remains present.")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
@@ -167,6 +316,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _run_plan(args)
         if args.command == "archive":
             return _run_archive(args)
+        if args.command == "verify":
+            return _run_verify(args)
+        if args.command == "prune-plan":
+            return _run_prune_plan(args)
+        if args.command == "prune":
+            return _run_prune(args)
+        if args.command == "pack-report":
+            return _run_pack_report(args)
     except (FileNotFoundError, OSError, RuntimeError, TypeError, ValueError) as exc:
         print(f"DATA MANAGEMENT FAILED: {type(exc).__name__}: {exc}")
         return 2
