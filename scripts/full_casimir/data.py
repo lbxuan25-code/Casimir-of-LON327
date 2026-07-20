@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 from typing import Sequence
 
+from .archive_catalog import augment_catalog_with_archives
 from .config import DEFAULT_OUTPUT_ROOT
 from .data_management import (
     build_archive_plan,
@@ -123,9 +125,15 @@ def _catalog_paths(args: argparse.Namespace) -> tuple[Path, Path, Path | None]:
     return casimir_root, catalog_root, registry_path
 
 
+def _catalog(casimir_root: Path, registry_path: Path | None) -> dict:
+    return augment_catalog_with_archives(
+        build_data_catalog(casimir_root, registry_path=registry_path)
+    )
+
+
 def _run_catalog(args: argparse.Namespace) -> int:
     casimir_root, catalog_root, registry_path = _catalog_paths(args)
-    catalog = build_data_catalog(casimir_root, registry_path=registry_path)
+    catalog = _catalog(casimir_root, registry_path)
     json_path, tsv_path = write_data_catalog(catalog, catalog_root=catalog_root)
     print(f"written: {json_path}")
     print(f"written: {tsv_path}")
@@ -133,6 +141,8 @@ def _run_catalog(args: argparse.Namespace) -> int:
         "runs: "
         f"{catalog['run_count']}, "
         f"run_bytes: {catalog['total_run_bytes']}, "
+        f"cold_archives: {catalog['archived_run_count']}, "
+        f"archive_bytes: {catalog['total_archive_bytes']}, "
         f"global_artifacts: {catalog['global_artifact_count']}"
     )
     if args.write_registry_template:
@@ -173,7 +183,7 @@ def _run_plan(args: argparse.Namespace) -> int:
         if args.plan_path is not None
         else catalog_root / "archive_plan.json"
     )
-    catalog = build_data_catalog(casimir_root, registry_path=registry)
+    catalog = _catalog(casimir_root, registry)
     write_data_catalog(catalog, catalog_root=catalog_root)
     plan = build_archive_plan(catalog, archive_root=archive_root)
     write_archive_plan(plan, plan_path)
@@ -228,9 +238,9 @@ def _run_prune_plan(args: argparse.Namespace) -> int:
     casimir_root, catalog_root, registry_path = _catalog_paths(args)
     if registry_path is None:
         raise FileNotFoundError("prune planning requires an explicit registry")
-    catalog = build_data_catalog(casimir_root, registry_path=registry_path)
+    catalog = _catalog(casimir_root, registry_path)
     write_data_catalog(catalog, catalog_root=catalog_root)
-    verification = __import__("json").loads(
+    verification = json.loads(
         Path(args.verification_report).read_text(encoding="utf-8")
     )
     plan = build_prune_plan(
