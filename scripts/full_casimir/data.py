@@ -26,6 +26,13 @@ from .data_retention import (
     write_prune_execution,
     write_prune_plan,
 )
+from .report_retention import (
+    REPORT_PRUNE_CONFIRMATION,
+    build_report_prune_plan,
+    execute_report_prune_plan,
+    write_report_prune_execution,
+    write_report_prune_plan,
+)
 
 
 def _default_casimir_root() -> Path:
@@ -106,6 +113,22 @@ def _parser() -> argparse.ArgumentParser:
     pack.add_argument("--pack-root", type=Path, default=None)
     pack.add_argument("--manifest-path", type=Path, default=None)
     pack.add_argument("--threshold-mib", type=float, default=1.0)
+
+    report_prune_plan = subparsers.add_parser(
+        "report-prune-plan",
+        help="Plan removal of an original JSON report after verified reconstruction.",
+    )
+    report_prune_plan.add_argument("--manifest-path", type=Path, required=True)
+    report_prune_plan.add_argument("--plan-path", type=Path, default=None)
+
+    report_prune = subparsers.add_parser(
+        "report-prune",
+        help="Delete an original report from an exact verified report-prune plan.",
+    )
+    report_prune.add_argument("--plan-path", type=Path, required=True)
+    report_prune.add_argument("--confirm-plan-sha256", required=True)
+    report_prune.add_argument("--confirm-delete", required=True)
+    report_prune.add_argument("--execution-report", type=Path, default=None)
     return parser
 
 
@@ -317,6 +340,41 @@ def _run_pack_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_report_prune_plan(args: argparse.Namespace) -> int:
+    manifest = Path(args.manifest_path).resolve()
+    plan_path = (
+        Path(args.plan_path).resolve()
+        if args.plan_path is not None
+        else manifest.with_name(f"{manifest.stem}.prune_plan.json")
+    )
+    plan = build_report_prune_plan(manifest)
+    write_report_prune_plan(plan, plan_path)
+    print(f"written: {plan_path}")
+    print(f"releasable bytes: {plan['source_bytes']}")
+    print(f"plan_sha256: {plan['plan_sha256']}")
+    print(f"required deletion phrase: {REPORT_PRUNE_CONFIRMATION}")
+    print("The original report remains present.")
+    return 0
+
+
+def _run_report_prune(args: argparse.Namespace) -> int:
+    report = execute_report_prune_plan(
+        Path(args.plan_path),
+        confirm_plan_sha256=str(args.confirm_plan_sha256),
+        confirm_delete=str(args.confirm_delete),
+    )
+    report_path = (
+        Path(args.execution_report).resolve()
+        if args.execution_report is not None
+        else Path(args.plan_path).resolve().with_name("report_prune_execution.json")
+    )
+    write_report_prune_execution(report, report_path)
+    print(f"written: {report_path}")
+    print(f"released bytes: {report['released_bytes']}")
+    print("Compact report and verified sidecars remain present.")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
@@ -334,6 +392,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _run_prune(args)
         if args.command == "pack-report":
             return _run_pack_report(args)
+        if args.command == "report-prune-plan":
+            return _run_report_prune_plan(args)
+        if args.command == "report-prune":
+            return _run_report_prune(args)
     except (FileNotFoundError, OSError, RuntimeError, TypeError, ValueError) as exc:
         print(f"DATA MANAGEMENT FAILED: {type(exc).__name__}: {exc}")
         return 2
