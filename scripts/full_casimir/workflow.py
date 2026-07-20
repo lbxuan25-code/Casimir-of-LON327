@@ -6,6 +6,7 @@ from typing import Sequence
 
 from lno327.casimir.production import build_full_casimir_config
 
+from .cache_extension import prepare_pilot_extension_caches
 from .cache_migration import migrate_pilot_caches
 from .cleanup_legacy_root import cleanup_legacy_root_scripts
 from .config import (
@@ -22,6 +23,8 @@ from .energy import EnergyRunOptions, run_energy_cases
 from .plotting import plot_results
 from .postprocess import postprocess_torque
 
+EXTENDED_PILOT_PROFILE = "0deg_pilot_v4"
+
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -37,6 +40,10 @@ def _parser() -> argparse.ArgumentParser:
     migrate = subparsers.add_parser("migrate-pilots")
     _add_energy_args(migrate)
     migrate.set_defaults(profile=PILOT_PROFILE)
+    extend = subparsers.add_parser("prepare-pilot-extension")
+    _add_energy_args(extend)
+    extend.add_argument("--source-profile", default=PILOT_PROFILE)
+    extend.set_defaults(profile=EXTENDED_PILOT_PROFILE)
     scan = subparsers.add_parser("scan")
     _add_energy_args(scan)
     scan.add_argument("--angle-min", type=int, default=DEFAULT_SCAN_MIN_DEG)
@@ -158,6 +165,32 @@ def _migrate(
             f"skipped={report.skipped}", flush=True)
 
 
+def _prepare_extension(
+    args,
+    pairings,
+    resources,
+    options,
+    *,
+    target_profile: str,
+) -> None:
+    reports = prepare_pilot_extension_caches(
+        pairings=pairings,
+        output_root=options.output_root,
+        source_profile=str(args.source_profile),
+        target_profile=target_profile,
+        target_configs=_target_point_configs(pairings, resources, options),
+    )
+    for report in reports:
+        print(
+            f"cache extension {report.pairing}: mode={report.mode}, "
+            f"source_entries={report.source_entry_count}, "
+            f"retained={report.retained_entry_count}, "
+            f"dropped_unresolved={report.dropped_unresolved_count}, "
+            f"skipped={report.skipped}",
+            flush=True,
+        )
+
+
 def _run_postprocess(args: argparse.Namespace) -> int:
     energy_csv, torque_csv, metadata, complete = postprocess_torque(
         run_root=args.run_root, output_root=args.postprocess_root,
@@ -194,7 +227,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     resources = _resources(args)
     pairings = validate_pairings(args.pairings)
     options = _energy_options(args)
-    profile = args.profile or (PILOT_PROFILE if args.command in ("pilots", "migrate-pilots") else PROFILE_NAME)
+    profile = args.profile or (
+        PILOT_PROFILE
+        if args.command in ("pilots", "migrate-pilots", "prepare-pilot-extension")
+        else PROFILE_NAME
+    )
+    if args.command == "prepare-pilot-extension":
+        _prepare_extension(
+            args,
+            pairings,
+            resources,
+            options,
+            target_profile=profile,
+        )
+        return 0
     if args.command in ("pilots", "migrate-pilots") and not args.no_migrate_v2_cache:
         _migrate(
             args,
