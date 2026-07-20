@@ -67,6 +67,7 @@ _SKIP_REPOSITORY_DIRECTORIES = {
     "outputs",
     "venv",
 }
+_SELF_REPORT_NAMES = {"output_layout_audit.json", "output_layout_audit.tsv"}
 
 
 def _canonical_bytes(value: Any) -> bytes:
@@ -103,7 +104,7 @@ def _atomic_json_write(path: Path, payload: Mapping[str, Any]) -> Path:
 
 
 def _tree_rows(path: Path, *, hash_files: bool) -> list[dict[str, Any]]:
-    root = Path(path).resolve()
+    root = Path(path).absolute()
     rows: list[dict[str, Any]] = []
     if root.is_symlink():
         info = root.lstat()
@@ -128,6 +129,12 @@ def _tree_rows(path: Path, *, hash_files: bool) -> list[dict[str, Any]]:
             }
         ]
     for candidate in sorted(root.rglob("*")):
+        if (
+            root.name == "catalog"
+            and candidate.parent == root
+            and candidate.name in _SELF_REPORT_NAMES
+        ):
+            continue
         relative = candidate.relative_to(root).as_posix()
         info = candidate.lstat()
         if candidate.is_symlink():
@@ -155,7 +162,7 @@ def _tree_rows(path: Path, *, hash_files: bool) -> list[dict[str, Any]]:
 
 
 def _json_summary(path: Path) -> dict[str, Any] | None:
-    if path.suffix.lower() != ".json" or not path.is_file():
+    if path.suffix.lower() != ".json" or not path.is_file() or path.is_symlink():
         return None
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -169,7 +176,7 @@ def _json_summary(path: Path) -> dict[str, Any] | None:
 
 
 def _tar_summary(path: Path) -> dict[str, Any] | None:
-    if not path.name.endswith((".tar.gz", ".tgz", ".tar")):
+    if path.is_symlink() or not path.name.endswith((".tar.gz", ".tgz", ".tar")):
         return None
     try:
         with tarfile.open(path, "r:*") as handle:
@@ -271,11 +278,11 @@ def _reference_scan(
 
 
 def _entry_classification(name: str, path: Path) -> tuple[str, str, str | None]:
-    if name in CANONICAL_DIRECTORIES and path.is_dir():
+    if name in CANONICAL_DIRECTORIES and path.is_dir() and not path.is_symlink():
         return "canonical", "canonical_directory", None
-    if name in CANONICAL_FILES and path.is_file():
+    if name in CANONICAL_FILES and path.is_file() and not path.is_symlink():
         return "canonical", "canonical_file", None
-    if name in REVIEW_DIRECTORIES and path.is_dir():
+    if name in REVIEW_DIRECTORIES and path.is_dir() and not path.is_symlink():
         return "review_required", "ambiguous_diagnostics_directory", (
             "Inspect contents and references before deciding whether to retain, "
             "split, or archive this root-level directory."
@@ -316,6 +323,7 @@ def build_output_layout_audit(
         runtime_references = [
             row for row in entry_references if row.get("role") == "runtime"
         ]
+        regular_file = path.is_file() and not path.is_symlink()
         entry = {
             "name": path.name,
             "path": str(path),
@@ -326,17 +334,17 @@ def build_output_layout_audit(
             "file_count": len(file_rows),
             "entry_type_counts": dict(sorted(type_counts.items())),
             "tree_digest": _digest(rows) if detailed else None,
-            "sha256": _sha256(path) if path.is_file() else None,
+            "sha256": _sha256(path) if regular_file else None,
             "references": entry_references,
             "reference_count": len(entry_references),
             "runtime_reference_count": len(runtime_references),
             "reference_role_counts": dict(
                 sorted(Counter(str(row.get("role")) for row in entry_references).items())
             ),
-            "tar_summary": _tar_summary(path) if path.is_file() else None,
+            "tar_summary": _tar_summary(path) if regular_file else None,
             "json_files": [],
         }
-        if detailed and path.is_dir():
+        if detailed and path.is_dir() and not path.is_symlink():
             json_files = []
             for candidate in sorted(path.rglob("*.json")):
                 summary = _json_summary(candidate)
@@ -364,9 +372,15 @@ def build_output_layout_audit(
             blockers.append(
                 f"legacy entry still has runtime references: {entry['name']}"
             )
+        type_counts = entry.get("entry_type_counts", {})
+        if type_counts.get("symlink") or type_counts.get("other"):
+            blockers.append(f"unsupported filesystem entry type: {entry['name']}")
         tar_summary = entry.get("tar_summary")
-        if isinstance(tar_summary, Mapping) and tar_summary.get("unsafe_member_count"):
-            blockers.append(f"unsafe archive members: {entry['name']}")
+        if isinstance(tar_summary, Mapping):
+            if tar_summary.get("parse_error"):
+                blockers.append(f"unreadable archive: {entry['name']}")
+            elif tar_summary.get("unsafe_member_count"):
+                blockers.append(f"unsafe archive members: {entry['name']}")
 
     payload = {
         "schema": LAYOUT_AUDIT_SCHEMA,
@@ -392,6 +406,8 @@ def build_output_layout_audit(
             "legacy_entries_are_not_moved": True,
             "diagnostics_requires_manual_review": True,
             "only_runtime_references_block_migration": True,
+            "symlinks_and_special_files_block_migration": True,
+            "self_generated_reports_excluded_from_catalog_stats": True,
         },
     }
     payload["audit_sha256"] = _digest(payload)
