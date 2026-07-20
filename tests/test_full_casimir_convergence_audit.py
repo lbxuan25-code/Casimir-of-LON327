@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from scripts.full_casimir.budget_audit import (
     audit_evidence_gaps,
     candidate_policy_screen,
@@ -78,6 +80,37 @@ def test_policy_replay_keeps_hard_gates_and_replays_full_history() -> None:
     assert moderate["policy"]["hard_physical_gates_unchanged"] is True
 
 
+def test_policy_replay_treats_null_logdet_as_failed_history_level() -> None:
+    point = _point_result()
+    point["history"].insert(
+        0,
+        {
+            "N": 96,
+            "shifts": {
+                label: {
+                    "two_plate_logdet": None,
+                    "hard_physical_passed": False,
+                    "error": "physical gate rejected this stored level",
+                }
+                for label in ("s0", "s1", "s2")
+            },
+        },
+    )
+
+    replay = replay_point_policy(
+        point,
+        logdet_rtol=0.002,
+        logdet_atol=0.0,
+        required_consecutive_passes=2,
+    )
+
+    assert replay["status"] == "established"
+    assert replay["audit_N"] == 256
+    assert replay["incomplete_history_level_count"] == 1
+    assert replay["policy"]["missing_or_nonfinite_logdet_is_failure"] is True
+    json.dumps(replay, allow_nan=False)
+
+
 def test_tolerance_replay_reports_proxy_as_non_wall_time_evidence() -> None:
     result = tolerance_replay_audit(
         _cache(), candidate_logdet_rtols=(0.0015, 0.002)
@@ -88,6 +121,33 @@ def test_tolerance_replay_reports_proxy_as_non_wall_time_evidence() -> None:
     assert moderate["unresolved_count"] == 0
     assert result["scientific_limitations"]["production_policy_change_authorized"] is False
     assert "not reported as wall time" in result["work_proxy_note"]
+
+
+def test_tolerance_replay_recovers_null_policy_tolerances_from_history() -> None:
+    cache = _cache()
+    cache["point_policy"]["logdet_rtol"] = None
+    cache["point_policy"]["logdet_atol"] = None
+    cache["entries"][0]["point_result"]["history"][0][
+        "two_plate_logdet_cross_shift"
+    ] = {
+        "finite": True,
+        "absolute": 2e-7,
+        "relative": 2e-7,
+        "absolute_tolerance": 1e-6,
+        "relative_tolerance": 0.0015,
+        "passed": True,
+    }
+
+    result = tolerance_replay_audit(
+        cache,
+        candidate_logdet_rtols=(0.0015, 0.002),
+    )
+
+    source = result["source_policy"]
+    assert source["logdet_rtol"] == 0.0015
+    assert source["logdet_atol"] == 1e-6
+    assert source["field_origins"]["logdet_rtol"] == "stored_comparison_history"
+    assert source["field_origins"]["logdet_atol"] == "stored_comparison_history"
 
 
 def _config(radial_fraction: float) -> dict:
@@ -162,7 +222,9 @@ def test_tail_resolution_separates_central_signal_from_quadrature_floor() -> Non
                                     "matsubara_indices": [0],
                                     "shell_contributions_J_m2": [signal],
                                     "shell_quadrature_error_bounds_J_m2": [1e-11],
-                                    "shell_envelope_amplitudes_J_m2": [abs(signal) + 1e-11],
+                                    "shell_envelope_amplitudes_J_m2": [
+                                        abs(signal) + 1e-11
+                                    ],
                                 }
                             },
                         }
