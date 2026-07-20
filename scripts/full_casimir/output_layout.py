@@ -222,15 +222,23 @@ def _repository_text_files(repo_root: Path) -> Iterable[Path]:
     root = Path(repo_root).resolve()
     for directory, names, filenames in os.walk(root):
         names[:] = sorted(
-            name
-            for name in names
-            if name not in _SKIP_REPOSITORY_DIRECTORIES
+            name for name in names if name not in _SKIP_REPOSITORY_DIRECTORIES
         )
         base = Path(directory)
         for filename in sorted(filenames):
             path = base / filename
             if path.suffix.lower() in _TEXT_SUFFIXES:
                 yield path
+
+
+def _reference_role(relative_path: str) -> str:
+    if relative_path == "scripts/full_casimir/output_layout.py":
+        return "contract_definition"
+    if relative_path.startswith("tests/"):
+        return "test"
+    if relative_path.startswith("docs/") or relative_path.endswith(".md"):
+        return "documentation"
+    return "runtime"
 
 
 def _reference_scan(
@@ -245,6 +253,7 @@ def _reference_scan(
         except (OSError, UnicodeDecodeError):
             continue
         relative = path.resolve().relative_to(Path(repo_root).resolve()).as_posix()
+        role = _reference_role(relative)
         for line_number, line in enumerate(lines, start=1):
             for name in names:
                 canonical_reference = f"outputs/casimir/{name}"
@@ -254,6 +263,7 @@ def _reference_scan(
                     {
                         "path": relative,
                         "line": line_number,
+                        "role": role,
                         "text": line.strip()[:500],
                     }
                 )
@@ -302,6 +312,10 @@ def build_output_layout_audit(
         rows = _tree_rows(path, hash_files=detailed)
         file_rows = [row for row in rows if row["type"] == "file"]
         type_counts = Counter(str(row["type"]) for row in rows)
+        entry_references = references.get(path.name, [])
+        runtime_references = [
+            row for row in entry_references if row.get("role") == "runtime"
+        ]
         entry = {
             "name": path.name,
             "path": str(path),
@@ -313,8 +327,12 @@ def build_output_layout_audit(
             "entry_type_counts": dict(sorted(type_counts.items())),
             "tree_digest": _digest(rows) if detailed else None,
             "sha256": _sha256(path) if path.is_file() else None,
-            "references": references.get(path.name, []),
-            "reference_count": len(references.get(path.name, [])),
+            "references": entry_references,
+            "reference_count": len(entry_references),
+            "runtime_reference_count": len(runtime_references),
+            "reference_role_counts": dict(
+                sorted(Counter(str(row.get("role")) for row in entry_references).items())
+            ),
             "tar_summary": _tar_summary(path) if path.is_file() else None,
             "json_files": [],
         }
@@ -339,9 +357,12 @@ def build_output_layout_audit(
             blockers.append(f"unexpected root entry: {entry['name']}")
         if entry["classification"] == "review_required":
             blockers.append(f"manual review required: {entry['name']}")
-        if entry["classification"] == "known_legacy" and entry["reference_count"]:
+        if (
+            entry["classification"] == "known_legacy"
+            and entry["runtime_reference_count"]
+        ):
             blockers.append(
-                f"legacy entry still referenced by repository text: {entry['name']}"
+                f"legacy entry still has runtime references: {entry['name']}"
             )
         tar_summary = entry.get("tar_summary")
         if isinstance(tar_summary, Mapping) and tar_summary.get("unsafe_member_count"):
@@ -370,6 +391,7 @@ def build_output_layout_audit(
             "source_modified": False,
             "legacy_entries_are_not_moved": True,
             "diagnostics_requires_manual_review": True,
+            "only_runtime_references_block_migration": True,
         },
     }
     payload["audit_sha256"] = _digest(payload)
@@ -395,6 +417,7 @@ def write_output_layout_audit(
                 "bytes",
                 "file_count",
                 "reference_count",
+                "runtime_reference_count",
                 "name",
                 "proposed_destination",
             ],
@@ -410,6 +433,7 @@ def write_output_layout_audit(
                     "bytes": entry.get("bytes"),
                     "file_count": entry.get("file_count"),
                     "reference_count": entry.get("reference_count"),
+                    "runtime_reference_count": entry.get("runtime_reference_count"),
                     "name": entry.get("name"),
                     "proposed_destination": entry.get("proposed_destination") or "",
                 }
