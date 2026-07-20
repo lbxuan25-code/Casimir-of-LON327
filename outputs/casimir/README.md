@@ -1,4 +1,49 @@
-# Casimir runs
+# Casimir output layout
+
+`outputs/casimir/` 是本地生成数据根目录。生成数据不提交到 Git；仓库只跟踪本布局说明和生成、审计、归档代码。
+
+## 正式根级目录
+
+```text
+outputs/casimir/
+├── README.md
+├── runs/             # 当前解压运行及其运行内 reports
+├── archive/          # 已验证冷归档；legacy 子层只用于历史产物
+├── catalog/          # registry、catalog、plan、verification、execution
+├── reports/          # 当前全局报告及经过验证的 compact/sidecar
+├── workflow_logs/    # 当前后台工作流 PID、命令、状态和日志
+└── postprocessed/    # 可选后处理输出
+```
+
+`workflow_logs/` 是当前生产工作流的正式路径，不属于历史垃圾。`postprocessed/` 可以在首次后处理前不存在。
+
+根级 `diagnostics/` 是过渡性目录：新的单次运行诊断应写入 `runs/<case>/reports/diagnostics.json`。在完成内容和引用审计前，不得直接删除或迁移根级 `diagnostics/`。
+
+下列旧路径不属于最终根级布局，应先通过只读审计确认内容、引用和归档安全性，再迁入 `archive/legacy/`：
+
+```text
+0deg_runtime_budget_pilot_logs/
+N896_scan_logs/
+0deg_pilot_v2_diagnostics.tar.gz
+dwave_0deg_pilot_cache.tar.gz
+```
+
+运行只读布局审计：
+
+```bash
+python -m scripts.full_casimir.data layout-audit
+```
+
+默认写入：
+
+```text
+outputs/casimir/catalog/output_layout_audit.json
+outputs/casimir/catalog/output_layout_audit.tsv
+```
+
+审计会记录每个根级条目的分类、大小、文件数、目录摘要、旧 tar 成员结构、JSON schema 和仓库文本引用。该命令不会移动、覆盖或删除任何输出。
+
+## 正式运行
 
 正式运行只使用 `runs/<case>/`。目录由 `python -m lno327.casimir` 创建；不要手工建立版本化输出树，也不要将生成数据提交到仓库。
 
@@ -81,7 +126,7 @@ python -m scripts.full_casimir.diagnostics audit \
 - 避免重复累加 radial/angular/offset 子误差的端到端误差账本；
 - cache-only 控制器重放耗时及 radial/angular 预算反事实筛选。
 
-默认报告写入 `outputs/casimir/reports/convergence_audit.json`。所有原缓存运行前后 SHA-256 必须相同，任何 cache miss 都禁止启动新微观计算。
+默认全局报告写入 `outputs/casimir/reports/convergence_audit.json`；经过验证的 compact/sidecar 表示可以替代原始大型 JSON。所有原缓存运行前后 SHA-256 必须相同，任何 cache miss 都禁止启动新微观计算。
 
 审计实现完成不等于生产参数已经获准。报告在以下外部证据完成前必须保持 `production_change_not_authorized`：
 
