@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Sequence
 
 from .archive_catalog import augment_catalog_with_archives
-from .config import DEFAULT_OUTPUT_ROOT
+from .config import DEFAULT_OUTPUT_ROOT, REPO_ROOT
 from .data_management import (
     build_archive_plan,
     build_data_catalog,
@@ -26,6 +26,7 @@ from .data_retention import (
     write_prune_execution,
     write_prune_plan,
 )
+from .output_layout import build_output_layout_audit, write_output_layout_audit
 from .report_retention import (
     REPORT_PRUNE_CONFIRMATION,
     build_report_prune_plan,
@@ -129,6 +130,17 @@ def _parser() -> argparse.ArgumentParser:
     report_prune.add_argument("--confirm-plan-sha256", required=True)
     report_prune.add_argument("--confirm-delete", required=True)
     report_prune.add_argument("--execution-report", type=Path, default=None)
+
+    layout_audit = subparsers.add_parser(
+        "layout-audit",
+        help="Inventory and classify top-level Casimir outputs without moving data.",
+    )
+    layout_audit.add_argument(
+        "--casimir-root", type=Path, default=_default_casimir_root()
+    )
+    layout_audit.add_argument("--repo-root", type=Path, default=REPO_ROOT)
+    layout_audit.add_argument("--report-path", type=Path, default=None)
+    layout_audit.add_argument("--tsv-path", type=Path, default=None)
     return parser
 
 
@@ -375,6 +387,39 @@ def _run_report_prune(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_layout_audit(args: argparse.Namespace) -> int:
+    casimir_root = Path(args.casimir_root).resolve()
+    report_path = (
+        Path(args.report_path).resolve()
+        if args.report_path is not None
+        else casimir_root / "catalog" / "output_layout_audit.json"
+    )
+    tsv_path = (
+        Path(args.tsv_path).resolve()
+        if args.tsv_path is not None
+        else casimir_root / "catalog" / "output_layout_audit.tsv"
+    )
+    audit = build_output_layout_audit(
+        casimir_root,
+        repo_root=Path(args.repo_root),
+    )
+    written_json, written_tsv = write_output_layout_audit(
+        audit,
+        json_path=report_path,
+        tsv_path=tsv_path,
+    )
+    print(f"written: {written_json}")
+    print(f"written: {written_tsv}")
+    print(f"entries: {audit['entry_count']}")
+    print(f"known legacy: {audit['legacy_entry_count']}")
+    print(f"review required: {audit['review_required_count']}")
+    print(f"unexpected: {audit['unexpected_entry_count']}")
+    print(f"layout normalized: {audit['layout_normalized']}")
+    print(f"audit_sha256: {audit['audit_sha256']}")
+    print("No output entry was moved, removed, or modified.")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
@@ -396,6 +441,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _run_report_prune_plan(args)
         if args.command == "report-prune":
             return _run_report_prune(args)
+        if args.command == "layout-audit":
+            return _run_layout_audit(args)
     except (FileNotFoundError, OSError, RuntimeError, TypeError, ValueError) as exc:
         print(f"DATA MANAGEMENT FAILED: {type(exc).__name__}: {exc}")
         return 2

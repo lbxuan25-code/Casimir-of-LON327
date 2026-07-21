@@ -1,4 +1,98 @@
-# Casimir runs
+# Casimir output layout
+
+`outputs/casimir/` 是本地生成数据根目录。生成数据不提交到 Git；仓库只跟踪本布局说明和生成、审计、归档代码。
+
+## 正式根级目录
+
+```text
+outputs/casimir/
+├── README.md
+├── runs/             # 当前解压运行及其运行内 reports
+├── archive/          # 已验证冷归档；legacy 子层只用于历史产物
+├── catalog/          # registry、catalog、plan、verification、execution
+├── reports/          # 当前全局报告及经过验证的 compact/sidecar
+├── workflow_logs/    # 当前后台工作流 PID、命令、状态和日志
+└── postprocessed/    # 可选后处理输出
+```
+
+`workflow_logs/` 是当前生产工作流的正式路径，不属于历史垃圾。`postprocessed/` 可以在首次后处理前不存在。
+
+新的单次运行诊断必须写入 `runs/<case>/reports/diagnostics.json`。根级 `diagnostics/` 只有在内容严格匹配冻结的旧 N896 诊断签名时才允许自动迁移；其他任何根级 diagnostics 内容都会 fail closed 并要求人工检查。
+
+历史根级条目规范化后放入：
+
+```text
+archive/legacy/
+├── logs/
+├── diagnostics/
+└── snapshots/
+```
+
+当前已知历史源包括：
+
+```text
+0deg_runtime_budget_pilot_logs/
+N896_scan_logs/
+diagnostics/                         # 仅限机器确认的旧 N896 结构
+0deg_pilot_v2_diagnostics.tar.gz
+dwave_0deg_pilot_cache.tar.gz
+```
+
+## 输出布局审计与迁移
+
+只读审计：
+
+```bash
+python -m scripts.full_casimir.layout audit
+```
+
+默认写入：
+
+```text
+outputs/casimir/catalog/output_layout_audit.json
+outputs/casimir/catalog/output_layout_audit.tsv
+```
+
+审计会记录每个根级条目的分类、大小、文件数、目录摘要、旧 tar 成员结构、JSON schema 和仓库中的精确路径引用。普通函数名或注释中的单词 `diagnostics` 不会被误判为根目录依赖。该命令不会移动、覆盖或删除任何输出。
+
+在审计没有 blocker 时生成迁移计划：
+
+```bash
+python -m scripts.full_casimir.layout plan
+```
+
+计划记录每个源条目的目录树摘要、文件 SHA-256、目标路径和新的 `plan_sha256`。计划本身不创建目标，也不修改源。
+
+使用计划哈希创建并验证目标副本：
+
+```bash
+python -m scripts.full_casimir.layout stage \
+  --plan-path outputs/casimir/catalog/output_layout_migration_plan.json \
+  --confirm-plan-sha256 <LAYOUT_MIGRATION_PLAN_SHA256>
+```
+
+目录会被写成确定性的 `.tar.gz`，随后恢复到临时目录并逐文件比较路径、大小、权限和 SHA-256。已有 tar 文件采用完全相同字节的副本。stage 成功后所有根级源条目仍然保留。
+
+只有 stage 结果复验通过后才能生成源移除计划：
+
+```bash
+python -m scripts.full_casimir.layout finalize-plan \
+  --migration-plan-path outputs/casimir/catalog/output_layout_migration_plan.json \
+  --stage-execution-path outputs/casimir/catalog/output_layout_stage_execution.json
+```
+
+最终移除还需要 finalize-plan 的精确哈希和字面确认短语：
+
+```bash
+python -m scripts.full_casimir.layout finalize \
+  --plan-path outputs/casimir/catalog/output_layout_finalize_plan.json \
+  --confirm-plan-sha256 <LAYOUT_FINALIZE_PLAN_SHA256> \
+  --confirm-delete REMOVE_STAGED_LEGACY_ROOT_ENTRIES
+```
+
+执行前会再次复验全部源、目标和 manifest。finalize 只移除计划中列出的根级历史源；`archive/legacy/` 中的已验证目标和 manifest 保留。完成后再次运行 `layout audit`，`layout_normalized` 应为 `true`。
+
+## 正式运行
 
 正式运行只使用 `runs/<case>/`。目录由 `python -m lno327.casimir` 创建；不要手工建立版本化输出树，也不要将生成数据提交到仓库。
 
@@ -81,7 +175,7 @@ python -m scripts.full_casimir.diagnostics audit \
 - 避免重复累加 radial/angular/offset 子误差的端到端误差账本；
 - cache-only 控制器重放耗时及 radial/angular 预算反事实筛选。
 
-默认报告写入 `outputs/casimir/reports/convergence_audit.json`。所有原缓存运行前后 SHA-256 必须相同，任何 cache miss 都禁止启动新微观计算。
+默认全局报告写入 `outputs/casimir/reports/convergence_audit.json`；经过验证的 compact/sidecar 表示可以替代原始大型 JSON。所有原缓存运行前后 SHA-256 必须相同，任何 cache miss 都禁止启动新微观计算。
 
 审计实现完成不等于生产参数已经获准。报告在以下外部证据完成前必须保持 `production_change_not_authorized`：
 
