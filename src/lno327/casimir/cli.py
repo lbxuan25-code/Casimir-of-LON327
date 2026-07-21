@@ -1,13 +1,12 @@
-"""Command-line entry for one named full adaptive Casimir run."""
+"""Internal artifact writer used by the unified production campaign runner."""
 from __future__ import annotations
 
-import argparse
 from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Mapping
 
 from .production import (
     FullCasimirConfig,
@@ -140,7 +139,7 @@ def execute_case(
     cache_identity_payload: Mapping[str, Any] | None = None,
     **config_kwargs: Any,
 ) -> FullCasimirResult:
-    """Execute one named run and maintain its deterministic artifact directory."""
+    """Execute one plan-owned case and maintain its deterministic artifacts."""
 
     if not _CASE_PATTERN.fullmatch(case):
         raise ValueError(
@@ -151,7 +150,7 @@ def execute_case(
     result_path = run_dir / "result.json"
     if run_dir.exists() and not resume:
         raise FileExistsError(
-            f"run directory already exists: {run_dir}; use --resume to reuse it"
+            f"run directory already exists: {run_dir}; use formal --resume to reuse it"
         )
     run_dir.mkdir(parents=True, exist_ok=True)
     _write_identity_sidecar(
@@ -175,14 +174,14 @@ def execute_case(
             existing = json.loads(config_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
             raise ValueError(
-                "--resume cannot verify the existing run configuration because "
-                f"config.json is unreadable: {exc}"
+                "formal resume cannot verify config.json because it is unreadable: "
+                f"{exc}"
             ) from exc
         if not isinstance(existing, Mapping) or scientific_config_payload(
             existing
         ) != scientific_config_payload(config_payload):
             raise ValueError(
-                "--resume requires the exact existing scientific configuration; "
+                "formal resume requires the exact existing scientific configuration; "
                 "execution-only worker, scheduling, memory and batch settings may change"
             )
     _atomic_json(config_path, config_payload)
@@ -222,7 +221,7 @@ def execute_case(
         "paths": paths,
         "resume_requested": bool(resume),
     }
-    _atomic_json(run_dir / "manifest.json", manifest)
+    _atomic_json(manifest_path, manifest)
 
     try:
         result = runner(config)
@@ -252,7 +251,7 @@ def execute_case(
                 "production_casimir_allowed": authorized,
             }
         )
-        _atomic_json(run_dir / "manifest.json", manifest)
+        _atomic_json(manifest_path, manifest)
         return result
     except Exception as exc:
         manifest.update(
@@ -263,81 +262,8 @@ def execute_case(
                 "error": str(exc),
             }
         )
-        _atomic_json(run_dir / "manifest.json", manifest)
+        _atomic_json(manifest_path, manifest)
         raise
 
 
-def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="lno327-casimir",
-        description="Run one named full adaptive LNO327 Casimir calculation.",
-    )
-    parser.add_argument("--case", required=True)
-    parser.add_argument("--output-root", type=Path, default=Path("outputs/casimir/runs"))
-    parser.add_argument("--resume", action="store_true")
-    parser.add_argument("--pairings", nargs="+", choices=("spm", "dwave"), default=("spm",))
-    parser.add_argument("--temperature-K", type=float, default=10.0)
-    parser.add_argument("--separation-nm", type=float, default=20.0)
-    parser.add_argument("--plate-angles-deg", nargs=2, type=float, default=(0.0, 17.0))
-    parser.add_argument("--workers", type=int, default=0)
-    parser.add_argument("--logdet-rtol", type=float, default=1.5e-3)
-    parser.add_argument("--logdet-atol", type=float, default=1e-6)
-    parser.add_argument("--certifier-q-batch-size", type=int, default=512)
-    parser.add_argument(
-        "--parallel-mode",
-        choices=("auto", "serial", "q", "context", "wave"),
-        default="auto",
-    )
-    parser.add_argument("--memory-budget-gb", type=float, default=0.0)
-    parser.add_argument("--max-context-workers", type=int, default=0)
-    parser.add_argument(
-        "--N-candidates",
-        nargs="+",
-        type=int,
-        default=(128, 192, 256),
-    )
-    parser.add_argument(
-        "--matsubara-cutoffs",
-        nargs="+",
-        type=int,
-        default=(1, 3, 7, 15, 31, 63),
-    )
-    parser.add_argument(
-        "--outer-cutoffs-u",
-        nargs="+",
-        type=float,
-        default=(6.0, 10.0, 14.0, 18.0, 24.0, 30.0, 36.0, 42.0),
-    )
-    parser.add_argument("--rtol", type=float, default=5e-3)
-    parser.add_argument("--atol-J-m2", type=float, default=1e-12)
-    return parser
-
-
-def main(argv: Sequence[str] | None = None) -> int:
-    args = _parser().parse_args(argv)
-    result = execute_case(
-        case=args.case,
-        output_root=args.output_root,
-        resume=args.resume,
-        pairings=tuple(args.pairings),
-        temperature_K=args.temperature_K,
-        separation_nm=args.separation_nm,
-        plate_angles_deg=tuple(args.plate_angles_deg),
-        workers=args.workers,
-        parallel_mode=args.parallel_mode,
-        memory_budget_gb=args.memory_budget_gb,
-        max_context_workers=args.max_context_workers,
-        N_candidates=tuple(args.N_candidates),
-        logdet_rtol=args.logdet_rtol,
-        logdet_atol=args.logdet_atol,
-        certifier_q_batch_size=args.certifier_q_batch_size,
-        matsubara_cutoff_values=tuple(args.matsubara_cutoffs),
-        cutoff_u_values=tuple(args.outer_cutoffs_u),
-        total_free_energy_rtol=args.rtol,
-        total_free_energy_atol_J_m2=args.atol_J_m2,
-    )
-    print(json.dumps(_summary(args.case, result), sort_keys=True, indent=2))
-    return 0 if result.production_casimir_allowed else 2
-
-
-__all__ = ["execute_case", "main"]
+__all__ = ["execute_case"]
