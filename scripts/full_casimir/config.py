@@ -14,7 +14,8 @@ DEFAULT_POSTPROCESS_ROOT = REPO_ROOT / "outputs" / "casimir" / "postprocessed"
 DEFAULT_LOG_ROOT = REPO_ROOT / "outputs" / "casimir" / "workflow_logs"
 
 DEFAULT_N_CANDIDATES = (128, 192, 256, 384, 512, 640, 768, 896)
-DEFAULT_MATSUBARA_CUTOFFS = (1, 3, 7, 11, 15, 23, 31)
+# Formal Matsubara certification uses complete dyadic blocks.
+DEFAULT_MATSUBARA_CUTOFFS = (1, 3, 7, 15, 31, 63)
 DEFAULT_OUTER_CUTOFFS_U = (6.0, 10.0, 14.0, 18.0, 24.0, 30.0, 36.0, 42.0)
 DEFAULT_PAIRINGS = ("spm", "dwave")
 DEFAULT_TEMPERATURE_K = 10.0
@@ -34,7 +35,8 @@ DEFAULT_WORKER_CAP = 26
 DEFAULT_OUTER_TAIL_START_U = 24.0
 DEFAULT_OUTER_TAIL_WINDOW_SHELLS = 3
 DEFAULT_OUTER_TAIL_RATIO_MAX = 0.8
-DEFAULT_MATSUBARA_TAIL_START_N = 8
+DEFAULT_MATSUBARA_TAIL_START_N = 4
+# Two training blocks plus one transition and one final holdout block.
 DEFAULT_MATSUBARA_TAIL_WINDOW_TERMS = 4
 DEFAULT_MATSUBARA_TAIL_RATIO_MAX = 0.8
 DEFAULT_RADIAL_BUDGET_FRACTION = 0.8
@@ -170,7 +172,10 @@ def case_name(
 ) -> str:
     """Legacy case naming surface retained for historical workflows."""
 
-    return f"{physical_case_name(pairing, angle_deg, temperature_K=temperature_K, separation_nm=separation_nm)}_{profile}"
+    return (
+        f"{physical_case_name(pairing, angle_deg, temperature_K=temperature_K, separation_nm=separation_nm)}_"
+        f"{profile}"
+    )
 
 
 def _read_topology(cpu: int) -> tuple[int, int]:
@@ -194,11 +199,13 @@ def select_runtime_resources(
         raise ValueError("reserve_logical_cpus must be non-negative")
     if worker_cap <= 0:
         raise ValueError("worker_cap must be positive")
-    visible = tuple(sorted(
-        os.sched_getaffinity(0)
-        if available_cpus is None
-        else {int(value) for value in available_cpus}
-    ))
+    visible = tuple(
+        sorted(
+            os.sched_getaffinity(0)
+            if available_cpus is None
+            else {int(value) for value in available_cpus}
+        )
+    )
     if not visible:
         raise RuntimeError("no CPUs are visible to the process")
     target = min(worker_cap, max(1, len(visible) - reserve_logical_cpus))
@@ -232,18 +239,20 @@ def select_runtime_resources(
 
 
 def apply_single_thread_environment() -> None:
-    os.environ.update({
-        "OMP_NUM_THREADS": "1",
-        "OPENBLAS_NUM_THREADS": "1",
-        "MKL_NUM_THREADS": "1",
-        "NUMEXPR_NUM_THREADS": "1",
-        "BLIS_NUM_THREADS": "1",
-        "VECLIB_MAXIMUM_THREADS": "1",
-        "OMP_DYNAMIC": "FALSE",
-        "MKL_DYNAMIC": "FALSE",
-        "MALLOC_ARENA_MAX": "4",
-        "PYTHONUNBUFFERED": "1",
-    })
+    os.environ.update(
+        {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "BLIS_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "OMP_DYNAMIC": "FALSE",
+            "MKL_DYNAMIC": "FALSE",
+            "MALLOC_ARENA_MAX": "4",
+            "PYTHONUNBUFFERED": "1",
+        }
+    )
 
 
 def apply_cpu_affinity(resources: RuntimeResources) -> None:
