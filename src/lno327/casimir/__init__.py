@@ -1,13 +1,9 @@
-"""LNO327 Casimir calculation package.
+"""LNO327 Casimir numerical library.
 
-Canonical public route
-----------------------
-``build_full_casimir_config`` -> ``run_full_casimir``
-
-The fixed-grid reference controller is intentionally isolated in
-``lno327.casimir.legacy``.  Lower-level adaptive controllers remain available from
-their implementation modules for numerical development, but are not competing
-top-level calculation routes.
+Operational calculations are created and executed only through
+``python -m scripts.full_casimir plan/run``.  The objects exported here are library
+components used by that dispatcher and by tests; they are not independent command
+surfaces.
 """
 from __future__ import annotations
 
@@ -41,10 +37,14 @@ from .torque import casimir_torque_integrand
 def casimir_layer_metadata() -> dict[str, object]:
     return {
         "layer": "casimir_lifshitz_full_adaptive",
-        "canonical_entrypoint": "lno327.casimir.run_full_casimir",
-        "canonical_config_builder": "lno327.casimir.build_full_casimir_config",
-        "legacy_fixed_route": "lno327.casimir.legacy.run_fixed_reference_casimir",
-        "legacy_fixed_exported_from_package_root": False,
+        "canonical_operational_entrypoint": "python -m scripts.full_casimir",
+        "canonical_plan_command": "python -m scripts.full_casimir plan",
+        "canonical_run_command": "python -m scripts.full_casimir run",
+        "package_command_present": False,
+        "installed_console_command_present": False,
+        "legacy_calculation_scripts_present": False,
+        "library_engine": "lno327.casimir.production.run_full_casimir",
+        "library_config_builder": "lno327.casimir.production.build_full_casimir_config",
         "valid_for_casimir_input": False,
         "production_casimir_allowed": False,
         "requires_gauge_closed_response": True,
@@ -66,9 +66,8 @@ def casimir_layer_metadata() -> dict[str, object]:
         "adaptive_outer_integration_architecture_complete": True,
         "real_model_end_to_end_qualified": False,
         "notes": (
-            "The package root exposes one full adaptive calculation route.",
-            "The fixed-grid chain is regression-only and lives under lno327.casimir.legacy.",
-            "Both outer-Q and Matsubara tails are bounded without sign cancellation.",
+            "The package exports numerical library components, not an operational CLI.",
+            "Formal calculations require an immutable top-level plan and SHA confirmation.",
             "Physical production authorization remains false until real-model qualification.",
         ),
     }
