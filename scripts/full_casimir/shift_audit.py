@@ -39,8 +39,6 @@ def _select_formal_states(states: Mapping[str, Any]) -> dict[str, dict[str, Any]
             label, value = parsed[shift]
             selected[str(label)] = dict(value)
         return selected
-    # Historical cache rows preserve shift insertion order.  This fallback is
-    # accepted only when at least the original three states are present.
     if len(states) < 3:
         raise ValueError("history row lacks the two formal shifts and a historical audit shift")
     for label, value in list(states.items())[:2]:
@@ -125,7 +123,16 @@ def _point_rows(payload: Mapping[str, Any]) -> tuple[Mapping[str, Any], ...]:
         return tuple(row for row in rows if isinstance(row, Mapping))
     entries = payload.get("entries")
     if isinstance(entries, list):
-        return tuple(row for row in entries if isinstance(row, Mapping))
+        output: list[Mapping[str, Any]] = []
+        for entry in entries:
+            if not isinstance(entry, Mapping):
+                continue
+            point = entry.get("point_result")
+            if isinstance(point, Mapping):
+                output.append(point)
+        if output or not entries:
+            return tuple(output)
+        raise ValueError("cache entries do not contain point_result objects")
     raise ValueError("input contains neither point_results nor cache entries")
 
 
