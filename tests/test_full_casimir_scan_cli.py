@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import json
+
 from scripts.full_casimir import __main__ as unified_cli
 from scripts.full_casimir import scan
 from scripts.full_casimir.config import (
     angle_token,
     case_name,
     inclusive_float_grid,
+    physical_case_name,
 )
 
 
@@ -13,24 +16,31 @@ def test_inclusive_float_grid_is_decimal_exact() -> None:
     assert inclusive_float_grid(0.0, 1.0, 0.25) == (0.0, 0.25, 0.5, 0.75, 1.0)
 
 
-def test_default_case_name_remains_backward_compatible() -> None:
+def test_default_legacy_case_name_remains_backward_compatible() -> None:
     assert case_name("spm", 0) == (
         "spm_T10K_d20nm_theta_p000deg_runtime_budget_v3"
     )
 
 
-def test_case_name_encodes_nondefault_physical_identity() -> None:
+def test_formal_case_name_has_no_human_version_suffix() -> None:
     assert angle_token(-2.5) == "m002p5"
-    assert case_name(
+    assert physical_case_name(
         "dwave",
         2.5,
         temperature_K=12.5,
         separation_nm=17.25,
-        profile="policy-test",
-    ) == "dwave_T12p5K_d17p25nm_theta_p002p5deg_policy-test"
+    ) == "dwave_T12p5K_d17p25nm_theta_p002p5deg"
 
 
-def test_plan_accepts_single_or_multiple_distances_and_angles(capsys) -> None:
+def _code_identity() -> dict[str, object]:
+    return {
+        "git_commit": "a" * 40,
+        "tracked_worktree_clean": True,
+    }
+
+
+def test_plan_freezes_campaign_policy_and_case_identities(capsys, monkeypatch) -> None:
+    monkeypatch.setattr(scan, "git_code_identity", _code_identity)
     status = scan.main(
         [
             "plan",
@@ -42,19 +52,49 @@ def test_plan_accepts_single_or_multiple_distances_and_angles(capsys) -> None:
             "--angles-deg",
             "0",
             "2.5",
-            "--profile",
-            "policy-test",
         ]
     )
 
     assert status == 0
     output = capsys.readouterr().out
     assert "cases: 4" in output
-    assert "spm_T10K_d10nm_theta_p000deg_policy-test" in output
-    assert "spm_T10K_d20nm_theta_p002p5deg_policy-test" in output
+    assert "campaign_id: campaign-" in output
+    assert "spm_T10K_d10nm_theta_p000deg" in output
+    assert "spm_T10K_d20nm_theta_p002p5deg" in output
+    assert "runtime_budget_v3" not in output
 
 
-def test_plan_accepts_inclusive_range_syntax(capsys) -> None:
+def test_plan_file_self_digest_and_execution_settings_are_separate(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setattr(scan, "git_code_identity", _code_identity)
+    plan_path = tmp_path / "plan.json"
+    status = scan.main(
+        [
+            "plan",
+            "--pairings",
+            "dwave",
+            "--distances-nm",
+            "20",
+            "--angles-deg",
+            "0",
+            "--plan-output",
+            str(plan_path),
+        ]
+    )
+    assert status == 0
+    payload = json.loads(plan_path.read_text(encoding="utf-8"))
+    assert payload["schema"] == "full-casimir-production-plan-v1"
+    assert payload["plan_sha256"]
+    assert payload["scientific_policy_sha256"]
+    serialized = json.dumps(payload, sort_keys=True)
+    assert "worker_cap" not in serialized
+    assert "parallel_mode" not in serialized
+    assert "memory_budget_gb" not in serialized
+
+
+def test_plan_accepts_inclusive_range_syntax(capsys, monkeypatch) -> None:
+    monkeypatch.setattr(scan, "git_code_identity", _code_identity)
     status = scan.main(
         [
             "plan",
@@ -80,7 +120,8 @@ def test_plan_accepts_inclusive_range_syntax(capsys) -> None:
     assert "cases: 9" in output
 
 
-def test_explicit_and_range_axis_syntax_cannot_be_mixed(capsys) -> None:
+def test_explicit_and_range_axis_syntax_cannot_be_mixed(capsys, monkeypatch) -> None:
+    monkeypatch.setattr(scan, "git_code_identity", _code_identity)
     status = scan.main(
         [
             "plan",
@@ -97,6 +138,16 @@ def test_explicit_and_range_axis_syntax_cannot_be_mixed(capsys) -> None:
 
     assert status == 2
     assert "cannot be combined" in capsys.readouterr().out
+
+
+def test_run_requires_plan_confirmation_and_explicit_mode() -> None:
+    parser = scan._parser()
+    try:
+        parser.parse_args(["run", "--plan", "plan.json", "--confirm-plan-sha256", "x"])
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:  # pragma: no cover - argparse contract
+        raise AssertionError("run accepted no fresh/resume mode")
 
 
 def test_unified_entry_routes_primary_commands(monkeypatch) -> None:
