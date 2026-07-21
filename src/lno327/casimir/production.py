@@ -5,6 +5,7 @@ from dataclasses import replace
 import json
 import math
 from pathlib import Path
+from time import perf_counter
 from typing import Any, Literal, Mapping, Sequence
 
 from .adaptive_matsubara_tail import AdaptiveMatsubaraCasimirConfig
@@ -20,6 +21,13 @@ from .error_budget import (
     OFFSET_BUDGET_FRACTION_WITHIN_OUTER_FINITE,
     OUTER_FINITE_BUDGET_FRACTION,
     OUTER_TAIL_BUDGET_FRACTION,
+)
+from .progress import (
+    ProgressMatsubaraOuterRunner,
+    ProgressPointProvider,
+    emit_progress,
+    pairing_budget_ratios,
+    wrap_certifier_runner,
 )
 from .strict_transverse_runner import run_strict_transverse_certifier
 from .transverse_policy import FORMAL_TRANSVERSE_SHIFTS, normalize_shifts
@@ -259,13 +267,56 @@ def run_full_casimir(config: FullCasimirConfig) -> FullCasimirResult:
         base_point,
         matsubara_indices=tuple(range(int(first_cutoff) + 1)),
     )
-    provider = FrequencyExtendableCertifiedOuterQProvider(
+    base_provider = FrequencyExtendableCertifiedOuterQProvider(
         first_point,
         cache_path=config.point_cache_path,
-        runner=run_strict_transverse_certifier,
+        runner=wrap_certifier_runner(run_strict_transverse_certifier),
         certifier_q_batch_size=config.certifier_q_batch_size,
     )
-    return run_certified_matsubara_casimir(config, provider=provider)
+    provider = ProgressPointProvider(base_provider)
+    outer_runner = ProgressMatsubaraOuterRunner(config.matsubara_cutoff_values)
+    emit_progress(
+        "matsubara_controller_started",
+        cutoff_values=[int(value) for value in config.matsubara_cutoff_values],
+        tail_start_n=int(config.tail_start_n),
+        tail_window_blocks=int(config.tail_window_terms),
+        pairings=list(first_point.pairings),
+    )
+    started = perf_counter()
+    try:
+        result = run_certified_matsubara_casimir(
+            config,
+            provider=provider,
+            outer_tail_runner=outer_runner,
+        )
+    except Exception as exc:
+        emit_progress(
+            "matsubara_controller_failed",
+            wall_seconds=float(perf_counter() - started),
+            error_type=type(exc).__name__,
+            error=str(exc),
+        )
+        raise
+    emit_progress(
+        "matsubara_controller_completed",
+        status=str(result.status),
+        matsubara_converged=bool(result.matsubara_converged),
+        selected_matsubara_cutoff=result.selected_matsubara_cutoff,
+        all_outer_tail_runs_converged=bool(
+            result.all_outer_tail_runs_converged
+        ),
+        all_microscopic_nodes_certified=bool(
+            result.all_microscopic_nodes_certified
+        ),
+        formal_policy_passed=bool(result.formal_policy_passed),
+        error_budget_closed=bool(result.error_budget_closed),
+        production_casimir_allowed=bool(result.production_casimir_allowed),
+        termination_reason=str(result.termination_reason),
+        budget_ratios=pairing_budget_ratios(result.pairing_results),
+        provider_statistics=dict(result.provider_statistics),
+        wall_seconds=float(perf_counter() - started),
+    )
+    return result
 
 
 __all__ = [
