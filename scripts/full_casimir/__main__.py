@@ -12,11 +12,12 @@ Usage:
 
 Production commands:
   plan         Freeze a scientific policy and physical case matrix.
-  run          Execute or resume a SHA-confirmed formal campaign.
+  run          Execute or resume a locked, SHA-confirmed formal campaign.
   resources    Show the execution resources selected for a formal run.
 
-Read-only monitoring, analysis and data commands:
+Read-only monitoring, proof, analysis and data commands:
   status       Inspect or watch persisted campaign progress.
+  proof        Verify source identity and authoritative artifact digests.
   diagnose     Diagnose completed or interrupted campaign artifacts.
   audit        Build a convergence audit without starting production work.
   shift-audit  Replay historical three-shift evidence under the two-shift policy.
@@ -32,9 +33,10 @@ Use '<command> --help' for command-specific options.
 
 _COMMANDS: dict[str, tuple[str, tuple[str, ...]]] = {
     "plan": ("scripts.full_casimir.scan", ("plan",)),
-    "run": ("scripts.full_casimir.scan", ("run",)),
+    "run": ("scripts.full_casimir.run_command", ()),
     "resources": ("scripts.full_casimir.scan", ("resources",)),
     "status": ("scripts.full_casimir.progress", ()),
+    "proof": ("scripts.full_casimir.reproducibility", ()),
     "diagnose": ("scripts.full_casimir.diagnostics", ("diagnose",)),
     "audit": ("scripts.full_casimir.diagnostics", ("audit",)),
     "shift-audit": ("scripts.full_casimir.shift_audit", ()),
