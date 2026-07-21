@@ -10,9 +10,11 @@ python -m scripts.full_casimir run ... --fresh|--resume
 ```
 
 `plan` freezes the scientific policy, physical case matrix, Git source identity and
-plan SHA. `run` accepts only that confirmed plan. There is no package command,
-installed console command, single-case command, pilot runner, qualification runner,
-background wrapper, or cache-extension calculation route.
+plan SHA. `run` accepts only that confirmed plan and executes it under one campaign
+owner lock, with explicit stale takeover, bounded retries and atomic-cache recovery.
+There is no package command, installed console command, single-case command, pilot
+runner, qualification runner, background wrapper, or cache-extension calculation
+route.
 
 The Python objects exported by `lno327.casimir` are internal library components used
 by the unified dispatcher and tests. Calling those functions from ad hoc scripts is
@@ -35,10 +37,17 @@ Every layer preserves pairing- and Matsubara-channel error evidence. If any
 microscopic point, finite-domain integral, tail certificate, or total budget remains
 unresolved, the case is not marked `completed`.
 
+Completed attempts produce source, plan, environment and authoritative-artifact proof
+records. Verify them without calculation through:
+
+```bash
+python -m scripts.full_casimir proof --campaign <campaign-id>
+```
+
 ## Documents
 
 - `numerical_contract.md`: error budgets and certification rules;
-- `operations.md`: formal planning, fresh execution, resume and artifacts;
-- `progress_reporting.md`: persisted runtime events, status display and TODO 7 boundary;
+- `operations.md`: planning, locks, fresh execution, resume, recovery and proof;
+- `progress_reporting.md`: persisted runtime events and status display;
 - `todo5_numerical_and_execution_policy.md`: frozen numerical/execution policies;
 - `legacy_fixed_reference.md`: isolated historical library reference only.
