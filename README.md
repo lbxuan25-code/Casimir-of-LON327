@@ -38,32 +38,30 @@ python -m lno327.casimir \
   --plate-angles-deg 0 17
 ```
 
-多角度、多距离以及单点生产任务统一使用同一个编排入口：
+多角度、多距离以及单点生产任务统一采用“先冻结计划、再执行”的入口：
 
 ```bash
 python -m scripts.full_casimir plan \
   --pairings spm dwave \
   --distances-nm 10 20 40 \
   --angles-deg 0 45 90 \
-  --profile candidate-policy
+  --plan-output production_plan.json
 
 python -m scripts.full_casimir run \
-  --pairings spm dwave \
-  --distances-nm 10 20 40 \
-  --angles-deg 0 45 90 \
-  --profile candidate-policy
+  --plan production_plan.json \
+  --confirm-plan-sha256 <PLAN_SHA> \
+  --fresh
 ```
 
-`plan` 只解析任务矩阵，不执行计算。完整说明见
-`docs/casimir/production_scan_cli.md`。正式扫描仍须等待误差预算和数值政策冻结。
-
-运行产物统一进入：
+任务中断后使用同一份计划和 `--resume`。正式输出进入：
 
 ```text
-outputs/casimir/runs/<case>/
+outputs/casimir/production/<campaign-id>/
 ```
 
-其中 `<case>` 表示物理算例及其数值政策身份，不应使用开发版本号命名。
+campaign 由科学数值政策、Git commit 和数据合同自动命名，不使用人工
+`v2/v3/v4` 标签。每个物理 case 使用独立缓存；正式入口不会自动迁移或
+继承旧 profile 缓存。完整说明见 `docs/casimir/production_scan_cli.md`。
 
 ## 物理边界
 
