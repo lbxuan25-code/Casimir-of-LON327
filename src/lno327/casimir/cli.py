@@ -74,8 +74,12 @@ def _summary(case: str, result: FullCasimirResult) -> dict[str, Any]:
                 "estimated_matsubara_tail_bound_J_m2",
                 "estimated_total_error_J_m2",
                 "total_free_energy_tolerance_J_m2",
+                "outer_tail_certificate_path",
+                "matsubara_tail_certificate_path",
                 "matsubara_tail_ratio_envelope",
+                "matsubara_tail_holdout_ratio",
                 "matsubara_tail_decay_passed",
+                "matsubara_tail_holdout_passed",
                 "finite_matsubara_budget_passed",
                 "matsubara_tail_budget_passed",
                 "total_free_energy_budget_passed",
@@ -92,6 +96,12 @@ def _summary(case: str, result: FullCasimirResult) -> dict[str, Any]:
         "matsubara_converged": result.matsubara_converged,
         "outer_tail_estimated": result.outer_tail_estimated,
         "matsubara_tail_estimated": result.matsubara_tail_estimated,
+        "formal_policy_passed": bool(
+            getattr(result, "formal_policy_passed", False)
+        ),
+        "error_budget_closed": bool(
+            getattr(result, "error_budget_closed", False)
+        ),
         "production_casimir_allowed": result.production_casimir_allowed,
         "selected_matsubara_cutoff": result.selected_matsubara_cutoff,
         "selected_u_max": selected_u_max,
@@ -218,11 +228,28 @@ def execute_case(
         result = runner(config)
         _atomic_json(result_path, result.as_dict())
         _atomic_json(run_dir / "summary.json", _summary(case, result))
+        authorized = bool(result.production_casimir_allowed)
+        numerically_converged = bool(result.matsubara_converged)
+        manifest_status = (
+            "completed"
+            if authorized
+            else "diagnostic_only"
+            if numerically_converged
+            else "unresolved"
+        )
         manifest.update(
             {
-                "status": "completed" if result.matsubara_converged else "unresolved",
+                "status": manifest_status,
                 "finished_at_utc": _utc_now(),
                 "termination_reason": result.termination_reason,
+                "numerically_converged": numerically_converged,
+                "formal_policy_passed": bool(
+                    getattr(result, "formal_policy_passed", False)
+                ),
+                "error_budget_closed": bool(
+                    getattr(result, "error_budget_closed", False)
+                ),
+                "production_casimir_allowed": authorized,
             }
         )
         _atomic_json(run_dir / "manifest.json", manifest)
@@ -273,7 +300,7 @@ def _parser() -> argparse.ArgumentParser:
         "--matsubara-cutoffs",
         nargs="+",
         type=int,
-        default=(1, 3, 7, 11, 15, 23, 31),
+        default=(1, 3, 7, 15, 31, 63),
     )
     parser.add_argument(
         "--outer-cutoffs-u",
@@ -310,7 +337,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         total_free_energy_atol_J_m2=args.atol_J_m2,
     )
     print(json.dumps(_summary(args.case, result), sort_keys=True, indent=2))
-    return 0 if result.matsubara_converged else 2
+    return 0 if result.production_casimir_allowed else 2
 
 
 __all__ = ["execute_case", "main"]
