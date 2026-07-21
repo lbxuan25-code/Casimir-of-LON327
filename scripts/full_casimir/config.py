@@ -7,15 +7,24 @@ from typing import Iterable, Sequence
 import math
 import os
 
+from lno327.casimir.transverse_policy import (
+    CONDITIONAL_AUDIT_SHIFT,
+    FORMAL_TRANSVERSE_SHIFTS,
+    LADDER_EARLY_STOP_CONTRACT,
+    TRANSVERSE_SHIFT_POLICY_ID,
+    ladder_early_stop_policy_payload,
+    transverse_policy_payload,
+)
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "outputs" / "casimir" / "runs"
 DEFAULT_PRODUCTION_ROOT = REPO_ROOT / "outputs" / "casimir" / "production"
 DEFAULT_POSTPROCESS_ROOT = REPO_ROOT / "outputs" / "casimir" / "postprocessed"
 DEFAULT_LOG_ROOT = REPO_ROOT / "outputs" / "casimir" / "workflow_logs"
 
-# TODO 5 frozen microscopic policy.  The ladder and tolerances are the common
+# TODO 5 frozen microscopic policy. The ladder and tolerances are the common
 # pairing-blind candidate selected by the completed 0-degree transverse audit.
-MICROSCOPIC_POLICY_ID = "full-casimir-microscopic-policy-v1"
+MICROSCOPIC_POLICY_ID = "full-casimir-microscopic-policy-v2"
 DEFAULT_N_CANDIDATES = (
     128,
     192,
@@ -32,9 +41,10 @@ DEFAULT_N_CANDIDATES = (
 DEFAULT_LOGDET_RTOL = 2.0e-3
 DEFAULT_LOGDET_ATOL = 1.0e-6
 DEFAULT_REQUIRED_CONSECUTIVE_PASSES = 2
-DEFAULT_TRANSVERSE_SHIFTS = ((0.5, 0.5), (0.25, 0.75), (0.75, 0.25))
+DEFAULT_TRANSVERSE_SHIFTS = FORMAL_TRANSVERSE_SHIFTS
+DEFAULT_CONDITIONAL_AUDIT_SHIFT = CONDITIONAL_AUDIT_SHIFT
 
-# The outer-Q and Matsubara ladders are qualification candidates.  Their final
+# The outer-Q and Matsubara ladders are qualification candidates. Their final
 # economical endpoints remain conditional on the fresh 0-degree run after TODO 8.
 OUTER_QUALIFICATION_CANDIDATE_ID = "full-casimir-outer-candidate-v1"
 MATSUBARA_QUALIFICATION_CANDIDATE_ID = "full-casimir-matsubara-candidate-v1"
@@ -61,7 +71,7 @@ DEFAULT_DEGENERACY = 1.0
 DEFAULT_RTOL = 5e-3
 DEFAULT_ATOL_J_M2 = 1e-12
 
-# TODO 5 frozen execution policy.  These values do not enter the scientific
+# TODO 5 frozen execution policy. These values do not enter the scientific
 # identity; they define the qualified engineering route used to realize it.
 EXECUTION_POLICY_ID = "full-casimir-execution-policy-v1"
 DEFAULT_CERTIFIER_Q_BATCH_SIZE = 512
@@ -184,20 +194,26 @@ def microscopic_policy_payload() -> dict[str, object]:
         "pairing_blind": True,
         "N_candidates": list(DEFAULT_N_CANDIDATES),
         "shifts": [list(value) for value in DEFAULT_TRANSVERSE_SHIFTS],
+        "conditional_audit_shift": list(DEFAULT_CONDITIONAL_AUDIT_SHIFT),
+        "shift_policy": transverse_policy_payload(),
+        "ladder_early_stop": ladder_early_stop_policy_payload()["microscopic_N"],
+        "ladder_early_stop_contract": LADDER_EARLY_STOP_CONTRACT,
         "logdet_rtol": DEFAULT_LOGDET_RTOL,
         "logdet_atol": DEFAULT_LOGDET_ATOL,
         "required_consecutive_passes": DEFAULT_REQUIRED_CONSECUTIVE_PASSES,
-        "evidence": "completed 0deg qualification-v5 transverse audit",
+        "evidence": "completed 0deg qualification-v5 transverse audit plus two-shift replay",
     }
 
 
 def qualification_candidate_payload() -> dict[str, object]:
+    early_stop = ladder_early_stop_policy_payload()
     return {
         "outer": {
             "policy_id": OUTER_QUALIFICATION_CANDIDATE_ID,
             "status": "candidate_pending_post_todo8_fresh_0deg",
             "cutoff_u_values": list(DEFAULT_OUTER_CUTOFFS_U),
             "analytic_certificate_attempted_at_each_cutoff": True,
+            "early_stop": early_stop["outer_Q"],
         },
         "matsubara": {
             "policy_id": MATSUBARA_QUALIFICATION_CANDIDATE_ID,
@@ -205,6 +221,7 @@ def qualification_candidate_payload() -> dict[str, object]:
             "cutoff_values": list(DEFAULT_MATSUBARA_CUTOFFS),
             "dyadic_blocks": True,
             "holdout_blocks": 1,
+            "early_stop": early_stop["matsubara"],
         },
     }
 
