@@ -89,7 +89,19 @@ def test_canonical_route_installs_strict_certifier_runner(monkeypatch) -> None:
         def __init__(self, config, **kwargs):
             observed["runner"] = kwargs.get("runner")
 
-    sentinel = object()
+    sentinel = SimpleNamespace(
+        status="adaptive_tail_bounded",
+        matsubara_converged=True,
+        selected_matsubara_cutoff=1,
+        all_outer_tail_runs_converged=True,
+        all_microscopic_nodes_certified=True,
+        formal_policy_passed=True,
+        error_budget_closed=True,
+        production_casimir_allowed=True,
+        termination_reason="synthetic_complete",
+        pairing_results={},
+        provider_statistics={},
+    )
     monkeypatch.setattr(
         production,
         "FrequencyExtendableCertifiedOuterQProvider",
@@ -98,11 +110,16 @@ def test_canonical_route_installs_strict_certifier_runner(monkeypatch) -> None:
     monkeypatch.setattr(
         production,
         "run_certified_matsubara_casimir",
-        lambda config, *, provider: sentinel,
+        lambda config, *, provider, outer_tail_runner: sentinel,
     )
 
     assert production.run_full_casimir(build_full_casimir_config()) is sentinel
-    assert observed["runner"] is run_strict_transverse_certifier
+    installed = observed["runner"]
+    assert callable(installed)
+    assert any(
+        cell.cell_contents is run_strict_transverse_certifier
+        for cell in (getattr(installed, "__closure__", None) or ())
+    )
 
 
 def test_postprocess_marks_truncated_result_unusable_instead_of_crashing(
