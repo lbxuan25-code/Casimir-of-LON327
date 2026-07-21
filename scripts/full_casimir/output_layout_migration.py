@@ -131,6 +131,7 @@ def _normalized_tar_info(info: tarfile.TarInfo) -> tarfile.TarInfo:
     info.gname = ""
     info.mtime = 0
     info.mode = stat.S_IMODE(info.mode)
+    info.pax_headers = {}
     return info
 
 
@@ -162,10 +163,15 @@ def _safe_restore_directory_archive(
 ) -> None:
     with TemporaryDirectory(prefix="casimir-layout-restore-") as temporary:
         target = Path(temporary)
+        seen: set[str] = set()
         with tarfile.open(archive_path, "r:*") as archive:
             members = archive.getmembers()
             for member in members:
                 pure = PurePosixPath(member.name)
+                normalized_name = pure.as_posix()
+                if normalized_name in seen:
+                    raise ValueError(f"duplicate layout archive member: {member.name}")
+                seen.add(normalized_name)
                 if pure.is_absolute() or ".." in pure.parts or not pure.parts:
                     raise ValueError(f"unsafe layout archive member: {member.name}")
                 if pure.parts[0] != expected_root_name:
@@ -194,6 +200,7 @@ def _safe_restore_directory_archive(
 
 
 def _stage_manifest(item: Mapping[str, Any], destination: Path, snapshot: Mapping[str, Any]) -> dict[str, Any]:
+    directory_archive = item["action"] == "archive_directory"
     return {
         "schema": "casimir-output-layout-staged-artifact-v1",
         "name": item["name"],
@@ -209,7 +216,9 @@ def _stage_manifest(item: Mapping[str, Any], destination: Path, snapshot: Mappin
         "destination_path": str(destination),
         "destination_bytes": destination.stat().st_size,
         "destination_sha256": sha256_file(destination),
-        "restore_verified": True,
+        "verification_mode": "temporary_restore" if directory_archive else "exact_byte_copy",
+        "restore_verified": directory_archive,
+        "exact_copy_verified": not directory_archive,
         "source_preserved": Path(str(item["source_path"])).exists(),
     }
 
@@ -228,6 +237,7 @@ def stage_layout_migration(
         raise ValueError("layout migration plan confirmation SHA-256 does not match")
 
     prepared: list[tuple[Path, Path, dict[str, Any], Path]] = []
+    committed: list[tuple[Path, Path]] = []
     try:
         for item in plan["items"]:
             snapshot = _require_snapshot(item)
@@ -259,6 +269,7 @@ def stage_layout_migration(
         results: list[dict[str, Any]] = []
         for temporary, destination, manifest, manifest_path in prepared:
             os.replace(temporary, destination)
+            committed.append((destination, manifest_path))
             manifest["destination_path"] = str(destination)
             manifest["destination_bytes"] = destination.stat().st_size
             manifest["destination_sha256"] = sha256_file(destination)
@@ -275,12 +286,18 @@ def stage_layout_migration(
                     "destination_sha256": manifest["destination_sha256"],
                     "manifest_path": str(manifest_path),
                     "manifest_sha256": manifest["manifest_sha256"],
+                    "verification_mode": manifest["verification_mode"],
                 }
             )
     except Exception:
         for temporary, _, _, _ in prepared:
             if temporary.exists():
                 temporary.unlink()
+        for destination, manifest_path in reversed(committed):
+            if manifest_path.exists():
+                manifest_path.unlink()
+            if destination.exists():
+                destination.unlink()
         raise
 
     report = {
@@ -310,19 +327,65 @@ def _verify_staged_result(item: Mapping[str, Any], staged: Mapping[str, Any]) ->
     if not isinstance(manifest, Mapping):
         raise ValueError(f"invalid staged layout manifest: {manifest_path}")
     _require_self_digest(manifest, "manifest_sha256", "staged layout manifest")
-    if sha256_file(destination) != manifest.get("destination_sha256"):
+    expected_manifest_fields = {
+        "name": item["name"],
+        "legacy_kind": item["legacy_kind"],
+        "action": item["action"],
+        "source_path": item["source_path"],
+        "source_kind": item["source_kind"],
+        "source_bytes": item["source_bytes"],
+        "source_file_count": item["source_file_count"],
+        "source_tree_digest": item["source_tree_digest"],
+        "source_sha256": item["source_sha256"],
+        "destination_path": str(destination),
+    }
+    for field, expected in expected_manifest_fields.items():
+        if manifest.get(field) != expected:
+            raise ValueError(f"staged layout manifest relation mismatch: {destination} ({field})")
+    if manifest.get("source_tree_rows") != snapshot["tree_rows"]:
+        raise ValueError(f"staged layout manifest source tree mismatch: {destination}")
+    actual_destination_sha = sha256_file(destination)
+    actual_destination_bytes = destination.stat().st_size
+    if actual_destination_sha != manifest.get("destination_sha256"):
         raise ValueError(f"staged layout destination SHA-256 mismatch: {destination}")
+    if actual_destination_bytes != manifest.get("destination_bytes"):
+        raise ValueError(f"staged layout destination size mismatch: {destination}")
     if staged.get("destination_sha256") != manifest.get("destination_sha256"):
         raise ValueError(f"layout stage report does not match manifest: {destination}")
+    if staged.get("destination_bytes") != manifest.get("destination_bytes"):
+        raise ValueError(f"layout stage report size does not match manifest: {destination}")
+    if staged.get("manifest_sha256") != manifest.get("manifest_sha256"):
+        raise ValueError(f"layout stage report manifest digest mismatch: {destination}")
+    if staged.get("manifest_path") != str(manifest_path):
+        raise ValueError(f"layout stage report manifest path mismatch: {destination}")
     if item["action"] == "archive_directory":
+        if manifest.get("verification_mode") != "temporary_restore" or manifest.get("restore_verified") is not True:
+            raise ValueError(f"directory archive lacks restore verification: {destination}")
         _safe_restore_directory_archive(
             destination,
             expected_root_name=Path(str(item["source_path"])).name,
             expected_rows=snapshot["tree_rows"],
         )
     elif item["action"] == "copy_file":
+        if manifest.get("verification_mode") != "exact_byte_copy" or manifest.get("exact_copy_verified") is not True:
+            raise ValueError(f"file copy lacks exact-byte verification: {destination}")
         if manifest.get("destination_sha256") != item.get("source_sha256"):
             raise ValueError(f"staged file copy differs from source: {destination}")
+
+
+def _validate_stage_relation(
+    migration: Mapping[str, Any],
+    stage: Mapping[str, Any],
+) -> dict[str, Mapping[str, Any]]:
+    if stage.get("plan_sha256") != migration.get("plan_sha256"):
+        raise ValueError("layout stage execution belongs to a different migration plan")
+    if int(stage.get("result_count", -1)) != int(migration.get("item_count", -2)):
+        raise ValueError("layout stage result count does not match migration plan")
+    staged_by_name = {str(row["name"]): row for row in stage.get("results", [])}
+    expected_names = {str(row["name"]) for row in migration.get("items", [])}
+    if set(staged_by_name) != expected_names:
+        raise ValueError("layout stage result set does not match migration plan")
+    return staged_by_name
 
 
 def build_layout_finalize_plan(
@@ -339,11 +402,7 @@ def build_layout_finalize_plan(
         raise ValueError("invalid layout stage execution schema")
     _require_self_digest(migration, "plan_sha256", "layout migration plan")
     _require_self_digest(stage, "stage_sha256", "layout stage execution")
-    if stage.get("plan_sha256") != migration.get("plan_sha256"):
-        raise ValueError("layout stage execution belongs to a different migration plan")
-    staged_by_name = {str(row["name"]): row for row in stage.get("results", [])}
-    if set(staged_by_name) != {str(row["name"]) for row in migration["items"]}:
-        raise ValueError("layout stage result set does not match migration plan")
+    staged_by_name = _validate_stage_relation(migration, stage)
 
     items: list[dict[str, Any]] = []
     for item in migration["items"]:
@@ -354,8 +413,10 @@ def build_layout_finalize_plan(
         "schema": LAYOUT_FINALIZE_PLAN_SCHEMA,
         "migration_plan_path": str(migration_path),
         "migration_plan_sha256": migration["plan_sha256"],
+        "migration_items_sha256": value_digest(migration["items"]),
         "stage_execution_path": str(stage_path),
         "stage_sha256": stage["stage_sha256"],
+        "stage_results_sha256": value_digest(stage["results"]),
         "item_count": len(items),
         "source_total_bytes": sum(int(row["source_bytes"]) for row in items),
         "items": items,
@@ -387,9 +448,23 @@ def execute_layout_finalize_plan(
 
     migration = _read(Path(str(plan["migration_plan_path"])))
     stage = _read(Path(str(plan["stage_execution_path"])))
+    if migration.get("schema") != LAYOUT_MIGRATION_PLAN_SCHEMA:
+        raise ValueError("invalid referenced layout migration plan schema")
+    if stage.get("schema") != LAYOUT_STAGE_EXECUTION_SCHEMA:
+        raise ValueError("invalid referenced layout stage execution schema")
     _require_self_digest(migration, "plan_sha256", "layout migration plan")
     _require_self_digest(stage, "stage_sha256", "layout stage execution")
-    staged_by_name = {str(row["name"]): row for row in stage["results"]}
+    if migration.get("plan_sha256") != plan.get("migration_plan_sha256"):
+        raise ValueError("referenced layout migration plan changed after finalize planning")
+    if value_digest(migration.get("items", [])) != plan.get("migration_items_sha256"):
+        raise ValueError("referenced layout migration items changed after finalize planning")
+    if stage.get("stage_sha256") != plan.get("stage_sha256"):
+        raise ValueError("referenced layout stage execution changed after finalize planning")
+    if value_digest(stage.get("results", [])) != plan.get("stage_results_sha256"):
+        raise ValueError("referenced layout stage results changed after finalize planning")
+    if value_digest(plan.get("items", [])) != value_digest(migration.get("items", [])):
+        raise ValueError("layout finalize item set differs from migration plan")
+    staged_by_name = _validate_stage_relation(migration, stage)
     root = Path(str(migration["casimir_root"])).resolve()
 
     for item in plan["items"]:
