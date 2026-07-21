@@ -210,7 +210,7 @@ def test_runtime_error_budget_policy_uses_current_term_count() -> None:
     assert spm_joint.angular_budget_fraction == pytest.approx(0.2)
     assert dwave_joint.radial_budget_fraction == pytest.approx(0.8)
     assert dwave_joint.angular_budget_fraction == pytest.approx(0.2)
-    assert dwave_joint.radial_config.point_config.logdet_rtol == pytest.approx(1.5e-3)
+    assert dwave_joint.radial_config.point_config.logdet_rtol == pytest.approx(2.0e-3)
     assert dwave.certifier_q_batch_size == 512
 
     cutoff_1 = _scaled_outer_tail_config(spm, 1)
