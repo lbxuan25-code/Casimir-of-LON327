@@ -4,6 +4,14 @@ import argparse
 from pathlib import Path
 from typing import Any, Sequence
 
+from lno327.casimir.certified_matsubara import (
+    MATSUBARA_TAIL_CERTIFICATE_CONTRACT,
+    PRODUCTION_ERROR_BUDGET_CONTRACT,
+    validate_dyadic_matsubara_policy,
+)
+from lno327.casimir.certified_tail import OUTER_TAIL_CERTIFICATE_CONTRACT
+from lno327.casimir.error_budget import error_budget_policy_payload
+
 from .config import (
     DEFAULT_ATOL_J_M2,
     DEFAULT_CERTIFIER_Q_BATCH_SIZE,
@@ -130,11 +138,13 @@ def _add_scientific_args(parser: argparse.ArgumentParser) -> None:
         "--matsubara-tail-window-terms",
         type=int,
         default=DEFAULT_MATSUBARA_TAIL_WINDOW_TERMS,
+        help="Number of dyadic tail blocks, including the final holdout block.",
     )
     parser.add_argument(
         "--matsubara-tail-ratio-max",
         type=float,
         default=DEFAULT_MATSUBARA_TAIL_RATIO_MAX,
+        help="Maximum ratio between successive absolute dyadic block envelopes.",
     )
     parser.add_argument(
         "--radial-budget-fraction",
@@ -269,7 +279,9 @@ def _resolve_grid(args: argparse.Namespace) -> tuple[tuple[float, ...], tuple[fl
     return angles, distances
 
 
-def _strictly_increasing(values: Sequence[int | float], *, label: str) -> tuple[Any, ...]:
+def _strictly_increasing(
+    values: Sequence[int | float], *, label: str
+) -> tuple[Any, ...]:
     normalized = tuple(values)
     if not normalized:
         raise ValueError(f"{label} must not be empty")
@@ -285,12 +297,18 @@ def _scientific_policy(args: argparse.Namespace) -> dict[str, Any]:
     _strictly_increasing(N_candidates, label="N_candidates")
     _strictly_increasing(matsubara, label="matsubara_cutoffs")
     _strictly_increasing(outer, label="outer_cutoffs_u")
-    if N_candidates[0] <= 0 or matsubara[0] < 0 or outer[0] <= 0.0:
+    if N_candidates[0] <= 0 or outer[0] <= 0.0:
         raise ValueError("scientific ladders contain invalid non-positive values")
     if int(args.required_consecutive_passes) < 1:
         raise ValueError("required_consecutive_passes must be positive")
-    if not 0.0 < float(args.radial_budget_fraction) < 1.0:
+    radial_fraction = float(args.radial_budget_fraction)
+    if not 0.0 < radial_fraction < 1.0:
         raise ValueError("radial_budget_fraction must lie strictly between zero and one")
+    validate_dyadic_matsubara_policy(
+        matsubara,
+        tail_start_n=int(args.matsubara_tail_start_n),
+        tail_window_blocks=int(args.matsubara_tail_window_terms),
+    )
     return {
         "schema": POLICY_SCHEMA,
         "model": {
@@ -309,10 +327,16 @@ def _scientific_policy(args: argparse.Namespace) -> dict[str, Any]:
             "tail_start_u": float(args.outer_tail_start_u),
             "tail_window_shells": int(args.outer_tail_window_shells),
             "tail_ratio_max": float(args.outer_tail_ratio_max),
-            "radial_budget_fraction": float(args.radial_budget_fraction),
+            "radial_budget_fraction": radial_fraction,
             "max_total_microscopic_q_nodes": int(
                 args.max_total_microscopic_q_nodes
             ),
+            "certificate_contract": OUTER_TAIL_CERTIFICATE_CONTRACT,
+            "accepted_certificate_paths": [
+                "analytic_passive_vacuum",
+                "geometric_numerical_shell_envelope",
+            ],
+            "static_contraction_norm": "exact_spectral_norm",
         },
         "matsubara": {
             "cutoff_values": list(matsubara),
@@ -322,10 +346,25 @@ def _scientific_policy(args: argparse.Namespace) -> dict[str, Any]:
             "max_total_microscopic_point_entries": int(
                 args.max_total_microscopic_point_entries
             ),
+            "certificate_contract": MATSUBARA_TAIL_CERTIFICATE_CONTRACT,
+            "tail_estimator": "dyadic_absolute_block_envelope",
+            "holdout_blocks": 1,
+            "per_term_ratio_acceptance_forbidden": True,
         },
         "total_free_energy": {
             "rtol": float(args.rtol),
             "atol_J_m2": float(args.atol_J_m2),
+        },
+        "error_budget": error_budget_policy_payload(
+            radial_budget_fraction=radial_fraction
+        ),
+        "production_authorization": {
+            "contract": PRODUCTION_ERROR_BUDGET_CONTRACT,
+            "requires_all_microscopic_nodes_certified": True,
+            "requires_outer_tail_certificate": True,
+            "requires_matsubara_tail_certificate": True,
+            "requires_total_error_budget_closed": True,
+            "numerical_convergence_alone_is_insufficient": True,
         },
     }
 
@@ -368,12 +407,7 @@ def build_scan_plan(
                     separation_nm=distance,
                     plate_angles_deg=(0.0, angle),
                 )
-                cases.append(
-                    {
-                        "case": name,
-                        "case_identity": identity,
-                    }
-                )
+                cases.append({"case": name, "case_identity": identity})
     return finalize_plan(
         {
             "schema": PLAN_SCHEMA,
