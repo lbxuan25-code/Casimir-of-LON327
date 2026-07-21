@@ -14,6 +14,7 @@ from .production import (
     build_full_casimir_config,
     run_full_casimir,
 )
+from .progress import ProgressSink, progress_context
 from .run_identity import scientific_config_payload, scientific_config_sha256
 
 _CASE_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
@@ -137,6 +138,7 @@ def execute_case(
     runner: Callable[[FullCasimirConfig], FullCasimirResult] = run_full_casimir,
     identity_payload: Mapping[str, Any] | None = None,
     cache_identity_payload: Mapping[str, Any] | None = None,
+    progress: ProgressSink | None = None,
     **config_kwargs: Any,
 ) -> FullCasimirResult:
     """Execute one plan-owned case and maintain its deterministic artifacts."""
@@ -204,6 +206,8 @@ def execute_case(
         "summary": "summary.json",
         "result": "result.json",
         "point_cache": "cache/certified_points.json",
+        "progress": "progress.json",
+        "progress_events": "progress.events.jsonl",
     }
     if identity_payload is not None:
         paths["identity"] = "identity.json"
@@ -224,7 +228,8 @@ def execute_case(
     _atomic_json(manifest_path, manifest)
 
     try:
-        result = runner(config)
+        with progress_context(progress):
+            result = runner(config)
         _atomic_json(result_path, result.as_dict())
         _atomic_json(run_dir / "summary.json", _summary(case, result))
         authorized = bool(result.production_casimir_allowed)
