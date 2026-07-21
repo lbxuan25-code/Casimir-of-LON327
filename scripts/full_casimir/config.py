@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Iterable, Sequence
@@ -13,10 +13,45 @@ DEFAULT_PRODUCTION_ROOT = REPO_ROOT / "outputs" / "casimir" / "production"
 DEFAULT_POSTPROCESS_ROOT = REPO_ROOT / "outputs" / "casimir" / "postprocessed"
 DEFAULT_LOG_ROOT = REPO_ROOT / "outputs" / "casimir" / "workflow_logs"
 
-DEFAULT_N_CANDIDATES = (128, 192, 256, 384, 512, 640, 768, 896)
-# Formal Matsubara certification uses complete dyadic blocks.
+# TODO 5 frozen microscopic policy.  The ladder and tolerances are the common
+# pairing-blind candidate selected by the completed 0-degree transverse audit.
+MICROSCOPIC_POLICY_ID = "full-casimir-microscopic-policy-v1"
+DEFAULT_N_CANDIDATES = (
+    128,
+    192,
+    256,
+    384,
+    512,
+    640,
+    768,
+    896,
+    1024,
+    1152,
+    1280,
+)
+DEFAULT_LOGDET_RTOL = 2.0e-3
+DEFAULT_LOGDET_ATOL = 1.0e-6
+DEFAULT_REQUIRED_CONSECUTIVE_PASSES = 2
+DEFAULT_TRANSVERSE_SHIFTS = ((0.5, 0.5), (0.25, 0.75), (0.75, 0.25))
+
+# The outer-Q and Matsubara ladders are qualification candidates.  Their final
+# economical endpoints remain conditional on the fresh 0-degree run after TODO 8.
+OUTER_QUALIFICATION_CANDIDATE_ID = "full-casimir-outer-candidate-v1"
+MATSUBARA_QUALIFICATION_CANDIDATE_ID = "full-casimir-matsubara-candidate-v1"
 DEFAULT_MATSUBARA_CUTOFFS = (1, 3, 7, 15, 31, 63)
-DEFAULT_OUTER_CUTOFFS_U = (6.0, 10.0, 14.0, 18.0, 24.0, 30.0, 36.0, 42.0)
+DEFAULT_OUTER_CUTOFFS_U = (
+    6.0,
+    10.0,
+    14.0,
+    18.0,
+    24.0,
+    30.0,
+    36.0,
+    42.0,
+    48.0,
+    54.0,
+    60.0,
+)
 DEFAULT_PAIRINGS = ("spm", "dwave")
 DEFAULT_TEMPERATURE_K = 10.0
 DEFAULT_SEPARATION_NM = 20.0
@@ -25,13 +60,20 @@ DEFAULT_ETA_EV = 1e-8
 DEFAULT_DEGENERACY = 1.0
 DEFAULT_RTOL = 5e-3
 DEFAULT_ATOL_J_M2 = 1e-12
-DEFAULT_LOGDET_RTOL = 1.5e-3
-DEFAULT_LOGDET_ATOL = 1e-6
+
+# TODO 5 frozen execution policy.  These values do not enter the scientific
+# identity; they define the qualified engineering route used to realize it.
+EXECUTION_POLICY_ID = "full-casimir-execution-policy-v1"
 DEFAULT_CERTIFIER_Q_BATCH_SIZE = 512
 DEFAULT_MEMORY_BUDGET_GB = 16.0
 DEFAULT_MAX_CONTEXT_WORKERS = 1
 DEFAULT_RESERVED_LOGICAL_CPUS = 6
 DEFAULT_WORKER_CAP = 26
+DEFAULT_PARALLEL_MODE = "q"
+DEFAULT_MEMORY_SAFETY_FACTOR = 1.5
+DEFAULT_FALLBACK_CONTEXT_BYTES_PER_POINT = 16_384.0
+DEFAULT_CANONICAL_BLOCK = 4096
+DEFAULT_RUNTIME_CHUNK = 16_384
 DEFAULT_OUTER_TAIL_START_U = 24.0
 DEFAULT_OUTER_TAIL_WINDOW_SHELLS = 3
 DEFAULT_OUTER_TAIL_RATIO_MAX = 0.8
@@ -69,6 +111,102 @@ class RuntimeResources:
     @property
     def reserved_cpuset(self) -> str:
         return ",".join(str(value) for value in self.reserved_cpus) or "none"
+
+
+@dataclass(frozen=True)
+class ExecutionProfile:
+    """Deterministic execution-only profile for one hardware class."""
+
+    name: str
+    reserve_logical_cpus: int
+    worker_cap: int
+    parallel_mode: str
+    memory_budget_gb: float
+    max_context_workers: int
+    certifier_q_batch_size: int
+    memory_safety_factor: float
+    fallback_context_bytes_per_point: float
+    canonical_block: int
+    runtime_chunk: int
+
+    def as_dict(self) -> dict[str, int | float | str]:
+        return asdict(self)
+
+
+LOCAL_EXECUTION_PROFILE = ExecutionProfile(
+    name="local-workstation-v1",
+    reserve_logical_cpus=DEFAULT_RESERVED_LOGICAL_CPUS,
+    worker_cap=DEFAULT_WORKER_CAP,
+    parallel_mode=DEFAULT_PARALLEL_MODE,
+    memory_budget_gb=DEFAULT_MEMORY_BUDGET_GB,
+    max_context_workers=DEFAULT_MAX_CONTEXT_WORKERS,
+    certifier_q_batch_size=DEFAULT_CERTIFIER_Q_BATCH_SIZE,
+    memory_safety_factor=DEFAULT_MEMORY_SAFETY_FACTOR,
+    fallback_context_bytes_per_point=DEFAULT_FALLBACK_CONTEXT_BYTES_PER_POINT,
+    canonical_block=DEFAULT_CANONICAL_BLOCK,
+    runtime_chunk=DEFAULT_RUNTIME_CHUNK,
+)
+
+# The server profile keeps the same formally qualified q-parallel numerical
+# execution strategy but resolves the worker count from the server affinity.
+SERVER_EXECUTION_PROFILE = ExecutionProfile(
+    name="server-throughput-v1",
+    reserve_logical_cpus=2,
+    worker_cap=0,
+    parallel_mode=DEFAULT_PARALLEL_MODE,
+    memory_budget_gb=0.0,
+    max_context_workers=DEFAULT_MAX_CONTEXT_WORKERS,
+    certifier_q_batch_size=DEFAULT_CERTIFIER_Q_BATCH_SIZE,
+    memory_safety_factor=DEFAULT_MEMORY_SAFETY_FACTOR,
+    fallback_context_bytes_per_point=DEFAULT_FALLBACK_CONTEXT_BYTES_PER_POINT,
+    canonical_block=DEFAULT_CANONICAL_BLOCK,
+    runtime_chunk=DEFAULT_RUNTIME_CHUNK,
+)
+
+
+def execution_profile(name: str) -> ExecutionProfile:
+    profiles = {
+        LOCAL_EXECUTION_PROFILE.name: LOCAL_EXECUTION_PROFILE,
+        SERVER_EXECUTION_PROFILE.name: SERVER_EXECUTION_PROFILE,
+    }
+    try:
+        return profiles[str(name)]
+    except KeyError as exc:
+        raise ValueError(
+            f"unknown execution profile {name!r}; expected one of {tuple(profiles)}"
+        ) from exc
+
+
+def microscopic_policy_payload() -> dict[str, object]:
+    return {
+        "policy_id": MICROSCOPIC_POLICY_ID,
+        "status": "frozen",
+        "pairing_blind": True,
+        "N_candidates": list(DEFAULT_N_CANDIDATES),
+        "shifts": [list(value) for value in DEFAULT_TRANSVERSE_SHIFTS],
+        "logdet_rtol": DEFAULT_LOGDET_RTOL,
+        "logdet_atol": DEFAULT_LOGDET_ATOL,
+        "required_consecutive_passes": DEFAULT_REQUIRED_CONSECUTIVE_PASSES,
+        "evidence": "completed 0deg qualification-v5 transverse audit",
+    }
+
+
+def qualification_candidate_payload() -> dict[str, object]:
+    return {
+        "outer": {
+            "policy_id": OUTER_QUALIFICATION_CANDIDATE_ID,
+            "status": "candidate_pending_post_todo8_fresh_0deg",
+            "cutoff_u_values": list(DEFAULT_OUTER_CUTOFFS_U),
+            "analytic_certificate_attempted_at_each_cutoff": True,
+        },
+        "matsubara": {
+            "policy_id": MATSUBARA_QUALIFICATION_CANDIDATE_ID,
+            "status": "candidate_pending_post_todo8_fresh_0deg",
+            "cutoff_values": list(DEFAULT_MATSUBARA_CUTOFFS),
+            "dyadic_blocks": True,
+            "holdout_blocks": 1,
+        },
+    }
 
 
 def _decimal(value: int | float, *, label: str) -> Decimal:
@@ -197,8 +335,8 @@ def select_runtime_resources(
 ) -> RuntimeResources:
     if reserve_logical_cpus < 0:
         raise ValueError("reserve_logical_cpus must be non-negative")
-    if worker_cap <= 0:
-        raise ValueError("worker_cap must be positive")
+    if worker_cap < 0:
+        raise ValueError("worker_cap must be non-negative; zero means no cap")
     visible = tuple(
         sorted(
             os.sched_getaffinity(0)
@@ -208,7 +346,12 @@ def select_runtime_resources(
     )
     if not visible:
         raise RuntimeError("no CPUs are visible to the process")
-    target = min(worker_cap, max(1, len(visible) - reserve_logical_cpus))
+    available_after_reserve = max(1, len(visible) - reserve_logical_cpus)
+    target = (
+        available_after_reserve
+        if worker_cap == 0
+        else min(worker_cap, available_after_reserve)
+    )
     groups: dict[tuple[int, int], list[int]] = {}
     for cpu in visible:
         groups.setdefault(_read_topology(cpu), []).append(cpu)
