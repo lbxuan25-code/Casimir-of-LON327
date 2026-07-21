@@ -123,7 +123,7 @@ def test_torque_metadata_does_not_claim_truncation_error_is_bounded(
     energy_csv, torque_csv, metadata_json, complete = postprocess_torque(
         run_root=tmp_path / "runs",
         output_root=tmp_path / "postprocessed",
-        profile=None,
+        profile="diagnostic_test",
         step_deg=2,
         target_min_deg=0,
         target_max_deg=0,
