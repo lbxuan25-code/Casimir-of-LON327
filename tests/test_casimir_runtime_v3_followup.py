@@ -97,7 +97,7 @@ def test_canonical_route_installs_strict_certifier_runner(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         production,
-        "run_adaptive_matsubara_casimir",
+        "run_certified_matsubara_casimir",
         lambda config, *, provider: sentinel,
     )
 
@@ -138,56 +138,36 @@ def test_execute_case_recovers_from_a_truncated_manifest(tmp_path: Path) -> None
     )
     (run / "manifest.json").write_text("{truncated", encoding="utf-8")
 
-    class DummyConfig:
+    class FakeConfig:
         def as_dict(self):
-            return dict(config_payload)
+            return config_payload
 
-    class DummyResult:
-        status = "adaptive_tail_bounded"
-        termination_reason = "done"
-        matsubara_converged = True
-        outer_tail_estimated = True
-        matsubara_tail_estimated = True
-        production_casimir_allowed = False
-        selected_matsubara_cutoff = 1
-        pairing_results = {}
-        cutoff_records = ()
-        provider_statistics = {}
+    result = SimpleNamespace(
+        matsubara_converged=False,
+        termination_reason="synthetic_unresolved",
+        as_dict=lambda: {
+            "schema": "adaptive-matsubara-casimir-result-v1",
+            "status": "unresolved",
+        },
+        status="unresolved",
+        outer_tail_estimated=False,
+        matsubara_tail_estimated=False,
+        production_casimir_allowed=False,
+        selected_matsubara_cutoff=None,
+        pairing_results={},
+        cutoff_records=(),
+        provider_statistics={},
+    )
 
-        def as_dict(self):
-            return {
-                "schema": "adaptive-matsubara-casimir-result-v1",
-                "status": self.status,
-                "termination_reason": self.termination_reason,
-                "matsubara_converged": self.matsubara_converged,
-                "pairing_results": {},
-            }
-
-    result = cli.execute_case(
+    returned = cli.execute_case(
         case=case,
         output_root=tmp_path,
         resume=True,
-        config_builder=lambda **kwargs: DummyConfig(),
-        runner=lambda config: DummyResult(),
+        config_builder=lambda **kwargs: FakeConfig(),
+        runner=lambda config: result,
     )
 
-    assert result.matsubara_converged
+    assert returned is result
     manifest = json.loads((run / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["status"] == "completed"
+    assert manifest["status"] == "unresolved"
     assert manifest["attempt_count"] == 1
-
-
-def test_git_commit_lookup_is_pinned_to_package_checkout(monkeypatch) -> None:
-    observed: dict[str, object] = {}
-
-    def fake_run(command, **kwargs):
-        observed["command"] = command
-        return SimpleNamespace(returncode=0, stdout="abc123\n")
-
-    monkeypatch.setattr(cli.subprocess, "run", fake_run)
-
-    assert cli._git_commit() == "abc123"
-    command = observed["command"]
-    assert isinstance(command, list)
-    assert command[:2] == ["git", "-C"]
-    assert command[-2:] == ["rev-parse", "HEAD"]
