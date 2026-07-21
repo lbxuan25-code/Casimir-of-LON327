@@ -98,7 +98,7 @@ def test_layout_audit_classifies_canonical_legacy_and_review_entries(
     assert entries["dwave_0deg_pilot_cache.tar.gz"]["tar_summary"][
         "top_level_roots"
     ] == ["dwave"]
-    assert any("runtime references" in item for item in audit["migration_blockers"])
+    assert any("runtime path references" in item for item in audit["migration_blockers"])
 
 
 def test_layout_audit_flags_unexpected_and_unsafe_archives(tmp_path: Path) -> None:
