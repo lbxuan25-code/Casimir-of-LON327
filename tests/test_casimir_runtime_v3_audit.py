@@ -172,6 +172,7 @@ def test_case_state_recognizes_authorized_completed_artifacts(tmp_path: Path) ->
                 "case": "case",
                 "status": "completed",
                 "termination_reason": reason,
+                "production_casimir_allowed": True,
             }
         )
     )
