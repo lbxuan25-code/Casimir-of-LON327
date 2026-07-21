@@ -29,9 +29,10 @@ A campaign identity is derived from:
 scientific policy + exact Git commit + production contract version
 ```
 
-Worker count, CPU allocation, parallel mode, memory budget and certifier batch
-size are execution settings. They may change between resume attempts and do not
-change the scientific cache identity.
+The plan must be executed from the exact clean Git commit recorded when it was
+created. Worker count, CPU allocation, parallel mode, memory budget and certifier
+batch size are execution settings. They may change between resume attempts and
+do not change the scientific cache identity.
 
 A physical case is one pairing, temperature, separation and angle. Each case has
 an independent certified-point cache and two fail-closed sidecars:
@@ -109,7 +110,7 @@ reuses another output directory.
 
 ## 3. Resume the same campaign
 
-After interruption, use the same SHA-confirmed plan:
+After interruption, use the same SHA-confirmed plan from the same Git commit:
 
 ```bash
 python -m scripts.full_casimir run \
@@ -123,8 +124,8 @@ python -m scripts.full_casimir run \
 ```
 
 Changing execution resources is allowed. Any physical parameter, numerical
-acceptance rule, ladder, error target, Git commit or identity schema mismatch is
-rejected.
+acceptance rule, ladder, error target, Git commit, dirty tracked worktree or
+identity schema mismatch is rejected.
 
 A later plan may add cases to the same campaign when its policy and Git identity
 are unchanged. Existing completed cases are retained; new planned cases start
@@ -138,6 +139,8 @@ fresh + existing campaign      -> reject
 resume + missing campaign      -> reject
 resume + matching campaign     -> continue/register matching plan
 resume + scientific mismatch   -> reject
+run from a different Git commit -> reject
+run from a dirty tracked tree   -> reject
 case directory without formal identity sidecars -> reject
 ```
 
