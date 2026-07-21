@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Iterable, Sequence
+import math
 import os
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -54,28 +56,94 @@ class RuntimeResources:
         return ",".join(str(value) for value in self.reserved_cpus) or "none"
 
 
-def inclusive_integer_grid(start: int, stop: int, step: int) -> tuple[int, ...]:
-    if step <= 0:
+def _decimal(value: int | float, *, label: str) -> Decimal:
+    try:
+        number = float(value)
+        result = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(f"{label} must be a finite number") from exc
+    if not math.isfinite(number):
+        raise ValueError(f"{label} must be a finite number")
+    return result
+
+
+def inclusive_float_grid(
+    start: int | float,
+    stop: int | float,
+    step: int | float,
+) -> tuple[float, ...]:
+    """Return an exactly divisible inclusive decimal grid without float drift."""
+
+    start_decimal = _decimal(start, label="grid start")
+    stop_decimal = _decimal(stop, label="grid stop")
+    step_decimal = _decimal(step, label="grid step")
+    if step_decimal <= 0:
         raise ValueError("step must be positive")
-    if stop < start:
+    if stop_decimal < start_decimal:
         raise ValueError("stop must be greater than or equal to start")
-    values = tuple(range(int(start), int(stop) + 1, int(step)))
-    if not values or values[-1] != int(stop):
-        raise ValueError("angle interval must be exactly divisible by step")
-    return values
+    quotient = (stop_decimal - start_decimal) / step_decimal
+    integral = quotient.to_integral_value()
+    if quotient != integral:
+        raise ValueError("interval must be exactly divisible by step")
+    return tuple(
+        float(start_decimal + index * step_decimal)
+        for index in range(int(integral) + 1)
+    )
+
+
+def inclusive_integer_grid(start: int, stop: int, step: int) -> tuple[int, ...]:
+    values = inclusive_float_grid(start, stop, step)
+    return tuple(int(value) for value in values)
+
+
+def _normalized_number_text(value: int | float, *, label: str) -> str:
+    number = float(_decimal(value, label=label))
+    if abs(number) < 5e-10:
+        number = 0.0
+    text = f"{number:.9f}".rstrip("0").rstrip(".")
+    return "0" if text in ("", "-0") else text
+
+
+def _unsigned_token(value: int | float, *, label: str) -> str:
+    text = _normalized_number_text(value, label=label)
+    if text.startswith("-"):
+        raise ValueError(f"{label} must be non-negative")
+    return text.replace(".", "p")
 
 
 def angle_token(angle_deg: int | float) -> str:
-    rounded = int(round(float(angle_deg)))
-    if abs(float(angle_deg) - rounded) > 1e-9:
-        raise ValueError("case naming currently requires integer-degree angles")
-    return f"m{abs(rounded):03d}" if rounded < 0 else f"p{rounded:03d}"
+    text = _normalized_number_text(angle_deg, label="angle")
+    negative = text.startswith("-")
+    magnitude = text[1:] if negative else text
+    whole, separator, fraction = magnitude.partition(".")
+    token = whole.zfill(3)
+    if separator:
+        token += f"p{fraction}"
+    return f"m{token}" if negative else f"p{token}"
 
 
-def case_name(pairing: str, angle_deg: int | float, *, profile: str = PROFILE_NAME) -> str:
+def case_name(
+    pairing: str,
+    angle_deg: int | float,
+    *,
+    temperature_K: int | float = DEFAULT_TEMPERATURE_K,
+    separation_nm: int | float = DEFAULT_SEPARATION_NM,
+    profile: str = PROFILE_NAME,
+) -> str:
     if pairing not in DEFAULT_PAIRINGS:
         raise ValueError(f"unsupported pairing: {pairing}")
-    return f"{pairing}_T10K_d20nm_theta_{angle_token(angle_deg)}deg_{profile}"
+    temperature = float(_decimal(temperature_K, label="temperature_K"))
+    separation = float(_decimal(separation_nm, label="separation_nm"))
+    if temperature <= 0.0:
+        raise ValueError("temperature_K must be positive")
+    if separation <= 0.0:
+        raise ValueError("separation_nm must be positive")
+    temperature_token = _unsigned_token(temperature, label="temperature_K")
+    separation_token = _unsigned_token(separation, label="separation_nm")
+    return (
+        f"{pairing}_T{temperature_token}K_d{separation_token}nm_"
+        f"theta_{angle_token(angle_deg)}deg_{profile}"
+    )
 
 
 def _read_topology(cpu: int) -> tuple[int, int]:
