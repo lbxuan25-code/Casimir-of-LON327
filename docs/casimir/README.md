@@ -39,5 +39,6 @@ unresolved, the case is not marked `completed`.
 
 - `numerical_contract.md`: error budgets and certification rules;
 - `operations.md`: formal planning, fresh execution, resume and artifacts;
+- `progress_reporting.md`: persisted runtime events, status display and TODO 7 boundary;
 - `todo5_numerical_and_execution_policy.md`: frozen numerical/execution policies;
 - `legacy_fixed_reference.md`: isolated historical library reference only.
