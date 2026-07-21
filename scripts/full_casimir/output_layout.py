@@ -4,13 +4,14 @@ import csv
 import hashlib
 import json
 import os
+import re
 import stat
 import tarfile
 from collections import Counter
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Mapping, Sequence
 
-LAYOUT_AUDIT_SCHEMA = "casimir-output-layout-audit-v1"
+LAYOUT_AUDIT_SCHEMA = "casimir-output-layout-audit-v2"
 
 CANONICAL_DIRECTORIES = {
     "archive",
@@ -21,7 +22,6 @@ CANONICAL_DIRECTORIES = {
     "workflow_logs",
 }
 CANONICAL_FILES = {"README.md"}
-REVIEW_DIRECTORIES = {"diagnostics"}
 KNOWN_LEGACY_ENTRIES: Mapping[str, Mapping[str, str]] = {
     "0deg_runtime_budget_pilot_logs": {
         "kind": "legacy_log_directory",
@@ -40,6 +40,9 @@ KNOWN_LEGACY_ENTRIES: Mapping[str, Mapping[str, str]] = {
         "proposed_destination": "archive/legacy/snapshots/dwave_0deg_pilot_cache.tar.gz",
     },
 }
+LEGACY_N896_DIAGNOSTICS_DESTINATION = (
+    "archive/legacy/diagnostics/N896_unresolved_diagnostics.tar.gz"
+)
 
 _TEXT_SUFFIXES = {
     ".cfg",
@@ -70,7 +73,7 @@ _SKIP_REPOSITORY_DIRECTORIES = {
 _SELF_REPORT_NAMES = {"output_layout_audit.json", "output_layout_audit.tsv"}
 
 
-def _canonical_bytes(value: Any) -> bytes:
+def canonical_bytes(value: Any) -> bytes:
     return json.dumps(
         value,
         ensure_ascii=False,
@@ -79,19 +82,19 @@ def _canonical_bytes(value: Any) -> bytes:
     ).encode("utf-8")
 
 
-def _digest(value: Any) -> str:
-    return hashlib.sha256(_canonical_bytes(value)).hexdigest()
+def value_digest(value: Any) -> str:
+    return hashlib.sha256(canonical_bytes(value)).hexdigest()
 
 
-def _sha256(path: Path) -> str:
+def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
+    with Path(path).open("rb") as handle:
         while chunk := handle.read(8 * 1024 * 1024):
             digest.update(chunk)
     return digest.hexdigest()
 
 
-def _atomic_json_write(path: Path, payload: Mapping[str, Any]) -> Path:
+def atomic_json_write(path: Path, payload: Mapping[str, Any]) -> Path:
     target = Path(path).resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = target.with_name(f".{target.name}.tmp")
@@ -103,7 +106,7 @@ def _atomic_json_write(path: Path, payload: Mapping[str, Any]) -> Path:
     return target
 
 
-def _tree_rows(path: Path, *, hash_files: bool) -> list[dict[str, Any]]:
+def tree_rows(path: Path, *, hash_files: bool) -> list[dict[str, Any]]:
     root = Path(path).absolute()
     rows: list[dict[str, Any]] = []
     if root.is_symlink():
@@ -125,7 +128,18 @@ def _tree_rows(path: Path, *, hash_files: bool) -> list[dict[str, Any]]:
                 "type": "file",
                 "bytes": int(info.st_size),
                 "mode": stat.S_IMODE(info.st_mode),
-                "sha256": _sha256(root) if hash_files else None,
+                "sha256": sha256_file(root) if hash_files else None,
+            }
+        ]
+    if not root.is_dir():
+        info = root.lstat()
+        return [
+            {
+                "relative_path": ".",
+                "type": "other",
+                "bytes": int(info.st_size),
+                "mode": stat.S_IMODE(info.st_mode),
+                "sha256": None,
             }
         ]
     for candidate in sorted(root.rglob("*")):
@@ -145,7 +159,7 @@ def _tree_rows(path: Path, *, hash_files: bool) -> list[dict[str, Any]]:
             digest = None
         elif candidate.is_file():
             item_type = "file"
-            digest = _sha256(candidate) if hash_files else None
+            digest = sha256_file(candidate) if hash_files else None
         else:
             item_type = "other"
             digest = None
@@ -159,6 +173,31 @@ def _tree_rows(path: Path, *, hash_files: bool) -> list[dict[str, Any]]:
             }
         )
     return rows
+
+
+def output_entry_snapshot(path: Path) -> dict[str, Any]:
+    source = Path(path).absolute()
+    rows = tree_rows(source, hash_files=True)
+    files = [row for row in rows if row["type"] == "file"]
+    types = Counter(str(row["type"]) for row in rows)
+    return {
+        "path": str(source),
+        "kind": (
+            "symlink"
+            if source.is_symlink()
+            else "directory"
+            if source.is_dir()
+            else "file"
+            if source.is_file()
+            else "other"
+        ),
+        "bytes": sum(int(row["bytes"]) for row in files),
+        "file_count": len(files),
+        "entry_type_counts": dict(sorted(types.items())),
+        "tree_digest": value_digest(rows),
+        "sha256": sha256_file(source) if source.is_file() and not source.is_symlink() else None,
+        "tree_rows": rows,
+    }
 
 
 def _json_summary(path: Path) -> dict[str, Any] | None:
@@ -248,11 +287,26 @@ def _reference_role(relative_path: str) -> str:
     return "runtime"
 
 
+def _reference_patterns(name: str) -> tuple[re.Pattern[str], ...]:
+    escaped = re.escape(name)
+    canonical = re.compile(rf"outputs[/\\]casimir[/\\]{escaped}(?:[/\\]|[\"']|$)")
+    if name != "diagnostics":
+        return (canonical, re.compile(escaped))
+    constructed = re.compile(
+        rf"(?:casimir_root|output_root|DEFAULT_OUTPUT_ROOT\.parent)\s*/\s*[\"']{escaped}[\"']"
+    )
+    split_literal = re.compile(
+        rf"[\"']outputs[\"']\s*/\s*[\"']casimir[\"']\s*/\s*[\"']{escaped}[\"']"
+    )
+    return canonical, constructed, split_literal
+
+
 def _reference_scan(
     repo_root: Path,
     entry_names: Sequence[str],
 ) -> dict[str, list[dict[str, Any]]]:
     names = tuple(sorted(set(str(name) for name in entry_names)))
+    patterns = {name: _reference_patterns(name) for name in names}
     findings: dict[str, list[dict[str, Any]]] = {name: [] for name in names}
     for path in _repository_text_files(repo_root):
         try:
@@ -263,8 +317,7 @@ def _reference_scan(
         role = _reference_role(relative)
         for line_number, line in enumerate(lines, start=1):
             for name in names:
-                canonical_reference = f"outputs/casimir/{name}"
-                if canonical_reference not in line and name not in line:
+                if not any(pattern.search(line) for pattern in patterns[name]):
                     continue
                 findings[name].append(
                     {
@@ -277,15 +330,53 @@ def _reference_scan(
     return findings
 
 
+def _is_legacy_n896_diagnostics(path: Path) -> bool:
+    root = Path(path)
+    if not root.is_dir() or root.is_symlink():
+        return False
+    allowed_top_level = {
+        "N896_cache_primary_and_replay.json",
+        "N896_unresolved_diagnostics",
+    }
+    try:
+        top_level = {child.name for child in root.iterdir()}
+    except OSError:
+        return False
+    if top_level != allowed_top_level:
+        return False
+    primary = root / "N896_cache_primary_and_replay.json"
+    nested = root / "N896_unresolved_diagnostics"
+    cases = nested / "cases"
+    if not primary.is_file() or not cases.is_dir():
+        return False
+    case_directories = sorted(child for child in cases.iterdir() if child.is_dir())
+    if not case_directories:
+        return False
+    required = {"config.json", "manifest.json", "result.json", "summary.json"}
+    for case in case_directories:
+        if not case.name.endswith("_N896_grid2"):
+            return False
+        if not required.issubset({child.name for child in case.iterdir() if child.is_file()}):
+            return False
+    rows = tree_rows(root, hash_files=False)
+    types = Counter(str(row["type"]) for row in rows)
+    return not types.get("symlink") and not types.get("other")
+
+
 def _entry_classification(name: str, path: Path) -> tuple[str, str, str | None]:
     if name in CANONICAL_DIRECTORIES and path.is_dir() and not path.is_symlink():
         return "canonical", "canonical_directory", None
     if name in CANONICAL_FILES and path.is_file() and not path.is_symlink():
         return "canonical", "canonical_file", None
-    if name in REVIEW_DIRECTORIES and path.is_dir() and not path.is_symlink():
+    if name == "diagnostics" and _is_legacy_n896_diagnostics(path):
+        return (
+            "known_legacy",
+            "legacy_n896_diagnostics_directory",
+            LEGACY_N896_DIAGNOSTICS_DESTINATION,
+        )
+    if name == "diagnostics" and path.is_dir() and not path.is_symlink():
         return "review_required", "ambiguous_diagnostics_directory", (
-            "Inspect contents and references before deciding whether to retain, "
-            "split, or archive this root-level directory."
+            "Contents do not match the frozen N896 legacy signature; inspect before migration."
         )
     legacy = KNOWN_LEGACY_ENTRIES.get(name)
     if legacy is not None:
@@ -316,7 +407,8 @@ def build_output_layout_audit(
     for path in top_level:
         classification, kind, proposed_destination = _entry_classification(path.name, path)
         detailed = classification in {"known_legacy", "review_required", "unexpected"}
-        rows = _tree_rows(path, hash_files=detailed)
+        snapshot = output_entry_snapshot(path) if detailed else None
+        rows = snapshot["tree_rows"] if snapshot is not None else tree_rows(path, hash_files=False)
         file_rows = [row for row in rows if row["type"] == "file"]
         type_counts = Counter(str(row["type"]) for row in rows)
         entry_references = references.get(path.name, [])
@@ -333,8 +425,8 @@ def build_output_layout_audit(
             "bytes": sum(int(row["bytes"]) for row in file_rows),
             "file_count": len(file_rows),
             "entry_type_counts": dict(sorted(type_counts.items())),
-            "tree_digest": _digest(rows) if detailed else None,
-            "sha256": _sha256(path) if regular_file else None,
+            "tree_digest": snapshot["tree_digest"] if snapshot is not None else None,
+            "sha256": sha256_file(path) if regular_file else None,
             "references": entry_references,
             "reference_count": len(entry_references),
             "runtime_reference_count": len(runtime_references),
@@ -359,19 +451,14 @@ def build_output_layout_audit(
         entries.append(entry)
 
     counts = Counter(str(entry["classification"]) for entry in entries)
-    blockers = []
+    blockers: list[str] = []
     for entry in entries:
         if entry["classification"] == "unexpected":
             blockers.append(f"unexpected root entry: {entry['name']}")
         if entry["classification"] == "review_required":
             blockers.append(f"manual review required: {entry['name']}")
-        if (
-            entry["classification"] == "known_legacy"
-            and entry["runtime_reference_count"]
-        ):
-            blockers.append(
-                f"legacy entry still has runtime references: {entry['name']}"
-            )
+        if entry["classification"] == "known_legacy" and entry["runtime_reference_count"]:
+            blockers.append(f"legacy entry still has runtime path references: {entry['name']}")
         type_counts = entry.get("entry_type_counts", {})
         if type_counts.get("symlink") or type_counts.get("other"):
             blockers.append(f"unsupported filesystem entry type: {entry['name']}")
@@ -388,7 +475,6 @@ def build_output_layout_audit(
         "casimir_root": str(root),
         "canonical_directories": sorted(CANONICAL_DIRECTORIES),
         "canonical_files": sorted(CANONICAL_FILES),
-        "review_directories": sorted(REVIEW_DIRECTORIES),
         "entry_count": len(entries),
         "classification_counts": dict(sorted(counts.items())),
         "legacy_entry_count": int(counts.get("known_legacy", 0)),
@@ -404,13 +490,14 @@ def build_output_layout_audit(
             "read_only": True,
             "source_modified": False,
             "legacy_entries_are_not_moved": True,
-            "diagnostics_requires_manual_review": True,
-            "only_runtime_references_block_migration": True,
+            "unknown_diagnostics_requires_manual_review": True,
+            "n896_diagnostics_signature_is_machine_checked": True,
+            "only_runtime_path_references_block_migration": True,
             "symlinks_and_special_files_block_migration": True,
             "self_generated_reports_excluded_from_catalog_stats": True,
         },
     }
-    payload["audit_sha256"] = _digest(payload)
+    payload["audit_sha256"] = value_digest(payload)
     return payload
 
 
@@ -420,7 +507,7 @@ def write_output_layout_audit(
     json_path: Path,
     tsv_path: Path,
 ) -> tuple[Path, Path]:
-    json_target = _atomic_json_write(Path(json_path), dict(audit))
+    json_target = atomic_json_write(Path(json_path), dict(audit))
     tsv_target = Path(tsv_path).resolve()
     tsv_target.parent.mkdir(parents=True, exist_ok=True)
     temporary = tsv_target.with_name(f".{tsv_target.name}.tmp")
@@ -463,7 +550,13 @@ __all__ = [
     "CANONICAL_FILES",
     "KNOWN_LEGACY_ENTRIES",
     "LAYOUT_AUDIT_SCHEMA",
-    "REVIEW_DIRECTORIES",
+    "LEGACY_N896_DIAGNOSTICS_DESTINATION",
+    "atomic_json_write",
     "build_output_layout_audit",
+    "canonical_bytes",
+    "output_entry_snapshot",
+    "sha256_file",
+    "tree_rows",
+    "value_digest",
     "write_output_layout_audit",
 ]
