@@ -18,6 +18,7 @@ from .progress import ProgressSink, progress_context
 from .run_identity import scientific_config_payload, scientific_config_sha256
 
 _CASE_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+_PROGRESS_ONLY_FILENAMES = frozenset({"progress.json", "progress.events.jsonl"})
 
 
 def _utc_now() -> str:
@@ -129,6 +130,16 @@ def _write_identity_sidecar(
     _atomic_json(path, expected)
 
 
+def _contains_only_progress_sidecars(run_dir: Path) -> bool:
+    """Allow a fresh reporter to announce a case before scientific setup begins."""
+
+    try:
+        names = {path.name for path in run_dir.iterdir()}
+    except OSError:
+        return False
+    return bool(names) and names.issubset(_PROGRESS_ONLY_FILENAMES)
+
+
 def execute_case(
     *,
     case: str,
@@ -150,7 +161,7 @@ def execute_case(
         )
     run_dir = Path(output_root) / case
     result_path = run_dir / "result.json"
-    if run_dir.exists() and not resume:
+    if run_dir.exists() and not resume and not _contains_only_progress_sidecars(run_dir):
         raise FileExistsError(
             f"run directory already exists: {run_dir}; use formal --resume to reuse it"
         )
