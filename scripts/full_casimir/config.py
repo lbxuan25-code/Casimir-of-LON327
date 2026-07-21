@@ -9,6 +9,7 @@ import os
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OUTPUT_ROOT = REPO_ROOT / "outputs" / "casimir" / "runs"
+DEFAULT_PRODUCTION_ROOT = REPO_ROOT / "outputs" / "casimir" / "production"
 DEFAULT_POSTPROCESS_ROOT = REPO_ROOT / "outputs" / "casimir" / "postprocessed"
 DEFAULT_LOG_ROOT = REPO_ROOT / "outputs" / "casimir" / "workflow_logs"
 
@@ -18,6 +19,9 @@ DEFAULT_OUTER_CUTOFFS_U = (6.0, 10.0, 14.0, 18.0, 24.0, 30.0, 36.0, 42.0)
 DEFAULT_PAIRINGS = ("spm", "dwave")
 DEFAULT_TEMPERATURE_K = 10.0
 DEFAULT_SEPARATION_NM = 20.0
+DEFAULT_DELTA0_EV = 0.1
+DEFAULT_ETA_EV = 1e-8
+DEFAULT_DEGENERACY = 1.0
 DEFAULT_RTOL = 5e-3
 DEFAULT_ATOL_J_M2 = 1e-12
 DEFAULT_LOGDET_RTOL = 1.5e-3
@@ -27,6 +31,15 @@ DEFAULT_MEMORY_BUDGET_GB = 16.0
 DEFAULT_MAX_CONTEXT_WORKERS = 1
 DEFAULT_RESERVED_LOGICAL_CPUS = 6
 DEFAULT_WORKER_CAP = 26
+DEFAULT_OUTER_TAIL_START_U = 24.0
+DEFAULT_OUTER_TAIL_WINDOW_SHELLS = 3
+DEFAULT_OUTER_TAIL_RATIO_MAX = 0.8
+DEFAULT_MATSUBARA_TAIL_START_N = 8
+DEFAULT_MATSUBARA_TAIL_WINDOW_TERMS = 4
+DEFAULT_MATSUBARA_TAIL_RATIO_MAX = 0.8
+DEFAULT_RADIAL_BUDGET_FRACTION = 0.8
+DEFAULT_MAX_TOTAL_MICROSCOPIC_Q_NODES = 250_000
+DEFAULT_MAX_TOTAL_MICROSCOPIC_POINT_ENTRIES = 1_000_000
 DEFAULT_SCAN_MIN_DEG = -4
 DEFAULT_SCAN_MAX_DEG = 94
 DEFAULT_SCAN_STEP_DEG = 2
@@ -122,14 +135,15 @@ def angle_token(angle_deg: int | float) -> str:
     return f"m{token}" if negative else f"p{token}"
 
 
-def case_name(
+def physical_case_name(
     pairing: str,
     angle_deg: int | float,
     *,
     temperature_K: int | float = DEFAULT_TEMPERATURE_K,
     separation_nm: int | float = DEFAULT_SEPARATION_NM,
-    profile: str = PROFILE_NAME,
 ) -> str:
+    """Name one physical case without a human development-version suffix."""
+
     if pairing not in DEFAULT_PAIRINGS:
         raise ValueError(f"unsupported pairing: {pairing}")
     temperature = float(_decimal(temperature_K, label="temperature_K"))
@@ -142,8 +156,21 @@ def case_name(
     separation_token = _unsigned_token(separation, label="separation_nm")
     return (
         f"{pairing}_T{temperature_token}K_d{separation_token}nm_"
-        f"theta_{angle_token(angle_deg)}deg_{profile}"
+        f"theta_{angle_token(angle_deg)}deg"
     )
+
+
+def case_name(
+    pairing: str,
+    angle_deg: int | float,
+    *,
+    temperature_K: int | float = DEFAULT_TEMPERATURE_K,
+    separation_nm: int | float = DEFAULT_SEPARATION_NM,
+    profile: str = PROFILE_NAME,
+) -> str:
+    """Legacy case naming surface retained for historical workflows."""
+
+    return f"{physical_case_name(pairing, angle_deg, temperature_K=temperature_K, separation_nm=separation_nm)}_{profile}"
 
 
 def _read_topology(cpu: int) -> tuple[int, int]:
