@@ -17,6 +17,7 @@ def test_unified_dispatcher_is_the_only_operational_command_surface() -> None:
         "plan",
         "run",
         "resources",
+        "status",
         "diagnose",
         "audit",
         "shift-audit",
