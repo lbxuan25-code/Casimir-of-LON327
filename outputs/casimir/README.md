@@ -10,9 +10,17 @@ audits, verifies, archives, or explicitly removes data.
 outputs/casimir/
 ├── README.md
 ├── production/
+│   ├── .locks/
+│   │   ├── <campaign-id>.lock.json
+│   │   ├── <campaign-id>.<token>.heartbeat.json
+│   │   └── history/
 │   └── <campaign-id>/
-│       ├── plan.json
-│       ├── campaign_identity.json
+│       ├── campaign.json
+│       ├── policy.json
+│       ├── progress.json
+│       ├── progress.events.jsonl
+│       ├── plans/
+│       │   └── <plan-sha256>.json
 │       ├── runs/
 │       │   └── <physical-case>/
 │       │       ├── identity.json
@@ -20,15 +28,28 @@ outputs/casimir/
 │       │       ├── manifest.json
 │       │       ├── result.json
 │       │       ├── summary.json
+│       │       ├── progress.json
+│       │       ├── progress.events.jsonl
 │       │       └── cache/
 │       │           ├── identity.json
-│       │           └── certified_points.json
+│       │           ├── certified_points.json
+│       │           └── certified_points.telemetry.json
 │       └── reports/
+│           ├── energy_cases.csv
+│           ├── recovery.json
+│           ├── source_proof.json
+│           ├── artifact_manifest.json
+│           └── reproducibility.json
 ├── archive/
 ├── catalog/
 ├── reports/
 └── postprocessed/
 ```
+
+The active lock and heartbeat exist only while one process owns the campaign. Stale
+owner records are archived before explicit takeover. Progress files and lock records
+are operational evidence; they are deliberately excluded from the authoritative
+scientific artifact manifest.
 
 A formal campaign is created only through:
 
@@ -39,7 +60,14 @@ python -m scripts.full_casimir run --plan ... --confirm-plan-sha256 ... --fresh
 
 The same campaign is continued only through the identical plan and scientific
 identity using `--resume`. Formal execution never scans, imports, migrates, extends,
-or reinterprets old profile caches.
+or reinterprets old profile caches. It resumes from the last atomically committed
+certified-point cache and writes a read-only recovery report before execution.
+
+Verify the final source and artifact proof without starting calculation:
+
+```bash
+python -m scripts.full_casimir proof --campaign <campaign-id>
+```
 
 The former `runs/<profile-case>/`, `workflow_logs/`, pilot-extension, qualification,
 background-wrapper, and versioned-profile calculation routes are historical only and
