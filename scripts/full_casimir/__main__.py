@@ -10,28 +10,21 @@ Unified LNO327 full-Casimir command interface.
 Usage:
   python -m scripts.full_casimir <command> [options]
 
-Primary production commands:
-  plan         Resolve a single or multi-angle/multi-distance case matrix.
-  run          Execute the resolved physical case matrix.
-  resources    Show the CPU selection used by production runs.
+Production commands:
+  plan         Freeze a scientific policy and physical case matrix.
+  run          Execute or resume a SHA-confirmed formal campaign.
+  resources    Show the execution resources selected for a formal run.
 
-Analysis and data commands:
-  diagnose     Diagnose one or more completed or interrupted runs.
-  audit        Build a convergence audit across runs.
-  shift-audit  Replay historical three-shift histories under the formal two-shift policy.
-  torque       Run the existing torque post-processing path.
+Read-only analysis and data commands:
+  diagnose     Diagnose completed or interrupted campaign artifacts.
+  audit        Build a convergence audit without starting production work.
+  shift-audit  Replay historical three-shift evidence under the two-shift policy.
+  torque       Post-process existing energy results.
   plot         Plot existing post-processed results.
   data         Catalog, archive, verify, or explicitly prune local data.
   layout       Inspect or migrate the output layout.
 
-Frozen qualification compatibility commands:
-  qualification          Run the frozen qualification command group.
-  qualification-holdout  Run the parallel holdout executor.
-  qualification-verify   Verify a completed frozen qualification.
-
-Compatibility command:
-  legacy-workflow  Access the previous workflow.py command surface.
-
+No other script or package command is an authorized Casimir calculation route.
 Use '<command> --help' for command-specific options.
 """
 
@@ -43,20 +36,10 @@ _COMMANDS: dict[str, tuple[str, tuple[str, ...]]] = {
     "diagnose": ("scripts.full_casimir.diagnostics", ("diagnose",)),
     "audit": ("scripts.full_casimir.diagnostics", ("audit",)),
     "shift-audit": ("scripts.full_casimir.shift_audit", ()),
-    "torque": ("scripts.full_casimir.workflow", ("torque",)),
-    "plot": ("scripts.full_casimir.workflow", ("plot",)),
+    "torque": ("scripts.full_casimir.analysis", ("torque",)),
+    "plot": ("scripts.full_casimir.analysis", ("plot",)),
     "data": ("scripts.full_casimir.data", ()),
     "layout": ("scripts.full_casimir.layout", ()),
-    "qualification": ("scripts.full_casimir.qualification", ()),
-    "qualification-holdout": (
-        "scripts.full_casimir.qualification_holdout",
-        (),
-    ),
-    "qualification-verify": (
-        "scripts.full_casimir.qualification_verify",
-        (),
-    ),
-    "legacy-workflow": ("scripts.full_casimir.workflow", ()),
 }
 
 
