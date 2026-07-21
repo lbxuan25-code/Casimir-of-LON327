@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import json
 from pathlib import Path
 import pytest
@@ -17,6 +16,8 @@ class _FakeResult:
     matsubara_converged = True
     outer_tail_estimated = True
     matsubara_tail_estimated = True
+    formal_policy_passed = False
+    error_budget_closed = False
     production_casimir_allowed = False
     selected_matsubara_cutoff = 15
     pairing_results = {"spm": {
@@ -51,7 +52,9 @@ def test_named_case_writes_one_deterministic_run_layout(tmp_path: Path) -> None:
     assert {path.name for path in run.iterdir()} == {"config.json", "manifest.json", "result.json", "summary.json"}
     manifest = json.loads((run / "manifest.json").read_text(encoding="utf-8"))
     summary = json.loads((run / "summary.json").read_text(encoding="utf-8"))
-    assert manifest["status"] == "completed"
+    assert manifest["status"] == "diagnostic_only"
+    assert manifest["numerically_converged"] is True
+    assert manifest["production_casimir_allowed"] is False
     assert manifest["paths"]["point_cache"] == "cache/certified_points.json"
     assert summary["selected_matsubara_cutoff"] == 15
     assert summary["selected_u_max"] == 42.0
