@@ -59,13 +59,35 @@ python -m scripts.full_casimir.diagnostics \
 
 ## 统一收敛审计
 
-`audit` 子命令对多个 pairing 使用同一审计结构：逐点重放候选全局 `logdet_rtol`、比较 pairing-blind 数值政策、在可重放的运行上分离真实 outer shell 信号与有限域误差地板，并生成一份统一的证据账本。
+`audit` 子命令对多个 pairing 使用同一审计结构：逐点重放候选全局 `logdet_rtol`、比较 pairing-blind 数值政策、在临时缓存中投影候选策略、重放同一套 radial/angular/outer/Matsubara 控制器，并生成一份统一报告。
 
 ```bash
 python -m scripts.full_casimir.diagnostics audit \
   --run-dir outputs/casimir/runs/dwave_T10K_d20nm_theta_p000deg_0deg_pilot_v4 \
   --run-dir outputs/casimir/runs/spm_T10K_d20nm_theta_p000deg_0deg_pilot_v4 \
-  --candidate-logdet-rtol 0.0015 0.00175 0.002 0.0025 0.003
+  --candidate-logdet-rtol 0.0015 0.00175 0.002 0.0025 0.003 \
+  --closure-candidate-logdet-rtol 0.002 0.0025 \
+  --unified-radial-budget-fraction 0.8
 ```
 
-默认报告写入 `outputs/casimir/reports/convergence_audit.json`。审计不会修改任何认证门：hard-physical gate 与连续通过次数保持不变。点级 `N^2` 只作为成本代理，不冒充 wall time；在缺少求积权重、高 N holdout、解析尾界或无重复计数的总误差账本时，报告必须保持 `production_change_not_authorized`。
+完整审计包括：
+
+- 原生产策略下逐点 `status/working_N/audit_N/establishment_mode` 等价性；
+- 统一 N 梯子及统一 radial/angular 预算下的临时候选缓存重放；
+- 从最终接受的 child-panel 求积网格重建 exact-q signed/absolute 权重；
+- 候选策略相对最高已存硬物理层的加权自由能变化与保守微观点误差界；
+- 按加权误差贡献生成独立高 N holdout 清单；
+- pairing-independent 的条件性真空传播尾界；
+- 避免重复累加 radial/angular/offset 子误差的端到端误差账本；
+- cache-only 控制器重放耗时及 radial/angular 预算反事实筛选。
+
+默认报告写入 `outputs/casimir/reports/convergence_audit.json`。所有原缓存运行前后 SHA-256 必须相同，任何 cache miss 都禁止启动新微观计算。
+
+审计实现完成不等于生产参数已经获准。报告在以下外部证据完成前必须保持 `production_change_not_authorized`：
+
+1. 按冻结候选执行独立高 N holdout；
+2. 证明当前功率度量下 round-trip reflection operator 的收缩性，从而把条件性解析尾界升级为正式认证；
+3. 使用真实微观计算比较冻结候选与严格策略的 wall time、内存和缓存行为；
+4. 将源生产配置改为 pairing-blind 数值政策并重新进行 0° 端到端认证。
+
+条件性解析尾界只报告公式、数值和缺失前提，不能单独放行 outer tail；点级 `N^2` 与 cache-only replay wall time 也不能冒充新生产运行的实际加速。
