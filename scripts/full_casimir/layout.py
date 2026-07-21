@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Sequence
 
 from .config import DEFAULT_OUTPUT_ROOT, REPO_ROOT
-from .output_layout import build_output_layout_audit, write_output_layout_audit
+from .output_layout import write_output_layout_audit
 from .output_layout_migration import (
     LAYOUT_FINALIZE_CONFIRMATION,
     build_layout_finalize_plan,
@@ -17,6 +17,7 @@ from .output_layout_migration import (
     write_layout_migration_plan,
     write_layout_stage_execution,
 )
+from .output_layout_review import build_reviewed_output_layout_audit
 
 
 def _root() -> Path:
@@ -72,7 +73,7 @@ def _run_audit(args: argparse.Namespace) -> int:
     catalog = root / "catalog"
     json_path = Path(args.json_path).resolve() if args.json_path else catalog / "output_layout_audit.json"
     tsv_path = Path(args.tsv_path).resolve() if args.tsv_path else catalog / "output_layout_audit.tsv"
-    audit = build_output_layout_audit(root, repo_root=Path(args.repo_root))
+    audit = build_reviewed_output_layout_audit(root, repo_root=Path(args.repo_root))
     write_output_layout_audit(audit, json_path=json_path, tsv_path=tsv_path)
     print(f"written: {json_path}")
     print(f"written: {tsv_path}")
