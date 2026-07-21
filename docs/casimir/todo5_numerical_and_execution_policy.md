@@ -93,25 +93,25 @@ reduction order.
 ### Local workstation profile
 
 ```text
-profile name        = local-workstation-v1
+profile name         = local-workstation-v1
 reserved logical CPU = 6
-worker cap          = 26
-parallel mode       = q
-memory budget       = 16 GiB
-max context workers = 1
-q batch size        = 512
+worker cap           = 26
+parallel mode        = q
+memory budget        = 16 GiB
+max context workers  = 1
+q batch size         = 512
 ```
 
 ### Server throughput profile
 
 ```text
-profile name        = server-throughput-v1
+profile name         = server-throughput-v1
 reserved logical CPU = 2
-worker cap          = no artificial cap; use affinity minus reserve
-parallel mode       = q
-memory budget       = automatic host budget
-max context workers = 1
-q batch size        = 512
+worker cap           = no artificial cap; use affinity minus reserve
+parallel mode        = q
+memory budget        = automatic host budget
+max context workers  = 1
+q batch size         = 512
 ```
 
 The server profile intentionally preserves the same numerical process shape as
@@ -138,9 +138,16 @@ is paused and the engineering policy is revised before the wider scan.
 
 ## Completion boundary
 
-TODO 5 freezes the transverse and engineering policies.  It supplies conservative
-outer-Q and Matsubara qualification candidates, but does not claim their final
-economical endpoints before the post-TODO-8 fresh 0-degree run.
+TODO 5 is considered complete when:
+
+- the transverse policy is frozen in production defaults and tests;
+- local and server execution profiles are fixed;
+- the candidate outer-Q and Matsubara ladders are recorded in the policy;
+- the full contract suite and engineering smoke tests pass.
+
+Final economical outer-Q and Matsubara endpoints are deliberately deferred to
+the post-TODO-8 fresh 0-degree run.  This deferred measurement is part of the
+qualification campaign, not an unfinished transverse or execution-policy task.
 
 After TODO 5, the repository undergoes one engineering cleanup pass.  Cleanup may
 reorganize modules and remove obsolete compatibility clutter, but it may not
