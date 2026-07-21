@@ -37,3 +37,22 @@ python -m scripts.full_casimir.workflow pilots \
 ```
 
 每个目标缓存旁都会写入 `extension_report.json`，记录源/目标 SHA-256、N 梯子、保留条目和被剔除的未收敛点身份。目标缓存已存在时命令只验证策略并跳过，不会覆盖正在形成的结果。
+
+## 未收敛运行诊断
+
+`scripts.full_casimir.diagnostics` 提供只读诊断，不修改原始 `config.json`、`result.json` 或认证缓存。默认模式从缓存中恢复精确 float64 `q`，逐层报告 hard-physical、cross-shift、adjacent-N、连续通过计数和 oscillatory-envelope 门。
+
+```bash
+python -m scripts.full_casimir.diagnostics \
+  --run-dir outputs/casimir/runs/dwave_T10K_d20nm_theta_p000deg_0deg_pilot_v4
+```
+
+当缓存中所有微观点都已经建立时，可以启用 cache-only outer-tail replay。命令先复制认证缓存到临时目录，禁止任何新微观认证工作，然后按原始配置重放外层控制器，输出每个 shell 的 envelope、相邻 shell 比值、有限域误差、尾部预算及主导失败原因。原缓存运行前后 SHA-256 必须一致。
+
+```bash
+python -m scripts.full_casimir.diagnostics \
+  --run-dir outputs/casimir/runs/spm_T10K_d20nm_theta_p000deg_0deg_pilot_v4 \
+  --replay-outer-tail
+```
+
+结构化报告写入每个运行目录的 `reports/diagnostics.json`。如果 replay 遇到缓存缺失点，命令会 fail closed，而不会启动昂贵的横向积分。
