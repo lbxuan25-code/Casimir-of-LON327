@@ -1,34 +1,30 @@
 """Pairing-blind 0-degree qualification runner and analytic outer-tail certificate.
 
-The ordinary production runner remains unchanged.  This module is used only by the
-frozen ``0deg_qualification_v5`` workflow.  It first executes the existing numerical
-geometric tail controller.  If that controller reaches the end of the common cutoff
+The ordinary production runner remains unchanged. This module is used only by the
+frozen ``0deg_qualification_v5`` workflow. It first executes the existing numerical
+geometric tail controller. If that controller reaches the end of the common cutoff
 ladder with every finite-domain and microscopic hard gate passed but cannot resolve a
-geometric shell ratio, the runner applies a pairing-independent passive-vacuum bound.
+geometric shell ratio, the runner may apply a pairing-independent passive-vacuum bound.
 
-Mathematical contract
----------------------
 For a validated passive positive-Matsubara sheet, in the vacuum-admittance power
 metric the tangential-electric reflection operator is similar to
+``-(2 I + A)^(-1) A`` with positive-semidefinite ``A``. Its singular values therefore
+lie in ``[0, 1)``. The zero-Matsubara reflection is diagonal; the persisted reflection
+norm is used as a conservative spectral-norm upper bound. Similarity leaves the
+determinant invariant, and vacuum round-trip propagation contributes ``exp(-u)``.
+Thus the two-polarization determinant obeys
+``|log det(I - R1 R2 exp(-u))| <= -2 log(1-exp(-u))``.
 
-    -(2 I + A)^(-1) A,
-
-where A is positive semidefinite.  Its singular values therefore lie in [0, 1).
-The zero-Matsubara reflection is diagonal with passive channel parameters and obeys
-the same contraction bound.  Similarity leaves the determinant invariant.  The
-vacuum round trip contributes exp(-u), so for the two-polarization determinant
-
-    |log det(I - R1 R2 exp(-u))| <= -2 log(1 - exp(-u)).
-
-The resulting radial tail is integrated explicitly.  This path is accepted only
-when the existing microscopic hard-physical contract and the complete finite-domain
-controller have both passed.  It never bypasses Ward, sheet, passivity, reflection,
-radial, angular, or offset gates.
+The analytic path is fail closed: before use, the qualification runner re-reads the
+actual target cache and verifies contraction evidence at every accepted audit state.
+It never bypasses Ward, sheet, passivity, reflection, radial, angular, or offset gates.
 """
 from __future__ import annotations
 
 from dataclasses import replace
+import json
 import math
+from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -111,6 +107,153 @@ def _finite_vector(value: Any, *, name: str, count: int) -> np.ndarray:
     return array
 
 
+def _accepted_audit_row(point: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    sweet = point.get("sweet_spot")
+    if not isinstance(sweet, Mapping) or sweet.get("status") != "established":
+        return None
+    try:
+        audit_N = int(sweet["audit_N"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    for row in point.get("history", []):
+        if isinstance(row, Mapping) and int(row.get("N", -1)) == audit_N:
+            return row
+    return None
+
+
+def _plate_contract(plate: Mapping[str, Any], *, n: int) -> tuple[bool, str, float | None]:
+    if not bool(plate.get("sheet_validation_passed")) or not bool(
+        plate.get("reflection_constructed")
+    ):
+        return False, "sheet_or_reflection_gate_missing", None
+    if bool(plate.get("power_metric_contraction_certified")):
+        raw = plate.get("power_metric_singular_value_max_upper_bound")
+        upper = float(raw) if isinstance(raw, (int, float)) else None
+        return True, str(plate.get("power_metric_certificate_method", "persisted")), upper
+    if int(n) > 0:
+        return True, "passive_sheet_vacuum_admittance_similarity_theorem", 1.0
+    try:
+        upper = abs(float(plate.get("reflection_norm")))
+    except (TypeError, ValueError, OverflowError):
+        return False, "static_reflection_norm_missing", None
+    return (
+        bool(math.isfinite(upper) and upper <= 1.0 + 1e-12),
+        "stored_frobenius_norm_upper_bounds_static_spectral_norm",
+        upper,
+    )
+
+
+def cached_power_metric_contraction_certificate(provider: Any) -> dict[str, Any]:
+    cache_path = getattr(provider, "cache_path", None)
+    if cache_path is None or not Path(cache_path).is_file():
+        return {
+            "schema": "cached-power-metric-contraction-certificate-v1",
+            "status": "not_certified",
+            "reason": "provider cache is unavailable",
+            "all_points_certified": False,
+            "point_count": 0,
+            "failures": [],
+        }
+    try:
+        payload = json.loads(Path(cache_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {
+            "schema": "cached-power-metric-contraction-certificate-v1",
+            "status": "not_certified",
+            "reason": f"cannot read provider cache: {exc}",
+            "all_points_certified": False,
+            "point_count": 0,
+            "failures": [],
+        }
+    entries = payload.get("entries")
+    if not isinstance(entries, list) or not entries:
+        return {
+            "schema": "cached-power-metric-contraction-certificate-v1",
+            "status": "not_certified",
+            "reason": "provider cache has no entries",
+            "all_points_certified": False,
+            "point_count": 0,
+            "failures": [],
+        }
+    failures: list[dict[str, Any]] = []
+    certified = 0
+    maximum_upper = 0.0
+    methods: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, Mapping):
+            failures.append({"identity": None, "reason": "malformed cache entry"})
+            continue
+        identity = [
+            str(entry.get("pairing")),
+            int(entry.get("n", -1)),
+            str(entry.get("qx_hex")),
+            str(entry.get("qy_hex")),
+        ]
+        point = entry.get("point_result")
+        if not isinstance(point, Mapping):
+            failures.append({"identity": identity, "reason": "point_result missing"})
+            continue
+        row = _accepted_audit_row(point)
+        if row is None:
+            failures.append({"identity": identity, "reason": "accepted audit row missing"})
+            continue
+        shifts = row.get("shifts")
+        if not isinstance(shifts, Mapping) or not shifts:
+            failures.append({"identity": identity, "reason": "audit shifts missing"})
+            continue
+        point_ok = True
+        for shift_label, state in shifts.items():
+            if not isinstance(state, Mapping) or not bool(state.get("hard_physical_passed")):
+                failures.append(
+                    {"identity": identity, "shift": str(shift_label), "reason": "hard gate failed"}
+                )
+                point_ok = False
+                continue
+            for plate_name in ("plate_1", "plate_2"):
+                plate = state.get(plate_name)
+                if not isinstance(plate, Mapping):
+                    failures.append(
+                        {
+                            "identity": identity,
+                            "shift": str(shift_label),
+                            "plate": plate_name,
+                            "reason": "plate evidence missing",
+                        }
+                    )
+                    point_ok = False
+                    continue
+                passed, method, upper = _plate_contract(plate, n=int(identity[1]))
+                methods.add(method)
+                if upper is not None and math.isfinite(upper):
+                    maximum_upper = max(maximum_upper, upper)
+                if not passed:
+                    failures.append(
+                        {
+                            "identity": identity,
+                            "shift": str(shift_label),
+                            "plate": plate_name,
+                            "reason": method,
+                            "upper_bound": upper,
+                        }
+                    )
+                    point_ok = False
+        if point_ok:
+            certified += 1
+    all_certified = certified == len(entries) and not failures
+    return {
+        "schema": "cached-power-metric-contraction-certificate-v1",
+        "status": "certified" if all_certified else "not_certified",
+        "proof_version": PASSIVE_REFLECTION_BOUND_VERSION,
+        "cache_path": str(Path(cache_path)),
+        "point_count": len(entries),
+        "certified_point_count": certified,
+        "all_points_certified": all_certified,
+        "maximum_recorded_upper_bound": maximum_upper,
+        "methods": sorted(methods),
+        "failures": failures[:64],
+    }
+
+
 def _geometric_certificate_tag(
     result: AdaptiveOuterTailCasimirResult,
 ) -> AdaptiveOuterTailCasimirResult:
@@ -126,9 +269,13 @@ def _geometric_certificate_tag(
 def _analytic_upgrade(
     config: AdaptiveOuterTailCasimirConfig,
     result: AdaptiveOuterTailCasimirResult,
+    *,
+    contraction_certificate: Mapping[str, Any],
 ) -> AdaptiveOuterTailCasimirResult:
     if result.status == "adaptive_finite_partial" and result.cutoff_converged:
         return _geometric_certificate_tag(result)
+    if contraction_certificate.get("all_points_certified") is not True:
+        return result
     if not result.all_microscopic_nodes_certified:
         return result
     if not result.all_finite_domain_runs_converged:
@@ -208,14 +355,7 @@ def _analytic_upgrade(
                 "outer_tail_certificate_path": "analytic_passive_vacuum",
                 "outer_tail_certificate_pairing_independent": True,
                 "passive_vacuum_tail_certificate": dict(certificate),
-                "power_metric_contraction_premise": {
-                    "status": "proved_by_validated_sheet_contract",
-                    "proof_version": PASSIVE_REFLECTION_BOUND_VERSION,
-                    "requires_all_microscopic_hard_physical_gates": True,
-                    "all_microscopic_hard_physical_gates_passed": True,
-                    "finite_domain_controller_passed": True,
-                    "non_normal_control": "singular-value bound in vacuum-admittance metric",
-                },
+                "power_metric_contraction_premise": dict(contraction_certificate),
             }
         )
         upgraded[str(pairing)] = base
@@ -242,7 +382,12 @@ def run_qualification_outer_tail_casimir(
     """Run the common geometric controller, then the common analytic fallback."""
 
     result = run_adaptive_outer_tail_casimir(config, provider=provider)
-    return _analytic_upgrade(config, result)
+    certificate = cached_power_metric_contraction_certificate(provider)
+    return _analytic_upgrade(
+        config,
+        result,
+        contraction_certificate=certificate,
+    )
 
 
 def run_qualification_casimir(
@@ -271,6 +416,7 @@ def run_qualification_casimir(
 
 __all__ = [
     "PASSIVE_REFLECTION_BOUND_VERSION",
+    "cached_power_metric_contraction_certificate",
     "passive_vacuum_channel_bounds_J_m2",
     "passive_vacuum_tail_series",
     "run_qualification_casimir",
