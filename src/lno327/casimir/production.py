@@ -71,7 +71,7 @@ def _telemetry_payload_is_safe(payload: Any) -> bool:
 def _quarantine_invalid_telemetry(config: FullCasimirConfig) -> Path | None:
     """Remove only malformed, non-authoritative telemetry from the resume path.
 
-    The certified-point cache remains untouched.  A quarantined sidecar is retained
+    The certified-point cache remains untouched. A quarantined sidecar is retained
     next to the cache for diagnosis and can never affect physical acceptance.
     """
 
@@ -124,14 +124,22 @@ def build_full_casimir_config(
     matsubara_tail_ratio_max: float = 0.8,
     total_free_energy_rtol: float = 5e-3,
     total_free_energy_atol_J_m2: float = 1e-12,
+    radial_budget_fraction: float = 0.8,
     max_total_microscopic_q_nodes: int = 250_000,
     max_total_microscopic_point_entries: int = 1_000_000,
     certifier_q_batch_size: int = 512,
     point_cache_path: Path | None = None,
 ) -> FullCasimirConfig:
-    """Build the canonical nested adaptive configuration."""
+    """Build the canonical nested adaptive configuration.
+
+    Numerical budgets are pairing blind. Pairing identity changes only the material
+    response; it never selects a different acceptance rule or error allocation.
+    """
 
     pairing_tuple = tuple(str(value) for value in pairings)
+    fraction = float(radial_budget_fraction)
+    if not math.isfinite(fraction) or not 0.0 < fraction < 1.0:
+        raise ValueError("radial_budget_fraction must lie strictly between zero and one")
     base = AdaptiveMatsubaraCasimirConfig()
     radial_base = base.outer_tail_config.joint_config.radial_config
     point = replace(
@@ -160,12 +168,11 @@ def build_full_casimir_config(
         max_microscopic_q_nodes=int(max_total_microscopic_q_nodes),
         point_cache_path=None,
     )
-    radial_fraction = 0.85 if set(pairing_tuple) == {"spm"} else 0.75
     joint = replace(
         base.outer_tail_config.joint_config,
         radial_config=radial,
-        radial_budget_fraction=radial_fraction,
-        angular_budget_fraction=1.0 - radial_fraction,
+        radial_budget_fraction=fraction,
+        angular_budget_fraction=1.0 - fraction,
         max_total_microscopic_q_nodes=int(max_total_microscopic_q_nodes),
     )
     outer = replace(
