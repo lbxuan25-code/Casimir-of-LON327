@@ -120,12 +120,12 @@ def test_provider_telemetry_survives_resume_and_compact_summary(tmp_path: Path) 
 def test_runtime_v3_defaults_are_calibrated() -> None:
     config = build_full_casimir_config(pairings=("dwave",))
     point = config.outer_tail_config.joint_config.radial_config.point_config
-    assert point.logdet_rtol == pytest.approx(1.5e-3)
+    assert point.logdet_rtol == pytest.approx(2.0e-3)
     assert point.logdet_atol == pytest.approx(1e-6)
     assert config.certifier_q_batch_size == 512
     assert config.total_free_energy_rtol == pytest.approx(5e-3)
     assert config.total_free_energy_atol_J_m2 == pytest.approx(1e-12)
-    assert DEFAULT_LOGDET_RTOL == pytest.approx(1.5e-3)
+    assert DEFAULT_LOGDET_RTOL == pytest.approx(2.0e-3)
     assert DEFAULT_CERTIFIER_Q_BATCH_SIZE == 512
     assert DEFAULT_RESERVED_LOGICAL_CPUS == 6
     assert DEFAULT_WORKER_CAP == 26
