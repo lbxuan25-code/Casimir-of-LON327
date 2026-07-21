@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import subprocess
+import sys
 import tomllib
 
 import lno327.casimir as casimir
@@ -51,6 +53,19 @@ def test_competing_calculation_scripts_are_removed() -> None:
         "src/lno327/casimir/__main__.py",
     )
     assert all(not (ROOT / relative).exists() for relative in removed)
+
+
+def test_direct_production_handler_module_refuses_execution() -> None:
+    completed = subprocess.run(
+        [sys.executable, "-m", "scripts.full_casimir.scan", "--help"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert completed.returncode == 2
+    assert "DIRECT MODULE EXECUTION DISABLED" in completed.stdout
+    assert "python -m scripts.full_casimir" in completed.stdout
 
 
 def test_package_install_does_not_create_a_competing_console_command() -> None:
