@@ -3,6 +3,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from .transverse_policy import (
+    ladder_early_stop_policy_payload,
+    transverse_policy_payload,
+)
+
 ERROR_BUDGET_CONTRACT_VERSION = "full-casimir-error-budget-v1"
 FINITE_MATSUBARA_BUDGET_FRACTION = 0.7
 MATSUBARA_TAIL_BUDGET_FRACTION = 0.3
@@ -42,6 +47,8 @@ def error_budget_policy_payload(*, radial_budget_fraction: float) -> dict[str, A
         "static_contraction_norm": "exact_spectral_norm",
         "frobenius_norm_is_acceptance_gate": False,
         "acceptance_requires_total_budget_closure": True,
+        "transverse_certification": transverse_policy_payload(),
+        "adaptive_ladder_early_stop": ladder_early_stop_policy_payload(),
     }
 
 
