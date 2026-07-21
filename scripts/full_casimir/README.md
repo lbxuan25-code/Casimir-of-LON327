@@ -42,8 +42,32 @@ python -m scripts.full_casimir run \
 ```
 
 `plan` and `run` are the only commands that define or execute formal Casimir work.
-The top-level command also exposes read-only diagnostics, audits, data/layout tools,
-and post-processing of existing results.
+The top-level command also exposes read-only monitoring, diagnostics, audits,
+data/layout tools, and post-processing of existing results.
+
+## Runtime progress
+
+A formal run writes campaign- and case-level `progress.json` snapshots plus append-only
+`progress.events.jsonl` event streams. The terminal shows the current nested activity,
+microscopic/cache counters, unresolved-reason counts, and normalized error-budget
+ratios without performing extra scientific work.
+
+Read one persisted snapshot:
+
+```bash
+python -m scripts.full_casimir status \
+  --campaign <campaign-id>
+```
+
+Continuously monitor it or consume the machine-readable form:
+
+```bash
+python -m scripts.full_casimir status --campaign <campaign-id> --watch
+python -m scripts.full_casimir status --campaign <campaign-id> --json
+```
+
+`status` is read-only. Heartbeats report liveness only; locking, retry ownership, and
+crash recovery remain separate restart-policy concerns.
 
 ## Historical evidence
 
