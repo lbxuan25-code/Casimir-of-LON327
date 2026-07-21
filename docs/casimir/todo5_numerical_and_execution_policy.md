@@ -116,7 +116,9 @@ q batch size         = 512
 
 The server profile intentionally preserves the same numerical process shape as
 the local profile.  Only execution resources change, so the same scientific
-cache identity remains valid.
+cache identity remains valid.  Execution-profile names and resource settings are
+therefore not serialized into the scientific production plan; they are recorded
+as execution provenance at run time.
 
 ## Performance evidence required from the fresh 0-degree run
 
