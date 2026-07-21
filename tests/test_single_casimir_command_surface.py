@@ -18,6 +18,7 @@ def test_unified_dispatcher_is_the_only_operational_command_surface() -> None:
         "run",
         "resources",
         "status",
+        "proof",
         "diagnose",
         "audit",
         "shift-audit",
@@ -88,7 +89,11 @@ def test_package_metadata_points_to_the_unified_operational_route() -> None:
 
 def test_only_plan_and_run_define_or_execute_formal_work() -> None:
     assert unified._COMMANDS["plan"] == ("scripts.full_casimir.scan", ("plan",))
-    assert unified._COMMANDS["run"] == ("scripts.full_casimir.scan", ("run",))
+    assert unified._COMMANDS["run"] == ("scripts.full_casimir.run_command", ())
+    assert unified._COMMANDS["proof"] == (
+        "scripts.full_casimir.reproducibility",
+        (),
+    )
     for command, target in unified._COMMANDS.items():
         if command in {"plan", "run"}:
             continue
