@@ -22,6 +22,7 @@ from .config import (
     apply_single_thread_environment,
 )
 from .identity import case_sidecars, prepare_campaign, read_json_object
+from .progress import CampaignProgressReporter
 
 
 @dataclass(frozen=True)
@@ -92,6 +93,7 @@ def _artifacts_consistent(
     *,
     manifest_status: str,
     converged: bool,
+    authorized: bool,
     expected_config: Mapping[str, Any] | None = None,
 ) -> bool:
     summary = _read_json(run_dir / "summary.json")
@@ -100,11 +102,9 @@ def _artifacts_consistent(
     result_config = result.get("config")
     expected_result_status = "adaptive_tail_bounded" if converged else "unresolved"
     authorization_consistent = bool(
-        not converged
-        or (
-            summary.get("production_casimir_allowed") is True
-            and result.get("production_casimir_allowed") is True
-        )
+        summary.get("production_casimir_allowed") is authorized
+        and result.get("production_casimir_allowed") is authorized
+        and manifest.get("production_casimir_allowed") is authorized
     )
     return bool(
         summary.get("schema") == "full-casimir-run-summary"
@@ -159,6 +159,19 @@ def _case_state(
                 run_dir,
                 manifest_status="completed",
                 converged=True,
+                authorized=True,
+                expected_config=expected_config,
+            )
+            else "artifact_inconsistent"
+        )
+    if manifest.get("status") == "diagnostic_only":
+        return (
+            "diagnostic_only"
+            if _artifacts_consistent(
+                run_dir,
+                manifest_status="diagnostic_only",
+                converged=True,
+                authorized=False,
                 expected_config=expected_config,
             )
             else "artifact_inconsistent"
@@ -170,6 +183,7 @@ def _case_state(
                 run_dir,
                 manifest_status="unresolved",
                 converged=False,
+                authorized=False,
                 expected_config=expected_config,
             )
             else "artifact_inconsistent"
@@ -326,6 +340,14 @@ def _verify_formal_case_sidecars(
         raise ValueError(f"certified cache identity mismatch: {run_dir}")
 
 
+def _progress_terminal_status(result: Any) -> str:
+    if bool(result.production_casimir_allowed):
+        return "production_authorized"
+    if bool(result.matsubara_converged):
+        return "diagnostic_only"
+    return "numerically_unresolved"
+
+
 def run_production_plan(
     *,
     plan: Mapping[str, Any],
@@ -351,6 +373,23 @@ def run_production_plan(
     print(f"selected CPUs: {resources.selected_cpus}", flush=True)
     print(f"reserved CPUs: {resources.reserved_cpus}", flush=True)
     print(f"workers: {resources.workers}", flush=True)
+
+    reporter = CampaignProgressReporter(campaign_dir=campaign_dir, plan=plan)
+    reporter.campaign_started(
+        mode=mode,
+        resources={
+            "visible_cpus": list(resources.visible_cpus),
+            "selected_cpus": list(resources.selected_cpus),
+            "reserved_cpus": list(resources.reserved_cpus),
+            "workers": int(resources.workers),
+            "parallel_mode": str(options.parallel_mode),
+            "certifier_q_batch_size": int(options.certifier_q_batch_size),
+        },
+    )
+
+    def finish(exit_code: int) -> int:
+        reporter.campaign_finished(exit_code=exit_code)
+        return exit_code
 
     engineering_failures = 0
     unresolved_results = 0
@@ -402,6 +441,13 @@ def run_production_plan(
             )
             engineering_failures += 1
             print(f"CONFIGURATION MISMATCH: {case}: {error}", flush=True)
+            reporter.case_started(case, action="reject_configuration_mismatch")
+            reporter.case_finished(
+                case,
+                status="engineering_failed",
+                termination_reason="scientific_identity_mismatch",
+                action="reject_configuration_mismatch",
+            )
             status_row = _summary_row(
                 **common,
                 action="reject_configuration_mismatch",
@@ -412,10 +458,17 @@ def run_production_plan(
             status_row["termination_reason"] = "scientific_identity_mismatch"
             _append_status(report_root, status_row)
             if not options.continue_on_engineering_failure:
-                return 1
+                return finish(1)
             continue
         if state == "completed":
             print(f"SKIP completed: {case}", flush=True)
+            manifest = _read_json(run_dir / "manifest.json")
+            reporter.case_finished(
+                case,
+                status="production_authorized",
+                termination_reason=manifest.get("termination_reason"),
+                action="skip_completed",
+            )
             _append_status(
                 report_root,
                 _summary_row(
@@ -425,20 +478,32 @@ def run_production_plan(
                 ),
             )
             continue
-        if state == "unresolved" and not options.retry_unresolved:
+        if state in {"unresolved", "diagnostic_only"} and not options.retry_unresolved:
             unresolved_results += 1
-            print(f"SKIP unresolved result present: {case}", flush=True)
+            print(f"SKIP {state} result present: {case}", flush=True)
+            manifest = _read_json(run_dir / "manifest.json")
+            reporter.case_finished(
+                case,
+                status=(
+                    "diagnostic_only"
+                    if state == "diagnostic_only"
+                    else "numerically_unresolved"
+                ),
+                termination_reason=manifest.get("termination_reason"),
+                action=f"skip_{state}",
+            )
             _append_status(
                 report_root,
                 _summary_row(
                     **common,
-                    action="skip_unresolved",
+                    action=f"skip_{state}",
                     wall_seconds=0.0,
                 ),
             )
             continue
         action = "resume" if existed else "start"
         print(f"{action.upper()}: {case}", flush=True)
+        reporter.case_started(case, action=action)
         started = time.perf_counter()
         error: Exception | None = None
         try:
@@ -448,19 +513,34 @@ def run_production_plan(
                 resume=existed,
                 identity_payload=identity_payload,
                 cache_identity_payload=cache_identity_payload,
+                progress=reporter.emit,
                 **config_kwargs,
+            )
+            terminal_status = _progress_terminal_status(result)
+            reporter.case_finished(
+                case,
+                status=terminal_status,
+                termination_reason=str(result.termination_reason),
+                action=action,
             )
             if result.production_casimir_allowed:
                 print(f"AUTHORIZED: {case}", flush=True)
             else:
                 unresolved_results += 1
+                label = "DIAGNOSTIC ONLY" if result.matsubara_converged else "UNRESOLVED"
                 print(
-                    f"UNRESOLVED: {case}: {result.termination_reason}",
+                    f"{label}: {case}: {result.termination_reason}",
                     flush=True,
                 )
         except Exception as exc:
             error = exc
             engineering_failures += 1
+            reporter.case_finished(
+                case,
+                status="engineering_failed",
+                termination_reason=f"{type(exc).__name__}: {exc}",
+                action=action,
+            )
             print(
                 f"ENGINEERING FAILURE: {case}: {type(exc).__name__}: {exc}",
                 flush=True,
@@ -477,10 +557,10 @@ def run_production_plan(
             ),
         )
         if error is not None and not options.continue_on_engineering_failure:
-            return 1
+            return finish(1)
     if engineering_failures:
-        return 1
-    return 2 if unresolved_results else 0
+        return finish(1)
+    return finish(2 if unresolved_results else 0)
 
 
 __all__ = ["ProductionRunOptions", "run_production_plan"]
