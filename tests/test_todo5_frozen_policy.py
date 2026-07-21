@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from lno327.casimir.fixed_chain import DEFAULT_SHIFTS
 from lno327.casimir.production import build_full_casimir_config
+from lno327.casimir.transverse_policy import (
+    CONDITIONAL_AUDIT_SHIFT,
+    FORMAL_TRANSVERSE_SHIFTS,
+)
 from lno327.response.arbitrary_q_formal_policy import (
     EXECUTION_STRATEGY,
     THREAD_POLICY_ID,
@@ -12,6 +15,7 @@ from scripts.full_casimir import scan
 from scripts.full_casimir.config import (
     DEFAULT_CANONICAL_BLOCK,
     DEFAULT_CERTIFIER_Q_BATCH_SIZE,
+    DEFAULT_CONDITIONAL_AUDIT_SHIFT,
     DEFAULT_LOGDET_ATOL,
     DEFAULT_LOGDET_RTOL,
     DEFAULT_MATSUBARA_CUTOFFS,
@@ -55,14 +59,18 @@ def test_transverse_policy_is_frozen_and_pairing_blind() -> None:
     assert DEFAULT_N_CANDIDATES == expected_N
     assert DEFAULT_LOGDET_RTOL == pytest.approx(2.0e-3)
     assert DEFAULT_LOGDET_ATOL == pytest.approx(1.0e-6)
-    assert DEFAULT_TRANSVERSE_SHIFTS == DEFAULT_SHIFTS
+    assert DEFAULT_TRANSVERSE_SHIFTS == FORMAL_TRANSVERSE_SHIFTS
+    assert DEFAULT_CONDITIONAL_AUDIT_SHIFT == CONDITIONAL_AUDIT_SHIFT
+    assert CONDITIONAL_AUDIT_SHIFT not in DEFAULT_TRANSVERSE_SHIFTS
 
     payload = microscopic_policy_payload()
     assert payload["policy_id"] == MICROSCOPIC_POLICY_ID
     assert payload["status"] == "frozen"
     assert payload["pairing_blind"] is True
     assert tuple(payload["N_candidates"]) == expected_N
-    assert tuple(tuple(row) for row in payload["shifts"]) == DEFAULT_SHIFTS
+    assert tuple(tuple(row) for row in payload["shifts"]) == FORMAL_TRANSVERSE_SHIFTS
+    assert tuple(payload["conditional_audit_shift"]) == CONDITIONAL_AUDIT_SHIFT
+    assert payload["shift_policy"]["single_shift_production_acceptance_forbidden"] is True
     assert payload["required_consecutive_passes"] == 2
 
 
@@ -90,6 +98,9 @@ def test_top_level_plan_serializes_frozen_transverse_and_candidate_outer_policy(
     assert microscopic["logdet_atol"] == pytest.approx(DEFAULT_LOGDET_ATOL)
     assert tuple(outer["cutoff_u_values"]) == DEFAULT_OUTER_CUTOFFS_U
     assert tuple(matsubara["cutoff_values"]) == DEFAULT_MATSUBARA_CUTOFFS
+    transverse = policy["error_budget"]["transverse_certification"]
+    assert tuple(tuple(row) for row in transverse["formal_shifts"]) == FORMAL_TRANSVERSE_SHIFTS
+    assert tuple(transverse["conditional_audit_shift"]) == CONDITIONAL_AUDIT_SHIFT
 
     candidates = qualification_candidate_payload()
     assert candidates["outer"]["status"].startswith("candidate_pending")
