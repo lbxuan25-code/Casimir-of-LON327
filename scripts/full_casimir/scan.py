@@ -498,5 +498,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
 
+__all__ = ["build_scan_plan", "main"]
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    print(
+        "DIRECT MODULE EXECUTION DISABLED: use "
+        "'python -m scripts.full_casimir plan|run|resources'."
+    )
+    raise SystemExit(2)
