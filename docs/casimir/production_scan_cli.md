@@ -6,59 +6,69 @@ The stable orchestration entry for full-Casimir physical case matrices is:
 python -m scripts.full_casimir
 ```
 
-The underlying scientific API remains `lno327.casimir`. This command layer only plans,
-identifies, and dispatches one or more physical cases through that API.
+The scientific API remains `lno327.casimir`. The orchestration layer freezes a
+scientific policy and case matrix, creates a production campaign identity, and
+dispatches cases through the canonical API.
 
-## Safe planning
+## Production identity model
 
-Before running any expensive work, resolve the exact case matrix:
+Formal data are organized as:
+
+```text
+outputs/casimir/production/<campaign-id>/
+├── campaign.json
+├── policy.json
+├── plans/
+├── runs/
+└── reports/
+```
+
+A campaign identity is derived from:
+
+```text
+scientific policy + exact Git commit + production contract version
+```
+
+Worker count, CPU allocation, parallel mode, memory budget and certifier batch
+size are execution settings. They may change between resume attempts and do not
+change the scientific cache identity.
+
+A physical case is one pairing, temperature, separation and angle. Each case has
+an independent certified-point cache and two fail-closed sidecars:
+
+```text
+runs/<physical-case>/identity.json
+runs/<physical-case>/cache/identity.json
+```
+
+The formal path never scans, imports, migrates or extends legacy profile caches.
+
+## 1. Freeze a plan
+
+Before running expensive work, create a plan from a clean tracked worktree:
 
 ```bash
 python -m scripts.full_casimir plan \
   --pairings spm dwave \
   --distances-nm 10 20 40 \
   --angles-deg 0 45 90 \
-  --profile candidate-policy
+  --N-candidates 128 192 256 384 512 640 768 896 \
+  --logdet-rtol 0.002 \
+  --plan-output production_plan.json
 ```
 
-The same plan can be written as JSON:
+The command prints and stores:
 
-```bash
-python -m scripts.full_casimir plan \
-  --pairings spm dwave \
-  --distances-nm 20 \
-  --angles-deg 0 2 4 \
-  --profile candidate-policy \
-  --plan-output outputs/casimir/catalog/candidate-scan-plan.json
-```
+- `campaign_id` and full campaign SHA;
+- scientific-policy SHA;
+- Git commit;
+- every physical case identity;
+- plan SHA.
 
-`plan` never executes microscopic or outer-integral work.
+`plan` never performs microscopic or outer-integral work. Human development
+labels such as `v2`, `v3` or `candidate-policy` are not part of formal names.
 
-## Single case
-
-A single angle and distance use the same interface as a scan:
-
-```bash
-python -m scripts.full_casimir run \
-  --pairings dwave \
-  --distances-nm 20 \
-  --angles-deg 0 \
-  --profile candidate-policy
-```
-
-## Explicit multi-case scan
-
-```bash
-python -m scripts.full_casimir run \
-  --pairings spm dwave \
-  --distances-nm 10 20 40 \
-  --angles-deg 0 15 30 45 60 75 90 \
-  --profile candidate-policy
-```
-
-## Inclusive range syntax
-
-Angles and distances may instead be generated from exactly divisible inclusive ranges:
+Angles and distances can also use exactly divisible inclusive ranges:
 
 ```bash
 python -m scripts.full_casimir plan \
@@ -67,55 +77,81 @@ python -m scripts.full_casimir plan \
   --distance-step-nm 5 \
   --angle-min-deg 0 \
   --angle-max-deg 90 \
-  --angle-step-deg 2
+  --angle-step-deg 2 \
+  --plan-output production_plan.json
 ```
 
-For each axis, explicit values and range syntax are mutually exclusive. A range requires
-all three of min, max, and step. Decimal arithmetic is used to avoid accumulated floating
-point drift.
+For each axis, explicit values and range syntax are mutually exclusive.
 
-With no physical-grid arguments, the safe default is one case at `d=20 nm` and `theta=0`.
+## 2. Start from empty caches
 
-## Physical case identity
+A new server production campaign must use `--fresh`:
 
-Case names now encode the requested temperature, separation, angle, pairing, and the
-transitional profile label. Examples:
+```bash
+PLAN_SHA="$(python - <<'PY'
+import json
+print(json.load(open('production_plan.json'))['plan_sha256'])
+PY
+)"
+
+python -m scripts.full_casimir run \
+  --plan production_plan.json \
+  --confirm-plan-sha256 "$PLAN_SHA" \
+  --fresh \
+  --campaign-root outputs/casimir/production \
+  --worker-cap 32 \
+  --memory-budget-gb 64 \
+  --parallel-mode q
+```
+
+`--fresh` requires the campaign directory not to exist. It never overwrites or
+reuses another output directory.
+
+## 3. Resume the same campaign
+
+After interruption, use the same SHA-confirmed plan:
+
+```bash
+python -m scripts.full_casimir run \
+  --plan production_plan.json \
+  --confirm-plan-sha256 "$PLAN_SHA" \
+  --resume \
+  --campaign-root outputs/casimir/production \
+  --worker-cap 24 \
+  --memory-budget-gb 48 \
+  --parallel-mode context
+```
+
+Changing execution resources is allowed. Any physical parameter, numerical
+acceptance rule, ladder, error target, Git commit or identity schema mismatch is
+rejected.
+
+A later plan may add cases to the same campaign when its policy and Git identity
+are unchanged. Existing completed cases are retained; new planned cases start
+from empty independent caches.
+
+## State rules
 
 ```text
-spm_T10K_d20nm_theta_p000deg_candidate-policy
-dwave_T12p5K_d17p25nm_theta_p002p5deg_candidate-policy
+fresh + missing campaign       -> create
+fresh + existing campaign      -> reject
+resume + missing campaign      -> reject
+resume + matching campaign     -> continue/register matching plan
+resume + scientific mismatch   -> reject
+case directory without formal identity sidecars -> reject
 ```
 
-The default legacy identity remains byte-for-byte compatible with existing 10 K, 20 nm,
-integer-angle runs.
+There is no formal `--overwrite`, force-reuse or ignore-policy-mismatch option.
 
-The profile field is transitional. The cache-management task will replace human version
-labels with a policy/code identity contract. Until that task is complete, changing any
-physical or numerical option requires a distinct profile and run directory.
+## Legacy boundary
 
-## Other commands
-
-The same top-level entry routes the maintained analysis and data tools:
-
-```bash
-python -m scripts.full_casimir resources
-python -m scripts.full_casimir diagnose --help
-python -m scripts.full_casimir audit --help
-python -m scripts.full_casimir data --help
-python -m scripts.full_casimir qualification --help
-```
-
-The old `scripts.full_casimir.workflow` surface remains available only through:
-
-```bash
-python -m scripts.full_casimir legacy-workflow --help
-```
-
-Direct module invocations remain temporarily compatible, but new runbooks should use the
-single top-level entry.
+Historical `runtime_budget_v3`, `0deg_pilot_v*` and qualification data remain
+available to old diagnostic and qualification routes. They are benchmark
+evidence only and cannot be discovered automatically by the production command.
 
 ## Current authorization boundary
 
-This interface does not authorize formal production. New formal scans must wait until the
-error budget and numerical policy are frozen from the current benchmark. Until then,
-`plan` and software dry-runs are allowed; expensive `run` commands are diagnostic only.
+The campaign and cache contracts are implemented, but the final production
+policy is not yet authorized. Formal server runs must wait until the current
+outer-integral benchmark closes the error budget and freezes the economical
+numerical policy.
