@@ -38,6 +38,7 @@ def _write_completed_artifacts(run: Path, *, config: dict) -> None:
                 "case": run.name,
                 "status": "completed",
                 "termination_reason": reason,
+                "production_casimir_allowed": True,
             }
         ),
         encoding="utf-8",
