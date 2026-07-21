@@ -76,15 +76,18 @@ python -m scripts.full_casimir status --campaign <campaign-id> --json
 `status` reads only `progress.json`. It cannot create, resume, retry, or alter formal
 work and is not a competing calculation entrypoint.
 
-## Failure isolation and boundary
+## Failure isolation and ownership boundary
 
 Core progress callbacks are fail-isolated: an observer exception cannot change a
 scientific result. Campaign progress files are operational artifacts and are not part
 of the scientific-policy SHA or certified-point cache identity.
 
-The heartbeat is visibility evidence only. Process locks, stale-heartbeat ownership,
-retry limits, checkpoint recovery, and duplicate-run prevention belong to TODO item 7.
-Final reproducibility and source-proof packaging belong to TODO item 8.
+The progress heartbeat remains visibility evidence only. TODO item 7 adds a separate,
+immutable campaign-owner record and token-specific lock heartbeat under
+`production/.locks/`. Lock ownership, stale takeover, bounded retry and atomic-cache
+recovery therefore do not depend on mutable progress snapshots. TODO item 8 excludes
+progress and lock files from the authoritative scientific artifact manifest while
+preserving them as operational evidence.
 
 ## Contract tests
 
