@@ -194,7 +194,7 @@ def test_runtime_error_budget_policy_uses_current_term_count() -> None:
         total_free_energy_atol_J_m2=1e-12,
     )
 
-    assert spm.matsubara_cutoff_values == (1, 3, 7, 11, 15, 23, 31)
+    assert spm.matsubara_cutoff_values == (1, 3, 7, 15, 31, 63)
     assert spm.finite_matsubara_budget_fraction == pytest.approx(0.7)
     assert spm.matsubara_tail_budget_fraction == pytest.approx(0.3)
 
@@ -214,7 +214,7 @@ def test_runtime_error_budget_policy_uses_current_term_count() -> None:
     assert dwave.certifier_q_batch_size == 512
 
     cutoff_1 = _scaled_outer_tail_config(spm, 1)
-    cutoff_31 = _scaled_outer_tail_config(spm, 31)
+    cutoff_63 = _scaled_outer_tail_config(spm, 63)
     assert cutoff_1.total_outer_rtol == pytest.approx(5e-3 * 0.7 / 2)
-    assert cutoff_31.total_outer_rtol == pytest.approx(5e-3 * 0.7 / 32)
+    assert cutoff_63.total_outer_rtol == pytest.approx(5e-3 * 0.7 / 64)
     assert cutoff_1.total_outer_atol_J_m2 == pytest.approx(1e-12 * 0.7 / 2)
