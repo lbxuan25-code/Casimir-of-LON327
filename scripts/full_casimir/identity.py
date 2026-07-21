@@ -192,14 +192,46 @@ def _assert_exact_json(path: Path, expected: Mapping[str, Any], *, label: str) -
         raise ValueError(f"{label} does not match the requested production identity: {path}")
 
 
+def _verify_current_code_identity(
+    *,
+    plan: Mapping[str, Any],
+    current_code_identity: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    planned = plan.get("code_identity")
+    if not isinstance(planned, Mapping):
+        raise ValueError("production plan is missing code_identity")
+    current = (
+        git_code_identity()
+        if current_code_identity is None
+        else dict(current_code_identity)
+    )
+    planned_commit = planned.get("git_commit")
+    current_commit = current.get("git_commit")
+    if not isinstance(planned_commit, str) or not planned_commit:
+        raise ValueError("production plan code_identity is missing git_commit")
+    if current_commit != planned_commit:
+        raise ValueError(
+            "current Git commit does not match the frozen production plan: "
+            f"current={current_commit!r}, planned={planned_commit!r}"
+        )
+    if current.get("tracked_worktree_clean") is not True:
+        raise ValueError("formal production requires a clean tracked worktree")
+    return current
+
+
 def prepare_campaign(
     *,
     campaign_root: Path,
     plan: Mapping[str, Any],
     mode: str,
+    current_code_identity: Mapping[str, Any] | None = None,
 ) -> Path:
     if mode not in {"fresh", "resume"}:
         raise ValueError("mode must be 'fresh' or 'resume'")
+    _verify_current_code_identity(
+        plan=plan,
+        current_code_identity=current_code_identity,
+    )
     campaign_dir = campaign_directory(campaign_root, str(plan["campaign_id"]))
     campaign_path = campaign_dir / "campaign.json"
     policy_path = campaign_dir / "policy.json"
