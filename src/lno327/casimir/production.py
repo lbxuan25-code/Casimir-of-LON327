@@ -22,6 +22,7 @@ from .error_budget import (
     OUTER_TAIL_BUDGET_FRACTION,
 )
 from .strict_transverse_runner import run_strict_transverse_certifier
+from .transverse_policy import FORMAL_TRANSVERSE_SHIFTS, normalize_shifts
 
 FullCasimirConfig = AdaptiveMatsubaraCasimirConfig
 FullCasimirResult = CertifiedMatsubaraCasimirResult
@@ -123,11 +124,7 @@ def build_full_casimir_config(
         1152,
         1280,
     ),
-    shifts: Sequence[Sequence[float]] = (
-        (0.5, 0.5),
-        (0.25, 0.75),
-        (0.75, 0.25),
-    ),
+    shifts: Sequence[Sequence[float]] = FORMAL_TRANSVERSE_SHIFTS,
     required_consecutive_passes: int = 2,
     logdet_rtol: float = 2.0e-3,
     logdet_atol: float = 1e-6,
@@ -170,6 +167,7 @@ def build_full_casimir_config(
     """Build the pairing-blind certified production configuration."""
 
     pairing_tuple = tuple(str(value) for value in pairings)
+    shift_tuple = normalize_shifts(shifts)
     fraction = float(radial_budget_fraction)
     if not math.isfinite(fraction) or not 0.0 < fraction < 1.0:
         raise ValueError("radial_budget_fraction must lie strictly between zero and one")
@@ -186,9 +184,7 @@ def build_full_casimir_config(
         eta_eV=float(eta_eV),
         degeneracy=float(degeneracy),
         N_candidates=tuple(int(value) for value in N_candidates),
-        shifts=tuple(
-            tuple(float(component) for component in shift) for shift in shifts
-        ),
+        shifts=shift_tuple,
         required_consecutive_passes=int(required_consecutive_passes),
         logdet_rtol=float(logdet_rtol),
         logdet_atol=float(logdet_atol),
