@@ -42,6 +42,7 @@ jobs:
           python -m scripts.full_casimir --help
           python -m scripts.full_casimir plan --help
           python -m scripts.full_casimir run --help
+          python -m scripts.full_casimir status --help
           test ! -e src/lno327/casimir/__main__.py
           test ! -e scripts/full_casimir/workflow.py
           test ! -e scripts/full_casimir/qualification.py
@@ -57,8 +58,8 @@ jobs:
           assert callable(casimir.build_full_casimir_config)
           assert callable(casimir.run_full_casimir)
           assert set(unified._COMMANDS) == {
-              "plan", "run", "resources", "diagnose", "audit", "shift-audit",
-              "torque", "plot", "data", "layout",
+              "plan", "run", "resources", "status", "diagnose", "audit",
+              "shift-audit", "torque", "plot", "data", "layout",
           }
           assert "legacy-workflow" not in unified._COMMANDS
           assert "qualification" not in unified._COMMANDS
