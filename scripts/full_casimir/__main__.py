@@ -15,7 +15,8 @@ Production commands:
   run          Execute or resume a SHA-confirmed formal campaign.
   resources    Show the execution resources selected for a formal run.
 
-Read-only analysis and data commands:
+Read-only monitoring, analysis and data commands:
+  status       Inspect or watch persisted campaign progress.
   diagnose     Diagnose completed or interrupted campaign artifacts.
   audit        Build a convergence audit without starting production work.
   shift-audit  Replay historical three-shift evidence under the two-shift policy.
@@ -33,6 +34,7 @@ _COMMANDS: dict[str, tuple[str, tuple[str, ...]]] = {
     "plan": ("scripts.full_casimir.scan", ("plan",)),
     "run": ("scripts.full_casimir.scan", ("run",)),
     "resources": ("scripts.full_casimir.scan", ("resources",)),
+    "status": ("scripts.full_casimir.progress", ()),
     "diagnose": ("scripts.full_casimir.diagnostics", ("diagnose",)),
     "audit": ("scripts.full_casimir.diagnostics", ("audit",)),
     "shift-audit": ("scripts.full_casimir.shift_audit", ()),
