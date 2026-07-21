@@ -10,6 +10,7 @@ import traceback
 
 from lno327.casimir.cli import execute_case
 from lno327.casimir.production import build_full_casimir_config
+from lno327.casimir.run_identity import scientific_config_payload
 
 from .config import (
     DEFAULT_ATOL_J_M2,
@@ -23,6 +24,7 @@ from .config import (
     DEFAULT_N_CANDIDATES,
     DEFAULT_OUTER_CUTOFFS_U,
     DEFAULT_OUTPUT_ROOT,
+    DEFAULT_PRODUCTION_ROOT,
     DEFAULT_RTOL,
     DEFAULT_SEPARATION_NM,
     DEFAULT_TEMPERATURE_K,
@@ -31,10 +33,13 @@ from .config import (
     apply_single_thread_environment,
     case_name,
 )
+from .identity import case_sidecars, prepare_campaign, read_json_object
 
 
 @dataclass(frozen=True)
 class EnergyRunOptions:
+    """Legacy direct-grid execution options retained for old workflows."""
+
     output_root: Path = DEFAULT_OUTPUT_ROOT
     log_root: Path = DEFAULT_LOG_ROOT
     temperature_K: float = DEFAULT_TEMPERATURE_K
@@ -55,6 +60,19 @@ class EnergyRunOptions:
     continue_on_engineering_failure: bool = False
 
 
+@dataclass(frozen=True)
+class ProductionRunOptions:
+    """Execution-only settings that may change between resume attempts."""
+
+    campaign_root: Path = DEFAULT_PRODUCTION_ROOT
+    certifier_q_batch_size: int = DEFAULT_CERTIFIER_Q_BATCH_SIZE
+    memory_budget_gb: float = DEFAULT_MEMORY_BUDGET_GB
+    max_context_workers: int = DEFAULT_MAX_CONTEXT_WORKERS
+    parallel_mode: str = "q"
+    retry_unresolved: bool = False
+    continue_on_engineering_failure: bool = False
+
+
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -67,6 +85,13 @@ def _read_json(path: Path) -> dict[str, Any]:
     except (OSError, json.JSONDecodeError):
         return {}
     return payload if isinstance(payload, dict) else {}
+
+
+def _scientific_configs_match(
+    left: Mapping[str, Any],
+    right: Mapping[str, Any],
+) -> bool:
+    return scientific_config_payload(left) == scientific_config_payload(right)
 
 
 def _summary_matches_result(
@@ -108,6 +133,7 @@ def _artifacts_consistent(
     summary = _read_json(run_dir / "summary.json")
     manifest = _read_json(run_dir / "manifest.json")
     result = _read_json(run_dir / "result.json")
+    result_config = result.get("config")
     expected_result_status = "adaptive_tail_bounded" if converged else "unresolved"
     return bool(
         summary.get("schema") == "full-casimir-run-summary"
@@ -125,7 +151,10 @@ def _artifacts_consistent(
         and _summary_matches_result(summary, result)
         and (
             expected_config is None
-            or result.get("config") == dict(expected_config)
+            or (
+                isinstance(result_config, Mapping)
+                and _scientific_configs_match(result_config, expected_config)
+            )
         )
     )
 
@@ -139,14 +168,14 @@ def _case_state(
         config_path = run_dir / "config.json"
         if config_path.exists():
             stored_config = _read_json(config_path)
-            if not stored_config or stored_config != dict(expected_config):
+            if not stored_config or not _scientific_configs_match(
+                stored_config, expected_config
+            ):
                 return "configuration_mismatch"
         elif any(
             (run_dir / name).exists()
             for name in ("manifest.json", "summary.json", "result.json")
         ):
-            # A cache-only target created by the v2->v3 migration is a valid seed.
-            # Missing configuration beside actual run artifacts is not.
             return "configuration_mismatch"
     manifest = _read_json(run_dir / "manifest.json")
     summary = _read_json(run_dir / "summary.json")
@@ -217,6 +246,8 @@ def _append_status(log_root: Path, row: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = (
         "timestamp_utc",
+        "campaign_id",
+        "plan_sha256",
         "pairing",
         "temperature_K",
         "separation_nm",
@@ -250,11 +281,15 @@ def _summary_row(
     run_dir: Path,
     wall_seconds: float,
     error: Exception | None = None,
+    campaign_id: str = "",
+    plan_sha256: str = "",
 ) -> dict[str, Any]:
     summary = _read_json(run_dir / "summary.json")
     manifest = _read_json(run_dir / "manifest.json")
     return {
         "timestamp_utc": _utc_now(),
+        "campaign_id": campaign_id,
+        "plan_sha256": plan_sha256,
         "pairing": pairing,
         "temperature_K": temperature_K,
         "separation_nm": separation_nm,
@@ -273,6 +308,234 @@ def _summary_row(
     }
 
 
+def _production_config_kwargs(
+    *,
+    plan: Mapping[str, Any],
+    case_identity: Mapping[str, Any],
+    resources: RuntimeResources,
+    options: ProductionRunOptions,
+) -> dict[str, Any]:
+    policy = plan["scientific_policy"]
+    model = policy["model"]
+    microscopic = policy["microscopic"]
+    outer = policy["outer_integration"]
+    matsubara = policy["matsubara"]
+    total = policy["total_free_energy"]
+    return {
+        "pairings": (str(case_identity["pairing"]),),
+        "temperature_K": float(case_identity["temperature_K"]),
+        "separation_nm": float(case_identity["separation_nm"]),
+        "plate_angles_deg": tuple(float(value) for value in case_identity["plate_angles_deg"]),
+        "delta0_eV": float(model["delta0_eV"]),
+        "eta_eV": float(model["eta_eV"]),
+        "degeneracy": float(model["degeneracy"]),
+        "N_candidates": tuple(int(value) for value in microscopic["N_candidates"]),
+        "required_consecutive_passes": int(
+            microscopic["required_consecutive_passes"]
+        ),
+        "logdet_rtol": float(microscopic["logdet_rtol"]),
+        "logdet_atol": float(microscopic["logdet_atol"]),
+        "workers": resources.workers,
+        "parallel_mode": options.parallel_mode,
+        "memory_budget_gb": options.memory_budget_gb,
+        "max_context_workers": options.max_context_workers,
+        "cutoff_u_values": tuple(float(value) for value in outer["cutoff_u_values"]),
+        "outer_tail_start_u": float(outer["tail_start_u"]),
+        "outer_tail_window_shells": int(outer["tail_window_shells"]),
+        "outer_tail_ratio_max": float(outer["tail_ratio_max"]),
+        "radial_budget_fraction": float(outer["radial_budget_fraction"]),
+        "max_total_microscopic_q_nodes": int(
+            outer["max_total_microscopic_q_nodes"]
+        ),
+        "matsubara_cutoff_values": tuple(
+            int(value) for value in matsubara["cutoff_values"]
+        ),
+        "matsubara_tail_start_n": int(matsubara["tail_start_n"]),
+        "matsubara_tail_window_terms": int(matsubara["tail_window_terms"]),
+        "matsubara_tail_ratio_max": float(matsubara["tail_ratio_max"]),
+        "max_total_microscopic_point_entries": int(
+            matsubara["max_total_microscopic_point_entries"]
+        ),
+        "total_free_energy_rtol": float(total["rtol"]),
+        "total_free_energy_atol_J_m2": float(total["atol_J_m2"]),
+        "certifier_q_batch_size": options.certifier_q_batch_size,
+    }
+
+
+def _verify_formal_case_sidecars(
+    run_dir: Path,
+    *,
+    expected_identity: Mapping[str, Any],
+    expected_cache_identity: Mapping[str, Any],
+) -> None:
+    identity_path = run_dir / "identity.json"
+    cache_identity_path = run_dir / "cache" / "identity.json"
+    if not identity_path.is_file() or not cache_identity_path.is_file():
+        raise ValueError(
+            "formal resume refuses a directory without production identity sidecars: "
+            f"{run_dir}"
+        )
+    if read_json_object(identity_path) != dict(expected_identity):
+        raise ValueError(f"physical case identity mismatch: {run_dir}")
+    if read_json_object(cache_identity_path) != dict(expected_cache_identity):
+        raise ValueError(f"certified cache identity mismatch: {run_dir}")
+
+
+def run_production_plan(
+    *,
+    plan: Mapping[str, Any],
+    mode: str,
+    resources: RuntimeResources,
+    options: ProductionRunOptions,
+) -> int:
+    import time
+
+    apply_single_thread_environment()
+    apply_cpu_affinity(resources)
+    campaign_dir = prepare_campaign(
+        campaign_root=options.campaign_root,
+        plan=plan,
+        mode=mode,
+    )
+    run_root = campaign_dir / "runs"
+    report_root = campaign_dir / "reports"
+    print(f"campaign directory: {campaign_dir}", flush=True)
+    print(f"visible CPUs: {resources.visible_cpus}", flush=True)
+    print(f"selected CPUs: {resources.selected_cpus}", flush=True)
+    print(f"reserved CPUs: {resources.reserved_cpus}", flush=True)
+    print(f"workers: {resources.workers}", flush=True)
+
+    engineering_failures = 0
+    unresolved_results = 0
+    for row in plan["cases"]:
+        case = str(row["case"])
+        case_identity = dict(row["case_identity"])
+        pairing = str(case_identity["pairing"])
+        temperature_K = float(case_identity["temperature_K"])
+        separation_nm = float(case_identity["separation_nm"])
+        angle_deg = float(case_identity["plate_angles_deg"][1])
+        run_dir = run_root / case
+        identity_payload, cache_identity_payload = case_sidecars(
+            case_identity=case_identity,
+            campaign_sha256=str(plan["campaign_sha256"]),
+            scientific_policy_sha256=str(plan["scientific_policy_sha256"]),
+            git_commit=str(plan["code_identity"]["git_commit"]),
+        )
+        existed = run_dir.exists()
+        if existed:
+            _verify_formal_case_sidecars(
+                run_dir,
+                expected_identity=identity_payload,
+                expected_cache_identity=cache_identity_payload,
+            )
+        config_kwargs = _production_config_kwargs(
+            plan=plan,
+            case_identity=case_identity,
+            resources=resources,
+            options=options,
+        )
+        expected_config = build_full_casimir_config(
+            point_cache_path=run_dir / "cache" / "certified_points.json",
+            **config_kwargs,
+        ).as_dict()
+        state = _case_state(run_dir, expected_config=expected_config)
+        common = {
+            "campaign_id": str(plan["campaign_id"]),
+            "plan_sha256": str(plan["plan_sha256"]),
+            "pairing": pairing,
+            "temperature_K": temperature_K,
+            "separation_nm": separation_nm,
+            "angle_deg": angle_deg,
+            "case": case,
+            "run_dir": run_dir,
+        }
+        if state == "configuration_mismatch":
+            error = ValueError(
+                "existing case scientific configuration differs from the frozen plan"
+            )
+            engineering_failures += 1
+            print(f"CONFIGURATION MISMATCH: {case}: {error}", flush=True)
+            status_row = _summary_row(
+                **common,
+                action="reject_configuration_mismatch",
+                wall_seconds=0.0,
+                error=error,
+            )
+            status_row["status"] = "configuration_mismatch"
+            status_row["termination_reason"] = "scientific_identity_mismatch"
+            _append_status(report_root, status_row)
+            if not options.continue_on_engineering_failure:
+                return 1
+            continue
+        if state == "completed":
+            print(f"SKIP completed: {case}", flush=True)
+            _append_status(
+                report_root,
+                _summary_row(
+                    **common,
+                    action="skip_completed",
+                    wall_seconds=0.0,
+                ),
+            )
+            continue
+        if state == "unresolved" and not options.retry_unresolved:
+            unresolved_results += 1
+            print(f"SKIP unresolved result present: {case}", flush=True)
+            _append_status(
+                report_root,
+                _summary_row(
+                    **common,
+                    action="skip_unresolved",
+                    wall_seconds=0.0,
+                ),
+            )
+            continue
+        action = "resume" if existed else "start"
+        print(f"{action.upper()}: {case}", flush=True)
+        started = time.perf_counter()
+        error: Exception | None = None
+        try:
+            result = execute_case(
+                case=case,
+                output_root=run_root,
+                resume=existed,
+                identity_payload=identity_payload,
+                cache_identity_payload=cache_identity_payload,
+                **config_kwargs,
+            )
+            if result.matsubara_converged:
+                print(f"CONVERGED: {case}", flush=True)
+            else:
+                unresolved_results += 1
+                print(
+                    f"UNRESOLVED: {case}: {result.termination_reason}",
+                    flush=True,
+                )
+        except Exception as exc:
+            error = exc
+            engineering_failures += 1
+            print(
+                f"ENGINEERING FAILURE: {case}: {type(exc).__name__}: {exc}",
+                flush=True,
+            )
+            traceback.print_exc()
+        wall_seconds = time.perf_counter() - started
+        _append_status(
+            report_root,
+            _summary_row(
+                **common,
+                action=action,
+                wall_seconds=wall_seconds,
+                error=error,
+            ),
+        )
+        if error is not None and not options.continue_on_engineering_failure:
+            return 1
+    if engineering_failures:
+        return 1
+    return 2 if unresolved_results else 0
+
+
 def run_energy_cases(
     *,
     pairings: Sequence[str],
@@ -282,6 +545,8 @@ def run_energy_cases(
     profile: str,
     distances_nm: Sequence[int | float] | None = None,
 ) -> int:
+    """Legacy direct runner retained for historical qualification workflows."""
+
     import time
 
     apply_single_thread_environment()
@@ -439,3 +704,11 @@ def run_energy_cases(
     if engineering_failures:
         return 1
     return 2 if unresolved_results else 0
+
+
+__all__ = [
+    "EnergyRunOptions",
+    "ProductionRunOptions",
+    "run_energy_cases",
+    "run_production_plan",
+]
