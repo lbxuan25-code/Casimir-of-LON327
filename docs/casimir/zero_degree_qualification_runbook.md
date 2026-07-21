@@ -1,8 +1,8 @@
 # Zero-degree qualification v5 runbook
 
 This runbook executes the frozen SPM/d-wave 0° qualification policy defined in
-`zero_degree_qualification_preflight.md`.  The numerical values are constants in the
-qualification command; the user cannot accidentally change one pairing without changing
+`zero_degree_qualification_preflight.md`. The numerical values are constants in the
+qualification commands; the user cannot accidentally change one pairing without changing
 the other.
 
 ## Frozen policy
@@ -21,7 +21,7 @@ total free-energy tolerance   = 5.0e-3 relative, 1.0e-12 J/m^2 absolute
 holdout safety factor         = 2.0
 ```
 
-All hard microscopic physical gates remain unchanged.  SPM and d-wave use the same
+All hard microscopic physical gates remain unchanged. SPM and d-wave use the same
 controller structure, budget split, ladders and tail certification logic.
 
 ## 1. Tests
@@ -30,13 +30,14 @@ controller structure, budget split, ladders and tail certification logic.
 python -m pytest -q \
   tests/test_zero_degree_qualification.py \
   tests/test_zero_degree_qualification_projection.py \
+  tests/test_zero_degree_qualification_selection.py \
   tests/test_casimir_runtime_policy.py
 ```
 
-## 2. Prepare v5 caches and freeze the holdout plan
+## 2. Prepare v5 caches and freeze the bounded holdout plan
 
 ```bash
-python -m scripts.full_casimir.qualification prepare \
+python -m scripts.full_casimir.qualification_prepare \
   --pairings spm dwave \
   --source-profile 0deg_pilot_v4 \
   --profile 0deg_qualification_v5 \
@@ -51,13 +52,16 @@ python -m scripts.full_casimir.qualification prepare \
   --certifier-q-batch-size 512
 ```
 
-This command does not execute new microscopic work.  It:
+This command does not execute new microscopic work. It:
 
 - hashes both immutable v4 source runs;
 - projects the complete stored histories under `logdet_rtol=0.002`;
 - retains only points established by the frozen policy and contraction contract;
 - writes new v5 policy fingerprints and projection reports;
 - never modifies v4;
+- makes acceptance-status changes mandatory in the holdout;
+- samples earlier-stop-only changes by quadrature-weighted importance;
+- enforces the explicit 32-point cap and fails if mandatory boundary points exceed it;
 - writes a SHA-bound independent high-N holdout plan.
 
 The targets are:
@@ -85,7 +89,7 @@ python -m scripts.full_casimir.qualification holdout \
   --output outputs/casimir/reports/0deg_qualification_v5_holdout.json
 ```
 
-The candidate has already been frozen.  Holdout results cannot retune it.  Every selected
+The candidate has already been frozen. Holdout results cannot retune it. Every selected
 point and both predeclared higher-N levels must satisfy
 
 ```text
@@ -125,9 +129,9 @@ python -m scripts.full_casimir.qualification run \
   --confirm-preflight-sha256 "$PREFLIGHT_SHA"
 ```
 
-The runner resumes the already seeded v5 directories.  It never starts from an empty
-cache and verifies the v4 source hashes before and after each pairing.  The ordinary
-geometric tail path is attempted first.  The analytic passive-vacuum fallback is allowed
+The runner resumes the already seeded v5 directories. It never starts from an empty
+cache and verifies the v4 source hashes before and after each pairing. The ordinary
+geometric tail path is attempted first. The analytic passive-vacuum fallback is allowed
 only if the actual accepted cache states satisfy the power-metric contraction contract
 and the analytic bound fits the same common tail budget.
 
@@ -150,6 +154,6 @@ and verifies both run manifests, the frozen Git commit, microscopic closure, fin
 closure, a valid geometric or analytic outer-tail certificate, Matsubara-tail closure,
 total error within tolerance, policy parity, holdout validity and unchanged v4 sources.
 
-`production_casimir_allowed` intentionally remains false.  This qualification establishes
+`production_casimir_allowed` intentionally remains false. This qualification establishes
 the frozen numerical closure contract; broader scientific authorization for downstream
 Casimir use remains a separate explicit decision.
