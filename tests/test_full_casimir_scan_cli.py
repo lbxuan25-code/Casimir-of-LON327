@@ -91,6 +91,7 @@ def test_plan_file_self_digest_and_execution_settings_are_separate(
     assert "worker_cap" not in serialized
     assert "parallel_mode" not in serialized
     assert "memory_budget_gb" not in serialized
+    assert "execution_profile" not in serialized
 
 
 def test_plan_accepts_inclusive_range_syntax(capsys, monkeypatch) -> None:
