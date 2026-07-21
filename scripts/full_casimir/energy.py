@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping
 import csv
 import json
 import traceback
@@ -13,51 +13,15 @@ from lno327.casimir.production import build_full_casimir_config
 from lno327.casimir.run_identity import scientific_config_payload
 
 from .config import (
-    DEFAULT_ATOL_J_M2,
     DEFAULT_CERTIFIER_Q_BATCH_SIZE,
-    DEFAULT_LOGDET_ATOL,
-    DEFAULT_LOGDET_RTOL,
-    DEFAULT_LOG_ROOT,
-    DEFAULT_MATSUBARA_CUTOFFS,
     DEFAULT_MAX_CONTEXT_WORKERS,
     DEFAULT_MEMORY_BUDGET_GB,
-    DEFAULT_N_CANDIDATES,
-    DEFAULT_OUTER_CUTOFFS_U,
-    DEFAULT_OUTPUT_ROOT,
     DEFAULT_PRODUCTION_ROOT,
-    DEFAULT_RTOL,
-    DEFAULT_SEPARATION_NM,
-    DEFAULT_TEMPERATURE_K,
     RuntimeResources,
     apply_cpu_affinity,
     apply_single_thread_environment,
-    case_name,
 )
 from .identity import case_sidecars, prepare_campaign, read_json_object
-
-
-@dataclass(frozen=True)
-class EnergyRunOptions:
-    """Legacy direct-grid execution options retained for old workflows."""
-
-    output_root: Path = DEFAULT_OUTPUT_ROOT
-    log_root: Path = DEFAULT_LOG_ROOT
-    temperature_K: float = DEFAULT_TEMPERATURE_K
-    separation_nm: float = DEFAULT_SEPARATION_NM
-    N_candidates: tuple[int, ...] = DEFAULT_N_CANDIDATES
-    matsubara_cutoffs: tuple[int, ...] = DEFAULT_MATSUBARA_CUTOFFS
-    outer_cutoffs_u: tuple[float, ...] = DEFAULT_OUTER_CUTOFFS_U
-    rtol: float = DEFAULT_RTOL
-    atol_J_m2: float = DEFAULT_ATOL_J_M2
-    logdet_rtol: float = DEFAULT_LOGDET_RTOL
-    logdet_atol: float = DEFAULT_LOGDET_ATOL
-    certifier_q_batch_size: int = DEFAULT_CERTIFIER_Q_BATCH_SIZE
-    memory_budget_gb: float = DEFAULT_MEMORY_BUDGET_GB
-    max_context_workers: int = DEFAULT_MAX_CONTEXT_WORKERS
-    parallel_mode: str = "q"
-    required_consecutive_passes: int = 2
-    retry_unresolved: bool = False
-    continue_on_engineering_failure: bool = False
 
 
 @dataclass(frozen=True)
@@ -135,6 +99,13 @@ def _artifacts_consistent(
     result = _read_json(run_dir / "result.json")
     result_config = result.get("config")
     expected_result_status = "adaptive_tail_bounded" if converged else "unresolved"
+    authorization_consistent = bool(
+        not converged
+        or (
+            summary.get("production_casimir_allowed") is True
+            and result.get("production_casimir_allowed") is True
+        )
+    )
     return bool(
         summary.get("schema") == "full-casimir-run-summary"
         and manifest.get("schema") == "full-casimir-run-manifest"
@@ -148,6 +119,7 @@ def _artifacts_consistent(
         and result.get("status") == expected_result_status
         and summary.get("termination_reason") == result.get("termination_reason")
         and manifest.get("termination_reason") == result.get("termination_reason")
+        and authorization_consistent
         and _summary_matches_result(summary, result)
         and (
             expected_config is None
@@ -169,7 +141,8 @@ def _case_state(
         if config_path.exists():
             stored_config = _read_json(config_path)
             if not stored_config or not _scientific_configs_match(
-                stored_config, expected_config
+                stored_config,
+                expected_config,
             ):
                 return "configuration_mismatch"
         elif any(
@@ -210,39 +183,8 @@ def _case_state(
     return "directory_present" if run_dir.exists() else "missing"
 
 
-def _requested_config_payload(
-    *,
-    pairing: str,
-    angle_deg: float,
-    separation_nm: float,
-    run_dir: Path,
-    resources: RuntimeResources,
-    options: EnergyRunOptions,
-) -> dict[str, Any]:
-    return build_full_casimir_config(
-        point_cache_path=run_dir / "cache" / "certified_points.json",
-        pairings=(pairing,),
-        temperature_K=options.temperature_K,
-        separation_nm=separation_nm,
-        plate_angles_deg=(0.0, float(angle_deg)),
-        N_candidates=options.N_candidates,
-        required_consecutive_passes=options.required_consecutive_passes,
-        logdet_rtol=options.logdet_rtol,
-        logdet_atol=options.logdet_atol,
-        certifier_q_batch_size=options.certifier_q_batch_size,
-        workers=resources.workers,
-        parallel_mode=options.parallel_mode,
-        memory_budget_gb=options.memory_budget_gb,
-        max_context_workers=options.max_context_workers,
-        matsubara_cutoff_values=options.matsubara_cutoffs,
-        cutoff_u_values=options.outer_cutoffs_u,
-        total_free_energy_rtol=options.rtol,
-        total_free_energy_atol_J_m2=options.atol_J_m2,
-    ).as_dict()
-
-
-def _append_status(log_root: Path, row: dict[str, Any]) -> None:
-    path = log_root / "energy_cases.csv"
+def _append_status(report_root: Path, row: dict[str, Any]) -> None:
+    path = report_root / "energy_cases.csv"
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = (
         "timestamp_utc",
@@ -298,7 +240,8 @@ def _summary_row(
         "action": action,
         "status": summary.get("status", manifest.get("status", "unknown")),
         "termination_reason": summary.get(
-            "termination_reason", manifest.get("termination_reason", "")
+            "termination_reason",
+            manifest.get("termination_reason", ""),
         ),
         "selected_matsubara_cutoff": summary.get("selected_matsubara_cutoff", ""),
         "selected_u_max": summary.get("selected_u_max", ""),
@@ -325,7 +268,9 @@ def _production_config_kwargs(
         "pairings": (str(case_identity["pairing"]),),
         "temperature_K": float(case_identity["temperature_K"]),
         "separation_nm": float(case_identity["separation_nm"]),
-        "plate_angles_deg": tuple(float(value) for value in case_identity["plate_angles_deg"]),
+        "plate_angles_deg": tuple(
+            float(value) for value in case_identity["plate_angles_deg"]
+        ),
         "delta0_eV": float(model["delta0_eV"]),
         "eta_eV": float(model["eta_eV"]),
         "degeneracy": float(model["degeneracy"]),
@@ -388,6 +333,8 @@ def run_production_plan(
     resources: RuntimeResources,
     options: ProductionRunOptions,
 ) -> int:
+    """Execute formal cases from an immutable top-level production plan."""
+
     import time
 
     apply_single_thread_environment()
@@ -503,8 +450,8 @@ def run_production_plan(
                 cache_identity_payload=cache_identity_payload,
                 **config_kwargs,
             )
-            if result.matsubara_converged:
-                print(f"CONVERGED: {case}", flush=True)
+            if result.production_casimir_allowed:
+                print(f"AUTHORIZED: {case}", flush=True)
             else:
                 unresolved_results += 1
                 print(
@@ -536,179 +483,4 @@ def run_production_plan(
     return 2 if unresolved_results else 0
 
 
-def run_energy_cases(
-    *,
-    pairings: Sequence[str],
-    angles_deg: Sequence[int | float],
-    resources: RuntimeResources,
-    options: EnergyRunOptions,
-    profile: str,
-    distances_nm: Sequence[int | float] | None = None,
-) -> int:
-    """Legacy direct runner retained for historical qualification workflows."""
-
-    import time
-
-    apply_single_thread_environment()
-    apply_cpu_affinity(resources)
-    options.output_root.mkdir(parents=True, exist_ok=True)
-    options.log_root.mkdir(parents=True, exist_ok=True)
-    print(f"visible CPUs: {resources.visible_cpus}", flush=True)
-    print(f"selected CPUs: {resources.selected_cpus}", flush=True)
-    print(f"reserved CPUs: {resources.reserved_cpus}", flush=True)
-    print(f"workers: {resources.workers}", flush=True)
-    print(f"profile: {profile}", flush=True)
-    distances = (
-        tuple(float(value) for value in distances_nm)
-        if distances_nm is not None
-        else (float(options.separation_nm),)
-    )
-    angles = tuple(float(value) for value in angles_deg)
-    if not distances:
-        raise ValueError("at least one distance is required")
-    if not angles:
-        raise ValueError("at least one angle is required")
-    engineering_failures = 0
-    unresolved_results = 0
-    for pairing in pairings:
-        for separation_nm in distances:
-            for angle_deg in angles:
-                case = case_name(
-                    pairing,
-                    angle_deg,
-                    temperature_K=options.temperature_K,
-                    separation_nm=separation_nm,
-                    profile=profile,
-                )
-                run_dir = options.output_root / case
-                expected_config = _requested_config_payload(
-                    pairing=pairing,
-                    angle_deg=angle_deg,
-                    separation_nm=separation_nm,
-                    run_dir=run_dir,
-                    resources=resources,
-                    options=options,
-                )
-                state = _case_state(run_dir, expected_config=expected_config)
-                common = {
-                    "pairing": pairing,
-                    "temperature_K": float(options.temperature_K),
-                    "separation_nm": separation_nm,
-                    "angle_deg": angle_deg,
-                    "case": case,
-                    "run_dir": run_dir,
-                }
-                if state == "configuration_mismatch":
-                    error = ValueError(
-                        "existing case configuration differs from the requested run; "
-                        "choose a new --profile or restore the original options"
-                    )
-                    engineering_failures += 1
-                    print(f"CONFIGURATION MISMATCH: {case}: {error}", flush=True)
-                    row = _summary_row(
-                        **common,
-                        action="reject_configuration_mismatch",
-                        wall_seconds=0.0,
-                        error=error,
-                    )
-                    row["status"] = "configuration_mismatch"
-                    row["termination_reason"] = (
-                        "requested_configuration_does_not_match_existing_case"
-                    )
-                    _append_status(options.log_root, row)
-                    if not options.continue_on_engineering_failure:
-                        return 1
-                    continue
-                if state == "completed":
-                    print(f"SKIP completed: {case}", flush=True)
-                    _append_status(
-                        options.log_root,
-                        _summary_row(
-                            **common,
-                            action="skip_completed",
-                            wall_seconds=0.0,
-                        ),
-                    )
-                    continue
-                if state == "unresolved" and not options.retry_unresolved:
-                    unresolved_results += 1
-                    print(f"SKIP unresolved result present: {case}", flush=True)
-                    _append_status(
-                        options.log_root,
-                        _summary_row(
-                            **common,
-                            action="skip_unresolved",
-                            wall_seconds=0.0,
-                        ),
-                    )
-                    continue
-                if state == "artifact_inconsistent":
-                    print(f"RESUME inconsistent run artifacts: {case}", flush=True)
-                resume = run_dir.exists()
-                action = "resume" if resume else "start"
-                print(f"{action.upper()}: {case}", flush=True)
-                started = time.perf_counter()
-                error: Exception | None = None
-                try:
-                    result = execute_case(
-                        case=case,
-                        output_root=options.output_root,
-                        resume=resume,
-                        pairings=(pairing,),
-                        temperature_K=options.temperature_K,
-                        separation_nm=separation_nm,
-                        plate_angles_deg=(0.0, angle_deg),
-                        N_candidates=options.N_candidates,
-                        required_consecutive_passes=options.required_consecutive_passes,
-                        logdet_rtol=options.logdet_rtol,
-                        logdet_atol=options.logdet_atol,
-                        certifier_q_batch_size=options.certifier_q_batch_size,
-                        workers=resources.workers,
-                        parallel_mode=options.parallel_mode,
-                        memory_budget_gb=options.memory_budget_gb,
-                        max_context_workers=options.max_context_workers,
-                        matsubara_cutoff_values=options.matsubara_cutoffs,
-                        cutoff_u_values=options.outer_cutoffs_u,
-                        total_free_energy_rtol=options.rtol,
-                        total_free_energy_atol_J_m2=options.atol_J_m2,
-                    )
-                    if result.matsubara_converged:
-                        print(f"CONVERGED: {case}", flush=True)
-                    else:
-                        unresolved_results += 1
-                        print(
-                            f"UNRESOLVED: {case}: {result.termination_reason}",
-                            flush=True,
-                        )
-                except Exception as exc:
-                    error = exc
-                    engineering_failures += 1
-                    print(
-                        f"ENGINEERING FAILURE: {case}: "
-                        f"{type(exc).__name__}: {exc}",
-                        flush=True,
-                    )
-                    traceback.print_exc()
-                wall_seconds = time.perf_counter() - started
-                _append_status(
-                    options.log_root,
-                    _summary_row(
-                        **common,
-                        action=action,
-                        wall_seconds=wall_seconds,
-                        error=error,
-                    ),
-                )
-                if error is not None and not options.continue_on_engineering_failure:
-                    return 1
-    if engineering_failures:
-        return 1
-    return 2 if unresolved_results else 0
-
-
-__all__ = [
-    "EnergyRunOptions",
-    "ProductionRunOptions",
-    "run_energy_cases",
-    "run_production_plan",
-]
+__all__ = ["ProductionRunOptions", "run_production_plan"]
