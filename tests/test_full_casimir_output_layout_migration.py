@@ -9,6 +9,7 @@ import pytest
 
 from scripts.full_casimir.output_layout import (
     build_output_layout_audit,
+    value_digest,
     write_output_layout_audit,
 )
 from scripts.full_casimir.output_layout_migration import (
@@ -82,6 +83,26 @@ def _fixture_repo(tmp_path: Path) -> tuple[Path, Path]:
     return repo, root
 
 
+def _audit_plan_and_stage(repo: Path, root: Path) -> tuple[dict, Path, dict, Path]:
+    audit = build_output_layout_audit(root, repo_root=repo)
+    audit_path = root / "catalog" / "output_layout_audit.json"
+    write_output_layout_audit(
+        audit,
+        json_path=audit_path,
+        tsv_path=root / "catalog" / "output_layout_audit.tsv",
+    )
+    plan = build_layout_migration_plan(audit_path)
+    plan_path = root / "catalog" / "output_layout_migration_plan.json"
+    write_layout_migration_plan(plan, plan_path)
+    stage = stage_layout_migration(
+        plan_path,
+        confirm_plan_sha256=plan["plan_sha256"],
+    )
+    stage_path = root / "catalog" / "output_layout_stage_execution.json"
+    write_layout_stage_execution(stage, stage_path)
+    return plan, plan_path, stage, stage_path
+
+
 def test_path_aware_audit_classifies_frozen_n896_diagnostics(tmp_path: Path) -> None:
     repo, root = _fixture_repo(tmp_path)
     generic = repo / "scripts" / "generic.py"
@@ -108,31 +129,15 @@ def test_layout_migration_stages_verifies_and_finalizes_all_legacy_entries(
     tmp_path: Path,
 ) -> None:
     repo, root = _fixture_repo(tmp_path)
-    audit = build_output_layout_audit(root, repo_root=repo)
-    audit_path = root / "catalog" / "output_layout_audit.json"
-    write_output_layout_audit(
-        audit,
-        json_path=audit_path,
-        tsv_path=root / "catalog" / "output_layout_audit.tsv",
-    )
-
-    plan = build_layout_migration_plan(audit_path)
-    plan_path = root / "catalog" / "output_layout_migration_plan.json"
-    write_layout_migration_plan(plan, plan_path)
+    plan, plan_path, stage, stage_path = _audit_plan_and_stage(repo, root)
     assert plan["item_count"] == 5
-
-    stage = stage_layout_migration(
-        plan_path,
-        confirm_plan_sha256=plan["plan_sha256"],
-    )
-    stage_path = root / "catalog" / "output_layout_stage_execution.json"
-    write_layout_stage_execution(stage, stage_path)
     assert stage["result_count"] == 5
     assert stage["all_sources_preserved"] is True
     for row in stage["results"]:
         assert Path(row["source_path"]).exists()
         assert Path(row["destination_path"]).is_file()
         assert Path(row["manifest_path"]).is_file()
+        assert row["verification_mode"] in {"temporary_restore", "exact_byte_copy"}
 
     finalize = build_layout_finalize_plan(plan_path, stage_path)
     finalize_path = root / "catalog" / "output_layout_finalize_plan.json"
@@ -183,3 +188,43 @@ def test_layout_stage_rejects_source_change_after_planning(tmp_path: Path) -> No
         )
     assert (root / "N896_scan_logs").is_dir()
     assert not (root / "archive" / "legacy" / "logs" / "N896_scan_logs.tar.gz").exists()
+
+
+def test_finalize_rejects_replaced_stage_execution_after_planning(tmp_path: Path) -> None:
+    repo, root = _fixture_repo(tmp_path)
+    _, plan_path, _, stage_path = _audit_plan_and_stage(repo, root)
+    finalize = build_layout_finalize_plan(plan_path, stage_path)
+    finalize_path = root / "catalog" / "output_layout_finalize_plan.json"
+    write_layout_finalize_plan(finalize, finalize_path)
+
+    changed = json.loads(stage_path.read_text(encoding="utf-8"))
+    changed["results"][0]["destination_bytes"] += 1
+    changed.pop("stage_sha256")
+    changed["stage_sha256"] = value_digest(changed)
+    stage_path.write_text(json.dumps(changed), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="changed after finalize planning"):
+        execute_layout_finalize_plan(
+            finalize_path,
+            confirm_plan_sha256=finalize["plan_sha256"],
+            confirm_delete=LAYOUT_FINALIZE_CONFIRMATION,
+        )
+    for item in finalize["items"]:
+        assert Path(item["source_path"]).exists()
+
+
+def test_finalize_plan_rejects_self_consistent_manifest_replacement(tmp_path: Path) -> None:
+    repo, root = _fixture_repo(tmp_path)
+    _, plan_path, stage, stage_path = _audit_plan_and_stage(repo, root)
+    first = stage["results"][0]
+    manifest_path = Path(first["manifest_path"])
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["source_path"] = str(root / "replacement")
+    manifest.pop("manifest_sha256")
+    manifest["manifest_sha256"] = value_digest(manifest)
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="manifest relation mismatch"):
+        build_layout_finalize_plan(plan_path, stage_path)
+    for row in stage["results"]:
+        assert Path(row["source_path"]).exists()
