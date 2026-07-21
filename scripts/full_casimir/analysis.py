@@ -17,7 +17,7 @@ from .postprocess import postprocess_torque
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m scripts.full_casimir",
-        description="Post-process an existing formal Casimir campaign.",
+        description="Post-process existing historical profile artifacts.",
     )
     commands = parser.add_subparsers(dest="command", required=True)
     torque = commands.add_parser("torque")
@@ -29,7 +29,11 @@ def _parser() -> argparse.ArgumentParser:
             type=Path,
             default=DEFAULT_POSTPROCESS_ROOT,
         )
-        command.add_argument("--profile", default=None)
+        command.add_argument(
+            "--profile",
+            required=True,
+            help="Historical profile suffix to select; this never starts calculation.",
+        )
         command.add_argument("--angle-step", type=int, default=DEFAULT_SCAN_STEP_DEG)
     return parser
 
