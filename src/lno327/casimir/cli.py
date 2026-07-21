@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from .production import (
     FullCasimirConfig,
@@ -15,6 +15,7 @@ from .production import (
     build_full_casimir_config,
     run_full_casimir,
 )
+from .run_identity import scientific_config_payload, scientific_config_sha256
 
 _CASE_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
@@ -99,6 +100,25 @@ def _summary(case: str, result: FullCasimirResult) -> dict[str, Any]:
     }
 
 
+def _write_identity_sidecar(
+    path: Path,
+    payload: Mapping[str, Any] | None,
+    *,
+    resume: bool,
+    label: str,
+) -> None:
+    if payload is None:
+        return
+    expected = dict(payload)
+    if path.exists():
+        actual = _read_json_object(path)
+        if actual != expected:
+            raise ValueError(f"{label} does not match the existing run: {path}")
+    elif resume:
+        raise ValueError(f"{label} is missing from the requested resume run: {path}")
+    _atomic_json(path, expected)
+
+
 def execute_case(
     *,
     case: str,
@@ -106,6 +126,8 @@ def execute_case(
     resume: bool,
     config_builder: Callable[..., FullCasimirConfig] = build_full_casimir_config,
     runner: Callable[[FullCasimirConfig], FullCasimirResult] = run_full_casimir,
+    identity_payload: Mapping[str, Any] | None = None,
+    cache_identity_payload: Mapping[str, Any] | None = None,
     **config_kwargs: Any,
 ) -> FullCasimirResult:
     """Execute one named run and maintain its deterministic artifact directory."""
@@ -122,6 +144,18 @@ def execute_case(
             f"run directory already exists: {run_dir}; use --resume to reuse it"
         )
     run_dir.mkdir(parents=True, exist_ok=True)
+    _write_identity_sidecar(
+        run_dir / "identity.json",
+        identity_payload,
+        resume=resume,
+        label="physical case identity",
+    )
+    _write_identity_sidecar(
+        run_dir / "cache" / "identity.json",
+        cache_identity_payload,
+        resume=resume,
+        label="certified cache identity",
+    )
     cache_path = run_dir / "cache" / "certified_points.json"
     config = config_builder(point_cache_path=cache_path, **config_kwargs)
     config_payload = config.as_dict()
@@ -134,10 +168,12 @@ def execute_case(
                 "--resume cannot verify the existing run configuration because "
                 f"config.json is unreadable: {exc}"
             ) from exc
-        if existing != config_payload:
+        if not isinstance(existing, Mapping) or scientific_config_payload(
+            existing
+        ) != scientific_config_payload(config_payload):
             raise ValueError(
-                "--resume requires the exact existing run configuration; "
-                "use a new case name for changed physical or numerical inputs"
+                "--resume requires the exact existing scientific configuration; "
+                "execution-only worker, scheduling, memory and batch settings may change"
             )
     _atomic_json(config_path, config_payload)
 
@@ -154,6 +190,16 @@ def execute_case(
     except (TypeError, ValueError, OverflowError):
         previous_attempts = 0
     previous_attempts = max(previous_attempts, 0)
+    paths = {
+        "config": "config.json",
+        "summary": "summary.json",
+        "result": "result.json",
+        "point_cache": "cache/certified_points.json",
+    }
+    if identity_payload is not None:
+        paths["identity"] = "identity.json"
+    if cache_identity_payload is not None:
+        paths["cache_identity"] = "cache/identity.json"
     manifest = {
         "schema": "full-casimir-run-manifest",
         "case": case,
@@ -162,12 +208,8 @@ def execute_case(
         "last_started_at_utc": now,
         "attempt_count": previous_attempts + 1,
         "git_commit": _git_commit(),
-        "paths": {
-            "config": "config.json",
-            "summary": "summary.json",
-            "result": "result.json",
-            "point_cache": "cache/certified_points.json",
-        },
+        "scientific_config_sha256": scientific_config_sha256(config_payload),
+        "paths": paths,
         "resume_requested": bool(resume),
     }
     _atomic_json(run_dir / "manifest.json", manifest)
