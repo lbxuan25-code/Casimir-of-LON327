@@ -18,6 +18,7 @@ Primary production commands:
 Analysis and data commands:
   diagnose     Diagnose one or more completed or interrupted runs.
   audit        Build a convergence audit across runs.
+  shift-audit  Replay historical three-shift histories under the formal two-shift policy.
   torque       Run the existing torque post-processing path.
   plot         Plot existing post-processed results.
   data         Catalog, archive, verify, or explicitly prune local data.
@@ -41,6 +42,7 @@ _COMMANDS: dict[str, tuple[str, tuple[str, ...]]] = {
     "resources": ("scripts.full_casimir.scan", ("resources",)),
     "diagnose": ("scripts.full_casimir.diagnostics", ("diagnose",)),
     "audit": ("scripts.full_casimir.diagnostics", ("audit",)),
+    "shift-audit": ("scripts.full_casimir.shift_audit", ()),
     "torque": ("scripts.full_casimir.workflow", ("torque",)),
     "plot": ("scripts.full_casimir.workflow", ("plot",)),
     "data": ("scripts.full_casimir.data", ()),
