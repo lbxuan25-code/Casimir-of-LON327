@@ -59,9 +59,10 @@ python -m scripts.full_casimir run \
 outputs/casimir/production/<campaign-id>/
 ```
 
-campaign 由科学数值政策、Git commit 和数据合同自动命名，不使用人工
-`v2/v3/v4` 标签。每个物理 case 使用独立缓存；正式入口不会自动迁移或
-继承旧 profile 缓存。完整说明见 `docs/casimir/production_scan_cli.md`。
+campaign 由科学数值政策、精确 Git commit 和数据合同自动命名，不使用人工
+`v2/v3/v4` 标签。计划只能在记录的同一干净 Git commit 上运行。每个物理
+case 使用独立缓存；正式入口不会自动迁移或继承旧 profile 缓存。完整说明见
+`docs/casimir/production_scan_cli.md`。
 
 ## 物理边界
 
