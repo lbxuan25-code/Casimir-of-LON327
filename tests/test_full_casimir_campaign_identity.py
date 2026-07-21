@@ -48,6 +48,20 @@ def _plan(*, logdet_rtol: float = 0.002, cases=None) -> dict[str, object]:
     )
 
 
+def _prepare(
+    *,
+    campaign_root: Path,
+    plan: dict[str, object],
+    mode: str,
+) -> Path:
+    return prepare_campaign(
+        campaign_root=campaign_root,
+        plan=plan,
+        mode=mode,
+        current_code_identity=plan["code_identity"],
+    )
+
+
 def test_execution_only_config_fields_do_not_change_scientific_identity() -> None:
     first = {
         "point_cache_path": "/a/cache.json",
@@ -90,34 +104,63 @@ def test_scientific_change_does_change_resume_identity() -> None:
 def test_fresh_and_resume_campaign_state_machine(tmp_path: Path) -> None:
     plan = _plan()
     root = tmp_path / "production"
-    campaign = prepare_campaign(campaign_root=root, plan=plan, mode="fresh")
+    campaign = _prepare(campaign_root=root, plan=plan, mode="fresh")
     assert campaign.is_dir()
     assert (campaign / "campaign.json").is_file()
     assert (campaign / "policy.json").is_file()
     assert (campaign / "plans" / f"{plan['plan_sha256']}.json").is_file()
 
     with pytest.raises(FileExistsError):
-        prepare_campaign(campaign_root=root, plan=plan, mode="fresh")
+        _prepare(campaign_root=root, plan=plan, mode="fresh")
 
-    assert prepare_campaign(campaign_root=root, plan=plan, mode="resume") == campaign
+    assert _prepare(campaign_root=root, plan=plan, mode="resume") == campaign
 
 
 def test_resume_requires_existing_campaign(tmp_path: Path) -> None:
+    plan = _plan()
     with pytest.raises(FileNotFoundError):
+        _prepare(
+            campaign_root=tmp_path / "production",
+            plan=plan,
+            mode="resume",
+        )
+
+
+def test_campaign_execution_requires_the_frozen_git_commit(tmp_path: Path) -> None:
+    plan = _plan()
+    with pytest.raises(ValueError, match="current Git commit does not match"):
         prepare_campaign(
             campaign_root=tmp_path / "production",
-            plan=_plan(),
-            mode="resume",
+            plan=plan,
+            mode="fresh",
+            current_code_identity={
+                "git_commit": "c" * 40,
+                "tracked_worktree_clean": True,
+            },
+        )
+
+
+def test_campaign_execution_requires_a_clean_worktree(tmp_path: Path) -> None:
+    plan = _plan()
+    with pytest.raises(ValueError, match="clean tracked worktree"):
+        prepare_campaign(
+            campaign_root=tmp_path / "production",
+            plan=plan,
+            mode="fresh",
+            current_code_identity={
+                "git_commit": "b" * 40,
+                "tracked_worktree_clean": False,
+            },
         )
 
 
 def test_same_campaign_can_register_an_additional_case_plan(tmp_path: Path) -> None:
     first = _plan(cases=[{"case": "a"}])
     root = tmp_path / "production"
-    campaign = prepare_campaign(campaign_root=root, plan=first, mode="fresh")
+    campaign = _prepare(campaign_root=root, plan=first, mode="fresh")
     second = _plan(cases=[{"case": "a"}, {"case": "b"}])
     assert second["campaign_id"] == first["campaign_id"]
-    prepare_campaign(campaign_root=root, plan=second, mode="resume")
+    _prepare(campaign_root=root, plan=second, mode="resume")
     assert (campaign / "plans" / f"{second['plan_sha256']}.json").is_file()
 
 
