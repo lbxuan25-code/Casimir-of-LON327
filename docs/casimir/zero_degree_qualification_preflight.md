@@ -1,9 +1,9 @@
 # SPM / d-wave 0° qualification rerun preflight
 
-Status: **preflight frozen, execution not yet authorized**  
+Status: **numerical policy frozen; preparation code implemented; local holdout and run not yet executed**  
 Target profile: `0deg_qualification_v5`  
 Source evidence: the existing immutable `0deg_pilot_v4` runs  
-Production authorization: **false until all gates in this report pass**
+Production authorization: **false until the local qualification and final verifier pass**
 
 ## 1. Purpose
 
@@ -93,9 +93,9 @@ total_free_energy_rtol        = 5.0e-3
 total_free_energy_atol_J_m2   = 1.0e-12
 ```
 
-The current pairing-dependent production default (`0.85` for SPM and `0.75` otherwise) is not allowed for this rerun. The workflow must expose and persist one common value before launch.
+The former pairing-dependent production default (`0.85` for SPM and `0.75` otherwise) has been removed. `build_full_casimir_config` now accepts one explicit pairing-blind radial budget and defaults to `0.80`.
 
-The finite-domain ledger must use the already-combined radial/angular/offset bound. Radial, angular and offset diagnostic components must not be added a second time.
+The finite-domain ledger uses the already-combined radial/angular/offset bound. Radial, angular and offset diagnostic components must not be added a second time.
 
 ## 5. Frozen outer-Q policy
 
@@ -111,17 +111,18 @@ tail_ratio_max = 0.8
 The unified tail certificate has two possible paths:
 
 1. **Resolved geometric path**: the central shell signal is numerically resolved and the final window contracts under the common ratio bound.
-2. **Analytic passive-vacuum path**: a determinant-preserving power-metric certificate proves that the round-trip reflection operator is contractive, including singular-value rather than spectral-radius control, after which the pairing-independent analytic tail integral may be used.
+2. **Analytic passive-vacuum path**: the actual accepted cache states satisfy the determinant-preserving power-metric contraction contract, after which the pairing-independent analytic tail integral may be used.
 
 Rules:
 
 - `below_finite_domain_resolution` is diagnostic evidence only and never certifies the omitted tail by itself;
 - a path participates only when all of its premises are certified;
-- if both paths are valid, the final tail bound is the smaller valid bound;
+- if the geometric path passes, it remains the primary route;
+- the analytic path is a fail-closed fallback, not a shortcut around finite-domain convergence;
 - if neither path is valid, the run remains unresolved;
 - SPM and d-wave use exactly the same logic.
 
-The current repository only derives the analytic formula conditionally. The power-metric contraction certificate is therefore a launch blocker for any run that is expected to rely on the analytic path.
+The qualification runner re-reads the target cache before using the analytic path. Positive-Matsubara accepted plate states use the validated passive-sheet vacuum-admittance similarity theorem; zero-Matsubara states require a persisted conservative reflection contraction bound. Missing evidence leaves the run unresolved.
 
 ## 6. Frozen Matsubara policy
 
@@ -140,7 +141,7 @@ No pairing-specific Matsubara ladder or tail rule is permitted.
 
 ### 7.1 Source immutability
 
-Before and after every preparation, holdout and production step, record and compare SHA-256 for:
+Before and after every preparation, holdout and qualification step, record and compare SHA-256 for:
 
 ```text
 <source-v4>/config.json
@@ -152,103 +153,96 @@ Before and after every preparation, holdout and production step, record and comp
 
 Any source change aborts the workflow.
 
-### 7.2 Why the existing extension command is insufficient
+### 7.2 Audited policy projection
 
-The current `prepare-pilot-extension` path permits only an unchanged microscopic point policy or a strict N-ladder prefix extension. The v5 policy changes `logdet_rtol` from `1.5e-3` to `2.0e-3`, so using that command directly must fail rather than silently copying an incompatible cache.
+The ordinary `prepare-pilot-extension` path still permits only an unchanged microscopic point policy or a strict N-ladder prefix extension. It is deliberately not used for this rtol change.
 
-A dedicated, audited policy-projection step is required.
+The implemented qualification preparation command instead:
 
-### 7.3 Required policy-projection behavior
-
-For every v4 cache entry:
-
-1. retain the complete stored N/shift history;
-2. replay the frozen v5 gates over that history with `logdet_rtol=2.0e-3`;
-3. preserve every hard-physical result unchanged;
-4. write a new v5 `sweet_spot` only when the frozen candidate establishes from stored evidence;
-5. omit only entries that remain unresolved under the frozen v5 policy, so only those identities can trigger new microscopic work;
-6. write the v5 point-policy payload and fingerprint;
-7. record source/target SHA-256, retained/projected/omitted counts, every omitted identity and every changed decision in a projection report;
-8. never overwrite an existing target cache without exact-policy validation.
+1. validates the complete v4 source policy and hashes;
+2. retains the complete stored N/shift history;
+3. replays the frozen v5 gates with `logdet_rtol=2.0e-3`;
+4. preserves every hard-physical result unchanged;
+5. writes a new v5 sweet spot only from stored evidence;
+6. omits entries that remain unresolved or lack contraction evidence, allowing only those identities to trigger new microscopic work;
+7. writes the v5 policy payload and fingerprint;
+8. records source/target SHA-256, retained and omitted identities, and every changed decision;
+9. refuses to overwrite a partial or incompatible target.
 
 This is reuse by verified history projection, not blind byte copying.
 
-### 7.4 Expected reuse
+### 7.3 Expected reuse
 
 - SPM v4 has established microscopic entries and should seed essentially all previously requested points.
 - d-wave v4 should seed all strict-established entries and reclassify the four known boundary histories under the frozen moderate policy when the stored replay supports establishment.
-- New microscopic work is allowed only for genuinely missing q/n identities, holdout levels, or points omitted because the frozen policy still does not establish them.
+- New microscopic work is allowed only for genuinely missing q/n identities, independent holdout levels, or points omitted because the frozen policy still does not establish them.
 - Expanding the common outer cutoff to `u=60` may require new d-wave q points. Those are incremental additions, not a restart.
 
 ## 8. Independent high-N holdout
 
-The candidate policy is frozen before the holdout is executed. The holdout set must include:
+The candidate policy is frozen before the holdout is executed. The SHA-bound plan includes:
 
-- all four known d-wave boundary points;
-- the largest quadrature-weighted uncertainty contributors for each pairing and Matsubara channel;
-- representative radii and directions;
-- points that stop substantially earlier under `2.0e-3`;
-- ordinary easy points as controls.
+- all points whose acceptance decision changes under projection, including the known d-wave boundary set when present;
+- the largest quadrature-weighted uncertainty contributors from the compact convergence audit;
+- representatives for pairing and Matsubara strata;
+- ordinary easy controls.
 
-Use the existing weighted holdout plan as the starting list, with at most 32 primary points unless the required strata force a larger set. Each selected point is evaluated at the two predeclared N levels above its highest stored valid N.
-
-Acceptance rule:
+Each selected point is evaluated at two predeclared N levels above its highest stored valid N. Acceptance is
 
 ```text
-abs(L_holdout - L_accepted) <= 2.0 * predicted_local_uncertainty
+maximum shiftwise abs(L_holdout - L_accepted)
+    <= 2.0 * predicted_local_uncertainty
 ```
 
-for every selected point and tested holdout level, with all hard-physical gates passing. The factor `2.0` is frozen before execution.
+for every selected point and both holdout levels, with all hard-physical gates passing. The factor `2.0` is frozen before execution.
 
 Holdout values are not used to retune `logdet_rtol`, the N ladder, or the safety factor. Failure rejects the candidate and requires a new candidate plus a new independent holdout.
 
 ## 9. Real-work benchmark
 
-The holdout and incremental missing-point work must record:
+The holdout uses the real strict transverse certifier and records:
 
-- wall time;
-- peak process memory where available;
-- certifier batch count;
-- new versus cache-hit q evaluations;
-- new versus cache-hit point evaluations;
-- cache byte growth;
-- level-resolved certifier time.
+- wall time by grouped batch;
+- full level-resolved execution telemetry;
+- hard-gate status and shiftwise errors for each point and N level;
+- source and target cache immutability.
 
-Cache-only replay time and the N-squared work proxy remain diagnostics and do not count as the real-work benchmark.
+The subsequent qualification run retains the existing provider telemetry for new versus cache-hit q and point evaluations, cache growth and certifier timings. Cache-only replay time and the N-squared work proxy remain diagnostics rather than real-work evidence.
 
-## 10. Pre-launch code gates
+## 10. Implemented launch gates
 
-The v5 run must not start until all of the following are implemented and tested:
+The repository now contains:
 
-1. remove the pairing-dependent radial-budget default or add a required common `radial_budget_fraction` input persisted in `config.json`;
-2. add the audited v4-to-v5 policy-projection cache command described above;
-3. add a holdout executor that writes immutable requested identities/N levels before computing values;
-4. add and validate the power-metric contraction certificate if the analytic tail path will be allowed to pass production acceptance;
-5. make the production tail controller choose only among premise-valid bounds and apply identical logic to both pairings;
-6. emit a preflight manifest containing the frozen policy, source hashes, target paths, holdout-plan hash and Git commit;
-7. test that both pairings produce identical numerical-policy snapshots after physical identity is excluded.
+1. pairing-blind radial/angular configuration;
+2. an audited v4-to-v5 history-projection cache command;
+3. a SHA-bound holdout planner and real strict-certifier holdout executor;
+4. a cached power-metric contraction certificate and a premise-checked analytic tail fallback;
+5. identical tail-controller logic for both pairings;
+6. a preflight manifest containing the frozen policy, source hashes, target hashes, holdout hash and Git commit;
+7. a policy-parity test and final two-run verifier.
 
-Until these gates pass, the status remains:
+Code readiness is now:
 
 ```text
-ready_to_prepare_code = true
-ready_to_seed_v5_cache = false
-ready_to_run_v5 = false
+ready_to_prepare_v5_cache = true
+ready_to_execute_holdout = true
+ready_to_generate_preflight = true
+ready_to_run_v5 = conditional_on_local_holdout_and_preflight
 production_change_authorized = false
 ```
 
-## 11. Execution order after the code gates pass
+## 11. Execution order
 
-1. freeze the Git commit and write the preflight manifest;
-2. hash both v4 source runs;
-3. create the two v5 caches by audited policy projection;
-4. verify target fingerprints, projection reports and source immutability;
-5. execute the independent holdout and real-work benchmark;
-6. if the holdout passes, run SPM and d-wave 0° with the same complete CLI policy;
-7. regenerate diagnostics and the unified convergence audit;
-8. verify microscopic, finite-domain, outer-tail, Matsubara-tail and total-energy ledgers;
-9. refresh the run catalog and register v5 only after artifacts are complete;
-10. keep v4 as frozen evidence until v5 is formally accepted.
+The exact commands are maintained in `zero_degree_qualification_runbook.md`:
+
+1. run focused tests;
+2. project both v4 caches into v5 and freeze the holdout plan;
+3. execute the independent high-N holdout;
+4. generate the SHA-bound preflight;
+5. run SPM and d-wave 0° through the qualification runner;
+6. execute the final qualification verifier;
+7. regenerate diagnostics/catalog only after the final report is written;
+8. keep v4 as frozen evidence until v5 is formally accepted.
 
 ## 12. Final acceptance contract
 
@@ -273,11 +267,9 @@ same_error_allocation = true
 real_work_benchmark_recorded = true
 ```
 
-A failure in one pairing does not authorize a pairing-specific exception. It leaves that pairing unresolved and triggers a new common-policy audit.
+A failure in one pairing does not authorize a pairing-specific exception. It leaves that pairing unresolved and requires a new common-policy audit.
 
 ## 13. Frozen decision
-
-The next qualification candidate is therefore:
 
 ```text
 profile                       = 0deg_qualification_v5
@@ -290,7 +282,7 @@ outer cutoff ladder           = 6..60 unified ladder
 Matsubara ladder              = 1,3,7,11,15,23,31
 hard physical gates           = unchanged
 source cache                  = each pairing's immutable 0deg_pilot_v4 cache
-cache strategy                = audited history projection, never empty restart
+cache strategy                = audited full-history projection, never empty restart
 ```
 
-This is a frozen qualification policy, not yet a production authorization.
+This is a frozen qualification policy and executable preparation path. It is not yet a downstream production-Casimir authorization.
