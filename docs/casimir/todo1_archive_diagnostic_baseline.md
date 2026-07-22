@@ -26,7 +26,13 @@ The current `main` starts from the same tracked source tree, but the historical 
 
 ## Existing local evidence roots
 
-The first inventory must explicitly include the following local roots and files when they exist:
+The primary baseline source is the stopped formal campaign in the working repository:
+
+```text
+<repository>/outputs/casimir/production/campaign-3a6260fd6ec8/
+```
+
+The first inventory must also include the following supporting historical roots and files when they exist:
 
 ```text
 <repository>/outputs/casimir/
@@ -35,18 +41,22 @@ The first inventory must explicitly include the following local roots and files 
 /home/liubx25/campaign-3a6260fd6ec8_*
 ```
 
-The loose `campaign-3a6260fd6ec8_*` JSON/CSV exports are diagnostic derivatives. They are not separate campaigns and must not each become a new permanent archive object.
+The external `casimir-output-archive-20260721-223949` snapshot contains earlier pilot, qualification, replay, catalog and retention evidence. Its inspected hot runs were created at commits preceding the stopped formal campaign; it is supporting history, not the canonical archive of `campaign-3a6260fd6ec8`.
+
+The loose `campaign-3a6260fd6ec8_*` JSON/CSV exports are diagnostic derivatives of the stopped campaign. They are not separate campaigns and must not each become a new permanent archive object.
 
 ## Separation from the mainline
 
-Historical material is forbidden from all formal campaign locations:
+The existing stopped campaign may remain at its original formal path only as a frozen, read-only source while TODO 1 verifies and archives it. It must not be resumed, repaired, extended, or rewritten.
+
+No external historical bundle, loose replay, diagnostic export, or old cache may be added to:
 
 ```text
 outputs/casimir/production/
 outputs/casimir/production/.locks/
 ```
 
-No historical cache may be copied into a formal campaign cache. No baseline tool may call a microscopic evaluator. No archive or baseline action may change a plan, result, cache, replay, diagnostic, or source file in place.
+No historical cache may be copied into a new formal campaign cache. No baseline tool may call a microscopic evaluator. No archive or baseline action may change a plan, result, cache, replay, diagnostic, or source file in place.
 
 Git tracks only this contract and compact documentation. Raw caches, archives, logs, plans, replay outputs, and generated baseline manifests remain local generated data.
 
@@ -56,17 +66,21 @@ TODO 1 uses exactly four lifecycle classes.
 
 ### `canonical_archive`
 
-Exactly one verified retained copy of non-reconstructable raw evidence. The current preferred root is:
+Exactly one verified retained copy of each unique, non-reconstructable raw evidence set.
+
+For the stopped campaign, the canonical archive must be derived from and verified against:
 
 ```text
-/home/liubx25/casimir-output-archive-20260721-223949/
+<repository>/outputs/casimir/production/campaign-3a6260fd6ec8/
 ```
+
+Its final retained path is selected only after the source campaign, cache, plan, proof and reports have been inventoried and hashed. The external historical snapshot is classified independently as supporting evidence and must not be substituted for the stopped formal campaign.
 
 A second byte-identical archive is not retained merely because it has a different file name or location.
 
 ### `baseline_evidence`
 
-Compact evidence needed to explain the stopping decision and compare later implementations. This includes the final baseline manifest, key failure metrics, source/plan/cache identities, and hashes of the retained raw evidence.
+Compact evidence needed to explain the stopping decision and compare later implementations. This includes the final baseline manifest, key failure metrics, source/plan/cache identities, hashes of retained raw evidence, and the minimum supporting historical records needed to establish lineage.
 
 ### `derived_duplicate`
 
@@ -136,11 +150,12 @@ These values are diagnostic evidence from the stopped run. TODO 1 must bind them
 
 ### Phase A — read-only inventory
 
-1. Run the existing repository output audit and catalog commands.
-2. Inventory the three external `/home/liubx25` evidence groups explicitly.
-3. Hash every file and compute deterministic tree digests.
-4. Detect byte-identical files and tree-identical directories.
-5. Do not move, copy, pack, delete, or modify evidence.
+1. Inventory the stopped formal campaign in the repository, including plan, campaign identity, source proof, reports, run artifacts and authoritative cache.
+2. Run the existing repository output audit and catalog commands.
+3. Inventory the three external `/home/liubx25` evidence groups explicitly.
+4. Hash every file and compute deterministic tree digests.
+5. Detect byte-identical files and tree-identical directories.
+6. Do not move, copy, pack, delete, or modify evidence.
 
 ### Phase B — freeze the baseline manifest
 
@@ -148,7 +163,8 @@ These values are diagnostic evidence from the stopped run. TODO 1 must bind them
 2. Bind the Matsubara stopping conclusion to exact files and hashes.
 3. Mark all historical results `diagnostic_only_unresolved`.
 4. Record every loose export as retained evidence, duplicate, reconstructable derivative, or transient working data.
-5. Verify that no runtime path in the formal workflow reads the baseline or archive.
+5. Record the external archive snapshot as supporting lineage, not as the stopped campaign itself.
+6. Verify that no runtime path in the formal workflow reads the baseline or archive.
 
 ### Phase C — bounded cleanup
 
@@ -163,7 +179,8 @@ These values are diagnostic evidence from the stopped run. TODO 1 must bind them
 TODO 1 is complete only when all of the following are true:
 
 ```text
-all_known_sources_inventoried: true
+stopped_formal_campaign_inventoried: true
+all_known_supporting_sources_inventoried: true
 canonical_archives_verified: true
 matsubara_failure_bound_to_hashed_evidence: true
 historical_status: diagnostic_only_unresolved
