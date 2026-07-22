@@ -4,7 +4,7 @@
 
 This TODO freezes the stopped zero-degree SPM campaign and its read-only replay/diagnostic evidence before any material-response or geometry refactor begins.
 
-The scientific status of the historical calculation is fixed as:
+The historical calculation is permanently classified as:
 
 ```text
 baseline_id: zero-degree-spm-campaign-3a6260fd6ec8
@@ -16,167 +16,156 @@ seed_new_formal_campaign: false
 extend_matsubara_range: false
 ```
 
-The frozen source identity of the stopped calculation is:
+The frozen source identity is:
 
 ```text
 76f990e8dea74038e26f9868f956e2097c4e879d
 ```
 
-The current `main` starts from the same tracked source tree, but the historical campaign remains evidence only. Its cache, plan, replay output, or derived tables must never be discovered, imported, migrated, extended, or reinterpreted by `python -m scripts.full_casimir run`.
+The historical cache, plan, replay output, diagnostic table, or archive must never be discovered, imported, migrated, extended, or reinterpreted by the formal `python -m scripts.full_casimir run` path.
 
-## Existing local evidence roots
+## Final archive state
 
-The primary baseline source is the stopped formal campaign in the working repository:
-
-```text
-<repository>/outputs/casimir/production/campaign-3a6260fd6ec8/
-```
-
-The first inventory must also include the following supporting historical roots and files when they exist:
+The stopped formal campaign was inventoried at:
 
 ```text
-<repository>/outputs/casimir/
-/home/liubx25/casimir-output-archive-20260721-223949/
-/home/liubx25/casimir-plans/
-/home/liubx25/campaign-3a6260fd6ec8_*
+outputs/casimir/production/campaign-3a6260fd6ec8/
 ```
 
-The external `casimir-output-archive-20260721-223949` snapshot contains earlier pilot, qualification, replay, catalog and retention evidence. Its inspected hot runs were created at commits preceding the stopped formal campaign; it is supporting history, not the canonical archive of `campaign-3a6260fd6ec8`.
-
-The loose `campaign-3a6260fd6ec8_*` JSON/CSV exports are diagnostic derivatives of the stopped campaign. They are not separate campaigns and must not each become a new permanent archive object.
-
-## Separation from the mainline
-
-The existing stopped campaign may remain at its original formal path only as a frozen, read-only source while TODO 1 verifies and archives it. It must not be resumed, repaired, extended, or rewritten.
-
-No external historical bundle, loose replay, diagnostic export, or old cache may be added to:
+Its verified source snapshot was:
 
 ```text
-outputs/casimir/production/
-outputs/casimir/production/.locks/
+file_count: 13
+bytes: 3447122539
+tree_digest: 7edabf45564c167cc855f7a1dae82fdea5327b3896f2d183a01bd1ebb98c56a9
 ```
 
-No historical cache may be copied into a new formal campaign cache. No baseline tool may call a microscopic evaluator. No archive or baseline action may change a plan, result, cache, replay, diagnostic, or source file in place.
+The unique retained whole-campaign archive is:
 
-Git tracks only this contract and compact documentation. Raw caches, archives, logs, plans, replay outputs, and generated baseline manifests remain local generated data.
+```text
+/home/liubx25/casimir-cold-archive/diagnostic_baselines/
+  zero-degree-spm-campaign-3a6260fd6ec8/
+    campaign-3a6260fd6ec8.tar.gz
+```
+
+```text
+archive_bytes: 203687112
+archive_sha256: 3aa4e652e954c232bfbd47905b741c147665fae88ddd85f147565799d0ca0c7a
+restore_verification_passed: true
+```
+
+The archive was restored to temporary storage and all 13 files were compared by path, size, mode, and SHA-256 against the planned source snapshot. The temporary restore was removed after verification.
+
+After the archive and retained evidence were verified, the hot formal campaign source was removed from `outputs/casimir/production/`. The only remaining production child is an empty `.locks/` coordination directory.
 
 ## Retention model
 
-TODO 1 uses exactly four lifecycle classes.
+TODO 1 uses exactly four lifecycle classes:
 
-### `canonical_archive`
+- `canonical_archive`: one verified retained copy of each unique non-reconstructable raw evidence set;
+- `baseline_evidence`: compact evidence required to explain the stopping decision and establish lineage;
+- `derived_duplicate`: copied or exactly reconstructable material removable after digest-backed verification;
+- `transient_working`: scratch, replay extracts, and intermediate reports removable after their facts are bound into the final manifest.
 
-Exactly one verified retained copy of each unique, non-reconstructable raw evidence set.
-
-For the stopped campaign, the canonical archive must be derived from and verified against:
+The retained evidence set includes:
 
 ```text
-<repository>/outputs/casimir/production/campaign-3a6260fd6ec8/
+canonical whole-campaign archive and archive manifest
+whole-campaign archive plan
+archive execution report
+restore-verification report
+campaign-3a6260fd6ec8_spm_cache_only_joint_u6.json
+campaign-3a6260fd6ec8_spm_matched_q.json
+campaign-3a6260fd6ec8_spm_microscopic_decay.csv
+/home/liubx25/casimir-output-archive-20260721-223949/
+prune execution report
+post-cleanup audit report
 ```
 
-Its final retained path is selected only after the source campaign, cache, plan, proof and reports have been inventoried and hashed. The external historical snapshot is classified independently as supporting evidence and must not be substituted for the stopped formal campaign.
+The following verified duplicates or transient files were removed:
 
-A second byte-identical archive is not retained merely because it has a different file name or location.
+```text
+hot formal campaign source
+/home/liubx25/casimir-plans/production_plan_0deg.json
+campaign-3a6260fd6ec8_spm_matched_q.csv
+campaign-3a6260fd6ec8_matsubara_extract.json
+TODO 1 intermediate inventory and replay-analysis reports
+```
 
-### `baseline_evidence`
-
-Compact evidence needed to explain the stopping decision and compare later implementations. This includes the final baseline manifest, key failure metrics, source/plan/cache identities, hashes of retained raw evidence, and the minimum supporting historical records needed to establish lineage.
-
-### `derived_duplicate`
-
-A loose JSON, CSV, report, or copied directory whose information is already present in a retained canonical archive or is exactly reconstructable from retained evidence. It may be removed only after digest/lineage verification and an explicit deletion plan.
-
-### `transient_working`
-
-Temporary replay copies, extracted archives, scratch reports, and one-off analysis outputs. They must not be promoted into the archive merely because they exist. They are removed after the final manifest records the retained evidence they produced.
+No retained canonical archive or baseline-evidence item was deleted.
 
 ## One-manifest rule
 
-The stopped campaign has one baseline manifest:
+The stopped campaign has one stable generated baseline location:
 
 ```text
 outputs/casimir/catalog/diagnostic_baselines/
   zero-degree-spm-campaign-3a6260fd6ec8/
     manifest.json
     inventory.tsv
+    prune_plan.json
+    prune_execution.json
+    post_cleanup_audit.json
+    formal_campaign_archive/
 ```
 
-The manifest is generated local data and is not a formal campaign artifact. Re-running the inventory updates the same baseline location; it must not create timestamped baseline directories.
+These files are local generated data and are ignored by Git. Re-running baseline bookkeeping updates this same location and must not create timestamped baseline directories.
 
-The manifest must record, for every retained or removable source:
+Final local identities are:
 
-- absolute source path;
-- lifecycle class;
-- file count and total bytes;
-- file SHA-256 or directory tree digest;
-- campaign, plan, source-commit, and cache identity when available;
-- whether the item is raw, replay, diagnostic report, table, plan, log, or archive;
-- canonical retained object or duplicate-of relationship;
-- reconstructability and proposed retention action;
-- verification state and verification time.
-
-Paths do not determine lifecycle. Classification must be explicit and digest-backed.
+```text
+manifest_sha256: fcc3b4b99ae4ba36c2ad5999cfd93c0cf9c50ba5201917f2676ebc4f3a818343
+inventory_rows: 27
+inventory_sha256: a5c3ff9d9986b2442e17c0c49ee7203700324c33cb0117d18a534531868f6330
+prune_plan_sha256: a0b8663744c3424c913b443de55883e36d43f81b817a87136c35039908a810d7
+prune_execution_sha256: 9331cff9210505d02b987c797eda412ee9c2158bf9e705a16aa3d67661f1c29b
+post_cleanup_audit_sha256: c6d1539fd7f28c5221940ddcb292808a1bcbe84c3d1a364ca3bf702b926ee78c
+```
 
 ## Frozen numerical conclusion
 
-The baseline report must preserve the following conclusion without promoting it to a production result:
+The exact diagnostic evidence is:
 
 ```text
-outer-Q finite-domain integration: not the current blocker
+n <= 7:
+  all microscopic nodes certified
+  partial_free_energy_J_m2: -1.1960685855373808e-07
+  finite Matsubara budget: failed
+  last-block tail budget: failed
+
+n <= 15:
+  all microscopic nodes certified
+  partial_free_energy_J_m2: -2.3827370535472416e-07
+  block 8..15 / block 4..7: 1.8839607728880299
+  finite Matsubara budget: failed
+  last-block tail budget: failed
+
+n <= 31:
+  one request / 8192 points missing
+  status: unresolved
+  pairing_status: radial_unresolved
+  partial_diagnostic_free_energy_J_m2: -4.3884946002292425e-07
+
+block 16..31 / block 8..15: 1.6902425578441627
+formal block-ratio threshold: 0.8
+formal Matsubara certificate: false
+```
+
+The `n <= 31` value is a partial diagnostic quantity, not a certified finite-domain result. Earlier provisional labels that treated unrelated diagnostic scores as approximately `14.20` and `11.08 nJ/m^2` are rejected and must not be used as free energies.
+
+The frozen conclusion is:
+
+```text
+outer-Q finite-domain integration through n <= 15: available as diagnostic evidence
+n <= 31 finite-domain closure: incomplete by one request / 8192 points
 absolute Matsubara tail: unresolved
+formal Matsubara certificate: false
 old campaign continuation: forbidden
 new n=32..63 extension: not planned
+production_casimir_allowed: false
 ```
-
-The recorded diagnostic evidence includes:
-
-```text
-n <= 7:  finite-domain joint closure
-n <= 15: finite-domain joint closure
-n <= 31: one request missing; no formal Matsubara certificate
-
-|F_15| ~= 14.20 nJ/m^2
-|F_31| ~= 11.08 nJ/m^2
-|F_31| / |F_15| ~= 0.78
-
-block 8..15 / block 4..7   ~= 1.88
-block 16..31 / block 8..15 ~= 1.69
-formal block-ratio threshold <= 0.8
-```
-
-These values are diagnostic evidence from the stopped run. TODO 1 must bind them to their source files and hashes before the baseline is complete.
-
-## Execution phases
-
-### Phase A — read-only inventory
-
-1. Inventory the stopped formal campaign in the repository, including plan, campaign identity, source proof, reports, run artifacts and authoritative cache.
-2. Run the existing repository output audit and catalog commands.
-3. Inventory the three external `/home/liubx25` evidence groups explicitly.
-4. Hash every file and compute deterministic tree digests.
-5. Detect byte-identical files and tree-identical directories.
-6. Do not move, copy, pack, delete, or modify evidence.
-
-### Phase B — freeze the baseline manifest
-
-1. Select one canonical retained object for each unique raw evidence set.
-2. Bind the Matsubara stopping conclusion to exact files and hashes.
-3. Mark all historical results `diagnostic_only_unresolved`.
-4. Record every loose export as retained evidence, duplicate, reconstructable derivative, or transient working data.
-5. Record the external archive snapshot as supporting lineage, not as the stopped campaign itself.
-6. Verify that no runtime path in the formal workflow reads the baseline or archive.
-
-### Phase C — bounded cleanup
-
-1. Verify canonical archives by temporary restore and per-file comparison.
-2. Build an explicit deletion plan only for `derived_duplicate` and `transient_working` items.
-3. Never delete the sole verified copy of non-reconstructable evidence.
-4. Keep one manifest and one canonical archive object per unique evidence set.
-5. Re-run the output-layout audit and catalog after cleanup.
 
 ## Completion gates
-
-TODO 1 is complete only when all of the following are true:
 
 ```text
 stopped_formal_campaign_inventoried: true
@@ -187,6 +176,9 @@ historical_status: diagnostic_only_unresolved
 formal_campaign_import_path_present: false
 loose_duplicate_retention_plan_closed: true
 production_casimir_allowed: false
+cleanup_execution_completed: true
+post_cleanup_audit_completed: true
+todo1_complete: true
 ```
 
-Until these gates pass, no old source is deleted and TODO 2 does not begin.
+TODO 1 is complete. TODO 2 may begin only as a new formal workflow and may not resume, seed from, or import any object from this diagnostic baseline.
