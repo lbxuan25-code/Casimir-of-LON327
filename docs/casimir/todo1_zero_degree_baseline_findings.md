@@ -1,6 +1,6 @@
 # TODO 1 — verified zero-degree baseline findings
 
-This note records the evidence extracted from the stopped formal SPM campaign and its read-only diagnostic replays. It does not alter the historical campaign and does not authorize production use or resume.
+This note records the final evidence and retention outcome for the stopped formal SPM campaign. It does not authorize production use, resume, or reuse as a formal campaign seed.
 
 ## Identity
 
@@ -14,13 +14,15 @@ production_casimir_allowed: false
 resume_for_production: false
 ```
 
-Formal campaign source:
+The historical run manifest said `running`, but there was no active campaign lock and no final `result.json`, `summary.json`, `source_proof.json`, `artifact_manifest.json`, or `reproducibility.json`. The campaign is therefore an interrupted diagnostic run with an atomically retained cache, not a finalized formal result.
+
+## Verified formal source snapshot
+
+The source campaign was originally located at:
 
 ```text
 outputs/casimir/production/campaign-3a6260fd6ec8/
 ```
-
-Verified source snapshot:
 
 ```text
 bytes: 3447122539
@@ -46,11 +48,27 @@ plans/c28f4a066ed474339ed269585960cae676e24ff61bde4f19580462b5dec2cbd4.json
 sha256: b85a444f41287d0ed969ef7cd22afa0d3501d10377acd7341d3af4d6acfe2c50
 ```
 
-The loose external `production_plan_0deg.json` is byte-identical to the formal plan.
+The loose external `production_plan_0deg.json` was byte-identical to the formal plan.
 
-## Formal interruption state
+## Canonical archive and restore verification
 
-The historical run manifest still says `running`, but there is no active campaign lock and no final `result.json`, `summary.json`, `source_proof.json`, `artifact_manifest.json`, or `reproducibility.json`. The evidence therefore describes an interrupted run with an atomically retained cache, not a finalized formal result. The original manifest must remain unchanged.
+The unique retained whole-campaign archive is:
+
+```text
+/home/liubx25/casimir-cold-archive/diagnostic_baselines/
+  zero-degree-spm-campaign-3a6260fd6ec8/
+    campaign-3a6260fd6ec8.tar.gz
+```
+
+```text
+archive_bytes: 203687112
+archive_sha256: 3aa4e652e954c232bfbd47905b741c147665fae88ddd85f147565799d0ca0c7a
+restore_verification_passed: true
+restored_file_count: 13
+restored_total_bytes: 3447122539
+```
+
+The archive was restored into temporary storage and every file was compared against the approved source plan by relative path, size, mode, and SHA-256. The temporary restore directory was then removed.
 
 ## Cache-only finite-domain replay
 
@@ -112,8 +130,6 @@ common_q_count_n0_to_31: 2592
 common_q_count_n16_to_31: 2592
 ```
 
-The unweighted common-q block diagnostics are:
-
 ```text
 absolute_block_ratio_8_15_over_4_7: 1.5453556908913864
 per_frequency_ratio_8_15_over_4_7: 0.7726778454456932
@@ -136,32 +152,52 @@ new n=32..63 extension: not planned
 production_casimir_allowed: false
 ```
 
-## Retention classification
+Earlier provisional labels that treated unrelated diagnostic scores as approximately `14.20` and `11.08 nJ/m^2` are invalid and must not be used as energies.
+
+## Final retention and cleanup outcome
+
+Retained:
 
 ```text
-formal campaign directory:
-  canonical source candidate; archive and restore-verify before source removal
-
-campaign-3a6260fd6ec8_spm_cache_only_joint_u6.json:
-  baseline_evidence; retain
-
-campaign-3a6260fd6ec8_spm_matched_q.json:
-  baseline_evidence; retain
-
-campaign-3a6260fd6ec8_spm_microscopic_decay.csv:
-  baseline_evidence; retain as a compact cache-derived table
-
-campaign-3a6260fd6ec8_spm_matched_q.csv:
-  derived_duplicate; exactly reproduced by the JSON table
-
-/home/liubx25/casimir-plans/production_plan_0deg.json:
-  derived_duplicate; byte-identical to the formal plan
-
-campaign-3a6260fd6ec8_matsubara_extract.json:
-  transient_working candidate; retain until the final archive manifest binds its hash
-
-/home/liubx25/casimir-output-archive-20260721-223949/:
-  supporting earlier pilot/qualification history; not the stopped formal campaign
+canonical whole-campaign archive and archive manifest
+whole-campaign archive plan
+archive execution report
+restore-verification report
+campaign-3a6260fd6ec8_spm_cache_only_joint_u6.json
+campaign-3a6260fd6ec8_spm_matched_q.json
+campaign-3a6260fd6ec8_spm_microscopic_decay.csv
+/home/liubx25/casimir-output-archive-20260721-223949/
+prune execution report
+post-cleanup audit report
 ```
 
-No source deletion is authorized by this note. Archive creation, restore verification, and an exact prune plan remain required.
+Deleted after exact preflight revalidation:
+
+```text
+outputs/casimir/production/campaign-3a6260fd6ec8/
+/home/liubx25/casimir-plans/production_plan_0deg.json
+/home/liubx25/campaign-3a6260fd6ec8_spm_matched_q.csv
+/home/liubx25/campaign-3a6260fd6ec8_matsubara_extract.json
+12 generated TODO 1 intermediate reports
+```
+
+Cleanup identities:
+
+```text
+prune_plan_sha256: a0b8663744c3424c913b443de55883e36d43f81b817a87136c35039908a810d7
+prune_execution_sha256: 9331cff9210505d02b987c797eda412ee9c2158bf9e705a16aa3d67661f1c29b
+post_cleanup_audit_sha256: c6d1539fd7f28c5221940ddcb292808a1bcbe84c3d1a364ca3bf702b926ee78c
+final_inventory_rows: 27
+final_inventory_sha256: a5c3ff9d9986b2442e17c0c49ee7203700324c33cb0117d18a534531868f6330
+final_manifest_sha256: fcc3b4b99ae4ba36c2ad5999cfd93c0cf9c50ba5201917f2676ebc4f3a818343
+```
+
+The post-cleanup audit verified that all 16 deletion targets are absent, all retained evidence still matches its approved digest, the canonical archive is intact, the final inventory matches the execution record, the tracked worktree is clean, and the production root contains only an empty `.locks/` directory.
+
+```text
+cleanup_state: completed
+post_cleanup_audit_completed: true
+todo1_complete: true
+```
+
+TODO 1 is closed. Any subsequent work must begin as a new formal workflow and must not import, resume, or extend this diagnostic baseline.
