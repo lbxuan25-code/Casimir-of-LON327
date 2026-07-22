@@ -1,33 +1,53 @@
 # Casimir production route
 
-## Public surface
+## Operational surface
 
-```python
-from lno327.casimir import (
-    FullCasimirConfig,
-    FullCasimirResult,
-    build_full_casimir_config,
-    run_full_casimir,
-)
+The only user-facing calculation route is:
+
+```bash
+python -m scripts.full_casimir plan ...
+python -m scripts.full_casimir run ... --fresh|--resume
 ```
 
-`run_full_casimir` 是唯一顶层计算路线。各级 adaptive controller 是实现模块和数值开发面，不从包顶层构成竞争入口。
+`plan` freezes the scientific policy, physical case matrix, Git source identity and
+plan SHA. `run` accepts only that confirmed plan and executes it under one campaign
+owner lock, with explicit stale takeover, bounded retries and atomic-cache recovery.
+There is no package command, installed console command, single-case command, pilot
+runner, qualification runner, background wrapper, or cache-extension calculation
+route.
+
+The Python objects exported by `lno327.casimir` are internal library components used
+by the unified dispatcher and tests. Calling those functions from ad hoc scripts is
+not an authorized production workflow.
 
 ## Layer order
 
 ```text
-FrequencyExtendableCertifiedOuterQProvider
+immutable top-level plan
+→ FrequencyExtendableCertifiedOuterQProvider
 → adaptive radial panels
 → global periodic angular order and offset audit
 → joint radial/angular direction selection
-→ cumulative u cutoff and outer tail envelope
-→ cumulative Matsubara cutoff and high-frequency tail envelope
+→ cumulative u cutoff and certified outer tail
+→ cumulative dyadic Matsubara blocks and holdout tail certificate
+→ total error-budget and production-authorization gate
 ```
 
-所有层逐 pairing、逐 Matsubara channel 保留误差证据。任何 microscopic point、有限域积分或 tail 证据未建立时，结果均返回 `unresolved`。
+Every layer preserves pairing- and Matsubara-channel error evidence. If any
+microscopic point, finite-domain integral, tail certificate, or total budget remains
+unresolved, the case is not marked `completed`.
+
+Completed attempts produce source, plan, environment and authoritative-artifact proof
+records. Verify them without calculation through:
+
+```bash
+python -m scripts.full_casimir proof --campaign <campaign-id>
+```
 
 ## Documents
 
-- `numerical_contract.md`：误差预算和 tail 规则；
-- `operations.md`：运行、恢复、输出和首个 pilot；
-- `legacy_fixed_reference.md`：固定网格历史路线的隔离边界。
+- `numerical_contract.md`: error budgets and certification rules;
+- `operations.md`: planning, locks, fresh execution, resume, recovery and proof;
+- `progress_reporting.md`: persisted runtime events and status display;
+- `todo5_numerical_and_execution_policy.md`: frozen numerical/execution policies;
+- `legacy_fixed_reference.md`: isolated historical library reference only.

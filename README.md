@@ -13,7 +13,7 @@ microscopic finite-q certification
 → adaptive Matsubara cutoff + tail bound
 ```
 
-稳定公共入口只有：
+稳定公共科学接口只有：
 
 ```python
 from lno327.casimir import build_full_casimir_config, run_full_casimir
@@ -27,7 +27,7 @@ config = build_full_casimir_config(
 result = run_full_casimir(config)
 ```
 
-命令行入口：
+单个物理 case 的底层命令行入口：
 
 ```bash
 python -m lno327.casimir \
@@ -38,13 +38,31 @@ python -m lno327.casimir \
   --plate-angles-deg 0 17
 ```
 
-运行产物统一进入：
+多角度、多距离以及单点生产任务统一采用“先冻结计划、再执行”的入口：
 
-```text
-outputs/casimir/runs/<case>/
+```bash
+python -m scripts.full_casimir plan \
+  --pairings spm dwave \
+  --distances-nm 10 20 40 \
+  --angles-deg 0 45 90 \
+  --plan-output production_plan.json
+
+python -m scripts.full_casimir run \
+  --plan production_plan.json \
+  --confirm-plan-sha256 <PLAN_SHA> \
+  --fresh
 ```
 
-其中 `<case>` 是人为命名的物理算例，不使用开发版本号命名。
+任务中断后使用同一份计划和 `--resume`。正式输出进入：
+
+```text
+outputs/casimir/production/<campaign-id>/
+```
+
+campaign 由科学数值政策、精确 Git commit 和数据合同自动命名，不使用人工
+`v2/v3/v4` 标签。计划只能在记录的同一干净 Git commit 上运行。每个物理
+case 使用独立缓存；正式入口不会自动迁移或继承旧 profile 缓存。完整说明见
+`docs/casimir/production_scan_cli.md`。
 
 ## 物理边界
 
@@ -73,7 +91,8 @@ from lno327.casimir.legacy import run_fixed_reference_casimir
 - `tests/`：稳定数值合同与全栈 fail-closed 测试；
 - `docs/casimir/`：主路线、误差预算、运行和维护说明；
 - `outputs/`：本地运行产物布局说明，生成数据不提交；
-- `scripts/`：非 Casimir 主入口的研究辅助脚本。
+- `scripts/full_casimir/`：正式物理 case 的统一编排、诊断与数据管理入口；
+- `scripts/` 其余目录：研究辅助脚本。
 
 ## 检查
 
@@ -81,4 +100,6 @@ from lno327.casimir.legacy import run_fixed_reference_casimir
 python -m pip install -e ".[dev]"
 python -m pytest -q
 python -m lno327.casimir --help
+python -m scripts.full_casimir --help
+python -m scripts.full_casimir plan --help
 ```

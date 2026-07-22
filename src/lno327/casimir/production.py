@@ -5,18 +5,35 @@ from dataclasses import replace
 import json
 import math
 from pathlib import Path
+from time import perf_counter
 from typing import Any, Literal, Mapping, Sequence
 
-from .adaptive_matsubara_tail import (
-    AdaptiveMatsubaraCasimirConfig,
-    AdaptiveMatsubaraCasimirResult,
-    run_adaptive_matsubara_casimir,
+from .adaptive_matsubara_tail import AdaptiveMatsubaraCasimirConfig
+from .certified_matsubara import (
+    CertifiedMatsubaraCasimirResult,
+    run_certified_matsubara_casimir,
 )
 from .certified_point_provider import FrequencyExtendableCertifiedOuterQProvider
+from .error_budget import (
+    FINITE_MATSUBARA_BUDGET_FRACTION,
+    JOINT_BUDGET_FRACTION_WITHIN_OUTER_FINITE,
+    MATSUBARA_TAIL_BUDGET_FRACTION,
+    OFFSET_BUDGET_FRACTION_WITHIN_OUTER_FINITE,
+    OUTER_FINITE_BUDGET_FRACTION,
+    OUTER_TAIL_BUDGET_FRACTION,
+)
+from .progress import (
+    ProgressMatsubaraOuterRunner,
+    ProgressPointProvider,
+    emit_progress,
+    pairing_budget_ratios,
+    wrap_certifier_runner,
+)
 from .strict_transverse_runner import run_strict_transverse_certifier
+from .transverse_policy import FORMAL_TRANSVERSE_SHIFTS, normalize_shifts
 
 FullCasimirConfig = AdaptiveMatsubaraCasimirConfig
-FullCasimirResult = AdaptiveMatsubaraCasimirResult
+FullCasimirResult = CertifiedMatsubaraCasimirResult
 
 _TELEMETRY_SCHEMA = "certified-point-provider-telemetry-v1"
 _TELEMETRY_INTEGER_FIELDS = (
@@ -69,11 +86,7 @@ def _telemetry_payload_is_safe(payload: Any) -> bool:
 
 
 def _quarantine_invalid_telemetry(config: FullCasimirConfig) -> Path | None:
-    """Remove only malformed, non-authoritative telemetry from the resume path.
-
-    The certified-point cache remains untouched. A quarantined sidecar is retained
-    next to the cache for diagnosis and can never affect physical acceptance.
-    """
+    """Remove only malformed, non-authoritative telemetry from the resume path."""
 
     if config.point_cache_path is None:
         return None
@@ -106,20 +119,49 @@ def build_full_casimir_config(
     delta0_eV: float = 0.1,
     eta_eV: float = 1e-8,
     degeneracy: float = 1.0,
-    N_candidates: Sequence[int] = (128, 192, 256),
+    N_candidates: Sequence[int] = (
+        128,
+        192,
+        256,
+        384,
+        512,
+        640,
+        768,
+        896,
+        1024,
+        1152,
+        1280,
+    ),
+    shifts: Sequence[Sequence[float]] = FORMAL_TRANSVERSE_SHIFTS,
     required_consecutive_passes: int = 2,
-    logdet_rtol: float = 1.5e-3,
+    logdet_rtol: float = 2.0e-3,
     logdet_atol: float = 1e-6,
     workers: int = 0,
     parallel_mode: Literal["auto", "serial", "q", "context", "wave"] = "auto",
     memory_budget_gb: float = 0.0,
     max_context_workers: int = 0,
-    cutoff_u_values: Sequence[float] = (6.0, 10.0, 14.0, 18.0, 24.0, 30.0, 36.0, 42.0),
+    memory_safety_factor: float = 1.5,
+    fallback_context_bytes_per_point: float = 16_384.0,
+    canonical_block: int = 4096,
+    runtime_chunk: int = 16_384,
+    cutoff_u_values: Sequence[float] = (
+        6.0,
+        10.0,
+        14.0,
+        18.0,
+        24.0,
+        30.0,
+        36.0,
+        42.0,
+        48.0,
+        54.0,
+        60.0,
+    ),
     outer_tail_start_u: float = 24.0,
     outer_tail_window_shells: int = 3,
     outer_tail_ratio_max: float = 0.8,
-    matsubara_cutoff_values: Sequence[int] = (1, 3, 7, 11, 15, 23, 31),
-    matsubara_tail_start_n: int = 8,
+    matsubara_cutoff_values: Sequence[int] = (1, 3, 7, 15, 31, 63),
+    matsubara_tail_start_n: int = 4,
     matsubara_tail_window_terms: int = 4,
     matsubara_tail_ratio_max: float = 0.8,
     total_free_energy_rtol: float = 5e-3,
@@ -130,13 +172,10 @@ def build_full_casimir_config(
     certifier_q_batch_size: int = 512,
     point_cache_path: Path | None = None,
 ) -> FullCasimirConfig:
-    """Build the canonical nested adaptive configuration.
-
-    Numerical budgets are pairing blind. Pairing identity changes only the material
-    response; it never selects a different acceptance rule or error allocation.
-    """
+    """Build the pairing-blind certified production configuration."""
 
     pairing_tuple = tuple(str(value) for value in pairings)
+    shift_tuple = normalize_shifts(shifts)
     fraction = float(radial_budget_fraction)
     if not math.isfinite(fraction) or not 0.0 < fraction < 1.0:
         raise ValueError("radial_budget_fraction must lie strictly between zero and one")
@@ -153,6 +192,7 @@ def build_full_casimir_config(
         eta_eV=float(eta_eV),
         degeneracy=float(degeneracy),
         N_candidates=tuple(int(value) for value in N_candidates),
+        shifts=shift_tuple,
         required_consecutive_passes=int(required_consecutive_passes),
         logdet_rtol=float(logdet_rtol),
         logdet_atol=float(logdet_atol),
@@ -160,6 +200,10 @@ def build_full_casimir_config(
         parallel_mode=parallel_mode,
         memory_budget_gb=float(memory_budget_gb),
         max_context_workers=int(max_context_workers),
+        memory_safety_factor=float(memory_safety_factor),
+        fallback_context_bytes_per_point=float(fallback_context_bytes_per_point),
+        canonical_block=int(canonical_block),
+        runtime_chunk=int(runtime_chunk),
         transverse_checkpoint_path=None,
     )
     radial = replace(
@@ -181,6 +225,14 @@ def build_full_casimir_config(
         cutoff_u_values=tuple(float(value) for value in cutoff_u_values),
         total_outer_rtol=float(total_free_energy_rtol),
         total_outer_atol_J_m2=float(total_free_energy_atol_J_m2),
+        finite_domain_budget_fraction=OUTER_FINITE_BUDGET_FRACTION,
+        tail_budget_fraction=OUTER_TAIL_BUDGET_FRACTION,
+        joint_budget_fraction_within_finite=(
+            JOINT_BUDGET_FRACTION_WITHIN_OUTER_FINITE
+        ),
+        offset_budget_fraction_within_finite=(
+            OFFSET_BUDGET_FRACTION_WITHIN_OUTER_FINITE
+        ),
         tail_start_u=float(outer_tail_start_u),
         tail_window_shells=int(outer_tail_window_shells),
         tail_ratio_max=float(outer_tail_ratio_max),
@@ -192,6 +244,8 @@ def build_full_casimir_config(
         matsubara_cutoff_values=tuple(int(value) for value in matsubara_cutoff_values),
         total_free_energy_rtol=float(total_free_energy_rtol),
         total_free_energy_atol_J_m2=float(total_free_energy_atol_J_m2),
+        finite_matsubara_budget_fraction=FINITE_MATSUBARA_BUDGET_FRACTION,
+        matsubara_tail_budget_fraction=MATSUBARA_TAIL_BUDGET_FRACTION,
         tail_start_n=int(matsubara_tail_start_n),
         tail_window_terms=int(matsubara_tail_window_terms),
         tail_ratio_max=float(matsubara_tail_ratio_max),
@@ -202,7 +256,7 @@ def build_full_casimir_config(
 
 
 def run_full_casimir(config: FullCasimirConfig) -> FullCasimirResult:
-    """Run the single canonical adaptive outer-integration route."""
+    """Run the single certified outer-Q and Matsubara production route."""
 
     if not isinstance(config, AdaptiveMatsubaraCasimirConfig):
         raise TypeError("config must be a FullCasimirConfig")
@@ -213,13 +267,56 @@ def run_full_casimir(config: FullCasimirConfig) -> FullCasimirResult:
         base_point,
         matsubara_indices=tuple(range(int(first_cutoff) + 1)),
     )
-    provider = FrequencyExtendableCertifiedOuterQProvider(
+    base_provider = FrequencyExtendableCertifiedOuterQProvider(
         first_point,
         cache_path=config.point_cache_path,
-        runner=run_strict_transverse_certifier,
+        runner=wrap_certifier_runner(run_strict_transverse_certifier),
         certifier_q_batch_size=config.certifier_q_batch_size,
     )
-    return run_adaptive_matsubara_casimir(config, provider=provider)
+    provider = ProgressPointProvider(base_provider)
+    outer_runner = ProgressMatsubaraOuterRunner(config.matsubara_cutoff_values)
+    emit_progress(
+        "matsubara_controller_started",
+        cutoff_values=[int(value) for value in config.matsubara_cutoff_values],
+        tail_start_n=int(config.tail_start_n),
+        tail_window_blocks=int(config.tail_window_terms),
+        pairings=list(first_point.pairings),
+    )
+    started = perf_counter()
+    try:
+        result = run_certified_matsubara_casimir(
+            config,
+            provider=provider,
+            outer_tail_runner=outer_runner,
+        )
+    except Exception as exc:
+        emit_progress(
+            "matsubara_controller_failed",
+            wall_seconds=float(perf_counter() - started),
+            error_type=type(exc).__name__,
+            error=str(exc),
+        )
+        raise
+    emit_progress(
+        "matsubara_controller_completed",
+        status=str(result.status),
+        matsubara_converged=bool(result.matsubara_converged),
+        selected_matsubara_cutoff=result.selected_matsubara_cutoff,
+        all_outer_tail_runs_converged=bool(
+            result.all_outer_tail_runs_converged
+        ),
+        all_microscopic_nodes_certified=bool(
+            result.all_microscopic_nodes_certified
+        ),
+        formal_policy_passed=bool(result.formal_policy_passed),
+        error_budget_closed=bool(result.error_budget_closed),
+        production_casimir_allowed=bool(result.production_casimir_allowed),
+        termination_reason=str(result.termination_reason),
+        budget_ratios=pairing_budget_ratios(result.pairing_results),
+        provider_statistics=dict(result.provider_statistics),
+        wall_seconds=float(perf_counter() - started),
+    )
+    return result
 
 
 __all__ = [

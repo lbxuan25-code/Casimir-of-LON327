@@ -35,19 +35,43 @@ jobs:
       - name: Install package and test dependencies
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
 
-      - name: Verify canonical Casimir entrypoint
+      - name: Verify sole Casimir command surface
+        shell: bash
         run: |
-          python -m lno327.casimir --help
-          lno327-casimir --help
+          set -euo pipefail
+          python -m scripts.full_casimir --help
+          python -m scripts.full_casimir plan --help
+          python -m scripts.full_casimir run --help
+          python -m scripts.full_casimir status --help
+          python -m scripts.full_casimir proof --help
+          test ! -e src/lno327/casimir/__main__.py
+          test ! -e scripts/full_casimir/workflow.py
+          test ! -e scripts/full_casimir/qualification.py
+          test ! -e scripts/full_casimir/background.sh
+          if command -v lno327-casimir >/dev/null 2>&1; then
+            echo "unexpected competing console command: lno327-casimir" >&2
+            exit 1
+          fi
           python - <<'PY'
           import lno327.casimir as casimir
+          from scripts.full_casimir import __main__ as unified
+
           assert callable(casimir.build_full_casimir_config)
           assert callable(casimir.run_full_casimir)
-          assert not hasattr(casimir, "run_casimir")
-          assert not hasattr(casimir, "FixedCasimirConfig")
+          assert set(unified._COMMANDS) == {
+              "plan", "run", "resources", "status", "proof", "diagnose", "audit",
+              "shift-audit", "torque", "plot", "data", "layout",
+          }
+          assert unified._COMMANDS["run"] == ("scripts.full_casimir.run_command", ())
+          assert "legacy-workflow" not in unified._COMMANDS
+          assert "qualification" not in unified._COMMANDS
           metadata = casimir.casimir_layer_metadata()
-          assert metadata["canonical_entrypoint"] == "lno327.casimir.run_full_casimir"
-          assert metadata["legacy_fixed_exported_from_package_root"] is False
+          assert metadata["canonical_operational_entrypoint"] == (
+              "python -m scripts.full_casimir"
+          )
+          assert metadata["package_command_present"] is False
+          assert metadata["installed_console_command_present"] is False
+          assert metadata["legacy_calculation_scripts_present"] is False
           PY
 
       - name: Verify test collection after cleanup
