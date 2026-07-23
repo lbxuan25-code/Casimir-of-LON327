@@ -68,8 +68,17 @@ def _artifact(identity) -> CachedCertifiedMaterialResponse:
     return CachedCertifiedMaterialResponse(
         identity=identity, snapshot=_snapshot(identity), working_N=64, audit_N=96,
         primary_shift="shift_0", establishment_mode="strict_consecutive_adjacent",
-        certification_evidence={"production_casimir_allowed": False},
-        audit_provenance_by_shift={"shift_0": {"grid": 96}},
+        certification_evidence={
+            "convergence_policy": dict(identity.convergence_policy),
+            "required_consecutive_passes": identity.required_consecutive_passes,
+            "observable_error_budget_calibrated": False,
+            "valid_for_casimir_input": False,
+            "production_casimir_allowed": False,
+        },
+        audit_provenance_by_shift={
+            "shift_0": {"grid": 96},
+            "shift_1": {"grid": 96},
+        },
     )
 
 
