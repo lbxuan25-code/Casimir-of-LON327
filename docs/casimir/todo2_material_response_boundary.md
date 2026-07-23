@@ -51,7 +51,7 @@ separation, reflection policy, or outer quadrature state.
 
 ### `material_response.py`
 
-Owns the single authoritative conversion:
+Owns the single authoritative conversion for the new route:
 
 ```text
 ArbitraryQPeriodicBZResult
@@ -64,6 +64,12 @@ ArbitraryQPeriodicBZResult
 The exact-zero path extracts static susceptibility/stiffness and never divides
 by frequency. The positive-frequency path constructs the crystal-xy sheet
 conductivity. The two sectors are type-checked at object construction.
+
+`MaterialResponsePolicy` contains every static and positive-frequency validation
+tolerance used by the builder. Its canonical payload has a stable SHA-256
+fingerprint. `MaterialResponseSample.identity_payload` uses exact hexadecimal
+float identities for frequency and crystal momentum and records material-state,
+material-cache, response-policy, and basis provenance.
 
 ### `material_response_certification.py`
 
@@ -102,8 +108,8 @@ response.
 
 ## Stable engineering rules
 
-1. There is one material conversion implementation. Compatibility code must call
-   it rather than copy its formulas.
+1. There is one material conversion implementation for the new route.
+   Compatibility code must call it rather than copy its formulas.
 2. Material policy and geometry policy are distinct frozen data contracts.
 3. Material modules must not import reflection, Lifshitz, or outer integration.
 4. Geometry modules must not import microscopic integration or response
