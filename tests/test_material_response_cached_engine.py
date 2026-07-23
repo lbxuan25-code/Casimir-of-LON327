@@ -132,3 +132,27 @@ def test_read_only_miss_fails_before_microscopic_fallback(tmp_path: Path, monkey
     monkeypatch.setattr(cached, "evaluate_material_response_ladder", forbidden)
     with pytest.raises(MaterialResponseCacheMiss):
         cached.evaluate_material_response_ladder_cached(_config((1,)), q_crystal=np.array([0.015, 0.025]), cache=MaterialResponseCacheStore(tmp_path, mode="read_only"))
+
+
+def test_unresolved_frequency_is_never_persisted(tmp_path: Path, monkeypatch) -> None:
+    _patch_identity_context(monkeypatch)
+    config = _config((1,))
+    q = np.array([0.015, 0.025])
+    def unresolved_engine(miss_config, *, q_crystal):
+        return SimpleNamespace(
+            frequencies={
+                1: SimpleNamespace(
+                    xi_eV=cached.matsubara_energy_eV(1, 40.0),
+                    certification=None,
+                )
+            }
+        )
+    monkeypatch.setattr(cached, "evaluate_material_response_ladder", unresolved_engine)
+    store = MaterialResponseCacheStore(tmp_path, mode="populate")
+    result = cached.evaluate_material_response_ladder_cached(config, q_crystal=q, cache=store)
+    row = result.frequencies[1]
+    assert row.source == "microscopic_unresolved_not_persisted"
+    assert row.established is False
+    assert result.metadata["unresolved_frequency_count"] == 1
+    assert result.metadata["persisted_frequency_count"] == 0
+    assert not store.path_for(row.cache_identity).exists()
