@@ -53,6 +53,57 @@ def _require_false(payload: Mapping[str, Any], name: str) -> None:
         raise ValueError(f"TODO 3 artifact cannot claim {name}")
 
 
+def _shift_label(index: int, shift: tuple[float, float]) -> str:
+    return f"shift_{int(index)}:{float(shift[0]).hex()}:{float(shift[1]).hex()}"
+
+
+def _validate_audit_provenance(
+    *,
+    identity: MaterialResponseCacheIdentity,
+    audit_N: int,
+    primary_shift: str,
+    provenance: Mapping[str, Any],
+) -> None:
+    expected = {
+        _shift_label(index, shift): shift
+        for index, shift in enumerate(identity.shifts)
+    }
+    if set(provenance) != set(expected):
+        raise MaterialResponseCacheIdentityError(
+            "audit-shift provenance differs from cache certification identity"
+        )
+    if primary_shift not in expected:
+        raise MaterialResponseCacheIdentityError(
+            "primary shift differs from cache certification identity"
+        )
+    for label, shift in expected.items():
+        row = provenance[label]
+        if not isinstance(row, Mapping):
+            raise MaterialResponseCacheIdentityError(
+                f"audit provenance for {label!r} is not a mapping"
+            )
+        if int(row.get("canonical_reduction_block_size", -1)) != (
+            identity.canonical_reduction_block_size
+        ):
+            raise MaterialResponseCacheIdentityError(
+                "audit canonical-reduction policy differs from cache identity"
+            )
+        grid = row.get("grid")
+        if not isinstance(grid, Mapping):
+            raise MaterialResponseCacheIdentityError(
+                f"audit grid provenance for {label!r} is absent"
+            )
+        if int(grid.get("N", -1)) != audit_N:
+            raise MaterialResponseCacheIdentityError(
+                "audit grid N differs from cached audit_N"
+            )
+        expected_shift_hex = [float(value).hex() for value in shift]
+        if list(grid.get("shift_hex", ())) != expected_shift_hex:
+            raise MaterialResponseCacheIdentityError(
+                "audit grid shift differs from cache certification identity"
+            )
+
+
 @dataclass(frozen=True)
 class CachedCertifiedMaterialResponse:
     """One certified response plus the evidence needed for later audit."""
@@ -80,6 +131,10 @@ class CachedCertifiedMaterialResponse:
         audit = int(self.audit_N)
         if working <= 0 or audit <= working:
             raise ValueError("cache artifact requires 0 < working_N < audit_N")
+        if working not in self.identity.n_candidates or audit not in self.identity.n_candidates:
+            raise MaterialResponseCacheIdentityError(
+                "working_N or audit_N is absent from the cache certification ladder"
+            )
         object.__setattr__(self, "working_N", working)
         object.__setattr__(self, "audit_N", audit)
 
@@ -110,10 +165,19 @@ class CachedCertifiedMaterialResponse:
             raise MaterialResponseCacheIdentityError(
                 "certification consecutive-pass policy differs from cache identity"
             )
-        if primary not in provenance or len(provenance) < 2:
-            raise ValueError(
-                "certified cache artifact requires primary and independent audit-shift provenance"
+        envelope = evidence.get("oscillatory_envelope")
+        if not isinstance(envelope, Mapping) or int(envelope.get("levels", -1)) != (
+            self.identity.envelope_levels
+        ):
+            raise MaterialResponseCacheIdentityError(
+                "certification envelope policy differs from cache identity"
             )
+        _validate_audit_provenance(
+            identity=self.identity,
+            audit_N=audit,
+            primary_shift=primary,
+            provenance=provenance,
+        )
         object.__setattr__(self, "certification_evidence", MappingProxyType(evidence))
         object.__setattr__(
             self,
