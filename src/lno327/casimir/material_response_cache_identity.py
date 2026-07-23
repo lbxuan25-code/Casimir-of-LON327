@@ -9,6 +9,8 @@ from typing import Any, Mapping
 
 import numpy as np
 
+from lno327.casimir.matsubara import matsubara_energy_eV
+
 MATERIAL_RESPONSE_CACHE_IDENTITY_SCHEMA = "material-response-cache-identity-v1"
 MATERIAL_RESPONSE_CACHE_SCHEMA = "material-response-cache-v1"
 MATSUBARA_IDENTITY_CONVENTION = "finite-temperature-bosonic-matsubara-v1"
@@ -52,11 +54,35 @@ def _nonempty(value: object, name: str) -> str:
     return text
 
 
-def _json_safe_mapping(value: Mapping[str, Any], name: str) -> MappingProxyType:
+def _validated_convergence_policy(value: Mapping[str, Any]) -> MappingProxyType:
     payload = dict(value)
+    required = {
+        "schema",
+        "comparison_order",
+        "relative_tolerance",
+        "absolute_tolerance",
+        "observable_error_budget_calibrated",
+        "production_admission",
+    }
+    missing = sorted(required.difference(payload))
+    if missing:
+        raise ValueError(f"convergence_policy is missing fields: {missing}")
+    if payload["schema"] != "material-response-convergence-policy-v1":
+        raise ValueError("unsupported convergence policy schema")
+    if payload["comparison_order"] != "absolute_first_then_relative_fallback":
+        raise ValueError("unsupported convergence comparison order")
+    for name in ("relative_tolerance", "absolute_tolerance"):
+        scalar = float(payload[name])
+        if not np.isfinite(scalar) or scalar < 0.0:
+            raise ValueError(f"convergence policy {name} must be finite and non-negative")
+        payload[name] = scalar
+    if bool(payload["observable_error_budget_calibrated"]):
+        raise ValueError("TODO 3 identity cannot claim observable error calibration")
+    if bool(payload["production_admission"]):
+        raise ValueError("TODO 3 identity cannot claim production admission")
+    payload["observable_error_budget_calibrated"] = False
+    payload["production_admission"] = False
     canonical_json_bytes(payload)
-    if not payload:
-        raise ValueError(f"{name} must be nonempty")
     return MappingProxyType(payload)
 
 
@@ -96,11 +122,8 @@ class MaterialResponseCacheIdentity:
             raise ValueError("unsupported Matsubara identity convention")
         pairing = _nonempty(self.pairing_name, "pairing_name")
         object.__setattr__(self, "pairing_name", pairing)
-        object.__setattr__(
-            self,
-            "temperature_K",
-            _finite_float(self.temperature_K, "temperature_K", positive=True),
-        )
+        temperature = _finite_float(self.temperature_K, "temperature_K", positive=True)
+        object.__setattr__(self, "temperature_K", temperature)
         index = int(self.matsubara_index)
         if index < 0:
             raise ValueError("matsubara_index must be non-negative")
@@ -108,6 +131,9 @@ class MaterialResponseCacheIdentity:
         xi = _finite_float(self.xi_eV, "xi_eV")
         if xi < 0.0 or (index == 0 and xi != 0.0) or (index > 0 and xi <= 0.0):
             raise ValueError("matsubara_index and xi_eV sector are inconsistent")
+        expected_xi = matsubara_energy_eV(index, temperature)
+        if xi != expected_xi:
+            raise ValueError("temperature_K, matsubara_index, and xi_eV are inconsistent")
         object.__setattr__(self, "xi_eV", xi)
         object.__setattr__(self, "q_crystal", _readonly_q(self.q_crystal))
         for name in (
@@ -122,7 +148,7 @@ class MaterialResponseCacheIdentity:
         object.__setattr__(
             self,
             "convergence_policy",
-            _json_safe_mapping(self.convergence_policy, "convergence_policy"),
+            _validated_convergence_policy(self.convergence_policy),
         )
         required = int(self.required_consecutive_passes)
         if required <= 0:
