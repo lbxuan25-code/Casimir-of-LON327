@@ -2,7 +2,7 @@
 
 The live ``MaterialResponseSample`` carries microscopic kernels and Ward objects
 that are useful during certification but unnecessary for later geometry
-assembly.  This module defines a compact immutable boundary that preserves the
+assembly. This module defines a compact immutable boundary that preserves the
 physical sheet response, validation result, identity, provenance, and audit
 summary without pretending to reconstruct microscopic state.
 """
@@ -84,9 +84,15 @@ def _require_identity_fields(payload: Mapping[str, Any]) -> None:
 
 @dataclass(frozen=True)
 class MaterialResponseSnapshot:
-    """Compact immutable response that can be loaded without microscopic objects."""
+    """Compact immutable response that can be loaded without microscopic objects.
 
-    frequency_index: int
+    ``source_batch_frequency_index`` is only the response's position inside the
+    microscopic integration batch that produced it. It is deliberately not
+    called a Matsubara index; the physical Matsubara index lives in the persistent
+    cache identity.
+    """
+
+    source_batch_frequency_index: int
     frequency_sector: str
     q_crystal: np.ndarray
     xi_eV: float
@@ -102,10 +108,10 @@ class MaterialResponseSnapshot:
     def __post_init__(self) -> None:
         if self.schema != MATERIAL_RESPONSE_SNAPSHOT_SCHEMA:
             raise ValueError(f"schema must be {MATERIAL_RESPONSE_SNAPSHOT_SCHEMA!r}")
-        index = int(self.frequency_index)
-        if index < 0:
-            raise ValueError("frequency_index must be non-negative")
-        object.__setattr__(self, "frequency_index", index)
+        source_index = int(self.source_batch_frequency_index)
+        if source_index < 0:
+            raise ValueError("source_batch_frequency_index must be non-negative")
+        object.__setattr__(self, "source_batch_frequency_index", source_index)
 
         sector = str(self.frequency_sector)
         if sector not in {"zero_matsubara", "positive_matsubara"}:
@@ -195,7 +201,7 @@ class MaterialResponseSnapshot:
             "material_identity": self.identity_payload,
             "material_identity_fingerprint": self.identity_fingerprint,
             "material_provenance": dict(self.provenance),
-            "frequency_index": self.frequency_index,
+            "source_batch_frequency_index": self.source_batch_frequency_index,
             "frequency_sector": self.frequency_sector,
             "xi_eV": self.xi_eV,
             "q_crystal": self.q_crystal.tolist(),
@@ -232,7 +238,7 @@ class MaterialResponseSnapshot:
             **{name: diagnostics[name] for name in audit_names if name in diagnostics},
         }
         return cls(
-            frequency_index=sample.frequency_index,
+            source_batch_frequency_index=sample.frequency_index,
             frequency_sector=sample.frequency_sector,
             q_crystal=sample.q_crystal,
             xi_eV=sample.xi_eV,
