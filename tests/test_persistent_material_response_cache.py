@@ -87,6 +87,7 @@ def _sample(index: int) -> MaterialResponseSample:
         strict_static_ward=strict, response=response, sheet_validation=validation,
         metadata={
             **_identity_payload(q=q, xi=xi, sector=sector, basis=basis),
+            "post_integral_phase_hessian_policy": "q_independent",
             "grid_fingerprint": "grid-fingerprint",
             "grid": {"n": 64, "shift": [0.5, 0.5]},
             "canonical_reduction_block_size": 4096,
