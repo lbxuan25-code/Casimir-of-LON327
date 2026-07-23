@@ -1,4 +1,4 @@
-"""Fast two-plate geometry assembly from precomputed material responses.
+"""Fast two-plate geometry assembly from live or persisted material responses.
 
 No microscopic integration or response certification is performed here. The
 caller supplies one crystal-frame material response per plate; this module only
@@ -17,7 +17,10 @@ from lno327.casimir.material_geometry import (
     ReflectionGeometryPolicy,
     material_response_to_reflection,
 )
-from lno327.casimir.material_response import MaterialResponseSample
+from lno327.casimir.material_response_snapshot import (
+    GeometryMaterialResponse,
+    require_geometry_material_response,
+)
 
 
 def _finite_positive(value: float, name: str) -> float:
@@ -76,7 +79,7 @@ class TwoPlateGeometryPolicy:
 
 @dataclass(frozen=True)
 class TwoPlateAssembly:
-    """One geometry-specific logdet assembled from two material samples."""
+    """One geometry-specific logdet assembled from two material responses."""
 
     point: LifshitzPoint
     plate_1_diagnostics: Mapping[str, Any]
@@ -104,8 +107,8 @@ class TwoPlateAssembly:
 
 
 def assemble_two_plate_logdet(
-    plate_1: MaterialResponseSample,
-    plate_2: MaterialResponseSample,
+    plate_1: GeometryMaterialResponse,
+    plate_2: GeometryMaterialResponse,
     *,
     q_lab: np.ndarray,
     theta_1_rad: float,
@@ -114,15 +117,13 @@ def assemble_two_plate_logdet(
 ) -> TwoPlateAssembly:
     """Assemble reflection, propagation, and logdet without a microscopic fallback."""
 
-    if not isinstance(plate_1, MaterialResponseSample) or not isinstance(
-        plate_2, MaterialResponseSample
-    ):
-        raise TypeError("both plates must be MaterialResponseSample objects")
+    first = require_geometry_material_response(plate_1)
+    second = require_geometry_material_response(plate_2)
     if not isinstance(policy, TwoPlateGeometryPolicy):
         raise TypeError("policy must be a TwoPlateGeometryPolicy")
-    if plate_1.frequency_sector != plate_2.frequency_sector:
+    if first.frequency_sector != second.frequency_sector:
         raise ValueError("plate material responses use different frequency sectors")
-    if plate_1.xi_eV != plate_2.xi_eV:
+    if first.xi_eV != second.xi_eV:
         raise ValueError("plate material responses use different xi_eV")
 
     q = np.asarray(q_lab, dtype=float)
@@ -132,13 +133,13 @@ def assemble_two_plate_logdet(
         raise ValueError("q_lab must be nonzero")
 
     reflection_1, diagnostics_1 = material_response_to_reflection(
-        plate_1,
+        first,
         q_lab=q,
         theta_rad=float(theta_1_rad),
         policy=policy.reflection_policy,
     )
     reflection_2, diagnostics_2 = material_response_to_reflection(
-        plate_2,
+        second,
         q_lab=q,
         theta_rad=float(theta_2_rad),
         policy=policy.reflection_policy,
@@ -153,12 +154,14 @@ def assemble_two_plate_logdet(
     )
     metadata = {
         "schema": "two-plate-material-assembly-v1",
-        "source": "two precomputed MaterialResponseSample objects",
+        "source": "two precomputed geometry-facing material responses",
+        "plate_1_response_type": type(first).__name__,
+        "plate_2_response_type": type(second).__name__,
         "microscopic_integration_performed": False,
         "response_certification_performed": False,
         "geometry_assembly_only": True,
-        "frequency_sector": plate_1.frequency_sector,
-        "xi_eV": plate_1.xi_eV,
+        "frequency_sector": first.frequency_sector,
+        "xi_eV": first.xi_eV,
         "q_lab": q.tolist(),
         "theta_1_rad": float(theta_1_rad),
         "theta_2_rad": float(theta_2_rad),
