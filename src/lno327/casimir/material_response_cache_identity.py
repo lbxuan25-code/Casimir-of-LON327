@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 import numpy as np
 
@@ -86,13 +86,44 @@ def _validated_convergence_policy(value: Mapping[str, Any]) -> MappingProxyType:
     return MappingProxyType(payload)
 
 
+def _normalize_n_candidates(values: Sequence[int]) -> tuple[int, ...]:
+    levels = tuple(int(value) for value in values)
+    if (
+        len(levels) < 2
+        or tuple(sorted(set(levels))) != levels
+        or any(value <= 0 or value % 2 for value in levels)
+    ):
+        raise ValueError(
+            "n_candidates must be strictly increasing unique positive even integers"
+        )
+    return levels
+
+
+def _normalize_shifts(
+    values: Sequence[Sequence[float]],
+) -> tuple[tuple[float, float], ...]:
+    shifts: list[tuple[float, float]] = []
+    for raw in values:
+        if len(raw) != 2:
+            raise ValueError("every certification shift must contain two values")
+        shift = (float(raw[0]), float(raw[1]))
+        if not np.isfinite(shift).all() or any(value < 0.0 or value >= 1.0 for value in shift):
+            raise ValueError("certification shifts must be finite and lie in [0, 1)")
+        shifts.append(shift)
+    normalized = tuple(shifts)
+    if len(normalized) < 2 or len(set(normalized)) != len(normalized):
+        raise ValueError("at least two unique certification shifts are required")
+    return normalized
+
+
 @dataclass(frozen=True)
 class MaterialResponseCacheIdentity:
-    """Geometry-free exact identity of one certified response artifact.
+    """Exact physical and certification identity of one persisted response.
 
     Distance, plate angle, laboratory momentum, outer quadrature state, worker
     count, runtime chunking, filesystem path, and telemetry are deliberately not
-    representable by this type.
+    representable by this type. N/shift sampling and canonical reduction are
+    included because they determine which response certification was requested.
     """
 
     pairing_name: str
@@ -109,6 +140,9 @@ class MaterialResponseCacheIdentity:
     convergence_policy: Mapping[str, Any]
     required_consecutive_passes: int
     envelope_levels: int
+    n_candidates: tuple[int, ...]
+    shifts: tuple[tuple[float, float], ...]
+    canonical_reduction_block_size: int
     schema: str = MATERIAL_RESPONSE_CACHE_IDENTITY_SCHEMA
     cache_schema: str = MATERIAL_RESPONSE_CACHE_SCHEMA
     matsubara_convention: str = MATSUBARA_IDENTITY_CONVENTION
@@ -120,8 +154,7 @@ class MaterialResponseCacheIdentity:
             raise ValueError("unsupported material response cache schema")
         if self.matsubara_convention != MATSUBARA_IDENTITY_CONVENTION:
             raise ValueError("unsupported Matsubara identity convention")
-        pairing = _nonempty(self.pairing_name, "pairing_name")
-        object.__setattr__(self, "pairing_name", pairing)
+        object.__setattr__(self, "pairing_name", _nonempty(self.pairing_name, "pairing_name"))
         temperature = _finite_float(self.temperature_K, "temperature_K", positive=True)
         object.__setattr__(self, "temperature_K", temperature)
         index = int(self.matsubara_index)
@@ -131,8 +164,7 @@ class MaterialResponseCacheIdentity:
         xi = _finite_float(self.xi_eV, "xi_eV")
         if xi < 0.0 or (index == 0 and xi != 0.0) or (index > 0 and xi <= 0.0):
             raise ValueError("matsubara_index and xi_eV sector are inconsistent")
-        expected_xi = matsubara_energy_eV(index, temperature)
-        if xi != expected_xi:
+        if xi != matsubara_energy_eV(index, temperature):
             raise ValueError("temperature_K, matsubara_index, and xi_eV are inconsistent")
         object.__setattr__(self, "xi_eV", xi)
         object.__setattr__(self, "q_crystal", _readonly_q(self.q_crystal))
@@ -158,6 +190,12 @@ class MaterialResponseCacheIdentity:
         if envelope < 3:
             raise ValueError("envelope_levels must be at least three")
         object.__setattr__(self, "envelope_levels", envelope)
+        object.__setattr__(self, "n_candidates", _normalize_n_candidates(self.n_candidates))
+        object.__setattr__(self, "shifts", _normalize_shifts(self.shifts))
+        reduction = int(self.canonical_reduction_block_size)
+        if reduction <= 0:
+            raise ValueError("canonical_reduction_block_size must be positive")
+        object.__setattr__(self, "canonical_reduction_block_size", reduction)
 
     @property
     def frequency_sector(self) -> str:
@@ -170,6 +208,12 @@ class MaterialResponseCacheIdentity:
             "convergence_policy": dict(self.convergence_policy),
             "required_consecutive_passes": self.required_consecutive_passes,
             "envelope_levels": self.envelope_levels,
+            "n_candidates": list(self.n_candidates),
+            "shifts_hex": [
+                [float(component).hex() for component in shift] for shift in self.shifts
+            ],
+            "shift_order_semantics": "ordered_exact_periodic_bz_shifts-v1",
+            "canonical_reduction_block_size": self.canonical_reduction_block_size,
             "algorithm": "response-adjacent-plus-complete-pairwise-envelope-v1",
         }
 
@@ -196,9 +240,7 @@ class MaterialResponseCacheIdentity:
             "basis": self.basis,
             "matsubara_convention": self.matsubara_convention,
             "certification_policy": self.certification_policy_payload,
-            "certification_policy_fingerprint": (
-                self.certification_policy_fingerprint
-            ),
+            "certification_policy_fingerprint": self.certification_policy_fingerprint,
             "geometry_inputs_present": False,
         }
 
@@ -228,10 +270,16 @@ class MaterialResponseCacheIdentity:
             phase_hessian_policy=data["phase_hessian_policy"],
             basis=data["basis"],
             convergence_policy=certification["convergence_policy"],
-            required_consecutive_passes=int(
-                certification["required_consecutive_passes"]
-            ),
+            required_consecutive_passes=int(certification["required_consecutive_passes"]),
             envelope_levels=int(certification["envelope_levels"]),
+            n_candidates=tuple(int(value) for value in certification["n_candidates"]),
+            shifts=tuple(
+                tuple(float.fromhex(component) for component in shift)
+                for shift in certification["shifts_hex"]
+            ),
+            canonical_reduction_block_size=int(
+                certification["canonical_reduction_block_size"]
+            ),
             cache_schema=data["cache_schema"],
             matsubara_convention=data["matsubara_convention"],
         )
