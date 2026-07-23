@@ -9,7 +9,10 @@ from lno327.casimir.material_response_cache_identity import MaterialResponseCach
 
 PERSISTENCE_MODULES = (
     Path("src/lno327/casimir/material_response_snapshot.py"),
+    Path("src/lno327/casimir/material_response_cache_errors.py"),
     Path("src/lno327/casimir/material_response_cache_identity.py"),
+    Path("src/lno327/casimir/material_response_cache_artifact.py"),
+    Path("src/lno327/casimir/material_response_cache_codec.py"),
     Path("src/lno327/casimir/material_response_cache_store.py"),
 )
 CACHE_ORCHESTRATION = Path("src/lno327/casimir/material_response_cached_engine.py")
@@ -35,6 +38,7 @@ def _matches(module: str, prefix: str) -> bool:
 
 
 def test_persistence_layer_has_no_geometry_or_outer_dependencies() -> None:
+    assert all(path.is_file() for path in PERSISTENCE_MODULES)
     forbidden = (
         "lno327.casimir.material_geometry",
         "lno327.casimir.material_two_plate",
@@ -54,6 +58,8 @@ def test_persistence_layer_has_no_geometry_or_outer_dependencies() -> None:
 
 def test_geometry_layer_cannot_import_cache_writer_or_cached_engine() -> None:
     forbidden = (
+        "lno327.casimir.material_response_cache_artifact",
+        "lno327.casimir.material_response_cache_codec",
         "lno327.casimir.material_response_cache_store",
         "lno327.casimir.material_response_cached_engine",
         "lno327.casimir.material_response_engine",
@@ -102,8 +108,16 @@ def test_cache_identity_type_cannot_accept_geometry_or_runtime_fields() -> None:
 
 
 def test_old_in_memory_crystal_cache_is_not_persistent_store_base() -> None:
-    path = Path("src/lno327/casimir/material_response_cache_store.py")
-    source = path.read_text(encoding="utf-8")
-    assert "CrystalResponseCache" not in source
-    assert "pickle" not in _imports(path)
-    assert "allow_pickle=False" in source
+    store_path = Path("src/lno327/casimir/material_response_cache_store.py")
+    codec_path = Path("src/lno327/casimir/material_response_cache_codec.py")
+    combined = store_path.read_text(encoding="utf-8") + codec_path.read_text(encoding="utf-8")
+    assert "CrystalResponseCache" not in combined
+    assert all("pickle" not in _imports(path) for path in PERSISTENCE_MODULES)
+    assert "allow_pickle=False" in codec_path.read_text(encoding="utf-8")
+
+
+def test_cache_store_is_not_a_monolithic_codec_module() -> None:
+    imports = _imports(Path("src/lno327/casimir/material_response_cache_store.py"))
+    assert "lno327.casimir.material_response_cache_codec" in imports
+    assert "lno327.electrodynamics.conventions" not in imports
+    assert "lno327.electrodynamics.static_sheet" not in imports
