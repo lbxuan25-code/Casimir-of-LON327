@@ -4,12 +4,14 @@
 
 Implementation branch: `feat/todo3-persistent-response-cache`
 
-This document freezes the persistent response-cache boundary built on the TODO 2
+Implementation status: complete on the branch and ready for review. This document
+freezes the persistent response-cache boundary built on the TODO 2
 material/geometry split. It does not authorize a production Casimir calculation.
 
 ```text
 cache_schema: material-response-cache-v1
 response_status: response_certified_diagnostic
+completion_gate: passed
 valid_for_casimir_input: false
 production_casimir_allowed: false
 observable_error_budget_calibrated: false
@@ -32,7 +34,11 @@ material_response_engine.py
 material_response_cached_engine.py
         |
         +--> material_response_cache_identity.py
+        +--> material_response_cache_artifact.py
         +--> material_response_cache_store.py
+                    |
+                    +--> material_response_cache_codec.py
+                    +--> material_response_cache_errors.py
                     |
                     v
           MaterialResponseSnapshot
@@ -48,6 +54,18 @@ Geometry accepts a live `MaterialResponseSample` or a persisted
 `MaterialResponseSnapshot`, but it does not import the cache writer or the
 microscopic engine.
 
+Persistence responsibilities are intentionally split:
+
+- `material_response_cache_identity.py` owns canonical physical/certification
+  identity;
+- `material_response_cache_artifact.py` owns immutable certified artifacts and
+  evidence invariants;
+- `material_response_cache_codec.py` owns explicit NPZ/JSON encoding and strict
+  decoding;
+- `material_response_cache_store.py` owns paths, modes, locks, fsync, atomic
+  installation, and existing-entry conflict handling;
+- `material_response_cache_errors.py` owns the typed failure surface.
+
 ## Cache identity
 
 `MaterialResponseCacheIdentity` is exact and content-addressed. It contains:
@@ -60,6 +78,10 @@ microscopic engine.
 - response-policy fingerprint;
 - primitive-contract, phase-Hessian-policy, and basis identity;
 - response-convergence policy and certification algorithm parameters.
+
+Temperature, Matsubara index, and `xi_eV` are checked as one consistent triplet.
+The convergence policy must use the supported schema and cannot claim observable
+error calibration or production admission.
 
 The following are intentionally not representable in the identity:
 
@@ -83,13 +105,15 @@ A cache entry stores a `CachedCertifiedMaterialResponse` containing:
 - zero-frequency susceptibility/stiffness or positive-frequency conductivity
   tensors with unit-stage tags;
 - sheet-response validation and hard-physical audit summary;
-- working/audit N values, establishment mode, certification evidence, and audit
-  provenance;
+- working/audit N values, establishment mode, certification evidence, and at
+  least two audit-shift provenance records;
 - explicit diagnostic-only safety flags.
 
-The snapshot deliberately excludes microscopic kernels, primitive accumulators,
+The snapshot deliberately excludes microscopic primitive accumulators,
 eigensystems, and live Ward objects. It does not fabricate those objects during
-load.
+load. Its `frequency_index` is preserved only as the batch-local source index;
+the physical Matsubara index belongs to the cache identity and is exposed by the
+certified artifact.
 
 ## File format
 
@@ -108,9 +132,10 @@ The archive contains:
 - identity payload and identity SHA-256.
 
 Loading always uses `np.load(..., allow_pickle=False)`. The loader verifies the
-schema, manifest checksum, filename SHA, requested identity, array names, dtypes,
-shapes, and array checksums before constructing readonly response objects.
-Unknown schema, corruption, or identity mismatch fails closed.
+schema, diagnostic safety state, certification status, manifest checksum,
+filename SHA, requested identity, sector/response-kind agreement, array names,
+dtypes, shapes, and array checksums before constructing readonly response
+objects. Unknown schema, corruption, or identity mismatch fails closed.
 
 ## Store modes
 
@@ -145,6 +170,8 @@ response raises `MaterialResponseCacheConflictError`; existing data is never
 overwritten. Existing lock files are not silently deleted or treated as stale.
 
 Failures before the atomic replace cannot create a loader-visible final file.
+Fault-injection tests verify that write failure removes temporary state and does
+not create a final artifact.
 
 ## Typed failures
 
@@ -162,7 +189,7 @@ These conditions are not converted into silent misses.
 
 ## Completion gate
 
-TODO 3 may be marked complete only when all of the following hold:
+The TODO 3 completion gate has passed on the implementation branch:
 
 - cache identity is exact, geometry-free, schema-versioned, and deterministic;
 - zero- and positive-Matsubara artifacts round-trip with readonly arrays and
@@ -175,8 +202,8 @@ TODO 3 may be marked complete only when all of the following hold:
 - unresolved responses never enter the certified library;
 - loaded responses reproduce live reflection and two-plate logdet without a
   microscopic call;
-- architecture tests preserve one-way dependencies and forbid geometry fields in
-  cache identity;
+- architecture tests preserve one-way dependencies, separated responsibilities,
+  and geometry-free cache identity;
 - repository-wide tests and GitHub Actions pass;
 - documentation and current-route status are updated;
 - production authorization remains false.
