@@ -1,9 +1,8 @@
 """Read-through persistent-cache orchestration for material response ladders.
 
-The core TODO 2 engine remains cache-agnostic.  This wrapper performs an exact
-identity preflight, loads established responses when available, evaluates only
-missing Matsubara frequencies, and persists only successful response-level
-certifications.
+The TODO 2 engine remains cache-agnostic. This wrapper performs exact identity
+preflight, loads established responses, evaluates only missing Matsubara
+frequencies, and persists only successful response-level certifications.
 """
 from __future__ import annotations
 
@@ -14,9 +13,7 @@ from typing import Any, Mapping
 import numpy as np
 
 from lno327 import KuboConfig
-from lno327.casimir.material_response_cache_identity import (
-    MaterialResponseCacheIdentity,
-)
+from lno327.casimir.material_response_cache_identity import MaterialResponseCacheIdentity
 from lno327.casimir.material_response_cache_store import (
     CachedCertifiedMaterialResponse,
     MaterialResponseCacheStore,
@@ -84,7 +81,7 @@ def build_material_response_cache_identity(
     matsubara_index: int,
     context: Mapping[str, Any] | None = None,
 ) -> MaterialResponseCacheIdentity:
-    """Build one exact geometry-free identity without microscopic integration."""
+    """Build one exact geometry-free physical and certification identity."""
 
     if not isinstance(config, MaterialResponseEngineConfig):
         raise TypeError("config must be a MaterialResponseEngineConfig")
@@ -93,7 +90,6 @@ def build_material_response_cache_identity(
     if index < 0:
         raise ValueError("matsubara_index must be non-negative")
     state = _identity_context(config) if context is None else dict(context)
-    basis = STATIC_LOCAL_BASIS if index == 0 else "crystal_xy"
     return MaterialResponseCacheIdentity(
         pairing_name=config.pairing_name,
         temperature_K=config.temperature_K,
@@ -105,10 +101,13 @@ def build_material_response_cache_identity(
         response_policy_fingerprint=config.material_policy.fingerprint,
         primitive_contract_version=PRIMITIVE_CONTRACT_VERSION,
         phase_hessian_policy=state["phase_hessian_policy"],
-        basis=basis,
+        basis=STATIC_LOCAL_BASIS if index == 0 else "crystal_xy",
         convergence_policy=config.convergence_policy.as_dict(),
         required_consecutive_passes=config.required_consecutive_passes,
         envelope_levels=config.envelope_levels,
+        n_candidates=config.n_candidates,
+        shifts=config.shifts,
+        canonical_reduction_block_size=config.canonical_reduction_block_size,
     )
 
 
@@ -130,6 +129,8 @@ class CachedMaterialFrequencyResult:
         if not np.isfinite(xi) or xi < 0.0:
             raise ValueError("xi_eV must be finite and non-negative")
         object.__setattr__(self, "xi_eV", xi)
+        if self.cache_identity.matsubara_index != index or self.cache_identity.xi_eV != xi:
+            raise ValueError("frequency result differs from cache identity")
         allowed = {
             "persistent_cache_hit",
             "microscopic_certified_and_persisted",
@@ -204,15 +205,15 @@ def evaluate_material_response_ladder_cached(
         artifact = cache.get(identities[index])
         if artifact is None:
             misses.append(index)
-            continue
-        results[index] = CachedMaterialFrequencyResult(
-            matsubara_index=index,
-            xi_eV=identities[index].xi_eV,
-            cache_identity=identities[index],
-            source="persistent_cache_hit",
-            snapshot=artifact.snapshot,
-            microscopic_result=None,
-        )
+        else:
+            results[index] = CachedMaterialFrequencyResult(
+                matsubara_index=index,
+                xi_eV=identities[index].xi_eV,
+                cache_identity=identities[index],
+                source="persistent_cache_hit",
+                snapshot=artifact.snapshot,
+                microscopic_result=None,
+            )
 
     microscopic_frequency_count = 0
     persisted_count = 0
@@ -254,14 +255,13 @@ def evaluate_material_response_ladder_cached(
             )
 
     ordered = {index: results[index] for index in config.matsubara_indices}
-    cache_hits = sum(
-        row.source == "persistent_cache_hit" for row in ordered.values()
-    )
     metadata = {
         "casimir_stage": "geometry_independent_material_response_cache_orchestration",
         "cache_schema": "material-response-cache-v1",
         "cache_mode": cache.mode,
-        "cache_hits": int(cache_hits),
+        "cache_hits": int(
+            sum(row.source == "persistent_cache_hit" for row in ordered.values())
+        ),
         "cache_misses": int(len(misses)),
         "microscopic_frequency_count": int(microscopic_frequency_count),
         "persisted_frequency_count": int(persisted_count),
