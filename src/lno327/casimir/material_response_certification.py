@@ -122,6 +122,8 @@ def _require_compatible(
         raise ValueError("response samples have different xi_eV")
     if not np.array_equal(left.q_crystal, right.q_crystal):
         raise ValueError("response samples have different q_crystal")
+    if left.identity_fingerprint != right.identity_fingerprint:
+        raise ValueError("response samples have different material/policy identity")
 
 
 def compare_material_responses(
@@ -424,6 +426,14 @@ class CertifiedMaterialResponse:
         return self.audit_samples_by_shift[self.primary_shift]
 
     @property
+    def identity_payload(self) -> dict[str, Any]:
+        return dict(self.primary_response.identity_payload)
+
+    @property
+    def identity_fingerprint(self) -> str:
+        return self.primary_response.identity_fingerprint
+
+    @property
     def status(self) -> str:
         return "response_certified_diagnostic"
 
@@ -473,6 +483,16 @@ def certify_material_response_history(
         "consecutive_accepted_transitions": consecutive,
         "audit_level_assessment": audit.assessment.as_dict(),
         "oscillatory_envelope": envelope,
+        "material_identity": dict(
+            audit.samples_by_shift[primary_shift].identity_payload
+        ),
+        "material_identity_fingerprint": (
+            audit.samples_by_shift[primary_shift].identity_fingerprint
+        ),
+        "audit_provenance_by_shift": {
+            label: sample.provenance_payload
+            for label, sample in audit.samples_by_shift.items()
+        },
         "observable_error_budget_calibrated": False,
         "valid_for_casimir_input": False,
         "production_casimir_allowed": False,
