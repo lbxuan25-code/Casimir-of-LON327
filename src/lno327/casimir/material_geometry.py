@@ -95,6 +95,16 @@ def material_response_to_reflection(
     if not np.isfinite(theta):
         raise ValueError("theta_rad must be finite")
 
+    # The material layer owns the physical validation policy.  In particular,
+    # positive-frequency responses may have been validated with tolerances that
+    # differ from the electrodynamics adapter defaults.  Geometry must therefore
+    # consume the recorded MaterialResponseSample gate rather than silently
+    # revalidating the response under a second policy.
+    if geometry.require_physical and not sample.hard_physical_passed:
+        raise ValueError(
+            "material response failed its recorded hard physical validation policy"
+        )
+
     if isinstance(sample.response, StaticSheetResponse):
         reflection: PlateReflection = static_sheet_response_to_reflection(
             sample.response,
@@ -102,7 +112,7 @@ def material_response_to_reflection(
             theta_rad=theta,
             lattice_constant_m=geometry.lattice_constant_m,
             q_match_tolerance=geometry.q_match_tolerance,
-            require_physical=geometry.require_physical,
+            require_physical=False,
         )
     else:
         reflection = positive_matsubara_sheet_response_to_reflection(
@@ -111,7 +121,7 @@ def material_response_to_reflection(
             theta_rad=theta,
             lattice_constant_m=geometry.lattice_constant_m,
             q_match_tolerance=geometry.q_match_tolerance,
-            require_physical=geometry.require_physical,
+            require_physical=False,
         )
 
     diagnostics = sample.diagnostics()
@@ -123,6 +133,9 @@ def material_response_to_reflection(
             "reflection_constructed": True,
             "reflection_norm": float(np.linalg.norm(reflection.matrix_lt)),
             "hard_physical_passed": bool(sample.hard_physical_passed),
+            "material_validation_gate_required": geometry.require_physical,
+            "material_validation_gate_source": "MaterialResponseSample",
+            "adapter_default_policy_revalidation_performed": False,
         }
     )
     return reflection, diagnostics
