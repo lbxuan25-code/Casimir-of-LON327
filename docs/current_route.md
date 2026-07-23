@@ -33,6 +33,9 @@ docs/casimir/todo2_material_response_boundary.md
 已经建立：
 
 - 几何无关的零频与正频材料响应合同；
+- 包含静态与正频全部 validation tolerances 的 canonical material policy；
+- 使用 exact-float frequency/q、material state、policy 与 basis provenance 的
+  material identity；
 - `q_crystal` 基底中的 response-level N/shift 收敛判断；
 - 完整 pairwise cross-shift 与多 N/shift envelope；
 - 不接受角度、距离或 outer quadrature 的材料响应 ladder engine；
