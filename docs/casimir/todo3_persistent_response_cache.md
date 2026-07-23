@@ -77,11 +77,21 @@ Persistence responsibilities are intentionally split:
 - microscopic model adapter name and material-state fingerprint;
 - response-policy fingerprint;
 - primitive-contract, phase-Hessian-policy, and basis identity;
-- response-convergence policy and certification algorithm parameters.
+- response-convergence tolerances and certification algorithm parameters;
+- the complete ordered N-candidate ladder;
+- the complete ordered exact periodic-BZ shift set;
+- the canonical reduction block size.
 
 Temperature, Matsubara index, and `xi_eV` are checked as one consistent triplet.
 The convergence policy must use the supported schema and cannot claim observable
 error calibration or production admission.
+
+N, shifts, and canonical reduction do not change the target physical response,
+but they do define which numerical certification was requested. They therefore
+belong to the persisted certification identity rather than being treated only as
+telemetry. A cache produced under another N ladder, shift set/order, or canonical
+reduction policy is a strict miss and cannot bypass the caller's requested
+certification.
 
 The following are intentionally not representable in the identity:
 
@@ -92,9 +102,9 @@ The following are intentionally not representable in the identity:
 - worker count or runtime chunk size;
 - filesystem path, PID, hostname, timestamps, or wall time.
 
-A one-bit float change in `q_crystal`, temperature, or frequency changes the
-identity. There is no rounding, nearest-node lookup, wrapping, interpolation, or
-surrogate fallback.
+A one-bit float change in `q_crystal`, temperature, frequency, or a certification
+shift changes the identity. There is no rounding, nearest-node lookup, wrapping,
+interpolation, or surrogate fallback.
 
 ## Persisted artifact
 
@@ -105,9 +115,15 @@ A cache entry stores a `CachedCertifiedMaterialResponse` containing:
 - zero-frequency susceptibility/stiffness or positive-frequency conductivity
   tensors with unit-stage tags;
 - sheet-response validation and hard-physical audit summary;
-- working/audit N values, establishment mode, certification evidence, and at
-  least two audit-shift provenance records;
+- working/audit N values, establishment mode, certification evidence, and the
+  complete audit-shift provenance;
 - explicit diagnostic-only safety flags.
+
+Artifact construction verifies that working/audit N belong to the identity's N
+ladder, that the exact audit-shift labels and grid shifts match the identity, and
+that every audit sample records the requested canonical reduction block size.
+Certification evidence from a different sampling policy cannot be persisted
+under the same identity.
 
 The snapshot deliberately excludes microscopic primitive accumulators,
 eigensystems, and live Ward objects. It does not fabricate those objects during
@@ -134,8 +150,9 @@ The archive contains:
 Loading always uses `np.load(..., allow_pickle=False)`. The loader verifies the
 schema, diagnostic safety state, certification status, manifest checksum,
 filename SHA, requested identity, sector/response-kind agreement, array names,
-dtypes, shapes, and array checksums before constructing readonly response
-objects. Unknown schema, corruption, or identity mismatch fails closed.
+dtypes, shapes, array checksums, and artifact certification provenance before
+constructing readonly response objects. Unknown schema, corruption, or identity
+mismatch fails closed.
 
 ## Store modes
 
@@ -192,6 +209,8 @@ These conditions are not converted into silent misses.
 The TODO 3 completion gate has passed on the implementation branch:
 
 - cache identity is exact, geometry-free, schema-versioned, and deterministic;
+- requested N/shift/canonical-reduction certification policy is part of identity
+  and is checked against persisted audit provenance;
 - zero- and positive-Matsubara artifacts round-trip with readonly arrays and
   preserved response values, validation, and unit-stage tags;
 - atomic write, lock, strict read-only, corruption, identity-mismatch, and
