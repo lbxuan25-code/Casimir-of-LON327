@@ -43,6 +43,7 @@ from lno327.workflows.arbitrary_q_matsubara import ArbitraryQPeriodicBZResult
 
 MATERIAL_RESPONSE_SAMPLE_SCHEMA = "material-response-sample-v1"
 MATERIAL_RESPONSE_IDENTITY_SCHEMA = "material-response-identity-v1"
+MATERIAL_RESPONSE_PROVENANCE_SCHEMA = "material-response-provenance-v1"
 FrequencySector: TypeAlias = Literal["zero_matsubara", "positive_matsubara"]
 SheetResponse: TypeAlias = StaticSheetResponse | PositiveMatsubaraSheetResponse
 SheetValidation: TypeAlias = StaticSheetValidation | SheetResponseValidation
@@ -276,20 +277,27 @@ class MaterialResponseSample:
 
     @property
     def identity_payload(self) -> dict[str, Any]:
+        """Physical/policy identity shared across N and shift provenance."""
+
         return {
             "schema": MATERIAL_RESPONSE_IDENTITY_SCHEMA,
             "frequency_sector": self.frequency_sector,
             "xi_eV_hex": float(self.xi_eV).hex(),
             "q_crystal_hex": [float(value).hex() for value in self.q_crystal],
             "material_state_fingerprint": str(
-                self.metadata.get(
-                    "material_state_fingerprint",
-                    self.material_cache_fingerprint,
-                )
+                self.metadata.get("material_state_fingerprint", "unspecified")
             ),
-            "material_cache_fingerprint": self.material_cache_fingerprint,
             "response_policy_fingerprint": str(
                 self.metadata.get("response_policy_fingerprint", "unspecified")
+            ),
+            "primitive_contract_version": str(
+                self.metadata.get("primitive_contract_version", "unspecified")
+            ),
+            "phase_hessian_policy": str(
+                self.metadata.get(
+                    "post_integral_phase_hessian_policy",
+                    "unspecified",
+                )
             ),
             "basis": str(self.metadata.get("basis", self.response.basis)),
         }
@@ -297,6 +305,21 @@ class MaterialResponseSample:
     @property
     def identity_fingerprint(self) -> str:
         return _stable_fingerprint(self.identity_payload)
+
+    @property
+    def provenance_payload(self) -> dict[str, Any]:
+        """Numerical sample provenance excluded from physical compatibility."""
+
+        return {
+            "schema": MATERIAL_RESPONSE_PROVENANCE_SCHEMA,
+            "frequency_index": self.frequency_index,
+            "material_cache_fingerprint": self.material_cache_fingerprint,
+            "grid_fingerprint": self.metadata.get("grid_fingerprint"),
+            "grid": self.metadata.get("grid"),
+            "canonical_reduction_block_size": self.metadata.get(
+                "canonical_reduction_block_size"
+            ),
+        }
 
     def diagnostics(self) -> dict[str, Any]:
         ward_ratio = max(
@@ -307,6 +330,7 @@ class MaterialResponseSample:
             "material_response_schema": self.schema,
             "material_identity": self.identity_payload,
             "material_identity_fingerprint": self.identity_fingerprint,
+            "material_provenance": self.provenance_payload,
             "frequency_index": self.frequency_index,
             "frequency_sector": self.frequency_sector,
             "xi_eV": self.xi_eV,
@@ -449,7 +473,7 @@ def build_material_response_sample(
         "response_policy_fingerprint": policy.fingerprint,
         "material_state_fingerprint": source_metadata.get(
             "material_state_fingerprint",
-            result.material_cache_fingerprint,
+            "unspecified",
         ),
         "grid_fingerprint": source_metadata.get("grid_fingerprint"),
         "grid": source_metadata.get("grid"),
@@ -483,6 +507,7 @@ def build_material_response_sample(
 
 __all__ = [
     "MATERIAL_RESPONSE_IDENTITY_SCHEMA",
+    "MATERIAL_RESPONSE_PROVENANCE_SCHEMA",
     "MATERIAL_RESPONSE_SAMPLE_SCHEMA",
     "FrequencySector",
     "MaterialResponsePolicy",
