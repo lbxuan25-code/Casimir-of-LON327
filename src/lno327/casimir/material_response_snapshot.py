@@ -86,13 +86,14 @@ def _require_identity_fields(payload: Mapping[str, Any]) -> None:
 class MaterialResponseSnapshot:
     """Compact immutable response that can be loaded without microscopic objects.
 
-    ``source_batch_frequency_index`` is only the response's position inside the
-    microscopic integration batch that produced it. It is deliberately not
-    called a Matsubara index; the physical Matsubara index lives in the persistent
-    cache identity.
+    ``frequency_index`` is retained for lossless provenance compatibility with
+    ``MaterialResponseSample``. It is the response's position inside the source
+    microscopic integration batch, not the physical Matsubara index. Consumers
+    should use ``source_batch_frequency_index`` for explicit naming; the physical
+    Matsubara index lives in ``MaterialResponseCacheIdentity``.
     """
 
-    source_batch_frequency_index: int
+    frequency_index: int
     frequency_sector: str
     q_crystal: np.ndarray
     xi_eV: float
@@ -108,10 +109,10 @@ class MaterialResponseSnapshot:
     def __post_init__(self) -> None:
         if self.schema != MATERIAL_RESPONSE_SNAPSHOT_SCHEMA:
             raise ValueError(f"schema must be {MATERIAL_RESPONSE_SNAPSHOT_SCHEMA!r}")
-        source_index = int(self.source_batch_frequency_index)
-        if source_index < 0:
-            raise ValueError("source_batch_frequency_index must be non-negative")
-        object.__setattr__(self, "source_batch_frequency_index", source_index)
+        index = int(self.frequency_index)
+        if index < 0:
+            raise ValueError("frequency_index must be non-negative")
+        object.__setattr__(self, "frequency_index", index)
 
         sector = str(self.frequency_sector)
         if sector not in {"zero_matsubara", "positive_matsubara"}:
@@ -168,6 +169,10 @@ class MaterialResponseSnapshot:
             raise ValueError("TODO 3 snapshots cannot admit production Casimir")
         object.__setattr__(self, "valid_for_casimir_input", False)
         object.__setattr__(self, "production_casimir_allowed", False)
+
+    @property
+    def source_batch_frequency_index(self) -> int:
+        return self.frequency_index
 
     @property
     def identity_payload(self) -> dict[str, Any]:
@@ -238,7 +243,7 @@ class MaterialResponseSnapshot:
             **{name: diagnostics[name] for name in audit_names if name in diagnostics},
         }
         return cls(
-            source_batch_frequency_index=sample.frequency_index,
+            frequency_index=sample.frequency_index,
             frequency_sector=sample.frequency_sector,
             q_crystal=sample.q_crystal,
             xi_eV=sample.xi_eV,
