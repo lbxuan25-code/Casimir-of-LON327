@@ -41,6 +41,8 @@ docs/casimir/todo2_material_response_boundary.md
 - 不接受角度、距离或 outer quadrature 的材料响应 ladder engine；
 - 从预计算材料响应到单板 reflection 和双板 signed logdet 的纯几何组装；
 - 零频和正频的新旧公式路径等价测试；
+- repository-level import guard，阻止新路线依赖旧 transverse certifier，也阻止
+  geometry 层增加 microscopic fallback；
 - 所有新对象保持 diagnostic-only。
 
 仍未建立：
