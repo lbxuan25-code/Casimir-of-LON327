@@ -102,7 +102,8 @@ def test_cache_identity_type_cannot_accept_geometry_or_runtime_fields() -> None:
 
 
 def test_old_in_memory_crystal_cache_is_not_persistent_store_base() -> None:
-    source = Path("src/lno327/casimir/material_response_cache_store.py").read_text(encoding="utf-8")
+    path = Path("src/lno327/casimir/material_response_cache_store.py")
+    source = path.read_text(encoding="utf-8")
     assert "CrystalResponseCache" not in source
-    assert "pickle" not in source
+    assert "pickle" not in _imports(path)
     assert "allow_pickle=False" in source
