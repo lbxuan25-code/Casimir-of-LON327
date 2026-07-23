@@ -103,7 +103,9 @@ response-space convergence contract is established.
 Owns one-plate reflection assembly from a precomputed material response. It has
 no microscopic fallback and checks the exact relation between the supplied
 crystal response and requested laboratory geometry through the existing
-reflection adapters.
+reflection adapters. When physical gating is requested, the authoritative gate
+is the validation already recorded on `MaterialResponseSample`; geometry does
+not silently revalidate the same response with adapter-default tolerances.
 
 ### `material_two_plate.py`
 
