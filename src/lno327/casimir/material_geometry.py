@@ -1,4 +1,4 @@
-"""Geometry-only assembly from certified or diagnostic material responses.
+"""Geometry-only assembly from live or persisted material responses.
 
 The material-response builder owns microscopic integration, Ward validation, and
 sheet-response conversion in the crystal frame. This module starts only after
@@ -12,7 +12,10 @@ from typing import TypeAlias
 
 import numpy as np
 
-from lno327.casimir.material_response import MaterialResponseSample
+from lno327.casimir.material_response_snapshot import (
+    GeometryMaterialResponse,
+    require_geometry_material_response,
+)
 from lno327.electrodynamics.materials import LNO327_THIN_FILM_SLAO_IN_PLANE
 from lno327.electrodynamics.reflection import (
     SheetReflection,
@@ -72,7 +75,7 @@ class ReflectionGeometryPolicy:
 
 
 def material_response_to_reflection(
-    sample: MaterialResponseSample,
+    sample: GeometryMaterialResponse,
     *,
     q_lab: np.ndarray,
     theta_rad: float,
@@ -80,8 +83,7 @@ def material_response_to_reflection(
 ) -> tuple[PlateReflection, dict[str, object]]:
     """Construct one plate reflection without recomputing microscopic response."""
 
-    if not isinstance(sample, MaterialResponseSample):
-        raise TypeError("sample must be a MaterialResponseSample")
+    material = require_geometry_material_response(sample)
     geometry = ReflectionGeometryPolicy() if policy is None else policy
     if not isinstance(geometry, ReflectionGeometryPolicy):
         raise TypeError("policy must be a ReflectionGeometryPolicy")
@@ -95,19 +97,16 @@ def material_response_to_reflection(
     if not np.isfinite(theta):
         raise ValueError("theta_rad must be finite")
 
-    # The material layer owns the physical validation policy.  In particular,
-    # positive-frequency responses may have been validated with tolerances that
-    # differ from the electrodynamics adapter defaults.  Geometry must therefore
-    # consume the recorded MaterialResponseSample gate rather than silently
-    # revalidating the response under a second policy.
-    if geometry.require_physical and not sample.hard_physical_passed:
+    # The material layer owns the physical validation policy. Geometry consumes
+    # that recorded decision and never substitutes adapter-default tolerances.
+    if geometry.require_physical and not material.hard_physical_passed:
         raise ValueError(
             "material response failed its recorded hard physical validation policy"
         )
 
-    if isinstance(sample.response, StaticSheetResponse):
+    if isinstance(material.response, StaticSheetResponse):
         reflection: PlateReflection = static_sheet_response_to_reflection(
-            sample.response,
+            material.response,
             q_lab_model=q,
             theta_rad=theta,
             lattice_constant_m=geometry.lattice_constant_m,
@@ -116,7 +115,7 @@ def material_response_to_reflection(
         )
     else:
         reflection = positive_matsubara_sheet_response_to_reflection(
-            sample.response,
+            material.response,
             q_lab_model=q,
             theta_rad=theta,
             lattice_constant_m=geometry.lattice_constant_m,
@@ -124,7 +123,7 @@ def material_response_to_reflection(
             require_physical=False,
         )
 
-    diagnostics = sample.diagnostics()
+    diagnostics = material.diagnostics()
     diagnostics.update(
         {
             "geometry_schema": "material-response-reflection-v1",
@@ -132,9 +131,9 @@ def material_response_to_reflection(
             "theta_rad": theta,
             "reflection_constructed": True,
             "reflection_norm": float(np.linalg.norm(reflection.matrix_lt)),
-            "hard_physical_passed": bool(sample.hard_physical_passed),
+            "hard_physical_passed": bool(material.hard_physical_passed),
             "material_validation_gate_required": geometry.require_physical,
-            "material_validation_gate_source": "MaterialResponseSample",
+            "material_validation_gate_source": type(material).__name__,
             "adapter_default_policy_revalidation_performed": False,
         }
     )
