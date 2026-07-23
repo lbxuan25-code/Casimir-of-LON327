@@ -69,13 +69,18 @@ conductivity. The two sectors are type-checked at object construction.
 tolerance used by the builder. Its canonical payload has a stable SHA-256
 fingerprint. `MaterialResponseSample.identity_payload` uses exact hexadecimal
 float identities for frequency and crystal momentum and records material-state,
-material-cache, response-policy, and basis provenance.
+response-policy, primitive-contract, phase-policy, and basis identity.
+Grid, shift, material-cache, and reduction-block details are kept separately in
+`provenance_payload`; they are audit evidence rather than physical compatibility
+identity, so N/shift convergence can compare distinct numerical samples of the
+same material response.
 
 ### `material_response_certification.py`
 
 Owns N/shift convergence in response space:
 
-- exact compatibility of `q_crystal`, frequency, and sector;
+- exact compatibility of `q_crystal`, frequency, sector, material state, and
+  response policy;
 - separate `chi_bar` and `dbar_t` checks at zero Matsubara frequency;
 - spectral-norm comparison of `sigma_tilde_xy` at positive frequency;
 - complete pairwise cross-shift checks;
