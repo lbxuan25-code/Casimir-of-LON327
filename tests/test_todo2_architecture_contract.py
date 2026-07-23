@@ -35,6 +35,11 @@ def _matches(module: str, prefix: str) -> bool:
     return module == prefix or module.startswith(prefix + ".")
 
 
+def test_todo2_layer_manifests_are_disjoint_and_present() -> None:
+    assert set(MATERIAL_MODULES).isdisjoint(GEOMETRY_MODULES)
+    assert all(path.is_file() for path in (*MATERIAL_MODULES, *GEOMETRY_MODULES))
+
+
 def test_new_todo2_route_never_imports_legacy_transverse_certifier() -> None:
     violations = [
         f"{path}:{module}"
