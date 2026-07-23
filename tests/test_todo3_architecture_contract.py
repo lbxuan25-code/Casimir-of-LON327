@@ -89,8 +89,16 @@ def test_cache_orchestration_does_not_import_geometry() -> None:
     assert violations == []
 
 
-def test_cache_identity_type_cannot_accept_geometry_or_runtime_fields() -> None:
+def test_cache_identity_has_certification_policy_but_no_geometry_runtime_fields() -> None:
     names = {field.name for field in fields(MaterialResponseCacheIdentity)}
+    required = {
+        "n_candidates",
+        "shifts",
+        "canonical_reduction_block_size",
+        "convergence_policy",
+        "required_consecutive_passes",
+        "envelope_levels",
+    }
     forbidden = {
         "separation_m",
         "distance_m",
@@ -104,6 +112,7 @@ def test_cache_identity_type_cannot_accept_geometry_or_runtime_fields() -> None:
         "runtime_chunk_size",
         "cache_root",
     }
+    assert required.issubset(names)
     assert names.isdisjoint(forbidden)
 
 
