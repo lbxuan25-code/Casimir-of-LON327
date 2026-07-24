@@ -3,9 +3,9 @@ from __future__ import annotations
 import numpy as np
 
 from lno327.casimir.material_geometry_outer_qualification import (
+    FixedOuterEquivalencePolicy,
     qualify_fixed_outer_geometry_replay,
 )
-from lno327.casimir.material_geometry_qualification import GeometryEquivalencePolicy
 from lno327.casimir.outer_quadrature import build_outer_q_polar_grid
 
 
@@ -34,8 +34,12 @@ def test_identical_logdet_arrays_survive_fixed_outer_reduction_exactly() -> None
 
     assert report.passed is True
     assert report.node_comparison["failed_node_count"] == 0
+    assert report.node_comparison["unit"] == "dimensionless_logdet"
+    assert report.outer_integral_comparisons[0]["unit"] == "m^-2"
+    assert report.total_comparison["unit"] == "J/m^2"
     assert report.total_comparison["absolute"] == 0.0
     assert report.reference.total_J_m2 == report.candidate.total_J_m2
+    assert report.metadata["unit_specific_absolute_tolerances"] is True
     assert report.production_casimir_allowed is False
 
 
@@ -50,9 +54,15 @@ def test_fixed_outer_replay_fails_when_one_point_exceeds_policy() -> None:
         matsubara_indices=(1,),
         temperature_K=40.0,
         grid=grid,
-        policy=GeometryEquivalencePolicy(
-            absolute_tolerance=1e-15,
-            relative_tolerance=1e-8,
+        policy=FixedOuterEquivalencePolicy(
+            node_logdet_absolute=1e-15,
+            node_logdet_relative=1e-8,
+            outer_integral_absolute_m_inv2=0.0,
+            outer_integral_relative=1e-8,
+            contribution_absolute_J_m2=1e-15,
+            contribution_relative=1e-8,
+            total_absolute_J_m2=1e-15,
+            total_relative=1e-8,
         ),
     )
 
