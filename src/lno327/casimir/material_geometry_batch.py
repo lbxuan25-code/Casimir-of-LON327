@@ -28,6 +28,9 @@ from lno327.casimir.material_geometry_plan import (
     GeometryBatchPlan,
     GeometryPointSpec,
 )
+from lno327.casimir.material_response_cache_artifact import (
+    CachedCertifiedMaterialResponse,
+)
 from lno327.casimir.material_response_cache_errors import MaterialResponseCacheMiss
 from lno327.casimir.material_response_cache_store import MaterialResponseCacheStore
 from lno327.casimir.material_response_snapshot import MaterialResponseSnapshot
@@ -55,10 +58,10 @@ def _reflection_key(
 
 @dataclass(frozen=True)
 class GeometryCachePreflight:
-    """Validated cache availability and loaded snapshots for one plan."""
+    """Validated cache availability and loaded artifacts for one plan."""
 
     plan_sha256: str
-    snapshots: Mapping[str, MaterialResponseSnapshot]
+    artifacts: Mapping[str, CachedCertifiedMaterialResponse]
     hits: tuple[str, ...]
     misses: tuple[str, ...]
     metadata: Mapping[str, Any]
@@ -68,16 +71,20 @@ class GeometryCachePreflight:
         if len(plan_sha) != 64:
             raise ValueError("plan_sha256 must be a SHA-256 digest")
         object.__setattr__(self, "plan_sha256", plan_sha)
-        snapshots = dict(self.snapshots)
-        for key, snapshot in snapshots.items():
+        artifacts = dict(self.artifacts)
+        for key, artifact in artifacts.items():
             if len(str(key)) != 64:
-                raise ValueError("snapshot keys must be SHA-256 digests")
-            if not isinstance(snapshot, MaterialResponseSnapshot):
-                raise TypeError("preflight snapshots must be MaterialResponseSnapshot values")
+                raise ValueError("artifact keys must be SHA-256 digests")
+            if not isinstance(artifact, CachedCertifiedMaterialResponse):
+                raise TypeError(
+                    "preflight artifacts must be CachedCertifiedMaterialResponse values"
+                )
+            if artifact.identity.sha256 != str(key):
+                raise ValueError("preflight artifact key differs from cache identity")
         object.__setattr__(
             self,
-            "snapshots",
-            MappingProxyType(dict(sorted(snapshots.items()))),
+            "artifacts",
+            MappingProxyType(dict(sorted(artifacts.items()))),
         )
         hits = tuple(str(value) for value in self.hits)
         misses = tuple(str(value) for value in self.misses)
@@ -85,8 +92,8 @@ class GeometryCachePreflight:
             raise ValueError("preflight hit and miss keys must be unique")
         if set(hits).intersection(misses):
             raise ValueError("a response cannot be both a hit and a miss")
-        if set(hits) != set(snapshots):
-            raise ValueError("preflight hit keys differ from loaded snapshots")
+        if set(hits) != set(artifacts):
+            raise ValueError("preflight hit keys differ from loaded artifacts")
         object.__setattr__(self, "hits", hits)
         object.__setattr__(self, "misses", misses)
         object.__setattr__(self, "metadata", MappingProxyType(dict(self.metadata)))
@@ -94,6 +101,12 @@ class GeometryCachePreflight:
     @property
     def complete(self) -> bool:
         return not self.misses
+
+    @property
+    def snapshots(self) -> Mapping[str, MaterialResponseSnapshot]:
+        return MappingProxyType(
+            {key: artifact.snapshot for key, artifact in self.artifacts.items()}
+        )
 
 
 @dataclass(frozen=True)
@@ -199,7 +212,7 @@ def preflight_geometry_batch(
     if cache.mode != "read_only":
         raise ValueError("geometry preflight requires a strict read_only cache")
 
-    snapshots: dict[str, MaterialResponseSnapshot] = {}
+    artifacts: dict[str, CachedCertifiedMaterialResponse] = {}
     hits: list[str] = []
     misses: list[str] = []
     for key, requirement in plan.requirements.items():
@@ -210,12 +223,12 @@ def preflight_geometry_batch(
             continue
         if artifact is None:
             raise RuntimeError("read_only cache returned None instead of a typed miss")
-        snapshots[key] = artifact.snapshot
+        artifacts[key] = artifact
         hits.append(key)
 
     return GeometryCachePreflight(
         plan_sha256=plan.sha256,
-        snapshots=snapshots,
+        artifacts=artifacts,
         hits=tuple(hits),
         misses=tuple(misses),
         metadata={
