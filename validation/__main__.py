@@ -44,6 +44,9 @@ _COMMANDS: dict[tuple[str, str], str] = {
     ("diagnostic", "arbitrary-q-physics-smoke"): (
         "validation.commands.matsubara.arbitrary_q_physics_smoke"
     ),
+    ("diagnostic", "todo4-representative-qualification"): (
+        "validation.commands.casimir.todo4_representative_qualification"
+    ),
 }
 
 # Hidden compatibility routes retain only names still needed by aggregate
