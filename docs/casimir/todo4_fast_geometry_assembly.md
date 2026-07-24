@@ -9,8 +9,22 @@ Pull request: `#37`
 Current status: the core exact geometry plan, strict read-only batch executor,
 distance reuse, scalar qualification, narrow real legacy replay runner, and
 unit-aware reduced fixed-outer replay contract are implemented on the branch.
-Representative real microscopic qualification records remain completion items;
-this document does not authorize production Casimir output.
+The representative qualification manifest and staged local runner are also
+frozen. Representative real microscopic qualification records remain completion
+items; this document does not authorize production Casimir output.
+
+Qualification runbook:
+
+```text
+docs/casimir/todo4_representative_qualification_runbook.md
+```
+
+Frozen manifest and command:
+
+```text
+validation/configs/casimir/todo4_representative_v1.json
+python -m validation diagnostic todo4-representative-qualification <action>
+```
 
 ```text
 cache_request_schema: material-response-cache-request-v1
@@ -72,6 +86,14 @@ material_geometry_legacy_replay.py
         └── one explicit archived microscopic replay
 material_geometry_outer_qualification.py
         └── already-matched arrays through one fixed outer reduction
+material_geometry_qualification_campaign.py
+        └── frozen representative plan construction
+material_geometry_qualification_compatibility.py
+        └── matched working-N / primary-shift preflight
+material_geometry_qualification_execution.py
+        └── staged populate / geometry / replay / verify orchestration
+material_geometry_qualification_io.py
+        └── atomic diagnostic artifacts
 ```
 
 `material_response_cache_request.py` constructs exact TODO 3 request identities
@@ -80,6 +102,8 @@ not read or write cache files. The batch executor requires a
 `MaterialResponseCacheStore(mode="read_only")`; it does not import or call the
 microscopic response engine. Legacy microscopic and fixed-outer operations are
 quarantined to diagnostic qualification modules and cannot act as fallbacks.
+The qualification campaign modules are imported only by the validation command;
+core geometry never imports them.
 
 ## Exact geometry contract
 
@@ -126,6 +150,20 @@ enter geometry-plan identity because they define the requested assembly.
 Runtime chunk size is excluded from both response and geometry scientific
 identity because it does not change the numerical definition.
 
+The frozen representative campaign intentionally uses a sparse matrix:
+
+```text
+5 geometry plans
+16 geometry points
+20 exact response identities
+10 pairing/exact-q populate groups
+32 distance updates
+```
+
+It covers SPM/d-wave, exact n=0/n=1, axial/oblique q, parallel/nonzero-relative
+angle, and short/medium/long distance without constructing a full Cartesian
+product.
+
 ## Strict cache preflight
 
 `preflight_geometry_batch` requires a strict read-only TODO 3 store. It loads
@@ -143,6 +181,11 @@ A complete assembly requires zero misses. Missing entries raise
 The preflight retains complete certified artifacts, including working/audit N,
 primary shift, certification evidence, and exact identity contracts. These are
 used only by later qualification modules to prove matched numerical evidence.
+
+The representative runner adds a second hard preflight before legacy replay. It
+requires both plates of every planned point to use the same working N and exact
+primary shift. Incompatibility is written to `legacy_compatibility.json`; the
+runner does not silently search for a common N or shift.
 
 ## Prepared reflection and distance reuse
 
@@ -242,6 +285,28 @@ One dimensionful absolute tolerance is never reused for quantities with
 different units. This replay remains a finite, tail-free diagnostic partial sum
 and is not an observable-level error budget.
 
+## Representative qualification execution
+
+The validation-only runner exposes strictly separated stages:
+
+```text
+plan
+→ preflight
+→ populate
+→ preflight --require-complete
+→ geometry
+→ legacy
+→ verify
+```
+
+Only `populate` can call the response ladder or write certified response cache
+entries. `geometry`, the new-route side of `legacy`, and `verify` reopen the
+store in strict read-only mode. All reports are atomic and record source commit,
+manifest SHA and frozen plan SHA.
+
+The local command sequence, shard policy, output layout and stop conditions are
+specified in `todo4_representative_qualification_runbook.md`.
+
 ## Implemented tests
 
 The branch covers:
@@ -260,7 +325,11 @@ The branch covers:
 - matched legacy material, primitive, phase, N, shift, and reduction gates;
 - one-N/one-shift legacy replay orchestration with no ladder search or cache write;
 - unit-aware fixed-outer replay pass/fail tests;
-- repository-level dependency and quarantine guards.
+- frozen representative manifest and deterministic exact-response counts;
+- empty-cache fail-closed behavior and deterministic shard partitioning;
+- legacy working-N/primary-shift readiness preflight;
+- atomic frozen-plan conflict rejection;
+- repository-level dependency and qualification-campaign quarantine guards.
 
 ## Completion items
 
