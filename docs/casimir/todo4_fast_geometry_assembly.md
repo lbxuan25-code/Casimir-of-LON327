@@ -6,16 +6,19 @@ Implementation branch: `feat/todo4-fast-geometry-assembly`
 
 Pull request: `#37`
 
-Current status: core exact geometry planning and strict read-only batch assembly are
-implemented on the branch. Scalar/batch equivalence and a matched legacy
-qualification boundary are implemented. Representative real microscopic
-old/new qualification records and reduced outer-Q replay remain completion
-items; this document does not authorize production Casimir output.
+Current status: the core exact geometry plan, strict read-only batch executor,
+distance reuse, scalar qualification, narrow real legacy replay runner, and
+unit-aware reduced fixed-outer replay contract are implemented on the branch.
+Representative real microscopic qualification records remain completion items;
+this document does not authorize production Casimir output.
 
 ```text
+cache_request_schema: material-response-cache-request-v1
 geometry_batch_schema: material-geometry-batch-plan-v1
 geometry_result_schema: material-geometry-batch-result-v1
 qualification_schema: material-geometry-qualification-v1
+legacy_replay_schema: material-geometry-legacy-replay-v1
+outer_qualification_schema: material-geometry-outer-qualification-v1
 valid_for_casimir_input: false
 production_casimir_allowed: false
 observable_error_budget_calibrated: false
@@ -29,11 +32,11 @@ propagation, and logdet. TODO 3 made a response-level-certified
 those exact cached responses without microscopic fallback and makes angle and
 distance assembly cheap enough to reuse.
 
-The intended chain is:
+The core chain is:
 
 ```text
 GeometryBatchPlan
-→ exact q_crystal requirements
+→ exact q_crystal response requirements
 → strict read-only cache preflight
 → unique plate reflections
 → unique distance-independent R1 @ R2 products
@@ -44,32 +47,39 @@ GeometryBatchPlan
 ## Dependency direction
 
 ```text
-material_response_cache_identity / cached response request identity
-                         |
-                         v
-              material_geometry_plan.py
-                         |
-                         v
-              material_geometry_batch.py
-                  /               \
-                 v                 v
-       material_geometry.py   lifshitz_integrand.py
-                 \                 /
-                  v               v
-          prepared reflection / prepared sheet pair
-                         |
-                         v
-          distance-only LifshitzPoint evaluation
+material_response_cache_request.py
+               |
+               v
+material_geometry_plan.py
+               |
+               v
+material_geometry_batch.py
+       /                     \
+      v                       v
+material_geometry.py   lifshitz_integrand.py
+       \                     /
+        v                   v
+ prepared reflection / prepared passive pair
+               |
+               v
+ distance-only LifshitzPoint evaluation
 
+qualification-only modules:
 material_geometry_qualification.py
         ├── scalar geometry replay
-        └── quarantined legacy point comparison
+        └── matched legacy comparison
+material_geometry_legacy_replay.py
+        └── one explicit archived microscopic replay
+material_geometry_outer_qualification.py
+        └── already-matched arrays through one fixed outer reduction
 ```
 
-The core planner does not read or write cache files. The core batch executor
-requires a `MaterialResponseCacheStore(mode="read_only")`; it does not import or
-call the microscopic response engine. The legacy point engine is imported only
-inside the qualification module.
+`material_response_cache_request.py` constructs exact TODO 3 request identities
+without importing response integration orchestration. The geometry planner does
+not read or write cache files. The batch executor requires a
+`MaterialResponseCacheStore(mode="read_only")`; it does not import or call the
+microscopic response engine. Legacy microscopic and fixed-outer operations are
+quarantined to diagnostic qualification modules and cannot act as fallbacks.
 
 ## Exact geometry contract
 
@@ -81,8 +91,8 @@ T_lab = R(theta_plate) @ T_crystal @ R(theta_plate).T
 ```
 
 `GeometryBatchPlan` stores exact float64 laboratory momenta, plate angles, and
-distances. Every plate response requirement is built from the exact rotated
-`q_crystal` and a complete TODO 3 response-cache identity.
+distances. Every plate requirement is built from the exact rotated `q_crystal`
+and a complete TODO 3 response-cache identity.
 
 Forbidden operations are explicit:
 
@@ -101,8 +111,8 @@ cache-selection rule.
 
 `build_geometry_batch_plan` accepts:
 
-- one `MaterialResponseEngineConfig` defining the exact material and
-  certification request identity;
+- one `MaterialResponseEngineConfig` defining exact material and certification
+  request identity;
 - labeled nonzero `q_lab` points;
 - ordered unique `(theta_1, theta_2)` pairs;
 - strictly increasing unique separations;
@@ -112,7 +122,7 @@ The planner builds the q/frequency-independent material identity context once,
 then constructs and deduplicates all exact plate response identities.
 
 Distance and plate angle do not enter a material response identity. They do
-enter the geometry plan identity because they define the requested assembly.
+enter geometry-plan identity because they define the requested assembly.
 Runtime chunk size is excluded from both response and geometry scientific
 identity because it does not change the numerical definition.
 
@@ -131,8 +141,8 @@ A complete assembly requires zero misses. Missing entries raise
 - fall back to the archived point route.
 
 The preflight retains complete certified artifacts, including working/audit N,
-primary shift, and certification evidence, so later legacy qualification can
-verify that comparisons use matched numerical evidence.
+primary shift, certification evidence, and exact identity contracts. These are
+used only by later qualification modules to prove matched numerical evidence.
 
 ## Prepared reflection and distance reuse
 
@@ -176,8 +186,8 @@ response_certification_call_count = 0
 cache_write_count = 0
 ```
 
-Wall-time measurements may be added as runtime telemetry, but cannot change plan
-or response identity and are not formal acceptance gates.
+Wall-time measurements may be runtime telemetry, but cannot change plan or
+response identity and are not formal acceptance gates.
 
 ## Qualification contracts
 
@@ -186,27 +196,51 @@ or response identity and are not formal acceptance gates.
 `qualify_batch_point_against_scalar` recomputes every requested distance through
 the existing scalar `assemble_two_plate_logdet` route using the same persisted
 responses. It compares signed logdet and trace-log matrices under one explicit
-absolute/relative policy.
+dimensionless absolute/relative policy.
 
 ### Archived point route versus persisted batch
 
-`qualify_matched_legacy_point` is a quarantined diagnostic boundary. A legacy
-point is admitted for comparison only when all of the following match the
-persisted primary responses:
+`qualify_matched_legacy_point` is a quarantined comparison boundary.
+`run_matched_legacy_geometry_replay` is the explicit narrow runner that rebuilds
+one archived point. It obtains working N and primary shift from the two certified
+artifacts and performs exactly one old-route integration; it does not search an
+N ladder or populate caches.
 
-- pairing, temperature, frequency, q and plate angles;
-- exact `q_crystal` for both plates;
-- working N;
-- exact primary BZ shift;
+A legacy point is admitted only when all of the following match the persisted
+primary responses:
+
+- pairing, model, finite temperature, Matsubara index and exact frequency;
+- exact `q_crystal` for both plates and exact plate angles;
+- material-state and response-policy identities;
+- primitive contract and phase-Hessian policy;
+- working N and exact primary BZ shift;
 - canonical reduction block size;
-- physical response policy and trace-log geometry policy supplied by the caller.
+- every physical tolerance that the archived helper can express.
 
-The comparison checks the two-plate product matrix, product eigenvalues, signed
-logdet, exact q mapping, and legacy hard physical closure. A mismatch in the
-N/shift/reduction contract fails before numerical comparison.
+The comparison checks each plate reflection matrix, the two-plate product,
+product eigenvalues, signed logdet, exact q mapping, and legacy hard physical
+closure. Any identity, N/shift/reduction, primitive, phase, or policy mismatch
+fails before accepting numerical equivalence.
 
-The archived route remains diagnostic. New geometry execution never falls back
-to it.
+### Reduced fixed-outer replay
+
+`qualify_fixed_outer_geometry_replay` consumes two already-matched arrays with
+shape `(Matsubara index, fixed outer node)` and sends both through the same
+`OuterQPolarGrid` and finite Matsubara reduction. It does not evaluate material
+responses or geometry.
+
+`FixedOuterEquivalencePolicy` uses separate absolute tolerances for:
+
+```text
+dimensionless node logdet
+outer integral in m^-2
+Matsubara contribution in J/m^2
+total finite partial sum in J/m^2
+```
+
+One dimensionful absolute tolerance is never reused for quantities with
+different units. This replay remains a finite, tail-free diagnostic partial sum
+and is not an observable-level error budget.
 
 ## Implemented tests
 
@@ -222,14 +256,16 @@ The branch covers:
 - no cache creation or microscopic fallback on misses;
 - response, reflection, prepared-pair, and distance-update counters;
 - scalar qualification reports;
-- matched legacy N/shift/reduction qualification gates;
-- repository-level dependency guards.
+- individual reflection, product, eigenvalue, and logdet comparison contracts;
+- matched legacy material, primitive, phase, N, shift, and reduction gates;
+- one-N/one-shift legacy replay orchestration with no ladder search or cache write;
+- unit-aware fixed-outer replay pass/fail tests;
+- repository-level dependency and quarantine guards.
 
 ## Completion items
 
 TODO 4 is not marked complete until the branch also contains reviewed,
-reproducible diagnostic qualification records for representative real
-microscopic points:
+reproducible diagnostic records for representative real microscopic points:
 
 ```text
 pairing: spm and dwave
@@ -239,12 +275,13 @@ angle: zero and nonzero relative orientation
 distance: representative short / medium / long values
 ```
 
-For each point the archived and new routes must use matched N/shift/reduction and
-pass the direct reflection/product/logdet comparison. A small fixed-outer-Q
-replay must then confirm that organizing the same qualified point values in a
-batch does not alter the reduced outer integral.
+For each point the archived and new routes must use matched complete contracts
+and pass reflection/product/logdet comparison. A small fixed-outer-Q set must
+then provide real old/new logdet arrays to the unit-aware reduced replay.
 
-These are narrow qualification runs, not a broad production scan.
+These are narrow qualification runs, not a broad production scan. Failure or
+unresolved response certification must remain explicit; the qualification set
+must not silently expand to search for favorable points.
 
 ## Explicit exclusions
 
