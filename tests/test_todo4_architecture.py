@@ -8,6 +8,10 @@ CACHE_REQUEST = Path("src/lno327/casimir/material_response_cache_request.py")
 CORE_PLAN = Path("src/lno327/casimir/material_geometry_plan.py")
 CORE_BATCH = Path("src/lno327/casimir/material_geometry_batch.py")
 QUALIFICATION = Path("src/lno327/casimir/material_geometry_qualification.py")
+LEGACY_REPLAY = Path("src/lno327/casimir/material_geometry_legacy_replay.py")
+OUTER_QUALIFICATION = Path(
+    "src/lno327/casimir/material_geometry_outer_qualification.py"
+)
 
 
 def _imports(path: Path) -> tuple[str, ...]:
@@ -30,11 +34,15 @@ def test_todo4_modules_exist_and_core_batch_has_no_microscopic_or_outer_imports(
     assert CORE_PLAN.is_file()
     assert CORE_BATCH.is_file()
     assert QUALIFICATION.is_file()
+    assert LEGACY_REPLAY.is_file()
+    assert OUTER_QUALIFICATION.is_file()
     forbidden = (
         "lno327.casimir.material_response_engine",
         "lno327.casimir.material_response_cached_engine",
         "lno327.casimir.fixed_transverse_point_engine",
         "lno327.casimir.fixed_transverse_point_certification",
+        "lno327.casimir.material_geometry_legacy_replay",
+        "lno327.casimir.material_geometry_outer_qualification",
         "lno327.casimir.outer",
         "lno327.casimir.fixed_outer_q",
         "lno327.workflows",
@@ -54,6 +62,8 @@ def test_geometry_plan_has_no_cache_io_or_cached_engine_dependency() -> None:
         "lno327.casimir.material_response_cache_codec",
         "lno327.casimir.lifshitz_integrand",
         "lno327.casimir.material_two_plate",
+        "lno327.casimir.material_geometry_legacy_replay",
+        "lno327.casimir.material_geometry_outer_qualification",
         "lno327.casimir.outer",
         "lno327.casimir.fixed_outer_q",
     )
@@ -84,7 +94,7 @@ def test_cache_request_identity_boundary_has_no_geometry_or_response_orchestrati
     assert violations == []
 
 
-def test_legacy_engine_is_quarantined_to_qualification_boundary() -> None:
+def test_legacy_and_outer_replay_are_quarantined_from_core_geometry() -> None:
     core_text = (
         CACHE_REQUEST.read_text(encoding="utf-8")
         + CORE_PLAN.read_text(encoding="utf-8")
@@ -92,7 +102,30 @@ def test_legacy_engine_is_quarantined_to_qualification_boundary() -> None:
     )
     qualification_text = QUALIFICATION.read_text(encoding="utf-8")
     assert "fixed_transverse_point_engine" not in core_text
+    assert "integrate_two_plate_angle_batch" not in core_text
+    assert "free_energy_per_area_from_logdet" not in core_text
     assert "fixed_transverse_point_engine" in qualification_text
+    assert "integrate_two_plate_angle_batch" in LEGACY_REPLAY.read_text(
+        encoding="utf-8"
+    )
+    assert "free_energy_per_area_from_logdet" in OUTER_QUALIFICATION.read_text(
+        encoding="utf-8"
+    )
+
+
+def test_outer_qualification_has_no_microscopic_or_legacy_imports() -> None:
+    forbidden = (
+        "lno327.casimir.material_response_engine",
+        "lno327.casimir.material_response_cached_engine",
+        "lno327.casimir.fixed_transverse_point_engine",
+        "lno327.workflows",
+    )
+    violations = [
+        module
+        for module in _imports(OUTER_QUALIFICATION)
+        if any(_matches(module, prefix) for prefix in forbidden)
+    ]
+    assert violations == []
 
 
 def test_core_batch_is_strict_read_only_and_has_no_fallback_call_surface() -> None:
