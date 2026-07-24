@@ -126,8 +126,8 @@ class PreparedPassiveSheetPair:
             raise ValueError("kappa_m_inv must be finite and positive")
         object.__setattr__(self, "kappa_m_inv", kappa)
         sector = str(self.frequency_sector)
-        if sector not in {"zero_matsubara", "positive_matsubara"}:
-            raise ValueError("prepared pair has unsupported frequency sector")
+        if not sector:
+            raise ValueError("prepared pair frequency sector must be nonempty")
         object.__setattr__(self, "frequency_sector", sector)
         for name in (
             "eigenvalue_imag_tolerance",
