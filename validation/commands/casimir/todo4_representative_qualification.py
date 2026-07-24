@@ -55,6 +55,17 @@ def _parser() -> argparse.ArgumentParser:
         if action in {"populate", "diagnose", "legacy"}:
             command.add_argument("--shard-index", type=int, default=0)
             command.add_argument("--shard-count", type=int, default=1)
+        if action == "diagnose":
+            command.add_argument(
+                "--n-candidates",
+                type=int,
+                nargs="+",
+                default=None,
+                help=(
+                    "diagnostic-only N ladder; must start at the final base N "
+                    "and include at least two larger even levels"
+                ),
+            )
         if action == "preflight":
             command.add_argument("--require-complete", action="store_true")
     return parser
@@ -127,6 +138,11 @@ def main(argv: Sequence[str] | None = None) -> None:
             cache_root=args.cache_root,
             shard_index=args.shard_index,
             shard_count=args.shard_count,
+            n_candidates_override=(
+                None
+                if args.n_candidates is None
+                else tuple(int(value) for value in args.n_candidates)
+            ),
         )
         _print(
             {
@@ -134,6 +150,9 @@ def main(argv: Sequence[str] | None = None) -> None:
                     "selected_missing_group_count"
                 ],
                 "total_missing_group_count": payload["total_missing_group_count"],
+                "base_n_candidates": payload["base_n_candidates"],
+                "diagnostic_n_candidates": payload["diagnostic_n_candidates"],
+                "diagnostic_ladder_tag": payload["diagnostic_ladder_tag"],
                 "unresolved_frequency_count": payload[
                     "unresolved_frequency_count"
                 ],
