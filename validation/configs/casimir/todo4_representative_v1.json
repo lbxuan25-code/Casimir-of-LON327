@@ -1,0 +1,91 @@
+{
+  "schema": "todo4-representative-qualification-manifest-v1",
+  "campaign_id": "todo4-representative-v1",
+  "diagnostic_only": true,
+  "valid_for_casimir_input": false,
+  "production_casimir_allowed": false,
+  "response": {
+    "temperature_K": 40.0,
+    "delta0_eV": 0.1,
+    "eta_eV": 1e-08,
+    "matsubara_indices": [0, 1],
+    "n_candidates": [128, 192, 256],
+    "shifts": [[0.5, 0.5], [0.25, 0.75], [0.75, 0.25]],
+    "required_consecutive_passes": 2,
+    "envelope_levels": 3,
+    "canonical_reduction_block_size": 4096,
+    "runtime_chunk_size": 16384,
+    "microscopic_model_name": "symmetry_bdg_2band",
+    "material_policy": {
+      "degeneracy": 1.0,
+      "ward_tolerance": 1e-07,
+      "ward_absolute_tolerance": 1e-12,
+      "condition_max": 1000000000000.0,
+      "static_energy_scale_eV": 1.0,
+      "static_primitive_tolerance": 1e-06,
+      "static_amplitude_tolerance": 1e-06,
+      "static_phase_tolerance": 1e-06,
+      "static_effective_direct_tolerance": 1e-06,
+      "static_effective_residual_tolerance": 1e-06,
+      "static_reality_tolerance": 1e-08,
+      "static_longitudinal_tolerance": 1e-06,
+      "static_mixing_tolerance": 1e-06,
+      "static_passivity_tolerance": 1e-10,
+      "positive_reality_tolerance": 1e-09,
+      "positive_symmetry_tolerance": 1e-09,
+      "positive_passivity_tolerance": 1e-10
+    },
+    "convergence_policy": {
+      "relative_tolerance": 0.001,
+      "absolute_tolerance": 1e-06
+    }
+  },
+  "geometry_policy": {
+    "q_match_tolerance": 1e-10,
+    "require_physical": true,
+    "compatibility_tolerance": 1e-11,
+    "eigenvalue_imag_tolerance": 1e-09,
+    "eigenvalue_lower_tolerance": 1e-10
+  },
+  "direct_cases": [
+    {
+      "case_id": "axis_parallel",
+      "pairings": ["spm", "dwave"],
+      "q_lab": [0.02, 0.0],
+      "angle_pair_rad": [0.0, 0.0],
+      "separations_nm": [50.0, 100.0, 200.0],
+      "legacy_distance_nm": 100.0
+    },
+    {
+      "case_id": "oblique_rotated",
+      "pairings": ["spm", "dwave"],
+      "q_lab": [0.015, 0.025],
+      "angle_pair_rad": [0.0, 0.31],
+      "separations_nm": [50.0, 100.0, 200.0],
+      "legacy_distance_nm": 100.0
+    }
+  ],
+  "fixed_outer": {
+    "enabled": true,
+    "case_id": "fixed_outer_parallel",
+    "pairings": ["spm"],
+    "separation_nm": 100.0,
+    "u_max": 2.0,
+    "radial_order": 1,
+    "angular_order": 4,
+    "angular_offset_fraction": 0.5,
+    "angle_pair_rad": [0.0, 0.0]
+  },
+  "equivalence_policy": {
+    "logdet_absolute": 1e-12,
+    "logdet_relative": 1e-10,
+    "matrix_absolute": 1e-12,
+    "matrix_relative": 1e-10,
+    "outer_integral_absolute_m_inv2": 0.0,
+    "outer_integral_relative": 1e-10,
+    "contribution_absolute_J_m2": 1e-15,
+    "contribution_relative": 1e-10,
+    "total_absolute_J_m2": 1e-15,
+    "total_relative": 1e-10
+  }
+}
