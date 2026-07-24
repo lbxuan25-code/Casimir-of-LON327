@@ -116,7 +116,10 @@ def _sample(value: float, *, fingerprint: str) -> MaterialResponseSample:
         response=response,
         sheet_validation=validation,
         metadata={
-            "grid": {"N": 128, "shift_hex": [0.5.hex(), 0.5.hex()]},
+            "grid": {
+                "N": 128,
+                "shift_hex": [(0.5).hex(), (0.5).hex()],
+            },
             "canonical_reduction_block_size": 4096,
         },
     )
