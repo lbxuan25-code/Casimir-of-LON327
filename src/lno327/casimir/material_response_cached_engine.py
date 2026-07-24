@@ -28,6 +28,7 @@ from lno327.casimir.material_response_engine import (
     evaluate_material_response_ladder,
 )
 from lno327.casimir.material_response_snapshot import MaterialResponseSnapshot
+from lno327.casimir.matsubara import matsubara_energy_eV
 
 MATERIAL_RESPONSE_CACHED_ENGINE_SCHEMA = "material-response-cached-engine-v1"
 
@@ -260,4 +261,5 @@ __all__ = [
     "build_material_response_cache_identity",
     "build_material_response_identity_context",
     "evaluate_material_response_ladder_cached",
+    "matsubara_energy_eV",
 ]
