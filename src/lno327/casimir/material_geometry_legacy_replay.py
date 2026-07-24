@@ -82,6 +82,35 @@ def _primary_shift(artifact: object) -> tuple[float, float]:
     raise ValueError("artifact primary_shift is absent from its certification identity")
 
 
+def _require_plate_identity_compatibility(first: object, second: object) -> None:
+    """Require one common material/frequency contract apart from exact q."""
+
+    names = (
+        "pairing_name",
+        "temperature_K",
+        "matsubara_index",
+        "xi_eV",
+        "microscopic_model_name",
+        "material_state_fingerprint",
+        "response_policy_fingerprint",
+        "primitive_contract_version",
+        "phase_hessian_policy",
+        "basis",
+        "certification_policy_fingerprint",
+        "canonical_reduction_block_size",
+    )
+    mismatched = [
+        name
+        for name in names
+        if getattr(first.identity, name) != getattr(second.identity, name)
+    ]
+    if mismatched:
+        raise ValueError(
+            "plate response identities differ outside q_crystal: "
+            + ", ".join(mismatched)
+        )
+
+
 def _require_legacy_policy_compatibility(batch: GeometryBatchResult) -> None:
     """Fail if the archived helper cannot express the requested material policy."""
 
@@ -133,6 +162,33 @@ def _legacy_args(batch: GeometryBatchResult, point: object) -> SimpleNamespace:
     )
 
 
+def _require_legacy_result_contract(
+    result: object,
+    *,
+    artifact: object,
+    plate_name: str,
+) -> None:
+    metadata = dict(getattr(result, "metadata", {}))
+    expected = {
+        "material_state_fingerprint": artifact.identity.material_state_fingerprint,
+        "primitive_contract_version": artifact.identity.primitive_contract_version,
+        "post_integral_phase_hessian_policy": artifact.identity.phase_hessian_policy,
+        "canonical_reduction_block_size": (
+            artifact.identity.canonical_reduction_block_size
+        ),
+    }
+    mismatched = {
+        name: {"expected": value, "actual": metadata.get(name)}
+        for name, value in expected.items()
+        if metadata.get(name) != value
+    }
+    if mismatched:
+        raise ValueError(
+            f"legacy replay {plate_name} contract differs from cache identity: "
+            f"{mismatched}"
+        )
+
+
 def run_matched_legacy_geometry_replay(
     batch: GeometryBatchResult,
     *,
@@ -154,6 +210,7 @@ def run_matched_legacy_geometry_replay(
     spec = point.spec
     first_artifact = batch.preflight.artifacts[spec.plate_1_requirement]
     second_artifact = batch.preflight.artifacts[spec.plate_2_requirement]
+    _require_plate_identity_compatibility(first_artifact, second_artifact)
     if first_artifact.working_N != second_artifact.working_N:
         raise ValueError("plate responses use different working N values")
     shift_1 = _primary_shift(first_artifact)
@@ -162,12 +219,8 @@ def run_matched_legacy_geometry_replay(
         float(value).hex() for value in shift_2
     ):
         raise ValueError("plate responses use different primary shifts")
-    if first_artifact.identity.xi_eV != second_artifact.identity.xi_eV:
-        raise ValueError("plate responses use different Matsubara frequencies")
     if first_artifact.identity.matsubara_index != spec.matsubara_index:
         raise ValueError("plate-1 artifact Matsubara index differs from geometry point")
-    if second_artifact.identity.matsubara_index != spec.matsubara_index:
-        raise ValueError("plate-2 artifact Matsubara index differs from geometry point")
 
     config = batch.plan.response_config
     model = get_finite_q_microscopic_model(config.microscopic_model_name)
@@ -207,12 +260,16 @@ def run_matched_legacy_geometry_replay(
         canonical_reduction_block_size=config.canonical_reduction_block_size,
         runtime_chunk_size=config.runtime_chunk_size,
     )
-
-    expected_state = first_artifact.identity.material_state_fingerprint
-    state_1 = str(legacy_batch.plate_1.metadata.get("material_state_fingerprint"))
-    state_2 = str(legacy_batch.plate_2[0].metadata.get("material_state_fingerprint"))
-    if state_1 != expected_state or state_2 != expected_state:
-        raise ValueError("legacy replay material-state fingerprint differs from cache identity")
+    _require_legacy_result_contract(
+        legacy_batch.plate_1,
+        artifact=first_artifact,
+        plate_name="plate_1",
+    )
+    _require_legacy_result_contract(
+        legacy_batch.plate_2[0],
+        artifact=second_artifact,
+        plate_name="plate_2",
+    )
 
     report = qualify_matched_legacy_point(
         batch,
@@ -243,7 +300,12 @@ def run_matched_legacy_geometry_replay(
             "theta_2_rad": spec.theta_2_rad,
             "working_N": first_artifact.working_N,
             "primary_shift": list(shift_1),
+            "primitive_contract_version": (
+                first_artifact.identity.primitive_contract_version
+            ),
+            "phase_hessian_policy": first_artifact.identity.phase_hessian_policy,
             "canonical_reduction_block_size": config.canonical_reduction_block_size,
+            "all_material_and_numerical_contracts_matched": True,
             "n_ladder_search_performed": False,
             "response_cache_write_performed": False,
             "geometry_fallback_enabled": False,
