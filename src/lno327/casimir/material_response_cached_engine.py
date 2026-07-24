@@ -74,6 +74,16 @@ def _identity_context(config: MaterialResponseEngineConfig) -> dict[str, Any]:
     }
 
 
+def build_material_response_identity_context(
+    config: MaterialResponseEngineConfig,
+) -> Mapping[str, Any]:
+    """Build one reusable q/frequency-independent cache-identity context."""
+
+    if not isinstance(config, MaterialResponseEngineConfig):
+        raise TypeError("config must be a MaterialResponseEngineConfig")
+    return MappingProxyType(_identity_context(config))
+
+
 def build_material_response_cache_identity(
     config: MaterialResponseEngineConfig,
     *,
@@ -285,5 +295,6 @@ __all__ = [
     "CachedMaterialFrequencyResult",
     "CachedMaterialResponseEngineResult",
     "build_material_response_cache_identity",
+    "build_material_response_identity_context",
     "evaluate_material_response_ladder_cached",
 ]
