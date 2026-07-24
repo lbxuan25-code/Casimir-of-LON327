@@ -9,6 +9,9 @@ from typing import Sequence
 from lno327.casimir.material_geometry_qualification_compatibility import (
     write_legacy_compatibility,
 )
+from lno327.casimir.material_geometry_qualification_diagnostics import (
+    diagnose_unresolved_shard,
+)
 from lno327.casimir.material_geometry_qualification_execution import (
     execute_campaign_geometry,
     execute_legacy_shard,
@@ -31,7 +34,15 @@ DEFAULT_CACHE_ROOT = Path("validation/cache/material_response")
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="action", required=True)
-    for action in ("plan", "preflight", "populate", "geometry", "legacy", "verify"):
+    for action in (
+        "plan",
+        "preflight",
+        "populate",
+        "diagnose",
+        "geometry",
+        "legacy",
+        "verify",
+    ):
         command = subparsers.add_parser(action)
         command.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
         command.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
@@ -41,7 +52,7 @@ def _parser() -> argparse.ArgumentParser:
                 type=Path,
                 default=DEFAULT_CACHE_ROOT,
             )
-        if action in {"populate", "legacy"}:
+        if action in {"populate", "diagnose", "legacy"}:
             command.add_argument("--shard-index", type=int, default=0)
             command.add_argument("--shard-count", type=int, default=1)
         if action == "preflight":
@@ -107,6 +118,34 @@ def main(argv: Sequence[str] | None = None) -> None:
         )
         if not payload["passed"]:
             raise SystemExit("one or more response groups were unresolved")
+        return
+
+    if args.action == "diagnose":
+        payload = diagnose_unresolved_shard(
+            campaign,
+            output_dir=args.output_dir,
+            cache_root=args.cache_root,
+            shard_index=args.shard_index,
+            shard_count=args.shard_count,
+        )
+        _print(
+            {
+                "selected_missing_group_count": payload[
+                    "selected_missing_group_count"
+                ],
+                "total_missing_group_count": payload["total_missing_group_count"],
+                "unresolved_frequency_count": payload[
+                    "unresolved_frequency_count"
+                ],
+                "established_on_diagnostic_replay_count": payload[
+                    "established_on_diagnostic_replay_count"
+                ],
+                "error_count": payload["error_count"],
+                "diagnostic_completed": payload["diagnostic_completed"],
+            }
+        )
+        if not payload["diagnostic_completed"]:
+            raise SystemExit("one or more unresolved diagnostics failed to execute")
         return
 
     if args.action == "geometry":
