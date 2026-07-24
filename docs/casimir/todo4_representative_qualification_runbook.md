@@ -119,7 +119,32 @@ Unresolved responses and exceptions are written to the shard report and cause a
 nonzero exit. The campaign must not substitute a nearby q, change the N ladder,
 relax tolerances or delete a failing representative point.
 
-### 4. Qualification-ready preflight
+### 4. Diagnose unresolved exact misses
+
+When `populate` reports unresolved frequencies, stop the qualification and run
+`diagnose` before changing any scientific policy. This stage:
+
+- opens the certified-response cache in strict read-only mode;
+- selects only exact response identities that are still missing;
+- re-evaluates only those missing Matsubara frequencies;
+- writes no certified response artifact and performs no cache write;
+- records every N level and every ordered shift;
+- records operator Ward, effective Ward, exact-static telemetry and sheet gates;
+- records complete cross-shift, adjacent-N and oscillatory-envelope evidence.
+
+An unresolved response is an expected diagnostic outcome, so `diagnose` exits
+successfully when evidence was written. Only execution or serialization errors
+cause a nonzero exit. Output is written to:
+
+```text
+unresolved_diagnostics/shard_*.json
+```
+
+A source change requires a new frozen plan/output directory. Existing certified
+cache artifacts remain reusable when their exact scientific identities are
+unchanged.
+
+### 5. Qualification-ready preflight
 
 The second preflight uses `--require-complete`. It requires:
 
@@ -139,7 +164,7 @@ If a rotated plate pair establishes at different working N or primary shifts,
 execution stops before any legacy replay. No common-N/common-shift search is
 performed silently.
 
-### 5. Strict read-only geometry
+### 6. Strict read-only geometry
 
 `geometry` loads certified responses in strict read-only mode, constructs unique
 reflections and prepared pairs, evaluates all distances, and performs scalar
@@ -151,7 +176,7 @@ response_certification_call_count = 0
 cache_write_count = 0
 ```
 
-### 6. Matched legacy replay
+### 7. Matched legacy replay
 
 `legacy` reconstructs one old-route microscopic point for each planned geometry
 point using exactly the certified working N and exact primary shift. Direct cases
@@ -162,7 +187,7 @@ three distances. Fixed-outer points use their sole 100 nm distance.
 The 16 points are independently shardable. A failed point writes an explicit
 error artifact and causes that shard to exit nonzero.
 
-### 7. Verification and fixed-outer reduction
+### 8. Verification and fixed-outer reduction
 
 `verify` requires every geometry and legacy point artifact, repeats read-only
 cache and evidence checks, and assembles the real old/new fixed-outer arrays. It
@@ -190,6 +215,10 @@ The campaign has 10 response-population groups and 16 legacy points. On a
 one-item shards, but run at most four shards concurrently. This preserves
 restartability without launching ten or sixteen large microscopic jobs at once.
 
+For unresolved diagnostics, shard only the current exact-miss groups and run at
+most two microscopic diagnostics concurrently. Successful cache hits must not be
+recomputed.
+
 No `.venv` should be created. Use the existing Conda environment. Long stages
 should run under `nohup` or an equivalent persistent shell and keep independent
 per-shard logs.
@@ -205,6 +234,7 @@ plan_run.json
 cache_preflight_before.json
 cache_miss_manifest.json
 populate/shard_*.json
+unresolved_diagnostics/shard_*.json
 cache_preflight_after.json
 legacy_compatibility.json
 geometry/*.json
@@ -233,4 +263,7 @@ occurs:
 - matched legacy reflection/product/logdet qualification fails;
 - fixed-outer replay fails its unit-aware policy.
 
-The qualification set must not expand automatically to search for easier points.
+For unresolved certification, generate the complete `diagnose` evidence first.
+Do not infer that a larger N ladder is appropriate until the evidence separates
+hard physical failure from cross-shift or adjacent-N convergence failure. The
+qualification set must not expand automatically to search for easier points.
