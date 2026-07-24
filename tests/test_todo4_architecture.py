@@ -4,6 +4,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+CACHE_REQUEST = Path("src/lno327/casimir/material_response_cache_request.py")
 CORE_PLAN = Path("src/lno327/casimir/material_geometry_plan.py")
 CORE_BATCH = Path("src/lno327/casimir/material_geometry_batch.py")
 QUALIFICATION = Path("src/lno327/casimir/material_geometry_qualification.py")
@@ -25,6 +26,7 @@ def _matches(module: str, prefix: str) -> bool:
 
 
 def test_todo4_modules_exist_and_core_batch_has_no_microscopic_or_outer_imports() -> None:
+    assert CACHE_REQUEST.is_file()
     assert CORE_PLAN.is_file()
     assert CORE_BATCH.is_file()
     assert QUALIFICATION.is_file()
@@ -45,8 +47,9 @@ def test_todo4_modules_exist_and_core_batch_has_no_microscopic_or_outer_imports(
     assert violations == []
 
 
-def test_geometry_plan_has_no_cache_io_or_observable_dependencies() -> None:
+def test_geometry_plan_has_no_cache_io_or_cached_engine_dependency() -> None:
     forbidden = (
+        "lno327.casimir.material_response_cached_engine",
         "lno327.casimir.material_response_cache_store",
         "lno327.casimir.material_response_cache_codec",
         "lno327.casimir.lifshitz_integrand",
@@ -60,11 +63,32 @@ def test_geometry_plan_has_no_cache_io_or_observable_dependencies() -> None:
         if any(_matches(module, prefix) for prefix in forbidden)
     ]
     assert violations == []
+    assert "lno327.casimir.material_response_cache_request" in _imports(CORE_PLAN)
+
+
+def test_cache_request_identity_boundary_has_no_geometry_or_response_orchestration() -> None:
+    forbidden = (
+        "lno327.casimir.material_response_engine",
+        "lno327.casimir.material_response_cached_engine",
+        "lno327.casimir.material_geometry",
+        "lno327.casimir.material_geometry_batch",
+        "lno327.casimir.material_two_plate",
+        "lno327.casimir.lifshitz_integrand",
+        "lno327.casimir.outer",
+    )
+    violations = [
+        module
+        for module in _imports(CACHE_REQUEST)
+        if any(_matches(module, prefix) for prefix in forbidden)
+    ]
+    assert violations == []
 
 
 def test_legacy_engine_is_quarantined_to_qualification_boundary() -> None:
-    core_text = CORE_PLAN.read_text(encoding="utf-8") + CORE_BATCH.read_text(
-        encoding="utf-8"
+    core_text = (
+        CACHE_REQUEST.read_text(encoding="utf-8")
+        + CORE_PLAN.read_text(encoding="utf-8")
+        + CORE_BATCH.read_text(encoding="utf-8")
     )
     qualification_text = QUALIFICATION.read_text(encoding="utf-8")
     assert "fixed_transverse_point_engine" not in core_text
