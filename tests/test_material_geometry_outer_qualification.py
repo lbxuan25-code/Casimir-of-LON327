@@ -51,7 +51,7 @@ def test_fixed_outer_replay_fails_when_one_point_exceeds_policy() -> None:
         temperature_K=40.0,
         grid=grid,
         policy=GeometryEquivalencePolicy(
-            absolute_tolerance=1e-8,
+            absolute_tolerance=1e-15,
             relative_tolerance=1e-8,
         ),
     )
