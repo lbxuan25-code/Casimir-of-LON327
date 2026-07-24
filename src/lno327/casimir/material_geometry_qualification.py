@@ -13,6 +13,7 @@ from typing import Any, Mapping
 import numpy as np
 
 from lno327.casimir.lifshitz_integrand import passive_sheet_logdet
+from lno327.casimir.material_geometry import material_response_to_reflection
 from lno327.casimir.material_geometry_batch import GeometryBatchResult
 from lno327.casimir.material_two_plate import (
     TwoPlateGeometryPolicy,
@@ -78,7 +79,7 @@ def _comparison(
 
 @dataclass(frozen=True)
 class GeometryEquivalencePolicy:
-    """Uniform scalar comparison policy for diagnostic qualification."""
+    """Uniform dimensionless comparison policy for point qualification."""
 
     absolute_tolerance: float = 1e-12
     relative_tolerance: float = 1e-10
@@ -242,6 +243,12 @@ def qualify_matched_legacy_point(
     if not np.array_equal(q_lab, spec.q_lab):
         raise ValueError("legacy q_lab differs from geometry point")
 
+    artifact_1 = batch.preflight.artifacts[spec.plate_1_requirement]
+    artifact_2 = batch.preflight.artifacts[spec.plate_2_requirement]
+    xi = float(legacy_xi_eV)
+    if xi != artifact_1.identity.xi_eV or xi != artifact_2.identity.xi_eV:
+        raise ValueError("legacy frequency differs from persisted response identities")
+
     from lno327.casimir import fixed_transverse_point_engine as legacy_engine
 
     reflection_1, legacy_plate_1 = legacy_engine._plate_state(
@@ -249,7 +256,7 @@ def qualify_matched_legacy_point(
         frequency_index=int(legacy_frequency_index),
         q_lab=q_lab,
         theta_rad=angles[0],
-        xi_eV=float(legacy_xi_eV),
+        xi_eV=xi,
         args=legacy_args,
     )
     reflection_2, legacy_plate_2 = legacy_engine._plate_state(
@@ -257,12 +264,22 @@ def qualify_matched_legacy_point(
         frequency_index=int(legacy_frequency_index),
         q_lab=q_lab,
         theta_rad=angles[1],
-        xi_eV=float(legacy_xi_eV),
+        xi_eV=xi,
         args=legacy_args,
     )
+    candidate_reflection_1, _ = material_response_to_reflection(
+        artifact_1.snapshot,
+        q_lab=q_lab,
+        theta_rad=angles[0],
+        policy=batch.plan.policy.reflection_policy,
+    )
+    candidate_reflection_2, _ = material_response_to_reflection(
+        artifact_2.snapshot,
+        q_lab=q_lab,
+        theta_rad=angles[1],
+        policy=batch.plan.policy.reflection_policy,
+    )
 
-    artifact_1 = batch.preflight.artifacts[spec.plate_1_requirement]
-    artifact_2 = batch.preflight.artifacts[spec.plate_2_requirement]
     grid_1 = dict(getattr(legacy_batch.plate_1, "metadata", {}).get("grid", {}))
     grid_2 = dict(getattr(legacy_batch.plate_2[0], "metadata", {}).get("grid", {}))
     legacy_N_matches = bool(
@@ -312,6 +329,30 @@ def qualify_matched_legacy_point(
         absolute_tolerance=comparison_policy.absolute_tolerance,
         relative_tolerance=comparison_policy.relative_tolerance,
     )
+    reflection_1_close = bool(
+        np.allclose(
+            reflection_1.matrix_lt,
+            candidate_reflection_1.matrix_lt,
+            rtol=comparison_policy.matrix_relative_tolerance,
+            atol=comparison_policy.matrix_absolute_tolerance,
+        )
+    )
+    reflection_2_close = bool(
+        np.allclose(
+            reflection_2.matrix_lt,
+            candidate_reflection_2.matrix_lt,
+            rtol=comparison_policy.matrix_relative_tolerance,
+            atol=comparison_policy.matrix_absolute_tolerance,
+        )
+    )
+    candidate_product_close = bool(
+        np.allclose(
+            candidate_reflection_1.matrix_lt @ candidate_reflection_2.matrix_lt,
+            point.prepared_pair.product_matrix,
+            rtol=comparison_policy.matrix_relative_tolerance,
+            atol=comparison_policy.matrix_absolute_tolerance,
+        )
+    )
     product_close = bool(
         np.allclose(
             reflection_1.matrix_lt @ reflection_2.matrix_lt,
@@ -336,6 +377,9 @@ def qualify_matched_legacy_point(
     )
     comparisons = {
         "logdet": logdet,
+        "plate_1_reflection_matrix_close": reflection_1_close,
+        "plate_2_reflection_matrix_close": reflection_2_close,
+        "candidate_product_matches_prepared_pair": candidate_product_close,
         "round_trip_product_matrix_close": product_close,
         "product_eigenvalues_close": eigenvalues_close,
         "legacy_exact_q_mapping": legacy_q_exact,
@@ -345,6 +389,9 @@ def qualify_matched_legacy_point(
     }
     passed = bool(
         logdet["passed"]
+        and reflection_1_close
+        and reflection_2_close
+        and candidate_product_close
         and product_close
         and eigenvalues_close
         and legacy_q_exact
@@ -364,6 +411,7 @@ def qualify_matched_legacy_point(
             "candidate_route": "persistent_response_geometry_batch",
             "legacy_N": int(legacy_n),
             "matched_N_shift_policy_required": True,
+            "individual_reflection_matrices_compared": True,
             "qualification_boundary_only_imports_legacy_engine": True,
             "valid_for_casimir_input": False,
             "production_casimir_allowed": False,
