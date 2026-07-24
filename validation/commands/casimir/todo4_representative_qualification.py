@@ -21,6 +21,9 @@ from lno327.casimir.material_geometry_qualification_execution import (
     verify_campaign,
     write_preflight,
 )
+from lno327.casimir.material_observable_impact_calibration import (
+    write_observable_impact_calibration,
+)
 
 DEFAULT_MANIFEST = Path(
     "validation/configs/casimir/todo4_representative_v1.json"
@@ -39,6 +42,7 @@ def _parser() -> argparse.ArgumentParser:
         "preflight",
         "populate",
         "diagnose",
+        "impact",
         "geometry",
         "legacy",
         "verify",
@@ -46,7 +50,7 @@ def _parser() -> argparse.ArgumentParser:
         command = subparsers.add_parser(action)
         command.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
         command.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-        if action != "plan":
+        if action not in {"plan", "impact"}:
             command.add_argument(
                 "--cache-root",
                 type=Path,
@@ -65,6 +69,21 @@ def _parser() -> argparse.ArgumentParser:
                     "diagnostic-only N ladder; must start at the final base N "
                     "and include at least two larger even levels"
                 ),
+            )
+        if action == "impact":
+            command.add_argument(
+                "--diagnostic-source-dir",
+                type=Path,
+                required=True,
+                help=(
+                    "directory containing one complete unresolved-diagnostic "
+                    "ladder as shard_*.json"
+                ),
+            )
+            command.add_argument(
+                "--pairing-name",
+                default="dwave",
+                help="pairing represented by the diagnostic source",
             )
         if action == "preflight":
             command.add_argument("--require-complete", action="store_true")
@@ -165,6 +184,28 @@ def main(argv: Sequence[str] | None = None) -> None:
         )
         if not payload["diagnostic_completed"]:
             raise SystemExit("one or more unresolved diagnostics failed to execute")
+        return
+
+    if args.action == "impact":
+        payload = write_observable_impact_calibration(
+            campaign,
+            output_dir=args.output_dir,
+            diagnostic_source_dir=args.diagnostic_source_dir,
+            pairing_name=str(args.pairing_name),
+        )
+        _print(
+            {
+                **payload["summary"],
+                "diagnostic_ladder_tag": payload["source_diagnostics"][
+                    "diagnostic_ladder_tag"
+                ],
+                "pairing_name": payload["pairing_name"],
+                "observable_error_budget_calibrated": payload["contract"][
+                    "observable_error_budget_calibrated"
+                ],
+                "diagnostic_only": payload["diagnostic_only"],
+            }
+        )
         return
 
     if args.action == "geometry":
