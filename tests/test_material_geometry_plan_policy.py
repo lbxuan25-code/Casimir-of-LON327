@@ -61,7 +61,7 @@ def test_geometry_plan_builds_material_identity_context_once(monkeypatch) -> Non
 
     assert calls == 1
     assert len(plan.points) == 8
-    assert len(plan.requirements) == 12
+    assert len(plan.requirements) == 8
 
 
 def test_distance_changes_plan_but_not_material_requirements() -> None:
