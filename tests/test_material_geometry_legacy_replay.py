@@ -15,10 +15,18 @@ from lno327.casimir.material_response import MaterialResponsePolicy
 
 def _identity(q: tuple[float, float]) -> SimpleNamespace:
     return SimpleNamespace(
+        pairing_name="spm",
+        temperature_K=40.0,
         shifts=((0.5, 0.5), (0.25, 0.75), (0.75, 0.25)),
         xi_eV=0.021,
         matsubara_index=1,
+        microscopic_model_name="symmetry_bdg_2band",
         material_state_fingerprint="state-fingerprint",
+        response_policy_fingerprint="response-policy-fingerprint",
+        primitive_contract_version="primitive-v-test",
+        phase_hessian_policy="q_independent",
+        basis="crystal_xy",
+        certification_policy_fingerprint="certification-policy-fingerprint",
         q_crystal=np.asarray(q, dtype=float),
         canonical_reduction_block_size=4096,
     )
@@ -71,6 +79,15 @@ def _batch() -> SimpleNamespace:
     )
 
 
+def _legacy_metadata() -> dict[str, object]:
+    return {
+        "material_state_fingerprint": "state-fingerprint",
+        "primitive_contract_version": "primitive-v-test",
+        "post_integral_phase_hessian_policy": "q_independent",
+        "canonical_reduction_block_size": 4096,
+    }
+
+
 def test_real_replay_orchestrator_uses_one_working_N_primary_shift(monkeypatch) -> None:
     batch = _batch()
     monkeypatch.setattr(replay, "GeometryBatchResult", SimpleNamespace)
@@ -95,12 +112,8 @@ def test_real_replay_orchestrator_uses_one_working_N_primary_shift(monkeypatch) 
         calls["material_cache"] = kwargs
         return SimpleNamespace(grid=kwargs["grid"])
 
-    legacy_plate_1 = SimpleNamespace(
-        metadata={"material_state_fingerprint": "state-fingerprint"}
-    )
-    legacy_plate_2 = SimpleNamespace(
-        metadata={"material_state_fingerprint": "state-fingerprint"}
-    )
+    legacy_plate_1 = SimpleNamespace(metadata=_legacy_metadata())
+    legacy_plate_2 = SimpleNamespace(metadata=_legacy_metadata())
 
     def fake_integrate(**kwargs):
         calls["integrate"] = kwargs
@@ -142,8 +155,54 @@ def test_real_replay_orchestrator_uses_one_working_N_primary_shift(monkeypatch) 
     _, qualification = calls["qualify"]
     assert qualification["legacy_n"] == 64
     assert qualification["legacy_frequency_index"] == 0
+    assert result.metadata["primitive_contract_version"] == "primitive-v-test"
+    assert result.metadata["phase_hessian_policy"] == "q_independent"
+    assert result.metadata["all_material_and_numerical_contracts_matched"] is True
     assert result.metadata["n_ladder_search_performed"] is False
     assert result.metadata["response_cache_write_performed"] is False
+
+
+def test_legacy_replay_rejects_mismatched_primitive_contract(monkeypatch) -> None:
+    batch = _batch()
+    monkeypatch.setattr(replay, "GeometryBatchResult", SimpleNamespace)
+    fake_model = SimpleNamespace(
+        spec=SimpleNamespace(name="spec"),
+        build_ansatz=lambda pairing, phase_vertex: SimpleNamespace(
+            name=pairing,
+            phase_vertex=phase_vertex,
+        ),
+        build_pairing_params=lambda delta: SimpleNamespace(delta=delta),
+    )
+    monkeypatch.setattr(replay, "get_finite_q_microscopic_model", lambda name: fake_model)
+    monkeypatch.setattr(
+        replay,
+        "build_periodic_bz_grid",
+        lambda n, shift: SimpleNamespace(n=n, shift=shift),
+    )
+    monkeypatch.setattr(
+        replay,
+        "build_material_grid_cache",
+        lambda **kwargs: SimpleNamespace(grid=kwargs["grid"]),
+    )
+    bad = _legacy_metadata()
+    bad["primitive_contract_version"] = "wrong-primitive"
+    legacy = SimpleNamespace(metadata=bad)
+    monkeypatch.setattr(
+        replay,
+        "integrate_two_plate_angle_batch",
+        lambda **kwargs: SimpleNamespace(
+            plate_1=legacy,
+            plate_2=(SimpleNamespace(metadata=_legacy_metadata()),),
+            q_lab=np.asarray(kwargs["q_lab"], dtype=float),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="primitive_contract_version"):
+        replay.run_matched_legacy_geometry_replay(
+            batch,
+            point_id="q:n=1:angles=0",
+            distance_m=100e-9,
+        )
 
 
 def test_legacy_replay_rejects_policy_the_archived_helper_cannot_express(
