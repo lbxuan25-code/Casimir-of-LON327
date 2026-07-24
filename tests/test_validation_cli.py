@@ -19,6 +19,7 @@ def test_validation_cli_exposes_retained_check_surfaces():
         ("casimir", "outer-q-quadrature-preflight"),
         ("diagnostic", "arbitrary-q-performance-smoke"),
         ("diagnostic", "arbitrary-q-physics-smoke"),
+        ("diagnostic", "todo4-representative-qualification"),
     }
     assert set(available_commands()) == expected
 
