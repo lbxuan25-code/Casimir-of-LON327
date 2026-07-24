@@ -6,6 +6,9 @@ import json
 from pathlib import Path
 from typing import Sequence
 
+from lno327.casimir.material_geometry_qualification_compatibility import (
+    write_legacy_compatibility,
+)
 from lno327.casimir.material_geometry_qualification_execution import (
     execute_campaign_geometry,
     execute_legacy_shard,
@@ -70,7 +73,21 @@ def main(argv: Sequence[str] | None = None) -> None:
             cache_root=args.cache_root,
             require_complete=bool(args.require_complete),
         )
-        _print(payload["summary"])
+        summary = dict(payload["summary"])
+        if args.require_complete:
+            compatibility = write_legacy_compatibility(
+                campaign,
+                output_dir=args.output_dir,
+                cache_root=args.cache_root,
+                require_ready=True,
+            )
+            summary["legacy_qualification_ready"] = compatibility["summary"][
+                "qualification_ready"
+            ]
+            summary["legacy_incompatible_pair_count"] = compatibility["summary"][
+                "incompatible_pair_count"
+            ]
+        _print(summary)
         return
 
     if args.action == "populate":
@@ -109,6 +126,12 @@ def main(argv: Sequence[str] | None = None) -> None:
         return
 
     if args.action == "legacy":
+        write_legacy_compatibility(
+            campaign,
+            output_dir=args.output_dir,
+            cache_root=args.cache_root,
+            require_ready=True,
+        )
         payload = execute_legacy_shard(
             campaign,
             output_dir=args.output_dir,
@@ -127,6 +150,12 @@ def main(argv: Sequence[str] | None = None) -> None:
             raise SystemExit("one or more matched legacy points failed")
         return
 
+    write_legacy_compatibility(
+        campaign,
+        output_dir=args.output_dir,
+        cache_root=args.cache_root,
+        require_ready=True,
+    )
     payload = verify_campaign(
         campaign,
         output_dir=args.output_dir,
