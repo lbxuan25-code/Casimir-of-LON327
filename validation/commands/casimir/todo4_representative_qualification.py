@@ -21,8 +21,8 @@ from lno327.casimir.material_geometry_qualification_execution import (
     verify_campaign,
     write_preflight,
 )
-from lno327.casimir.material_observable_impact_calibration import (
-    write_observable_impact_calibration,
+from lno327.casimir.material_observable_impact_slice import (
+    write_plan_filtered_observable_impact_calibration,
 )
 
 DEFAULT_MANIFEST = Path(
@@ -84,6 +84,15 @@ def _parser() -> argparse.ArgumentParser:
                 "--pairing-name",
                 default="dwave",
                 help="pairing represented by the diagnostic source",
+            )
+            command.add_argument(
+                "--plan-id",
+                action="append",
+                default=None,
+                help=(
+                    "optional exact direct-plan ID to replay; repeat for multiple "
+                    "plans. Omit to use every direct plan for the pairing"
+                ),
             )
         if action == "preflight":
             command.add_argument("--require-complete", action="store_true")
@@ -187,11 +196,16 @@ def main(argv: Sequence[str] | None = None) -> None:
         return
 
     if args.action == "impact":
-        payload = write_observable_impact_calibration(
+        payload = write_plan_filtered_observable_impact_calibration(
             campaign,
             output_dir=args.output_dir,
             diagnostic_source_dir=args.diagnostic_source_dir,
             pairing_name=str(args.pairing_name),
+            plan_ids=(
+                None
+                if args.plan_id is None
+                else tuple(str(value) for value in args.plan_id)
+            ),
         )
         _print(
             {
@@ -200,6 +214,8 @@ def main(argv: Sequence[str] | None = None) -> None:
                     "diagnostic_ladder_tag"
                 ],
                 "pairing_name": payload["pairing_name"],
+                "selected_plan_ids": payload.get("selected_plan_ids"),
+                "plan_filter_applied": bool(payload.get("plan_filter_applied", False)),
                 "observable_error_budget_calibrated": payload["contract"][
                     "observable_error_budget_calibrated"
                 ],
