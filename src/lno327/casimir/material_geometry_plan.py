@@ -21,6 +21,7 @@ from lno327.casimir.material_response_cache_identity import (
 )
 from lno327.casimir.material_response_cached_engine import (
     build_material_response_cache_identity,
+    build_material_response_identity_context,
 )
 from lno327.casimir.material_response_engine import MaterialResponseEngineConfig
 from lno327.electrodynamics.basis import q_lab_to_crystal
@@ -266,7 +267,11 @@ class GeometryBatchPlan:
     def identity_payload(self) -> dict[str, Any]:
         return {
             "schema": self.schema,
-            "response_config": self.response_config.as_dict(),
+            "response_identity_context": {
+                key: value
+                for key, value in self.response_config.as_dict().items()
+                if key != "runtime_chunk_size"
+            },
             "q_lab_by_label_hex": {
                 label: list(_q_hex(value))
                 for label, value in sorted(self.q_lab_by_label.items())
@@ -339,6 +344,7 @@ def build_geometry_batch_plan(
     if not isinstance(geometry_policy, GeometryBatchPolicy):
         raise TypeError("policy must be a GeometryBatchPolicy")
 
+    identity_context = build_material_response_identity_context(response_config)
     requirements: dict[str, PlateResponseRequirement] = {}
     points: list[GeometryPointSpec] = []
     for q_label, q_lab in q_points:
@@ -351,6 +357,7 @@ def build_geometry_batch_plan(
                         response_config,
                         q_crystal=q_crystal,
                         matsubara_index=matsubara_index,
+                        context=identity_context,
                     )
                     requirements.setdefault(
                         identity.sha256,
