@@ -12,8 +12,12 @@ from typing import Any, Mapping
 
 import numpy as np
 
-from lno327 import KuboConfig
 from lno327.casimir.material_response_cache_identity import MaterialResponseCacheIdentity
+from lno327.casimir.material_response_cache_request import (
+    MATERIAL_RESPONSE_CACHE_REQUEST_SCHEMA,
+    build_material_response_cache_identity as _build_cache_identity,
+    build_material_response_identity_context as _build_identity_context,
+)
 from lno327.casimir.material_response_cache_store import (
     CachedCertifiedMaterialResponse,
     MaterialResponseCacheStore,
@@ -24,12 +28,6 @@ from lno327.casimir.material_response_engine import (
     evaluate_material_response_ladder,
 )
 from lno327.casimir.material_response_snapshot import MaterialResponseSnapshot
-from lno327.casimir.matsubara import matsubara_energy_eV
-from lno327.casimir.microscopic_model import get_finite_q_microscopic_model
-from lno327.electrodynamics.static_sheet import STATIC_LOCAL_BASIS
-from lno327.response.arbitrary_q_formal_policy import PRIMITIVE_CONTRACT_VERSION
-from lno327.response.arbitrary_q_material_cache import material_state_fingerprint
-from lno327.workflows.finite_q_engine import FiniteQEngineOptions
 
 MATERIAL_RESPONSE_CACHED_ENGINE_SCHEMA = "material-response-cached-engine-v1"
 
@@ -44,34 +42,16 @@ def _readonly_q(value: np.ndarray) -> np.ndarray:
     return q
 
 
-def _phase_hessian_policy(pairing_name: str) -> str:
-    return "nearest_neighbor_bond_metric" if pairing_name == "dwave" else "q_independent"
-
-
 def _identity_context(config: MaterialResponseEngineConfig) -> dict[str, Any]:
-    model = get_finite_q_microscopic_model(config.microscopic_model_name)
-    ansatz = model.build_ansatz(
-        config.pairing_name,
-        phase_vertex="bond_endpoint_gauge",
-    )
-    pairing = model.build_pairing_params(config.delta0_eV)
-    base_config = KuboConfig.from_kelvin(
-        omega_eV=0.0,
-        temperature_K=config.temperature_K,
-        eta_eV=config.eta_eV,
-        output_si=False,
-    )
-    options = FiniteQEngineOptions(phase_hessian_policy="q_independent")
-    return {
-        "material_state_fingerprint": material_state_fingerprint(
-            spec=model.spec,
-            ansatz=ansatz,
-            pairing=pairing,
-            config=base_config,
-            options=options,
-        ),
-        "phase_hessian_policy": _phase_hessian_policy(config.pairing_name),
-    }
+    """Compatibility hook retained for tests and local diagnostics."""
+
+    return dict(_build_identity_context(config))
+
+
+def _normalized_context(context: Mapping[str, Any]) -> dict[str, Any]:
+    payload = dict(context)
+    payload.setdefault("schema", MATERIAL_RESPONSE_CACHE_REQUEST_SCHEMA)
+    return payload
 
 
 def build_material_response_identity_context(
@@ -81,7 +61,7 @@ def build_material_response_identity_context(
 
     if not isinstance(config, MaterialResponseEngineConfig):
         raise TypeError("config must be a MaterialResponseEngineConfig")
-    return MappingProxyType(_identity_context(config))
+    return _build_identity_context(config)
 
 
 def build_material_response_cache_identity(
@@ -91,33 +71,16 @@ def build_material_response_cache_identity(
     matsubara_index: int,
     context: Mapping[str, Any] | None = None,
 ) -> MaterialResponseCacheIdentity:
-    """Build one exact geometry-free physical and certification identity."""
+    """Compatibility wrapper around the cache-request identity boundary."""
 
     if not isinstance(config, MaterialResponseEngineConfig):
         raise TypeError("config must be a MaterialResponseEngineConfig")
-    q = _readonly_q(q_crystal)
-    index = int(matsubara_index)
-    if index < 0:
-        raise ValueError("matsubara_index must be non-negative")
-    state = _identity_context(config) if context is None else dict(context)
-    return MaterialResponseCacheIdentity(
-        pairing_name=config.pairing_name,
-        temperature_K=config.temperature_K,
-        matsubara_index=index,
-        xi_eV=matsubara_energy_eV(index, config.temperature_K),
-        q_crystal=q,
-        microscopic_model_name=config.microscopic_model_name,
-        material_state_fingerprint=state["material_state_fingerprint"],
-        response_policy_fingerprint=config.material_policy.fingerprint,
-        primitive_contract_version=PRIMITIVE_CONTRACT_VERSION,
-        phase_hessian_policy=state["phase_hessian_policy"],
-        basis=STATIC_LOCAL_BASIS if index == 0 else "crystal_xy",
-        convergence_policy=config.convergence_policy.as_dict(),
-        required_consecutive_passes=config.required_consecutive_passes,
-        envelope_levels=config.envelope_levels,
-        n_candidates=config.n_candidates,
-        shifts=config.shifts,
-        canonical_reduction_block_size=config.canonical_reduction_block_size,
+    state = _identity_context(config) if context is None else _normalized_context(context)
+    return _build_cache_identity(
+        config,
+        q_crystal=q_crystal,
+        matsubara_index=matsubara_index,
+        context=state,
     )
 
 
