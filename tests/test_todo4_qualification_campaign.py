@@ -8,6 +8,9 @@ from lno327.casimir.material_geometry_qualification_campaign import (
     load_todo4_qualification_manifest,
     qualification_plan_payload,
 )
+from lno327.casimir.material_geometry_qualification_compatibility import (
+    legacy_compatibility_payload,
+)
 from lno327.casimir.material_geometry_qualification_execution import (
     preflight_payload,
     validate_shard,
@@ -40,7 +43,10 @@ def test_representative_manifest_is_sparse_but_covers_required_route_classes() -
     assert sum(len(entry.geometry_plan.points) for entry in campaign.entries) == 16
 
     direct = [entry for entry in campaign.entries if entry.kind == "direct"]
-    assert all(entry.geometry_plan.response_config.matsubara_indices == (0, 1) for entry in direct)
+    assert all(
+        entry.geometry_plan.response_config.matsubara_indices == (0, 1)
+        for entry in direct
+    )
     assert all(len(entry.geometry_plan.separations_m) == 3 for entry in direct)
     assert {
         tuple(entry.geometry_plan.angle_pairs_rad[0])
@@ -89,6 +95,27 @@ def test_empty_read_only_preflight_reports_all_exact_misses_without_creating_roo
     assert cache_root.exists() is False
     assert payload["contract"]["microscopic_fallback_attempted"] is False
     assert payload["contract"]["cache_write_attempted"] is False
+
+
+def test_legacy_evidence_preflight_stops_before_replay_when_cache_is_missing(
+    tmp_path: Path,
+) -> None:
+    campaign = _campaign()
+    cache_root = tmp_path / "absent-cache"
+
+    payload = legacy_compatibility_payload(campaign, cache_root=cache_root)
+
+    assert payload["summary"] == {
+        "unique_artifact_count": 0,
+        "missing_identity_count": 20,
+        "legacy_pair_count": 16,
+        "incompatible_pair_count": 0,
+        "pending_pair_count": 16,
+        "qualification_ready": False,
+    }
+    assert all(row["status"] == "pending_cache_miss" for row in payload["records"])
+    assert payload["contract"]["common_N_or_shift_search_performed"] is False
+    assert cache_root.exists() is False
 
 
 def test_populate_groups_partition_without_overlap_or_loss() -> None:
