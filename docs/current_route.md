@@ -50,6 +50,7 @@ docs/casimir/todo4_fast_geometry_assembly.md
 - `disabled`、`populate` 与 strict `read_only` 三种缓存模式；
 - cache hit 直接加载，partial hit 只把缺失频率送入 microscopic engine；
 - strict read-only miss 不允许 microscopic fallback；
+- 独立的 response-cache request identity 边界，使 geometry plan 不依赖 cached engine；
 - 从 live sample 或 persisted snapshot 到单板 reflection 和双板 signed logdet
   的纯几何组装；
 - exact `q_crystal = R(-theta_plate) @ q_lab` 的 geometry batch plan；
@@ -58,9 +59,14 @@ docs/casimir/todo4_fast_geometry_assembly.md
   distance-independent `R1 @ R2`；
 - 多距离只更新传播因子和 signed logdet 的 prepared-pair evaluator；
 - zero/positive Matsubara 的 scalar/batch geometry replay；
-- 隔离的 scalar-vs-batch 和 matched-N/shift/reduction legacy qualification API；
-- repository-level import guards，保持 material、persistence、geometry planning、
-  geometry execution、qualification 和 observable 层的单向依赖；
+- 隔离的 scalar-vs-batch qualification；
+- 从 certified artifact 读取 working N 与 primary shift、只执行一个旧 microscopic
+  point 的 narrow legacy replay runner；
+- 旧/新比较对 individual reflections、product、eigenvalues、signed logdet、exact q，
+  以及 material/primitive/phase/N/shift/reduction 合同的硬检查；
+- 使用分单位 absolute tolerances 的 reduced fixed-outer replay contract；
+- repository-level import guards，保持 material、persistence、cache request、geometry
+  planning、geometry execution、legacy/outer qualification 和 observable 层的隔离；
 - 所有新对象保持 diagnostic-only。
 
 TODO 4 尚未完成的 qualification 项：
@@ -68,8 +74,9 @@ TODO 4 尚未完成的 qualification 项：
 - SPM 与 d-wave 的真实 microscopic representative points；
 - exact n=0 与至少一个正 Matsubara 频率；
 - 轴向和斜向 q、零角和非零相对角；
-- 匹配 working N、primary shift 和 canonical reduction 后的旧/新直接比较记录；
-- 使用相同点值的小型 fixed-outer-Q replay。
+- 完整匹配 material、primitive、phase、working N、primary shift 与 reduction 后的
+  真实旧/新直接比较记录；
+- 使用这些真实点值的小型 fixed-outer-Q replay 记录。
 
 这些只允许是窄范围 qualification，不允许扩展成新的大规模扫描。
 
@@ -103,22 +110,30 @@ fallback、cache write 或旧路线 fallback。
 旧的进程内 `CrystalResponseCache` 与历史 point cache 没有被升级、迁移或
 重命名为新的 certified response cache。
 
-## 旧路线的地位
+## 旧路线与 qualification 的地位
 
 `fixed_transverse_point_engine.py` 与
 `fixed_transverse_point_certification.py` 仍保存旧的 geometry-specific
 `two_plate_logdet` sweet-spot 路线，用于历史回归和归档结果解释。它们不是新的
 可复用材料响应架构，也不能把旧 point cache 自动提升为 response cache。
 
-旧路线只允许从 `material_geometry_qualification.py` 的隔离边界进入直接比较。
-比较前必须验证 working N、primary shift、canonical reduction、exact q 和角度匹配。
+旧路线只允许从 `material_geometry_legacy_replay.py` 和
+`material_geometry_qualification.py` 的隔离边界进入显式比较。比较前必须验证
+material state、response policy、primitive contract、phase policy、working N、
+primary shift、canonical reduction、exact q、频率和角度全部匹配。
+
+`material_geometry_outer_qualification.py` 只接收已经匹配的 old/new logdet arrays，
+并用同一个 fixed outer grid 做有限 partial-sum replay。它不触发 microscopic 或
+geometry 计算，也不构成 tail 或 observable-level error qualification。
+
 新 geometry batch 或 strict cache-only 路线失败时，不允许自动退回旧链并把结果
 标成等价。
 
 ## 接下来的顺序
 
 ```text
-TODO 4 representative old/new qualification + reduced fixed-outer replay
+TODO 4 representative real old/new point qualification
+→ real reduced fixed-outer replay
 → TODO 4 review/merge
 → TODO 5 finite-temperature frequency compression/reference-subtraction pilot
 → high-frequency convergence of Delta F / torque / pressure
