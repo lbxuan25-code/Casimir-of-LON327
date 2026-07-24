@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -33,8 +33,49 @@ from lno327.casimir.material_response_engine import (
 )
 
 TODO4_UNRESOLVED_DIAGNOSTIC_SHARD_SCHEMA = (
-    "todo4-unresolved-response-diagnostic-shard-v1"
+    "todo4-unresolved-response-diagnostic-shard-v2"
 )
+
+
+def normalize_diagnostic_n_candidates(
+    base_n_candidates: Sequence[int],
+    override: Sequence[int] | None,
+) -> tuple[int, ...]:
+    """Validate a controlled diagnostic ladder with one exact overlap anchor.
+
+    The base qualification identity is never changed by this helper.  An override is
+    diagnostic-only and must begin at the final base N so the old and extended
+    histories share one exact level.  At least two strictly larger levels are
+    required so adjacent-N and three-level envelope evidence remain available.
+    """
+
+    base = tuple(int(value) for value in base_n_candidates)
+    if not base:
+        raise ValueError("base_n_candidates must be nonempty")
+    if override is None:
+        return base
+
+    values = tuple(int(value) for value in override)
+    if len(values) < 3:
+        raise ValueError("diagnostic N override requires at least three levels")
+    if any(value <= 0 or value % 2 != 0 for value in values):
+        raise ValueError("diagnostic N candidates must be positive even integers")
+    if tuple(sorted(set(values))) != values:
+        raise ValueError("diagnostic N candidates must be strictly increasing and unique")
+    if values[0] != base[-1]:
+        raise ValueError(
+            "diagnostic N override must start at the final base N overlap anchor"
+        )
+    if values[1] <= base[-1]:
+        raise ValueError("diagnostic N override must extend beyond the base ladder")
+    return values
+
+
+def diagnostic_ladder_tag(n_candidates: Sequence[int]) -> str:
+    values = tuple(int(value) for value in n_candidates)
+    if not values:
+        raise ValueError("n_candidates must be nonempty")
+    return "N" + "-".join(str(value) for value in values)
 
 
 def _config_by_pairing(
@@ -73,6 +114,24 @@ def _missing_indices(
     return tuple(missing), tuple(identities)
 
 
+def _diagnostic_identity_sha256(
+    config: MaterialResponseEngineConfig,
+    *,
+    q_crystal: np.ndarray,
+    indices: Sequence[int],
+) -> dict[str, str]:
+    context = build_material_response_identity_context(config)
+    return {
+        str(index): build_material_response_cache_identity(
+            config,
+            q_crystal=q_crystal,
+            matsubara_index=int(index),
+            context=context,
+        ).sha256
+        for index in indices
+    }
+
+
 def diagnose_unresolved_shard(
     campaign: Todo4QualificationCampaign,
     *,
@@ -80,18 +139,30 @@ def diagnose_unresolved_shard(
     cache_root: Path,
     shard_index: int,
     shard_count: int,
+    n_candidates_override: Sequence[int] | None = None,
 ) -> dict[str, Any]:
-    """Re-evaluate only exact cache misses and persist compact failure evidence.
+    """Re-evaluate only exact base-cache misses and persist compact failure evidence.
 
     This stage never writes the certified-response cache.  An unresolved response is
     an expected diagnostic result and does not make the command fail; only execution
-    or serialization errors do.
+    or serialization errors do.  A controlled N override changes only the in-memory
+    diagnostic ladder and is recorded separately from every base cache identity.
     """
 
     frozen = require_frozen_plan(campaign, output_dir)
     validate_shard(shard_index, shard_count)
     configs = _config_by_pairing(campaign)
     cache = MaterialResponseCacheStore(cache_root, mode="read_only")
+
+    base_ladders = {config.n_candidates for config in configs.values()}
+    if len(base_ladders) != 1:
+        raise ValueError("diagnostic campaign requires one shared base N ladder")
+    base_n_candidates = next(iter(base_ladders))
+    diagnostic_n_candidates = normalize_diagnostic_n_candidates(
+        base_n_candidates,
+        n_candidates_override,
+    )
+    override_active = diagnostic_n_candidates != tuple(base_n_candidates)
 
     missing_groups: list[
         tuple[str, tuple[str, str], np.ndarray, tuple[int, ...], tuple[str, ...]]
@@ -114,10 +185,14 @@ def diagnose_unresolved_shard(
     errors = 0
     unresolved = 0
     established = 0
-    for pairing, q_hex, q, missing, identities in selected:
+    for pairing, q_hex, q, missing, base_identities in selected:
         config = configs[pairing]
         try:
-            diagnostic_config = replace(config, matsubara_indices=missing)
+            diagnostic_config = replace(
+                config,
+                matsubara_indices=missing,
+                n_candidates=diagnostic_n_candidates,
+            )
             result = evaluate_material_response_ladder(
                 diagnostic_config,
                 q_crystal=q,
@@ -141,8 +216,15 @@ def diagnose_unresolved_shard(
                 {
                     "pairing_name": pairing,
                     "q_crystal_hex": list(q_hex),
-                    "requested_cache_identity_sha256": list(identities),
+                    "base_requested_cache_identity_sha256": list(base_identities),
+                    "diagnostic_identity_sha256": _diagnostic_identity_sha256(
+                        diagnostic_config,
+                        q_crystal=q,
+                        indices=missing,
+                    ),
                     "missing_matsubara_indices": list(missing),
+                    "base_n_candidates": list(base_n_candidates),
+                    "diagnostic_n_candidates": list(diagnostic_n_candidates),
                     "evaluated_n_candidates": list(result.evaluated_n_candidates),
                     "frequencies": frequencies,
                     "status": "diagnostic_completed",
@@ -154,8 +236,10 @@ def diagnose_unresolved_shard(
                 {
                     "pairing_name": pairing,
                     "q_crystal_hex": list(q_hex),
-                    "requested_cache_identity_sha256": list(identities),
+                    "base_requested_cache_identity_sha256": list(base_identities),
                     "missing_matsubara_indices": list(missing),
+                    "base_n_candidates": list(base_n_candidates),
+                    "diagnostic_n_candidates": list(diagnostic_n_candidates),
                     "status": "error",
                     "error_type": type(exc).__name__,
                     "error": str(exc),
@@ -169,6 +253,10 @@ def diagnose_unresolved_shard(
         "source_commit": source_commit(),
         "cache_root": str(cache_root),
         "cache_mode": "read_only",
+        "base_n_candidates": list(base_n_candidates),
+        "diagnostic_n_candidates": list(diagnostic_n_candidates),
+        "diagnostic_ladder_tag": diagnostic_ladder_tag(diagnostic_n_candidates),
+        "diagnostic_n_override_active": override_active,
         "shard_index": int(shard_index),
         "shard_count": int(shard_count),
         "total_missing_group_count": len(missing_groups),
@@ -180,15 +268,17 @@ def diagnose_unresolved_shard(
         "diagnostic_completed": errors == 0,
         "cache_write_attempted": False,
         "certified_artifact_created": False,
+        "base_cache_identity_changed": False,
         "diagnostic_only": True,
         "valid_for_casimir_input": False,
         "production_casimir_allowed": False,
     }
-    path = (
-        Path(output_dir)
-        / "unresolved_diagnostics"
-        / f"shard_{shard_index:03d}_of_{shard_count:03d}.json"
-    )
+    diagnostic_root = Path(output_dir) / "unresolved_diagnostics"
+    if override_active:
+        diagnostic_root = diagnostic_root / diagnostic_ladder_tag(
+            diagnostic_n_candidates
+        )
+    path = diagnostic_root / f"shard_{shard_index:03d}_of_{shard_count:03d}.json"
     atomic_write_json(path, payload)
     return payload
 
@@ -196,4 +286,6 @@ def diagnose_unresolved_shard(
 __all__ = [
     "TODO4_UNRESOLVED_DIAGNOSTIC_SHARD_SCHEMA",
     "diagnose_unresolved_shard",
+    "diagnostic_ladder_tag",
+    "normalize_diagnostic_n_candidates",
 ]
