@@ -16,10 +16,8 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 
 from lno327.casimir.material_geometry import ReflectionGeometryPolicy
-from lno327.casimir.material_response_cache_identity import (
-    MaterialResponseCacheIdentity,
-)
-from lno327.casimir.material_response_cached_engine import (
+from lno327.casimir.material_response_cache_identity import MaterialResponseCacheIdentity
+from lno327.casimir.material_response_cache_request import (
     build_material_response_cache_identity,
     build_material_response_identity_context,
 )
@@ -280,9 +278,7 @@ class GeometryBatchPlan:
                 [float(first).hex(), float(second).hex()]
                 for first, second in self.angle_pairs_rad
             ],
-            "separations_m_hex": [
-                float(value).hex() for value in self.separations_m
-            ],
+            "separations_m_hex": [float(value).hex() for value in self.separations_m],
             "policy": self.policy.as_dict(),
             "requirement_sha256": list(self.requirements),
             "point_ids": [point.point_id for point in self.points],
