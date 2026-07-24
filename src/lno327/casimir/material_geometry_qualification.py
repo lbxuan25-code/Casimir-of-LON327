@@ -13,9 +13,7 @@ from typing import Any, Mapping
 import numpy as np
 
 from lno327.casimir.lifshitz_integrand import passive_sheet_logdet
-from lno327.casimir.material_geometry_batch import (
-    GeometryBatchResult,
-)
+from lno327.casimir.material_geometry_batch import GeometryBatchResult
 from lno327.casimir.material_two_plate import (
     TwoPlateGeometryPolicy,
     assemble_two_plate_logdet,
@@ -30,6 +28,18 @@ def _finite_nonnegative(value: float, name: str) -> float:
     if not np.isfinite(scalar) or scalar < 0.0:
         raise ValueError(f"{name} must be finite and non-negative")
     return scalar
+
+
+def _legacy_shift_label(identity: object, grid: Mapping[str, Any]) -> str:
+    raw = tuple(float(value) % 1.0 for value in grid.get("shift", ()))
+    if len(raw) != 2:
+        raise ValueError("legacy grid metadata lacks one exact two-component shift")
+    for index, shift in enumerate(identity.shifts):
+        if tuple(float(value).hex() for value in raw) == tuple(
+            float(value).hex() for value in shift
+        ):
+            return f"shift_{index}:{float(shift[0]).hex()}:{float(shift[1]).hex()}"
+    raise ValueError("legacy grid shift is absent from cache certification identity")
 
 
 def _comparison(
@@ -207,8 +217,9 @@ def qualify_matched_legacy_point(
 
     ``legacy_batch`` must be the result of the archived
     ``integrate_two_plate_angle_batch`` path at exactly the same q, angles,
-    frequency, N, shift, and physical policy. The archived private plate helper
-    is intentionally imported only inside this qualification boundary.
+    frequency, N, shift, canonical reduction, and physical policy. The archived
+    private plate helper is intentionally imported only inside this
+    qualification boundary.
     """
 
     if not isinstance(batch, GeometryBatchResult):
@@ -249,6 +260,43 @@ def qualify_matched_legacy_point(
         xi_eV=float(legacy_xi_eV),
         args=legacy_args,
     )
+
+    artifact_1 = batch.preflight.artifacts[spec.plate_1_requirement]
+    artifact_2 = batch.preflight.artifacts[spec.plate_2_requirement]
+    grid_1 = dict(getattr(legacy_batch.plate_1, "metadata", {}).get("grid", {}))
+    grid_2 = dict(getattr(legacy_batch.plate_2[0], "metadata", {}).get("grid", {}))
+    legacy_N_matches = bool(
+        int(legacy_n) == artifact_1.working_N == artifact_2.working_N
+        and int(grid_1.get("N", -1)) == int(legacy_n)
+        and int(grid_2.get("N", -1)) == int(legacy_n)
+    )
+    legacy_primary_shift_matches = bool(
+        _legacy_shift_label(artifact_1.identity, grid_1) == artifact_1.primary_shift
+        and _legacy_shift_label(artifact_2.identity, grid_2) == artifact_2.primary_shift
+    )
+    legacy_reduction_matches = bool(
+        int(
+            getattr(legacy_batch.plate_1, "metadata", {}).get(
+                "canonical_reduction_block_size", -1
+            )
+        )
+        == artifact_1.identity.canonical_reduction_block_size
+        and int(
+            getattr(legacy_batch.plate_2[0], "metadata", {}).get(
+                "canonical_reduction_block_size", -1
+            )
+        )
+        == artifact_2.identity.canonical_reduction_block_size
+    )
+    if not (
+        legacy_N_matches
+        and legacy_primary_shift_matches
+        and legacy_reduction_matches
+    ):
+        raise ValueError(
+            "legacy N/shift/reduction policy does not match persisted primary responses"
+        )
+
     legacy_point = passive_sheet_logdet(
         reflection_1,
         reflection_2,
@@ -291,12 +339,18 @@ def qualify_matched_legacy_point(
         "round_trip_product_matrix_close": product_close,
         "product_eigenvalues_close": eigenvalues_close,
         "legacy_exact_q_mapping": legacy_q_exact,
+        "legacy_working_N_matches": legacy_N_matches,
+        "legacy_primary_shift_matches": legacy_primary_shift_matches,
+        "legacy_canonical_reduction_matches": legacy_reduction_matches,
     }
     passed = bool(
         logdet["passed"]
         and product_close
         and eigenvalues_close
         and legacy_q_exact
+        and legacy_N_matches
+        and legacy_primary_shift_matches
+        and legacy_reduction_matches
         and legacy_plate_1["hard_physical_passed"]
         and legacy_plate_2["hard_physical_passed"]
     )
